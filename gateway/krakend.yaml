@@ -1,0 +1,84 @@
+version: 3
+name: Podzone GATEWAY
+endpoints:
+  - endpoint: /token
+    method: POST
+    backend:
+      - url_pattern: /token
+        host:
+          - http://iam:8080
+    extra_config:
+      auth/signer:
+        alg: HS256
+        kid: 7c8834fd-2ce2-419b-b75f-5187b0ce6213
+        keys_to_sign:
+          - access_token
+          - refresh_token
+        jwk_url: http://iam:8080/.well-known/jwks.json
+        disable_jwk_security: true
+        full: false
+
+  - endpoint: /secure-data
+    method: GET
+    backend:
+      - url_pattern: /data
+        host:
+          - http://iam:8080 
+    extra_config:
+      auth/validator:
+        alg: HS256
+        audience:
+          - http://api.example.com
+        jwk_url: http://iam:8080/.well-known/jwks.json
+        roles:
+          - user
+          - admin
+        keys_to_sign:
+          - access_token
+        disable_jwk_security: true
+        cache: false
+
+  - endpoint: /order/{level1}
+    method: GET
+    backend:
+      - url_pattern: /{level1}
+        host:
+          - http://order:8000
+
+  # with krakend CE we have to configure wildcard routing by hand
+  - endpoint: /iam/{level1}
+    method: GET
+    backend:
+      - url_pattern: /{level1}
+        host:
+          - http://iam:8080
+  - endpoint: /iam/{level1}/{level2}
+    method: GET
+    backend:
+      - url_pattern: /{level1}/{level2}
+        host:
+          - http://iam:8080
+  - endpoint: /iam/{level1}/{level2}/{level3}
+    method: GET
+    backend:
+      - url_pattern: /{level1}/{level2}/{level3}
+        host:
+          - http://iam:8080
+  - endpoint: /iam/{level1}/{level2}/{level3}/{level4}
+    method: GET
+    backend:
+      - url_pattern: /{level1}/{level2}/{level3}/{level4}
+        host:
+          - http://iam:8080
+  - endpoint: /iam/{level1}/{level2}/{level3}/{level4}/{level5}
+    method: GET
+    backend:
+      - url_pattern: /{level1}/{level2}/{level3}/{level4}/{level5}
+        host:
+          - http://iam:8080
+  - endpoint: /iam/{level1}/{level2}/{level3}/{level4}/{level5}/{level6}
+    method: GET
+    backend:
+      - url_pattern: /{level1}/{level2}/{level3}/{level4}/{level5}/{level6}
+        host:
+          - http://iam:8080

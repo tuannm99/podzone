@@ -1,0 +1,122 @@
+services:
+  krakend:
+    image: devopsfaith/krakend:watch
+    container_name: podzone-gateway
+    volumes:
+      - './gateway:/etc/krakend'
+    ports:
+      - '8080:8080'
+    command: ['run', '-dc', '/etc/krakend/krakend.yaml']
+
+  iam:
+    build:
+      context: ./iam
+      dockerfile: Dockerfile-dev
+    ports:
+      - '8000:8080'
+    container_name: podzone-iam
+    volumes:
+      - ./iam/:/app
+      - /app/vendor
+    environment:
+      - GO111MODULE=on
+    command: air
+
+
+  # elasticsearch:
+  #     container_name: 'elasticsearch'
+  #     hostname: 'elasticsearch'
+  #     image: docker.elastic.co/elasticsearch/elasticsearch:7.7.0
+  #     ports:
+  #         - '9200:9200'
+  #         - '9300:9300'
+  #     volumes:
+  #         - ./data-mount/elasticsearch/data:/usr/share/elasticsearch/data
+  #     environment: # [..] Read more: Cluster mode https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html
+  #         - 'discovery.type=single-node'
+  #         - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+  #         # - XPACK_MONITORING_ENABLED=true # [..] Read more: https://www.elastic.co/guide/en/elasticsearch/reference/7.7/elasticsearch-security.html
+  #         # - ELASTICSEARCH_USERNAME=elastic
+  #         # - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+  #
+  # kibana:
+  #     container_name: 'kibana'
+  #     hostname: 'kibana'
+  #     image: docker.elastic.co/kibana/kibana:7.7.0
+  #     ports:
+  #         - '5601:5601'
+  #     environment: # [..] Read more: https://www.elastic.co/guide/en/kibana/current/settings.html
+  #         - SERVER_HOST=0.0.0.0
+  #         - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+  #
+  # zookeeper:
+  #     image: confluentinc/cp-zookeeper:7.2.1
+  #     hostname: zookeeper
+  #     container_name: zookeeper
+  #     ports:
+  #         - '2181:2181'
+  #     environment:
+  #         ZOOKEEPER_CLIENT_PORT: 2181
+  #         ZOOKEEPER_TICK_TIME: 2000
+  #
+  # kafka:
+  #     image: confluentinc/cp-server:7.2.1
+  #     hostname: kafka
+  #     container_name: kafka
+  #     depends_on:
+  #         - zookeeper
+  #     ports:
+  #         - '9092:9092'
+  #         - '9997:9997'
+  #     environment:
+  #         KAFKA_BROKER_ID: 1
+  #         KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+  #         KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+  #         KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+  #         KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  #         KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+  #         KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+  #         KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
+  #         KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+  #         KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+  #         KAFKA_JMX_PORT: 9997
+  #         KAFKA_JMX_HOSTNAME: kafka
+
+  # rabbitt:
+  #   hostname: 'rabbitt'
+  #   image: rabbitmq:3.13.0-management-alpine
+  #   container_name: rabbitmq-ssn-mono
+  #   healthcheck:
+  #     test: ['CMD', 'curl', '-f', 'http://localhost:5672']
+  #     interval: 30s
+  #     timeout: 30s
+  #     retries: 3
+  #   ports:
+  #     - '5672:5672'
+  #     - '15672:15672'
+  #   volumes:
+  #     - ./data-mount/rabbit-data:/var/lib/rabbitmq/mnesia/
+
+  # pg_db:
+  #   image: postgres:16-alpine
+  #   container_name: pet_pg_db # ==> access from pgadmin via this container name
+  #   # restart: always
+  #   ports:
+  #     - '5432:5432'
+  #   environment:
+  #     POSTGRES_USER: user
+  #     POSTGRES_PASSWORD: 12345678
+  #   volumes:
+  #     - ./data-mount/local_pgdata:/var/lib/postgresql/data
+
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   container_name: pet_pgadmin4_container
+  #   # restart: always
+  #   ports:
+  #     - '8888:80'
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: user@domain.com
+  #     PGADMIN_DEFAULT_PASSWORD: 12345678
+  #   volumes:
+  #     - ./data-mount/local_pgadmin-data:/var/lib/pgadmin
