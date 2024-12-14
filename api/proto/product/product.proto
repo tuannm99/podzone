@@ -1,0 +1,133 @@
+syntax = "proto3";
+
+package catalog;
+
+option go_package = "github.com/tuannm99/podzone/pkg/api/proto/catalog";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+// ProductService handles catalog and product operations
+service ProductService {
+  // GetProduct retrieves a product by ID
+  rpc GetProduct(GetProductRequest) returns (Product) {
+    option (google.api.http) = {
+      get: "/api/v1/products/{id}"
+    };
+  }
+
+  // ListProducts retrieves a list of products with optional filtering
+  rpc ListProducts(ListProductsRequest) returns (ListProductsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/products"
+    };
+  }
+
+  // CreateProduct creates a new product
+  rpc CreateProduct(CreateProductRequest) returns (Product) {
+    option (google.api.http) = {
+      post: "/api/v1/products"
+      body: "*"
+    };
+  }
+
+  // UpdateProduct updates an existing product
+  rpc UpdateProduct(UpdateProductRequest) returns (Product) {
+    option (google.api.http) = {
+      put: "/api/v1/products/{id}"
+      body: "*"
+    };
+  }
+
+  // DeleteProduct removes a product
+  rpc DeleteProduct(DeleteProductRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/api/v1/products/{id}"
+    };
+  }
+
+  // SearchProducts searches for products
+  rpc SearchProducts(SearchProductsRequest) returns (ListProductsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/products/search"
+    };
+  }
+}
+
+// Product represents a product in the catalog
+message Product {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string sku = 4;
+  double price = 5;
+  int32 inventory_count = 6;
+  repeated string categories = 7;
+  repeated string images = 8;
+  map<string, string> attributes = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+// GetProductRequest is used to request a product by ID
+message GetProductRequest {
+  string id = 1;
+}
+
+// ListProductsRequest is used to request a filtered list of products
+message ListProductsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string category = 3;
+  string sort_by = 4;
+  bool sort_desc = 5;
+}
+
+// ListProductsResponse contains a list of products and pagination info
+message ListProductsResponse {
+  repeated Product products = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  int32 total_pages = 5;
+}
+
+// CreateProductRequest is used to create a new product
+message CreateProductRequest {
+  string name = 1;
+  string description = 2;
+  string sku = 3;
+  double price = 4;
+  int32 inventory_count = 5;
+  repeated string categories = 6;
+  repeated string images = 7;
+  map<string, string> attributes = 8;
+}
+
+// UpdateProductRequest is used to update an existing product
+message UpdateProductRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+  int32 inventory_count = 5;
+  repeated string categories = 6;
+  repeated string images = 7;
+  map<string, string> attributes = 8;
+}
+
+// DeleteProductRequest is used to delete a product
+message DeleteProductRequest {
+  string id = 1;
+}
+
+// SearchProductsRequest is used to search for products
+message SearchProductsRequest {
+  string query = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  string category = 4;
+  double min_price = 5;
+  double max_price = 6;
+}

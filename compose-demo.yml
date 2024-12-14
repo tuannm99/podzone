@@ -120,3 +120,4 @@ services:
   #     PGADMIN_DEFAULT_PASSWORD: 12345678
   #   volumes:
   #     - ./data-mount/local_pgadmin-data:/var/lib/pgadmin
+

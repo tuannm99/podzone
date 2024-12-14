@@ -1,0 +1,237 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "github.com/tuannm99/podzone/pkg/api/proto/user";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+// UserService handles user-related operations
+service UserService {
+  // Register creates a new user account
+  rpc Register(RegisterRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users/register"
+      body: "*"
+    };
+  }
+
+  // Login authenticates a user and returns tokens
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users/login"
+      body: "*"
+    };
+  }
+
+  // GetProfile retrieves the user's profile
+  rpc GetProfile(GetProfileRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/users/profile"
+    };
+  }
+
+  // UpdateProfile updates a user's profile information
+  rpc UpdateProfile(UpdateProfileRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/users/profile"
+      body: "*"
+    };
+  }
+
+  // ChangePassword changes the user's password
+  rpc ChangePassword(ChangePasswordRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/api/v1/users/change-password"
+      body: "*"
+    };
+  }
+
+  // RefreshToken refreshes the access token using a refresh token
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/users/refresh-token"
+      body: "*"
+    };
+  }
+
+  // Logout invalidates the user's tokens
+  rpc Logout(LogoutRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/api/v1/users/logout"
+      body: "*"
+    };
+  }
+
+  // GetUser retrieves a user by ID (admin only)
+  rpc GetUser(GetUserRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/admin/users/{id}"
+    };
+  }
+
+  // ListUsers lists all users (admin only)
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/admin/users"
+    };
+  }
+
+  // UpdateUser updates a user's information (admin only)
+  rpc UpdateUser(UpdateUserRequest) returns (UserResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/admin/users/{id}"
+      body: "*"
+    };
+  }
+
+  // DeleteUser deletes a user (admin only)
+  rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/api/v1/admin/users/{id}"
+    };
+  }
+}
+
+// Role defines user roles
+enum Role {
+  ROLE_UNSPECIFIED = 0;
+  ROLE_USER = 1;
+  ROLE_ADMIN = 2;
+  ROLE_STAFF = 3;
+}
+
+// User represents a user in the system
+message User {
+  string id = 1;
+  string email = 2;
+  string first_name = 3;
+  string last_name = 4;
+  string phone = 5;
+  Role role = 6;
+  bool active = 7;
+  string profile_image_url = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+// Address represents a user's address
+message Address {
+  string id = 1;
+  string user_id = 2;
+  string name = 3;
+  string line1 = 4;
+  string line2 = 5;
+  string city = 6;
+  string state = 7;
+  string postal_code = 8;
+  string country = 9;
+  bool is_default = 10;
+  string phone = 11;
+}
+
+// RegisterRequest is used to register a new user
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  string first_name = 3;
+  string last_name = 4;
+  string phone = 5;
+}
+
+// LoginRequest is used to authenticate a user
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+// LoginResponse contains authentication tokens and user information
+message LoginResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  string token_type = 3;
+  int64 expires_in = 4;
+  User user = 5;
+}
+
+// GetProfileRequest is used to get a user's profile
+message GetProfileRequest {}
+
+// GetUserRequest is used to get a user by ID
+message GetUserRequest {
+  string id = 1;
+}
+
+// UpdateProfileRequest is used to update a user's profile
+message UpdateProfileRequest {
+  string first_name = 1;
+  string last_name = 2;
+  string phone = 3;
+  string profile_image_url = 4;
+}
+
+// UpdateUserRequest is used to update a user (admin only)
+message UpdateUserRequest {
+  string id = 1;
+  string email = 2;
+  string first_name = 3;
+  string last_name = 4;
+  string phone = 5;
+  Role role = 6;
+  bool active = 7;
+}
+
+// ChangePasswordRequest is used to change a user's password
+message ChangePasswordRequest {
+  string old_password = 1;
+  string new_password = 2;
+}
+
+// RefreshTokenRequest is used to refresh an access token
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+// RefreshTokenResponse contains new authentication tokens
+message RefreshTokenResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  string token_type = 3;
+  int64 expires_in = 4;
+}
+
+// LogoutRequest is used to logout a user
+message LogoutRequest {
+  string refresh_token = 1;
+}
+
+// DeleteUserRequest is used to delete a user
+message DeleteUserRequest {
+  string id = 1;
+}
+
+// ListUsersRequest is used to list users
+message ListUsersRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string search = 3;
+  string sort_by = 4;
+  bool sort_desc = 5;
+  Role role_filter = 6;
+}
+
+// ListUsersResponse contains a list of users
+message ListUsersResponse {
+  repeated User users = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  int32 total_pages = 5;
+}
+
+// UserResponse contains user information
+message UserResponse {
+  User user = 1;
+}

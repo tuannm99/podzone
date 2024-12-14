@@ -1,0 +1,228 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ecomm
+      POSTGRES_PASSWORD: ecomm123
+      POSTGRES_DB: podzone
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecomm"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:6
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ecomm
+      MONGO_INITDB_ROOT_PASSWORD: ecomm123
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/admin -u ecomm -p ecomm123 --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  # Observability & monitoring
+  jaeger:
+    image: jaegertracing/all-in-one:1.46
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686" # UI
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+
+  # # Swagger UI for API documentation
+  # swagger-ui:
+  #   image: swaggerapi/swagger-ui
+  #   volumes:
+  #     - ./api/swagger:/usr/share/nginx/html/swagger
+  #   # environment:
+  #   #   - URLS=[{ url: "/swagger/catalog/swagger.json", name: "Catalog API" },{ url: "/swagger/order/swagger.json", name: "Order API" },{ url: "/swagger/user/swagger.json", name: "User API" },{ url: "/swagger/cart/swagger.json", name: "Cart API" },{ url: "/swagger/payment/swagger.json", name: "Payment API" }]
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     - catalog
+  #     - order
+  #     - user
+  #     - cart
+  #     - payment
+
+  # Microservices
+  catalog:
+    build:
+      context: .
+      dockerfile: services/catalog/Dockerfile
+    environment:
+      - DB_HOST=postgres
+      - REDIS_HOST=redis
+      - JAEGER_ENDPOINT=http://jaeger:4317
+      - SERVICE_NAME=catalog
+      - SERVICE_PORT=9001
+      - ENV=development
+    ports:
+      - "9001:9001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+    volumes:
+      - ./services/catalog:/app/services/catalog
+      - ./pkg:/app/pkg
+
+  order:
+    build:
+      context: .
+      dockerfile: services/order/Dockerfile
+    environment:
+      - DB_HOST=postgres
+      - REDIS_HOST=redis
+      - JAEGER_ENDPOINT=http://jaeger:4317
+      - SERVICE_NAME=order
+      - SERVICE_PORT=9002
+      - ENV=development
+    ports:
+      - "9002:9002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+    volumes:
+      - ./services/order:/app/services/order
+      - ./pkg:/app/pkg
+
+  user:
+    build:
+      context: .
+      dockerfile: services/user/Dockerfile
+    environment:
+      - DB_HOST=postgres
+      - REDIS_HOST=redis
+      - JAEGER_ENDPOINT=http://jaeger:4317
+      - SERVICE_NAME=user
+      - SERVICE_PORT=9003
+      - ENV=development
+    ports:
+      - "9003:9003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+    volumes:
+      - ./services/user:/app/services/user
+      - ./pkg:/app/pkg
+
+  cart:
+    build:
+      context: .
+      dockerfile: services/cart/Dockerfile
+    environment:
+      - MONGO_URI=mongodb://ecomm:ecomm123@mongodb:27017
+      - REDIS_HOST=redis
+      - JAEGER_ENDPOINT=http://jaeger:4317
+      - SERVICE_NAME=cart
+      - SERVICE_PORT=9004
+      - ENV=development
+    ports:
+      - "9004:9004"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+    volumes:
+      - ./services/cart:/app/services/cart
+      - ./pkg:/app/pkg
+
+  payment:
+    build:
+      context: .
+      dockerfile: services/payment/Dockerfile
+    environment:
+      - DB_HOST=postgres
+      - REDIS_HOST=redis
+      - JAEGER_ENDPOINT=http://jaeger:4317
+      - SERVICE_NAME=payment
+      - SERVICE_PORT=9005
+      - ENV=development
+    ports:
+      - "9005:9005"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+    volumes:
+      - ./services/payment:/app/services/payment
+      - ./pkg:/app/pkg
+
+  gateway:
+    build:
+      context: .
+      dockerfile: services/gateway/Dockerfile
+    environment:
+      - CATALOG_SERVICE_HOST=catalog
+      - CATALOG_SERVICE_PORT=9001
+      - ORDER_SERVICE_HOST=order
+      - ORDER_SERVICE_PORT=9002
+      - USER_SERVICE_HOST=user
+      - USER_SERVICE_PORT=9003
+      - CART_SERVICE_HOST=cart
+      - CART_SERVICE_PORT=9004
+      - PAYMENT_SERVICE_HOST=payment
+      - PAYMENT_SERVICE_PORT=9005
+      - JAEGER_ENDPOINT=http://jaeger:4317
+      - SERVICE_NAME=gateway
+      - SERVICE_PORT=8000
+      - ENV=development
+    ports:
+      - "8000:8000"
+    depends_on:
+      - catalog
+      - order
+      - user
+      - cart
+      - payment
+    volumes:
+      - ./services/gateway:/app/services/gateway
+      - ./pkg:/app/pkg
+
+volumes:
+  postgres_data:
+  redis_data:
+  mongo_data:
