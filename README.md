@@ -1,6 +1,6 @@
-### the purpose of this project not a best practical or real-world architecture, the purpose of it simply to at least understand the basic of some architecture pattern and components in micro-services like API gateway, BFF, gRPC, streaming, distributed transactions, ...
+# Hand-ons microservices architecture
 
-### Requirements Note
+### Requirements
 
 - Functional Requirements:
 
@@ -11,11 +11,19 @@
 - Non-functional Requirements:
 
 ```python
-
+- Scalability
+- High availability
+- Security
+- Observability
 ```
+### Estimation
+
+### Interface/Api Prototype
 
 ### Database Design
 
 ### High-level Design
 
 ### Low-level Design
+
+### bottlenecks
