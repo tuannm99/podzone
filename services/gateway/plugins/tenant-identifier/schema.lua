@@ -7,7 +7,8 @@ return {
                 fields = {
                     { required = { type = "boolean", default = true } },
                 },
-            },
+            }
         },
-    }
+    },
 }
+

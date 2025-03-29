@@ -2,15 +2,16 @@ services:
   postgres:
     image: postgres:15
     environment:
-      POSTGRES_USER: ecomm
-      POSTGRES_PASSWORD: ecomm123
+      POSTGRES_USER: podzone
+      POSTGRES_PASSWORD: podzone123
       POSTGRES_DB: podzone
     ports:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ecomm']
+      test: ['CMD-SHELL', 'pg_isready -U podzone']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -30,14 +31,14 @@ services:
   mongodb:
     image: mongo:6
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ecomm
-      MONGO_INITDB_ROOT_PASSWORD: ecomm123
+      MONGO_INITDB_ROOT_USERNAME: podzone
+      MONGO_INITDB_ROOT_PASSWORD: podzone123
     ports:
       - '27017:27017'
     volumes:
       - mongo_data:/data/db
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/admin -u ecomm -p ecomm123 --quiet
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/admin -u podzone -p podzone123 --quiet
       interval: 10s
       timeout: 10s
       retries: 5
@@ -111,7 +112,7 @@ services:
   #     context: .
   #     dockerfile: services/cart/Dockerfile
   #   environment:
-  #     - MONGO_URI=mongodb://ecomm:ecomm123@mongodb:27017
+  #     - MONGO_URI=mongodb://podzone:podzone123@mongodb:27017
   #     - REDIS_HOST=redis
   #     - SERVICE_NAME=cart
   #     - SERVICE_PORT=9004
@@ -210,8 +211,8 @@ services:
   # API Gateway
   kong:
     build:
-      context: .
-      dockerfile: services/gateway/Dockerfile
+      context: services/gateway
+      dockerfile: Dockerfile
     depends_on:
       - kong-database
       - kong-migration
@@ -243,10 +244,10 @@ services:
       - KONG_ADMIN_LISTEN=0.0.0.0:8001
       - KONG_PROXY_LISTEN=0.0.0.0:8000, 0.0.0.0:8443 ssl, 0.0.0.0:9080 http2, 0.0.0.0:9081 http2 ssl
     volumes:
-      - ./services/gateway:/app/services/gateway
-      - ./pkg:/app/pkg
       - ./api/proto:/usr/local/kong/protos
-      - ./services/gateway/plugins:/usr/local/kong/plugins
+      # - ./services/gateway:/app/services/gateway
+      # - ./pkg:/app/pkg
+      # - ./services/gateway/plugins:/usr/local/kong/plugins
     ports:
       - '8000:8000' # HTTP proxy
       - '8443:8443' # HTTPS proxy
@@ -272,7 +273,7 @@ services:
       retries: 5
 
   kong-migration:
-    image: kong:3.3.0
+    image: kong:3.9.0
     depends_on:
       - kong-database
     environment:
@@ -283,21 +284,21 @@ services:
     command: kong migrations bootstrap
     restart: on-failure
 
-  # Admin UI for Kong
-  konga:
-    image: pantsel/konga:latest
-    depends_on:
-      - kong
-    environment:
-      NODE_ENV: production
-      DB_ADAPTER: postgres
-      DB_HOST: kong-database
-      DB_USER: kong
-      DB_PASSWORD: kong_password
-      DB_DATABASE: konga
-    ports:
-      - '1337:1337'
-    restart: unless-stopped
+  # # Admin UI for Kong
+  # konga:
+  #   image: pantsel/konga:latest
+  #   depends_on:
+  #     - kong
+  #   environment:
+  #     NODE_ENV: production
+  #     DB_ADAPTER: postgres
+  #     DB_HOST: kong-database
+  #     DB_USER: kong
+  #     DB_PASSWORD: kong_password
+  #     DB_DATABASE: konga
+  #   ports:
+  #     - '1337:1337'
+  #   restart: unless-stopped
 
 volumes:
   postgres_data:
