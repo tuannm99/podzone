@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15
@@ -8,11 +6,11 @@ services:
       POSTGRES_PASSWORD: ecomm123
       POSTGRES_DB: podzone
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ecomm"]
+      test: ['CMD-SHELL', 'pg_isready -U ecomm']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -20,11 +18,11 @@ services:
   redis:
     image: redis:7
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -35,7 +33,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ecomm
       MONGO_INITDB_ROOT_PASSWORD: ecomm123
     ports:
-      - "27017:27017"
+      - '27017:27017'
     volumes:
       - mongo_data:/data/db
     healthcheck:
@@ -44,158 +42,181 @@ services:
       timeout: 10s
       retries: 5
 
-  # Observability & monitoring
-  jaeger:
-    image: jaegertracing/all-in-one:1.46
-    environment:
-      - COLLECTOR_OTLP_ENABLED=true
-    ports:
-      - "16686:16686" # UI
-      - "4317:4317"   # OTLP gRPC
-      - "4318:4318"   # OTLP HTTP
-
-  # # Swagger UI for API documentation
-  # swagger-ui:
-  #   image: swaggerapi/swagger-ui
-  #   volumes:
-  #     - ./api/swagger:/usr/share/nginx/html/swagger
-  #   # environment:
-  #   #   - URLS=[{ url: "/swagger/catalog/swagger.json", name: "Catalog API" },{ url: "/swagger/order/swagger.json", name: "Order API" },{ url: "/swagger/user/swagger.json", name: "User API" },{ url: "/swagger/cart/swagger.json", name: "Cart API" },{ url: "/swagger/payment/swagger.json", name: "Payment API" }]
-  #   ports:
-  #     - "8080:8080"
-  #   depends_on:
-  #     - catalog
-  #     - order
-  #     - user
-  #     - cart
-  #     - payment
-
   # Microservices
-  catalog:
-    build:
-      context: .
-      dockerfile: services/catalog/Dockerfile
-    environment:
-      - DB_HOST=postgres
-      - REDIS_HOST=redis
-      - JAEGER_ENDPOINT=http://jaeger:4317
-      - SERVICE_NAME=catalog
-      - SERVICE_PORT=9001
-      - ENV=development
-    ports:
-      - "9001:9001"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      jaeger:
-        condition: service_started
-    volumes:
-      - ./services/catalog:/app/services/catalog
-      - ./pkg:/app/pkg
+  # catalog:
+  #   build:
+  #     context: .
+  #     dockerfile: services/catalog/Dockerfile
+  #   environment:
+  #     - DB_HOST=postgres
+  #     - REDIS_HOST=redis
+  #     - SERVICE_NAME=catalog
+  #     - SERVICE_PORT=9001
+  #     - ENV=development
+  #   ports:
+  #     - '9001:9001'
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./services/catalog:/app/services/catalog
+  #     - ./pkg:/app/pkg
+  #
+  # order:
+  #   build:
+  #     context: .
+  #     dockerfile: services/order/Dockerfile
+  #   environment:
+  #     - DB_HOST=postgres
+  #     - REDIS_HOST=redis
+  #     - SERVICE_NAME=order
+  #     - SERVICE_PORT=9002
+  #     - ENV=development
+  #   ports:
+  #     - '9002:9002'
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./services/order:/app/services/order
+  #     - ./pkg:/app/pkg
+  #
+  # user:
+  #   build:
+  #     context: .
+  #     dockerfile: services/user/Dockerfile
+  #   environment:
+  #     - DB_HOST=postgres
+  #     - REDIS_HOST=redis
+  #     - SERVICE_NAME=user
+  #     - SERVICE_PORT=9003
+  #     - ENV=development
+  #   ports:
+  #     - '9003:9003'
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./services/user:/app/services/user
+  #     - ./pkg:/app/pkg
+  #
+  # cart:
+  #   build:
+  #     context: .
+  #     dockerfile: services/cart/Dockerfile
+  #   environment:
+  #     - MONGO_URI=mongodb://ecomm:ecomm123@mongodb:27017
+  #     - REDIS_HOST=redis
+  #     - SERVICE_NAME=cart
+  #     - SERVICE_PORT=9004
+  #     - ENV=development
+  #   ports:
+  #     - '9004:9004'
+  #   depends_on:
+  #     mongodb:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./services/cart:/app/services/cart
+  #     - ./pkg:/app/pkg
+  #
+  # payment:
+  #   build:
+  #     context: .
+  #     dockerfile: services/payment/Dockerfile
+  #   environment:
+  #     - DB_HOST=postgres
+  #     - REDIS_HOST=redis
+  #     - SERVICE_NAME=payment
+  #     - SERVICE_PORT=9005
+  #     - ENV=development
+  #   ports:
+  #     - '9005:9005'
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./services/payment:/app/services/payment
+  #     - ./pkg:/app/pkg
 
-  order:
-    build:
-      context: .
-      dockerfile: services/order/Dockerfile
-    environment:
-      - DB_HOST=postgres
-      - REDIS_HOST=redis
-      - JAEGER_ENDPOINT=http://jaeger:4317
-      - SERVICE_NAME=order
-      - SERVICE_PORT=9002
-      - ENV=development
-    ports:
-      - "9002:9002"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      jaeger:
-        condition: service_started
-    volumes:
-      - ./services/order:/app/services/order
-      - ./pkg:/app/pkg
+  # elasticsearch:
+  #     container_name: 'elasticsearch'
+  #     hostname: 'elasticsearch'
+  #     image: docker.elastic.co/elasticsearch/elasticsearch:7.7.0
+  #     ports:
+  #         - '9200:9200'
+  #         - '9300:9300'
+  #     volumes:
+  #         - ./data-mount/elasticsearch/data:/usr/share/elasticsearch/data
+  #     environment: # [..] Read more: Cluster mode https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html
+  #         - 'discovery.type=single-node'
+  #         - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+  #         # - XPACK_MONITORING_ENABLED=true # [..] Read more: https://www.elastic.co/guide/en/elasticsearch/reference/7.7/elasticsearch-security.html
+  #         # - ELASTICSEARCH_USERNAME=elastic
+  #         # - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+  #
+  # kibana:
+  #     container_name: 'kibana'
+  #     hostname: 'kibana'
+  #     image: docker.elastic.co/kibana/kibana:7.7.0
+  #     ports:
+  #         - '5601:5601'
+  #     environment: # [..] Read more: https://www.elastic.co/guide/en/kibana/current/settings.html
+  #         - SERVER_HOST=0.0.0.0
+  #         - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
 
-  user:
-    build:
-      context: .
-      dockerfile: services/user/Dockerfile
-    environment:
-      - DB_HOST=postgres
-      - REDIS_HOST=redis
-      - JAEGER_ENDPOINT=http://jaeger:4317
-      - SERVICE_NAME=user
-      - SERVICE_PORT=9003
-      - ENV=development
-    ports:
-      - "9003:9003"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      jaeger:
-        condition: service_started
-    volumes:
-      - ./services/user:/app/services/user
-      - ./pkg:/app/pkg
+  # zookeeper:
+  #     image: confluentinc/cp-zookeeper:7.2.1
+  #     hostname: zookeeper
+  #     container_name: zookeeper
+  #     ports:
+  #         - '2181:2181'
+  #     environment:
+  #         ZOOKEEPER_CLIENT_PORT: 2181
+  #         ZOOKEEPER_TICK_TIME: 2000
+  #
+  # kafka:
+  #     image: confluentinc/cp-server:7.2.1
+  #     hostname: kafka
+  #     container_name: kafka
+  #     depends_on:
+  #         - zookeeper
+  #     ports:
+  #         - '9092:9092'
+  #         - '9997:9997'
+  #     environment:
+  #         KAFKA_BROKER_ID: 1
+  #         KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+  #         KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+  #         KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+  #         KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  #         KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+  #         KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+  #         KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
+  #         KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+  #         KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+  #         KAFKA_JMX_PORT: 9997
+  #         KAFKA_JMX_HOSTNAME: kafka
 
-  cart:
-    build:
-      context: .
-      dockerfile: services/cart/Dockerfile
-    environment:
-      - MONGO_URI=mongodb://ecomm:ecomm123@mongodb:27017
-      - REDIS_HOST=redis
-      - JAEGER_ENDPOINT=http://jaeger:4317
-      - SERVICE_NAME=cart
-      - SERVICE_PORT=9004
-      - ENV=development
-    ports:
-      - "9004:9004"
-    depends_on:
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      jaeger:
-        condition: service_started
-    volumes:
-      - ./services/cart:/app/services/cart
-      - ./pkg:/app/pkg
-
-  payment:
-    build:
-      context: .
-      dockerfile: services/payment/Dockerfile
-    environment:
-      - DB_HOST=postgres
-      - REDIS_HOST=redis
-      - JAEGER_ENDPOINT=http://jaeger:4317
-      - SERVICE_NAME=payment
-      - SERVICE_PORT=9005
-      - ENV=development
-    ports:
-      - "9005:9005"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      jaeger:
-        condition: service_started
-    volumes:
-      - ./services/payment:/app/services/payment
-      - ./pkg:/app/pkg
-
-  gateway:
+  # API Gateway
+  kong:
     build:
       context: .
       dockerfile: services/gateway/Dockerfile
+    depends_on:
+      - kong-database
+      - kong-migration
     environment:
+      # Original microservice connection settings
       - CATALOG_SERVICE_HOST=catalog
       - CATALOG_SERVICE_PORT=9001
       - ORDER_SERVICE_HOST=order
@@ -206,23 +227,80 @@ services:
       - CART_SERVICE_PORT=9004
       - PAYMENT_SERVICE_HOST=payment
       - PAYMENT_SERVICE_PORT=9005
-      - JAEGER_ENDPOINT=http://jaeger:4317
       - SERVICE_NAME=gateway
       - SERVICE_PORT=8000
       - ENV=development
-    ports:
-      - "8000:8000"
-    depends_on:
-      - catalog
-      - order
-      - user
-      - cart
-      - payment
+
+      # Kong-specific settings
+      - KONG_DATABASE=postgres
+      - KONG_PG_HOST=kong-database
+      - KONG_PG_USER=kong
+      - KONG_PG_PASSWORD=kong_password
+      - KONG_PROXY_ACCESS_LOG=/dev/stdout
+      - KONG_ADMIN_ACCESS_LOG=/dev/stdout
+      - KONG_PROXY_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_LISTEN=0.0.0.0:8001
+      - KONG_PROXY_LISTEN=0.0.0.0:8000, 0.0.0.0:8443 ssl, 0.0.0.0:9080 http2, 0.0.0.0:9081 http2 ssl
     volumes:
       - ./services/gateway:/app/services/gateway
       - ./pkg:/app/pkg
+      - ./api/proto:/usr/local/kong/protos
+      - ./services/gateway/plugins:/usr/local/kong/plugins
+    ports:
+      - '8000:8000' # HTTP proxy
+      - '8443:8443' # HTTPS proxy
+      - '8001:8001' # Admin API
+      - '9080:9080' # gRPC proxy
+      - '9081:9081' # gRPC+TLS proxy
+    restart: unless-stopped
+
+  kong-database:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: kong
+      POSTGRES_DB: kong
+      POSTGRES_PASSWORD: kong_password
+    volumes:
+      - kong_data:/var/lib/postgresql/data
+    # ports:
+    #   - '5432:5432'
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'kong']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  kong-migration:
+    image: kong:3.3.0
+    depends_on:
+      - kong-database
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kong_password
+    command: kong migrations bootstrap
+    restart: on-failure
+
+  # Admin UI for Kong
+  konga:
+    image: pantsel/konga:latest
+    depends_on:
+      - kong
+    environment:
+      NODE_ENV: production
+      DB_ADAPTER: postgres
+      DB_HOST: kong-database
+      DB_USER: kong
+      DB_PASSWORD: kong_password
+      DB_DATABASE: konga
+    ports:
+      - '1337:1337'
+    restart: unless-stopped
 
 volumes:
   postgres_data:
   redis_data:
   mongo_data:
+  kong_data:

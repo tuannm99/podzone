@@ -1,4 +1,4 @@
-package mid
+package middleware
 
 import (
 	"context"
@@ -9,7 +9,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tuannm99/podzone/pkg/auth"
-	"github.com/tuannm99/podzone/pkg/telemetry"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -26,7 +25,12 @@ const (
 
 // GRPCAuthInterceptor creates a gRPC interceptor for authentication
 func GRPCAuthInterceptor(authService *auth.Service, logger *zap.Logger) grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(
+		ctx context.Context,
+		req any,
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler,
+	) (any, error) {
 		// Skip authentication for certain methods
 		if isPublicMethod(info.FullMethod) {
 			return handler(ctx, req)
@@ -157,35 +161,6 @@ func RecoveryMiddleware(logger *zap.Logger) gin.HandlerFunc {
 		}()
 
 		c.Next()
-	}
-}
-
-// TelemetryMiddleware adds telemetry spans to HTTP requests
-func TelemetryMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// Create a new context with span
-		ctx, span := telemetry.StartSpan(c.Request.Context(), "http-"+c.Request.Method+"-"+c.Request.URL.Path)
-		defer span.End()
-
-		// Add span context to request context
-		c.Request = c.Request.WithContext(ctx)
-
-		// Get correlation ID
-		correlationID, exists := c.Get(CorrelationIDKey)
-		if exists {
-			span.SetAttributes(telemetry.StringAttribute("correlation_id", correlationID.(string)))
-		}
-
-		// Process request
-		c.Next()
-
-		// Add status code to span
-		span.SetAttributes(telemetry.IntAttribute("http.status_code", c.Writer.Status()))
-
-		// Mark span as error if status code is 5xx
-		if c.Writer.Status() >= 500 {
-			span.SetStatus(telemetry.StatusError, "Server error")
-		}
 	}
 }
 
