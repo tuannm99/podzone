@@ -1,5 +1,6 @@
 services:
   postgres:
+    container_name: pg_db
     image: postgres:15
     environment:
       POSTGRES_USER: podzone
@@ -15,9 +16,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - podzone-network
 
   redis:
     image: redis:7
+    container_name: redis
     ports:
       - '6379:6379'
     volumes:
@@ -27,8 +31,11 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - podzone-network
 
   mongodb:
+    container_name: redis
     image: mongo:6
     environment:
       MONGO_INITDB_ROOT_USERNAME: podzone
@@ -42,6 +49,8 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
+    networks:
+      - podzone-network
 
   # Microservices
   # catalog:
@@ -213,9 +222,10 @@ services:
     build:
       context: services/gateway
       dockerfile: Dockerfile
+    container_name: kong-gateway
     depends_on:
-      - kong-database
-      - kong-migration
+      kong-migration:
+        condition: service_healthy
     environment:
       # Original microservice connection settings
       - CATALOG_SERVICE_HOST=catalog
@@ -231,57 +241,89 @@ services:
       - SERVICE_NAME=gateway
       - SERVICE_PORT=8000
       - ENV=development
-
       # Kong-specific settings
       - KONG_DATABASE=postgres
       - KONG_PG_HOST=kong-database
       - KONG_PG_USER=kong
-      - KONG_PG_PASSWORD=kong_password
+      - KONG_PG_PASSWORD=kongpass
       - KONG_PROXY_ACCESS_LOG=/dev/stdout
       - KONG_ADMIN_ACCESS_LOG=/dev/stdout
       - KONG_PROXY_ERROR_LOG=/dev/stderr
       - KONG_ADMIN_ERROR_LOG=/dev/stderr
       - KONG_ADMIN_LISTEN=0.0.0.0:8001
+      - KONG_ADMIN_GUI_URL=http://localhost:8002
       - KONG_PROXY_LISTEN=0.0.0.0:8000, 0.0.0.0:8443 ssl, 0.0.0.0:9080 http2, 0.0.0.0:9081 http2 ssl
+      - KONG_PLUGINS=bundled,grpc-gateway,tenant-identifier
+      - KONG_LUA_PACKAGE_PATH=/usr/local/kong/?.lua;/usr/local/kong/plugins/?.lua;/usr/local/kong/plugins/tenant-identifier/?.lua;;
     volumes:
       - ./api/proto:/usr/local/kong/protos
-      # - ./services/gateway:/app/services/gateway
-      # - ./pkg:/app/pkg
-      # - ./services/gateway/plugins:/usr/local/kong/plugins
+      - ./services/gateway/plugins:/usr/local/kong/plugins
     ports:
       - '8000:8000' # HTTP proxy
       - '8443:8443' # HTTPS proxy
       - '8001:8001' # Admin API
+      - '8002:8002' # Admin GUI
+      - '8444:8444' # Admin SSL
+      - '8445:8445' # Admin GUI SSL
+      - '8003:8003' # Dev Portal
+      - '8004:8004' # Dev Portal API
       - '9080:9080' # gRPC proxy
       - '9081:9081' # gRPC+TLS proxy
+    networks:
+      - podzone-network
     restart: unless-stopped
 
   kong-database:
     image: postgres:13
+    container_name: kong-database
     environment:
       POSTGRES_USER: kong
       POSTGRES_DB: kong
-      POSTGRES_PASSWORD: kong_password
+      POSTGRES_PASSWORD: kongpass
     volumes:
       - kong_data:/var/lib/postgresql/data
-    # ports:
-    #   - '5432:5432'
+    ports:
+      - '5432:5432'
     healthcheck:
       test: ['CMD', 'pg_isready', '-U', 'kong']
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - podzone-network
 
+  # Migration container with link to database
   kong-migration:
     image: kong:3.9.0
+    container_name: kong-migration
     depends_on:
-      - kong-database
+      kong-database:
+        condition: service_healthy
     environment:
       KONG_DATABASE: postgres
       KONG_PG_HOST: kong-database
       KONG_PG_USER: kong
-      KONG_PG_PASSWORD: kong_password
-    command: kong migrations bootstrap
+      KONG_PG_PASSWORD: kongpass
+    # Use entrypoint to ensure exit code is properly passed
+    entrypoint: |
+      /bin/sh -c "
+        echo 'Waiting for database to be ready...'
+        sleep 10
+        echo 'Running migrations...'
+        kong migrations bootstrap && 
+        kong migrations up && 
+        kong migrations finish &&
+        touch /tmp/migration_success
+      "
+    # Check if the migration has completed successfully
+    healthcheck:
+      test: ['CMD', 'test', '-f', '/tmp/migration_success']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - podzone-network
     restart: on-failure
 
   # # Admin UI for Kong
@@ -299,6 +341,10 @@ services:
   #   ports:
   #     - '1337:1337'
   #   restart: unless-stopped
+
+networks:
+  podzone-network:
+    driver: bridge
 
 volumes:
   postgres_data:

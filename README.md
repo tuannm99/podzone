@@ -2,6 +2,86 @@
 
 This is a Go monorepo containing a collection of microservices for an e-commerce platform.
 
+## Getting Started
+
+### Prerequisites
+
+- Go 1.23
+- Docker, Kind, kubectl, helm
+
+```bash
+Docker version 28.0.2, build 0442a73
+Docker Compose version v2.34.0
+
+helm version
+version.BuildInfo{Version:"v3.17.0", GitCommit:"301108edc7ac2a8ba79e4ebf5701b0b6ce6a31e4", GitTreeState:"clean", GoVersion:"go1.23.4"}
+
+kubectl version
+Client Version: v1.32.0
+Kustomize Version: v5.5.0
+Server Version: v1.32.0
+```
+
+- Protocol Buffers compiler
+
+```bash
+google.golang.org/protobuf v1.36.6
+github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3
+google.golang.org/genproto/googleapis/api v0.0.0-20250303144028-a0af3efb3deb
+
+```
+
+- Swagger-gen
+
+```bash
+go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
+
+```
+
+This will start all services and their dependencies (databases, caches, etc.) using Docker Compose.
+
+### Development Workflow
+
+#### Setup Development Environment
+
+```bash
+# assume that we are in ubuntu >= 22.04
+# apt dependency
+sudo apt update -y
+sudo apt install dmsetup cryptsetup nfs-common open-iscsi -y # k8s longhorn storageclass
+
+# docker
+
+# kubectl
+
+# helm
+
+
+# local cicd
+curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64 && \
+chmod +x skaffold && sudo mv skaffold /usr/local/bin
+skaffold version
+
+# this is my ingress nginx controller loadbalancer IP
+# check it by run `kubectl get svc -n ingress-nginx`
+NAME                                 TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                      AGE
+ingress-nginx-controller             LoadBalancer   10.96.161.214   172.18.0.10   80:30213/TCP,443:31783/TCP   6m44s
+ingress-nginx-controller-admission   ClusterIP      10.96.119.207   <none>        443/TCP                      6m44s
+
+# after that we can setup host base routing by setting up ingress
+# setting /etc/hosts for some UI Infrastructure
+# -> update later as I go
+sudo vi /etc/hosts
+172.18.0.10 rancher.local.com harbor.local.com jenkin.local.com longhorn.local.com minio.local.com pg-ui.local.com
+
+# installed local cluster
+./deployments/kind-cluster-dev/install.sh
+# get rancher UI password (or we can view the password is in the script)
+kubectl get secret --namespace cattle-system bootstrap-secret -o go-template='{{.data.bootstrapPassword|base64decode}}{{"\n"}}'
+
+make ...
+```
+
 ## Architecture Overview
 
 This project follows a microservices architecture with the following key components:
@@ -64,153 +144,3 @@ podzone/
     ├── terraform/                 # Infrastructure as code
     └── helm/                      # Helm charts
 ```
-
-## Getting Started
-
-### Prerequisites
-
-- Go 1.23
-- Docker and Docker Compose
-
-```bash
-Docker version 28.0.2, build 0442a73
-Docker Compose version v2.34.0
-```
-
-- Protocol Buffers compiler
-
-```bash
-google.golang.org/protobuf v1.36.6
-github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3
-google.golang.org/genproto/googleapis/api v0.0.0-20250303144028-a0af3efb3deb
-
-- Make
-
-```
-
-- Swagger-gen
-
-```bash
-go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
-
-```
-
-### Setup Development Environment
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/tuannm99/podzone.git
-   cd podzone
-   ```
-
-2. Install dependencies:
-
-   ```bash
-   go mod download
-   ```
-
-3. Generate code from Protocol Buffers:
-
-   ```bash
-   make proto
-   ```
-
-4. Start the development environment:
-   ```bash
-   make dev
-   ```
-
-This will start all services and their dependencies (databases, caches, etc.) using Docker Compose.
-
-### Development Workflow
-
-#### Creating a New Service
-
-```bash
-make generate-service
-# Enter service name when prompted
-```
-
-This will create a new service with the basic structure in place.
-
-#### Building Services
-
-```bash
-# Build all services
-make build
-
-# Build a specific service
-make build SERVICE=catalog
-```
-
-#### Running Tests
-
-```bash
-# Run all tests
-make test
-
-# Run tests for a specific package
-go test ./services/catalog/...
-```
-
-## Working with Protocol Buffers
-
-1. Define your service API in the `api/proto/<service>` directory
-2. Generate code:
-   ```bash
-   make proto
-   ```
-3. Implement the generated interfaces in your service
-
-## Shared Packages
-
-The `pkg/` directory contains shared code that can be used across services:
-
-- `config`: Configuration management
-- `logging`: Structured logging
-- `database`: Database utilities
-- `auth`: Authentication and authorization
-- `telemetry`: Observability and monitoring
-- `middleware`: Common middleware for HTTP and gRPC
-- `errors`: Common error types
-
-## Deployment
-
-### Local Development
-
-```bash
-make dev
-```
-
-### Kubernetes
-
-Kubernetes manifests are provided in the `deployments/kubernetes` directory:
-
-```bash
-kubectl apply -f deployments/kubernetes/
-```
-
-### CI/CD
-
-A GitHub Actions workflow is included that:
-
-1. Builds and tests all services
-2. Builds Docker images
-3. Deploys to Kubernetes
-
-## Documentation
-
-- API documentation is available at http://localhost:8080 when running locally
-- Service documentation is in each service's README.md file
-
-## Contributing
-
-1. Create a new feature branch
-2. Make your changes
-3. Add tests
-4. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License.

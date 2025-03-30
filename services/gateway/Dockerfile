@@ -18,8 +18,8 @@ COPY ./plugins/tenant-identifier/ /usr/local/kong/plugins/tenant-identifier/
 RUN chmod -R 755 /usr/local/kong/plugins/tenant-identifier/
 
 # Set the environment variables
-# ENV KONG_PLUGINS="bundled,grpc-gateway,tenant-identifier"
-ENV KONG_PLUGINS="bundled,grpc-gateway"
+ENV KONG_PLUGINS="bundled,grpc-gateway,tenant-identifier"
+# ENV KONG_PLUGINS="bundled,grpc-gateway"
 ENV KONG_LUA_PACKAGE_PATH="/usr/local/kong/?.lua;/usr/local/kong/plugins/?.lua;/usr/local/kong/plugins/tenant-identifier/?.lua;;"
 
 # Switch back to kong user
