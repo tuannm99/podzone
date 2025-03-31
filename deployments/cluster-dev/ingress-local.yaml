@@ -1,3 +1,4 @@
+# rancher
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -21,6 +22,7 @@ spec:
                   number: 80
 
 # ---
+# minio
 # apiVersion: networking.k8s.io/v1
 # kind: Ingress
 # metadata:
@@ -47,3 +49,34 @@ spec:
 #                 name: myminio-console
 #                 port:
 #                   number: 9443
+#
+
+---
+# kibana
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kibana-ingress
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    # nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    # nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+spec:
+  ingressClassName: nginx
+  # tls:
+  #   - hosts:
+  #       - kibana.tuan-nm.com
+  #     secretName: kibana-tls
+  rules:
+    - host: kibana.local.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kibana-kb-http
+                port:
+                  number: 5601
+

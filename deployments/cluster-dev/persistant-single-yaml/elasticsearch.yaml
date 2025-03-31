@@ -1,0 +1,53 @@
+# using els operator of official doc
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: esv8
+spec:
+  version: 8.15.1
+  nodeSets:
+    - name: default
+      count: 1
+      config:
+        node.store.allow_mmap: false
+      volumeClaimTemplates:
+        - metadata:
+            name: elasticsearch-data
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: longhorn
+            resources:
+              requests:
+                storage: 20Gi
+
+# --- Not enabled kibana for saving memory
+# apiVersion: kibana.k8s.elastic.co/v1
+# kind: Kibana
+# metadata:
+#   name: kibana
+# spec:
+#   version: 8.15.1
+#   count: 1
+#   elasticsearchRef:
+#     name: esv8
+#   podTemplate:
+#     spec:
+#       containers:
+#         - name: kibana
+#           resources:
+#             requests:
+#               memory: 1Gi
+#               cpu: 300m
+#             limits:
+#               memory: 2Gi
+#           env:
+#             - name: NODE_OPTIONS
+#               value: "--max-old-space-size=1536"
+#   http:
+#     service:
+#       spec:
+#         type: ClusterIP
+#     tls:
+#       selfSignedCertificate:
+#         disabled: true

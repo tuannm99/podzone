@@ -1,6 +1,6 @@
-# E-commerce Microservices Monorepo for Learning Purposes
+# E-commerce Microservices Monorepo
 
-This is a Go monorepo containing a collection of microservices for an e-commerce platform.
+This is a Go monorepo containing a collection of microservices for an e-commerce platform, including code, k8s infrastructure setup on public Cloud, On-premise and local setup
 
 ## Getting Started
 
@@ -50,12 +50,17 @@ This will start all services and their dependencies (databases, caches, etc.) us
 sudo apt update -y
 sudo apt install dmsetup cryptsetup nfs-common open-iscsi -y # k8s longhorn storageclass
 
+# using both kubectl and helm, each components I do easiest way to install that I believe
 # docker
 
 # kubectl
 
 # helm
 
+# for local machine using k3s (single node)
+curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="v1.31.0+k3s1" K3S_TOKEN=12345token sh -s - server --disable=traefik --disable=servicelb
+sudo cat /etc/rancher/k3s/k3s.yaml > ~/.kubeconfig
+export KUBECONFIG=~/.kubeconfig
 
 # local cicd
 curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64 && \
@@ -64,22 +69,32 @@ skaffold version
 
 # this is my ingress nginx controller loadbalancer IP
 # check it by run `kubectl get svc -n ingress-nginx`
-NAME                                 TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                      AGE
-ingress-nginx-controller             LoadBalancer   10.96.161.214   172.18.0.10   80:30213/TCP,443:31783/TCP   6m44s
-ingress-nginx-controller-admission   ClusterIP      10.96.119.207   <none>        443/TCP                      6m44s
+NAME                                 TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)                      AGE
+ingress-nginx-controller             LoadBalancer   10.43.194.107   10.42.100.100   80:31249/TCP,443:30820/TCP   62m
+ingress-nginx-controller-admission   ClusterIP      10.43.6.241     <none>          443/TCP                      62m
 
 # after that we can setup host base routing by setting up ingress
 # setting /etc/hosts for some UI Infrastructure
 # -> update later as I go
 sudo vi /etc/hosts
-172.18.0.10 rancher.local.com harbor.local.com jenkin.local.com longhorn.local.com minio.local.com pg-ui.local.com
+10.42.100.100 rancher.local.com harbor.local.com jenkin.local.com longhorn.local.com minio.local.com pg-ui.local.com
 
 # installed local cluster
 ./deployments/kind-cluster-dev/install.sh
 # get rancher UI password (or we can view the password is in the script)
 kubectl get secret --namespace cattle-system bootstrap-secret -o go-template='{{.data.bootstrapPassword|base64decode}}{{"\n"}}'
 
-make ...
+# mongodb
+kubectl get secret --namespace default mongodb -o jsonpath="{.data.mongodb-root-password}" | base64 -d
+
+# elasticsearch + kibana
+- username `elastic`
+kubectl get secret esv8-es-elastic-user -o jsonpath='{.data.elastic}' | base64 -d
+
+- we can login on kibana using this account -> kibana.local.com
+
+#
+
 ```
 
 ## Architecture Overview

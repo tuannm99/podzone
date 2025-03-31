@@ -1,0 +1,11 @@
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: primary-pool
+  namespace: metallb-system
+spec:
+  addresses:
+  # k3s private ip range installed on my machine is 10.42.x.x
+  - 10.42.100.100-10.43.100.200
+  autoAssign: true
+

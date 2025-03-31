@@ -1,5 +1,5 @@
-# create kind cluster
-kind create cluster --config single-cluster.yaml
+# create kind cluster -> move to k3s
+# kind create cluster --config single-cluster.yaml
 
 # certmanager
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.3/cert-manager.yaml
@@ -24,7 +24,7 @@ helm upgrade --install ingress-nginx ingress-nginx \
   --repo https://kubernetes.github.io/ingress-nginx \
   --namespace ingress-nginx --create-namespace
 
-# rancher --> just dont need for dev
+# rancher --> just dont need for dev, disable if we want to save resources
 helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
 kubectl create namespace cattle-system
 
@@ -37,7 +37,20 @@ helm upgrade --install rancher rancher-latest/rancher \
   --set letsEncrypt.email=tesmail.gmail.com \
   --set letsEncrypt.ingress.class=nginx
 
-# todo ------------
+# mongodb helm
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm install mongodb bitnami/mongodb -n default
+
+# elasticsearch crds
+kubectl create -f https://download.elastic.co/downloads/eck/2.14.0/crds.yaml
+kubectl apply -f https://download.elastic.co/downloads/eck/2.14.0/operator.yaml
+
+# persistant manifest
+kubectl apply -f ./persistant-single-yaml
+
+# istio service mesh
+
+# todo next ------------
 
 #  -----------------
 
