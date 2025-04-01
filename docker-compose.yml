@@ -53,6 +53,25 @@ services:
       - podzone-network
 
   # Microservices
+  auth-service:
+    build:
+      context: .
+      dockerfile: services/auth/Dockerfile
+    container_name: auth-service
+    environment:
+      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID}"
+      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
+      OAUTH_REDIRECT_URL: "${OAUTH_REDIRECT_URL}"
+      JWT_SECRET: "${JWT_SECRET}"
+      APP_REDIRECT_URL: "${APP_REDIRECT_URL}"
+      GRPC_PORT: "50051"
+      HTTP_PORT: "8080"
+    # ports:
+    #   - "50051:50051"
+    #   - "8080:8080"
+    networks:
+      - podzone-network
+
   # catalog:
   #   build:
   #     context: .

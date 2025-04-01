@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "github.com/tuannm99/podzone/pkg/api/proto/auth";
+
+import "google/api/annotations.proto";
+
+service AuthService {
+  rpc GoogleLogin(GoogleLoginRequest) returns (GoogleLoginResponse) {
+    option (google.api.http) = {
+      get: "/v1/auth/google/login"
+    };
+  }
+
+  rpc GoogleCallback(GoogleCallbackRequest) returns (GoogleCallbackResponse) {
+    option (google.api.http) = {
+      get: "/v1/auth/google/callback"
+    };
+  }
+
+  rpc VerifyToken(VerifyTokenRequest) returns (VerifyTokenResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/verify"
+      body: "*"
+      additional_bindings { get: "/v1/auth/verify" }
+    };
+  }
+
+  rpc Logout(LogoutRequest) returns (LogoutResponse) {
+    option (google.api.http) = {
+      get: "/v1/auth/logout"
+    };
+  }
+}
+
+message GoogleLoginRequest {
+  string redirect_after_login = 1;
+}
+
+message GoogleLoginResponse {
+  string redirect_url = 1;
+}
+
+message GoogleCallbackRequest {
+  string state = 1;
+  string code = 2;
+}
+
+message GoogleCallbackResponse {
+  string jwt_token = 1;
+  string redirect_url = 2;
+  UserInfo user_info = 3;
+}
+
+message VerifyTokenRequest {
+  string token = 1;
+}
+
+message VerifyTokenResponse {
+  bool is_valid = 1;
+  UserInfo user_info = 2;
+  string error = 3;
+}
+
+message LogoutRequest {
+  string token = 1;
+}
+
+message LogoutResponse {
+  bool success = 1;
+  string redirect_url = 2;
+}
+
+message UserInfo {
+  string id = 1;
+  string email = 2;
+  string name = 3;
+  string given_name = 4;
+  string family_name = 5;
+  string picture = 6;
+  bool email_verified = 7;
+}

@@ -9,6 +9,8 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*;
 
+RUN luarocks install lua-resty-openidc
+
 # Create directory for our custom plugins
 RUN mkdir -p /usr/local/kong/plugins/tenant-identifier
 

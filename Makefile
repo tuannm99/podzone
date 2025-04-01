@@ -1,6 +1,6 @@
 .PHONY: all proto swagger build test lint dev down clean help
 
-SERVICES := catalog order payment user cart gateway
+SERVICES := catalog order payment user cart gateway auth
 GO := go
 DOCKER_COMPOSE := docker-compose
 PROTOC := protoc
