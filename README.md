@@ -2,6 +2,102 @@
 
 This is a Go monorepo containing a collection of microservices for an e-commerce platform, including code, k8s infrastructure setup on public Cloud, On-premise and local setup
 
+## 🚀 Project Roadmap
+
+### Completed
+
+✅ **Development Environment Setup**
+
+- Repository initialization
+- gRPC implementation
+- Swagger API documentation generation
+- Docker and docker-compose configuration
+- Persistence layer setup
+- Kong API Gateway integration
+- Custom Kong plugins development
+
+### In Progress
+
+🔄 **Microservice Implementation**
+
+- Cart Service
+- Catalog Service
+- Gateway Service
+- Order Service
+- Payment Service
+- User Service
+
+### Planned
+
+📝 **Documentation**
+
+- Requirements specification
+- Architecture documentation
+  - C4 model diagrams
+  - High-level architecture overview
+  - Database design
+  - API design guidelines
+  - Low-level component design
+
+🏭 **Production Environment**
+
+- Kubernetes deployment manifests/Helm charts
+- Infrastructure as Code (Terraform for AWS, Ansible for on-prem)
+- Persistent storage configuration
+- Observability stack
+  - Prometheus for metrics
+  - Grafana for visualization
+  - Jaeger for distributed tracing
+  - OpenTelemetry for instrumentation
+  - ELK for centralized logging
+- Istio service mesh implementation
+  - Header detection middleware
+  - Sidecar deployment configuration
+  - Kubernetes deployment updates
+  - Distributed tracing exporters
+
+### 🔥 Moreover
+
+- Using database for one simple service that I am writing from scratch ([NovaSQL](https://github.com/tuannm99/novasql))
+
+## 🏗️ Architecture Overview
+
+- TODO
+
+## 🔧 Additional Considerations
+
+### Security
+
+- Authentication and authorization
+- API security testing
+- Secret management (Vault/AWS KMS/etc.)
+- Container security scanning
+
+### CI/CD
+
+- GitHub Actions/Jenkins/GitLab CI pipeline
+- Automated testing
+- Deployment automation
+- Blue/Green deployment strategy
+
+### Data Management
+
+- Data migration strategies
+- Backup and recovery processes
+- Data governance policies
+
+### Performance
+
+- Load testing with tools like k6 or JMeter
+- Performance monitoring
+- Auto-scaling policies
+
+### Compliance
+
+- Logging standards
+- Audit trails
+- Compliance reporting
+
 ## Getting Started
 
 ### Prerequisites
@@ -93,69 +189,4 @@ kubectl get secret esv8-es-elastic-user -o jsonpath='{.data.elastic}' | base64 -
 
 - we can login on kibana using this account -> kibana.local.com
 
-#
-
-```
-
-## Architecture Overview
-
-This project follows a microservices architecture with the following key components:
-
-- **API Gateway**: Central entry point that routes requests to appropriate services
-- **Catalog Service**: Manages product catalog and inventory
-- **Order Service**: Handles order processing and management
-- **Cart Service**: Manages shopping cart functionality
-- **User Service**: Handles user authentication and profiles
-- **Payment Service**: Processes payments
-
-Services communicate with each other using gRPC for internal communication, while exposing REST APIs via gRPC-Gateway for external clients.
-
-## Directory Structure
-
-```
-podzone/
-├── .github/                       # GitHub workflows and CI/CD configurations
-├── Makefile                       # Top-level make targets for common operations
-├── docker-compose.yml             # Local development environment setup
-├── go.mod                         # Root Go modules file
-├── go.sum                         # Dependency checksums
-├── tools/                         # Development tools and scripts
-│   ├── protoc/                    # Protobuf compiler scripts
-│   ├── db/                        # Database migration tools
-│   └── ci/                        # CI/CD helper scripts
-├── api/                           # API definitions (protobuf, OpenAPI specs)
-│   ├── proto/                     # Protocol Buffers definitions
-│   │   ├── catalog/               # Catalog service API definitions
-│   │   ├── order/                 # Order service API definitions
-│   │   ├── payment/               # Payment service API definitions
-│   │   ├── user/                  # User service API definitions
-│   │   └── cart/                  # Cart service API definitions
-│   └── swagger/                   # OpenAPI/Swagger definitions
-├── pkg/                           # Shared packages
-│   ├── auth/                      # Authentication and authorization
-│   ├── config/                    # Configuration management
-│   ├── database/                  # Database utilities
-│   ├── errors/                    # Common error types
-│   ├── logging/                   # Logging utilities
-│   ├── messaging/                 # Message queue utilities
-│   ├── middleware/                # Common middleware
-│   ├── models/                    # Shared data models
-│   ├── telemetry/                 # Observability and monitoring
-│   ├── testing/                   # Test utilities
-│   └── validator/                 # Input validation
-├── services/                      # Individual microservices
-│   ├── catalog/                   # Catalog service
-│   │   ├── cmd/                   # Service entry point
-│   │   ├── internal/              # Service-specific private code
-│   │   ├── Dockerfile             # Service-specific Docker build
-│   │   └── README.md              # Service documentation
-│   ├── order/                     # Order service
-│   ├── payment/                   # Payment service
-│   ├── user/                      # User service
-│   ├── cart/                      # Cart service
-│   └── gateway/                   # API Gateway
-└── deployments/                   # Kubernetes and deployment manifests
-    ├── kubernetes/                # K8s manifests
-    ├── terraform/                 # Infrastructure as code
-    └── helm/                      # Helm charts
 ```
