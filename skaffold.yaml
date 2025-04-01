@@ -1,0 +1,13 @@
+apiVersion: skaffold/v4beta12
+kind: Config
+metadata:
+  name: podzone
+build:
+  artifacts:
+    - image: podzone-gateway
+      context: services/gateway
+      docker:
+        dockerfile: Dockerfile
+manifests:
+  rawYaml:
+    - deployments/kubernetes/k8s.yml

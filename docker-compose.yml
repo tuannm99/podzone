@@ -35,7 +35,7 @@ services:
       - podzone-network
 
   mongodb:
-    container_name: redis
+    container_name: mongo
     image: mongo:6
     environment:
       MONGO_INITDB_ROOT_USERNAME: podzone
@@ -240,7 +240,7 @@ services:
       - PAYMENT_SERVICE_PORT=9005
       - SERVICE_NAME=gateway
       - SERVICE_PORT=8000
-      - ENV=development
+
       # Kong-specific settings
       - KONG_DATABASE=postgres
       - KONG_PG_HOST=kong-database
@@ -255,9 +255,11 @@ services:
       - KONG_PROXY_LISTEN=0.0.0.0:8000, 0.0.0.0:8443 ssl, 0.0.0.0:9080 http2, 0.0.0.0:9081 http2 ssl
       - KONG_PLUGINS=bundled,grpc-gateway,tenant-identifier
       - KONG_LUA_PACKAGE_PATH=/usr/local/kong/?.lua;/usr/local/kong/plugins/?.lua;/usr/local/kong/plugins/tenant-identifier/?.lua;;
+      # - KONG_LOG_LEVEL=debug
+      - ENV=development
     volumes:
       - ./api/proto:/usr/local/kong/protos
-      - ./services/gateway/plugins:/usr/local/kong/plugins
+      # - ./services/gateway/plugins:/usr/local/kong/plugins
     ports:
       - '8000:8000' # HTTP proxy
       - '8443:8443' # HTTPS proxy
@@ -271,7 +273,7 @@ services:
       - '9081:9081' # gRPC+TLS proxy
     networks:
       - podzone-network
-    restart: unless-stopped
+    restart: always
 
   kong-database:
     image: postgres:13
@@ -282,13 +284,14 @@ services:
       POSTGRES_PASSWORD: kongpass
     volumes:
       - kong_data:/var/lib/postgresql/data
-    ports:
-      - '5432:5432'
+    # ports:
+    #   - '5432:5432'
     healthcheck:
       test: ['CMD', 'pg_isready', '-U', 'kong']
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: always
     networks:
       - podzone-network
 
@@ -300,7 +303,7 @@ services:
       kong-database:
         condition: service_healthy
     environment:
-      KONG_DATABASE: postgres
+      KONG_DATABASE: postgres 
       KONG_PG_HOST: kong-database
       KONG_PG_USER: kong
       KONG_PG_PASSWORD: kongpass
@@ -325,22 +328,6 @@ services:
     networks:
       - podzone-network
     restart: on-failure
-
-  # # Admin UI for Kong
-  # konga:
-  #   image: pantsel/konga:latest
-  #   depends_on:
-  #     - kong
-  #   environment:
-  #     NODE_ENV: production
-  #     DB_ADAPTER: postgres
-  #     DB_HOST: kong-database
-  #     DB_USER: kong
-  #     DB_PASSWORD: kong_password
-  #     DB_DATABASE: konga
-  #   ports:
-  #     - '1337:1337'
-  #   restart: unless-stopped
 
 networks:
   podzone-network:
