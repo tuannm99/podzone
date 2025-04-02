@@ -18,6 +18,7 @@ services:
       retries: 5
     networks:
       - podzone-network
+    restart: always
 
   redis:
     image: redis:7
@@ -33,6 +34,7 @@ services:
       retries: 5
     networks:
       - podzone-network
+    restart: always
 
   mongodb:
     container_name: mongo
@@ -51,6 +53,7 @@ services:
       retries: 5
     networks:
       - podzone-network
+    restart: always
 
   # Microservices
   auth-service:
@@ -66,11 +69,12 @@ services:
       APP_REDIRECT_URL: "${APP_REDIRECT_URL}"
       GRPC_PORT: "50051"
       HTTP_PORT: "8080"
-    # ports:
-    #   - "50051:50051"
-    #   - "8080:8080"
+    ports:
+      - "50051:50051"
+      - "8080:8080"
     networks:
       - podzone-network
+    restart: always
 
   # catalog:
   #   build:

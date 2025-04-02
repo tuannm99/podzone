@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -14,13 +15,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/proto"
 
 	pb "github.com/tuannm99/podzone/pkg/api/proto/auth"
 )
@@ -108,7 +109,7 @@ type AuthServer struct {
 func (s *AuthServer) GoogleLogin(ctx context.Context, req *pb.GoogleLoginRequest) (*pb.GoogleLoginResponse, error) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
-		return nil, fmt.Errorf("lỗi tạo state: %v", err)
+		return nil, fmt.Errorf("error generating state: %v", err)
 	}
 	state := base64.StdEncoding.EncodeToString(b)
 
@@ -126,22 +127,22 @@ func (s *AuthServer) GoogleCallback(
 	req *pb.GoogleCallbackRequest,
 ) (*pb.GoogleCallbackResponse, error) {
 	if !s.stateStore.Verify(req.State) {
-		return nil, fmt.Errorf("state không hợp lệ")
+		return nil, fmt.Errorf("invalid state")
 	}
 
 	token, err := googleOauthConfig.Exchange(ctx, req.Code)
 	if err != nil {
-		return nil, fmt.Errorf("không thể trao đổi code: %v", err)
+		return nil, fmt.Errorf("unable to exchange code: %v", err)
 	}
 
 	userInfo, err := getUserInfo(token.AccessToken)
 	if err != nil {
-		return nil, fmt.Errorf("không thể lấy thông tin người dùng: %v", err)
+		return nil, fmt.Errorf("unable to get user info: %v", err)
 	}
 
 	jwtToken, err := createJWT(userInfo)
 	if err != nil {
-		return nil, fmt.Errorf("lỗi tạo JWT: %v", err)
+		return nil, fmt.Errorf("error creating JWT: %v", err)
 	}
 
 	pbUserInfo := &pb.UserInfo{
@@ -167,7 +168,7 @@ func (s *AuthServer) VerifyToken(ctx context.Context, req *pb.VerifyTokenRequest
 	if req.Token == "" {
 		return &pb.VerifyTokenResponse{
 			IsValid: false,
-			Error:   "token trống",
+			Error:   "empty token",
 		}, nil
 	}
 
@@ -178,14 +179,14 @@ func (s *AuthServer) VerifyToken(ctx context.Context, req *pb.VerifyTokenRequest
 	if err != nil {
 		return &pb.VerifyTokenResponse{
 			IsValid: false,
-			Error:   "token không hợp lệ: " + err.Error(),
+			Error:   "invalid token: " + err.Error(),
 		}, nil
 	}
 
 	if !token.Valid {
 		return &pb.VerifyTokenResponse{
 			IsValid: false,
-			Error:   "token không hợp lệ",
+			Error:   "invalid token",
 		}, nil
 	}
 
@@ -242,144 +243,61 @@ func createJWT(userInfo *GoogleUserInfo) (string, error) {
 	return tokenString, nil
 }
 
-func ginGoogleLoginHandler(stateStore *StateStore) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		b := make([]byte, 32)
-		if _, err := rand.Read(b); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Lỗi tạo state"})
-			return
-		}
-		state := base64.StdEncoding.EncodeToString(b)
-
-		stateStore.Add(state)
-
-		redirectAfterLogin := c.Query("redirect_after_login")
-		if redirectAfterLogin != "" {
-			// Lưu redirect_after_login vào state (có thể lưu vào cache/database)
-		}
-
-		url := googleOauthConfig.AuthCodeURL(state)
-
-		c.Redirect(http.StatusTemporaryRedirect, url)
+func redirectResponseModifier(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
+	if loginResp, ok := resp.(*pb.GoogleLoginResponse); ok && loginResp.RedirectUrl != "" {
+		w.Header().Set("Location", loginResp.RedirectUrl)
+		w.WriteHeader(http.StatusTemporaryRedirect)
+		return nil
 	}
+
+	if callbackResp, ok := resp.(*pb.GoogleCallbackResponse); ok && callbackResp.RedirectUrl != "" {
+		w.Header().Set("Location", callbackResp.RedirectUrl)
+		w.WriteHeader(http.StatusTemporaryRedirect)
+		return nil
+	}
+
+	return nil
 }
 
-func ginGoogleCallbackHandler(stateStore *StateStore) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		state := c.Query("state")
-		code := c.Query("code")
+func authMiddleware(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/v1/auth/verify") && r.Method == "GET" {
+			token := r.URL.Query().Get("token")
 
-		if !stateStore.Verify(state) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "State không hợp lệ"})
-			return
-		}
-
-		token, err := googleOauthConfig.Exchange(c, code)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Không thể trao đổi code: " + err.Error()})
-			return
-		}
-
-		userInfo, err := getUserInfo(token.AccessToken)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Không thể lấy thông tin người dùng: " + err.Error()})
-			return
-		}
-
-		jwtToken, err := createJWT(userInfo)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Lỗi tạo JWT: " + err.Error()})
-			return
-		}
-
-		redirectURL := fmt.Sprintf("%s?token=%s", os.Getenv("APP_REDIRECT_URL"), jwtToken)
-
-		c.Redirect(http.StatusTemporaryRedirect, redirectURL)
-	}
-}
-
-func ginVerifyTokenHandler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var token string
-
-		token = c.Query("token")
-
-		if token == "" {
-			var req struct {
-				Token string `json:"token"`
+			if token == "" {
+				authHeader := r.Header.Get("Authorization")
+				if strings.HasPrefix(authHeader, "Bearer ") {
+					token = strings.TrimPrefix(authHeader, "Bearer ")
+				}
 			}
-			if err := c.ShouldBindJSON(&req); err == nil {
-				token = req.Token
+
+			if token != "" {
+				jsonBody := fmt.Sprintf(`{"token": "%s"}`, token)
+				r.Body = http.NoBody
+				r.ContentLength = 0
+				r.Header.Set("Content-Type", "application/json")
+				r.Body = io.NopCloser(strings.NewReader(jsonBody))
+				r.ContentLength = int64(len(jsonBody))
+				r.Method = "POST"
 			}
 		}
 
-		if token == "" {
-			authHeader := c.GetHeader("Authorization")
-			if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
-				token = strings.TrimPrefix(authHeader, "Bearer ")
-			}
-		}
-
-		if token == "" {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"is_valid": false,
-				"error":    "Token trống",
-			})
-			return
-		}
-
-		claims := &JWTClaims{}
-		parsedToken, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
-			return jwtSecret, nil
-		})
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"is_valid": false,
-				"error":    "Token không hợp lệ: " + err.Error(),
-			})
-			return
-		}
-
-		if !parsedToken.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"is_valid": false,
-				"error":    "Token không hợp lệ",
-			})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"is_valid": true,
-			"user_info": gin.H{
-				"id":    claims.Sub,
-				"email": claims.Email,
-				"name":  claims.Name,
-			},
-		})
-	}
-}
-
-func ginLogoutHandler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"success":      true,
-			"redirect_url": "/",
-		})
-	}
+		handler.ServeHTTP(w, r)
+	})
 }
 
 func main() {
 	if os.Getenv("GOOGLE_CLIENT_ID") == "" || os.Getenv("GOOGLE_CLIENT_SECRET") == "" {
-		log.Fatal("Cần thiết lập biến môi trường GOOGLE_CLIENT_ID và GOOGLE_CLIENT_SECRET")
+		log.Fatal("Environment variables GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set")
 	}
 	if os.Getenv("OAUTH_REDIRECT_URL") == "" {
-		log.Fatal("Cần thiết lập biến môi trường OAUTH_REDIRECT_URL")
+		log.Fatal("Environment variable OAUTH_REDIRECT_URL must be set")
 	}
 	if os.Getenv("JWT_SECRET") == "" {
-		log.Fatal("Cần thiết lập biến môi trường JWT_SECRET")
+		log.Fatal("Environment variable JWT_SECRET must be set")
 	}
 	if os.Getenv("APP_REDIRECT_URL") == "" {
-		log.Fatal("Cần thiết lập biến môi trường APP_REDIRECT_URL")
+		log.Fatal("Environment variable APP_REDIRECT_URL must be set")
 	}
 
 	stateStore := NewStateStore()
@@ -405,7 +323,7 @@ func main() {
 
 	lis, err := net.Listen("tcp", ":"+grpcPort)
 	if err != nil {
-		log.Fatalf("không thể lắng nghe cổng gRPC %s: %v", grpcPort, err)
+		log.Fatalf("failed to listen on gRPC port %s: %v", grpcPort, err)
 	}
 
 	authServer := &AuthServer{
@@ -415,10 +333,10 @@ func main() {
 	grpcServer := grpc.NewServer()
 	pb.RegisterAuthServiceServer(grpcServer, authServer)
 
-	log.Printf("gRPC auth server đang chạy tại cổng %s", grpcPort)
+	log.Printf("gRPC auth server running on port %s", grpcPort)
 	go func() {
 		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("không thể phục vụ gRPC: %v", err)
+			log.Fatalf("failed to serve gRPC: %v", err)
 		}
 	}()
 
@@ -433,30 +351,26 @@ func main() {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		log.Fatalf("Không thể kết nối đến gRPC server: %v", err)
+		log.Fatalf("Failed to connect to gRPC server: %v", err)
 	}
 	defer conn.Close()
 
-	grpcGatewayMux := runtime.NewServeMux()
+	grpcGatewayMux := runtime.NewServeMux(
+		runtime.WithForwardResponseOption(redirectResponseModifier),
+	)
+
 	err = pb.RegisterAuthServiceHandler(ctx, grpcGatewayMux, conn)
 	if err != nil {
-		log.Fatalf("Không thể đăng ký service handler: %v", err)
+		log.Fatalf("Failed to register service handler: %v", err)
 	}
 
-	router := gin.Default()
+	handler := authMiddleware(grpcGatewayMux)
 
-	router.GET("/v1/auth/google/login", ginGoogleLoginHandler(stateStore))
-	router.GET("/v1/auth/google/callback", ginGoogleCallbackHandler(stateStore))
-	router.GET("/v1/auth/verify", ginVerifyTokenHandler())
-	router.POST("/v1/auth/verify", ginVerifyTokenHandler())
-	router.GET("/v1/auth/logout", ginLogoutHandler())
-
-	router.NoRoute(func(c *gin.Context) {
-		grpcGatewayMux.ServeHTTP(c.Writer, c.Request)
-	})
-
-	log.Printf("HTTP Auth server đang chạy tại cổng %s", httpPort)
-	if err := router.Run(":" + httpPort); err != nil {
-		log.Fatalf("không thể khởi động HTTP server: %v", err)
+	gwServer := &http.Server{
+		Addr:    ":" + httpPort,
+		Handler: handler,
 	}
+
+	log.Printf("gRPC-Gateway running at http://0.0.0.0:%s", httpPort)
+	log.Fatalln(gwServer.ListenAndServe())
 }
