@@ -552,10 +552,10 @@ const file_auth_auth_proto_rawDesc = "" +
 	"\apicture\x18\x06 \x01(\tR\apicture\x12%\n" +
 	"\x0eemail_verified\x18\a \x01(\bR\remailVerified2\xa0\x03\n" +
 	"\vAuthService\x12a\n" +
-	"\vGoogleLogin\x12\x18.auth.GoogleLoginRequest\x1a\x19.auth.GoogleLoginResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/v1/auth/google/login\x12m\n" +
-	"\x0eGoogleCallback\x12\x1b.auth.GoogleCallbackRequest\x1a\x1c.auth.GoogleCallbackResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/v1/auth/google/callback\x12q\n" +
-	"\vVerifyToken\x12\x18.auth.VerifyTokenRequest\x1a\x19.auth.VerifyTokenResponse\"-\x82\xd3\xe4\x93\x02':\x01*Z\x11\x12\x0f/v1/auth/verify\"\x0f/v1/auth/verify\x12L\n" +
-	"\x06Logout\x12\x13.auth.LogoutRequest\x1a\x14.auth.LogoutResponse\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/v1/auth/logoutB0Z.github.com/tuannm99/podzone/pkg/api/proto/authb\x06proto3"
+	"\vGoogleLogin\x12\x18.auth.GoogleLoginRequest\x1a\x19.auth.GoogleLoginResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/auth/v1/google/login\x12m\n" +
+	"\x0eGoogleCallback\x12\x1b.auth.GoogleCallbackRequest\x1a\x1c.auth.GoogleCallbackResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/auth/v1/google/callback\x12q\n" +
+	"\vVerifyToken\x12\x18.auth.VerifyTokenRequest\x1a\x19.auth.VerifyTokenResponse\"-\x82\xd3\xe4\x93\x02':\x01*Z\x11\x12\x0f/auth/v1/verify\"\x0f/auth/v1/verify\x12L\n" +
+	"\x06Logout\x12\x13.auth.LogoutRequest\x1a\x14.auth.LogoutResponse\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/auth/v1/logoutB0Z.github.com/tuannm99/podzone/pkg/api/proto/authb\x06proto3"
 
 var (
 	file_auth_auth_proto_rawDescOnce sync.Once

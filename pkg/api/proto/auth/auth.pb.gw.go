@@ -203,7 +203,7 @@ func RegisterAuthServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.AuthService/GoogleLogin", runtime.WithHTTPPathPattern("/v1/auth/google/login"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.AuthService/GoogleLogin", runtime.WithHTTPPathPattern("/auth/v1/google/login"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -223,7 +223,7 @@ func RegisterAuthServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.AuthService/GoogleCallback", runtime.WithHTTPPathPattern("/v1/auth/google/callback"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.AuthService/GoogleCallback", runtime.WithHTTPPathPattern("/auth/v1/google/callback"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -243,7 +243,7 @@ func RegisterAuthServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.AuthService/VerifyToken", runtime.WithHTTPPathPattern("/v1/auth/verify"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.AuthService/VerifyToken", runtime.WithHTTPPathPattern("/auth/v1/verify"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -263,7 +263,7 @@ func RegisterAuthServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.AuthService/VerifyToken", runtime.WithHTTPPathPattern("/v1/auth/verify"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.AuthService/VerifyToken", runtime.WithHTTPPathPattern("/auth/v1/verify"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -283,7 +283,7 @@ func RegisterAuthServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.AuthService/Logout", runtime.WithHTTPPathPattern("/v1/auth/logout"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.AuthService/Logout", runtime.WithHTTPPathPattern("/auth/v1/logout"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -341,7 +341,7 @@ func RegisterAuthServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.AuthService/GoogleLogin", runtime.WithHTTPPathPattern("/v1/auth/google/login"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.AuthService/GoogleLogin", runtime.WithHTTPPathPattern("/auth/v1/google/login"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -358,7 +358,7 @@ func RegisterAuthServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.AuthService/GoogleCallback", runtime.WithHTTPPathPattern("/v1/auth/google/callback"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.AuthService/GoogleCallback", runtime.WithHTTPPathPattern("/auth/v1/google/callback"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -375,7 +375,7 @@ func RegisterAuthServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.AuthService/VerifyToken", runtime.WithHTTPPathPattern("/v1/auth/verify"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.AuthService/VerifyToken", runtime.WithHTTPPathPattern("/auth/v1/verify"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -392,7 +392,7 @@ func RegisterAuthServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.AuthService/VerifyToken", runtime.WithHTTPPathPattern("/v1/auth/verify"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.AuthService/VerifyToken", runtime.WithHTTPPathPattern("/auth/v1/verify"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -409,7 +409,7 @@ func RegisterAuthServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.AuthService/Logout", runtime.WithHTTPPathPattern("/v1/auth/logout"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.AuthService/Logout", runtime.WithHTTPPathPattern("/auth/v1/logout"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -426,11 +426,11 @@ func RegisterAuthServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 }
 
 var (
-	pattern_AuthService_GoogleLogin_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "auth", "google", "login"}, ""))
-	pattern_AuthService_GoogleCallback_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "auth", "google", "callback"}, ""))
-	pattern_AuthService_VerifyToken_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "auth", "verify"}, ""))
-	pattern_AuthService_VerifyToken_1    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "auth", "verify"}, ""))
-	pattern_AuthService_Logout_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "auth", "logout"}, ""))
+	pattern_AuthService_GoogleLogin_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"auth", "v1", "google", "login"}, ""))
+	pattern_AuthService_GoogleCallback_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"auth", "v1", "google", "callback"}, ""))
+	pattern_AuthService_VerifyToken_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"auth", "v1", "verify"}, ""))
+	pattern_AuthService_VerifyToken_1    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"auth", "v1", "verify"}, ""))
+	pattern_AuthService_Logout_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"auth", "v1", "logout"}, ""))
 )
 
 var (

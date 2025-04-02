@@ -9,27 +9,27 @@ import "google/api/annotations.proto";
 service AuthService {
   rpc GoogleLogin(GoogleLoginRequest) returns (GoogleLoginResponse) {
     option (google.api.http) = {
-      get: "/v1/auth/google/login"
+      get: "/auth/v1/google/login"
     };
   }
 
   rpc GoogleCallback(GoogleCallbackRequest) returns (GoogleCallbackResponse) {
     option (google.api.http) = {
-      get: "/v1/auth/google/callback"
+      get: "/auth/v1/google/callback"
     };
   }
 
   rpc VerifyToken(VerifyTokenRequest) returns (VerifyTokenResponse) {
     option (google.api.http) = {
-      post: "/v1/auth/verify"
+      post: "/auth/v1/verify"
       body: "*"
-      additional_bindings { get: "/v1/auth/verify" }
+      additional_bindings { get: "/auth/v1/verify" }
     };
   }
 
   rpc Logout(LogoutRequest) returns (LogoutResponse) {
     option (google.api.http) = {
-      get: "/v1/auth/logout"
+      get: "/auth/v1/logout"
     };
   }
 }

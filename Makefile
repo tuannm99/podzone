@@ -26,6 +26,7 @@ init_proto:
 	@curl -sSL https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/any.proto > third_party/google/protobuf/any.proto
 	@curl -sSL https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/struct.proto > third_party/google/protobuf/struct.proto
 	@curl -sSL https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/wrappers.proto > third_party/google/protobuf/wrappers.proto
+	@curl -sSL https://raw.githubusercontent.com/protocolbuffers/protobuf/master/src/google/protobuf/descriptor.proto > third_party/google/protobuf/descriptor.proto
 	@echo "$(COLOR_GREEN)Proto dependencies setup complete.$(COLOR_RESET)"
 
 

@@ -16,7 +16,7 @@
     "application/json"
   ],
   "paths": {
-    "/v1/auth/google/callback": {
+    "/auth/v1/google/callback": {
       "get": {
         "operationId": "AuthService_GoogleCallback",
         "responses": {
@@ -52,7 +52,7 @@
         ]
       }
     },
-    "/v1/auth/google/login": {
+    "/auth/v1/google/login": {
       "get": {
         "operationId": "AuthService_GoogleLogin",
         "responses": {
@@ -82,7 +82,7 @@
         ]
       }
     },
-    "/v1/auth/logout": {
+    "/auth/v1/logout": {
       "get": {
         "operationId": "AuthService_Logout",
         "responses": {
@@ -112,7 +112,7 @@
         ]
       }
     },
-    "/v1/auth/verify": {
+    "/auth/v1/verify": {
       "get": {
         "operationId": "AuthService_VerifyToken2",
         "responses": {
