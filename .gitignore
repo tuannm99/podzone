@@ -87,3 +87,5 @@ testem.log
 Thumbs.db
 .angular
 dist
+
+.data

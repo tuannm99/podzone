@@ -6,18 +6,16 @@ services:
       POSTGRES_USER: podzone
       POSTGRES_PASSWORD: podzone123
       POSTGRES_DB: podzone
-    ports:
-      - '5432:5432'
+    # ports:
+    #   - '5432:5432'
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - /mnt/docker/postgres_data:/var/lib/postgresql/data
       - ./scripts/init-db:/docker-entrypoint-initdb.d
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U podzone']
       interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      - podzone-network
     restart: always
 
   redis:
@@ -26,14 +24,12 @@ services:
     ports:
       - '6379:6379'
     volumes:
-      - redis_data:/data
+      - /mnt/docker/redis_data:/data
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      - podzone-network
     restart: always
 
   mongodb:
@@ -45,14 +41,12 @@ services:
     ports:
       - '27017:27017'
     volumes:
-      - mongo_data:/data/db
+      - /mnt/docker/mongo_data:/data/db
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/admin -u podzone -p podzone123 --quiet
       interval: 10s
       timeout: 10s
       retries: 5
-    networks:
-      - podzone-network
     restart: always
 
   # Microservices
@@ -62,18 +56,16 @@ services:
       dockerfile: services/auth/Dockerfile
     container_name: auth-service
     environment:
-      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID}"
-      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
-      OAUTH_REDIRECT_URL: "${OAUTH_REDIRECT_URL}"
-      JWT_SECRET: "${JWT_SECRET}"
-      APP_REDIRECT_URL: "${APP_REDIRECT_URL}"
-      GRPC_PORT: "50051"
-      HTTP_PORT: "8080"
+      GOOGLE_CLIENT_ID: '${GOOGLE_CLIENT_ID}'
+      GOOGLE_CLIENT_SECRET: '${GOOGLE_CLIENT_SECRET}'
+      OAUTH_REDIRECT_URL: '${OAUTH_REDIRECT_URL}'
+      JWT_SECRET: '${JWT_SECRET}'
+      APP_REDIRECT_URL: '${APP_REDIRECT_URL}'
+      GRPC_PORT: '50051'
+      HTTP_PORT: '8080'
     ports:
-      - "50051:50051"
-      - "8080:8080"
-    networks:
-      - podzone-network
+      - '50051:50051'
+      - '8080:8080'
     restart: always
 
   # catalog:
@@ -241,124 +233,43 @@ services:
   #         KAFKA_JMX_HOSTNAME: kafka
 
   # API Gateway
-  kong:
-    build:
-      context: services/gateway
-      dockerfile: Dockerfile
-    container_name: kong-gateway
+  apisix:
+    image: apache/apisix:3.12.0-debian
+    container_name: 'apisix-gateway'
+    volumes:
+      - ./services/gateway/apisix_conf/config.yaml:/usr/local/apisix/conf/config.yaml:ro
     depends_on:
-      kong-migration:
-        condition: service_healthy
-    environment:
-      # Original microservice connection settings
-      - CATALOG_SERVICE_HOST=catalog
-      - CATALOG_SERVICE_PORT=9001
-      - ORDER_SERVICE_HOST=order
-      - ORDER_SERVICE_PORT=9002
-      - USER_SERVICE_HOST=user
-      - USER_SERVICE_PORT=9003
-      - CART_SERVICE_HOST=cart
-      - CART_SERVICE_PORT=9004
-      - PAYMENT_SERVICE_HOST=payment
-      - PAYMENT_SERVICE_PORT=9005
-      - SERVICE_NAME=gateway
-      - SERVICE_PORT=8000
-
-      # Kong-specific settings
-      - KONG_DATABASE=postgres
-      - KONG_PG_HOST=kong-database
-      - KONG_PG_USER=kong
-      - KONG_PG_PASSWORD=kongpass
-      - KONG_PROXY_ACCESS_LOG=/dev/stdout
-      - KONG_ADMIN_ACCESS_LOG=/dev/stdout
-      - KONG_PROXY_ERROR_LOG=/dev/stderr
-      - KONG_ADMIN_ERROR_LOG=/dev/stderr
-      - KONG_ADMIN_LISTEN=0.0.0.0:8001
-      - KONG_ADMIN_GUI_URL=http://localhost:8002
-      - KONG_PROXY_LISTEN=0.0.0.0:8000, 0.0.0.0:8443 ssl, 0.0.0.0:9080 http2, 0.0.0.0:9081 http2 ssl
-      - KONG_PLUGINS=bundled,grpc-gateway,tenant-identifier
-      - KONG_LUA_PACKAGE_PATH=/usr/local/kong/?.lua;/usr/local/kong/plugins/?.lua;/usr/local/kong/plugins/tenant-identifier/?.lua;;
-      # - KONG_LOG_LEVEL=debug
-      - ENV=development
-    # volumes:
-    #   - ./api/proto:/usr/local/kong/protos
-    #   - ./third_party/google:/usr/local/kong/include/google
-      # - ./services/gateway/plugins:/usr/local/kong/plugins
+      - etcd
     ports:
-      - '8000:8000' # HTTP proxy
-      - '8443:8443' # HTTPS proxy
-      - '8001:8001' # Admin API
-      - '8002:8002' # Admin GUI
-      - '8444:8444' # Admin SSL
-      - '8445:8445' # Admin GUI SSL
-      - '8003:8003' # Dev Portal
-      - '8004:8004' # Dev Portal API
-      - '9080:9080' # gRPC proxy
-      - '9081:9081' # gRPC+TLS proxy
-    networks:
-      - podzone-network
+      - '9080:9080'
+      - '9443:9443'
+      - '9180:9180'
     restart: always
 
-  kong-database:
-    image: postgres:13
-    container_name: kong-database
-    environment:
-      POSTGRES_USER: kong
-      POSTGRES_DB: kong
-      POSTGRES_PASSWORD: kongpass
+  apisix-dashboard:
+    image: apache/apisix-dashboard:latest
+    container_name: 'apisix-dashboard'
     volumes:
-      - kong_data:/var/lib/postgresql/data
-    # ports:
-    #   - '5432:5432'
+      - ./services/gateway/dashboard_conf/conf.yaml:/usr/local/apisix-dashboard/conf/conf.yaml
+    ports:
+      - '9000:9000'
+    restart: always
+
+  etcd:
+    image: bitnami/etcd:3.5.10
+    container_name: 'etcd'
+    user: '0'
+    restart: always
+    volumes:
+      - /mnt/docker/etcd-apisix:/bitnami/etcd
+    environment:
+      - ETCD_ENABLE_V2=true
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+    ports:
+      - '2379:2379'
     healthcheck:
-      test: ['CMD', 'pg_isready', '-U', 'kong']
+      test: ['CMD', 'etcdctl', 'endpoint', 'health']
       interval: 5s
       timeout: 5s
       retries: 5
-    restart: always
-    networks:
-      - podzone-network
-
-  # Migration container with link to database
-  kong-migration:
-    image: kong:3.9.0
-    container_name: kong-migration
-    depends_on:
-      kong-database:
-        condition: service_healthy
-    environment:
-      KONG_DATABASE: postgres 
-      KONG_PG_HOST: kong-database
-      KONG_PG_USER: kong
-      KONG_PG_PASSWORD: kongpass
-    # Use entrypoint to ensure exit code is properly passed
-    entrypoint: |
-      /bin/sh -c "
-        echo 'Waiting for database to be ready...'
-        sleep 10
-        echo 'Running migrations...'
-        kong migrations bootstrap && 
-        kong migrations up && 
-        kong migrations finish &&
-        touch /tmp/migration_success
-      "
-    # Check if the migration has completed successfully
-    healthcheck:
-      test: ['CMD', 'test', '-f', '/tmp/migration_success']
-      interval: 5s
-      timeout: 5s
-      retries: 10
-      start_period: 10s
-    networks:
-      - podzone-network
-    restart: on-failure
-
-networks:
-  podzone-network:
-    driver: bridge
-
-volumes:
-  postgres_data:
-  redis_data:
-  mongo_data:
-  kong_data:
