@@ -54,6 +54,7 @@ plugins:
   - response-rewrite
   - serverless-post-function
   - serverless-pre-function
+  - public-api
   # - skywalking
   - sls-logger
   - syslog
