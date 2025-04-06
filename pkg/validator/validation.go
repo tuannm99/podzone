@@ -9,11 +9,10 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/tuannm99/podzone/pkg/errors"
+	cusErr "github.com/tuannm99/podzone/pkg/errors"
 )
 
 var (
-	// Common validation regexps
 	emailRegex    = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
 	phoneRegex    = regexp.MustCompile(`^\+?[0-9]{10,15}$`)
 	passwordRegex = regexp.MustCompile(`^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$`)
@@ -22,16 +21,13 @@ var (
 	slugRegex     = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
 )
 
-// Validator provides validation functionality
 type Validator struct {
 	validate *validator.Validate
 }
 
-// New creates a new validator
 func New() *Validator {
 	validate := validator.New()
 
-	// Register custom validation tags
 	validate.RegisterValidation("email", validateEmail)
 	validate.RegisterValidation("phone", validatePhone)
 	validate.RegisterValidation("password", validatePassword)
@@ -39,7 +35,6 @@ func New() *Validator {
 	validate.RegisterValidation("uuid", validateUUID)
 	validate.RegisterValidation("slug", validateSlug)
 
-	// Register tag name function to use json tag names in errors
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
 		if name == "-" {
@@ -53,8 +48,7 @@ func New() *Validator {
 	}
 }
 
-// Validate validates a struct
-func (v *Validator) Validate(s interface{}) error {
+func (v *Validator) Validate(s any) error {
 	if err := v.validate.Struct(s); err != nil {
 		validationErrors := v.processErrors(err)
 		return validationErrors.ToAppError()
@@ -62,8 +56,7 @@ func (v *Validator) Validate(s interface{}) error {
 	return nil
 }
 
-// ValidateVar validates a single variable
-func (v *Validator) ValidateVar(field interface{}, tag string) error {
+func (v *Validator) ValidateVar(field any, tag string) error {
 	if err := v.validate.Var(field, tag); err != nil {
 		validationErrors := v.processErrors(err)
 		return validationErrors.ToAppError()
@@ -71,9 +64,8 @@ func (v *Validator) ValidateVar(field interface{}, tag string) error {
 	return nil
 }
 
-// processErrors processes validation errors
-func (v *Validator) processErrors(err error) *errors.ValidationErrors {
-	var validationErrors *errors.ValidationErrors = errors.NewValidationErrors()
+func (v *Validator) processErrors(err error) *cusErr.ValidationError {
+	validationErrors := cusErr.NewValidationErrors()
 
 	if err != nil {
 		var validationErrs validator.ValidationErrors
@@ -90,7 +82,6 @@ func (v *Validator) processErrors(err error) *errors.ValidationErrors {
 	return validationErrors
 }
 
-// getErrorMessage returns a human-readable error message
 func (v *Validator) getErrorMessage(e validator.FieldError) string {
 	switch e.Tag() {
 	case "required":
@@ -138,74 +129,57 @@ func (v *Validator) getErrorMessage(e validator.FieldError) string {
 	}
 }
 
-// Custom validators
-
-// validateEmail validates an email address
 func validateEmail(fl validator.FieldLevel) bool {
 	return emailRegex.MatchString(fl.Field().String())
 }
 
-// validatePhone validates a phone number
 func validatePhone(fl validator.FieldLevel) bool {
 	return phoneRegex.MatchString(fl.Field().String())
 }
 
-// validatePassword validates a password
 func validatePassword(fl validator.FieldLevel) bool {
 	return passwordRegex.MatchString(fl.Field().String())
 }
 
-// validateUsername validates a username
 func validateUsername(fl validator.FieldLevel) bool {
 	return usernameRegex.MatchString(fl.Field().String())
 }
 
-// validateUUID validates a UUID
 func validateUUID(fl validator.FieldLevel) bool {
 	return uuidRegex.MatchString(fl.Field().String())
 }
 
-// validateSlug validates a slug
 func validateSlug(fl validator.FieldLevel) bool {
 	return slugRegex.MatchString(fl.Field().String())
 }
 
-// Utility functions
-
-// IsEmail checks if a string is a valid email
 func IsEmail(email string) bool {
 	return emailRegex.MatchString(email)
 }
 
-// IsPhone checks if a string is a valid phone number
 func IsPhone(phone string) bool {
 	return phoneRegex.MatchString(phone)
 }
 
-// IsPassword checks if a string is a valid password
 func IsPassword(password string) bool {
 	return passwordRegex.MatchString(password)
 }
 
-// IsUsername checks if a string is a valid username
 func IsUsername(username string) bool {
 	return usernameRegex.MatchString(username)
 }
 
-// IsUUID checks if a string is a valid UUID
 func IsUUID(uuid string) bool {
 	return uuidRegex.MatchString(uuid)
 }
 
-// IsSlug checks if a string is a valid slug
 func IsSlug(slug string) bool {
 	return slugRegex.MatchString(slug)
 }
 
-// ValidateJSON validates JSON data against a struct
-func ValidateJSON(data []byte, s interface{}) error {
+func ValidateJSON(data []byte, s any) error {
 	if err := json.Unmarshal(data, s); err != nil {
-		return errors.NewValidation("invalid JSON format", err)
+		return cusErr.NewValidation("invalid JSON format", err)
 	}
 	return nil
 }

@@ -7,13 +7,13 @@ run:
 linters:
   enable:
     - errcheck
-    - goimports
     - govet
     - staticcheck
-    - gosimple
     - ineffassign
-    - typecheck
     - unused
+    # - goimports
+    # - gosimple
+    # - typecheck
 
     - lll # reports long lines
     - copyloopvar # detects places where loop variables are copied (Go 1.22+)

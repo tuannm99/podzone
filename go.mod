@@ -15,7 +15,6 @@ require (
 )
 
 require (
-	github.com/Kong/go-pdk v0.11.0
 	github.com/go-playground/validator/v10 v10.14.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/jackc/pgx/v5 v5.5.0
@@ -24,6 +23,7 @@ require (
 	github.com/segmentio/kafka-go v0.4.47
 	github.com/testcontainers/testcontainers-go v0.36.0
 	go.mongodb.org/mongo-driver v1.13.0
+	go.uber.org/fx v1.23.0
 	golang.org/x/oauth2 v0.26.0
 )
 
@@ -94,7 +94,6 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
-	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
@@ -110,6 +109,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.35.0 // indirect
 	go.opentelemetry.io/otel/trace v1.35.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.5.0 // indirect
+	go.uber.org/dig v1.18.0 // indirect
 	go.uber.org/goleak v1.3.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/crypto v0.33.0 // indirect

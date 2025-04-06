@@ -11,7 +11,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// ErrorType is the type of error
 type ErrorType string
 
 const (
@@ -33,7 +32,6 @@ const (
 	ErrorTypeBadRequest ErrorType = "bad_request"
 )
 
-// AppError represents an application error
 type AppError struct {
 	Type    ErrorType
 	Message string
@@ -41,7 +39,6 @@ type AppError struct {
 	Fields  map[string]string
 }
 
-// Error implements the error interface
 func (e *AppError) Error() string {
 	if e.Err != nil {
 		return fmt.Sprintf("%s: %s: %v", e.Type, e.Message, e.Err)
@@ -49,12 +46,10 @@ func (e *AppError) Error() string {
 	return fmt.Sprintf("%s: %s", e.Type, e.Message)
 }
 
-// Unwrap implements the unwrap interface
 func (e *AppError) Unwrap() error {
 	return e.Err
 }
 
-// Is implements the errors.Is interface
 func (e *AppError) Is(target error) bool {
 	t, ok := target.(*AppError)
 	if !ok {
@@ -63,7 +58,6 @@ func (e *AppError) Is(target error) bool {
 	return e.Type == t.Type
 }
 
-// WithField adds a field to the error
 func (e *AppError) WithField(key, value string) *AppError {
 	if e.Fields == nil {
 		e.Fields = make(map[string]string)
@@ -72,7 +66,6 @@ func (e *AppError) WithField(key, value string) *AppError {
 	return e
 }
 
-// WithFields adds multiple fields to the error
 func (e *AppError) WithFields(fields map[string]string) *AppError {
 	if e.Fields == nil {
 		e.Fields = make(map[string]string)
@@ -81,7 +74,6 @@ func (e *AppError) WithFields(fields map[string]string) *AppError {
 	return e
 }
 
-// NewInternal creates a new internal error
 func NewInternal(message string, err error) *AppError {
 	return &AppError{
 		Type:    ErrorTypeInternal,
@@ -90,7 +82,6 @@ func NewInternal(message string, err error) *AppError {
 	}
 }
 
-// NewValidation creates a new validation error
 func NewValidation(message string, err error) *AppError {
 	return &AppError{
 		Type:    ErrorTypeValidation,
@@ -99,7 +90,6 @@ func NewValidation(message string, err error) *AppError {
 	}
 }
 
-// NewNotFound creates a new not found error
 func NewNotFound(message string, err error) *AppError {
 	return &AppError{
 		Type:    ErrorTypeNotFound,
@@ -108,7 +98,6 @@ func NewNotFound(message string, err error) *AppError {
 	}
 }
 
-// NewUnauthorized creates a new unauthorized error
 func NewUnauthorized(message string, err error) *AppError {
 	return &AppError{
 		Type:    ErrorTypeUnauthorized,
@@ -117,7 +106,6 @@ func NewUnauthorized(message string, err error) *AppError {
 	}
 }
 
-// NewForbidden creates a new forbidden error
 func NewForbidden(message string, err error) *AppError {
 	return &AppError{
 		Type:    ErrorTypeForbidden,
@@ -126,7 +114,6 @@ func NewForbidden(message string, err error) *AppError {
 	}
 }
 
-// NewConflict creates a new conflict error
 func NewConflict(message string, err error) *AppError {
 	return &AppError{
 		Type:    ErrorTypeConflict,
@@ -135,7 +122,6 @@ func NewConflict(message string, err error) *AppError {
 	}
 }
 
-// NewTimeout creates a new timeout error
 func NewTimeout(message string, err error) *AppError {
 	return &AppError{
 		Type:    ErrorTypeTimeout,
@@ -144,7 +130,6 @@ func NewTimeout(message string, err error) *AppError {
 	}
 }
 
-// NewBadRequest creates a new bad request error
 func NewBadRequest(message string, err error) *AppError {
 	return &AppError{
 		Type:    ErrorTypeBadRequest,
@@ -162,7 +147,6 @@ func IsInternal(err error) bool {
 	return false
 }
 
-// IsValidation checks if an error is a validation error
 func IsValidation(err error) bool {
 	var appErr *AppError
 	if errors.As(err, &appErr) {
@@ -171,7 +155,6 @@ func IsValidation(err error) bool {
 	return false
 }
 
-// IsNotFound checks if an error is a not found error
 func IsNotFound(err error) bool {
 	var appErr *AppError
 	if errors.As(err, &appErr) {
@@ -180,7 +163,6 @@ func IsNotFound(err error) bool {
 	return false
 }
 
-// IsUnauthorized checks if an error is an unauthorized error
 func IsUnauthorized(err error) bool {
 	var appErr *AppError
 	if errors.As(err, &appErr) {
@@ -189,7 +171,6 @@ func IsUnauthorized(err error) bool {
 	return false
 }
 
-// IsForbidden checks if an error is a forbidden error
 func IsForbidden(err error) bool {
 	var appErr *AppError
 	if errors.As(err, &appErr) {
@@ -198,7 +179,6 @@ func IsForbidden(err error) bool {
 	return false
 }
 
-// IsConflict checks if an error is a conflict error
 func IsConflict(err error) bool {
 	var appErr *AppError
 	if errors.As(err, &appErr) {
@@ -207,7 +187,6 @@ func IsConflict(err error) bool {
 	return false
 }
 
-// IsTimeout checks if an error is a timeout error
 func IsTimeout(err error) bool {
 	var appErr *AppError
 	if errors.As(err, &appErr) {
@@ -216,7 +195,6 @@ func IsTimeout(err error) bool {
 	return false
 }
 
-// IsBadRequest checks if an error is a bad request error
 func IsBadRequest(err error) bool {
 	var appErr *AppError
 	if errors.As(err, &appErr) {
@@ -225,7 +203,6 @@ func IsBadRequest(err error) bool {
 	return false
 }
 
-// HTTPStatusCode returns the HTTP status code for an error
 func HTTPStatusCode(err error) int {
 	var appErr *AppError
 	if errors.As(err, &appErr) {
@@ -251,7 +228,6 @@ func HTTPStatusCode(err error) int {
 	return http.StatusInternalServerError
 }
 
-// GRPCStatusCode returns the gRPC status code for an error
 func GRPCStatusCode(err error) codes.Code {
 	var appErr *AppError
 	if errors.As(err, &appErr) {
@@ -277,7 +253,6 @@ func GRPCStatusCode(err error) codes.Code {
 	return codes.Internal
 }
 
-// ToGRPCStatus converts an error to a gRPC status
 func ToGRPCStatus(err error) *status.Status {
 	var appErr *AppError
 	if errors.As(err, &appErr) {
@@ -293,7 +268,6 @@ func ToGRPCStatus(err error) *status.Status {
 	return status.New(codes.Internal, err.Error())
 }
 
-// FromGRPCStatus converts a gRPC status to an error
 func FromGRPCStatus(s *status.Status) error {
 	code := s.Code()
 	msg := s.Message()
@@ -318,7 +292,6 @@ func FromGRPCStatus(s *status.Status) error {
 	}
 }
 
-// WrapIfErr wraps an error if it's not nil
 func WrapIfErr(message string, err error) error {
 	if err == nil {
 		return nil
@@ -326,29 +299,24 @@ func WrapIfErr(message string, err error) error {
 	return fmt.Errorf("%s: %w", message, err)
 }
 
-// ValidationError represents multiple validation errors
 type ValidationError struct {
 	Errors map[string]string
 }
 
-// NewValidationErrors creates a new validation errors
 func NewValidationErrors() *ValidationError {
 	return &ValidationError{
 		Errors: make(map[string]string),
 	}
 }
 
-// Add adds a validation error
 func (v *ValidationError) Add(field, message string) {
 	v.Errors[field] = message
 }
 
-// HasErrors checks if there are any errors
 func (v *ValidationError) HasErrors() bool {
 	return len(v.Errors) > 0
 }
 
-// Error implements the error interface
 func (v *ValidationError) Error() string {
 	var sb strings.Builder
 	sb.WriteString("validation errors: ")
@@ -365,7 +333,6 @@ func (v *ValidationError) Error() string {
 	return sb.String()
 }
 
-// ToAppError converts validation errors to an app error
 func (v *ValidationError) ToAppError() *AppError {
 	return NewValidation("validation errors", v).WithFields(v.Errors)
 }

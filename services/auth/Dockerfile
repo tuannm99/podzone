@@ -8,10 +8,11 @@ COPY go.mod go.sum* ./
 
 RUN go mod download
 
+COPY cmd/auth/ ./cmd/auth/
 COPY pkg/ ./pkg/
 COPY services/auth/ ./services/auth/
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o auth ./services/auth/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o auth ./cmd/auth/main.go
 
 FROM alpine:3.18
 

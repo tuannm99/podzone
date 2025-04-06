@@ -1,4 +1,4 @@
-package main
+package auth
 
 import (
 	"context"
@@ -7,8 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
-	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -16,11 +14,8 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/proto"
 
 	pb "github.com/tuannm99/podzone/pkg/api/proto/auth"
@@ -103,7 +98,7 @@ type JWTClaims struct {
 
 type AuthServer struct {
 	pb.UnimplementedAuthServiceServer
-	stateStore *StateStore
+	StateStore *StateStore
 }
 
 func (s *AuthServer) GoogleLogin(ctx context.Context, req *pb.GoogleLoginRequest) (*pb.GoogleLoginResponse, error) {
@@ -113,7 +108,7 @@ func (s *AuthServer) GoogleLogin(ctx context.Context, req *pb.GoogleLoginRequest
 	}
 	state := base64.StdEncoding.EncodeToString(b)
 
-	s.stateStore.Add(state)
+	s.StateStore.Add(state)
 
 	url := googleOauthConfig.AuthCodeURL(state)
 
@@ -126,7 +121,7 @@ func (s *AuthServer) GoogleCallback(
 	ctx context.Context,
 	req *pb.GoogleCallbackRequest,
 ) (*pb.GoogleCallbackResponse, error) {
-	if !s.stateStore.Verify(req.State) {
+	if !s.StateStore.Verify(req.State) {
 		return nil, fmt.Errorf("invalid state")
 	}
 
@@ -212,7 +207,12 @@ func getUserInfo(accessToken string) (*GoogleUserInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			fmt.Println("Error close body...")
+		}
+	}()
 
 	var userInfo GoogleUserInfo
 	err = json.NewDecoder(resp.Body).Decode(&userInfo)
@@ -243,7 +243,7 @@ func createJWT(userInfo *GoogleUserInfo) (string, error) {
 	return tokenString, nil
 }
 
-func redirectResponseModifier(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
+func RedirectResponseModifier(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
 	if loginResp, ok := resp.(*pb.GoogleLoginResponse); ok && loginResp.RedirectUrl != "" {
 		w.Header().Set("Location", loginResp.RedirectUrl)
 		w.WriteHeader(http.StatusTemporaryRedirect)
@@ -259,7 +259,7 @@ func redirectResponseModifier(ctx context.Context, w http.ResponseWriter, resp p
 	return nil
 }
 
-func authMiddleware(handler http.Handler) http.Handler {
+func AuthMiddleware(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, "/v1/auth/verify") && r.Method == "GET" {
 			token := r.URL.Query().Get("token")
@@ -284,93 +284,4 @@ func authMiddleware(handler http.Handler) http.Handler {
 
 		handler.ServeHTTP(w, r)
 	})
-}
-
-func main() {
-	if os.Getenv("GOOGLE_CLIENT_ID") == "" || os.Getenv("GOOGLE_CLIENT_SECRET") == "" {
-		log.Fatal("Environment variables GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set")
-	}
-	if os.Getenv("OAUTH_REDIRECT_URL") == "" {
-		log.Fatal("Environment variable OAUTH_REDIRECT_URL must be set")
-	}
-	if os.Getenv("JWT_SECRET") == "" {
-		log.Fatal("Environment variable JWT_SECRET must be set")
-	}
-	if os.Getenv("APP_REDIRECT_URL") == "" {
-		log.Fatal("Environment variable APP_REDIRECT_URL must be set")
-	}
-
-	stateStore := NewStateStore()
-
-	go func() {
-		ticker := time.NewTicker(5 * time.Minute)
-		defer ticker.Stop()
-
-		for range ticker.C {
-			stateStore.Cleanup()
-		}
-	}()
-
-	grpcPort := os.Getenv("GRPC_PORT")
-	if grpcPort == "" {
-		grpcPort = "50051"
-	}
-
-	httpPort := os.Getenv("HTTP_PORT")
-	if httpPort == "" {
-		httpPort = "8080"
-	}
-
-	lis, err := net.Listen("tcp", ":"+grpcPort)
-	if err != nil {
-		log.Fatalf("failed to listen on gRPC port %s: %v", grpcPort, err)
-	}
-
-	authServer := &AuthServer{
-		stateStore: stateStore,
-	}
-
-	grpcServer := grpc.NewServer()
-	pb.RegisterAuthServiceServer(grpcServer, authServer)
-
-	log.Printf("gRPC auth server running on port %s", grpcPort)
-	go func() {
-		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("failed to serve gRPC: %v", err)
-		}
-	}()
-
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	conn, err := grpc.DialContext(
-		ctx,
-		"localhost:"+grpcPort,
-		grpc.WithBlock(),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	if err != nil {
-		log.Fatalf("Failed to connect to gRPC server: %v", err)
-	}
-	defer conn.Close()
-
-	grpcGatewayMux := runtime.NewServeMux(
-		runtime.WithForwardResponseOption(redirectResponseModifier),
-	)
-
-	err = pb.RegisterAuthServiceHandler(ctx, grpcGatewayMux, conn)
-	if err != nil {
-		log.Fatalf("Failed to register service handler: %v", err)
-	}
-
-	handler := authMiddleware(grpcGatewayMux)
-
-	gwServer := &http.Server{
-		Addr:    ":" + httpPort,
-		Handler: handler,
-	}
-
-	log.Printf("gRPC-Gateway running at http://0.0.0.0:%s", httpPort)
-	log.Fatalln(gwServer.ListenAndServe())
 }

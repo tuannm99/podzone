@@ -12,7 +12,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// Common errors
 var (
 	ErrPublishTimeout   = errors.New("publish timeout")
 	ErrSubscribeTimeout = errors.New("subscribe timeout")
@@ -22,7 +21,6 @@ var (
 	ErrHandlerNotFound  = errors.New("handler not found")
 )
 
-// Message represents a message
 type Message struct {
 	ID        string            `json:"id"`
 	Type      string            `json:"type"`
@@ -31,34 +29,24 @@ type Message struct {
 	CreatedAt time.Time         `json:"created_at"`
 }
 
-// Publisher defines methods for publishing messages
 type Publisher interface {
-	// Publish publishes a message to a topic
 	Publish(ctx context.Context, topic string, message Message) error
-	// Close closes the publisher
 	Close() error
 }
 
-// Subscriber defines methods for subscribing to messages
 type Subscriber interface {
-	// Subscribe subscribes to a topic
 	Subscribe(ctx context.Context, topic string, handler MessageHandler) error
-	// Unsubscribe unsubscribes from a topic
 	Unsubscribe(topic string) error
-	// Close closes the subscriber
 	Close() error
 }
 
-// MessageHandler is a function that handles messages
 type MessageHandler func(ctx context.Context, message Message) error
 
-// Client combines Publisher and Subscriber interfaces
 type Client interface {
 	Publisher
 	Subscriber
 }
 
-// Config holds messaging client configuration
 type Config struct {
 	Brokers          []string      `mapstructure:"brokers"`
 	ClientID         string        `mapstructure:"client_id"`
@@ -69,7 +57,6 @@ type Config struct {
 	RetryInterval    time.Duration `mapstructure:"retry_interval"`
 }
 
-// KafkaClient implements Client using Kafka
 type KafkaClient struct {
 	config   Config
 	logger   *zap.Logger
@@ -82,7 +69,6 @@ type KafkaClient struct {
 	wg       sync.WaitGroup
 }
 
-// NewKafkaClient creates a new Kafka client
 func NewKafkaClient(config Config, logger *zap.Logger) (*KafkaClient, error) {
 	if len(config.Brokers) == 0 {
 		return nil, errors.New("no brokers provided")
@@ -125,9 +111,7 @@ func NewKafkaClient(config Config, logger *zap.Logger) (*KafkaClient, error) {
 	}, nil
 }
 
-// Publish publishes a message to a topic
 func (c *KafkaClient) Publish(ctx context.Context, topic string, message Message) error {
-	// Set message ID and timestamp if not set
 	if message.ID == "" {
 		message.ID = generateMessageID()
 	}
@@ -135,12 +119,10 @@ func (c *KafkaClient) Publish(ctx context.Context, topic string, message Message
 		message.CreatedAt = time.Now()
 	}
 
-	// Get writer for topic
 	c.mu.RLock()
 	writer, ok := c.writers[topic]
 	c.mu.RUnlock()
 
-	// Create writer if not exists
 	if !ok {
 		var err error
 		writer, err = c.createWriter(topic)
@@ -149,17 +131,14 @@ func (c *KafkaClient) Publish(ctx context.Context, topic string, message Message
 		}
 	}
 
-	// Marshal message
 	value, err := json.Marshal(message)
 	if err != nil {
 		return fmt.Errorf("failed to marshal message: %w", err)
 	}
 
-	// Create context with timeout
 	ctx, cancel := context.WithTimeout(ctx, c.config.PublishTimeout)
 	defer cancel()
 
-	// Write message
 	err = writer.WriteMessages(ctx, kafka.Message{
 		Key:   []byte(message.ID),
 		Value: value,
@@ -183,17 +162,14 @@ func (c *KafkaClient) Publish(ctx context.Context, topic string, message Message
 	return nil
 }
 
-// Subscribe subscribes to a topic
 func (c *KafkaClient) Subscribe(ctx context.Context, topic string, handler MessageHandler) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	// Check if already subscribed
 	if _, ok := c.handlers[topic]; ok {
 		return fmt.Errorf("already subscribed to topic %s", topic)
 	}
 
-	// Create reader
 	reader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:        c.config.Brokers,
 		Topic:          topic,
@@ -204,11 +180,9 @@ func (c *KafkaClient) Subscribe(ctx context.Context, topic string, handler Messa
 		StartOffset:    kafka.FirstOffset,
 	})
 
-	// Store reader and handler
 	c.readers[topic] = reader
 	c.handlers[topic] = handler
 
-	// Start consumer goroutine
 	c.wg.Add(1)
 	go c.consume(reader, topic, handler)
 
@@ -217,23 +191,19 @@ func (c *KafkaClient) Subscribe(ctx context.Context, topic string, handler Messa
 	return nil
 }
 
-// Unsubscribe unsubscribes from a topic
 func (c *KafkaClient) Unsubscribe(topic string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	// Check if subscribed
 	reader, ok := c.readers[topic]
 	if !ok {
 		return ErrTopicNotFound
 	}
 
-	// Close reader
 	if err := reader.Close(); err != nil {
 		return fmt.Errorf("failed to close reader: %w", err)
 	}
 
-	// Remove handler and reader
 	delete(c.handlers, topic)
 	delete(c.readers, topic)
 
@@ -242,11 +212,9 @@ func (c *KafkaClient) Unsubscribe(topic string) error {
 	return nil
 }
 
-// Close closes the client
 func (c *KafkaClient) Close() error {
 	c.cancel()
 
-	// Close all writers
 	c.mu.Lock()
 	for topic, writer := range c.writers {
 		if err := writer.Close(); err != nil {
@@ -256,7 +224,6 @@ func (c *KafkaClient) Close() error {
 		}
 	}
 
-	// Close all readers
 	for topic, reader := range c.readers {
 		if err := reader.Close(); err != nil {
 			c.logger.Error("Failed to close reader",
@@ -266,7 +233,6 @@ func (c *KafkaClient) Close() error {
 	}
 	c.mu.Unlock()
 
-	// Wait for all consumers to exit
 	c.wg.Wait()
 
 	c.logger.Info("Messaging client closed")
@@ -274,17 +240,14 @@ func (c *KafkaClient) Close() error {
 	return nil
 }
 
-// createWriter creates a writer for a topic
 func (c *KafkaClient) createWriter(topic string) (*kafka.Writer, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	// Check if writer already exists
 	if writer, ok := c.writers[topic]; ok {
 		return writer, nil
 	}
 
-	// Create writer
 	writer := kafka.NewWriter(kafka.WriterConfig{
 		Brokers:      c.config.Brokers,
 		Topic:        topic,
@@ -294,13 +257,11 @@ func (c *KafkaClient) createWriter(topic string) (*kafka.Writer, error) {
 		Async:        true,
 	})
 
-	// Store writer
 	c.writers[topic] = writer
 
 	return writer, nil
 }
 
-// consume consumes messages from a topic
 func (c *KafkaClient) consume(reader *kafka.Reader, topic string, handler MessageHandler) {
 	defer c.wg.Done()
 
@@ -312,7 +273,6 @@ func (c *KafkaClient) consume(reader *kafka.Reader, topic string, handler Messag
 			c.logger.Info("Consumer stopped", zap.String("topic", topic))
 			return
 		default:
-			// Read message
 			msg, err := reader.ReadMessage(c.ctx)
 			if err != nil {
 				if errors.Is(err, context.Canceled) {
@@ -325,7 +285,6 @@ func (c *KafkaClient) consume(reader *kafka.Reader, topic string, handler Messag
 				continue
 			}
 
-			// Parse message
 			var message Message
 			if err := json.Unmarshal(msg.Value, &message); err != nil {
 				c.logger.Error("Failed to unmarshal message",
@@ -334,10 +293,8 @@ func (c *KafkaClient) consume(reader *kafka.Reader, topic string, handler Messag
 				continue
 			}
 
-			// Create context for handler
 			handlerCtx, cancel := context.WithTimeout(c.ctx, c.config.SubscribeTimeout)
 
-			// Handle message
 			if err := handler(handlerCtx, message); err != nil {
 				c.logger.Error("Failed to handle message",
 					zap.String("topic", topic),
@@ -355,12 +312,10 @@ func (c *KafkaClient) consume(reader *kafka.Reader, topic string, handler Messag
 	}
 }
 
-// generateMessageID generates a unique message ID
 func generateMessageID() string {
 	return fmt.Sprintf("msg-%d", time.Now().UnixNano())
 }
 
-// Event types
 const (
 	EventTypeOrderCreated     = "order.created"
 	EventTypeOrderUpdated     = "order.updated"
@@ -375,7 +330,6 @@ const (
 	EventTypeUserUpdated      = "user.updated"
 )
 
-// Topic names
 const (
 	TopicOrders    = "orders"
 	TopicPayments  = "payments"
@@ -384,14 +338,12 @@ const (
 	TopicInventory = "inventory"
 )
 
-// NewLocalClient creates a new in-memory client for testing
 type LocalClient struct {
 	handlers map[string][]MessageHandler
 	mu       sync.RWMutex
 	logger   *zap.Logger
 }
 
-// NewLocalClient creates a new local client
 func NewLocalClient(logger *zap.Logger) *LocalClient {
 	return &LocalClient{
 		handlers: make(map[string][]MessageHandler),
@@ -399,9 +351,7 @@ func NewLocalClient(logger *zap.Logger) *LocalClient {
 	}
 }
 
-// Publish publishes a message locally
 func (c *LocalClient) Publish(ctx context.Context, topic string, message Message) error {
-	// Set message ID and timestamp if not set
 	if message.ID == "" {
 		message.ID = generateMessageID()
 	}
@@ -418,7 +368,6 @@ func (c *LocalClient) Publish(ctx context.Context, topic string, message Message
 		return nil
 	}
 
-	// Call all handlers
 	for _, handler := range handlers {
 		if err := handler(ctx, message); err != nil {
 			c.logger.Error("Failed to handle message",
@@ -436,12 +385,10 @@ func (c *LocalClient) Publish(ctx context.Context, topic string, message Message
 	return nil
 }
 
-// Subscribe subscribes to a topic locally
 func (c *LocalClient) Subscribe(ctx context.Context, topic string, handler MessageHandler) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	// Add handler
 	if _, ok := c.handlers[topic]; !ok {
 		c.handlers[topic] = []MessageHandler{}
 	}
@@ -452,12 +399,10 @@ func (c *LocalClient) Subscribe(ctx context.Context, topic string, handler Messa
 	return nil
 }
 
-// Unsubscribe unsubscribes from a topic locally
 func (c *LocalClient) Unsubscribe(topic string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	// Remove all handlers for topic
 	delete(c.handlers, topic)
 
 	c.logger.Info("Unsubscribed from topic locally", zap.String("topic", topic))
@@ -465,12 +410,10 @@ func (c *LocalClient) Unsubscribe(topic string) error {
 	return nil
 }
 
-// Close closes the local client
 func (c *LocalClient) Close() error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	// Clear all handlers
 	c.handlers = make(map[string][]MessageHandler)
 
 	c.logger.Info("Local messaging client closed")
