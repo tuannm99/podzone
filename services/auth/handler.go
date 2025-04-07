@@ -168,7 +168,7 @@ func (s *AuthServer) VerifyToken(ctx context.Context, req *pb.VerifyTokenRequest
 	}
 
 	claims := &JWTClaims{}
-	token, err := jwt.ParseWithClaims(req.Token, claims, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(req.Token, claims, func(token *jwt.Token) (any, error) {
 		return jwtSecret, nil
 	})
 	if err != nil {

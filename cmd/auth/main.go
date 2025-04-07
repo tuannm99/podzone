@@ -74,16 +74,19 @@ func main() {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	conn, err := grpc.DialContext(
-		ctx,
+	conn, err := grpc.NewClient(
 		"localhost:"+grpcPort,
-		grpc.WithBlock(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
 		log.Fatalf("Failed to connect to gRPC server: %v", err)
 	}
-	defer conn.Close()
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			log.Fatalf("Err close grpc connection: %v", err)
+		}
+	}()
 
 	grpcGatewayMux := runtime.NewServeMux(
 		runtime.WithForwardResponseOption(auth.RedirectResponseModifier),

@@ -173,29 +173,29 @@ services:
   #     - ./services/payment:/app/services/payment
   #     - ./pkg:/app/pkg
 
-  # elasticsearch:
-  #     container_name: 'elasticsearch'
-  #     hostname: 'elasticsearch'
-  #     image: docker.elastic.co/elasticsearch/elasticsearch:7.7.0
-  #     ports:
-  #         - '9200:9200'
-  #         - '9300:9300'
-  #     volumes:
-  #         - ./data-mount/elasticsearch/data:/usr/share/elasticsearch/data
-  #     environment: # [..] Read more: Cluster mode https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html
-  #         - 'discovery.type=single-node'
-  #         - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
-  #         # - XPACK_MONITORING_ENABLED=true # [..] Read more: https://www.elastic.co/guide/en/elasticsearch/reference/7.7/elasticsearch-security.html
-  #         # - ELASTICSEARCH_USERNAME=elastic
-  #         # - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-  #
+  elasticsearch:
+      container_name: 'elasticsearch'
+      hostname: 'elasticsearch'
+      image: docker.elastic.co/elasticsearch/elasticsearch:7.7.0
+      ports:
+          - '9200:9200'
+          - '9300:9300'
+      volumes:
+          - /mnt/docker/elasticsearch/data:/usr/share/elasticsearch/data
+      environment:
+          - 'discovery.type=single-node'
+          - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+          # - XPACK_MONITORING_ENABLED=true
+          # - ELASTICSEARCH_USERNAME=elastic
+          # - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+
   # kibana:
   #     container_name: 'kibana'
   #     hostname: 'kibana'
   #     image: docker.elastic.co/kibana/kibana:7.7.0
   #     ports:
   #         - '5601:5601'
-  #     environment: # [..] Read more: https://www.elastic.co/guide/en/kibana/current/settings.html
+  #     environment:
   #         - SERVER_HOST=0.0.0.0
   #         - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
 
