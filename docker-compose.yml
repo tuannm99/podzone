@@ -174,20 +174,27 @@ services:
   #     - ./pkg:/app/pkg
 
   elasticsearch:
-      container_name: 'elasticsearch'
-      hostname: 'elasticsearch'
-      image: docker.elastic.co/elasticsearch/elasticsearch:7.7.0
-      ports:
-          - '9200:9200'
-          - '9300:9300'
-      volumes:
-          - /mnt/docker/elasticsearch/data:/usr/share/elasticsearch/data
-      environment:
-          - 'discovery.type=single-node'
-          - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
-          # - XPACK_MONITORING_ENABLED=true
-          # - ELASTICSEARCH_USERNAME=elastic
-          # - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    container_name: 'elasticsearch'
+    hostname: 'elasticsearch'
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.7.0
+    ports:
+      - '9200:9200'
+      - '9300:9300'
+    volumes:
+      - /mnt/docker/elasticsearch/data:/usr/share/elasticsearch/data
+    environment:
+      - 'discovery.type=single-node'
+      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
+      # - XPACK_MONITORING_ENABLED=true
+      # - ELASTICSEARCH_USERNAME=elastic
+      # - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://elasticsearch:9200/_cluster/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   # kibana:
   #     container_name: 'kibana'
@@ -256,12 +263,13 @@ services:
     restart: always
 
   etcd:
-    image: bitnami/etcd:3.5.10
+    image: bitnami/etcd:3.5.21
     container_name: 'etcd'
     user: '0'
     restart: always
     volumes:
       - /mnt/docker/etcd-apisix:/bitnami/etcd
+    command: sh -c "mkdir -p /bitnami/etcd/data && chmod 777 /bitnami/etcd/data && etcd"
     environment:
       - ETCD_ENABLE_V2=true
       - ALLOW_NONE_AUTHENTICATION=yes
