@@ -1,0 +1,259 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apisix-gateway
+  labels:
+    app: apisix-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apisix-gateway
+  template:
+    metadata:
+      labels:
+        app: apisix-gateway
+    spec:
+      containers:
+        - name: apisix-gateway
+          image: apache/apisix:3.12.0-debian
+          ports:
+            - containerPort: 9080
+              name: http
+            - containerPort: 9443
+              name: https
+            - containerPort: 9180
+              name: admin
+          volumeMounts:
+            - name: apisix-config
+              mountPath: /usr/local/apisix/conf/config.yaml
+              subPath: config.yaml
+          resources:
+            limits:
+              cpu: '500m'
+              memory: '512Mi'
+            requests:
+              cpu: '100m'
+              memory: '128Mi'
+      volumes:
+        - name: apisix-config
+          configMap:
+            name: apisix-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apisix-gateway
+spec:
+  selector:
+    app: apisix-gateway
+  ports:
+    - port: 9080
+      name: http
+      targetPort: 9080
+    - port: 9443
+      name: https
+      targetPort: 9443
+    - port: 9180
+      name: admin
+      targetPort: 9180
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apisix-config
+data:
+  config.yaml: |
+    apisix:
+      node_listen: 9080
+      enable_ipv6: false
+      enable_control: true
+      control:
+        ip: "0.0.0.0"
+        port: 9092
+    deployment:
+      admin:
+        allow_admin:
+          - 0.0.0.0/0
+        admin_key:
+          - name: "admin"
+            key: edd1c9f034335f136f87ad84b625c8f1
+            role: admin
+
+          - name: "viewer"
+            key: 4054f7cf07e344346cd3f287985e76a2
+            role: viewer
+      etcd:
+        host:
+          - "http://etcd-service:2379"
+        prefix: "/apisix"
+        timeout: 30
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apisix-dashboard
+  labels:
+    app: apisix-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apisix-dashboard
+  template:
+    metadata:
+      labels:
+        app: apisix-dashboard
+    spec:
+      containers:
+        - name: apisix-dashboard
+          image: apache/apisix-dashboard:latest
+          ports:
+            - containerPort: 9000
+              name: http
+          volumeMounts:
+            - name: dashboard-config
+              mountPath: /usr/local/apisix-dashboard/conf/conf.yaml
+              subPath: conf.yaml
+          resources:
+            limits:
+              cpu: '300m'
+              memory: '256Mi'
+            requests:
+              cpu: '100m'
+              memory: '128Mi'
+      volumes:
+        - name: dashboard-config
+          configMap:
+            name: dashboard-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: apisix-dashboard
+spec:
+  selector:
+    app: apisix-dashboard
+  ports:
+    - port: 9000
+      name: http
+      targetPort: 9000
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dashboard-config
+data:
+  conf.yaml: |
+    conf:
+      listen:
+        host: 0.0.0.0
+        port: 9000
+      etcd:
+        endpoints:
+          - "http://etcd-service:2379"
+      log:
+        error_log:
+          level: warn
+          file_path: /dev/stderr
+        access_log:
+          file_path: /dev/stdout
+    authentication:
+      secret: secret
+      expire_time: 3600
+      users:
+        - username: admin
+          password: admin
+
+    plugins:
+      - api-breaker
+      - authz-keycloak
+      - basic-auth
+      - batch-requests
+      - consumer-restriction
+      - cors
+      # - dubbo-proxy
+      - echo
+      # - error-log-logger
+      # - example-plugin
+      - fault-injection
+      - grpc-transcode
+      - hmac-auth
+      - http-logger
+      - ip-restriction
+      - jwt-auth
+      - kafka-logger
+      - key-auth
+      - limit-conn
+      - limit-count
+      - limit-req
+      # - log-rotate
+      # - node-status
+      - openid-connect
+      - prometheus
+      - proxy-cache
+      - proxy-mirror
+      - proxy-rewrite
+      - redirect
+      - referer-restriction
+      - request-id
+      - request-validation
+      - response-rewrite
+      - serverless-post-function
+      - serverless-pre-function
+      - public-api
+      # - skywalking
+      - sls-logger
+      - syslog
+      - tcp-logger
+      - udp-logger
+      - uri-blocker
+      - wolf-rbac
+      - zipkin
+      - server-info
+      - traffic-split
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: apisix-ingress
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: gateway.local.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: apisix-gateway
+                port:
+                  number: 9080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: apisix-dashboard-ingress
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: gateway-dashboard.local.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: apisix-dashboard
+                port:
+                  number: 9000
+

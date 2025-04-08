@@ -158,6 +158,24 @@ curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="v1.31.0+k3s1" K3S_TOKEN=1234
 sudo cat /etc/rancher/k3s/k3s.yaml > ~/.kubeconfig
 export KUBECONFIG=~/.kubeconfig
 
+# local registry for faster k8s push
+docker run -d -p 5000:5000 --restart=always --name registry registry:2
+
+# sample tag and push your image
+docker tag podzone-auth:latest localhost:5000/podzone-auth:latest
+docker push localhost:5000/podzone-auth:latest
+
+# Configure k3s to use this registry
+sudo tee /etc/rancher/k3s/registries.yaml > /dev/null << EOF
+mirrors:
+  "localhost:5000":
+    endpoint:
+      - "http://localhost:5000"
+EOF
+
+# Restart k3s
+sudo systemctl restart k3s
+
 # local cicd
 curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64 && \
 chmod +x skaffold && sudo mv skaffold /usr/local/bin

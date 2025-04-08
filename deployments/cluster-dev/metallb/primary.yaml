@@ -5,7 +5,9 @@ metadata:
   namespace: metallb-system
 spec:
   addresses:
-  # k3s private ip range installed on my machine is 10.42.x.x
-  - 10.42.100.100-10.43.100.200
+    # k3s private ip range installed on my machine is 10.47.188.x
+    - 10.47.188.100-10.47.188.200
+    # if using kind (run inside docker container)
+    # - 172.18.0.100-172.18.0.200
   autoAssign: true
 

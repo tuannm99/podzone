@@ -25,4 +25,6 @@ deployment:
     host:                           # it's possible to define multiple etcd hosts addresses of the same etcd cluster.
       - "http://etcd:2379"          # multiple etcd address
     prefix: "/apisix"               # apisix configurations prefix
-    timeout: 30                     # 30 seconds
+    timeout: 30
+    retry_delay: 1
+    retry_count: 3
