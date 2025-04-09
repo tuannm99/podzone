@@ -4,19 +4,16 @@ This is a Go monorepo containing a collection of microservices for an e-commerce
 
 ## 🚀 Project Roadmap
 
-### Completed
+**Development Environment Setup**
 
-✅ **Development Environment Setup**
-
-- Repository initialization
-- gRPC implementation
-- Swagger API documentation generation
-- Docker and docker-compose configuration
-- Persistence layer setup
-- API Gateway integration
+- Repository initialization ✅ 
+- gRPC implementation ✅ 
+- Swagger API documentation generation ✅
+- Docker and docker-compose configuration ✅
+- Persistence layer setup ✅
+- API Gateway integration ✅
 - Custom Gateway plugins development
-
-### In Progress
+- k8s local development ✅
 
 🔄 **Microservice Implementation**
 
