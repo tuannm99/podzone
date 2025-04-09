@@ -14,11 +14,13 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
+	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/protobuf/proto"
 
 	pb "github.com/tuannm99/podzone/pkg/api/proto/auth"
+	"github.com/tuannm99/podzone/pkg/logging"
 )
 
 var (
@@ -99,18 +101,37 @@ type JWTClaims struct {
 type AuthServer struct {
 	pb.UnimplementedAuthServiceServer
 	StateStore *StateStore
+	logger     *zap.Logger
+}
+
+// NewAuthServer creates a new auth server with logging
+func NewAuthServer(env string) (*AuthServer, error) {
+	logger, err := logging.NewLogger("info", env)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize logger: %v", err)
+	}
+
+	return &AuthServer{
+		StateStore: NewStateStore(),
+		logger:     logger,
+	}, nil
 }
 
 func (s *AuthServer) GoogleLogin(ctx context.Context, req *pb.GoogleLoginRequest) (*pb.GoogleLoginResponse, error) {
+	s.logger.Info("Google login request received")
+
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
+		s.logger.Error("Error generating state", zap.Error(err))
 		return nil, fmt.Errorf("error generating state: %v", err)
 	}
 	state := base64.StdEncoding.EncodeToString(b)
 
 	s.StateStore.Add(state)
+	s.logger.Debug("State added to store", zap.String("state", state))
 
 	url := googleOauthConfig.AuthCodeURL(state)
+	s.logger.Info("Generated OAuth URL", zap.String("redirect_url", url))
 
 	return &pb.GoogleLoginResponse{
 		RedirectUrl: url,
@@ -121,22 +142,34 @@ func (s *AuthServer) GoogleCallback(
 	ctx context.Context,
 	req *pb.GoogleCallbackRequest,
 ) (*pb.GoogleCallbackResponse, error) {
+	s.logger.Info("Google callback request received",
+		zap.String("state", req.State),
+		zap.Bool("has_code", req.Code != ""))
+
 	if !s.StateStore.Verify(req.State) {
+		s.logger.Warn("Invalid state received", zap.String("state", req.State))
 		return nil, fmt.Errorf("invalid state")
 	}
 
 	token, err := googleOauthConfig.Exchange(ctx, req.Code)
 	if err != nil {
+		s.logger.Error("Unable to exchange code", zap.Error(err))
 		return nil, fmt.Errorf("unable to exchange code: %v", err)
 	}
 
-	userInfo, err := getUserInfo(token.AccessToken)
+	userInfo, err := s.getUserInfo(token.AccessToken)
 	if err != nil {
+		s.logger.Error("Unable to get user info", zap.Error(err))
 		return nil, fmt.Errorf("unable to get user info: %v", err)
 	}
 
-	jwtToken, err := createJWT(userInfo)
+	s.logger.Info("User authenticated successfully",
+		zap.String("email", userInfo.Email),
+		zap.String("user_id", userInfo.Sub))
+
+	jwtToken, err := s.createJWT(userInfo)
 	if err != nil {
+		s.logger.Error("Error creating JWT", zap.Error(err))
 		return nil, fmt.Errorf("error creating JWT: %v", err)
 	}
 
@@ -151,6 +184,7 @@ func (s *AuthServer) GoogleCallback(
 	}
 
 	redirectURL := fmt.Sprintf("%s?token=%s", os.Getenv("APP_REDIRECT_URL"), jwtToken)
+	s.logger.Info("Redirecting user to app", zap.String("redirect_url", redirectURL))
 
 	return &pb.GoogleCallbackResponse{
 		JwtToken:    jwtToken,
@@ -160,7 +194,10 @@ func (s *AuthServer) GoogleCallback(
 }
 
 func (s *AuthServer) VerifyToken(ctx context.Context, req *pb.VerifyTokenRequest) (*pb.VerifyTokenResponse, error) {
+	s.logger.Debug("Token verification request received")
+
 	if req.Token == "" {
+		s.logger.Warn("Empty token received")
 		return &pb.VerifyTokenResponse{
 			IsValid: false,
 			Error:   "empty token",
@@ -172,6 +209,7 @@ func (s *AuthServer) VerifyToken(ctx context.Context, req *pb.VerifyTokenRequest
 		return jwtSecret, nil
 	})
 	if err != nil {
+		s.logger.Warn("Invalid token", zap.Error(err))
 		return &pb.VerifyTokenResponse{
 			IsValid: false,
 			Error:   "invalid token: " + err.Error(),
@@ -179,11 +217,16 @@ func (s *AuthServer) VerifyToken(ctx context.Context, req *pb.VerifyTokenRequest
 	}
 
 	if !token.Valid {
+		s.logger.Warn("Token validation failed")
 		return &pb.VerifyTokenResponse{
 			IsValid: false,
 			Error:   "invalid token",
 		}, nil
 	}
+
+	s.logger.Info("Token verified successfully",
+		zap.String("user_id", claims.Sub),
+		zap.String("email", claims.Email))
 
 	return &pb.VerifyTokenResponse{
 		IsValid: true,
@@ -196,34 +239,44 @@ func (s *AuthServer) VerifyToken(ctx context.Context, req *pb.VerifyTokenRequest
 }
 
 func (s *AuthServer) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error) {
+	s.logger.Info("Logout request received")
+
 	return &pb.LogoutResponse{
 		Success:     true,
 		RedirectUrl: "/",
 	}, nil
 }
 
-func getUserInfo(accessToken string) (*GoogleUserInfo, error) {
+func (s *AuthServer) getUserInfo(accessToken string) (*GoogleUserInfo, error) {
+	s.logger.Debug("Fetching user info from Google")
 	resp, err := http.Get("https://www.googleapis.com/oauth2/v3/userinfo?access_token=" + accessToken)
 	if err != nil {
+		s.logger.Error("Failed to get user info from Google", zap.Error(err))
 		return nil, err
 	}
 	defer func() {
 		err := resp.Body.Close()
 		if err != nil {
-			fmt.Println("Error close body...")
+			s.logger.Warn("Error closing response body", zap.Error(err))
 		}
 	}()
 
 	var userInfo GoogleUserInfo
 	err = json.NewDecoder(resp.Body).Decode(&userInfo)
 	if err != nil {
+		s.logger.Error("Failed to decode user info", zap.Error(err))
 		return nil, err
 	}
 
+	s.logger.Debug("Successfully retrieved user info",
+		zap.String("email", userInfo.Email),
+		zap.String("id", userInfo.Sub))
 	return &userInfo, nil
 }
 
-func createJWT(userInfo *GoogleUserInfo) (string, error) {
+func (s *AuthServer) createJWT(userInfo *GoogleUserInfo) (string, error) {
+	s.logger.Debug("Creating JWT token", zap.String("user_id", userInfo.Sub))
+
 	claims := JWTClaims{
 		Email: userInfo.Email,
 		Name:  userInfo.Name,
@@ -237,20 +290,27 @@ func createJWT(userInfo *GoogleUserInfo) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(jwtSecret)
 	if err != nil {
+		s.logger.Error("Failed to sign JWT token", zap.Error(err))
 		return "", err
 	}
 
+	s.logger.Debug("JWT token created successfully")
 	return tokenString, nil
 }
 
 func RedirectResponseModifier(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
+	// Get logger from context or create a new one
+	logger, _ := logging.NewLogger("info", os.Getenv("ENV"))
+
 	if loginResp, ok := resp.(*pb.GoogleLoginResponse); ok && loginResp.RedirectUrl != "" {
+		logger.Info("Redirecting to OAuth provider", zap.String("url", loginResp.RedirectUrl))
 		w.Header().Set("Location", loginResp.RedirectUrl)
 		w.WriteHeader(http.StatusTemporaryRedirect)
 		return nil
 	}
 
 	if callbackResp, ok := resp.(*pb.GoogleCallbackResponse); ok && callbackResp.RedirectUrl != "" {
+		logger.Info("Redirecting to app after OAuth callback", zap.String("url", callbackResp.RedirectUrl))
 		w.Header().Set("Location", callbackResp.RedirectUrl)
 		w.WriteHeader(http.StatusTemporaryRedirect)
 		return nil
@@ -259,8 +319,20 @@ func RedirectResponseModifier(ctx context.Context, w http.ResponseWriter, resp p
 	return nil
 }
 
+// Create a new combined middleware that includes both auth and logging
+func CombinedMiddleware(logger *zap.Logger, handler http.Handler) http.Handler {
+	// Apply auth middleware first
+	authHandler := AuthMiddleware(handler)
+
+	// Then apply logging middleware
+	return logging.LoggerMiddleware(logger)(authHandler)
+}
+
 func AuthMiddleware(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Get logger from context or create a new one
+		logger, _ := logging.NewLogger("info", os.Getenv("ENV"))
+
 		if strings.HasPrefix(r.URL.Path, "/v1/auth/verify") && r.Method == "GET" {
 			token := r.URL.Query().Get("token")
 
@@ -268,10 +340,14 @@ func AuthMiddleware(handler http.Handler) http.Handler {
 				authHeader := r.Header.Get("Authorization")
 				if strings.HasPrefix(authHeader, "Bearer ") {
 					token = strings.TrimPrefix(authHeader, "Bearer ")
+					logger.Debug("Extracted token from Authorization header")
 				}
+			} else {
+				logger.Debug("Extracted token from query parameter")
 			}
 
 			if token != "" {
+				logger.Debug("Converting GET request to POST for token verification")
 				jsonBody := fmt.Sprintf(`{"token": "%s"}`, token)
 				r.Body = http.NoBody
 				r.ContentLength = 0
@@ -285,3 +361,24 @@ func AuthMiddleware(handler http.Handler) http.Handler {
 		handler.ServeHTTP(w, r)
 	})
 }
+
+// StartCleanupRoutine starts a goroutine to periodically clean up expired states
+func (s *AuthServer) StartCleanupRoutine(ctx context.Context) {
+	s.logger.Info("Starting state store cleanup routine")
+
+	ticker := time.NewTicker(5 * time.Minute)
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				s.logger.Debug("Running state store cleanup")
+				s.StateStore.Cleanup()
+			case <-ctx.Done():
+				s.logger.Info("Stopping state store cleanup routine")
+				ticker.Stop()
+				return
+			}
+		}
+	}()
+}
+

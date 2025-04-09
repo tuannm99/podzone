@@ -13,8 +13,8 @@ This is a Go monorepo containing a collection of microservices for an e-commerce
 - Swagger API documentation generation
 - Docker and docker-compose configuration
 - Persistence layer setup
-- Kong API Gateway integration
-- Custom Kong plugins development
+- API Gateway integration
+- Custom Gateway plugins development
 
 ### In Progress
 
@@ -175,6 +175,9 @@ EOF
 
 # Restart k3s
 sudo systemctl restart k3s
+
+# create secret from .env
+kubectl create secret generic global-secrets --from-env-file=.env
 
 # local cicd
 curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64 && \

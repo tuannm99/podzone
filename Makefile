@@ -100,23 +100,6 @@ down:
 	@echo "$(COLOR_GREEN)Stopping development environment...$(COLOR_RESET)"
 	$(DOCKER_COMPOSE) down
 
-# Clean generated files and binaries
-clean:
-	@echo "$(COLOR_GREEN)Cleaning up...$(COLOR_RESET)"
-	@find . -name "bin" -type d -exec rm -rf {} +
-	@find . -name "*.pb.go" -type f -delete
-	@find . -name "*.swagger.json" -type f -delete
-
-# Generate a new service 
-generate-service:
-	@read -p "Enter service name: " service; \
-	mkdir -p services/$$service/cmd services/$$service/internal; \
-	mkdir -p services/$$service/internal/handler services/$$service/internal/repository services/$$service/internal/service; \
-	mkdir -p api/proto/$$service; \
-	cp tools/templates/service_template/* services/$$service/ -r; \
-	sed -i 's/{{SERVICE_NAME}}/'"$$service"'/g' services/$$service/cmd/main.go; \
-	echo "Service $$service created"
-
 # Help 
 help:
 	@echo "$(COLOR_YELLOW)Available commands:$(COLOR_RESET)"
@@ -127,5 +110,3 @@ help:
 	@echo "  make lint           - Run linter"
 	@echo "  make dev            - Start development environment"
 	@echo "  make down           - Stop development environment"
-	@echo "  make clean          - Clean generated files"
-	@echo "  make generate-service - Create a new service"

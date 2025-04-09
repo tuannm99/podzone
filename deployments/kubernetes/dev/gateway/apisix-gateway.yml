@@ -228,13 +228,14 @@ spec:
     - host: gateway.local.com
       http:
         paths:
-          - path: /
+          - path: /api
             pathType: Prefix
             backend:
               service:
                 name: apisix-gateway
                 port:
                   number: 9080
+
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

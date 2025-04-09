@@ -16,40 +16,44 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: podzone-auth:latest
-          # using k3s pull hub local 
-          imagePullPolicy: Never
+          image: localhost:5000/podzone-auth:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 50051
               name: grpc
             - containerPort: 8080
               name: http
           env:
+            - name: ENV
+              valueFrom:
+                secretKeyRef:
+                  name: global-secrets
+                  key: ENV 
             - name: GOOGLE_CLIENT_ID
               valueFrom:
                 secretKeyRef:
-                  name: auth-service-secrets
-                  key: google-client-id
+                  name: global-secrets
+                  key: GOOGLE_CLIENT_ID 
             - name: GOOGLE_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: auth-service-secrets
-                  key: google-client-secret
+                  name: global-secrets
+                  key: GOOGLE_CLIENT_SECRET 
             - name: OAUTH_REDIRECT_URL
               valueFrom:
-                configMapKeyRef:
-                  name: auth-service-config
-                  key: oauth-redirect-url
+                secretKeyRef:
+                  name: global-secrets
+                  key: OAUTH_REDIRECT_URL 
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: auth-service-secrets
-                  key: jwt-secret
+                  name: global-secrets
+                  key: JWT_SECRET 
             - name: APP_REDIRECT_URL
               valueFrom:
-                configMapKeyRef:
-                  name: auth-service-config
-                  key: app-redirect-url
+                secretKeyRef:
+                  name: global-secrets
+                  key: APP_REDIRECT_URL 
             - name: GRPC_PORT
               value: '50051'
             - name: HTTP_PORT
@@ -88,23 +92,3 @@ spec:
     - port: 8080
       name: http
       targetPort: 8080
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: auth-service-secrets
-type: Opaque
-stringData:
-  google-client-id: ${GOOGLE_CLIENT_ID}
-  google-client-secret: ${GOOGLE_CLIENT_SECRET}
-  jwt-secret: ${JWT_SECRET}
-  oauth-redirect-url: ${APP_REDIRECT_URL}
-  app-redirect-url: ${OAUTH_REDIRECT_URL}
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: auth-service-config
-data:
-  oauth-redirect-url: ${APP_REDIRECT_URL}
-  app-redirect-url: ${OAUTH_REDIRECT_URL}

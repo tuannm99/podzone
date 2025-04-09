@@ -6,85 +6,96 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
 	pb "github.com/tuannm99/podzone/pkg/api/proto/auth"
+	"github.com/tuannm99/podzone/pkg/logging"
 	"github.com/tuannm99/podzone/services/auth"
 )
 
 func main() {
+	// Determine environment
+	env := os.Getenv("ENV")
+	if env == "" {
+		env = "dev"
+	}
+
+	// Initialize logger
+	logger, err := logging.NewLogger("info", env)
+	if err != nil {
+		log.Fatalf("Failed to initialize logger: %v", err)
+	}
+	defer logger.Sync()
+
+	// Check required environment variables
 	if os.Getenv("GOOGLE_CLIENT_ID") == "" || os.Getenv("GOOGLE_CLIENT_SECRET") == "" {
-		log.Fatal("Environment variables GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set")
+		logger.Fatal("Environment variables GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set")
 	}
 	if os.Getenv("OAUTH_REDIRECT_URL") == "" {
-		log.Fatal("Environment variable OAUTH_REDIRECT_URL must be set")
+		logger.Fatal("Environment variable OAUTH_REDIRECT_URL must be set")
 	}
 	if os.Getenv("JWT_SECRET") == "" {
-		log.Fatal("Environment variable JWT_SECRET must be set")
+		logger.Fatal("Environment variable JWT_SECRET must be set")
 	}
 	if os.Getenv("APP_REDIRECT_URL") == "" {
-		log.Fatal("Environment variable APP_REDIRECT_URL must be set")
+		logger.Fatal("Environment variable APP_REDIRECT_URL must be set")
 	}
 
-	stateStore := auth.NewStateStore()
+	// Initialize auth server with logger
+	authServer, err := auth.NewAuthServer(env)
+	if err != nil {
+		logger.Fatal("Failed to create auth server", zap.Error(err))
+	}
 
-	go func() {
-		ticker := time.NewTicker(5 * time.Minute)
-		defer ticker.Stop()
+	// Start state cleanup in background
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	authServer.StartCleanupRoutine(ctx)
 
-		for range ticker.C {
-			stateStore.Cleanup()
-		}
-	}()
-
+	// Get port configuration
 	grpcPort := os.Getenv("GRPC_PORT")
 	if grpcPort == "" {
 		grpcPort = "50051"
 	}
-
 	httpPort := os.Getenv("HTTP_PORT")
 	if httpPort == "" {
 		httpPort = "8080"
 	}
 
+	// Set up gRPC server
 	lis, err := net.Listen("tcp", ":"+grpcPort)
 	if err != nil {
-		log.Fatalf("failed to listen on gRPC port %s: %v", grpcPort, err)
-	}
-
-	authServer := &auth.AuthServer{
-		StateStore: stateStore,
+		logger.Fatal("Failed to listen on gRPC port",
+			zap.String("port", grpcPort),
+			zap.Error(err))
 	}
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterAuthServiceServer(grpcServer, authServer)
 
-	log.Printf("gRPC auth server running on port %s", grpcPort)
+	logger.Info("gRPC auth server started", zap.String("port", grpcPort))
 	go func() {
 		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("failed to serve gRPC: %v", err)
+			logger.Fatal("Failed to serve gRPC", zap.Error(err))
 		}
 	}()
 
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
+	// Set up gRPC Gateway
 	conn, err := grpc.NewClient(
 		"localhost:"+grpcPort,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		log.Fatalf("Failed to connect to gRPC server: %v", err)
+		logger.Fatal("Failed to connect to gRPC server", zap.Error(err))
 	}
 	defer func() {
-		err := conn.Close()
-		if err != nil {
-			log.Fatalf("Err close grpc connection: %v", err)
+		if err := conn.Close(); err != nil {
+			logger.Error("Error closing gRPC connection", zap.Error(err))
 		}
 	}()
 
@@ -92,18 +103,24 @@ func main() {
 		runtime.WithForwardResponseOption(auth.RedirectResponseModifier),
 	)
 
-	err = pb.RegisterAuthServiceHandler(ctx, grpcGatewayMux, conn)
-	if err != nil {
-		log.Fatalf("Failed to register service handler: %v", err)
+	if err := pb.RegisterAuthServiceHandler(ctx, grpcGatewayMux, conn); err != nil {
+		logger.Fatal("Failed to register service handler", zap.Error(err))
 	}
 
-	handler := auth.AuthMiddleware(grpcGatewayMux)
+	// Apply combined middleware (auth + logging)
+	handler := auth.CombinedMiddleware(logger, grpcGatewayMux)
 
+	// Start HTTP server
 	gwServer := &http.Server{
 		Addr:    ":" + httpPort,
 		Handler: handler,
 	}
 
-	log.Printf("gRPC-Gateway running at http://0.0.0.0:%s", httpPort)
-	log.Fatalln(gwServer.ListenAndServe())
+	logger.Info("gRPC-Gateway started",
+		zap.String("address", "http://0.0.0.0:"+httpPort))
+
+	if err := gwServer.ListenAndServe(); err != nil {
+		logger.Fatal("Failed to start HTTP server", zap.Error(err))
+	}
 }
+
