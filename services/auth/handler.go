@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -21,6 +20,7 @@ import (
 
 	pb "github.com/tuannm99/podzone/pkg/api/proto/auth"
 	"github.com/tuannm99/podzone/pkg/logging"
+	"github.com/tuannm99/podzone/pkg/persistents/redis"
 )
 
 var (
@@ -36,48 +36,6 @@ var (
 	}
 	jwtSecret = []byte(os.Getenv("JWT_SECRET"))
 )
-
-type StateStore struct {
-	states map[string]time.Time
-	mu     sync.Mutex
-}
-
-func NewStateStore() *StateStore {
-	return &StateStore{
-		states: make(map[string]time.Time),
-	}
-}
-
-func (s *StateStore) Add(state string) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.states[state] = time.Now().Add(10 * time.Minute)
-}
-
-func (s *StateStore) Verify(state string) bool {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	expiry, exists := s.states[state]
-	if !exists {
-		return false
-	}
-
-	delete(s.states, state)
-	return time.Now().Before(expiry)
-}
-
-func (s *StateStore) Cleanup() {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	now := time.Now()
-	for state, expiry := range s.states {
-		if now.After(expiry) {
-			delete(s.states, state)
-		}
-	}
-}
 
 type GoogleUserInfo struct {
 	Sub           string `json:"sub"`
@@ -100,20 +58,37 @@ type JWTClaims struct {
 
 type AuthServer struct {
 	pb.UnimplementedAuthServiceServer
-	StateStore *StateStore
-	logger     *zap.Logger
+	StateStore  *RedisStateStore
+	logger      *zap.Logger
+	redisClient *redis.Client
 }
 
-// NewAuthServer creates a new auth server with logging
-func NewAuthServer(env string) (*AuthServer, error) {
-	logger, err := logging.NewLogger("info", env)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize logger: %v", err)
+// NewAuthServer creates a new auth server with logging and Redis state store
+func NewAuthServer() (*AuthServer, error) {
+	logger := logging.GetLogger()
+
+	redisAddr := os.Getenv("REDIS_ADDR")
+	redisPassword := os.Getenv("REDIS_PASSWORD")
+
+	redisConfig := redis.DefaultConfig()
+	if redisAddr != "" {
+		redisConfig.Addr = redisAddr
+	}
+	if redisPassword != "" {
+		redisConfig.Password = redisPassword
 	}
 
+	redisClient, err := redis.NewClient(redisConfig, logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Redis client: %v", err)
+	}
+
+	stateStore := NewRedisStateStore(redisClient, logger)
+
 	return &AuthServer{
-		StateStore: NewStateStore(),
-		logger:     logger,
+		StateStore:  stateStore,
+		logger:      logger,
+		redisClient: redisClient,
 	}, nil
 }
 
@@ -127,8 +102,9 @@ func (s *AuthServer) GoogleLogin(ctx context.Context, req *pb.GoogleLoginRequest
 	}
 	state := base64.StdEncoding.EncodeToString(b)
 
-	s.StateStore.Add(state)
-	s.logger.Debug("State added to store", zap.String("state", state))
+	if err := s.StateStore.Add(state); err != nil {
+		return nil, fmt.Errorf("error storing state: %v", err)
+	}
 
 	url := googleOauthConfig.AuthCodeURL(state)
 	s.logger.Info("Generated OAuth URL", zap.String("redirect_url", url))
@@ -299,8 +275,7 @@ func (s *AuthServer) createJWT(userInfo *GoogleUserInfo) (string, error) {
 }
 
 func RedirectResponseModifier(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
-	// Get logger from context or create a new one
-	logger, _ := logging.NewLogger("info", os.Getenv("ENV"))
+	logger := logging.GetLogger()
 
 	if loginResp, ok := resp.(*pb.GoogleLoginResponse); ok && loginResp.RedirectUrl != "" {
 		logger.Info("Redirecting to OAuth provider", zap.String("url", loginResp.RedirectUrl))
@@ -319,66 +294,44 @@ func RedirectResponseModifier(ctx context.Context, w http.ResponseWriter, resp p
 	return nil
 }
 
-// Create a new combined middleware that includes both auth and logging
-func CombinedMiddleware(logger *zap.Logger, handler http.Handler) http.Handler {
-	// Apply auth middleware first
-	authHandler := AuthMiddleware(handler)
+func AuthMiddleware(logger *zap.Logger) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if strings.HasPrefix(r.URL.Path, "/auth/v1/verify") && r.Method == "GET" {
+				token := r.URL.Query().Get("token")
 
-	// Then apply logging middleware
-	return logging.LoggerMiddleware(logger)(authHandler)
-}
-
-func AuthMiddleware(handler http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Get logger from context or create a new one
-		logger, _ := logging.NewLogger("info", os.Getenv("ENV"))
-
-		if strings.HasPrefix(r.URL.Path, "/v1/auth/verify") && r.Method == "GET" {
-			token := r.URL.Query().Get("token")
-
-			if token == "" {
-				authHeader := r.Header.Get("Authorization")
-				if strings.HasPrefix(authHeader, "Bearer ") {
-					token = strings.TrimPrefix(authHeader, "Bearer ")
-					logger.Debug("Extracted token from Authorization header")
+				if token == "" {
+					authHeader := r.Header.Get("Authorization")
+					if strings.HasPrefix(authHeader, "Bearer ") {
+						token = strings.TrimPrefix(authHeader, "Bearer ")
+						logger.Debug("Extracted token from Authorization header")
+					}
+				} else {
+					logger.Debug("Extracted token from query parameter")
 				}
-			} else {
-				logger.Debug("Extracted token from query parameter")
-			}
 
-			if token != "" {
-				logger.Debug("Converting GET request to POST for token verification")
-				jsonBody := fmt.Sprintf(`{"token": "%s"}`, token)
-				r.Body = http.NoBody
-				r.ContentLength = 0
-				r.Header.Set("Content-Type", "application/json")
-				r.Body = io.NopCloser(strings.NewReader(jsonBody))
-				r.ContentLength = int64(len(jsonBody))
-				r.Method = "POST"
+				if token != "" {
+					logger.Debug("Converting GET request to POST for token verification")
+					jsonBody := fmt.Sprintf(`{"token": "%s"}`, token)
+					r.Body = http.NoBody
+					r.ContentLength = 0
+					r.Header.Set("Content-Type", "application/json")
+					r.Body = io.NopCloser(strings.NewReader(jsonBody))
+					r.ContentLength = int64(len(jsonBody))
+					r.Method = "POST"
+				}
 			}
-		}
-
-		handler.ServeHTTP(w, r)
-	})
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
-// StartCleanupRoutine starts a goroutine to periodically clean up expired states
-func (s *AuthServer) StartCleanupRoutine(ctx context.Context) {
-	s.logger.Info("Starting state store cleanup routine")
-
-	ticker := time.NewTicker(5 * time.Minute)
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				s.logger.Debug("Running state store cleanup")
-				s.StateStore.Cleanup()
-			case <-ctx.Done():
-				s.logger.Info("Stopping state store cleanup routine")
-				ticker.Stop()
-				return
-			}
+// Shutdown gracefully closes resources
+func (s *AuthServer) Shutdown() {
+	if s.redisClient != nil {
+		if err := s.redisClient.Close(); err != nil {
+			s.logger.Error("Error closing Redis connection", zap.Error(err))
 		}
-	}()
+	}
+	s.logger.Info("Auth server resources cleaned up")
 }
-

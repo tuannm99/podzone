@@ -2,13 +2,50 @@ package logging
 
 import (
 	"fmt"
-	"net/http"
-	"time"
+	"sync"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
+var (
+	log  *zap.Logger
+	once sync.Once
+)
+
+func GetLogger() *zap.Logger {
+	once.Do(func() {
+		level := "info"
+		env := "prod"
+
+		logger, err := NewLogger(level, env)
+		if err != nil {
+			logger, _ = zap.NewProduction()
+		}
+		log = logger
+	})
+	return log
+}
+
+func GetLoggerWithConfig(level string, env string) *zap.Logger {
+	once.Do(func() {
+		if level == "" {
+			level = "info"
+		}
+		if env == "" {
+			env = "development"
+		}
+
+		logger, err := NewLogger(level, env)
+		if err != nil {
+			logger, _ = zap.NewProduction()
+		}
+		log = logger
+	})
+	return log
+}
+
+// NewLogger creates a new zap logger instance with the specified configuration
 func NewLogger(level string, env string) (*zap.Logger, error) {
 	var config zap.Config
 
@@ -17,7 +54,7 @@ func NewLogger(level string, env string) (*zap.Logger, error) {
 		return nil, fmt.Errorf("invalid log level: %s", level)
 	}
 
-	if env == "production" {
+	if env == "prod" {
 		config = zap.NewProductionConfig()
 	} else {
 		config = zap.NewDevelopmentConfig()
@@ -36,37 +73,4 @@ func NewLogger(level string, env string) (*zap.Logger, error) {
 
 func WithContext(logger *zap.Logger, fields ...zapcore.Field) *zap.Logger {
 	return logger.With(fields...)
-}
-
-func LoggerMiddleware(logger *zap.Logger) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			start := time.Now()
-
-			rw := &responseWriter{w, http.StatusOK}
-
-			next.ServeHTTP(rw, r)
-
-			duration := time.Since(start)
-			logger.Info("HTTP Request",
-				zap.String("method", r.Method),
-				zap.String("path", r.URL.Path),
-				zap.String("query", r.URL.RawQuery),
-				zap.Int("status", rw.statusCode),
-				zap.String("user_agent", r.UserAgent()),
-				zap.String("remote_addr", r.RemoteAddr),
-				zap.Duration("duration", duration),
-			)
-		})
-	}
-}
-
-type responseWriter struct {
-	http.ResponseWriter
-	statusCode int
-}
-
-func (rw *responseWriter) WriteHeader(code int) {
-	rw.statusCode = code
-	rw.ResponseWriter.WriteHeader(code)
 }

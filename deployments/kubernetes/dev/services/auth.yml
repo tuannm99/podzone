@@ -28,36 +28,41 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: global-secrets
-                  key: ENV 
+                  key: ENV
             - name: GOOGLE_CLIENT_ID
               valueFrom:
                 secretKeyRef:
                   name: global-secrets
-                  key: GOOGLE_CLIENT_ID 
+                  key: GOOGLE_CLIENT_ID
             - name: GOOGLE_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: global-secrets
-                  key: GOOGLE_CLIENT_SECRET 
+                  key: GOOGLE_CLIENT_SECRET
             - name: OAUTH_REDIRECT_URL
               valueFrom:
                 secretKeyRef:
                   name: global-secrets
-                  key: OAUTH_REDIRECT_URL 
+                  key: OAUTH_REDIRECT_URL
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: global-secrets
-                  key: JWT_SECRET 
+                  key: JWT_SECRET
             - name: APP_REDIRECT_URL
               valueFrom:
                 secretKeyRef:
                   name: global-secrets
-                  key: APP_REDIRECT_URL 
+                  key: APP_REDIRECT_URL
             - name: GRPC_PORT
               value: '50051'
             - name: HTTP_PORT
               value: '8080'
+
+            # k8s connection
+            - name: REDIS_ADDR
+              value: 'redis:6379'
+
           resources:
             limits:
               cpu: '500m'
