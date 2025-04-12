@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
@@ -20,10 +22,14 @@ import (
 
 	pb "github.com/tuannm99/podzone/pkg/api/proto/auth"
 	"github.com/tuannm99/podzone/pkg/logging"
-	"github.com/tuannm99/podzone/pkg/persistents/redis"
 )
 
 var (
+	googleOauthConfig *oauth2.Config
+	jwtSecret         []byte
+)
+
+func InitAuthConfig() {
 	googleOauthConfig = &oauth2.Config{
 		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
@@ -35,7 +41,7 @@ var (
 		Endpoint: google.Endpoint,
 	}
 	jwtSecret = []byte(os.Getenv("JWT_SECRET"))
-)
+}
 
 type GoogleUserInfo struct {
 	Sub           string `json:"sub"`
@@ -58,36 +64,14 @@ type JWTClaims struct {
 
 type AuthServer struct {
 	pb.UnimplementedAuthServiceServer
-	StateStore  *RedisStateStore
 	logger      *zap.Logger
 	redisClient *redis.Client
 }
 
 // NewAuthServer creates a new auth server with logging and Redis state store
-func NewAuthServer() (*AuthServer, error) {
-	logger := logging.GetLogger()
-
-	redisAddr := os.Getenv("REDIS_ADDR")
-	redisPassword := os.Getenv("REDIS_PASSWORD")
-
-	redisConfig := redis.DefaultConfig()
-	if redisAddr != "" {
-		redisConfig.Addr = redisAddr
-	}
-	if redisPassword != "" {
-		redisConfig.Password = redisPassword
-	}
-
-	redisClient, err := redis.NewClient(redisConfig, logger)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create Redis client: %v", err)
-	}
-
-	stateStore := NewRedisStateStore(redisClient, logger)
-
+func NewAuthServer(redisClient *redis.Client) (*AuthServer, error) {
 	return &AuthServer{
-		StateStore:  stateStore,
-		logger:      logger,
+		logger:      logging.GetLogger(),
 		redisClient: redisClient,
 	}, nil
 }
@@ -102,10 +86,11 @@ func (s *AuthServer) GoogleLogin(ctx context.Context, req *pb.GoogleLoginRequest
 	}
 	state := base64.StdEncoding.EncodeToString(b)
 
-	if err := s.StateStore.Add(state); err != nil {
+	key := "oauth:google:" + state
+	err := s.redisClient.Set(ctx, key, time.Now().String(), 10*time.Minute).Err()
+	if err != nil {
 		return nil, fmt.Errorf("error storing state: %v", err)
 	}
-
 	url := googleOauthConfig.AuthCodeURL(state)
 	s.logger.Info("Generated OAuth URL", zap.String("redirect_url", url))
 
@@ -122,9 +107,15 @@ func (s *AuthServer) GoogleCallback(
 		zap.String("state", req.State),
 		zap.Bool("has_code", req.Code != ""))
 
-	if !s.StateStore.Verify(req.State) {
+	key := "oauth:google:" + req.State
+	_, err := s.redisClient.Get(ctx, key).Result()
+	if err == redis.Nil {
+		return nil, errors.New("nil state")
+	} else if err != nil {
 		s.logger.Warn("Invalid state received", zap.String("state", req.State))
 		return nil, fmt.Errorf("invalid state")
+	} else {
+		s.redisClient.Del(ctx, key)
 	}
 
 	token, err := googleOauthConfig.Exchange(ctx, req.Code)

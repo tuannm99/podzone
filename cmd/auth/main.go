@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -18,6 +19,7 @@ import (
 	"github.com/tuannm99/podzone/pkg/config"
 	"github.com/tuannm99/podzone/pkg/logging"
 	"github.com/tuannm99/podzone/pkg/middleware"
+	"github.com/tuannm99/podzone/pkg/persistents/myredis"
 	"github.com/tuannm99/podzone/services/auth"
 )
 
@@ -25,10 +27,20 @@ func main() {
 	config.LoadEnv()
 	appEnv := os.Getenv("APP_ENV")
 	logLevel := os.Getenv("DEFAULT_LOG_LEVEL")
-	logger := logging.GetLoggerWithConfig(logLevel, appEnv)
+	logger := logging.InitLogger(logLevel, appEnv)
+
+	redisClient, err := myredis.GetClient()
+	if err != nil {
+		log.Fatal("failed to create Redis client", err)
+	}
+
+	defer func() {
+		_ = myredis.Close()
+	}()
 
 	// Create auth server
-	authServer, err := auth.NewAuthServer()
+	auth.InitAuthConfig()
+	authServer, err := auth.NewAuthServer(redisClient)
 	if err != nil {
 		logger.Fatal("Failed to create auth server", zap.Error(err))
 	}

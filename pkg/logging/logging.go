@@ -27,7 +27,7 @@ func GetLogger() *zap.Logger {
 	return log
 }
 
-func GetLoggerWithConfig(level string, env string) *zap.Logger {
+func InitLogger(level string, env string) *zap.Logger {
 	once.Do(func() {
 		if level == "" {
 			level = "info"
