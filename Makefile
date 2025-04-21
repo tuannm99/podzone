@@ -10,6 +10,9 @@ COLOR_RESET = \033[0m
 COLOR_GREEN = \033[32m
 COLOR_YELLOW = \033[33m
 
+SVC ?= order
+.PHONY: svc help
+
 all: proto swagger build
 
 # this run only first when created project, or run when a updated happens
@@ -91,7 +94,7 @@ lint:
 	golangci-lint run ./...
 
 # Start development environment
-dev:
+up:
 	@echo "$(COLOR_GREEN)Starting development environment...$(COLOR_RESET)"
 	$(DOCKER_COMPOSE) up -d
 
@@ -99,6 +102,10 @@ dev:
 down:
 	@echo "$(COLOR_GREEN)Stopping development environment...$(COLOR_RESET)"
 	$(DOCKER_COMPOSE) down
+
+dev:
+	@echo "🔁 Starting service: $(SVC)"
+	@air --build.cmd "go build -o ./bin/$(SVC) ./cmd/$(SVC)/main.go" --build.bin "./bin/$(SVC)"
 
 # Help 
 help:
@@ -108,5 +115,6 @@ help:
 	@echo "  make build          - Build all services"
 	@echo "  make test           - Run tests"
 	@echo "  make lint           - Run linter"
-	@echo "  make dev            - Start development environment"
+	@echo "  make up             - Start development environment"
 	@echo "  make down           - Stop development environment"
+	@echo "  make dev ${service} - Run service"
