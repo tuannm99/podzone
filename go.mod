@@ -22,6 +22,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/segmentio/kafka-go v0.4.47
 	go.mongodb.org/mongo-driver v1.13.0
+	go.uber.org/fx v1.23.0
 	golang.org/x/oauth2 v0.26.0
 )
 
@@ -59,6 +60,7 @@ require (
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	go.opentelemetry.io/otel/sdk v1.35.0 // indirect
+	go.uber.org/dig v1.18.0 // indirect
 	go.uber.org/goleak v1.3.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/crypto v0.33.0 // indirect

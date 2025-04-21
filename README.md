@@ -6,14 +6,16 @@ This is a Go monorepo containing a collection of microservices for an e-commerce
 
 **Development Environment Setup**
 
-- Repository initialization ✅ 
-- gRPC implementation ✅ 
+- Repository initialization ✅
+- gRPC implementation ✅
 - Swagger API documentation generation ✅
 - Docker and docker-compose configuration ✅
 - Persistence layer setup ✅
 - API Gateway integration ✅
 - Custom Gateway plugins development
-- k8s local development ✅
+- K8s local development ✅
+- DI
+- Testing
 
 🔄 **Microservice Implementation**
 
@@ -106,13 +108,18 @@ This is a Go monorepo containing a collection of microservices for an e-commerce
 Docker version 28.0.2, build 0442a73
 Docker Compose version v2.34.0
 
-helm version
+- helm version
 version.BuildInfo{Version:"v3.17.0", GitCommit:"301108edc7ac2a8ba79e4ebf5701b0b6ce6a31e4", GitTreeState:"clean", GoVersion:"go1.23.4"}
 
-kubectl version
+- kubectl version
 Client Version: v1.32.0
 Kustomize Version: v5.5.0
 Server Version: v1.32.0
+
+- istioctl version
+client version: 1.24.2
+control plane version: 1.24.2
+data plane version: 1.24.2 (1 proxies)
 ```
 
 - Protocol Buffers compiler
@@ -154,6 +161,12 @@ sudo apt install dmsetup cryptsetup nfs-common open-iscsi -y # k8s longhorn stor
 curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="v1.31.0+k3s1" K3S_TOKEN=12345token sh -s - server --disable=traefik --disable=servicelb
 sudo cat /etc/rancher/k3s/k3s.yaml > ~/.kubeconfig
 export KUBECONFIG=~/.kubeconfig
+
+# install istio
+istioctl install --set profile=default --set values.global.platform=k3s
+kubectl label namespace default istio-injection=enabled
+kubectl get crd gateways.gateway.networking.k8s.io &> /dev/null || \
+{ kubectl kustomize "github.com/kubernetes-sigs/gateway-api/config/crd?ref=v1.2.1" | kubectl apply -f -; }
 
 # local registry for faster k8s push
 docker run -d -p 5000:5000 --restart=always --name registry registry:2
