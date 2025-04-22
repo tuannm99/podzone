@@ -14,7 +14,7 @@ This is a Go monorepo containing a collection of microservices for an e-commerce
 - API Gateway integration ✅
 - Custom Gateway plugins development
 - K8s local development ✅
-- DI
+- DI ✅
 - Testing
 
 🔄 **Microservice Implementation**
@@ -138,9 +138,15 @@ go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
 
 ```
 
-This will start all services and their dependencies (databases, caches, etc.) using Docker Compose.
-
 ### Development Workflow
+
+#### run dev service
+
+```bash
+# Hot reload with air
+air --build.cmd "go build -o ./bin/${svc} ./cmd/${svc}/main.go" --build.bin "./bin/${svc}"
+
+```
 
 #### Setup Development Environment
 

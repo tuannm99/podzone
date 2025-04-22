@@ -6,8 +6,8 @@ import (
 
 var Module = fx.Options(
 	fx.Provide(
-		RedisConfigProvider,
-		newClient,
+		NewRedisSetting,
+		NewClient,
 	),
 	fx.Invoke(registerLifecycle),
 )

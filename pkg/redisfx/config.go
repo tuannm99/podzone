@@ -8,7 +8,7 @@ import (
 	"github.com/tuannm99/podzone/pkg/common"
 )
 
-type RedisSettings struct {
+type RedisSetting struct {
 	Addr          string
 	Password      string
 	DB            int
@@ -16,7 +16,7 @@ type RedisSettings struct {
 	RetryAttempts int
 }
 
-func RedisConfigProvider() RedisSettings {
+func NewRedisSetting() RedisSetting {
 	addr := common.FallbackEnv("REDIS_ADDR", "redis://localhost:6379/0")
 
 	redisUrl, _ := url.Parse(addr)
@@ -29,7 +29,7 @@ func RedisConfigProvider() RedisSettings {
 		}
 	}
 
-	return RedisSettings{
+	return RedisSetting{
 		Addr:          redisUrl.Host,
 		Password:      pass,
 		DB:            db,

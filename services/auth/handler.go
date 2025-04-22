@@ -15,13 +15,13 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/protobuf/proto"
 
 	pb "github.com/tuannm99/podzone/pkg/api/proto/auth"
-	"github.com/tuannm99/podzone/pkg/logging"
 )
 
 var (
@@ -69,11 +69,11 @@ type AuthServer struct {
 }
 
 // NewAuthServer creates a new auth server with logging and Redis state store
-func NewAuthServer(redisClient *redis.Client) (*AuthServer, error) {
+func NewAuthServer(redisClient *redis.Client, logger *zap.Logger) *AuthServer {
 	return &AuthServer{
-		logger:      logging.GetLogger(),
+		logger:      logger,
 		redisClient: redisClient,
-	}, nil
+	}
 }
 
 func (s *AuthServer) GoogleLogin(ctx context.Context, req *pb.GoogleLoginRequest) (*pb.GoogleLoginResponse, error) {
@@ -82,14 +82,14 @@ func (s *AuthServer) GoogleLogin(ctx context.Context, req *pb.GoogleLoginRequest
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
 		s.logger.Error("Error generating state", zap.Error(err))
-		return nil, fmt.Errorf("error generating state: %v", err)
+		return nil, fmt.Errorf("error generating state: %w", err)
 	}
 	state := base64.StdEncoding.EncodeToString(b)
 
 	key := "oauth:google:" + state
 	err := s.redisClient.Set(ctx, key, time.Now().String(), 10*time.Minute).Err()
 	if err != nil {
-		return nil, fmt.Errorf("error storing state: %v", err)
+		return nil, fmt.Errorf("error storing state: %w", err)
 	}
 	url := googleOauthConfig.AuthCodeURL(state)
 	s.logger.Info("Generated OAuth URL", zap.String("redirect_url", url))
@@ -121,13 +121,13 @@ func (s *AuthServer) GoogleCallback(
 	token, err := googleOauthConfig.Exchange(ctx, req.Code)
 	if err != nil {
 		s.logger.Error("Unable to exchange code", zap.Error(err))
-		return nil, fmt.Errorf("unable to exchange code: %v", err)
+		return nil, fmt.Errorf("unable to exchange code: %w", err)
 	}
 
 	userInfo, err := s.getUserInfo(token.AccessToken)
 	if err != nil {
 		s.logger.Error("Unable to get user info", zap.Error(err))
-		return nil, fmt.Errorf("unable to get user info: %v", err)
+		return nil, fmt.Errorf("unable to get user info: %w", err)
 	}
 
 	s.logger.Info("User authenticated successfully",
@@ -137,7 +137,7 @@ func (s *AuthServer) GoogleCallback(
 	jwtToken, err := s.createJWT(userInfo)
 	if err != nil {
 		s.logger.Error("Error creating JWT", zap.Error(err))
-		return nil, fmt.Errorf("error creating JWT: %v", err)
+		return nil, fmt.Errorf("error creating JWT: %w", err)
 	}
 
 	pbUserInfo := &pb.UserInfo{
@@ -265,24 +265,26 @@ func (s *AuthServer) createJWT(userInfo *GoogleUserInfo) (string, error) {
 	return tokenString, nil
 }
 
-func RedirectResponseModifier(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
-	logger := logging.GetLogger()
+func NewRedirectResponseModifier(logger *zap.Logger) runtime.ServeMuxOption {
+	return runtime.WithForwardResponseOption(
+		func(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
+			if loginResp, ok := resp.(*pb.GoogleLoginResponse); ok && loginResp.RedirectUrl != "" {
+				logger.Info("Redirecting to OAuth provider", zap.String("url", loginResp.RedirectUrl))
+				w.Header().Set("Location", loginResp.RedirectUrl)
+				w.WriteHeader(http.StatusTemporaryRedirect)
+				return nil
+			}
 
-	if loginResp, ok := resp.(*pb.GoogleLoginResponse); ok && loginResp.RedirectUrl != "" {
-		logger.Info("Redirecting to OAuth provider", zap.String("url", loginResp.RedirectUrl))
-		w.Header().Set("Location", loginResp.RedirectUrl)
-		w.WriteHeader(http.StatusTemporaryRedirect)
-		return nil
-	}
+			if callbackResp, ok := resp.(*pb.GoogleCallbackResponse); ok && callbackResp.RedirectUrl != "" {
+				logger.Info("Redirecting to app after OAuth callback", zap.String("url", callbackResp.RedirectUrl))
+				w.Header().Set("Location", callbackResp.RedirectUrl)
+				w.WriteHeader(http.StatusTemporaryRedirect)
+				return nil
+			}
 
-	if callbackResp, ok := resp.(*pb.GoogleCallbackResponse); ok && callbackResp.RedirectUrl != "" {
-		logger.Info("Redirecting to app after OAuth callback", zap.String("url", callbackResp.RedirectUrl))
-		w.Header().Set("Location", callbackResp.RedirectUrl)
-		w.WriteHeader(http.StatusTemporaryRedirect)
-		return nil
-	}
-
-	return nil
+			return nil
+		},
+	)
 }
 
 func AuthMiddleware(logger *zap.Logger) func(http.Handler) http.Handler {
@@ -315,14 +317,4 @@ func AuthMiddleware(logger *zap.Logger) func(http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 		})
 	}
-}
-
-// Shutdown gracefully closes resources
-func (s *AuthServer) Shutdown() {
-	if s.redisClient != nil {
-		if err := s.redisClient.Close(); err != nil {
-			s.logger.Error("Error closing Redis connection", zap.Error(err))
-		}
-	}
-	s.logger.Info("Auth server resources cleaned up")
 }

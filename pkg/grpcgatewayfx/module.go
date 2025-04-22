@@ -10,6 +10,12 @@ var Module = fx.Options(
 	fx.Invoke(startHTTPGateway),
 )
 
-func newGatewayMux() *runtime.ServeMux {
-	return runtime.NewServeMux()
+type GatewayMuxParams struct {
+	fx.In
+
+	Opts []runtime.ServeMuxOption `group:"gateway-options"`
+}
+
+func newGatewayMux(p GatewayMuxParams) *runtime.ServeMux {
+	return runtime.NewServeMux(p.Opts...)
 }

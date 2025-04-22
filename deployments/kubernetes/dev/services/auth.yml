@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: localhost:5000/podzone-auth:latest
+          image: localhost:5000/podzone-auth:dev
           imagePullPolicy: Always
           ports:
             - containerPort: 50051
@@ -56,12 +56,12 @@ spec:
                   key: APP_REDIRECT_URL
             - name: GRPC_PORT
               value: '50051'
-            - name: HTTP_PORT
+            - name: GW_HTTP_PORT
               value: '8080'
 
             # k8s connection
             - name: REDIS_ADDR
-              value: 'redis:6379'
+              value: 'redis://redis:6379/0'
 
           resources:
             limits:
@@ -70,18 +70,18 @@ spec:
             requests:
               cpu: '100m'
               memory: '128Mi'
-          # readinessProbe:
-          #   httpGet:
-          #     path: /healthz
-          #     port: 8080
-          #   initialDelaySeconds: 5
-          #   periodSeconds: 10
-          # livenessProbe:
-          #   httpGet:
-          #     path: /healthz
-          #     port: 8080
-          #   initialDelaySeconds: 15
-          #   periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
 ---
 apiVersion: v1
 kind: Service

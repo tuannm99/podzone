@@ -3,26 +3,31 @@ package logfx
 import (
 	"fmt"
 
+	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
 	"github.com/tuannm99/podzone/pkg/common"
 )
 
-type Config struct {
+var Module = fx.Provide(
+	NewLogger,
+)
+
+type loggerConfig struct {
 	level string
 	env   string
 }
 
-func fromEnv() *Config {
-	conf := &Config{
+func fromEnv() *loggerConfig {
+	conf := &loggerConfig{
 		level: common.FallbackEnv("DEFAULT_LOG_LEVEL", "debug"),
 		env:   common.FallbackEnv("APP_ENV", "dev"), // dev | prod
 	}
 	return conf
 }
 
-func LoggerProvider() (*zap.Logger, error) {
+func NewLogger() (*zap.Logger, error) {
 	conf := fromEnv()
 	var config zap.Config
 

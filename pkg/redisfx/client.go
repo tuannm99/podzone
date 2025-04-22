@@ -14,12 +14,12 @@ import (
 type Config struct {
 	fx.In
 
-	Settings RedisSettings
+	Settings RedisSetting
 	Logger   *zap.Logger
 }
 
 // Create Redis client and validate connection
-func newClient(conf Config) (*redis.Client, error) {
+func NewClient(conf Config) (*redis.Client, error) {
 	conf.Logger.Info("Initializing Redis connection", zap.String("addr", conf.Settings.Addr))
 
 	client := redis.NewClient(&redis.Options{
