@@ -1,25 +1,20 @@
-package middlewarefx
+package globalmiddlewarefx
 
 import (
 	"net/http"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 )
 
 var Module = fx.Options(
 	fx.Provide(
 		fx.Annotate(
-			func(logger *zap.Logger) func(http.Handler) http.Handler {
-				return loggerMiddleware(logger)
-			},
+            loggerMiddleware,
 			fx.ResultTags(`group:"http-middleware"`),
 		),
 		fx.Annotate(
-			func(logger *zap.Logger) func(http.Handler) http.Handler {
-				return healthMiddleware(logger)
-			},
+            healthMiddleware,
 			fx.ResultTags(`group:"http-middleware"`),
 		),
 	),

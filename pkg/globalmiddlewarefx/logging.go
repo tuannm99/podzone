@@ -1,4 +1,4 @@
-package middlewarefx
+package globalmiddlewarefx
 
 import (
 	"net/http"
@@ -18,6 +18,7 @@ func (rw *responseWriter) WriteHeader(code int) {
 }
 
 func loggerMiddleware(logger *zap.Logger) func(next http.Handler) http.Handler {
+	logger.Debug("register logging middleware")
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
