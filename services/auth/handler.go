@@ -16,6 +16,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -68,11 +69,17 @@ type AuthServer struct {
 	redisClient *redis.Client
 }
 
-// NewAuthServer creates a new auth server with logging and Redis state store
-func NewAuthServer(redisClient *redis.Client, logger *zap.Logger) *AuthServer {
+type AuthServerParams struct {
+	fx.In
+
+	Logger      *zap.Logger
+	RedisClient *redis.Client
+}
+
+func NewAuthServer(p AuthServerParams) *AuthServer {
 	return &AuthServer{
-		logger:      logger,
-		redisClient: redisClient,
+		logger:      p.Logger,
+		redisClient: p.RedisClient,
 	}
 }
 
@@ -214,6 +221,7 @@ func (s *AuthServer) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.Log
 	}, nil
 }
 
+// DONE
 func (s *AuthServer) getUserInfo(accessToken string) (*GoogleUserInfo, error) {
 	s.logger.Debug("Fetching user info from Google")
 	resp, err := http.Get("https://www.googleapis.com/oauth2/v3/userinfo?access_token=" + accessToken)

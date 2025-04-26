@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/tuannm99/podzone/pkg/common"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 type RedisSetting struct {
@@ -17,7 +17,7 @@ type RedisSetting struct {
 }
 
 func NewRedisSetting() RedisSetting {
-	addr := common.FallbackEnv("REDIS_ADDR", "redis://localhost:6379/0")
+	addr := toolkit.FallbackEnv("REDIS_ADDR", "redis://localhost:6379/0")
 
 	redisUrl, _ := url.Parse(addr)
 	pass, _ := redisUrl.User.Password()

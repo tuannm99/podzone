@@ -9,7 +9,9 @@ import (
 	"github.com/tuannm99/podzone/pkg/grpcfx"
 	"github.com/tuannm99/podzone/pkg/grpcgatewayfx"
 	"github.com/tuannm99/podzone/pkg/logfx"
+	"github.com/tuannm99/podzone/pkg/postgresfx"
 	"github.com/tuannm99/podzone/pkg/redisfx"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 
 	"github.com/tuannm99/podzone/services/auth"
 )
@@ -19,11 +21,15 @@ func main() {
 
 	app := fx.New(
 		logfx.Module,
+
+		postgresfx.ModuleFor("users", toolkit.FallbackEnv("PG_USERS_URI", "postgres://localhost:5432/users")),
 		redisfx.Module,
+
 		grpcfx.Module,
 		grpcclientfx.Module,
 		grpcgatewayfx.Module,
 		globalmiddlewarefx.Module,
+
 		auth.Module,
 	)
 	app.Run()

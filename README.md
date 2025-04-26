@@ -1,4 +1,4 @@
-# E-commerce Microservices Monorepo for Learning Purposes
+# E-commerce Microservices Monorepo for Experimentation and Learning Purposes
 
 This is a Go monorepo containing a collection of microservices for an e-commerce platform, including code, k8s infrastructure setup on public Cloud, On-premise and local setup
 
@@ -15,6 +15,7 @@ This is a Go monorepo containing a collection of microservices for an e-commerce
 - Custom Gateway plugins development
 - K8s local development ✅
 - DI ✅
+- Clean Architecture
 - Testing
 
 🔄 **Microservice Implementation**

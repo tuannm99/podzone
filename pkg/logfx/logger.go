@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/tuannm99/podzone/pkg/common"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 var Module = fx.Provide(
@@ -21,8 +21,8 @@ type loggerConfig struct {
 
 func fromEnv() *loggerConfig {
 	conf := &loggerConfig{
-		level: common.FallbackEnv("DEFAULT_LOG_LEVEL", "debug"),
-		env:   common.FallbackEnv("APP_ENV", "dev"), // dev | prod
+		level: toolkit.FallbackEnv("DEFAULT_LOG_LEVEL", "debug"),
+		env:   toolkit.FallbackEnv("APP_ENV", "dev"), // dev | prod
 	}
 	return conf
 }

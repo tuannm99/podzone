@@ -1,22 +1,22 @@
+## why this not work, build/tag images change the hash success, but why k3s deployment change nothing
+#-> ?? -> fixx
 apiVersion: skaffold/v4beta12
 kind: Config
 metadata:
   name: podzone
-
 build:
   artifacts:
     - image: podzone-auth
       context: .
       docker:
         dockerfile: services/auth/Dockerfile
-  local:
-    push: false
-    useDockerCLI: true
-
-manifests:
-  rawYaml:
-    - deployments/kubernetes/services/*.yml
-
+  local: {}
+  tagPolicy:
+    sha256: {}
 deploy:
   kubectl: {}
   kubeContext: default
+manifests:
+  rawYaml:
+    - deployments/kubernetes/dev/services/*.yml
+
