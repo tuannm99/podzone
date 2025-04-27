@@ -1,4 +1,4 @@
-package externals_test
+package googleauth_test
 
 import (
 	"errors"
@@ -7,7 +7,7 @@ import (
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tuannm99/podzone/services/auth/externals"
+	"github.com/tuannm99/podzone/services/auth/repositories/googleauth"
 	"go.uber.org/zap"
 )
 
@@ -18,7 +18,7 @@ func TestFetchUserInfo(t *testing.T) {
 	accessTokenMock := "access_token"
 	requestUrl := "https://www.googleapis.com/oauth2/v3/userinfo?access_token=" + accessTokenMock
 
-	googleExternal := externals.NewGoogleOauthExternal(zap.NewExample())
+	googleExternal := googleauth.NewGoogleOauthExternal(zap.NewExample())
 
 	t.Run("network error", func(t *testing.T) {
 		httpmock.RegisterResponder("GET", requestUrl,

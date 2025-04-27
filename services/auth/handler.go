@@ -44,6 +44,7 @@ func InitAuthConfig() {
 	jwtSecret = []byte(os.Getenv("JWT_SECRET"))
 }
 
+// OK
 type GoogleUserInfo struct {
 	Sub           string `json:"sub"`
 	Name          string `json:"name"`
@@ -63,12 +64,14 @@ type JWTClaims struct {
 	jwt.StandardClaims
 }
 
+// ok
 type AuthServer struct {
 	pb.UnimplementedAuthServiceServer
 	logger      *zap.Logger
 	redisClient *redis.Client
 }
 
+// ok
 type AuthServerParams struct {
 	fx.In
 
@@ -76,6 +79,7 @@ type AuthServerParams struct {
 	RedisClient *redis.Client
 }
 
+// ok
 func NewAuthServer(p AuthServerParams) *AuthServer {
 	return &AuthServer{
 		logger:      p.Logger,
@@ -83,6 +87,7 @@ func NewAuthServer(p AuthServerParams) *AuthServer {
 	}
 }
 
+// ok
 func (s *AuthServer) GoogleLogin(ctx context.Context, req *pb.GoogleLoginRequest) (*pb.GoogleLoginResponse, error) {
 	s.logger.Info("Google login request received")
 

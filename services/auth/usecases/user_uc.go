@@ -1,4 +1,10 @@
-package usecase
+package usecases
+
+import (
+	"context"
+
+	"golang.org/x/oauth2"
+)
 
 type (
 	// External entity
@@ -14,11 +20,11 @@ type (
 	}
 	GoogleOauthExternal interface {
 		FetchUserInfo(accessToken string) (*GoogleUserInfo, error)
+		GetConfig() *oauth2.Config
+        // LoginCallback(ctx context.Context)
+	}
+
+	UserUsecase interface {
+		GenerateRedirectUrl(ctx context.Context) (authURL string, err error)
 	}
 )
-
-type UserAction struct{}
-
-func NewUserUC() *UserAction {
-	return &UserAction{}
-}
