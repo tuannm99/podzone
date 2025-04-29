@@ -1,12 +1,12 @@
 package dto
 
 type GoogleCallbackResp struct {
-	JwtToken    string
-	RedirectUrl string
-	UserInfo    UserInfo
+	JwtToken     string
+	RedirectUrl  string
+	UserInfoResp UserInfoResp
 }
 
-type UserInfo struct {
+type UserInfoResp struct {
 	Id            string
 	Email         string
 	Name          string

@@ -8,8 +8,10 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
-	pb "github.com/tuannm99/podzone/pkg/api/proto/auth"
+
+	"github.com/tuannm99/podzone/pkg/toolkit"
 	"github.com/tuannm99/podzone/services/auth/config"
+	"github.com/tuannm99/podzone/services/auth/domain/dto"
 	"github.com/tuannm99/podzone/services/auth/domain/entity"
 	"github.com/tuannm99/podzone/services/auth/domain/inputport"
 	"github.com/tuannm99/podzone/services/auth/domain/outputport"
@@ -53,7 +55,7 @@ func (u *authUC) GenerateOAuthURL(ctx context.Context) (string, error) {
 	return url, nil
 }
 
-func (u *authUC) HandleOAuthCallback(ctx context.Context, code, state string) (*pb.GoogleCallbackResponse, error) {
+func (u *authUC) HandleOAuthCallback(ctx context.Context, code, state string) (*dto.GoogleCallbackResp, error) {
 	key := "oauth:google:" + state
 	if _, err := u.oauthStateRepository.Get(key); err != nil {
 		return nil, err
@@ -77,55 +79,20 @@ func (u *authUC) HandleOAuthCallback(ctx context.Context, code, state string) (*
 
 	redirectURL := fmt.Sprintf("%s?token=%s", u.appRedirectURL, jwtToken)
 
-	return &pb.GoogleCallbackResponse{
-		JwtToken:    jwtToken,
-		RedirectUrl: redirectURL,
-		UserInfo: &pb.UserInfo{
-			Id:            userInfo.Sub,
-			Email:         userInfo.Email,
-			Name:          userInfo.Name,
-			GivenName:     userInfo.GivenName,
-			FamilyName:    userInfo.FamilyName,
-			Picture:       userInfo.Picture,
-			EmailVerified: userInfo.EmailVerified,
-		},
+	userInfoResp, err := toolkit.MapStruct[outputport.GoogleUserInfo, dto.UserInfoResp](*userInfo)
+	if err != nil {
+		return nil, fmt.Errorf("failed to map user info to dto: %w", err)
+	}
+
+	return &dto.GoogleCallbackResp{
+		JwtToken:     jwtToken,
+		RedirectUrl:  redirectURL,
+		UserInfoResp: *userInfoResp,
 	}, nil
 }
 
-func (u *authUC) VerifyToken(ctx context.Context, tokenString string) (*pb.VerifyTokenResponse, error) {
-	if tokenString == "" {
-		return &pb.VerifyTokenResponse{
-			IsValid: false,
-			Error:   "empty token",
-		}, nil
-	}
-
-	claims := &entity.JWTClaims{}
-	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-		return u.jwtSecret, nil
-	})
-	if err != nil || !token.Valid {
-		return &pb.VerifyTokenResponse{
-			IsValid: false,
-			Error:   "invalid token",
-		}, nil
-	}
-
-	return &pb.VerifyTokenResponse{
-		IsValid: true,
-		UserInfo: &pb.UserInfo{
-			Id:    claims.Sub,
-			Email: claims.Email,
-			Name:  claims.Name,
-		},
-	}, nil
-}
-
-func (u *authUC) Logout(ctx context.Context) (*pb.LogoutResponse, error) {
-	return &pb.LogoutResponse{
-		Success:     true,
-		RedirectUrl: "/",
-	}, nil
+func (u *authUC) Logout(ctx context.Context) (string, error) {
+	return "/", nil
 }
 
 func (u *authUC) createJWT(userInfo *outputport.GoogleUserInfo) (string, error) {

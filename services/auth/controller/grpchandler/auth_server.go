@@ -33,13 +33,31 @@ func (s *AuthServer) GoogleCallback(
 	ctx context.Context,
 	req *pb.GoogleCallbackRequest,
 ) (*pb.GoogleCallbackResponse, error) {
-	return s.usecase.HandleOAuthCallback(ctx, req.Code, req.State)
-}
+	resp, err := s.usecase.HandleOAuthCallback(ctx, req.Code, req.State)
+	if err != nil {
+		return nil, err
+	}
 
-func (s *AuthServer) VerifyToken(ctx context.Context, req *pb.VerifyTokenRequest) (*pb.VerifyTokenResponse, error) {
-	return s.usecase.VerifyToken(ctx, req.Token)
+	return &pb.GoogleCallbackResponse{
+		JwtToken:    resp.JwtToken,
+		RedirectUrl: resp.RedirectUrl,
+		UserInfo: &pb.UserInfo{
+			Id:            resp.UserInfoResp.Id,
+			Email:         resp.UserInfoResp.Email,
+			Name:          resp.UserInfoResp.Name,
+			GivenName:     resp.UserInfoResp.GivenName,
+			FamilyName:    resp.UserInfoResp.FamilyName,
+			Picture:       resp.UserInfoResp.Picture,
+			EmailVerified: resp.UserInfoResp.EmailVerified,
+		},
+	}, nil
 }
 
 func (s *AuthServer) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error) {
-	return s.usecase.Logout(ctx)
+	redirectUrl, _ := s.usecase.Logout(ctx)
+
+	return &pb.LogoutResponse{
+		Success:     true,
+		RedirectUrl: redirectUrl,
+	}, nil
 }
