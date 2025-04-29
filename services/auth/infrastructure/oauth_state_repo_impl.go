@@ -1,0 +1,53 @@
+package infrastructure
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/go-redis/redis/v8"
+	"go.uber.org/zap"
+
+	"github.com/tuannm99/podzone/services/auth/domain/outputport"
+)
+
+var _ outputport.OauthStateRepository = (*OauthStateRepository)(nil)
+
+func NewOauthStateRepository(redisClient *redis.Client, logger *zap.Logger) *OauthStateRepository {
+	return &OauthStateRepository{
+		redisClient: redisClient,
+		logger:      logger,
+	}
+}
+
+type OauthStateRepository struct {
+	redisClient *redis.Client
+	logger      *zap.Logger
+}
+
+func (o *OauthStateRepository) Del(key string) error {
+	_, err := o.redisClient.Del(context.Background(), key).Result()
+	if err != nil {
+		o.logger.Info("del state error", zap.Error(err))
+	}
+	return nil
+}
+
+func (o *OauthStateRepository) Get(key string) (string, error) {
+	data, err := o.redisClient.Get(context.Background(), key).Result()
+	if err == redis.Nil {
+		return "", errors.New("invalid state: not found")
+	} else if err != nil {
+		return "", fmt.Errorf("failed to get state: %w", err)
+	}
+	o.logger.Debug("get state data success", zap.String("data", data))
+	return data, nil
+}
+
+func (o *OauthStateRepository) Set(key string, duration time.Duration) error {
+	if err := o.redisClient.Set(context.Background(), key, time.Now().String(), 10*time.Minute).Err(); err != nil {
+		return fmt.Errorf("error storing state: %w", err)
+	}
+	return nil
+}

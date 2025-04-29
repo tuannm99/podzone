@@ -1,3 +1,3 @@
-package entities
+package entity
 
 type Token struct{}

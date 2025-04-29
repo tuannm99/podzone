@@ -1,31 +1,29 @@
 FROM golang:1.23-alpine AS builder
 
-RUN apk add --no-cache git make protoc
+ARG SERVICE_NAME
 
 WORKDIR /app
 
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy the source code
-COPY . .
+COPY cmd/${SERVICE_NAME}/ ./cmd/${SERVICE_NAME}/
+COPY pkg/ ./pkg/
+COPY services/${SERVICE_NAME}/ ./services/${SERVICE_NAME}/
 
-ARG SERVICE_NAME
-RUN make build SERVICE=${SERVICE_NAME}
+RUN CGO_ENABLED=0 GOOS=linux go build -o auth ./cmd/${SERVICE_NAME}/main.go
 
 FROM alpine:3.18
 
-RUN apk add --no-cache ca-certificates tzdata
+RUN apk add --no-cache ca-certificates tzdata telnet curl
 
 WORKDIR /app
 
-ARG SERVICE_NAME
-COPY --from=builder /app/services/${SERVICE_NAME}/bin/${SERVICE_NAME} /app/
-COPY --from=builder /app/config /app/config
+COPY --from=builder /app/${SERVICE_NAME} /app/
 
 ENV SERVICE_NAME=${SERVICE_NAME}
-ENV ENV=production
 
-EXPOSE 8000
+EXPOSE 50051
+EXPOSE 8080
 
 CMD ["/app/${SERVICE_NAME}"]
