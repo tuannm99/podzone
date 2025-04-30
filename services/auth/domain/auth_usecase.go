@@ -20,22 +20,30 @@ import (
 var _ inputport.AuthUsecase = (*authUC)(nil)
 
 type authUC struct {
+	jwtSecret      []byte
+	appRedirectURL string
+
+	userUC  inputport.UserUsecase
+	// tokenUC inputport.TokenUsecase
+
 	oauthExternal        outputport.GoogleOauthExternal
 	oauthStateRepository outputport.OauthStateRepository
-	jwtSecret            []byte
-	appRedirectURL       string
 }
 
 func NewAuthUsecase(
+	userUC inputport.UserUsecase,
+	// tokenUC inputport.TokenUsecase,
 	oauthExternal outputport.GoogleOauthExternal,
 	oauthStateRepotory outputport.OauthStateRepository,
 	cfg config.AuthConfig,
 ) *authUC {
 	return &authUC{
-		oauthExternal:        oauthExternal,
-		oauthStateRepository: oauthStateRepotory,
 		jwtSecret:            cfg.JWTSecret,
 		appRedirectURL:       cfg.AppRedirectURL,
+		userUC:               userUC,
+		// tokenUC:              tokenUC,
+		oauthExternal:        oauthExternal,
+		oauthStateRepository: oauthStateRepotory,
 	}
 }
 
@@ -72,6 +80,11 @@ func (u *authUC) HandleOAuthCallback(ctx context.Context, code, state string) (*
 		return nil, fmt.Errorf("failed to fetch user info: %w", err)
 	}
 
+	userEntityMapped := *toolkit.MapStruct[outputport.GoogleUserInfo, entity.User](*userInfo)
+	if _, err := u.userUC.CreateNewAfterAuthCallback(userEntityMapped); err != nil {
+		return nil, fmt.Errorf("failed to create new user: %w", err)
+	}
+
 	jwtToken, err := u.createJWT(userInfo)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create JWT: %w", err)
@@ -79,10 +92,7 @@ func (u *authUC) HandleOAuthCallback(ctx context.Context, code, state string) (*
 
 	redirectURL := fmt.Sprintf("%s?token=%s", u.appRedirectURL, jwtToken)
 
-	userInfoResp, err := toolkit.MapStruct[outputport.GoogleUserInfo, dto.UserInfoResp](*userInfo)
-	if err != nil {
-		return nil, fmt.Errorf("failed to map user info to dto: %w", err)
-	}
+	userInfoResp := toolkit.MapStruct[outputport.GoogleUserInfo, dto.UserInfoResp](*userInfo)
 
 	return &dto.GoogleCallbackResp{
 		JwtToken:     jwtToken,

@@ -30,6 +30,14 @@ var Module = fx.Options(
 			fx.As(new(outputport.OauthStateRepository)),
 		),
 		fx.Annotate(
+			infrastructure.NewUserRepository,
+			fx.As(new(outputport.UserRepository)),
+		),
+		fx.Annotate(
+			domain.NewUserUsecase,
+			fx.As(new(inputport.UserUsecase)),
+		),
+		fx.Annotate(
 			domain.NewAuthUsecase,
 			fx.As(new(inputport.AuthUsecase)),
 		),

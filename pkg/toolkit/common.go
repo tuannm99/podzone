@@ -16,17 +16,14 @@ func FallbackEnv(key string, fallback string) string {
 	return val
 }
 
-func AssertEqual(expected, actual interface{}) {
+func AssertEqual(expected, actual any) {
 	if !reflect.DeepEqual(expected, actual) {
 		log.Fatalf("assertEqual failed: expected %#v, got %#v", expected, actual)
 	}
 }
 
-func MapStruct[S any, T any](source S) (*T, error) {
+func MapStruct[S any, T any](source S) *T {
 	var target T
-	err := mapstructure.Decode(source, &target)
-	if err != nil {
-		return nil, err
-	}
-	return &target, nil
+	_ = mapstructure.Decode(source, &target)
+	return &target
 }

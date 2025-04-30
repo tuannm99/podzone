@@ -22,7 +22,10 @@ func main() {
 	app := fx.New(
 		logfx.Module,
 
-		postgresfx.ModuleFor("users", toolkit.FallbackEnv("PG_USERS_URI", "postgres://localhost:5432/users")),
+		postgresfx.ModuleFor(
+			"auth",
+			toolkit.FallbackEnv("PG_USERS_URI", "postgres://postgres:postgres@localhost:5432/auth"),
+		),
 		redisfx.Module,
 
 		grpcfx.Module,

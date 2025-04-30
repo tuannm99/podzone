@@ -12,21 +12,21 @@ import (
 	"github.com/tuannm99/podzone/services/auth/domain/outputport"
 )
 
-var _ outputport.OauthStateRepository = (*OauthStateRepository)(nil)
+var _ outputport.OauthStateRepository = (*OauthStateRepositoryImpl)(nil)
 
-func NewOauthStateRepository(redisClient *redis.Client, logger *zap.Logger) *OauthStateRepository {
-	return &OauthStateRepository{
+func NewOauthStateRepository(redisClient *redis.Client, logger *zap.Logger) *OauthStateRepositoryImpl {
+	return &OauthStateRepositoryImpl{
 		redisClient: redisClient,
 		logger:      logger,
 	}
 }
 
-type OauthStateRepository struct {
+type OauthStateRepositoryImpl struct {
 	redisClient *redis.Client
 	logger      *zap.Logger
 }
 
-func (o *OauthStateRepository) Del(key string) error {
+func (o *OauthStateRepositoryImpl) Del(key string) error {
 	_, err := o.redisClient.Del(context.Background(), key).Result()
 	if err != nil {
 		o.logger.Info("del state error", zap.Error(err))
@@ -34,7 +34,7 @@ func (o *OauthStateRepository) Del(key string) error {
 	return nil
 }
 
-func (o *OauthStateRepository) Get(key string) (string, error) {
+func (o *OauthStateRepositoryImpl) Get(key string) (string, error) {
 	data, err := o.redisClient.Get(context.Background(), key).Result()
 	if err == redis.Nil {
 		return "", errors.New("invalid state: not found")
@@ -45,7 +45,7 @@ func (o *OauthStateRepository) Get(key string) (string, error) {
 	return data, nil
 }
 
-func (o *OauthStateRepository) Set(key string, duration time.Duration) error {
+func (o *OauthStateRepositoryImpl) Set(key string, duration time.Duration) error {
 	if err := o.redisClient.Set(context.Background(), key, time.Now().String(), 10*time.Minute).Err(); err != nil {
 		return fmt.Errorf("error storing state: %w", err)
 	}
