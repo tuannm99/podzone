@@ -24,7 +24,7 @@ func main() {
 
 		postgresfx.ModuleFor(
 			"auth",
-			toolkit.FallbackEnv("PG_USERS_URI", "postgres://postgres:postgres@localhost:5432/auth"),
+			toolkit.FallbackEnv("PG_AUTH_URI", "postgres://postgres:postgres@localhost:5432/auth"),
 		),
 		redisfx.Module,
 

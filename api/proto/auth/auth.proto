@@ -19,14 +19,6 @@ service AuthService {
     };
   }
 
-  rpc VerifyToken(VerifyTokenRequest) returns (VerifyTokenResponse) {
-    option (google.api.http) = {
-      post: "/auth/v1/verify"
-      body: "*"
-      additional_bindings { get: "/auth/v1/verify" }
-    };
-  }
-
   rpc Logout(LogoutRequest) returns (LogoutResponse) {
     option (google.api.http) = {
       get: "/auth/v1/logout"
@@ -51,16 +43,6 @@ message GoogleCallbackResponse {
   string jwt_token = 1;
   string redirect_url = 2;
   UserInfo user_info = 3;
-}
-
-message VerifyTokenRequest {
-  string token = 1;
-}
-
-message VerifyTokenResponse {
-  bool is_valid = 1;
-  UserInfo user_info = 2;
-  string error = 3;
 }
 
 message LogoutRequest {

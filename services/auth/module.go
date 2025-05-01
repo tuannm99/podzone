@@ -7,6 +7,7 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"gorm.io/gorm"
 
 	pb "github.com/tuannm99/podzone/pkg/api/proto/auth"
 	"github.com/tuannm99/podzone/services/auth/config"
@@ -16,6 +17,7 @@ import (
 	"github.com/tuannm99/podzone/services/auth/domain/inputport"
 	"github.com/tuannm99/podzone/services/auth/domain/outputport"
 	"github.com/tuannm99/podzone/services/auth/infrastructure"
+	"github.com/tuannm99/podzone/services/auth/infrastructure/model"
 )
 
 var Module = fx.Options(
@@ -48,15 +50,16 @@ var Module = fx.Options(
 			middleware.NewRedirectResponseModifier,
 			fx.ResultTags(`group:"gateway-options"`),
 		),
-		fx.Annotate(
-			middleware.AuthMiddleware,
-			fx.ResultTags(`group:"http-middleware"`),
-		),
+		// fx.Annotate(
+		// 	middleware.AuthMiddleware,
+		// 	fx.ResultTags(`group:"http-middleware"`),
+		// ),
 	),
 	fx.Invoke(
 		// register grpc auth handler for grpcserver, grpcgateway
 		RegisterGRPCServer,
 		RegisterGatewayHandler,
+		RegisterMigration,
 	),
 )
 
@@ -68,4 +71,18 @@ func RegisterGRPCServer(server *grpc.Server, authServer *grpchandler.AuthServer,
 func RegisterGatewayHandler(mux *runtime.ServeMux, conn *grpc.ClientConn, logger *zap.Logger) error {
 	logger.Info("Registering Auth HTTP handler (gRPC-Gateway)")
 	return pb.RegisterAuthServiceHandler(context.Background(), mux, conn)
+}
+
+type MigrateParams struct {
+	fx.In
+	Logger *zap.Logger
+	DB     *gorm.DB `name:"gorm-auth"`
+}
+
+func RegisterMigration(p MigrateParams) {
+	p.Logger.Info("Mirating database...")
+	err := p.DB.AutoMigrate(&model.User{})
+	if err != nil {
+		p.Logger.Error("error migration database", zap.Error(err))
+	}
 }

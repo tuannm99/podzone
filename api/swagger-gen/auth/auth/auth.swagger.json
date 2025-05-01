@@ -111,66 +111,6 @@
           "AuthService"
         ]
       }
-    },
-    "/auth/v1/verify": {
-      "get": {
-        "operationId": "AuthService_VerifyToken2",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/authVerifyTokenResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "token",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "AuthService"
-        ]
-      },
-      "post": {
-        "operationId": "AuthService_VerifyToken",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/authVerifyTokenResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/authVerifyTokenRequest"
-            }
-          }
-        ],
-        "tags": [
-          "AuthService"
-        ]
-      }
     }
   },
   "definitions": {
@@ -230,28 +170,6 @@
         },
         "emailVerified": {
           "type": "boolean"
-        }
-      }
-    },
-    "authVerifyTokenRequest": {
-      "type": "object",
-      "properties": {
-        "token": {
-          "type": "string"
-        }
-      }
-    },
-    "authVerifyTokenResponse": {
-      "type": "object",
-      "properties": {
-        "isValid": {
-          "type": "boolean"
-        },
-        "userInfo": {
-          "$ref": "#/definitions/authUserInfo"
-        },
-        "error": {
-          "type": "string"
         }
       }
     },

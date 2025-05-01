@@ -124,19 +124,19 @@ spec:
     - port: 27017
       targetPort: 27017
   type: ClusterIP
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: mongodb
-  labels:
-    app: mongodb
-    environment: development
-spec:
-  selector:
-    app: mongodb
-  ports:
-    - port: 27017
-      targetPort: 27017
-      name: mongodb
-  type: LoadBalancer
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: mongodb
+#   labels:
+#     app: mongodb
+#     environment: development
+# spec:
+#   selector:
+#     app: mongodb
+#   ports:
+#     - port: 27017
+#       targetPort: 27017
+#       name: mongodb
+#   type: LoadBalancer

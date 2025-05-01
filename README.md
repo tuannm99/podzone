@@ -20,6 +20,7 @@ This is a Go monorepo containing a collection of microservices for an e-commerce
 
 🔄 **Microservice Implementation**
 
+- Auth Service
 - Cart Service
 - Catalog Service
 - Gateway Service

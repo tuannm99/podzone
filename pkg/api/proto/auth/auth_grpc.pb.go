@@ -21,7 +21,6 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	AuthService_GoogleLogin_FullMethodName    = "/auth.AuthService/GoogleLogin"
 	AuthService_GoogleCallback_FullMethodName = "/auth.AuthService/GoogleCallback"
-	AuthService_VerifyToken_FullMethodName    = "/auth.AuthService/VerifyToken"
 	AuthService_Logout_FullMethodName         = "/auth.AuthService/Logout"
 )
 
@@ -31,7 +30,6 @@ const (
 type AuthServiceClient interface {
 	GoogleLogin(ctx context.Context, in *GoogleLoginRequest, opts ...grpc.CallOption) (*GoogleLoginResponse, error)
 	GoogleCallback(ctx context.Context, in *GoogleCallbackRequest, opts ...grpc.CallOption) (*GoogleCallbackResponse, error)
-	VerifyToken(ctx context.Context, in *VerifyTokenRequest, opts ...grpc.CallOption) (*VerifyTokenResponse, error)
 	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error)
 }
 
@@ -63,16 +61,6 @@ func (c *authServiceClient) GoogleCallback(ctx context.Context, in *GoogleCallba
 	return out, nil
 }
 
-func (c *authServiceClient) VerifyToken(ctx context.Context, in *VerifyTokenRequest, opts ...grpc.CallOption) (*VerifyTokenResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(VerifyTokenResponse)
-	err := c.cc.Invoke(ctx, AuthService_VerifyToken_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *authServiceClient) Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(LogoutResponse)
@@ -89,7 +77,6 @@ func (c *authServiceClient) Logout(ctx context.Context, in *LogoutRequest, opts 
 type AuthServiceServer interface {
 	GoogleLogin(context.Context, *GoogleLoginRequest) (*GoogleLoginResponse, error)
 	GoogleCallback(context.Context, *GoogleCallbackRequest) (*GoogleCallbackResponse, error)
-	VerifyToken(context.Context, *VerifyTokenRequest) (*VerifyTokenResponse, error)
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
@@ -106,9 +93,6 @@ func (UnimplementedAuthServiceServer) GoogleLogin(context.Context, *GoogleLoginR
 }
 func (UnimplementedAuthServiceServer) GoogleCallback(context.Context, *GoogleCallbackRequest) (*GoogleCallbackResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GoogleCallback not implemented")
-}
-func (UnimplementedAuthServiceServer) VerifyToken(context.Context, *VerifyTokenRequest) (*VerifyTokenResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method VerifyToken not implemented")
 }
 func (UnimplementedAuthServiceServer) Logout(context.Context, *LogoutRequest) (*LogoutResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Logout not implemented")
@@ -170,24 +154,6 @@ func _AuthService_GoogleCallback_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AuthService_VerifyToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(VerifyTokenRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthServiceServer).VerifyToken(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AuthService_VerifyToken_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).VerifyToken(ctx, req.(*VerifyTokenRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _AuthService_Logout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(LogoutRequest)
 	if err := dec(in); err != nil {
@@ -220,10 +186,6 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GoogleCallback",
 			Handler:    _AuthService_GoogleCallback_Handler,
-		},
-		{
-			MethodName: "VerifyToken",
-			Handler:    _AuthService_VerifyToken_Handler,
 		},
 		{
 			MethodName: "Logout",
