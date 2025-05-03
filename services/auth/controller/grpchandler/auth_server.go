@@ -3,14 +3,14 @@ package grpchandler
 import (
 	"context"
 
-	pb "github.com/tuannm99/podzone/pkg/api/proto/auth"
+	pbAuth "github.com/tuannm99/podzone/pkg/api/proto/auth"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 	"github.com/tuannm99/podzone/services/auth/domain/dto"
 	"github.com/tuannm99/podzone/services/auth/domain/inputport"
 )
 
 type AuthServer struct {
-	pb.UnimplementedAuthServiceServer
+	pbAuth.UnimplementedAuthServiceServer
 	usecase inputport.AuthUsecase
 }
 
@@ -20,32 +20,35 @@ func NewAuthServer(usecase inputport.AuthUsecase) *AuthServer {
 	}
 }
 
-func (s *AuthServer) GoogleLogin(ctx context.Context, req *pb.GoogleLoginRequest) (*pb.GoogleLoginResponse, error) {
+func (s *AuthServer) GoogleLogin(
+	ctx context.Context,
+	req *pbAuth.GoogleLoginRequest,
+) (*pbAuth.GoogleLoginResponse, error) {
 	authURL, err := s.usecase.GenerateOAuthURL(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return &pb.GoogleLoginResponse{
+	return &pbAuth.GoogleLoginResponse{
 		RedirectUrl: authURL,
 	}, nil
 }
 
 func (s *AuthServer) GoogleCallback(
 	ctx context.Context,
-	req *pb.GoogleCallbackRequest,
-) (*pb.GoogleCallbackResponse, error) {
+	req *pbAuth.GoogleCallbackRequest,
+) (*pbAuth.GoogleCallbackResponse, error) {
 	resp, err := s.usecase.HandleOAuthCallback(ctx, req.Code, req.State)
 	if err != nil {
 		return nil, err
 	}
-	return toolkit.MapStruct[dto.GoogleCallbackResp, pb.GoogleCallbackResponse](*resp), nil
+	return toolkit.MapStruct[dto.GoogleCallbackResp, pbAuth.GoogleCallbackResponse](*resp), nil
 }
 
-func (s *AuthServer) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error) {
+func (s *AuthServer) Logout(ctx context.Context, req *pbAuth.LogoutRequest) (*pbAuth.LogoutResponse, error) {
 	redirectUrl, _ := s.usecase.Logout(ctx)
 
-	return &pb.LogoutResponse{
+	return &pbAuth.LogoutResponse{
 		Success:     true,
 		RedirectUrl: redirectUrl,
 	}, nil

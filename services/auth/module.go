@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
 
-	pb "github.com/tuannm99/podzone/pkg/api/proto/auth"
+	pbAuth "github.com/tuannm99/podzone/pkg/api/proto/auth"
 	"github.com/tuannm99/podzone/services/auth/config"
 	"github.com/tuannm99/podzone/services/auth/controller/grpchandler"
 	"github.com/tuannm99/podzone/services/auth/controller/middleware"
@@ -65,12 +65,12 @@ var Module = fx.Options(
 
 func RegisterGRPCServer(server *grpc.Server, authServer *grpchandler.AuthServer, logger *zap.Logger) {
 	logger.Info("Registering Auth GRPC handler")
-	pb.RegisterAuthServiceServer(server, authServer)
+	pbAuth.RegisterAuthServiceServer(server, authServer)
 }
 
 func RegisterGatewayHandler(mux *runtime.ServeMux, conn *grpc.ClientConn, logger *zap.Logger) error {
 	logger.Info("Registering Auth HTTP handler (gRPC-Gateway)")
-	return pb.RegisterAuthServiceHandler(context.Background(), mux, conn)
+	return pbAuth.RegisterAuthServiceHandler(context.Background(), mux, conn)
 }
 
 type MigrateParams struct {

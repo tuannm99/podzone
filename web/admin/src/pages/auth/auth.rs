@@ -59,4 +59,3 @@ pub fn auth_page() -> Html {
         </div>
     }
 }
-

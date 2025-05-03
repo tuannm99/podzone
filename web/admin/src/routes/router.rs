@@ -49,6 +49,6 @@ pub fn switch_settings(route: SettingsRoute) -> Html {
         SettingsRoute::Profile => html! {<h1>{"Profile"}</h1>},
         SettingsRoute::Friends => html! {<h1>{"Friends"}</h1>},
         SettingsRoute::Theme => html! {<h1>{"Theme"}</h1>},
-        SettingsRoute::NotFound => html! {<Redirect<MainRoute> to={MainRoute::NotFound}/>},
+        SettingsRoute::NotFound => html! {<h1>{"Not Found"}</h1>},
     }
 }

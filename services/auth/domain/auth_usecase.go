@@ -17,9 +17,9 @@ import (
 	"github.com/tuannm99/podzone/services/auth/domain/outputport"
 )
 
-var _ inputport.AuthUsecase = (*authUC)(nil)
+var _ inputport.AuthUsecase = (*authUCImpl)(nil)
 
-type authUC struct {
+type authUCImpl struct {
 	jwtSecret      []byte
 	appRedirectURL string
 
@@ -36,8 +36,8 @@ func NewAuthUsecase(
 	oauthExternal outputport.GoogleOauthExternal,
 	oauthStateRepotory outputport.OauthStateRepository,
 	cfg config.AuthConfig,
-) *authUC {
-	return &authUC{
+) *authUCImpl {
+	return &authUCImpl{
 		jwtSecret:      cfg.JWTSecret,
 		appRedirectURL: cfg.AppRedirectURL,
 		userUC:         userUC,
@@ -47,7 +47,7 @@ func NewAuthUsecase(
 	}
 }
 
-func (u *authUC) GenerateOAuthURL(ctx context.Context) (string, error) {
+func (u *authUCImpl) GenerateOAuthURL(ctx context.Context) (string, error) {
 	stateBytes := make([]byte, 32)
 	if _, err := rand.Read(stateBytes); err != nil {
 		return "", fmt.Errorf("error generating state: %w", err)
@@ -63,7 +63,7 @@ func (u *authUC) GenerateOAuthURL(ctx context.Context) (string, error) {
 	return url, nil
 }
 
-func (u *authUC) HandleOAuthCallback(ctx context.Context, code, state string) (*dto.GoogleCallbackResp, error) {
+func (u *authUCImpl) HandleOAuthCallback(ctx context.Context, code, state string) (*dto.GoogleCallbackResp, error) {
 	key := "oauth:google:" + state
 	if _, err := u.oauthStateRepository.Get(key); err != nil {
 		return nil, err
@@ -95,17 +95,17 @@ func (u *authUC) HandleOAuthCallback(ctx context.Context, code, state string) (*
 	userInfoResp := toolkit.MapStruct[outputport.GoogleUserInfo, dto.UserInfoResp](*userInfo)
 
 	return &dto.GoogleCallbackResp{
-		JwtToken:     jwtToken,
-		RedirectUrl:  redirectURL,
-		UserInfo: *userInfoResp,
+		JwtToken:    jwtToken,
+		RedirectUrl: redirectURL,
+		UserInfo:    *userInfoResp,
 	}, nil
 }
 
-func (u *authUC) Logout(ctx context.Context) (string, error) {
+func (u *authUCImpl) Logout(ctx context.Context) (string, error) {
 	return "/", nil
 }
 
-func (u *authUC) createJWT(userInfo *outputport.GoogleUserInfo) (string, error) {
+func (u *authUCImpl) createJWT(userInfo *outputport.GoogleUserInfo) (string, error) {
 	claims := entity.JWTClaims{
 		Email: userInfo.Email,
 		Name:  userInfo.Name,

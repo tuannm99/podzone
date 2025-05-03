@@ -11,13 +11,13 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/proto"
 
-	pb "github.com/tuannm99/podzone/pkg/api/proto/auth"
+	pbAuth "github.com/tuannm99/podzone/pkg/api/proto/auth"
 )
 
 func NewRedirectResponseModifier(logger *zap.Logger) runtime.ServeMuxOption {
 	return runtime.WithForwardResponseOption(
 		func(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
-			if loginResp, ok := resp.(*pb.GoogleLoginResponse); ok && loginResp.RedirectUrl != "" {
+			if loginResp, ok := resp.(*pbAuth.GoogleLoginResponse); ok && loginResp.RedirectUrl != "" {
 				logger.Info("Redirecting to OAuth provider", zap.String("url", loginResp.RedirectUrl))
 				w.Header().Set("Location", loginResp.RedirectUrl)
 				w.WriteHeader(http.StatusTemporaryRedirect)
