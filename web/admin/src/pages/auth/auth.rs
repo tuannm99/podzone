@@ -1,10 +1,8 @@
 use yew::prelude::{Callback, Html, function_component, html, use_state};
 
-use login::LoginForm;
-use register::RegisterForm;
-
-use super::login;
-use super::register;
+use super::google_oauth::GoogleButton;
+use super::login::LoginForm;
+use super::register::RegisterForm;
 
 #[function_component(AuthPage)]
 pub fn auth_page() -> Html {
@@ -31,10 +29,7 @@ pub fn auth_page() -> Html {
 
                 <div class="divider">{"OR"}</div>
 
-                <button onclick={|_| web_sys::window().unwrap().location().set_href("/auth/google").unwrap()} class="btn btn-outline w-full">
-                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5 mr-2" />
-                    { "Continue with Google" }
-                </button>
+                <GoogleButton />
 
                 <p class="text-center mt-4 text-sm">
                     {

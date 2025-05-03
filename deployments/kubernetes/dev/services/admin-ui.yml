@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: yew-admin-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: yew-admin-ui
+  template:
+    metadata:
+      labels:
+        app: yew-admin-ui
+    spec:
+      containers:
+        - name: yew-admin-ui
+          image: localhost:5000/yew-admin-ui:latest
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              memory: '256Mi'
+              cpu: '250m'
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: yew-admin-ui
+spec:
+  selector:
+    app: yew-admin-ui
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: yew-admin-ui
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: admin-ui.local.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: yew-admin-ui
+                port:
+                  number: 80

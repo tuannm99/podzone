@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/rs/cors"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -23,9 +24,11 @@ func startHTTPGateway(p Params) {
 		httpPort = "8080"
 	}
 
+	handler := cors.Default().Handler(p.Handler)
+
 	gwServer := &http.Server{
 		Addr:    ":" + httpPort,
-		Handler: p.Handler,
+		Handler: handler,
 	}
 
 	p.Lifecycle.Append(fx.Hook{

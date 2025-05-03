@@ -3,6 +3,7 @@ mod components;
 mod layouts;
 mod pages;
 mod routes;
+mod services;
 
 use routes::{MainRoute, switch_root};
 use yew::prelude::*;

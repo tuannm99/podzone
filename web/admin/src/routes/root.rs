@@ -1,7 +1,7 @@
 use yew::prelude::*;
 
 use crate::layouts::Layout;
-use crate::pages::auth::AuthPage;
+use crate::pages::auth::auth::AuthPage;
 
 use super::MainRoute;
 

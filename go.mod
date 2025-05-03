@@ -15,11 +15,10 @@ require (
 	github.com/elastic/go-elasticsearch/v8 v8.18.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang-jwt/jwt v3.2.2+incompatible
-	github.com/jarcoal/httpmock v1.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/mitchellh/mapstructure v1.5.0
+	github.com/rs/cors v1.11.1
 	github.com/segmentio/kafka-go v0.4.47
-	github.com/stretchr/testify v1.10.0
 	go.mongodb.org/mongo-driver v1.17.3
 	go.uber.org/fx v1.23.0
 	golang.org/x/oauth2 v0.26.0
@@ -64,5 +63,4 @@ require (
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
