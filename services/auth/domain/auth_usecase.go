@@ -23,7 +23,7 @@ type authUC struct {
 	jwtSecret      []byte
 	appRedirectURL string
 
-	userUC  inputport.UserUsecase
+	userUC inputport.UserUsecase
 	// tokenUC inputport.TokenUsecase
 
 	oauthExternal        outputport.GoogleOauthExternal
@@ -38,9 +38,9 @@ func NewAuthUsecase(
 	cfg config.AuthConfig,
 ) *authUC {
 	return &authUC{
-		jwtSecret:            cfg.JWTSecret,
-		appRedirectURL:       cfg.AppRedirectURL,
-		userUC:               userUC,
+		jwtSecret:      cfg.JWTSecret,
+		appRedirectURL: cfg.AppRedirectURL,
+		userUC:         userUC,
 		// tokenUC:              tokenUC,
 		oauthExternal:        oauthExternal,
 		oauthStateRepository: oauthStateRepotory,
@@ -97,7 +97,7 @@ func (u *authUC) HandleOAuthCallback(ctx context.Context, code, state string) (*
 	return &dto.GoogleCallbackResp{
 		JwtToken:     jwtToken,
 		RedirectUrl:  redirectURL,
-		UserInfoResp: *userInfoResp,
+		UserInfo: *userInfoResp,
 	}, nil
 }
 

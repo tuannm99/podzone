@@ -16,23 +16,23 @@ import (
 	"github.com/tuannm99/podzone/services/auth/domain"
 	"github.com/tuannm99/podzone/services/auth/domain/inputport"
 	"github.com/tuannm99/podzone/services/auth/domain/outputport"
-	"github.com/tuannm99/podzone/services/auth/infrastructure"
 	"github.com/tuannm99/podzone/services/auth/infrastructure/model"
+	"github.com/tuannm99/podzone/services/auth/infrastructure/repository"
 )
 
 var Module = fx.Options(
 	fx.Provide(
 		config.NewAuthConfig,
 		fx.Annotate(
-			infrastructure.NewGoogleOauth,
+			repository.NewGoogleOauthImpl,
 			fx.As(new(outputport.GoogleOauthExternal)),
 		),
 		fx.Annotate(
-			infrastructure.NewOauthStateRepository,
+			repository.NewOauthStateRepositoryImpl,
 			fx.As(new(outputport.OauthStateRepository)),
 		),
 		fx.Annotate(
-			infrastructure.NewUserRepository,
+			repository.NewUserRepositoryImpl,
 			fx.As(new(outputport.UserRepository)),
 		),
 		fx.Annotate(

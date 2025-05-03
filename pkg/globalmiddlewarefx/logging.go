@@ -27,15 +27,17 @@ func loggerMiddleware(logger *zap.Logger) func(next http.Handler) http.Handler {
 			next.ServeHTTP(rw, r)
 
 			duration := time.Since(start)
-			logger.Info("HTTP Request",
-				zap.String("method", r.Method),
-				zap.String("path", r.URL.Path),
-				zap.String("query", r.URL.RawQuery),
-				zap.Int("status", rw.statusCode),
-				zap.String("user_agent", r.UserAgent()),
-				zap.String("remote_addr", r.RemoteAddr),
-				zap.Duration("duration", duration),
-			)
+			if r.URL.Path != "/healthz" {
+				logger.Info("HTTP Request",
+					zap.String("method", r.Method),
+					zap.String("path", r.URL.Path),
+					zap.String("query", r.URL.RawQuery),
+					zap.Int("status", rw.statusCode),
+					zap.String("user_agent", r.UserAgent()),
+					zap.String("remote_addr", r.RemoteAddr),
+					zap.Duration("duration", duration),
+				)
+			}
 		})
 	}
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 
 	pb "github.com/tuannm99/podzone/pkg/api/proto/auth"
+	"github.com/tuannm99/podzone/pkg/toolkit"
+	"github.com/tuannm99/podzone/services/auth/domain/dto"
 	"github.com/tuannm99/podzone/services/auth/domain/inputport"
 )
 
@@ -37,20 +39,7 @@ func (s *AuthServer) GoogleCallback(
 	if err != nil {
 		return nil, err
 	}
-
-	return &pb.GoogleCallbackResponse{
-		JwtToken:    resp.JwtToken,
-		RedirectUrl: resp.RedirectUrl,
-		UserInfo: &pb.UserInfo{
-			Id:            resp.UserInfoResp.Id,
-			Email:         resp.UserInfoResp.Email,
-			Name:          resp.UserInfoResp.Name,
-			GivenName:     resp.UserInfoResp.GivenName,
-			FamilyName:    resp.UserInfoResp.FamilyName,
-			Picture:       resp.UserInfoResp.Picture,
-			EmailVerified: resp.UserInfoResp.EmailVerified,
-		},
-	}, nil
+	return toolkit.MapStruct[dto.GoogleCallbackResp, pb.GoogleCallbackResponse](*resp), nil
 }
 
 func (s *AuthServer) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error) {

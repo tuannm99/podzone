@@ -29,6 +29,11 @@ spec:
                 secretKeyRef:
                   name: global-secrets
                   key: APP_ENV
+            - name: DEFAULT_LOG_LEVEL
+              valueFrom:
+                secretKeyRef:
+                  name: global-secrets
+                  key: DEFAULT_LOG_LEVEL
             - name: GOOGLE_CLIENT_ID
               valueFrom:
                 secretKeyRef:

@@ -91,3 +91,10 @@ Thumbs.db
 dist
 
 .data
+
+.nx
+.nx/cache
+.nx/workspace-data
+
+vite.config.*.timestamp*
+vitest.config.*.timestamp*
