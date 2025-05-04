@@ -1,9 +1,6 @@
 package auth
 
 import (
-	"context"
-
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -56,9 +53,7 @@ var Module = fx.Options(
 		// ),
 	),
 	fx.Invoke(
-		// register grpc auth handler for grpcserver, grpcgateway
 		RegisterGRPCServer,
-		RegisterGatewayHandler,
 		RegisterMigration,
 	),
 )
@@ -66,11 +61,6 @@ var Module = fx.Options(
 func RegisterGRPCServer(server *grpc.Server, authServer *grpchandler.AuthServer, logger *zap.Logger) {
 	logger.Info("Registering Auth GRPC handler")
 	pbAuth.RegisterAuthServiceServer(server, authServer)
-}
-
-func RegisterGatewayHandler(mux *runtime.ServeMux, conn *grpc.ClientConn, logger *zap.Logger) error {
-	logger.Info("Registering Auth HTTP handler (gRPC-Gateway)")
-	return pbAuth.RegisterAuthServiceHandler(context.Background(), mux, conn)
 }
 
 type MigrateParams struct {

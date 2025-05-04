@@ -2,7 +2,6 @@ package grpcclientfx
 
 import (
 	"context"
-	"os"
 
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -19,16 +18,13 @@ type Params struct {
 
 	Lifecycle fx.Lifecycle
 	Logger    *zap.Logger
+	Host      string
+	Port      string
 }
 
 func newGRPCClient(p Params) (*grpc.ClientConn, error) {
-	grpcPort := os.Getenv("GRPC_PORT")
-	if grpcPort == "" {
-		grpcPort = "50051"
-	}
-
 	conn, err := grpc.NewClient(
-		"localhost:"+grpcPort,
+		p.Host+":"+p.Port,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
@@ -36,7 +32,7 @@ func newGRPCClient(p Params) (*grpc.ClientConn, error) {
 		return nil, err
 	}
 
-	p.Logger.Info("gRPC client connected", zap.String("port", grpcPort))
+	p.Logger.Info("gRPC client connected", zap.String("host", p.Host), zap.String("port", p.Port))
 
 	p.Lifecycle.Append(fx.Hook{
 		OnStop: func(ctx context.Context) error {

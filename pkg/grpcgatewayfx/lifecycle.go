@@ -34,8 +34,7 @@ func startHTTPGateway(p Params) {
 	p.Lifecycle.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			go func() {
-				p.Logger.Info("gRPC-Gateway started",
-					zap.String("address", "http://0.0.0.0:"+httpPort))
+				p.Logger.Info("gRPC-Gateway started", zap.String("address", "http://0.0.0.0:"+httpPort))
 				if err := gwServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 					p.Logger.Fatal("Failed to start HTTP server", zap.Error(err))
 				}

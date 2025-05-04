@@ -114,16 +114,21 @@ k8s-dev:
 	kubectl delete -f deployments/kubernetes/dev/services/$(SVC).yml --ignore-not-found
 	kubectl apply -f deployments/kubernetes/dev/services/$(SVC).yml
 
+k8s-portfw:
+	kubectl port-forward svc/redis 6379:6379 -n default &
+	kubectl port-forward svc/postgres 5432:5432 -n default &
+	kubectl port-forward svc/mongodb-internal 27017:27017 -n default
+
 # Help 
 help:
 	@echo "$(COLOR_YELLOW)Available commands:$(COLOR_RESET)"
-	@echo "  make proto          - Generate protobuf code"
-	@echo "  make swagger        - Generate Swagger documentation"
-	@echo "  make build          - Build all services"
-	@echo "  make test           - Run tests"
-	@echo "  make lint           - Run linter"
-	@echo "  make up             - Start development environment"
-	@echo "  make down           - Stop development environment"
-	@echo "  make dev SVC=${service} - Run service"
-	@echo "	make k8s-dev SVC=${service} - Deploy service to k8s dev"
+	@echo "  make api                    - Generate protobuf code, swagger api"
+	@echo "  make build                  - Build all services"
+	@echo "  make test                   - Run tests"
+	@echo "  make lint                   - Run linter"
+	@echo "  make up                     - Start development environment"
+	@echo "  make down                   - Stop development environment"
+	@echo "  make k8s-portfw             - Portfowrding for dev"
+	@echo "  make dev SVC=${service}     - Run service"
+	@echo "  make k8s-dev SVC=${service} - Deploy service to k8s dev"
 

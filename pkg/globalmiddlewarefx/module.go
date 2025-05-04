@@ -10,11 +10,11 @@ import (
 var Module = fx.Options(
 	fx.Provide(
 		fx.Annotate(
-            loggerMiddleware,
+			loggerMiddleware,
 			fx.ResultTags(`group:"http-middleware"`),
 		),
 		fx.Annotate(
-            healthMiddleware,
+			healthMiddleware,
 			fx.ResultTags(`group:"http-middleware"`),
 		),
 	),
