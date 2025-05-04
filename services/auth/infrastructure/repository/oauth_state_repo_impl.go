@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"go.uber.org/fx"
 	"go.uber.org/zap"
 
 	"github.com/tuannm99/podzone/services/auth/domain/outputport"
@@ -14,10 +15,16 @@ import (
 
 var _ outputport.OauthStateRepository = (*OauthStateRepositoryImpl)(nil)
 
-func NewOauthStateRepositoryImpl(redisClient *redis.Client, logger *zap.Logger) *OauthStateRepositoryImpl {
+type OauthStateRepoParams struct {
+	fx.In
+	RedisClient *redis.Client `name:"redis-auth"`
+	Logger      *zap.Logger
+}
+
+func NewOauthStateRepositoryImpl(p OauthStateRepoParams) *OauthStateRepositoryImpl {
 	return &OauthStateRepositoryImpl{
-		redisClient: redisClient,
-		logger:      logger,
+		redisClient: p.RedisClient,
+		logger:      p.Logger,
 	}
 }
 

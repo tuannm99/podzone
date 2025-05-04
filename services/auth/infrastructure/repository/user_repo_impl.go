@@ -13,13 +13,13 @@ import (
 
 var _ outputport.UserRepository = (*UserRepositoryImpl)(nil)
 
-type Params struct {
+type UserRepoParams struct {
 	fx.In
 	Logger *zap.Logger
 	DB     *gorm.DB `name:"gorm-auth"`
 }
 
-func NewUserRepositoryImpl(p Params) *UserRepositoryImpl {
+func NewUserRepositoryImpl(p UserRepoParams) *UserRepositoryImpl {
 	return &UserRepositoryImpl{
 		logger: p.Logger,
 		db:     p.DB,

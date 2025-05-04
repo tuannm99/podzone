@@ -1,7 +1,7 @@
 use yew::prelude::*;
 use yew_router::prelude::Link;
 
-use crate::routes::MainRoute;
+use crate::routes::router::MainRoute;
 
 #[function_component(Header)]
 pub fn header() -> Html {

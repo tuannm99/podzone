@@ -3,7 +3,7 @@ use yew::prelude::*;
 use crate::layouts::Layout;
 use crate::pages::auth::auth::AuthPage;
 
-use super::MainRoute;
+use super::router::MainRoute;
 
 pub fn switch_root(route: MainRoute) -> Html {
     match route {

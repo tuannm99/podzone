@@ -5,7 +5,8 @@ mod pages;
 mod routes;
 mod services;
 
-use routes::{MainRoute, switch_root};
+use routes::root::switch_root;
+use routes::router::MainRoute;
 use yew::prelude::*;
 use yew_router::prelude::*;
 

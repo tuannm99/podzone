@@ -1,5 +1,5 @@
 use crate::layouts::{Header, Sidebar};
-use crate::routes::{MainRoute, switch_main};
+use crate::routes::router::{switch_main, MainRoute};
 use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]

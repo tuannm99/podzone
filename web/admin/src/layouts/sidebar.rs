@@ -1,7 +1,7 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-use crate::routes::{MainRoute, SettingsRoute};
+use crate::routes::router::{MainRoute, SettingsRoute};
 
 #[function_component(Sidebar)]
 pub fn sidebar() -> Html {

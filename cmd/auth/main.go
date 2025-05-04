@@ -23,7 +23,11 @@ func main() {
 			"auth",
 			toolkit.FallbackEnv("PG_AUTH_URI", "postgres://postgres:postgres@localhost:5432/auth"),
 		),
-		redisfx.Module,
+		redisfx.ModuleFor(
+			"auth",
+			toolkit.FallbackEnv("REDIS_ADDR", "redis://localhost:6379/0"),
+		),
+		// redisfx.Module,
 
 		grpcfx.Module,
 		auth.Module,

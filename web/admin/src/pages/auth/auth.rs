@@ -1,4 +1,4 @@
-use yew::prelude::{Callback, Html, function_component, html, use_state};
+use yew::prelude::{function_component, html, use_state, Callback, Html};
 
 use super::google_oauth::GoogleButton;
 use super::login::LoginForm;
