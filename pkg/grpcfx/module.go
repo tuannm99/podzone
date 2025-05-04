@@ -3,6 +3,7 @@ package grpcfx
 import (
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 var Module = fx.Options(
@@ -10,6 +11,8 @@ var Module = fx.Options(
 	fx.Invoke(startGrpcServer),
 )
 
-func newGRPCServer() *grpc.Server {
-	return grpc.NewServer()
+func newGRPCServer(opts grpc.ServerOption) *grpc.Server {
+	server := grpc.NewServer(opts)
+	reflection.Register(server)
+	return server
 }

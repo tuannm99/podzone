@@ -7,7 +7,7 @@ import (
 	"go.uber.org/fx"
 )
 
-var Module = fx.Options(
+var CommonHttpModule = fx.Options(
 	fx.Provide(
 		fx.Annotate(
 			loggerMiddleware,

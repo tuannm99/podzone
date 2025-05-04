@@ -8,6 +8,8 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
 type Params struct {
@@ -40,6 +42,11 @@ func startGrpcServer(p Params) {
 					p.Logger.Fatal("Failed to serve gRPC", zap.Error(err))
 				}
 			}()
+
+			// Register health service
+			healthServer := health.NewServer()
+			grpc_health_v1.RegisterHealthServer(p.GRPC, healthServer)
+			healthServer.SetServingStatus("", grpc_health_v1.HealthCheckResponse_SERVING)
 
 			return nil
 		},

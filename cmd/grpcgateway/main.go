@@ -22,7 +22,7 @@ func main() {
 
 	app := fx.New(
 		logfx.Module,
-		globalmiddlewarefx.Module,
+		globalmiddlewarefx.CommonHttpModule,
 		grpcgatewayfx.Module,
 
 		fx.Provide(

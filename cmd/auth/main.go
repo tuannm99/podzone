@@ -4,6 +4,7 @@ import (
 	"github.com/joho/godotenv"
 	"go.uber.org/fx"
 
+	"github.com/tuannm99/podzone/pkg/globalmiddlewarefx"
 	"github.com/tuannm99/podzone/pkg/grpcfx"
 	"github.com/tuannm99/podzone/pkg/logfx"
 	"github.com/tuannm99/podzone/pkg/postgresfx"
@@ -18,7 +19,6 @@ func main() {
 
 	app := fx.New(
 		logfx.Module,
-
 		postgresfx.ModuleFor(
 			"auth",
 			toolkit.FallbackEnv("PG_AUTH_URI", "postgres://postgres:postgres@localhost:5432/auth"),
@@ -27,8 +27,8 @@ func main() {
 			"auth",
 			toolkit.FallbackEnv("REDIS_ADDR", "redis://localhost:6379/0"),
 		),
-		// redisfx.Module,
 
+		globalmiddlewarefx.CommonGRPCModule,
 		grpcfx.Module,
 		auth.Module,
 	)

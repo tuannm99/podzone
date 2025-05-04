@@ -5,9 +5,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/tuannm99/podzone/pkg/globalmiddlewarefx"
-	"github.com/tuannm99/podzone/pkg/grpcclientfx"
 	"github.com/tuannm99/podzone/pkg/grpcfx"
-	"github.com/tuannm99/podzone/pkg/grpcgatewayfx"
 	"github.com/tuannm99/podzone/pkg/logfx"
 	"github.com/tuannm99/podzone/pkg/mongofx"
 	"github.com/tuannm99/podzone/pkg/postgresfx"
@@ -28,11 +26,12 @@ func main() {
 		),
 		mongofx.ModuleFor("audit", toolkit.FallbackEnv("MONGO_AUDIT_URI", "mongodb://localhost:27017/audit")),
 
-		redisfx.Module,
+		redisfx.ModuleFor(
+			"order",
+			toolkit.FallbackEnv("REDIS_ADDR", "redis://localhost:6379/0"),
+		),
+		globalmiddlewarefx.CommonGRPCModule,
 		grpcfx.Module,
-		grpcclientfx.Module,
-		grpcgatewayfx.Module,
-		globalmiddlewarefx.Module,
 	)
 	app.Run()
 }
