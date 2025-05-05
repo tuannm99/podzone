@@ -36,7 +36,7 @@ This is a Go monorepo containing a collection of microservices for an e-commerce
 
 - Requirements specification
 - Architecture documentation
-  - C4 model diagrams
+  - C4 model diagrams (to component level)
   - High-level architecture overview
   - Database design
   - API design guidelines
@@ -61,7 +61,7 @@ This is a Go monorepo containing a collection of microservices for an e-commerce
 
 ### 🔥 Moreover
 
-- Using database for one simple service that I am writing from scratch ([NovaSQL](https://github.com/tuannm99/novasql))
+- Using database for one simple service that I am writing from scratch ([NovaSQL](https://github.com/tuannm99/novasql)) - in-progress
 
 ## 🏗️ Architecture Overview
 
