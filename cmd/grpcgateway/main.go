@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/joho/godotenv"
@@ -28,23 +29,19 @@ func main() {
 		fx.Provide(
 			fx.Annotate(
 				func() GatewayRegistrar {
-					return &AuthRegistrar{
-						Addr: toolkit.FallbackEnv("AUTH_GRPC_ADDR", "localhost:50051"),
-					}
+					return &AuthRegistrar{Addr: toolkit.FallbackEnv("AUTH_GRPC_ADDR", "localhost:50051")}
 				},
 				fx.ResultTags(`group:"gateway-registrars"`),
 			),
 		),
-		fx.Provide(
-			fx.Annotate(
-				func() GatewayRegistrar {
-					return &AuthRegistrar{
-						Addr: toolkit.FallbackEnv("ORDER_GRPC_ADDR", "localhost:50051"),
-					}
-				},
-				fx.ResultTags(`group:"gateway-registrars"`),
-			),
-		),
+		// fx.Provide(
+		// 	fx.Annotate(
+		// 		func() GatewayRegistrar {
+		// 			return &AuthRegistrar{Addr: toolkit.FallbackEnv("ORDER_GRPC_ADDR", "localhost:50051")}
+		// 		},
+		// 		fx.ResultTags(`group:"gateway-registrars"`),
+		// 	),
+		// ),
 
 		fx.Invoke(RegisterGWHandlers),
 	)
@@ -80,7 +77,10 @@ func RegisterGWHandlers(p GWParams) error {
 
 	for _, r := range p.Registrars {
 		if err := r.Register(ctx, p.Mux, opts); err != nil {
-			p.Logger.Error("Failed to register service", zap.Error(err))
+			p.Logger.Error("Failed to register gRPC Gateway",
+				zap.String("service", fmt.Sprintf("%T", r)),
+				zap.Error(err),
+			)
 			return err
 		}
 	}

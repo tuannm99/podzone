@@ -21,8 +21,6 @@ spec:
           ports:
             - containerPort: 50051
               name: grpc
-            - containerPort: 8080
-              name: http
           env:
             - name: APP_ENV
               valueFrom:
@@ -54,16 +52,16 @@ spec:
                 secretKeyRef:
                   name: global-secrets
                   key: JWT_SECRET
+            # - name: APP_REDIRECT_URL
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: global-secrets
+            #       key: APP_REDIRECT_URL
             - name: APP_REDIRECT_URL
-              valueFrom:
-                secretKeyRef:
-                  name: global-secrets
-                  key: APP_REDIRECT_URL
+              value: "http://admin-ui.local.com"
+
             - name: GRPC_PORT
               value: '50051'
-            - name: GW_HTTP_PORT
-              value: '8080'
-
             - name: REDIS_ADDR
               value: 'redis://redis:6379/0'
             - name: PG_AUTH_URI
@@ -77,17 +75,16 @@ spec:
               cpu: '100m'
               memory: '128Mi'
           readinessProbe:
-            httpGet:
-              path: /healthz
-              port: 8080
+            tcpSocket:
+              port: 50051
             initialDelaySeconds: 2
             periodSeconds: 5
           livenessProbe:
-            httpGet:
-              path: /healthz
-              port: 8080
+            tcpSocket:
+              port: 50051
             initialDelaySeconds: 15
             periodSeconds: 30
+
 ---
 apiVersion: v1
 kind: Service
@@ -100,6 +97,3 @@ spec:
     - port: 50051
       name: grpc
       targetPort: 50051
-    - port: 8080
-      name: http
-      targetPort: 8080
