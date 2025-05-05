@@ -48,6 +48,11 @@ func loggerInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 		resp, err := handler(ctx, req)
 		duration := time.Since(start)
 
+		// Skip logging for health checks
+		if info.FullMethod == "/grpc.health.v1.Health/Check" {
+			return resp, err
+		}
+
 		logger.Info("gRPC Request",
 			zap.String("method", info.FullMethod),
 			zap.Duration("duration", duration),
