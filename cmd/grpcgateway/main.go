@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/joho/godotenv"
@@ -10,8 +10,10 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/health/grpc_health_v1"
 
 	pbAuth "github.com/tuannm99/podzone/pkg/api/proto/auth"
+	pbOrder "github.com/tuannm99/podzone/pkg/api/proto/order"
 	"github.com/tuannm99/podzone/pkg/globalmiddlewarefx"
 	"github.com/tuannm99/podzone/pkg/grpcgatewayfx"
 	"github.com/tuannm99/podzone/pkg/logfx"
@@ -29,19 +31,19 @@ func main() {
 		fx.Provide(
 			fx.Annotate(
 				func() GatewayRegistrar {
-					return &AuthRegistrar{Addr: toolkit.FallbackEnv("AUTH_GRPC_ADDR", "localhost:50051")}
+					return &AuthRegistrar{AddrVal: toolkit.FallbackEnv("AUTH_GRPC_ADDR", "localhost:50051")}
 				},
 				fx.ResultTags(`group:"gateway-registrars"`),
 			),
 		),
-		// fx.Provide(
-		// 	fx.Annotate(
-		// 		func() GatewayRegistrar {
-		// 			return &AuthRegistrar{Addr: toolkit.FallbackEnv("ORDER_GRPC_ADDR", "localhost:50051")}
-		// 		},
-		// 		fx.ResultTags(`group:"gateway-registrars"`),
-		// 	),
-		// ),
+		fx.Provide(
+			fx.Annotate(
+				func() GatewayRegistrar {
+					return &OrderRegistrar{AddrVal: toolkit.FallbackEnv("ORDER_GRPC_ADDR", "localhost:50052")}
+				},
+				fx.ResultTags(`group:"gateway-registrars"`),
+			),
+		),
 
 		fx.Invoke(RegisterGWHandlers),
 	)
@@ -50,18 +52,32 @@ func main() {
 }
 
 type GatewayRegistrar interface {
-	Register(ctx context.Context, mux *runtime.ServeMux, opts []grpc.DialOption) error
+	Register(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error
+	Addr() string
+	Name() string
 }
 
-var _ GatewayRegistrar = (*AuthRegistrar)(nil)
-
+// auth service
 type AuthRegistrar struct {
-	Addr string
+	AddrVal string
 }
 
-func (r *AuthRegistrar) Register(ctx context.Context, mux *runtime.ServeMux, opts []grpc.DialOption) error {
-	return pbAuth.RegisterAuthServiceHandlerFromEndpoint(ctx, mux, r.Addr, opts)
+func (r *AuthRegistrar) Register(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+	return pbAuth.RegisterAuthServiceHandler(ctx, mux, conn)
 }
+func (r *AuthRegistrar) Addr() string { return r.AddrVal }
+func (r *AuthRegistrar) Name() string { return "auth" }
+
+// order service
+type OrderRegistrar struct {
+	AddrVal string
+}
+
+func (r *OrderRegistrar) Register(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+	return pbOrder.RegisterOrderServiceHandler(ctx, mux, conn)
+}
+func (r *OrderRegistrar) Addr() string { return r.AddrVal }
+func (r *OrderRegistrar) Name() string { return "order" }
 
 type GWParams struct {
 	fx.In
@@ -70,19 +86,53 @@ type GWParams struct {
 	Registrars []GatewayRegistrar `group:"gateway-registrars"`
 }
 
-func RegisterGWHandlers(p GWParams) error {
-	p.Logger.Info("Registering HTTP handlers (gRPC-Gateway)")
-	ctx := context.Background()
+func RegisterGWHandlers(p GWParams) {
+	p.Logger.Info("Launching gRPC Gateway dynamic registration")
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 
-	for _, r := range p.Registrars {
-		if err := r.Register(ctx, p.Mux, opts); err != nil {
-			p.Logger.Error("Failed to register gRPC Gateway",
-				zap.String("service", fmt.Sprintf("%T", r)),
-				zap.Error(err),
-			)
-			return err
-		}
+	for _, registrar := range p.Registrars {
+		go monitorService(p.Logger, registrar, p.Mux, opts)
 	}
-	return nil
+}
+
+func monitorService(logger *zap.Logger, registrar GatewayRegistrar, mux *runtime.ServeMux, opts []grpc.DialOption) {
+	name := registrar.Name()
+	addr := registrar.Addr()
+	var conn *grpc.ClientConn
+	var err error
+
+	// Retry until success
+	for {
+		conn, err = grpc.NewClient(addr, opts...)
+		if err == nil {
+			break
+		}
+		logger.Warn("Failed to dial gRPC for registration", zap.String("service", name), zap.Error(err))
+		time.Sleep(3 * time.Second)
+	}
+
+	if err := registrar.Register(context.Background(), mux, conn); err != nil {
+		logger.Error("Initial handler registration failed", zap.String("service", name), zap.Error(err))
+		return
+	}
+
+	logger.Info("Service registered", zap.String("service", name), zap.String("addr", addr))
+
+	// Background health checks
+	go func() {
+		client := grpc_health_v1.NewHealthClient(conn)
+		for {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			resp, err := client.Check(ctx, &grpc_health_v1.HealthCheckRequest{})
+			cancel()
+
+			if err != nil || resp.GetStatus() != grpc_health_v1.HealthCheckResponse_SERVING {
+				logger.Warn("Health check failed", zap.String("service", name), zap.Error(err))
+			} else {
+				logger.Debug("Health check OK", zap.String("service", name))
+			}
+
+			time.Sleep(10 * time.Second)
+		}
+	}()
 }
