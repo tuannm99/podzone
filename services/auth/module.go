@@ -9,7 +9,6 @@ import (
 	pbAuth "github.com/tuannm99/podzone/pkg/api/proto/auth"
 	"github.com/tuannm99/podzone/services/auth/config"
 	"github.com/tuannm99/podzone/services/auth/controller/grpchandler"
-	"github.com/tuannm99/podzone/services/auth/controller/middleware"
 	"github.com/tuannm99/podzone/services/auth/domain"
 	"github.com/tuannm99/podzone/services/auth/domain/inputport"
 	"github.com/tuannm99/podzone/services/auth/domain/outputport"
@@ -41,16 +40,6 @@ var Module = fx.Options(
 			fx.As(new(inputport.AuthUsecase)),
 		),
 		grpchandler.NewAuthServer,
-	),
-	fx.Provide(
-		fx.Annotate(
-			middleware.NewRedirectResponseModifier,
-			fx.ResultTags(`group:"gateway-options"`),
-		),
-		// fx.Annotate(
-		// 	middleware.AuthMiddleware,
-		// 	fx.ResultTags(`group:"http-middleware"`),
-		// ),
 	),
 	fx.Invoke(
 		RegisterGRPCServer,
