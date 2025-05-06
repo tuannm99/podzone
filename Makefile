@@ -109,7 +109,9 @@ dev:
 
 k8s-dev:
 	@echo "📦 Building and deploying: $(SVC)"
-	docker build -t localhost:5000/podzone-$(SVC):dev -f services/$(SVC)/Dockerfile .
+	docker build -t localhost:5000/podzone-$(SVC):dev \
+		--build-arg SERVICE_NAME=$(SVC) \
+		-f Dockerfile .
 	docker push localhost:5000/podzone-$(SVC):dev
 	kubectl delete -f deployments/kubernetes/dev/services/$(SVC).yml --ignore-not-found
 	kubectl apply -f deployments/kubernetes/dev/services/$(SVC).yml

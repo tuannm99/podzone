@@ -24,18 +24,19 @@ func NewRedirectResponseModifier(logger *zap.Logger) runtime.ServeMuxOption {
 				return nil
 			}
 
-			// if callbackResp, ok := resp.(*pb.GoogleCallbackResponse); ok && callbackResp.RedirectUrl != "" {
-			// 	logger.Info("Redirecting to app after OAuth callback", zap.String("url", callbackResp.RedirectUrl))
-			// 	w.Header().Set("Location", callbackResp.RedirectUrl)
-			// 	w.WriteHeader(http.StatusTemporaryRedirect)
-			// 	return nil
-			// }
+			if callbackResp, ok := resp.(*pbAuth.GoogleCallbackResponse); ok && callbackResp.RedirectUrl != "" {
+				logger.Info("Redirecting to app after OAuth callback", zap.String("url", callbackResp.RedirectUrl))
+				w.Header().Set("Location", callbackResp.RedirectUrl)
+				w.WriteHeader(http.StatusTemporaryRedirect)
+				return nil
+			}
 
 			return nil
 		},
 	)
 }
 
+// deprecated
 func AuthMiddleware(logger *zap.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
