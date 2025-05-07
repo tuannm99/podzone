@@ -98,3 +98,9 @@ dist
 
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
+
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

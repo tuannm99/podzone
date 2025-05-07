@@ -1,5 +1,0 @@
-[build]
-dist = "dist"
-
-[serve]
-port = 3000

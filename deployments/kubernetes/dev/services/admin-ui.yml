@@ -1,35 +1,38 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: yew-admin-ui
+  name: admin-ui
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: yew-admin-ui
+      app: admin-ui
   template:
     metadata:
       labels:
-        app: yew-admin-ui
+        app: admin-ui
     spec:
       containers:
-        - name: yew-admin-ui
-          image: localhost:5000/yew-admin-ui:latest
+        - name: admin-ui
+          image: localhost:5000/admin-ui:dev
           ports:
             - containerPort: 80
           resources:
             limits:
               memory: '256Mi'
               cpu: '250m'
+          env:
+            - name: VITE_ADMIN_API_URL 
+              value: "http://gateway.local.com/api"
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: yew-admin-ui
+  name: admin-ui
 spec:
   selector:
-    app: yew-admin-ui
+    app: admin-ui
   ports:
     - protocol: TCP
       port: 80
@@ -40,7 +43,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: yew-admin-ui
+  name: admin-ui
   namespace: default
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
@@ -54,6 +57,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: yew-admin-ui
+                name: admin-ui
                 port:
                   number: 80
