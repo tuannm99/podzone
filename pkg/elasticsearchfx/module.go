@@ -9,14 +9,14 @@ import (
 	"go.uber.org/zap"
 )
 
-func ModuleFor(name string, url string) fx.Option {
+func ModuleFor(name string, url []string) fx.Option {
 	urlName := fmt.Sprintf("%s-es-url", name)
 	clientName := fmt.Sprintf("es-%s", name)
 
 	return fx.Options(
 		fx.Provide(
 			fx.Annotate(
-				func() string { return url },
+				func() []string { return url },
 				fx.ResultTags(fmt.Sprintf(`name:"%s"`, urlName)),
 			),
 			fx.Annotate(

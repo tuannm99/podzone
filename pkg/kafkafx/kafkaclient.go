@@ -1,4 +1,4 @@
-package messaging
+package kafkafx
 
 import (
 	"context"
@@ -11,41 +11,6 @@ import (
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
 )
-
-var (
-	ErrPublishTimeout   = errors.New("publish timeout")
-	ErrSubscribeTimeout = errors.New("subscribe timeout")
-	ErrConnectionClosed = errors.New("connection closed")
-	ErrInvalidMessage   = errors.New("invalid message")
-	ErrTopicNotFound    = errors.New("topic not found")
-	ErrHandlerNotFound  = errors.New("handler not found")
-)
-
-type Message struct {
-	ID        string            `json:"id"`
-	Type      string            `json:"type"`
-	Data      map[string]any    `json:"data"`
-	Metadata  map[string]string `json:"metadata"`
-	CreatedAt time.Time         `json:"created_at"`
-}
-
-type Publisher interface {
-	Publish(ctx context.Context, topic string, message Message) error
-	Close() error
-}
-
-type Subscriber interface {
-	Subscribe(ctx context.Context, topic string, handler MessageHandler) error
-	Unsubscribe(topic string) error
-	Close() error
-}
-
-type MessageHandler func(ctx context.Context, message Message) error
-
-type Client interface {
-	Publisher
-	Subscriber
-}
 
 type Config struct {
 	Brokers          []string      `mapstructure:"brokers"`
@@ -314,109 +279,4 @@ func (c *KafkaClient) consume(reader *kafka.Reader, topic string, handler Messag
 
 func generateMessageID() string {
 	return fmt.Sprintf("msg-%d", time.Now().UnixNano())
-}
-
-const (
-	EventTypeOrderCreated     = "order.created"
-	EventTypeOrderUpdated     = "order.updated"
-	EventTypeOrderCancelled   = "order.cancelled"
-	EventTypeOrderCompleted   = "order.completed"
-	EventTypePaymentProcessed = "payment.processed"
-	EventTypePaymentFailed    = "payment.failed"
-	EventTypeProductCreated   = "product.created"
-	EventTypeProductUpdated   = "product.updated"
-	EventTypeProductDeleted   = "product.deleted"
-	EventTypeUserRegistered   = "user.registered"
-	EventTypeUserUpdated      = "user.updated"
-)
-
-const (
-	TopicOrders    = "orders"
-	TopicPayments  = "payments"
-	TopicProducts  = "products"
-	TopicUsers     = "users"
-	TopicInventory = "inventory"
-)
-
-type LocalClient struct {
-	handlers map[string][]MessageHandler
-	mu       sync.RWMutex
-	logger   *zap.Logger
-}
-
-func NewLocalClient(logger *zap.Logger) *LocalClient {
-	return &LocalClient{
-		handlers: make(map[string][]MessageHandler),
-		logger:   logger,
-	}
-}
-
-func (c *LocalClient) Publish(ctx context.Context, topic string, message Message) error {
-	if message.ID == "" {
-		message.ID = generateMessageID()
-	}
-	if message.CreatedAt.IsZero() {
-		message.CreatedAt = time.Now()
-	}
-
-	c.mu.RLock()
-	handlers, ok := c.handlers[topic]
-	c.mu.RUnlock()
-
-	if !ok || len(handlers) == 0 {
-		c.logger.Warn("No handlers for topic", zap.String("topic", topic))
-		return nil
-	}
-
-	for _, handler := range handlers {
-		if err := handler(ctx, message); err != nil {
-			c.logger.Error("Failed to handle message",
-				zap.String("topic", topic),
-				zap.String("message_id", message.ID),
-				zap.Error(err))
-		}
-	}
-
-	c.logger.Debug("Message published locally",
-		zap.String("topic", topic),
-		zap.String("message_id", message.ID),
-		zap.String("message_type", message.Type))
-
-	return nil
-}
-
-func (c *LocalClient) Subscribe(ctx context.Context, topic string, handler MessageHandler) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	if _, ok := c.handlers[topic]; !ok {
-		c.handlers[topic] = []MessageHandler{}
-	}
-	c.handlers[topic] = append(c.handlers[topic], handler)
-
-	c.logger.Info("Subscribed to topic locally", zap.String("topic", topic))
-
-	return nil
-}
-
-func (c *LocalClient) Unsubscribe(topic string) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	delete(c.handlers, topic)
-
-	c.logger.Info("Unsubscribed from topic locally", zap.String("topic", topic))
-
-	return nil
-}
-
-func (c *LocalClient) Close() error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	c.handlers = make(map[string][]MessageHandler)
-
-	c.logger.Info("Local messaging client closed")
-
-	return nil
 }
