@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/fx"
+	"go.uber.org/zap"
 )
 
 var Module = fx.Options(
@@ -23,8 +24,9 @@ type (
 type Params struct {
 	fx.In
 	Lc              fx.Lifecycle
-	Middlewares     []Middleware     `group:"http-middleware"`
-	RegistrarRoutes []RouteRegistrar `group:"http-routes"`
+	Logger          *zap.Logger
+	Middlewares     []Middleware     `group:"gin-middleware"`
+	RegistrarRoutes []RouteRegistrar `group:"gin-routes"`
 }
 
 func NewHTTPServer(p Params) *gin.Engine {

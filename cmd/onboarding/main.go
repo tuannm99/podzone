@@ -17,10 +17,10 @@ func main() {
 
 	app := fx.New(
 		logfx.Module,
-		globalmiddlewarefx.CommonHttpModule,
-		httpfx.Module,
 		mongofx.ModuleFor("config", toolkit.FallbackEnv("MONGO_CONFIG_URI", "mongodb://localhost:27017/config")),
 
+		globalmiddlewarefx.CommonGinMiddlewareModule,
+		httpfx.Module,
 		onboarding.Module,
 	)
 

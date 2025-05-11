@@ -17,9 +17,9 @@ import (
 	"github.com/tuannm99/podzone/services/auth/domain/outputport"
 )
 
-var _ inputport.AuthUsecase = (*authUCImpl)(nil)
+var _ inputport.AuthUsecase = (*authInteractorImpl)(nil)
 
-type authUCImpl struct {
+type authInteractorImpl struct {
 	jwtSecret      []byte
 	appRedirectURL string
 
@@ -36,8 +36,8 @@ func NewAuthUsecase(
 	oauthExternal outputport.GoogleOauthExternal,
 	oauthStateRepotory outputport.OauthStateRepository,
 	cfg config.AuthConfig,
-) *authUCImpl {
-	return &authUCImpl{
+) *authInteractorImpl {
+	return &authInteractorImpl{
 		jwtSecret:      cfg.JWTSecret,
 		appRedirectURL: cfg.AppRedirectURL,
 		userUC:         userUC,
@@ -47,7 +47,7 @@ func NewAuthUsecase(
 	}
 }
 
-func (u *authUCImpl) GenerateOAuthURL(ctx context.Context) (string, error) {
+func (u *authInteractorImpl) GenerateOAuthURL(ctx context.Context) (string, error) {
 	stateBytes := make([]byte, 32)
 	if _, err := rand.Read(stateBytes); err != nil {
 		return "", fmt.Errorf("error generating state: %w", err)
@@ -63,7 +63,10 @@ func (u *authUCImpl) GenerateOAuthURL(ctx context.Context) (string, error) {
 	return url, nil
 }
 
-func (u *authUCImpl) HandleOAuthCallback(ctx context.Context, code, state string) (*dto.GoogleCallbackResp, error) {
+func (u *authInteractorImpl) HandleOAuthCallback(
+	ctx context.Context,
+	code, state string,
+) (*dto.GoogleCallbackResp, error) {
 	key := "oauth:google:" + state
 	if _, err := u.oauthStateRepository.Get(key); err != nil {
 		return nil, err
@@ -101,11 +104,11 @@ func (u *authUCImpl) HandleOAuthCallback(ctx context.Context, code, state string
 	}, nil
 }
 
-func (u *authUCImpl) Logout(ctx context.Context) (string, error) {
+func (u *authInteractorImpl) Logout(ctx context.Context) (string, error) {
 	return "/", nil
 }
 
-func (u *authUCImpl) createJWT(userInfo *outputport.GoogleUserInfo) (string, error) {
+func (u *authInteractorImpl) createJWT(userInfo *outputport.GoogleUserInfo) (string, error) {
 	claims := entity.JWTClaims{
 		Email: userInfo.Email,
 		Name:  userInfo.Name,

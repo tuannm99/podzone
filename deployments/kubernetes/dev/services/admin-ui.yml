@@ -21,9 +21,6 @@ spec:
             limits:
               memory: '256Mi'
               cpu: '250m'
-          env:
-            - name: VITE_ADMIN_API_URL 
-              value: "http://gateway.local.com/api"
 
 ---
 apiVersion: v1
