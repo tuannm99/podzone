@@ -1,0 +1,15 @@
+schema:
+  - services/storeportal/graph/schema.graphqls
+
+exec:
+  filename: services/storeportal/graph/generated/generated.go
+  package: generated
+
+model:
+  filename: services/storeportal/graph/model/models_gen.go
+  package: model
+
+resolver:
+  layout: follow-schema
+  dir: services/storeportal/graph
+  package: graph
