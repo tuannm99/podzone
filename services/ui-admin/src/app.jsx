@@ -8,7 +8,6 @@ import HomePage from './pages/private/HomePage';
 import AppLayout from './layouts/layout';
 
 const PrivateRoute = ({ children }) => {
-    // return true;
     const isAuthenticated = false;
     return isAuthenticated ? children : <Navigate to="/auth/login" />;
 };

@@ -16,9 +16,9 @@ const Header = () => {
                 boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
             }}
         >
-            <div 
-                style={{ 
-                    fontSize: '24px', 
+            <div
+                style={{
+                    fontSize: '24px',
                     fontWeight: 'bold',
                     color: 'white',
                     textShadow: '1px 1px 2px rgba(0,0,0,0.2)',
@@ -27,11 +27,11 @@ const Header = () => {
                 Admin App
             </div>
             <div>
-                <Button 
-                    type="primary" 
+                <Button
+                    type="primary"
                     ghost
-                    size="middle" 
-                    style={{ 
+                    size="middle"
+                    style={{
                         marginRight: '12px',
                         borderColor: 'white',
                         color: 'white',
@@ -40,7 +40,7 @@ const Header = () => {
                     Logout
                 </Button>
                 <Link to="/auth/login">
-                    <Button 
+                    <Button
                         type="primary"
                         size="middle"
                         style={{
