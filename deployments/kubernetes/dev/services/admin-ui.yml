@@ -43,9 +43,15 @@ metadata:
   name: admin-ui
   namespace: default
   annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+    cert-manager.io/cluster-issuer: 'letsencrypt-dev'
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - admin-ui.local.com 
+      secretName: gateway-tls
   rules:
     - host: admin-ui.local.com
       http:
