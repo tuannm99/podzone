@@ -13,6 +13,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 
+	"github.com/tuannm99/podzone/pkg/toolkit"
 	"github.com/tuannm99/podzone/services/storeportal/graph"
 	"github.com/tuannm99/podzone/services/storeportal/graph/generated"
 )
@@ -39,7 +40,8 @@ func graphqlHandler() gin.HandlerFunc {
 }
 
 func playgroundHandler() gin.HandlerFunc {
-	h := playground.Handler("GraphQL", "/query")
+    handlerURI := toolkit.FallbackEnv("GRAPHQL_QUERY_URI", "/query")
+	h := playground.Handler("GraphQL", handlerURI)
 
 	return func(c *gin.Context) {
 		h.ServeHTTP(c.Writer, c.Request)
