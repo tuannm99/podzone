@@ -274,7 +274,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="QEn4d86bBn1aJsh2iMI1" name="C2">
-    <mxGraphModel dx="1748" dy="827" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1444" dy="683" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -329,7 +329,7 @@
             <mxGeometry x="30" y="1400" width="200" height="180" as="geometry" />
           </mxCell>
         </object>
-        <mxCell id="Tcat1bnbYB2XjJSp8UKi-1" value="HTTP" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="DwkSCyyO_ODJib0AyjEE-1" target="F5IwEijM2vkhaddbr5y8-15" edge="1">
+        <mxCell id="Tcat1bnbYB2XjJSp8UKi-1" value="HTTP:&amp;nbsp;api/onboarding/v1/*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="DwkSCyyO_ODJib0AyjEE-1" target="F5IwEijM2vkhaddbr5y8-15" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="wCaqTvvGZbEK-aogGEsd-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#FF9999;" edge="1" parent="1" source="DwkSCyyO_ODJib0AyjEE-1" target="Tcat1bnbYB2XjJSp8UKi-14">
@@ -368,7 +368,7 @@
         <mxCell id="F5IwEijM2vkhaddbr5y8-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="DwkSCyyO_ODJib0AyjEE-1" target="F5IwEijM2vkhaddbr5y8-3" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="F5IwEijM2vkhaddbr5y8-5" value="HTTP" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="F5IwEijM2vkhaddbr5y8-4" vertex="1" connectable="0">
+        <mxCell id="F5IwEijM2vkhaddbr5y8-5" value="HTTP:&amp;nbsp;api/${svc}/v1/*" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="F5IwEijM2vkhaddbr5y8-4" vertex="1" connectable="0">
           <mxGeometry x="-0.0329" y="-6" relative="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
