@@ -113,6 +113,7 @@ func (u *authInteractorImpl) createJWT(userInfo *outputport.GoogleUserInfo) (str
 		Email: userInfo.Email,
 		Name:  userInfo.Name,
 		Sub:   userInfo.Sub,
+		Key:   "jwt-key",
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
 			IssuedAt:  time.Now().Unix(),

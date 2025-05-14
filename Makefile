@@ -13,7 +13,7 @@ COLOR_YELLOW = \033[33m
 SVC ?= order
 .PHONY: svc help
 
-all: proto swagger build
+all: proto swagger
 
 # this run only first when created project, or run when a updated happens
 init_proto:
@@ -73,16 +73,6 @@ swagger:
 api: proto swagger
 	@echo "$(COLOR_GREEN)API generation complete.$(COLOR_RESET)"
 
-# Build all services
-build:
-	@echo "$(COLOR_GREEN)Building all services...$(COLOR_RESET)"
-	@for service in $(SERVICES); do \
-		if [ -d services/$$service ]; then \
-			echo "Building $$service"; \
-			cd services/$$service && $(GO) build -o bin/$$service cmd/*.go && cd ../..; \
-		fi; \
-	done
-
 # Run tests for all packages
 test:
 	@echo "$(COLOR_GREEN)Running tests...$(COLOR_RESET)"
@@ -92,16 +82,6 @@ test:
 lint:
 	@echo "$(COLOR_GREEN)Running linter...$(COLOR_RESET)"
 	golangci-lint run ./...
-
-# Start development environment
-up:
-	@echo "$(COLOR_GREEN)Starting development environment...$(COLOR_RESET)"
-	$(DOCKER_COMPOSE) up -d
-
-# Stop development environment
-down:
-	@echo "$(COLOR_GREEN)Stopping development environment...$(COLOR_RESET)"
-	$(DOCKER_COMPOSE) down
 
 dev:
 	@echo "🔁 Starting service: $(SVC)"
@@ -119,17 +99,17 @@ k8s-dev:
 k8s-portfw:
 	kubectl port-forward svc/redis 6379:6379 -n default &
 	kubectl port-forward svc/postgres 5432:5432 -n default &
-	kubectl port-forward svc/mongodb-internal 27017:27017 -n default
+	kubectl port-forward svc/mongodb-internal 27017:27017 -n default &
+	kubectl port-forward svc/kafka 9092:9092 -n default &
+	kubectl port-forward svc/elasticsearch 9200:9200 -n default &
+	kubectl port-forward svc/kibana 5601:5601 -n default
 
 # Help 
 help:
 	@echo "$(COLOR_YELLOW)Available commands:$(COLOR_RESET)"
 	@echo "  make api                    - Generate protobuf code, swagger api"
-	@echo "  make build                  - Build all services"
 	@echo "  make test                   - Run tests"
 	@echo "  make lint                   - Run linter"
-	@echo "  make up                     - Start development environment"
-	@echo "  make down                   - Stop development environment"
 	@echo "  make k8s-portfw             - Portfowrding for dev"
 	@echo "  make dev SVC=${service}     - Run service"
 	@echo "  make k8s-dev SVC=${service} - Deploy service to k8s dev"
