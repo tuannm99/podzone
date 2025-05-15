@@ -40,8 +40,8 @@ func main() {
 		fx.Provide(
 			fx.Annotate(
 				func() grpcgateway.GatewayRegistrar {
-					return &grpcgateway.OrderRegistrar{
-						AddrVal: toolkit.FallbackEnv("ORDER_GRPC_ADDR", "localhost:50052"),
+					return &grpcgateway.CatalogRegistrar{
+						AddrVal: toolkit.FallbackEnv("CATALOG_GRPC_ADDR", "localhost:50052"),
 					}
 				},
 				fx.ResultTags(`group:"gateway-registrars"`),

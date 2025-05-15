@@ -99,21 +99,6 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: mongodb-headless
-  labels:
-    app: mongodb
-spec:
-  clusterIP: None
-  selector:
-    app: mongodb
-  ports:
-    - port: 27017
-      targetPort: 27017
-      name: mongodb
----
-apiVersion: v1
-kind: Service
-metadata:
   name: mongodb-internal
   labels:
     app: mongodb
@@ -124,19 +109,3 @@ spec:
     - port: 27017
       targetPort: 27017
   type: ClusterIP
-# ---
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: mongodb
-#   labels:
-#     app: mongodb
-#     environment: development
-# spec:
-#   selector:
-#     app: mongodb
-#   ports:
-#     - port: 27017
-#       targetPort: 27017
-#       name: mongodb
-#   type: LoadBalancer
