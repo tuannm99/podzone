@@ -18,10 +18,14 @@ type userUCImpl struct {
 	userRepo outputport.UserRepository
 }
 
+func (uc *userUCImpl) CreateNew(user entity.User) (*entity.User, error) {
+	return uc.userRepo.Create(user)
+}
+
 func (uc *userUCImpl) CreateNewAfterAuthCallback(user entity.User) (*entity.User, error) {
 	return uc.userRepo.CreateByEmailIfNotExisted(user.Email)
 }
 
-func (u *userUCImpl) UpdateOne(id string, user entity.User) error {
-	panic("unimplemented")
+func (uc *userUCImpl) UpdateOne(id string, user entity.User) error {
+	return uc.userRepo.UpdateById(id, user)
 }

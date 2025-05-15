@@ -33,7 +33,7 @@ type UserRepositoryImpl struct {
 
 // Create implements outputport.UserRepository.
 func (u *UserRepositoryImpl) Create(entity entity.User) (*entity.User, error) {
-	if err := u.db.Create(entity).Error; err != nil {
+	if err := u.db.Create(&entity).Error; err != nil {
 		return nil, err
 	}
 	return &entity, nil
@@ -49,10 +49,29 @@ func (u *UserRepositoryImpl) CreateByEmailIfNotExisted(email string) (*entity.Us
 			Email:       email,
 			InitialFrom: "google",
 		}
-		return u.Create(*user.ToEntity())
+		createdUser, err := u.Create(*user.ToEntity())
+		if err != nil {
+			return nil, err
+		}
+		return createdUser, nil
 	} else if result.Error != nil {
 		return nil, result.Error
 	}
 
 	return user.ToEntity(), nil
+}
+
+// Update implements outputport.UserRepository.
+func (u *UserRepositoryImpl) Update(entity entity.User) error {
+	panic("unimplemented")
+}
+
+// GetByID implements outputport.UserRepository.
+func (u *UserRepositoryImpl) GetByID(id string) (*entity.User, error) {
+	panic("unimplemented")
+}
+
+// UpdateById implements outputport.UserRepository.
+func (u *UserRepositoryImpl) UpdateById(id string, entity entity.User) error {
+	panic("unimplemented")
 }

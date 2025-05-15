@@ -12,6 +12,10 @@ type Update[T any] interface {
 	Update(entity T) error
 }
 
+type UpdateById[T any] interface {
+	UpdateById(id string, entity T) error
+}
+
 type DeleteByID interface {
 	DeleteByID(id string) error
 }
@@ -33,6 +37,7 @@ type CRUD[T any] interface {
 	Create[T]
 	GetByID[T]
 	Update[T]
+	UpdateById[T]
 	DeleteByID
 }
 

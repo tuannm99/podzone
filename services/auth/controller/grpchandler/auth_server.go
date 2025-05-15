@@ -53,3 +53,19 @@ func (s *AuthServer) Logout(ctx context.Context, req *pbAuth.LogoutRequest) (*pb
 		RedirectUrl: redirectUrl,
 	}, nil
 }
+
+func (s *AuthServer) Login(ctx context.Context, req *pbAuth.LoginRequest) (*pbAuth.LoginResponse, error) {
+	// s.usecase.Login(ctx)
+
+	return &pbAuth.LoginResponse{
+		JwtToken: "",
+	}, nil
+}
+
+func (s *AuthServer) Register(ctx context.Context, req *pbAuth.RegisterRequest) (*pbAuth.RegisterResponse, error) {
+	// s.usecase.Register(ctx)
+
+	return &pbAuth.RegisterResponse{
+		JwtToken: "",
+	}, nil
+}

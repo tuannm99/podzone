@@ -19,6 +19,7 @@ import (
 var Module = fx.Options(
 	fx.Provide(
 		config.NewAuthConfig,
+
 		fx.Annotate(
 			repository.NewGoogleOauthImpl,
 			fx.As(new(outputport.GoogleOauthExternal)),
@@ -31,6 +32,11 @@ var Module = fx.Options(
 			repository.NewUserRepositoryImpl,
 			fx.As(new(outputport.UserRepository)),
 		),
+
+		fx.Annotate(
+			domain.NewTokenUsecase,
+			fx.As(new(inputport.TokenUsecase)),
+		),
 		fx.Annotate(
 			domain.NewUserUsecase,
 			fx.As(new(inputport.UserUsecase)),
@@ -39,6 +45,7 @@ var Module = fx.Options(
 			domain.NewAuthUsecase,
 			fx.As(new(inputport.AuthUsecase)),
 		),
+
 		grpchandler.NewAuthServer,
 	),
 	fx.Invoke(

@@ -1,9 +1,12 @@
 package entity
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
 type User struct {
-	ID         string
+	ID         uint
 	Username   string
 	Email      string
 	FullName   string
@@ -16,3 +19,8 @@ type User struct {
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 }
+
+var (
+	ErrUsernameExisted = errors.New("username existed")
+	ErrEmailExisted    = errors.New("email existed")
+)

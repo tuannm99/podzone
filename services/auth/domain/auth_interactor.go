@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang-jwt/jwt"
-
 	"github.com/tuannm99/podzone/pkg/toolkit"
 	"github.com/tuannm99/podzone/services/auth/config"
 	"github.com/tuannm99/podzone/services/auth/domain/dto"
@@ -19,32 +17,40 @@ import (
 
 var _ inputport.AuthUsecase = (*authInteractorImpl)(nil)
 
-type authInteractorImpl struct {
-	jwtSecret      []byte
-	appRedirectURL string
-
-	userUC inputport.UserUsecase
-	// tokenUC inputport.TokenUsecase
-
-	oauthExternal        outputport.GoogleOauthExternal
-	oauthStateRepository outputport.OauthStateRepository
-}
-
 func NewAuthUsecase(
 	userUC inputport.UserUsecase,
-	// tokenUC inputport.TokenUsecase,
+	tokenUC inputport.TokenUsecase,
 	oauthExternal outputport.GoogleOauthExternal,
 	oauthStateRepotory outputport.OauthStateRepository,
 	cfg config.AuthConfig,
 ) *authInteractorImpl {
 	return &authInteractorImpl{
-		jwtSecret:      cfg.JWTSecret,
-		appRedirectURL: cfg.AppRedirectURL,
-		userUC:         userUC,
-		// tokenUC:              tokenUC,
+		jwtSecret:            cfg.JWTSecret,
+		appRedirectURL:       cfg.AppRedirectURL,
+		userUC:               userUC,
+		tokenUC:              tokenUC,
 		oauthExternal:        oauthExternal,
 		oauthStateRepository: oauthStateRepotory,
 	}
+}
+
+type authInteractorImpl struct {
+	jwtSecret      []byte
+	appRedirectURL string
+
+	userUC  inputport.UserUsecase
+	tokenUC inputport.TokenUsecase
+
+	oauthExternal        outputport.GoogleOauthExternal
+	oauthStateRepository outputport.OauthStateRepository
+}
+
+func (u *authInteractorImpl) Login(ctx context.Context) {
+	panic("unimplemented")
+}
+
+func (u *authInteractorImpl) Register(ctx context.Context) {
+	panic("unimplemented")
 }
 
 func (u *authInteractorImpl) GenerateOAuthURL(ctx context.Context) (string, error) {
@@ -84,11 +90,12 @@ func (u *authInteractorImpl) HandleOAuthCallback(
 	}
 
 	userEntityMapped := *toolkit.MapStruct[outputport.GoogleUserInfo, entity.User](*userInfo)
-	if _, err := u.userUC.CreateNewAfterAuthCallback(userEntityMapped); err != nil {
+	usr, err := u.userUC.CreateNewAfterAuthCallback(userEntityMapped)
+	if err != nil {
 		return nil, fmt.Errorf("failed to create new user: %w", err)
 	}
 
-	jwtToken, err := u.createJWT(userInfo)
+	jwtToken, err := u.tokenUC.CreateJwtToken(*usr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create JWT: %w", err)
 	}
@@ -106,20 +113,4 @@ func (u *authInteractorImpl) HandleOAuthCallback(
 
 func (u *authInteractorImpl) Logout(ctx context.Context) (string, error) {
 	return "/", nil
-}
-
-func (u *authInteractorImpl) createJWT(userInfo *outputport.GoogleUserInfo) (string, error) {
-	claims := entity.JWTClaims{
-		Email: userInfo.Email,
-		Name:  userInfo.Name,
-		Sub:   userInfo.Sub,
-		Key:   "jwt-key",
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
-			IssuedAt:  time.Now().Unix(),
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(u.jwtSecret)
 }
