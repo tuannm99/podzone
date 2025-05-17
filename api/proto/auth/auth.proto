@@ -53,7 +53,7 @@ message LoginResponse {
 message RegisterRequest {
   string username = 1;
   string password = 2;
-  string name = 3;
+  string email = 3;
 }
 
 message RegisterResponse {
@@ -77,7 +77,7 @@ message GoogleCallbackRequest {
 message GoogleCallbackResponse {
   string jwt_token = 1;
   string redirect_url = 2;
-  UserInfo user_info = 3;
+  GoogleUserInfo user_info = 3;
 }
 
 message LogoutRequest {
@@ -89,7 +89,7 @@ message LogoutResponse {
   string redirect_url = 2;
 }
 
-message UserInfo {
+message GoogleUserInfo {
   string id = 1;
   string email = 2;
   string name = 3;
@@ -97,4 +97,19 @@ message UserInfo {
   string family_name = 5;
   string picture = 6;
   bool email_verified = 7;
+}
+
+message UserInfo {
+  string id = 1;
+  string email = 2;
+  string name = 3;
+  string full_name = 4;
+  string middle_name = 5;
+  string first_name = 6;
+  string last_name = 7;
+  string address = 8;
+  string initial_from = 9;
+  int32 age = 10;
+  string dob = 11;
+  bool email_verified = 12;
 }

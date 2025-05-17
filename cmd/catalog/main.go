@@ -16,6 +16,10 @@ func main() {
 	_ = godotenv.Load()
 
 	app := fx.New(
+		fx.Provide(func() grpcfx.GrpcPortFx {
+			return toolkit.FallbackEnv("GRPC_PORT", "50052")
+		}),
+
 		logfx.Module,
 
 		redisfx.ModuleFor("catalog", toolkit.FallbackEnv("CATALOG_REDIS_ADDR", "redis://localhost:6379/1")),

@@ -18,6 +18,10 @@ func main() {
 	_ = godotenv.Load()
 
 	app := fx.New(
+		fx.Provide(func() grpcfx.GrpcPortFx {
+			return toolkit.FallbackEnv("GRPC_PORT", "50051")
+		}),
+
 		logfx.Module,
 		postgresfx.ModuleFor(
 			"auth",

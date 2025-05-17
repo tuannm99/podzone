@@ -16,7 +16,7 @@
     "application/json"
   ],
   "paths": {
-    "/api/v1/admin/categories": {
+    "/catalog/v1/admin/categories": {
       "post": {
         "summary": "CreateCategory creates a new category (admin only)",
         "operationId": "CatalogService_CreateCategory",
@@ -49,7 +49,7 @@
         ]
       }
     },
-    "/api/v1/admin/categories/{id}": {
+    "/catalog/v1/admin/categories/{id}": {
       "delete": {
         "summary": "DeleteCategory removes a category (admin only)",
         "operationId": "CatalogService_DeleteCategory",
@@ -118,7 +118,7 @@
         ]
       }
     },
-    "/api/v1/admin/products": {
+    "/catalog/v1/admin/products": {
       "post": {
         "summary": "CreateProduct creates a new product (admin only)",
         "operationId": "CatalogService_CreateProduct",
@@ -151,7 +151,7 @@
         ]
       }
     },
-    "/api/v1/admin/products/{id}": {
+    "/catalog/v1/admin/products/{id}": {
       "delete": {
         "summary": "DeleteProduct removes a product (admin only)",
         "operationId": "CatalogService_DeleteProduct",
@@ -220,7 +220,7 @@
         ]
       }
     },
-    "/api/v1/admin/products/{id}/inventory": {
+    "/catalog/v1/admin/products/{id}/inventory": {
       "patch": {
         "summary": "UpdateInventory updates a product's inventory (admin/staff only)",
         "operationId": "CatalogService_UpdateInventory",
@@ -259,7 +259,7 @@
         ]
       }
     },
-    "/api/v1/categories": {
+    "/catalog/v1/categories": {
       "get": {
         "summary": "ListCategories retrieves all categories",
         "operationId": "CatalogService_ListCategories",
@@ -296,7 +296,7 @@
         ]
       }
     },
-    "/api/v1/categories/{id}": {
+    "/catalog/v1/categories/{id}": {
       "get": {
         "summary": "GetCategory retrieves a category by ID",
         "operationId": "CatalogService_GetCategory",
@@ -327,7 +327,7 @@
         ]
       }
     },
-    "/api/v1/products": {
+    "/catalog/v1/products": {
       "get": {
         "summary": "ListProducts retrieves a list of products with optional filtering",
         "operationId": "CatalogService_ListProducts",
@@ -414,7 +414,7 @@
         ]
       }
     },
-    "/api/v1/products/search": {
+    "/catalog/v1/products/search": {
       "get": {
         "summary": "SearchProducts searches for products",
         "operationId": "CatalogService_SearchProducts",
@@ -489,7 +489,7 @@
         ]
       }
     },
-    "/api/v1/products/{id}": {
+    "/catalog/v1/products/{id}": {
       "get": {
         "summary": "GetProduct retrieves a product by ID",
         "operationId": "CatalogService_GetProduct",

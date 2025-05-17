@@ -2531,19 +2531,19 @@ const file_order_order_proto_rawDesc = "" +
 	"\x18PAYMENT_STATUS_COMPLETED\x10\x02\x12\x19\n" +
 	"\x15PAYMENT_STATUS_FAILED\x10\x03\x12\x1b\n" +
 	"\x17PAYMENT_STATUS_REFUNDED\x10\x04\x12%\n" +
-	"!PAYMENT_STATUS_PARTIALLY_REFUNDED\x10\x052\x96\b\n" +
-	"\fOrderService\x12Q\n" +
-	"\vCreateOrder\x12\x19.order.CreateOrderRequest\x1a\f.order.Order\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/api/v1/orders\x12M\n" +
-	"\bGetOrder\x12\x16.order.GetOrderRequest\x1a\f.order.Order\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/api/v1/orders/{id}\x12Y\n" +
+	"!PAYMENT_STATUS_PARTIALLY_REFUNDED\x10\x052\xaa\b\n" +
+	"\fOrderService\x12S\n" +
+	"\vCreateOrder\x12\x19.order.CreateOrderRequest\x1a\f.order.Order\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/order/v1/orders\x12O\n" +
+	"\bGetOrder\x12\x16.order.GetOrderRequest\x1a\f.order.Order\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/order/v1/orders/{id}\x12[\n" +
 	"\n" +
-	"ListOrders\x12\x18.order.ListOrdersRequest\x1a\x19.order.ListOrdersResponse\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/api/v1/orders\x12]\n" +
-	"\vCancelOrder\x12\x19.order.CancelOrderRequest\x1a\f.order.Order\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/api/v1/orders/{id}/cancel\x12o\n" +
-	"\x11UpdateOrderStatus\x12\x1f.order.UpdateOrderStatusRequest\x1a\f.order.Order\"+\x82\xd3\xe4\x93\x02%:\x01*2 /api/v1/admin/orders/{id}/status\x12^\n" +
-	"\fAddOrderNote\x12\x1a.order.AddOrderNoteRequest\x1a\f.order.Order\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/v1/orders/{id}/notes\x12e\n" +
-	"\rListAllOrders\x12\x1b.order.ListAllOrdersRequest\x1a\x19.order.ListOrdersResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/api/v1/admin/orders\x12\x89\x01\n" +
-	"\x13GetOrdersByCustomer\x12!.order.GetOrdersByCustomerRequest\x1a\x19.order.ListOrdersResponse\"4\x82\xd3\xe4\x93\x02.\x12,/api/v1/admin/customers/{customer_id}/orders\x12m\n" +
-	"\fCreateRefund\x12\x1a.order.CreateRefundRequest\x1a\r.order.Refund\"2\x82\xd3\xe4\x93\x02,:\x01*\"'/api/v1/admin/orders/{order_id}/refunds\x12w\n" +
-	"\x0fGetOrderRefunds\x12\x1d.order.GetOrderRefundsRequest\x1a\x1a.order.ListRefundsResponse\")\x82\xd3\xe4\x93\x02#\x12!/api/v1/orders/{order_id}/refundsB1Z/github.com/tuannm99/podzone/pkg/api/proto/orderb\x06proto3"
+	"ListOrders\x12\x18.order.ListOrdersRequest\x1a\x19.order.ListOrdersResponse\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/order/v1/orders\x12_\n" +
+	"\vCancelOrder\x12\x19.order.CancelOrderRequest\x1a\f.order.Order\"'\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/order/v1/orders/{id}/cancel\x12q\n" +
+	"\x11UpdateOrderStatus\x12\x1f.order.UpdateOrderStatusRequest\x1a\f.order.Order\"-\x82\xd3\xe4\x93\x02':\x01*2\"/order/v1/admin/orders/{id}/status\x12`\n" +
+	"\fAddOrderNote\x12\x1a.order.AddOrderNoteRequest\x1a\f.order.Order\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/order/v1/orders/{id}/notes\x12g\n" +
+	"\rListAllOrders\x12\x1b.order.ListAllOrdersRequest\x1a\x19.order.ListOrdersResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/order/v1/admin/orders\x12\x8b\x01\n" +
+	"\x13GetOrdersByCustomer\x12!.order.GetOrdersByCustomerRequest\x1a\x19.order.ListOrdersResponse\"6\x82\xd3\xe4\x93\x020\x12./order/v1/admin/customers/{customer_id}/orders\x12o\n" +
+	"\fCreateRefund\x12\x1a.order.CreateRefundRequest\x1a\r.order.Refund\"4\x82\xd3\xe4\x93\x02.:\x01*\")/order/v1/admin/orders/{order_id}/refunds\x12y\n" +
+	"\x0fGetOrderRefunds\x12\x1d.order.GetOrderRefundsRequest\x1a\x1a.order.ListRefundsResponse\"+\x82\xd3\xe4\x93\x02%\x12#/order/v1/orders/{order_id}/refundsB1Z/github.com/tuannm99/podzone/pkg/api/proto/orderb\x06proto3"
 
 var (
 	file_order_order_proto_rawDescOnce sync.Once

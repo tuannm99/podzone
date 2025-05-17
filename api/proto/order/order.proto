@@ -13,7 +13,7 @@ service OrderService {
   // CreateOrder creates a new order
   rpc CreateOrder(CreateOrderRequest) returns (Order) {
     option (google.api.http) = {
-      post: "/api/v1/orders"
+      post: "/order/v1/orders"
       body: "*"
     };
   }
@@ -21,21 +21,21 @@ service OrderService {
   // GetOrder retrieves an order by ID
   rpc GetOrder(GetOrderRequest) returns (Order) {
     option (google.api.http) = {
-      get: "/api/v1/orders/{id}"
+      get: "/order/v1/orders/{id}"
     };
   }
 
   // ListOrders lists orders for the current user
   rpc ListOrders(ListOrdersRequest) returns (ListOrdersResponse) {
     option (google.api.http) = {
-      get: "/api/v1/orders"
+      get: "/order/v1/orders"
     };
   }
 
   // CancelOrder cancels an order
   rpc CancelOrder(CancelOrderRequest) returns (Order) {
     option (google.api.http) = {
-      post: "/api/v1/orders/{id}/cancel"
+      post: "/order/v1/orders/{id}/cancel"
       body: "*"
     };
   }
@@ -43,7 +43,7 @@ service OrderService {
   // UpdateOrderStatus updates an order's status (admin/staff only)
   rpc UpdateOrderStatus(UpdateOrderStatusRequest) returns (Order) {
     option (google.api.http) = {
-      patch: "/api/v1/admin/orders/{id}/status"
+      patch: "/order/v1/admin/orders/{id}/status"
       body: "*"
     };
   }
@@ -51,7 +51,7 @@ service OrderService {
   // AddOrderNote adds a note to an order
   rpc AddOrderNote(AddOrderNoteRequest) returns (Order) {
     option (google.api.http) = {
-      post: "/api/v1/orders/{id}/notes"
+      post: "/order/v1/orders/{id}/notes"
       body: "*"
     };
   }
@@ -59,21 +59,21 @@ service OrderService {
   // ListAllOrders lists all orders (admin/staff only)
   rpc ListAllOrders(ListAllOrdersRequest) returns (ListOrdersResponse) {
     option (google.api.http) = {
-      get: "/api/v1/admin/orders"
+      get: "/order/v1/admin/orders"
     };
   }
 
   // GetOrdersByCustomer gets orders for a specific customer (admin/staff only)
   rpc GetOrdersByCustomer(GetOrdersByCustomerRequest) returns (ListOrdersResponse) {
     option (google.api.http) = {
-      get: "/api/v1/admin/customers/{customer_id}/orders"
+      get: "/order/v1/admin/customers/{customer_id}/orders"
     };
   }
 
   // CreateRefund creates a refund for an order (admin/staff only)
   rpc CreateRefund(CreateRefundRequest) returns (Refund) {
     option (google.api.http) = {
-      post: "/api/v1/admin/orders/{order_id}/refunds"
+      post: "/order/v1/admin/orders/{order_id}/refunds"
       body: "*"
     };
   }
@@ -81,7 +81,7 @@ service OrderService {
   // GetOrderRefunds gets all refunds for an order
   rpc GetOrderRefunds(GetOrderRefundsRequest) returns (ListRefundsResponse) {
     option (google.api.http) = {
-      get: "/api/v1/orders/{order_id}/refunds"
+      get: "/order/v1/orders/{order_id}/refunds"
     };
   }
 }

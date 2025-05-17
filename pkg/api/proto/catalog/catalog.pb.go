@@ -1654,22 +1654,22 @@ const file_catalog_catalog_proto_rawDesc = "" +
 	"\x16UpdateInventoryRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0finventory_count\x18\x02 \x01(\x05R\x0einventoryCount\x12\x16\n" +
-	"\x06reason\x18\x03 \x01(\tR\x06reason2\x91\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason2\xc1\n" +
 	"\n" +
-	"\x0eCatalogService\x12Y\n" +
+	"\x0eCatalogService\x12]\n" +
 	"\n" +
-	"GetProduct\x12\x1a.catalog.GetProductRequest\x1a\x10.catalog.Product\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/products/{id}\x12e\n" +
-	"\fListProducts\x12\x1c.catalog.ListProductsRequest\x1a\x1d.catalog.ListProductsResponse\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/api/v1/products\x12c\n" +
-	"\rCreateProduct\x12\x1d.catalog.CreateProductRequest\x1a\x10.catalog.Product\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\"\x16/api/v1/admin/products\x12h\n" +
-	"\rUpdateProduct\x12\x1d.catalog.UpdateProductRequest\x1a\x10.catalog.Product\"&\x82\xd3\xe4\x93\x02 :\x01*\x1a\x1b/api/v1/admin/products/{id}\x12k\n" +
-	"\rDeleteProduct\x12\x1d.catalog.DeleteProductRequest\x1a\x16.google.protobuf.Empty\"#\x82\xd3\xe4\x93\x02\x1d*\x1b/api/v1/admin/products/{id}\x12p\n" +
-	"\x0eSearchProducts\x12\x1e.catalog.SearchProductsRequest\x1a\x1d.catalog.ListProductsResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/api/v1/products/search\x12^\n" +
-	"\vGetCategory\x12\x1b.catalog.GetCategoryRequest\x1a\x11.catalog.Category\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/api/v1/categories/{id}\x12m\n" +
-	"\x0eListCategories\x12\x1e.catalog.ListCategoriesRequest\x1a\x1f.catalog.ListCategoriesResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/api/v1/categories\x12h\n" +
-	"\x0eCreateCategory\x12\x1e.catalog.CreateCategoryRequest\x1a\x11.catalog.Category\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/api/v1/admin/categories\x12m\n" +
-	"\x0eUpdateCategory\x12\x1e.catalog.UpdateCategoryRequest\x1a\x11.catalog.Category\"(\x82\xd3\xe4\x93\x02\":\x01*\x1a\x1d/api/v1/admin/categories/{id}\x12o\n" +
-	"\x0eDeleteCategory\x12\x1e.catalog.DeleteCategoryRequest\x1a\x16.google.protobuf.Empty\"%\x82\xd3\xe4\x93\x02\x1f*\x1d/api/v1/admin/categories/{id}\x12v\n" +
-	"\x0fUpdateInventory\x12\x1f.catalog.UpdateInventoryRequest\x1a\x10.catalog.Product\"0\x82\xd3\xe4\x93\x02*:\x01*2%/api/v1/admin/products/{id}/inventoryB3Z1github.com/tuannm99/podzone/pkg/api/proto/catalogb\x06proto3"
+	"GetProduct\x12\x1a.catalog.GetProductRequest\x1a\x10.catalog.Product\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/catalog/v1/products/{id}\x12i\n" +
+	"\fListProducts\x12\x1c.catalog.ListProductsRequest\x1a\x1d.catalog.ListProductsResponse\"\x1c\x82\xd3\xe4\x93\x02\x16\x12\x14/catalog/v1/products\x12g\n" +
+	"\rCreateProduct\x12\x1d.catalog.CreateProductRequest\x1a\x10.catalog.Product\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/catalog/v1/admin/products\x12l\n" +
+	"\rUpdateProduct\x12\x1d.catalog.UpdateProductRequest\x1a\x10.catalog.Product\"*\x82\xd3\xe4\x93\x02$:\x01*\x1a\x1f/catalog/v1/admin/products/{id}\x12o\n" +
+	"\rDeleteProduct\x12\x1d.catalog.DeleteProductRequest\x1a\x16.google.protobuf.Empty\"'\x82\xd3\xe4\x93\x02!*\x1f/catalog/v1/admin/products/{id}\x12t\n" +
+	"\x0eSearchProducts\x12\x1e.catalog.SearchProductsRequest\x1a\x1d.catalog.ListProductsResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/catalog/v1/products/search\x12b\n" +
+	"\vGetCategory\x12\x1b.catalog.GetCategoryRequest\x1a\x11.catalog.Category\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/catalog/v1/categories/{id}\x12q\n" +
+	"\x0eListCategories\x12\x1e.catalog.ListCategoriesRequest\x1a\x1f.catalog.ListCategoriesResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/catalog/v1/categories\x12l\n" +
+	"\x0eCreateCategory\x12\x1e.catalog.CreateCategoryRequest\x1a\x11.catalog.Category\"'\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/catalog/v1/admin/categories\x12q\n" +
+	"\x0eUpdateCategory\x12\x1e.catalog.UpdateCategoryRequest\x1a\x11.catalog.Category\",\x82\xd3\xe4\x93\x02&:\x01*\x1a!/catalog/v1/admin/categories/{id}\x12s\n" +
+	"\x0eDeleteCategory\x12\x1e.catalog.DeleteCategoryRequest\x1a\x16.google.protobuf.Empty\")\x82\xd3\xe4\x93\x02#*!/catalog/v1/admin/categories/{id}\x12z\n" +
+	"\x0fUpdateInventory\x12\x1f.catalog.UpdateInventoryRequest\x1a\x10.catalog.Product\"4\x82\xd3\xe4\x93\x02.:\x01*2)/catalog/v1/admin/products/{id}/inventoryB3Z1github.com/tuannm99/podzone/pkg/api/proto/catalogb\x06proto3"
 
 var (
 	file_catalog_catalog_proto_rawDescOnce sync.Once

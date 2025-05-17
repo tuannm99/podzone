@@ -79,6 +79,7 @@ data:
       - api-breaker
       - authz-keycloak
       - basic-auth
+      - authz-casbin
       - batch-requests
       - consumer-restriction
       - cors

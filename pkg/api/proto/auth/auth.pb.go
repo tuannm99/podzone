@@ -130,7 +130,7 @@ type RegisterRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
 	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -179,9 +179,9 @@ func (x *RegisterRequest) GetPassword() string {
 	return ""
 }
 
-func (x *RegisterRequest) GetName() string {
+func (x *RegisterRequest) GetEmail() string {
 	if x != nil {
-		return x.Name
+		return x.Email
 	}
 	return ""
 }
@@ -382,7 +382,7 @@ type GoogleCallbackResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	JwtToken      string                 `protobuf:"bytes,1,opt,name=jwt_token,json=jwtToken,proto3" json:"jwt_token,omitempty"`
 	RedirectUrl   string                 `protobuf:"bytes,2,opt,name=redirect_url,json=redirectUrl,proto3" json:"redirect_url,omitempty"`
-	UserInfo      *UserInfo              `protobuf:"bytes,3,opt,name=user_info,json=userInfo,proto3" json:"user_info,omitempty"`
+	UserInfo      *GoogleUserInfo        `protobuf:"bytes,3,opt,name=user_info,json=userInfo,proto3" json:"user_info,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -431,7 +431,7 @@ func (x *GoogleCallbackResponse) GetRedirectUrl() string {
 	return ""
 }
 
-func (x *GoogleCallbackResponse) GetUserInfo() *UserInfo {
+func (x *GoogleCallbackResponse) GetUserInfo() *GoogleUserInfo {
 	if x != nil {
 		return x.UserInfo
 	}
@@ -534,7 +534,7 @@ func (x *LogoutResponse) GetRedirectUrl() string {
 	return ""
 }
 
-type UserInfo struct {
+type GoogleUserInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
@@ -547,9 +547,106 @@ type UserInfo struct {
 	sizeCache     protoimpl.SizeCache
 }
 
+func (x *GoogleUserInfo) Reset() {
+	*x = GoogleUserInfo{}
+	mi := &file_auth_auth_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GoogleUserInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GoogleUserInfo) ProtoMessage() {}
+
+func (x *GoogleUserInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_auth_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GoogleUserInfo.ProtoReflect.Descriptor instead.
+func (*GoogleUserInfo) Descriptor() ([]byte, []int) {
+	return file_auth_auth_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GoogleUserInfo) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *GoogleUserInfo) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *GoogleUserInfo) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *GoogleUserInfo) GetGivenName() string {
+	if x != nil {
+		return x.GivenName
+	}
+	return ""
+}
+
+func (x *GoogleUserInfo) GetFamilyName() string {
+	if x != nil {
+		return x.FamilyName
+	}
+	return ""
+}
+
+func (x *GoogleUserInfo) GetPicture() string {
+	if x != nil {
+		return x.Picture
+	}
+	return ""
+}
+
+func (x *GoogleUserInfo) GetEmailVerified() bool {
+	if x != nil {
+		return x.EmailVerified
+	}
+	return false
+}
+
+type UserInfo struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	FullName      string                 `protobuf:"bytes,4,opt,name=full_name,json=fullName,proto3" json:"full_name,omitempty"`
+	MiddleName    string                 `protobuf:"bytes,5,opt,name=middle_name,json=middleName,proto3" json:"middle_name,omitempty"`
+	FirstName     string                 `protobuf:"bytes,6,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
+	LastName      string                 `protobuf:"bytes,7,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
+	Address       string                 `protobuf:"bytes,8,opt,name=address,proto3" json:"address,omitempty"`
+	InitialFrom   string                 `protobuf:"bytes,9,opt,name=initial_from,json=initialFrom,proto3" json:"initial_from,omitempty"`
+	Age           int32                  `protobuf:"varint,10,opt,name=age,proto3" json:"age,omitempty"`
+	Dob           string                 `protobuf:"bytes,11,opt,name=dob,proto3" json:"dob,omitempty"`
+	EmailVerified bool                   `protobuf:"varint,12,opt,name=email_verified,json=emailVerified,proto3" json:"email_verified,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
 func (x *UserInfo) Reset() {
 	*x = UserInfo{}
-	mi := &file_auth_auth_proto_msgTypes[10]
+	mi := &file_auth_auth_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -561,7 +658,7 @@ func (x *UserInfo) String() string {
 func (*UserInfo) ProtoMessage() {}
 
 func (x *UserInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_auth_proto_msgTypes[10]
+	mi := &file_auth_auth_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -574,7 +671,7 @@ func (x *UserInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserInfo.ProtoReflect.Descriptor instead.
 func (*UserInfo) Descriptor() ([]byte, []int) {
-	return file_auth_auth_proto_rawDescGZIP(), []int{10}
+	return file_auth_auth_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *UserInfo) GetId() string {
@@ -598,23 +695,58 @@ func (x *UserInfo) GetName() string {
 	return ""
 }
 
-func (x *UserInfo) GetGivenName() string {
+func (x *UserInfo) GetFullName() string {
 	if x != nil {
-		return x.GivenName
+		return x.FullName
 	}
 	return ""
 }
 
-func (x *UserInfo) GetFamilyName() string {
+func (x *UserInfo) GetMiddleName() string {
 	if x != nil {
-		return x.FamilyName
+		return x.MiddleName
 	}
 	return ""
 }
 
-func (x *UserInfo) GetPicture() string {
+func (x *UserInfo) GetFirstName() string {
 	if x != nil {
-		return x.Picture
+		return x.FirstName
+	}
+	return ""
+}
+
+func (x *UserInfo) GetLastName() string {
+	if x != nil {
+		return x.LastName
+	}
+	return ""
+}
+
+func (x *UserInfo) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+func (x *UserInfo) GetInitialFrom() string {
+	if x != nil {
+		return x.InitialFrom
+	}
+	return ""
+}
+
+func (x *UserInfo) GetAge() int32 {
+	if x != nil {
+		return x.Age
+	}
+	return 0
+}
+
+func (x *UserInfo) GetDob() string {
+	if x != nil {
+		return x.Dob
 	}
 	return ""
 }
@@ -636,11 +768,11 @@ const file_auth_auth_proto_rawDesc = "" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\"Y\n" +
 	"\rLoginResponse\x12\x1b\n" +
 	"\tjwt_token\x18\x01 \x01(\tR\bjwtToken\x12+\n" +
-	"\tuser_info\x18\x02 \x01(\v2\x0e.auth.UserInfoR\buserInfo\"]\n" +
+	"\tuser_info\x18\x02 \x01(\v2\x0e.auth.UserInfoR\buserInfo\"_\n" +
 	"\x0fRegisterRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\"\\\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x14\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\"\\\n" +
 	"\x10RegisterResponse\x12\x1b\n" +
 	"\tjwt_token\x18\x01 \x01(\tR\bjwtToken\x12+\n" +
 	"\tuser_info\x18\x02 \x01(\v2\x0e.auth.UserInfoR\buserInfo\"F\n" +
@@ -650,17 +782,17 @@ const file_auth_auth_proto_rawDesc = "" +
 	"\fredirect_url\x18\x01 \x01(\tR\vredirectUrl\"A\n" +
 	"\x15GoogleCallbackRequest\x12\x14\n" +
 	"\x05state\x18\x01 \x01(\tR\x05state\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\tR\x04code\"\x85\x01\n" +
+	"\x04code\x18\x02 \x01(\tR\x04code\"\x8b\x01\n" +
 	"\x16GoogleCallbackResponse\x12\x1b\n" +
 	"\tjwt_token\x18\x01 \x01(\tR\bjwtToken\x12!\n" +
-	"\fredirect_url\x18\x02 \x01(\tR\vredirectUrl\x12+\n" +
-	"\tuser_info\x18\x03 \x01(\v2\x0e.auth.UserInfoR\buserInfo\"%\n" +
+	"\fredirect_url\x18\x02 \x01(\tR\vredirectUrl\x121\n" +
+	"\tuser_info\x18\x03 \x01(\v2\x14.auth.GoogleUserInfoR\buserInfo\"%\n" +
 	"\rLogoutRequest\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\"M\n" +
 	"\x0eLogoutResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12!\n" +
-	"\fredirect_url\x18\x02 \x01(\tR\vredirectUrl\"\xc5\x01\n" +
-	"\bUserInfo\x12\x0e\n" +
+	"\fredirect_url\x18\x02 \x01(\tR\vredirectUrl\"\xcb\x01\n" +
+	"\x0eGoogleUserInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x1d\n" +
@@ -669,7 +801,23 @@ const file_auth_auth_proto_rawDesc = "" +
 	"\vfamily_name\x18\x05 \x01(\tR\n" +
 	"familyName\x12\x18\n" +
 	"\apicture\x18\x06 \x01(\tR\apicture\x12%\n" +
-	"\x0eemail_verified\x18\a \x01(\bR\remailVerified2\xd3\x03\n" +
+	"\x0eemail_verified\x18\a \x01(\bR\remailVerified\"\xc6\x02\n" +
+	"\bUserInfo\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05email\x18\x02 \x01(\tR\x05email\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x1b\n" +
+	"\tfull_name\x18\x04 \x01(\tR\bfullName\x12\x1f\n" +
+	"\vmiddle_name\x18\x05 \x01(\tR\n" +
+	"middleName\x12\x1d\n" +
+	"\n" +
+	"first_name\x18\x06 \x01(\tR\tfirstName\x12\x1b\n" +
+	"\tlast_name\x18\a \x01(\tR\blastName\x12\x18\n" +
+	"\aaddress\x18\b \x01(\tR\aaddress\x12!\n" +
+	"\finitial_from\x18\t \x01(\tR\vinitialFrom\x12\x10\n" +
+	"\x03age\x18\n" +
+	" \x01(\x05R\x03age\x12\x10\n" +
+	"\x03dob\x18\v \x01(\tR\x03dob\x12%\n" +
+	"\x0eemail_verified\x18\f \x01(\bR\remailVerified2\xd3\x03\n" +
 	"\vAuthService\x12a\n" +
 	"\vGoogleLogin\x12\x18.auth.GoogleLoginRequest\x1a\x19.auth.GoogleLoginResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/auth/v1/google/login\x12m\n" +
 	"\x0eGoogleCallback\x12\x1b.auth.GoogleCallbackRequest\x1a\x1c.auth.GoogleCallbackResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/auth/v1/google/callback\x12K\n" +
@@ -689,7 +837,7 @@ func file_auth_auth_proto_rawDescGZIP() []byte {
 	return file_auth_auth_proto_rawDescData
 }
 
-var file_auth_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_auth_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_auth_auth_proto_goTypes = []any{
 	(*LoginRequest)(nil),           // 0: auth.LoginRequest
 	(*LoginResponse)(nil),          // 1: auth.LoginResponse
@@ -701,12 +849,13 @@ var file_auth_auth_proto_goTypes = []any{
 	(*GoogleCallbackResponse)(nil), // 7: auth.GoogleCallbackResponse
 	(*LogoutRequest)(nil),          // 8: auth.LogoutRequest
 	(*LogoutResponse)(nil),         // 9: auth.LogoutResponse
-	(*UserInfo)(nil),               // 10: auth.UserInfo
+	(*GoogleUserInfo)(nil),         // 10: auth.GoogleUserInfo
+	(*UserInfo)(nil),               // 11: auth.UserInfo
 }
 var file_auth_auth_proto_depIdxs = []int32{
-	10, // 0: auth.LoginResponse.user_info:type_name -> auth.UserInfo
-	10, // 1: auth.RegisterResponse.user_info:type_name -> auth.UserInfo
-	10, // 2: auth.GoogleCallbackResponse.user_info:type_name -> auth.UserInfo
+	11, // 0: auth.LoginResponse.user_info:type_name -> auth.UserInfo
+	11, // 1: auth.RegisterResponse.user_info:type_name -> auth.UserInfo
+	10, // 2: auth.GoogleCallbackResponse.user_info:type_name -> auth.GoogleUserInfo
 	4,  // 3: auth.AuthService.GoogleLogin:input_type -> auth.GoogleLoginRequest
 	6,  // 4: auth.AuthService.GoogleCallback:input_type -> auth.GoogleCallbackRequest
 	0,  // 5: auth.AuthService.Login:input_type -> auth.LoginRequest
@@ -735,7 +884,7 @@ func file_auth_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_auth_proto_rawDesc), len(file_auth_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

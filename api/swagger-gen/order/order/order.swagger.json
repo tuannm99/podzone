@@ -16,7 +16,7 @@
     "application/json"
   ],
   "paths": {
-    "/api/v1/admin/customers/{customerId}/orders": {
+    "/order/v1/admin/customers/{customerId}/orders": {
       "get": {
         "summary": "GetOrdersByCustomer gets orders for a specific customer (admin/staff only)",
         "operationId": "OrderService_GetOrdersByCustomer",
@@ -92,7 +92,7 @@
         ]
       }
     },
-    "/api/v1/admin/orders": {
+    "/order/v1/admin/orders": {
       "get": {
         "summary": "ListAllOrders lists all orders (admin/staff only)",
         "operationId": "OrderService_ListAllOrders",
@@ -202,7 +202,7 @@
         ]
       }
     },
-    "/api/v1/admin/orders/{id}/status": {
+    "/order/v1/admin/orders/{id}/status": {
       "patch": {
         "summary": "UpdateOrderStatus updates an order's status (admin/staff only)",
         "operationId": "OrderService_UpdateOrderStatus",
@@ -241,7 +241,7 @@
         ]
       }
     },
-    "/api/v1/admin/orders/{orderId}/refunds": {
+    "/order/v1/admin/orders/{orderId}/refunds": {
       "post": {
         "summary": "CreateRefund creates a refund for an order (admin/staff only)",
         "operationId": "OrderService_CreateRefund",
@@ -280,7 +280,7 @@
         ]
       }
     },
-    "/api/v1/orders": {
+    "/order/v1/orders": {
       "get": {
         "summary": "ListOrders lists orders for the current user",
         "operationId": "OrderService_ListOrders",
@@ -381,7 +381,7 @@
         ]
       }
     },
-    "/api/v1/orders/{id}": {
+    "/order/v1/orders/{id}": {
       "get": {
         "summary": "GetOrder retrieves an order by ID",
         "operationId": "OrderService_GetOrder",
@@ -412,7 +412,7 @@
         ]
       }
     },
-    "/api/v1/orders/{id}/cancel": {
+    "/order/v1/orders/{id}/cancel": {
       "post": {
         "summary": "CancelOrder cancels an order",
         "operationId": "OrderService_CancelOrder",
@@ -451,7 +451,7 @@
         ]
       }
     },
-    "/api/v1/orders/{id}/notes": {
+    "/order/v1/orders/{id}/notes": {
       "post": {
         "summary": "AddOrderNote adds a note to an order",
         "operationId": "OrderService_AddOrderNote",
@@ -490,7 +490,7 @@
         ]
       }
     },
-    "/api/v1/orders/{orderId}/refunds": {
+    "/order/v1/orders/{orderId}/refunds": {
       "get": {
         "summary": "GetOrderRefunds gets all refunds for an order",
         "operationId": "OrderService_GetOrderRefunds",

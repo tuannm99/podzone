@@ -17,4 +17,4 @@ func (r *CatalogRegistrar) Register(ctx context.Context, mux *runtime.ServeMux, 
 	return pb.RegisterCatalogServiceHandler(ctx, mux, conn)
 }
 func (r *CatalogRegistrar) Addr() string { return r.AddrVal }
-func (r *CatalogRegistrar) Name() string { return "order" }
+func (r *CatalogRegistrar) Name() string { return "catalog" }

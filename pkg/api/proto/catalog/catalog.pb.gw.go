@@ -468,7 +468,7 @@ func RegisterCatalogServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/GetProduct", runtime.WithHTTPPathPattern("/api/v1/products/{id}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/GetProduct", runtime.WithHTTPPathPattern("/catalog/v1/products/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -488,7 +488,7 @@ func RegisterCatalogServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/ListProducts", runtime.WithHTTPPathPattern("/api/v1/products"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/ListProducts", runtime.WithHTTPPathPattern("/catalog/v1/products"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -508,7 +508,7 @@ func RegisterCatalogServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/CreateProduct", runtime.WithHTTPPathPattern("/api/v1/admin/products"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/CreateProduct", runtime.WithHTTPPathPattern("/catalog/v1/admin/products"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -528,7 +528,7 @@ func RegisterCatalogServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/UpdateProduct", runtime.WithHTTPPathPattern("/api/v1/admin/products/{id}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/UpdateProduct", runtime.WithHTTPPathPattern("/catalog/v1/admin/products/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -548,7 +548,7 @@ func RegisterCatalogServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/DeleteProduct", runtime.WithHTTPPathPattern("/api/v1/admin/products/{id}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/DeleteProduct", runtime.WithHTTPPathPattern("/catalog/v1/admin/products/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -568,7 +568,7 @@ func RegisterCatalogServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/SearchProducts", runtime.WithHTTPPathPattern("/api/v1/products/search"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/SearchProducts", runtime.WithHTTPPathPattern("/catalog/v1/products/search"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -588,7 +588,7 @@ func RegisterCatalogServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/GetCategory", runtime.WithHTTPPathPattern("/api/v1/categories/{id}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/GetCategory", runtime.WithHTTPPathPattern("/catalog/v1/categories/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -608,7 +608,7 @@ func RegisterCatalogServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/ListCategories", runtime.WithHTTPPathPattern("/api/v1/categories"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/ListCategories", runtime.WithHTTPPathPattern("/catalog/v1/categories"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -628,7 +628,7 @@ func RegisterCatalogServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/CreateCategory", runtime.WithHTTPPathPattern("/api/v1/admin/categories"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/CreateCategory", runtime.WithHTTPPathPattern("/catalog/v1/admin/categories"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -648,7 +648,7 @@ func RegisterCatalogServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/UpdateCategory", runtime.WithHTTPPathPattern("/api/v1/admin/categories/{id}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/UpdateCategory", runtime.WithHTTPPathPattern("/catalog/v1/admin/categories/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -668,7 +668,7 @@ func RegisterCatalogServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/DeleteCategory", runtime.WithHTTPPathPattern("/api/v1/admin/categories/{id}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/DeleteCategory", runtime.WithHTTPPathPattern("/catalog/v1/admin/categories/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -688,7 +688,7 @@ func RegisterCatalogServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/UpdateInventory", runtime.WithHTTPPathPattern("/api/v1/admin/products/{id}/inventory"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/catalog.CatalogService/UpdateInventory", runtime.WithHTTPPathPattern("/catalog/v1/admin/products/{id}/inventory"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -746,7 +746,7 @@ func RegisterCatalogServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/GetProduct", runtime.WithHTTPPathPattern("/api/v1/products/{id}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/GetProduct", runtime.WithHTTPPathPattern("/catalog/v1/products/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -763,7 +763,7 @@ func RegisterCatalogServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/ListProducts", runtime.WithHTTPPathPattern("/api/v1/products"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/ListProducts", runtime.WithHTTPPathPattern("/catalog/v1/products"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -780,7 +780,7 @@ func RegisterCatalogServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/CreateProduct", runtime.WithHTTPPathPattern("/api/v1/admin/products"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/CreateProduct", runtime.WithHTTPPathPattern("/catalog/v1/admin/products"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -797,7 +797,7 @@ func RegisterCatalogServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/UpdateProduct", runtime.WithHTTPPathPattern("/api/v1/admin/products/{id}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/UpdateProduct", runtime.WithHTTPPathPattern("/catalog/v1/admin/products/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -814,7 +814,7 @@ func RegisterCatalogServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/DeleteProduct", runtime.WithHTTPPathPattern("/api/v1/admin/products/{id}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/DeleteProduct", runtime.WithHTTPPathPattern("/catalog/v1/admin/products/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -831,7 +831,7 @@ func RegisterCatalogServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/SearchProducts", runtime.WithHTTPPathPattern("/api/v1/products/search"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/SearchProducts", runtime.WithHTTPPathPattern("/catalog/v1/products/search"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -848,7 +848,7 @@ func RegisterCatalogServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/GetCategory", runtime.WithHTTPPathPattern("/api/v1/categories/{id}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/GetCategory", runtime.WithHTTPPathPattern("/catalog/v1/categories/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -865,7 +865,7 @@ func RegisterCatalogServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/ListCategories", runtime.WithHTTPPathPattern("/api/v1/categories"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/ListCategories", runtime.WithHTTPPathPattern("/catalog/v1/categories"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -882,7 +882,7 @@ func RegisterCatalogServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/CreateCategory", runtime.WithHTTPPathPattern("/api/v1/admin/categories"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/CreateCategory", runtime.WithHTTPPathPattern("/catalog/v1/admin/categories"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -899,7 +899,7 @@ func RegisterCatalogServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/UpdateCategory", runtime.WithHTTPPathPattern("/api/v1/admin/categories/{id}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/UpdateCategory", runtime.WithHTTPPathPattern("/catalog/v1/admin/categories/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -916,7 +916,7 @@ func RegisterCatalogServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/DeleteCategory", runtime.WithHTTPPathPattern("/api/v1/admin/categories/{id}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/DeleteCategory", runtime.WithHTTPPathPattern("/catalog/v1/admin/categories/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -933,7 +933,7 @@ func RegisterCatalogServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/UpdateInventory", runtime.WithHTTPPathPattern("/api/v1/admin/products/{id}/inventory"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/catalog.CatalogService/UpdateInventory", runtime.WithHTTPPathPattern("/catalog/v1/admin/products/{id}/inventory"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -950,18 +950,18 @@ func RegisterCatalogServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 }
 
 var (
-	pattern_CatalogService_GetProduct_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "products", "id"}, ""))
-	pattern_CatalogService_ListProducts_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "products"}, ""))
-	pattern_CatalogService_CreateProduct_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1", "admin", "products"}, ""))
-	pattern_CatalogService_UpdateProduct_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"api", "v1", "admin", "products", "id"}, ""))
-	pattern_CatalogService_DeleteProduct_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"api", "v1", "admin", "products", "id"}, ""))
-	pattern_CatalogService_SearchProducts_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1", "products", "search"}, ""))
-	pattern_CatalogService_GetCategory_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "v1", "categories", "id"}, ""))
-	pattern_CatalogService_ListCategories_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "categories"}, ""))
-	pattern_CatalogService_CreateCategory_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1", "admin", "categories"}, ""))
-	pattern_CatalogService_UpdateCategory_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"api", "v1", "admin", "categories", "id"}, ""))
-	pattern_CatalogService_DeleteCategory_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"api", "v1", "admin", "categories", "id"}, ""))
-	pattern_CatalogService_UpdateInventory_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"api", "v1", "admin", "products", "id", "inventory"}, ""))
+	pattern_CatalogService_GetProduct_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"catalog", "v1", "products", "id"}, ""))
+	pattern_CatalogService_ListProducts_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"catalog", "v1", "products"}, ""))
+	pattern_CatalogService_CreateProduct_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"catalog", "v1", "admin", "products"}, ""))
+	pattern_CatalogService_UpdateProduct_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"catalog", "v1", "admin", "products", "id"}, ""))
+	pattern_CatalogService_DeleteProduct_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"catalog", "v1", "admin", "products", "id"}, ""))
+	pattern_CatalogService_SearchProducts_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"catalog", "v1", "products", "search"}, ""))
+	pattern_CatalogService_GetCategory_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"catalog", "v1", "categories", "id"}, ""))
+	pattern_CatalogService_ListCategories_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"catalog", "v1", "categories"}, ""))
+	pattern_CatalogService_CreateCategory_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"catalog", "v1", "admin", "categories"}, ""))
+	pattern_CatalogService_UpdateCategory_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"catalog", "v1", "admin", "categories", "id"}, ""))
+	pattern_CatalogService_DeleteCategory_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"catalog", "v1", "admin", "categories", "id"}, ""))
+	pattern_CatalogService_UpdateInventory_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"catalog", "v1", "admin", "products", "id", "inventory"}, ""))
 )
 
 var (

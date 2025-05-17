@@ -45,7 +45,7 @@ func NewHTTPServer(p Params) *gin.Engine {
 		OnStart: func(ctx context.Context) error {
 			httpPort := os.Getenv("HTTP_PORT")
 			if httpPort == "" {
-				httpPort = "8080"
+				httpPort = "8000"
 			}
 
 			addr := fmt.Sprintf(":%s", httpPort)

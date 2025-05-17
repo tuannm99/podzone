@@ -3,7 +3,6 @@ package grpcfx
 import (
 	"context"
 	"net"
-	"os"
 
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -12,19 +11,19 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
+type GrpcPortFx = string
+
 type Params struct {
 	fx.In
 	Lifecycle fx.Lifecycle
 
-	GRPC   *grpc.Server
-	Logger *zap.Logger
+	Logger   *zap.Logger
+	GRPC     *grpc.Server
+	GrpcPort GrpcPortFx
 }
 
 func startGrpcServer(p Params) {
-	grpcPort := os.Getenv("GRPC_PORT")
-	if grpcPort == "" {
-		grpcPort = "50051"
-	}
+	grpcPort := p.GrpcPort
 
 	p.Lifecycle.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {

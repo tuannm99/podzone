@@ -13,21 +13,21 @@ service CatalogService {
   // GetProduct retrieves a product by ID
   rpc GetProduct(GetProductRequest) returns (Product) {
     option (google.api.http) = {
-      get: "/api/v1/products/{id}"
+      get: "/catalog/v1/products/{id}"
     };
   }
 
   // ListProducts retrieves a list of products with optional filtering
   rpc ListProducts(ListProductsRequest) returns (ListProductsResponse) {
     option (google.api.http) = {
-      get: "/api/v1/products"
+      get: "/catalog/v1/products"
     };
   }
 
   // CreateProduct creates a new product (admin only)
   rpc CreateProduct(CreateProductRequest) returns (Product) {
     option (google.api.http) = {
-      post: "/api/v1/admin/products"
+      post: "/catalog/v1/admin/products"
       body: "*"
     };
   }
@@ -35,7 +35,7 @@ service CatalogService {
   // UpdateProduct updates an existing product (admin only)
   rpc UpdateProduct(UpdateProductRequest) returns (Product) {
     option (google.api.http) = {
-      put: "/api/v1/admin/products/{id}"
+      put: "/catalog/v1/admin/products/{id}"
       body: "*"
     };
   }
@@ -43,35 +43,35 @@ service CatalogService {
   // DeleteProduct removes a product (admin only)
   rpc DeleteProduct(DeleteProductRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
-      delete: "/api/v1/admin/products/{id}"
+      delete: "/catalog/v1/admin/products/{id}"
     };
   }
 
   // SearchProducts searches for products
   rpc SearchProducts(SearchProductsRequest) returns (ListProductsResponse) {
     option (google.api.http) = {
-      get: "/api/v1/products/search"
+      get: "/catalog/v1/products/search"
     };
   }
 
   // GetCategory retrieves a category by ID
   rpc GetCategory(GetCategoryRequest) returns (Category) {
     option (google.api.http) = {
-      get: "/api/v1/categories/{id}"
+      get: "/catalog/v1/categories/{id}"
     };
   }
 
   // ListCategories retrieves all categories
   rpc ListCategories(ListCategoriesRequest) returns (ListCategoriesResponse) {
     option (google.api.http) = {
-      get: "/api/v1/categories"
+      get: "/catalog/v1/categories"
     };
   }
 
   // CreateCategory creates a new category (admin only)
   rpc CreateCategory(CreateCategoryRequest) returns (Category) {
     option (google.api.http) = {
-      post: "/api/v1/admin/categories"
+      post: "/catalog/v1/admin/categories"
       body: "*"
     };
   }
@@ -79,7 +79,7 @@ service CatalogService {
   // UpdateCategory updates an existing category (admin only)
   rpc UpdateCategory(UpdateCategoryRequest) returns (Category) {
     option (google.api.http) = {
-      put: "/api/v1/admin/categories/{id}"
+      put: "/catalog/v1/admin/categories/{id}"
       body: "*"
     };
   }
@@ -87,14 +87,14 @@ service CatalogService {
   // DeleteCategory removes a category (admin only)
   rpc DeleteCategory(DeleteCategoryRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
-      delete: "/api/v1/admin/categories/{id}"
+      delete: "/catalog/v1/admin/categories/{id}"
     };
   }
 
   // UpdateInventory updates a product's inventory (admin/staff only)
   rpc UpdateInventory(UpdateInventoryRequest) returns (Product) {
     option (google.api.http) = {
-      patch: "/api/v1/admin/products/{id}/inventory"
+      patch: "/catalog/v1/admin/products/{id}/inventory"
       body: "*"
     };
   }

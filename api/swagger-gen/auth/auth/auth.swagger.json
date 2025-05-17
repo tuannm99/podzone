@@ -188,7 +188,7 @@
           "type": "string"
         },
         "userInfo": {
-          "$ref": "#/definitions/authUserInfo"
+          "$ref": "#/definitions/authGoogleUserInfo"
         }
       }
     },
@@ -197,6 +197,32 @@
       "properties": {
         "redirectUrl": {
           "type": "string"
+        }
+      }
+    },
+    "authGoogleUserInfo": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "givenName": {
+          "type": "string"
+        },
+        "familyName": {
+          "type": "string"
+        },
+        "picture": {
+          "type": "string"
+        },
+        "emailVerified": {
+          "type": "boolean"
         }
       }
     },
@@ -242,7 +268,7 @@
         "password": {
           "type": "string"
         },
-        "name": {
+        "email": {
           "type": "string"
         }
       }
@@ -270,13 +296,29 @@
         "name": {
           "type": "string"
         },
-        "givenName": {
+        "fullName": {
           "type": "string"
         },
-        "familyName": {
+        "middleName": {
           "type": "string"
         },
-        "picture": {
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "initialFrom": {
+          "type": "string"
+        },
+        "age": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "dob": {
           "type": "string"
         },
         "emailVerified": {

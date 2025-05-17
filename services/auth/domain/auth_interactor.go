@@ -22,6 +22,7 @@ func NewAuthUsecase(
 	tokenUC inputport.TokenUsecase,
 	oauthExternal outputport.GoogleOauthExternal,
 	oauthStateRepotory outputport.OauthStateRepository,
+	userRepository outputport.UserRepository,
 	cfg config.AuthConfig,
 ) *authInteractorImpl {
 	return &authInteractorImpl{
@@ -31,6 +32,7 @@ func NewAuthUsecase(
 		tokenUC:              tokenUC,
 		oauthExternal:        oauthExternal,
 		oauthStateRepository: oauthStateRepotory,
+		userRepository:       userRepository,
 	}
 }
 
@@ -43,14 +45,56 @@ type authInteractorImpl struct {
 
 	oauthExternal        outputport.GoogleOauthExternal
 	oauthStateRepository outputport.OauthStateRepository
+	userRepository       outputport.UserRepository
 }
 
-func (u *authInteractorImpl) Login(ctx context.Context) {
-	panic("unimplemented")
+func (u *authInteractorImpl) Login(ctx context.Context, username, password string) (*dto.LoginResp, error) {
+	user, err := u.userRepository.GetByUsernameOrEmail(username)
+	if err != nil {
+		return nil, err
+	}
+
+	if user.Password != password {
+		return nil, entity.ErrWrongPassword
+	}
+
+	token, err := u.tokenUC.CreateJwtToken(*user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.LoginResp{
+		JwtToken: token,
+		UserInfo: *user,
+	}, nil
 }
 
-func (u *authInteractorImpl) Register(ctx context.Context) {
-	panic("unimplemented")
+func (u *authInteractorImpl) Register(ctx context.Context, req dto.RegisterReq) (*dto.RegisterResp, error) {
+	user, err := u.userRepository.Create(
+		entity.User{
+			Username: req.Username,
+			Password: req.Password,
+			Email:    req.Email,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	err = u.userRepository.UpdateById(user.ID, entity.User{InitialFrom: "podzone"})
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := u.tokenUC.CreateJwtToken(*user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &dto.RegisterResp{
+		JwtToken: token,
+		UserInfo: *user,
+	}, nil
 }
 
 func (u *authInteractorImpl) GenerateOAuthURL(ctx context.Context) (string, error) {

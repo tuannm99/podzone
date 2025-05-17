@@ -1,6 +1,6 @@
 .PHONY: all proto swagger build test lint dev down clean help
 
-SERVICES := catalog order payment user cart gateway auth
+SERVICES := catalog order billing user cart auth grpcgateway
 GO := go
 DOCKER_COMPOSE := docker-compose
 PROTOC := protoc
@@ -10,10 +10,12 @@ COLOR_RESET = \033[0m
 COLOR_GREEN = \033[32m
 COLOR_YELLOW = \033[33m
 
-SVC ?= order
+SVC ?= none
 .PHONY: svc help
 
-all: proto swagger
+# Generate both proto code and Swagger documentation
+api: proto swagger
+	@echo "$(COLOR_GREEN)API generation complete.$(COLOR_RESET)"
 
 # this run only first when created project, or run when a updated happens
 init_proto:
@@ -69,10 +71,6 @@ swagger:
 		fi; \
 	done
 
-# Generate both proto code and Swagger documentation
-api: proto swagger
-	@echo "$(COLOR_GREEN)API generation complete.$(COLOR_RESET)"
-
 # Run tests for all packages
 test:
 	@echo "$(COLOR_GREEN)Running tests...$(COLOR_RESET)"
@@ -96,7 +94,19 @@ k8s-dev:
 	kubectl delete -f deployments/kubernetes/dev/services/$(SVC).yml --ignore-not-found
 	kubectl apply -f deployments/kubernetes/dev/services/$(SVC).yml
 
-k8s-portfw:
+k8s-dev-many:
+	@echo "📦 Building and deploying all services..."
+	@for svc in $(SVC); do \
+		echo "🚀 Building $$svc..."; \
+		docker build -t localhost:5000/podzone-$$svc:dev \
+			--build-arg SERVICE_NAME=$$svc \
+			-f Dockerfile .; \
+		docker push localhost:5000/podzone-$$svc:dev; \
+		kubectl delete -f deployments/kubernetes/dev/services/$$svc.yml --ignore-not-found; \
+		kubectl apply -f deployments/kubernetes/dev/services/$$svc.yml; \
+	done
+
+portfw:
 	kubectl port-forward svc/redis 6379:6379 -n default &
 	kubectl port-forward svc/postgres 5432:5432 -n default &
 	kubectl port-forward svc/mongodb-internal 27017:27017 -n default &
@@ -110,7 +120,8 @@ help:
 	@echo "  make api                    - Generate protobuf code, swagger api"
 	@echo "  make test                   - Run tests"
 	@echo "  make lint                   - Run linter"
-	@echo "  make k8s-portfw             - Portfowrding for dev"
+	@echo "  make portfw                 - Portfowrding for dev"
 	@echo "  make dev SVC=${service}     - Run service"
 	@echo "  make k8s-dev SVC=${service} - Deploy service to k8s dev"
+	@echo "  make k8s-dev-many SVC=${service} - Deploy service to k8s dev EG: k8s-dev-many SVC="grpcgateway catalog auth storefront storeportal""
 

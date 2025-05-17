@@ -1,7 +1,7 @@
 package toolkit
 
 type Create[T any] interface {
-	Create(entity T) (*T, error)
+	Create(e T) (*T, error)
 }
 
 type GetByID[T any] interface {
@@ -9,19 +9,19 @@ type GetByID[T any] interface {
 }
 
 type Update[T any] interface {
-	Update(entity T) error
+	Update(e T) error
 }
 
 type UpdateById[T any] interface {
-	UpdateById(id string, entity T) error
+	UpdateById(id uint, e T) error
 }
 
 type DeleteByID interface {
-	DeleteByID(id string) error
+	DeleteByID(id uint) error
 }
 
 type DeleteManyByIDs interface {
-	DeleteManyByIDs(ids []string) error
+	DeleteManyByIDs(ids []uint) error
 }
 
 type CR[T any] interface {

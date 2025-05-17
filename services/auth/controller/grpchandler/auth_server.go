@@ -55,17 +55,19 @@ func (s *AuthServer) Logout(ctx context.Context, req *pbAuth.LogoutRequest) (*pb
 }
 
 func (s *AuthServer) Login(ctx context.Context, req *pbAuth.LoginRequest) (*pbAuth.LoginResponse, error) {
-	// s.usecase.Login(ctx)
+	resp, err := s.usecase.Login(ctx, req.Username, req.Password)
+	if err != nil {
+		return nil, err
+	}
 
-	return &pbAuth.LoginResponse{
-		JwtToken: "",
-	}, nil
+	return toolkit.MapStruct[dto.LoginResp, pbAuth.LoginResponse](*resp), nil
 }
 
 func (s *AuthServer) Register(ctx context.Context, req *pbAuth.RegisterRequest) (*pbAuth.RegisterResponse, error) {
-	// s.usecase.Register(ctx)
-
-	return &pbAuth.RegisterResponse{
-		JwtToken: "",
-	}, nil
+	registerDto := toolkit.MapStruct[*pbAuth.RegisterRequest, dto.RegisterReq](req)
+	resp, err := s.usecase.Register(ctx, *registerDto)
+	if err != nil {
+		return nil, err
+	}
+	return toolkit.MapStruct[dto.RegisterResp, pbAuth.RegisterResponse](*resp), nil
 }
