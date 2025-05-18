@@ -81,7 +81,7 @@ func (u *UserRepositoryImpl) CreateByEmailIfNotExisted(email string) (*entity.Us
 // Update implements outputport.UserRepository.
 func (u *UserRepositoryImpl) Update(usr entity.User) error {
 	var user model.User
-	result := u.db.Where("id = ?", usr.ID).First(&user)
+	result := u.db.Where("id = ?", usr.Id).First(&user)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return entity.ErrUserNotFound
 	} else if result.Error != nil {

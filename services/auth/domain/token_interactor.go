@@ -24,7 +24,7 @@ type tokenUCImpl struct {
 // CreateJwtToken implements inputport.TokenUsecase.
 func (t *tokenUCImpl) CreateJwtToken(user entity.User) (string, error) {
 	claims := entity.JWTClaims{
-		UserID:   user.ID,
+		UserID:   user.Id,
 		Email:    user.Email,
 		Username: user.Username,
 		Key:      "jwt-key",

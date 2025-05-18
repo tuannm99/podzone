@@ -100,9 +100,9 @@ message GoogleUserInfo {
 }
 
 message UserInfo {
-  string id = 1;
+  int32 id = 1;
   string email = 2;
-  string name = 3;
+  string username = 3;
   string full_name = 4;
   string middle_name = 5;
   string first_name = 6;

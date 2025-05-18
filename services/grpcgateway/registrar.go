@@ -81,6 +81,6 @@ func monitorHealth(logger *zap.Logger, registrar GatewayRegistrar, conn *grpc.Cl
 			logger.Debug("Health check OK", zap.String("service", name))
 		}
 
-		time.Sleep(10 * time.Second)
+		time.Sleep(3 * time.Second)
 	}
 }

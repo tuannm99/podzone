@@ -3,38 +3,38 @@ package dto
 import "github.com/tuannm99/podzone/services/auth/domain/entity"
 
 type GoogleCallbackResp struct {
-	JwtToken    string
-	RedirectUrl string
-	UserInfo    UserInfoResp
+	JwtToken    string       `json:"jwt_token"`
+	RedirectUrl string       `json:"redirect_url"`
+	UserInfo    UserInfoResp `json:"user_info"`
 }
 
 type UserInfoResp struct {
-	Id            string
-	Email         string
-	Name          string
-	GivenName     string
-	FamilyName    string
-	Picture       string
-	EmailVerified bool
+	Id            string `json:"id"`
+	Email         string `json:"email"`
+	Name          string `json:"name"`
+	GivenName     string `json:"given_name"`
+	FamilyName    string `json:"family_name"`
+	Picture       string `json:"picture"`
+	EmailVerified bool   `json:"email_verified"`
 }
 
 type LoginReq struct {
-	Username string
-	Password string
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 type LoginResp struct {
-	JwtToken string
-	UserInfo entity.User
+	JwtToken string      `json:"jwt_token"`
+	UserInfo entity.User `json:"user_info"`
 }
 
 type RegisterReq struct {
-	Username string
-	Password string
-	Email    string
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Email    string `json:"email"`
 }
 
 type RegisterResp struct {
-	JwtToken string
-	UserInfo entity.User
+	JwtToken string      `json:"jwt_token"`
+	UserInfo entity.User `json:"user_info"`
 }

@@ -1,11 +1,10 @@
 package toolkit
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 	"reflect"
-
-	"github.com/mitchellh/mapstructure"
 )
 
 func FallbackEnv(key string, fallback string) string {
@@ -24,6 +23,16 @@ func AssertEqual(expected, actual any) {
 
 func MapStruct[S any, T any](source S) *T {
 	var target T
-	_ = mapstructure.Decode(source, &target)
+
+	data, err := json.Marshal(source)
+	if err != nil {
+		return nil
+	}
+
+	err = json.Unmarshal(data, &target)
+	if err != nil {
+		return nil
+	}
+
 	return &target
 }

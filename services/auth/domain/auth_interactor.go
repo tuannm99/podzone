@@ -81,7 +81,7 @@ func (u *authInteractorImpl) Register(ctx context.Context, req dto.RegisterReq) 
 		return nil, err
 	}
 
-	err = u.userRepository.UpdateById(user.ID, entity.User{InitialFrom: "podzone"})
+	err = u.userRepository.UpdateById(user.Id, entity.User{InitialFrom: "podzone"})
 	if err != nil {
 		return nil, err
 	}

@@ -288,12 +288,13 @@
       "type": "object",
       "properties": {
         "id": {
-          "type": "string"
+          "type": "integer",
+          "format": "int32"
         },
         "email": {
           "type": "string"
         },
-        "name": {
+        "username": {
           "type": "string"
         },
         "fullName": {
