@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 
+	"github.com/tuannm99/podzone/pkg/toolkit"
 	"github.com/tuannm99/podzone/services/auth/domain/entity"
 	"github.com/tuannm99/podzone/services/auth/domain/outputport"
 	"github.com/tuannm99/podzone/services/auth/infrastructure/model"
@@ -49,11 +50,12 @@ func (u *UserRepositoryImpl) GetByUsernameOrEmail(identity string) (*entity.User
 }
 
 // Create implements outputport.UserRepository.
-func (u *UserRepositoryImpl) Create(entity entity.User) (*entity.User, error) {
-	if err := u.db.Create(&entity).Error; err != nil {
+func (u *UserRepositoryImpl) Create(e entity.User) (*entity.User, error) {
+	modelUser := toolkit.MapStruct[entity.User, model.User](e)
+	if err := u.db.Create(&modelUser).Error; err != nil {
 		return nil, err
 	}
-	return &entity, nil
+	return toolkit.MapStruct[model.User, entity.User](*modelUser), nil
 }
 
 // CreateByEmailIfNotExisted implements outputport.UserRepository.

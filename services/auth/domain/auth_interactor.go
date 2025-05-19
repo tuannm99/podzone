@@ -54,8 +54,9 @@ func (u *authInteractorImpl) Login(ctx context.Context, username, password strin
 		return nil, err
 	}
 
-	if user.Password != password {
-		return nil, entity.ErrWrongPassword
+	err = entity.CheckPassword(user.Password, password)
+	if err != nil {
+		return nil, err
 	}
 
 	token, err := u.tokenUC.CreateJwtToken(*user)

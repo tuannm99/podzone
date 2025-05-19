@@ -76,7 +76,7 @@ func monitorHealth(logger *zap.Logger, registrar GatewayRegistrar, conn *grpc.Cl
 		cancel()
 
 		if err != nil || resp.GetStatus() != grpc_health_v1.HealthCheckResponse_SERVING {
-			logger.Warn("Health check failed", zap.String("service", name), zap.Error(err))
+			logger.Debug("Health check failed", zap.String("service", name), zap.Error(err))
 		} else {
 			logger.Debug("Health check OK", zap.String("service", name))
 		}
