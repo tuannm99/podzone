@@ -17,7 +17,6 @@ func ModuleFor(name string, conStr string) fx.Option {
 	resultName := fmt.Sprintf("redis-%s", name)
 
 	return fx.Options(
-		// Provide the Redis URI as named string
 		fx.Provide(
 			fx.Annotate(
 				func() string { return conStr },
@@ -25,7 +24,6 @@ func ModuleFor(name string, conStr string) fx.Option {
 			),
 		),
 
-		// Provide the Redis client using URI
 		fx.Provide(
 			fx.Annotate(
 				func(logger *zap.Logger, uri string) (*redis.Client, error) {
@@ -50,35 +48,15 @@ func ModuleFor(name string, conStr string) fx.Option {
 						DB:       db,
 					})
 
-					for attempt := 1; attempt <= 3; attempt++ {
-						ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-						err = client.Ping(ctx).Err()
-						cancel()
-
-						if err == nil {
-							logger.Info("Successfully connected to Redis", zap.String("addr", redisUrl.Host))
-							break
-						}
-
-						if attempt < 3 {
-							retryDelay := time.Duration(attempt) * time.Second
-							logger.Warn("Redis connection failed, retrying...",
-								zap.String("addr", redisUrl.Host),
-								zap.Int("attempt", attempt),
-								zap.Duration("retry_delay", retryDelay),
-								zap.Error(err))
-							time.Sleep(retryDelay)
-						}
-					}
+					ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+					err = client.Ping(ctx).Err()
+					cancel()
 
 					if err != nil {
-						logger.Error("Failed to connect to Redis after multiple attempts",
-							zap.String("addr", redisUrl.Host),
-							zap.Int("attempts", 3),
-							zap.Error(err))
 						return nil, fmt.Errorf("failed to connect to Redis at %s: %w", redisUrl.Host, err)
 					}
 
+					logger.Info("Successfully connected to Redis", zap.String("addr", redisUrl.Host))
 					return client, nil
 				},
 				fx.ParamTags(``, fmt.Sprintf(`name:"%s"`, uriName)),
