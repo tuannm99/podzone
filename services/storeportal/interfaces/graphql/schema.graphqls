@@ -1,0 +1,32 @@
+type Store {
+  id: ID!
+  name: String!
+  description: String
+  status: StoreStatus!
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+enum StoreStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+type Query {
+  store(id: ID!): Store
+  stores: [Store!]!
+}
+
+type Mutation {
+  createStore(input: CreateStoreInput!): Store!
+  activateStore(id: ID!): Store!
+  deactivateStore(id: ID!): Store!
+}
+
+input CreateStoreInput {
+  name: String!
+  description: String
+}
+
+scalar Time 
