@@ -15,6 +15,7 @@ spec:
       containers:
         - name: ui-admin
           image: localhost:5000/ui-admin:dev
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
           resources:

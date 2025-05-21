@@ -58,7 +58,7 @@ spec:
             #       name: global-secrets
             #       key: APP_REDIRECT_URL
             - name: APP_REDIRECT_URL
-              value: "http://admin-ui.local.com"
+              value: "http://admin-ui.local.com/home"
 
             - name: GRPC_PORT
               value: '50051'

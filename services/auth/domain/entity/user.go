@@ -26,7 +26,12 @@ type User struct {
 }
 
 func CheckPassword(hashedPassword, plainPassword string) error {
-	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plainPassword))
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plainPassword))
+	if err != nil {
+		return fmt.Errorf("password invalid")
+	}
+
+	return nil
 }
 
 func GeneratePasswordHash(password string) (string, error) {

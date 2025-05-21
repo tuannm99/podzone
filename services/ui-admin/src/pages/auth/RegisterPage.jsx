@@ -1,14 +1,26 @@
 import React from 'react';
 import { Button, Form, Input, Typography, Card } from 'antd';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { register } from '../../services/auth';
+import { toast } from 'react-toastify';
 
 const { Title } = Typography;
 
 const RegisterPage = () => {
     const [form] = Form.useForm();
+    const navigate = useNavigate();
 
-    const onFinish = (values) => {
-        console.log('Registration values:', values);
+    const onFinish = async (values) => {
+        const { success, data } = await register({
+            username: values.username,
+            email: values.email,
+            password: values.password,
+        });
+        if (!success) {
+            toast.error(data.message);
+            return;
+        }
+        navigate('/home');
     };
 
     return (
@@ -27,6 +39,13 @@ const RegisterPage = () => {
                 </Title>
 
                 <Form form={form} layout="vertical" onFinish={onFinish}>
+                    <Form.Item
+                        name="username"
+                        label="Username"
+                        rules={[{ required: true, message: 'Please input your username!' }]}
+                    >
+                        <Input size="large" placeholder="Enter your email" />
+                    </Form.Item>
                     <Form.Item
                         name="email"
                         label="Email"

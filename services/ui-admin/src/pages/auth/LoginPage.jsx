@@ -1,21 +1,27 @@
 import React from 'react';
 import { Button, Form, Input, Typography, Card, Divider } from 'antd';
 import { GoogleOutlined } from '@ant-design/icons';
-import { Link } from 'react-router-dom';
-import { ADMIN_API_URL } from '../../services/baseurl';
+import { Link, useNavigate } from 'react-router-dom';
+import { loginGG, login } from '../../services/auth';
+import { toast } from 'react-toastify';
 
 const { Title } = Typography;
 
 const LoginPage = () => {
     const [form] = Form.useForm();
+    const navigate = useNavigate();
 
-    const onFinish = (values) => {
-        console.log('Login values:', values);
+    const onFinish = async (values) => {
+        const { success, data } = await login({ username: values.username, password: values.password });
+        if (!success) {
+            toast.error(data.message);
+            return;
+        }
+        navigate('/home');
     };
 
-    const handleGoogleLogin = () => {
-        const loginUrl = `${ADMIN_API_URL || 'http://localhost:8080'}/auth/v1/google/login`;
-        window.location.href = loginUrl;
+    const handleGoogleLogin = async () => {
+        window.location.href = await loginGG();
     };
 
     return (
@@ -35,12 +41,9 @@ const LoginPage = () => {
 
                 <Form form={form} layout="vertical" onFinish={onFinish}>
                     <Form.Item
-                        name="email"
-                        label="Email"
-                        rules={[
-                            { required: true, message: 'Please input your email!' },
-                            { type: 'email', message: 'Please enter a valid email!' },
-                        ]}
+                        name="username"
+                        label="Username or email"
+                        rules={[{ required: true, message: 'Please input your username or email!' }]}
                     >
                         <Input size="large" placeholder="Enter your email" />
                     </Form.Item>
