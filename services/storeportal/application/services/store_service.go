@@ -10,22 +10,32 @@ import (
 
 var (
 	ErrStoreNotFound = errors.New("store not found")
-	ErrInvalidStore  = errors.New("invalid store data")
+	ErrUnauthorized  = errors.New("unauthorized access")
 )
 
-// StoreService handles store-related business logic
+// StoreService handles business logic for store operations
 type StoreService struct {
 	storeRepo repositories.StoreRepository
 }
 
+// NewStoreService creates a new store service
+func NewStoreService(storeRepo repositories.StoreRepository) *StoreService {
+	return &StoreService{
+		storeRepo: storeRepo,
+	}
+}
+
 // CreateStore creates a new store
 func (s *StoreService) CreateStore(ctx context.Context, name, description string) (*entities.Store, error) {
-	if name == "" {
-		return nil, ErrInvalidStore
+	tenantID, ok := ctx.Value("tenant_id").(string)
+	if !ok {
+		return nil, ErrUnauthorized
 	}
 
 	store := entities.NewStore(name, description)
-	if err := s.storeRepo.Save(ctx, store); err != nil {
+	store.OwnerID = tenantID
+
+	if err := s.storeRepo.Create(ctx, store); err != nil {
 		return nil, err
 	}
 
@@ -34,39 +44,59 @@ func (s *StoreService) CreateStore(ctx context.Context, name, description string
 
 // GetStore retrieves a store by ID
 func (s *StoreService) GetStore(ctx context.Context, id string) (*entities.Store, error) {
-	store, err := s.storeRepo.FindByID(ctx, id)
+	tenantID, ok := ctx.Value("tenant_id").(string)
+	if !ok {
+		return nil, ErrUnauthorized
+	}
+
+	store, err := s.storeRepo.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	if store == nil {
-		return nil, ErrStoreNotFound
+
+	if store.OwnerID != tenantID {
+		return nil, ErrUnauthorized
 	}
+
 	return store, nil
 }
 
-// ListStores retrieves all stores
+// ListStores retrieves all stores for the current tenant
 func (s *StoreService) ListStores(ctx context.Context) ([]*entities.Store, error) {
-	return s.storeRepo.List(ctx)
+	tenantID, ok := ctx.Value("tenant_id").(string)
+	if !ok {
+		return nil, ErrUnauthorized
+	}
+
+	return s.storeRepo.ListByOwnerID(ctx, tenantID)
 }
 
 // ActivateStore activates a store
-func (s *StoreService) ActivateStore(ctx context.Context, id string) error {
+func (s *StoreService) ActivateStore(ctx context.Context, id string) (*entities.Store, error) {
 	store, err := s.GetStore(ctx, id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	store.Activate()
-	return s.storeRepo.Save(ctx, store)
+	if err := s.storeRepo.Update(ctx, store); err != nil {
+		return nil, err
+	}
+
+	return store, nil
 }
 
 // DeactivateStore deactivates a store
-func (s *StoreService) DeactivateStore(ctx context.Context, id string) error {
+func (s *StoreService) DeactivateStore(ctx context.Context, id string) (*entities.Store, error) {
 	store, err := s.GetStore(ctx, id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	store.Deactivate()
-	return s.storeRepo.Save(ctx, store)
+	if err := s.storeRepo.Update(ctx, store); err != nil {
+		return nil, err
+	}
+
+	return store, nil
 }

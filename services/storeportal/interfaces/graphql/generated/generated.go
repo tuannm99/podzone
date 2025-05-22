@@ -331,7 +331,8 @@ input CreateStoreInput {
   description: String
 }
 
-scalar Time `, BuiltIn: false},
+scalar Time 
+`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 

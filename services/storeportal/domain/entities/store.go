@@ -10,6 +10,7 @@ type Store struct {
 	Name        string
 	Description string
 	Status      StoreStatus
+	OwnerID     string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }

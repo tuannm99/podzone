@@ -27,18 +27,20 @@ func (r *mutationResolver) CreateStore(ctx context.Context, input model.CreateSt
 
 // ActivateStore is the resolver for the activateStore field.
 func (r *mutationResolver) ActivateStore(ctx context.Context, id string) (*model.Store, error) {
-	if err := r.storeService.ActivateStore(ctx, id); err != nil {
+	store, err := r.storeService.ActivateStore(ctx, id)
+	if err != nil {
 		return nil, err
 	}
-	return r.Query().Store(ctx, id)
+	return mapDomainStoreToGraphQL(store), nil
 }
 
 // DeactivateStore is the resolver for the deactivateStore field.
 func (r *mutationResolver) DeactivateStore(ctx context.Context, id string) (*model.Store, error) {
-	if err := r.storeService.DeactivateStore(ctx, id); err != nil {
+	store, err := r.storeService.DeactivateStore(ctx, id)
+	if err != nil {
 		return nil, err
 	}
-	return r.Query().Store(ctx, id)
+	return mapDomainStoreToGraphQL(store), nil
 }
 
 // Store is the resolver for the store field.

@@ -5,6 +5,7 @@ import (
 
 	"github.com/tuannm99/podzone/services/storeportal/application/services"
 	"github.com/tuannm99/podzone/services/storeportal/interfaces/graphql"
+	"github.com/tuannm99/podzone/services/storeportal/interfaces/graphql/generated"
 )
 
 // Module exports all interface layer components
@@ -22,6 +23,6 @@ type GraphQLParams struct {
 }
 
 // provideGraphQLResolver creates a new GraphQL resolver
-func provideGraphQLResolver(params GraphQLParams) *graphql.Resolver {
+func provideGraphQLResolver(params GraphQLParams) generated.ResolverRoot {
 	return graphql.NewResolver(params.StoreService)
 }

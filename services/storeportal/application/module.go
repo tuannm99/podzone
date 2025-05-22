@@ -4,9 +4,17 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/tuannm99/podzone/services/storeportal/application/services"
+	"github.com/tuannm99/podzone/services/storeportal/domain/repositories"
 )
 
-// Module exports all application layer components
+// Module provides application services
 var Module = fx.Options(
-	services.Module,
+	fx.Provide(
+		fx.Annotate(
+			func(repo repositories.StoreRepository) *services.StoreService {
+				return services.NewStoreService(repo)
+			},
+			fx.ParamTags(`name:"store-repository"`),
+		),
+	),
 )

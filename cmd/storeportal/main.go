@@ -10,21 +10,56 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 
+	"github.com/tuannm99/podzone/pkg/contextfx"
 	"github.com/tuannm99/podzone/pkg/logfx"
 	"github.com/tuannm99/podzone/pkg/mongofx"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 	"github.com/tuannm99/podzone/services/storeportal"
-	"github.com/tuannm99/podzone/services/storeportal/interfaces/graphql"
 	"github.com/tuannm99/podzone/services/storeportal/interfaces/graphql/generated"
 )
 
-func graphqlHandler(resolver *graphql.Resolver) gin.HandlerFunc {
+// TenantMiddleware is a GraphQL middleware that extracts tenant_id from request headers
+type TenantMiddleware struct{}
+
+// ExtensionName returns the name of the extension
+func (m *TenantMiddleware) ExtensionName() string {
+	return "TenantMiddleware"
+}
+
+// Validate is called when adding the extension to the server
+func (m *TenantMiddleware) Validate(schema graphql.ExecutableSchema) error {
+	return nil
+}
+
+// InterceptResponse is called for each response
+func (m *TenantMiddleware) InterceptResponse(ctx context.Context, next graphql.ResponseHandler) *graphql.Response {
+	// Get the request context
+	reqCtx := graphql.GetOperationContext(ctx)
+	if reqCtx == nil {
+		return next(ctx)
+	}
+
+	// Extract tenant_id from request header
+	tenantID := reqCtx.Headers.Get("X-Tenant-ID")
+	if tenantID == "" {
+		// Return error if tenant_id is not provided
+		return graphql.ErrorResponse(ctx, "tenant_id is required")
+	}
+
+	// Add tenant_id to the context
+	ctx = contextfx.WithTenantID(ctx, tenantID)
+
+	return next(ctx)
+}
+
+func graphqlHandler(resolver generated.ResolverRoot) gin.HandlerFunc {
 	h := handler.New(generated.NewExecutableSchema(generated.Config{
 		Resolvers: resolver,
 	}))
@@ -39,6 +74,7 @@ func graphqlHandler(resolver *graphql.Resolver) gin.HandlerFunc {
 	h.Use(extension.AutomaticPersistedQuery{
 		Cache: lru.New[string](100),
 	})
+	h.Use(&TenantMiddleware{})
 
 	return func(c *gin.Context) {
 		h.ServeHTTP(c.Writer, c.Request)
@@ -54,7 +90,7 @@ func playgroundHandler() gin.HandlerFunc {
 	}
 }
 
-func startServer(lc fx.Lifecycle, resolver *graphql.Resolver, logger *zap.Logger) {
+func startServer(lc fx.Lifecycle, resolver generated.ResolverRoot, logger *zap.Logger) {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8000"
@@ -64,7 +100,7 @@ func startServer(lc fx.Lifecycle, resolver *graphql.Resolver, logger *zap.Logger
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"POST", "GET", "OPTIONS"},
-		AllowHeaders:     []string{"Content-Type", "Authorization"},
+		AllowHeaders:     []string{"Content-Type", "Authorization", "X-Tenant-ID"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}))

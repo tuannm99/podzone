@@ -32,8 +32,15 @@ func NewStoreRepository(client *mongo.Client, dbName, collectionName string) *St
 	}
 }
 
-// FindByID retrieves a store by its ID
-func (r *StoreRepository) FindByID(ctx context.Context, id string) (*entities.Store, error) {
+// Create creates a new store
+func (r *StoreRepository) Create(ctx context.Context, store *entities.Store) error {
+	store.ID = primitive.NewObjectID().Hex()
+	_, err := r.collection.InsertOne(ctx, store)
+	return err
+}
+
+// Get retrieves a store by ID
+func (r *StoreRepository) Get(ctx context.Context, id string) (*entities.Store, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
@@ -49,29 +56,6 @@ func (r *StoreRepository) FindByID(ctx context.Context, id string) (*entities.St
 	}
 
 	return &store, nil
-}
-
-// Save persists a store
-func (r *StoreRepository) Save(ctx context.Context, store *entities.Store) error {
-	if store.ID == "" {
-		// Create new store
-		store.ID = primitive.NewObjectID().Hex()
-		_, err := r.collection.InsertOne(ctx, store)
-		return err
-	}
-
-	// Update existing store
-	objectID, err := primitive.ObjectIDFromHex(store.ID)
-	if err != nil {
-		return err
-	}
-
-	_, err = r.collection.UpdateOne(
-		ctx,
-		bson.M{"_id": objectID},
-		bson.M{"$set": store},
-	)
-	return err
 }
 
 // List retrieves all stores
@@ -90,7 +74,38 @@ func (r *StoreRepository) List(ctx context.Context) ([]*entities.Store, error) {
 	return stores, nil
 }
 
-// Delete removes a store
+// ListByOwnerID retrieves all stores for a specific owner
+func (r *StoreRepository) ListByOwnerID(ctx context.Context, ownerID string) ([]*entities.Store, error) {
+	cursor, err := r.collection.Find(ctx, bson.M{"owner_id": ownerID})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var stores []*entities.Store
+	if err = cursor.All(ctx, &stores); err != nil {
+		return nil, err
+	}
+
+	return stores, nil
+}
+
+// Update updates an existing store
+func (r *StoreRepository) Update(ctx context.Context, store *entities.Store) error {
+	objectID, err := primitive.ObjectIDFromHex(store.ID)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.collection.UpdateOne(
+		ctx,
+		bson.M{"_id": objectID},
+		bson.M{"$set": store},
+	)
+	return err
+}
+
+// Delete deletes a store by ID
 func (r *StoreRepository) Delete(ctx context.Context, id string) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
