@@ -1,19 +1,19 @@
 package graphql
 
 import (
-	"github.com/tuannm99/podzone/services/storeportal/application/services"
+	"github.com/tuannm99/podzone/services/storeportal/service"
 )
 
 // This file will not be regenerated automatically.
 //
 // It serves as dependency injection for your app, add any dependencies you require here.
 
+// Resolver is the resolver root.
 type Resolver struct {
-	storeService *services.StoreService
+	storeService *service.StoreService
 }
 
-// NewResolver creates a new resolver with required dependencies
-func NewResolver(storeService *services.StoreService) *Resolver {
+func NewResolver(storeService *service.StoreService) *Resolver {
 	return &Resolver{
 		storeService: storeService,
 	}

@@ -1,16 +1,15 @@
 type Store {
   id: ID!
   name: String!
-  description: String
-  status: StoreStatus!
+  description: String!
+  status: String!
   createdAt: Time!
   updatedAt: Time!
 }
 
-enum StoreStatus {
-  ACTIVE
-  INACTIVE
-  PENDING
+input CreateStoreInput {
+  name: String!
+  description: String!
 }
 
 type Query {
@@ -22,11 +21,6 @@ type Mutation {
   createStore(input: CreateStoreInput!): Store!
   activateStore(id: ID!): Store!
   deactivateStore(id: ID!): Store!
-}
-
-input CreateStoreInput {
-  name: String!
-  description: String
 }
 
 scalar Time 

@@ -7,22 +7,25 @@ package graphql
 import (
 	"context"
 
-	"github.com/tuannm99/podzone/services/storeportal/interfaces/graphql/generated"
-	"github.com/tuannm99/podzone/services/storeportal/interfaces/graphql/model"
+	"github.com/tuannm99/podzone/services/storeportal/handlers/graphql/generated"
+	"github.com/tuannm99/podzone/services/storeportal/handlers/graphql/model"
 )
 
 // CreateStore is the resolver for the createStore field.
 func (r *mutationResolver) CreateStore(ctx context.Context, input model.CreateStoreInput) (*model.Store, error) {
-	description := ""
-	if input.Description != nil {
-		description = *input.Description
-	}
-
-	store, err := r.storeService.CreateStore(ctx, input.Name, description)
+	store, err := r.storeService.CreateStore(ctx, input.Name, input.Description)
 	if err != nil {
 		return nil, err
 	}
-	return mapDomainStoreToGraphQL(store), nil
+
+	return &model.Store{
+		ID:          store.ID.Hex(),
+		Name:        store.Name,
+		Description: store.Description,
+		Status:      store.Status,
+		CreatedAt:   store.CreatedAt,
+		UpdatedAt:   store.UpdatedAt,
+	}, nil
 }
 
 // ActivateStore is the resolver for the activateStore field.
@@ -31,7 +34,15 @@ func (r *mutationResolver) ActivateStore(ctx context.Context, id string) (*model
 	if err != nil {
 		return nil, err
 	}
-	return mapDomainStoreToGraphQL(store), nil
+
+	return &model.Store{
+		ID:          store.ID.Hex(),
+		Name:        store.Name,
+		Description: store.Description,
+		Status:      store.Status,
+		CreatedAt:   store.CreatedAt,
+		UpdatedAt:   store.UpdatedAt,
+	}, nil
 }
 
 // DeactivateStore is the resolver for the deactivateStore field.
@@ -40,7 +51,15 @@ func (r *mutationResolver) DeactivateStore(ctx context.Context, id string) (*mod
 	if err != nil {
 		return nil, err
 	}
-	return mapDomainStoreToGraphQL(store), nil
+
+	return &model.Store{
+		ID:          store.ID.Hex(),
+		Name:        store.Name,
+		Description: store.Description,
+		Status:      store.Status,
+		CreatedAt:   store.CreatedAt,
+		UpdatedAt:   store.UpdatedAt,
+	}, nil
 }
 
 // Store is the resolver for the store field.
@@ -49,7 +68,15 @@ func (r *queryResolver) Store(ctx context.Context, id string) (*model.Store, err
 	if err != nil {
 		return nil, err
 	}
-	return mapDomainStoreToGraphQL(store), nil
+
+	return &model.Store{
+		ID:          store.ID.Hex(),
+		Name:        store.Name,
+		Description: store.Description,
+		Status:      store.Status,
+		CreatedAt:   store.CreatedAt,
+		UpdatedAt:   store.UpdatedAt,
+	}, nil
 }
 
 // Stores is the resolver for the stores field.
@@ -58,7 +85,20 @@ func (r *queryResolver) Stores(ctx context.Context) ([]*model.Store, error) {
 	if err != nil {
 		return nil, err
 	}
-	return mapDomainStoresToGraphQL(stores), nil
+
+	result := make([]*model.Store, len(stores))
+	for i, store := range stores {
+		result[i] = &model.Store{
+			ID:          store.ID.Hex(),
+			Name:        store.Name,
+			Description: store.Description,
+			Status:      store.Status,
+			CreatedAt:   store.CreatedAt,
+			UpdatedAt:   store.UpdatedAt,
+		}
+	}
+
+	return result, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

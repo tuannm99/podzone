@@ -1,38 +1,35 @@
-package services
+package service
 
 import (
 	"context"
 	"errors"
 
-	"github.com/tuannm99/podzone/services/storeportal/domain/entities"
-	"github.com/tuannm99/podzone/services/storeportal/domain/repositories"
+	"github.com/tuannm99/podzone/services/storeportal/models"
+	"github.com/tuannm99/podzone/services/storeportal/repository"
 )
 
-var (
-	ErrStoreNotFound = errors.New("store not found")
-	ErrUnauthorized  = errors.New("unauthorized access")
-)
+var ErrUnauthorized = errors.New("unauthorized access")
 
 // StoreService handles business logic for store operations
 type StoreService struct {
-	storeRepo repositories.StoreRepository
+	storeRepo *repository.StoreRepository
 }
 
 // NewStoreService creates a new store service
-func NewStoreService(storeRepo repositories.StoreRepository) *StoreService {
+func NewStoreService(storeRepo *repository.StoreRepository) *StoreService {
 	return &StoreService{
 		storeRepo: storeRepo,
 	}
 }
 
 // CreateStore creates a new store
-func (s *StoreService) CreateStore(ctx context.Context, name, description string) (*entities.Store, error) {
+func (s *StoreService) CreateStore(ctx context.Context, name, description string) (*models.Store, error) {
 	tenantID, ok := ctx.Value("tenant_id").(string)
 	if !ok {
 		return nil, ErrUnauthorized
 	}
 
-	store := entities.NewStore(name, description)
+	store := models.NewStore(name, description)
 	store.OwnerID = tenantID
 
 	if err := s.storeRepo.Create(ctx, store); err != nil {
@@ -43,7 +40,7 @@ func (s *StoreService) CreateStore(ctx context.Context, name, description string
 }
 
 // GetStore retrieves a store by ID
-func (s *StoreService) GetStore(ctx context.Context, id string) (*entities.Store, error) {
+func (s *StoreService) GetStore(ctx context.Context, id string) (*models.Store, error) {
 	tenantID, ok := ctx.Value("tenant_id").(string)
 	if !ok {
 		return nil, ErrUnauthorized
@@ -62,7 +59,7 @@ func (s *StoreService) GetStore(ctx context.Context, id string) (*entities.Store
 }
 
 // ListStores retrieves all stores for the current tenant
-func (s *StoreService) ListStores(ctx context.Context) ([]*entities.Store, error) {
+func (s *StoreService) ListStores(ctx context.Context) ([]*models.Store, error) {
 	tenantID, ok := ctx.Value("tenant_id").(string)
 	if !ok {
 		return nil, ErrUnauthorized
@@ -72,7 +69,7 @@ func (s *StoreService) ListStores(ctx context.Context) ([]*entities.Store, error
 }
 
 // ActivateStore activates a store
-func (s *StoreService) ActivateStore(ctx context.Context, id string) (*entities.Store, error) {
+func (s *StoreService) ActivateStore(ctx context.Context, id string) (*models.Store, error) {
 	store, err := s.GetStore(ctx, id)
 	if err != nil {
 		return nil, err
@@ -87,7 +84,7 @@ func (s *StoreService) ActivateStore(ctx context.Context, id string) (*entities.
 }
 
 // DeactivateStore deactivates a store
-func (s *StoreService) DeactivateStore(ctx context.Context, id string) (*entities.Store, error) {
+func (s *StoreService) DeactivateStore(ctx context.Context, id string) (*models.Store, error) {
 	store, err := s.GetStore(ctx, id)
 	if err != nil {
 		return nil, err

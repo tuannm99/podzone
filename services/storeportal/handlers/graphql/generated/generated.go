@@ -14,7 +14,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/tuannm99/podzone/services/storeportal/interfaces/graphql/model"
+	"github.com/tuannm99/podzone/services/storeportal/handlers/graphql/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -303,16 +303,15 @@ var sources = []*ast.Source{
 	{Name: "../schema.graphqls", Input: `type Store {
   id: ID!
   name: String!
-  description: String
-  status: StoreStatus!
+  description: String!
+  status: String!
   createdAt: Time!
   updatedAt: Time!
 }
 
-enum StoreStatus {
-  ACTIVE
-  INACTIVE
-  PENDING
+input CreateStoreInput {
+  name: String!
+  description: String!
 }
 
 type Query {
@@ -326,13 +325,7 @@ type Mutation {
   deactivateStore(id: ID!): Store!
 }
 
-input CreateStoreInput {
-  name: String!
-  description: String
-}
-
-scalar Time 
-`, BuiltIn: false},
+scalar Time `, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -389,7 +382,7 @@ func (ec *executionContext) field_Mutation_createStore_argsInput(
 
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 	if tmp, ok := rawArgs["input"]; ok {
-		return ec.unmarshalNCreateStoreInput2githubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋinterfacesᚋgraphqlᚋmodelᚐCreateStoreInput(ctx, tmp)
+		return ec.unmarshalNCreateStoreInput2githubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋhandlersᚋgraphqlᚋmodelᚐCreateStoreInput(ctx, tmp)
 	}
 
 	var zeroVal model.CreateStoreInput
@@ -628,7 +621,7 @@ func (ec *executionContext) _Mutation_createStore(ctx context.Context, field gra
 	}
 	res := resTmp.(*model.Store)
 	fc.Result = res
-	return ec.marshalNStore2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋinterfacesᚋgraphqlᚋmodelᚐStore(ctx, field.Selections, res)
+	return ec.marshalNStore2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋhandlersᚋgraphqlᚋmodelᚐStore(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createStore(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -697,7 +690,7 @@ func (ec *executionContext) _Mutation_activateStore(ctx context.Context, field g
 	}
 	res := resTmp.(*model.Store)
 	fc.Result = res
-	return ec.marshalNStore2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋinterfacesᚋgraphqlᚋmodelᚐStore(ctx, field.Selections, res)
+	return ec.marshalNStore2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋhandlersᚋgraphqlᚋmodelᚐStore(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_activateStore(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -766,7 +759,7 @@ func (ec *executionContext) _Mutation_deactivateStore(ctx context.Context, field
 	}
 	res := resTmp.(*model.Store)
 	fc.Result = res
-	return ec.marshalNStore2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋinterfacesᚋgraphqlᚋmodelᚐStore(ctx, field.Selections, res)
+	return ec.marshalNStore2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋhandlersᚋgraphqlᚋmodelᚐStore(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_deactivateStore(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -832,7 +825,7 @@ func (ec *executionContext) _Query_store(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.(*model.Store)
 	fc.Result = res
-	return ec.marshalOStore2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋinterfacesᚋgraphqlᚋmodelᚐStore(ctx, field.Selections, res)
+	return ec.marshalOStore2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋhandlersᚋgraphqlᚋmodelᚐStore(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_store(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -901,7 +894,7 @@ func (ec *executionContext) _Query_stores(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.([]*model.Store)
 	fc.Result = res
-	return ec.marshalNStore2ᚕᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋinterfacesᚋgraphqlᚋmodelᚐStoreᚄ(ctx, field.Selections, res)
+	return ec.marshalNStore2ᚕᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋhandlersᚋgraphqlᚋmodelᚐStoreᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_stores(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1171,11 +1164,14 @@ func (ec *executionContext) _Store_description(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Store_description(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1217,9 +1213,9 @@ func (ec *executionContext) _Store_status(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.StoreStatus)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNStoreStatus2githubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋinterfacesᚋgraphqlᚋmodelᚐStoreStatus(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Store_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1229,7 +1225,7 @@ func (ec *executionContext) fieldContext_Store_status(_ context.Context, field g
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type StoreStatus does not have child fields")
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3297,7 +3293,7 @@ func (ec *executionContext) unmarshalInputCreateStoreInput(ctx context.Context, 
 			it.Name = data
 		case "description":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3493,6 +3489,9 @@ func (ec *executionContext) _Store(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "description":
 			out.Values[i] = ec._Store_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "status":
 			out.Values[i] = ec._Store_status(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -3882,7 +3881,7 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalNCreateStoreInput2githubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋinterfacesᚋgraphqlᚋmodelᚐCreateStoreInput(ctx context.Context, v any) (model.CreateStoreInput, error) {
+func (ec *executionContext) unmarshalNCreateStoreInput2githubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋhandlersᚋgraphqlᚋmodelᚐCreateStoreInput(ctx context.Context, v any) (model.CreateStoreInput, error) {
 	res, err := ec.unmarshalInputCreateStoreInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -3903,11 +3902,11 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) marshalNStore2githubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋinterfacesᚋgraphqlᚋmodelᚐStore(ctx context.Context, sel ast.SelectionSet, v model.Store) graphql.Marshaler {
+func (ec *executionContext) marshalNStore2githubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋhandlersᚋgraphqlᚋmodelᚐStore(ctx context.Context, sel ast.SelectionSet, v model.Store) graphql.Marshaler {
 	return ec._Store(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNStore2ᚕᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋinterfacesᚋgraphqlᚋmodelᚐStoreᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Store) graphql.Marshaler {
+func (ec *executionContext) marshalNStore2ᚕᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋhandlersᚋgraphqlᚋmodelᚐStoreᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Store) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -3931,7 +3930,7 @@ func (ec *executionContext) marshalNStore2ᚕᚖgithubᚗcomᚋtuannm99ᚋpodzon
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNStore2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋinterfacesᚋgraphqlᚋmodelᚐStore(ctx, sel, v[i])
+			ret[i] = ec.marshalNStore2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋhandlersᚋgraphqlᚋmodelᚐStore(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3951,7 +3950,7 @@ func (ec *executionContext) marshalNStore2ᚕᚖgithubᚗcomᚋtuannm99ᚋpodzon
 	return ret
 }
 
-func (ec *executionContext) marshalNStore2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋinterfacesᚋgraphqlᚋmodelᚐStore(ctx context.Context, sel ast.SelectionSet, v *model.Store) graphql.Marshaler {
+func (ec *executionContext) marshalNStore2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋhandlersᚋgraphqlᚋmodelᚐStore(ctx context.Context, sel ast.SelectionSet, v *model.Store) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -3959,16 +3958,6 @@ func (ec *executionContext) marshalNStore2ᚖgithubᚗcomᚋtuannm99ᚋpodzone�
 		return graphql.Null
 	}
 	return ec._Store(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNStoreStatus2githubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋinterfacesᚋgraphqlᚋmodelᚐStoreStatus(ctx context.Context, v any) (model.StoreStatus, error) {
-	var res model.StoreStatus
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNStoreStatus2githubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋinterfacesᚋgraphqlᚋmodelᚐStoreStatus(ctx context.Context, sel ast.SelectionSet, v model.StoreStatus) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v any) (string, error) {
@@ -4286,7 +4275,7 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) marshalOStore2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋinterfacesᚋgraphqlᚋmodelᚐStore(ctx context.Context, sel ast.SelectionSet, v *model.Store) graphql.Marshaler {
+func (ec *executionContext) marshalOStore2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋservicesᚋstoreportalᚋhandlersᚋgraphqlᚋmodelᚐStore(ctx context.Context, sel ast.SelectionSet, v *model.Store) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

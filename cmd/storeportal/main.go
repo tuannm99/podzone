@@ -7,6 +7,8 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/vektah/gqlparser/v2/ast"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 
@@ -19,10 +21,10 @@ import (
 
 	"github.com/tuannm99/podzone/pkg/contextfx"
 	"github.com/tuannm99/podzone/pkg/logfx"
-	"github.com/tuannm99/podzone/pkg/mongofx"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 	"github.com/tuannm99/podzone/services/storeportal"
-	"github.com/tuannm99/podzone/services/storeportal/interfaces/graphql/generated"
+	storegraphql "github.com/tuannm99/podzone/services/storeportal/handlers/graphql"
+	"github.com/tuannm99/podzone/services/storeportal/handlers/graphql/generated"
 )
 
 // TenantMiddleware is a GraphQL middleware that extracts tenant_id from request headers
@@ -59,7 +61,7 @@ func (m *TenantMiddleware) InterceptResponse(ctx context.Context, next graphql.R
 	return next(ctx)
 }
 
-func graphqlHandler(resolver generated.ResolverRoot) gin.HandlerFunc {
+func graphqlHandler(resolver *storegraphql.Resolver) gin.HandlerFunc {
 	h := handler.New(generated.NewExecutableSchema(generated.Config{
 		Resolvers: resolver,
 	}))
@@ -90,7 +92,7 @@ func playgroundHandler() gin.HandlerFunc {
 	}
 }
 
-func startServer(lc fx.Lifecycle, resolver generated.ResolverRoot, logger *zap.Logger) {
+func startServer(lc fx.Lifecycle, resolver *storegraphql.Resolver, logger *zap.Logger) {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8000"
@@ -126,12 +128,21 @@ func main() {
 		logfx.Module,
 
 		// Provide MongoDB connection
-		mongofx.ModuleFor("storeportal", toolkit.FallbackEnv("MONGODB_URI", "mongodb://localhost:27017")),
+		fx.Provide(
+			func() string {
+				return toolkit.FallbackEnv("MONGODB_PORTAL_URI", "mongodb://localhost:27017")
+			},
+			func(uri string) *mongo.Client {
+				client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(uri))
+				if err != nil {
+					panic(err)
+				}
+				return client
+			},
+		),
 
-		// Include the storeportal module
 		storeportal.Module,
 
-		// Start the server
 		fx.Invoke(startServer),
 	)
 
