@@ -82,19 +82,15 @@ lint:
 	golangci-lint run ./...
 
 dev:
-	@echo "🔁 Starting service: $(SVC)"
-	@air --build.cmd "go build -o ./bin/$(SVC) ./cmd/$(SVC)/main.go" --build.bin "./bin/$(SVC)"
+	@echo "🔁 Starting services in parallel..."
+	@for svc in $(SVC); do \
+		echo "▶ Starting $$svc..."; \
+		air --build.cmd "go build -o ./bin/$$svc ./cmd/$$svc/main.go" \
+			--build.bin "./bin/$$svc" & \
+	done; \
+	wait
 
 k8s-dev:
-	@echo "📦 Building and deploying: $(SVC)"
-	docker build -t localhost:5000/podzone-$(SVC):dev \
-		--build-arg SERVICE_NAME=$(SVC) \
-		-f Dockerfile .
-	docker push localhost:5000/podzone-$(SVC):dev
-	kubectl delete -f deployments/kubernetes/dev/services/$(SVC).yml --ignore-not-found
-	kubectl apply -f deployments/kubernetes/dev/services/$(SVC).yml
-
-k8s-dev-many:
 	@echo "📦 Building and deploying all services..."
 	@for svc in $(SVC); do \
 		echo "🚀 Building $$svc..."; \
@@ -122,6 +118,5 @@ help:
 	@echo "  make lint                   - Run linter"
 	@echo "  make portfw                 - Portfowrding for dev"
 	@echo "  make dev SVC=${service}     - Run service"
-	@echo "  make k8s-dev SVC=${service} - Deploy service to k8s dev"
-	@echo "  make k8s-dev-many SVC=${service} - Deploy service to k8s dev EG: k8s-dev-many SVC="grpcgateway catalog auth storefront storeportal""
+	@echo "  make k8s-dev SVC=${service} - Deploy service to k8s dev EG: k8s-dev SVC="grpcgateway catalog auth storefront storeportal""
 
