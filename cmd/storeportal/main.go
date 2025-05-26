@@ -23,26 +23,22 @@ import (
 	"github.com/tuannm99/podzone/pkg/logfx"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 	"github.com/tuannm99/podzone/services/storeportal"
-	storegraphql "github.com/tuannm99/podzone/services/storeportal/handlers/graphql"
 	"github.com/tuannm99/podzone/services/storeportal/handlers/graphql/generated"
+	"github.com/tuannm99/podzone/services/storeportal/handlers/graphql/resolver"
 )
 
 // TenantMiddleware is a GraphQL middleware that extracts tenant_id from request headers
 type TenantMiddleware struct{}
 
-// ExtensionName returns the name of the extension
 func (m *TenantMiddleware) ExtensionName() string {
 	return "TenantMiddleware"
 }
 
-// Validate is called when adding the extension to the server
 func (m *TenantMiddleware) Validate(schema graphql.ExecutableSchema) error {
 	return nil
 }
 
-// InterceptResponse is called for each response
 func (m *TenantMiddleware) InterceptResponse(ctx context.Context, next graphql.ResponseHandler) *graphql.Response {
-	// Get the request context
 	reqCtx := graphql.GetOperationContext(ctx)
 	if reqCtx == nil {
 		return next(ctx)
@@ -51,17 +47,15 @@ func (m *TenantMiddleware) InterceptResponse(ctx context.Context, next graphql.R
 	// Extract tenant_id from request header
 	tenantID := reqCtx.Headers.Get("X-Tenant-ID")
 	if tenantID == "" {
-		// Return error if tenant_id is not provided
 		return graphql.ErrorResponse(ctx, "tenant_id is required")
 	}
 
-	// Add tenant_id to the context
 	ctx = contextfx.WithTenantID(ctx, tenantID)
 
 	return next(ctx)
 }
 
-func graphqlHandler(resolver *storegraphql.Resolver) gin.HandlerFunc {
+func graphqlHandler(resolver *resolver.Resolver) gin.HandlerFunc {
 	h := handler.New(generated.NewExecutableSchema(generated.Config{
 		Resolvers: resolver,
 	}))
@@ -92,7 +86,7 @@ func playgroundHandler() gin.HandlerFunc {
 	}
 }
 
-func startServer(lc fx.Lifecycle, resolver *storegraphql.Resolver, logger *zap.Logger) {
+func startServer(lc fx.Lifecycle, resolver *resolver.Resolver, logger *zap.Logger) {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8000"
@@ -113,7 +107,9 @@ func startServer(lc fx.Lifecycle, resolver *storegraphql.Resolver, logger *zap.L
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			logger.Info("Starting server", zap.String("port", port))
-			go r.Run(":" + port)
+			go func() {
+				_ = r.Run(":" + port)
+			}()
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {

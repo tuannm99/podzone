@@ -1,4 +1,4 @@
-package graphql
+package resolver
 
 // This file will be automatically regenerated based on the schema, any resolver implementations
 // will be copied through when generating and any unknown code will be moved to the end.
@@ -22,7 +22,7 @@ func (r *mutationResolver) CreateStore(ctx context.Context, input model.CreateSt
 		ID:          store.ID.Hex(),
 		Name:        store.Name,
 		Description: store.Description,
-		Status:      store.Status,
+		Status:      string(store.Status),
 		CreatedAt:   store.CreatedAt,
 		UpdatedAt:   store.UpdatedAt,
 	}, nil
@@ -39,7 +39,7 @@ func (r *mutationResolver) ActivateStore(ctx context.Context, id string) (*model
 		ID:          store.ID.Hex(),
 		Name:        store.Name,
 		Description: store.Description,
-		Status:      store.Status,
+		Status:      string(store.Status),
 		CreatedAt:   store.CreatedAt,
 		UpdatedAt:   store.UpdatedAt,
 	}, nil
@@ -56,7 +56,7 @@ func (r *mutationResolver) DeactivateStore(ctx context.Context, id string) (*mod
 		ID:          store.ID.Hex(),
 		Name:        store.Name,
 		Description: store.Description,
-		Status:      store.Status,
+		Status:      string(store.Status),
 		CreatedAt:   store.CreatedAt,
 		UpdatedAt:   store.UpdatedAt,
 	}, nil
@@ -73,7 +73,7 @@ func (r *queryResolver) Store(ctx context.Context, id string) (*model.Store, err
 		ID:          store.ID.Hex(),
 		Name:        store.Name,
 		Description: store.Description,
-		Status:      store.Status,
+		Status:      string(store.Status),
 		CreatedAt:   store.CreatedAt,
 		UpdatedAt:   store.UpdatedAt,
 	}, nil
@@ -92,7 +92,7 @@ func (r *queryResolver) Stores(ctx context.Context) ([]*model.Store, error) {
 			ID:          store.ID.Hex(),
 			Name:        store.Name,
 			Description: store.Description,
-			Status:      store.Status,
+			Status:      string(store.Status),
 			CreatedAt:   store.CreatedAt,
 			UpdatedAt:   store.UpdatedAt,
 		}

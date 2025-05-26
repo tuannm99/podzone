@@ -1,4 +1,4 @@
-package graphql
+package resolver
 
 import (
 	"github.com/tuannm99/podzone/services/storeportal/service"
@@ -8,7 +8,6 @@ import (
 //
 // It serves as dependency injection for your app, add any dependencies you require here.
 
-// Resolver is the resolver root.
 type Resolver struct {
 	storeService *service.StoreService
 }

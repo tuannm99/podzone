@@ -300,7 +300,9 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../schema.graphqls", Input: `type Store {
+	{Name: "../schema/common.graphqls", Input: `scalar Time
+`, BuiltIn: false},
+	{Name: "../schema/store.graphqls", Input: `type Store {
   id: ID!
   name: String!
   description: String!
@@ -314,18 +316,17 @@ input CreateStoreInput {
   description: String!
 }
 
-type Query {
+extend type Query {
   store(id: ID!): Store
   stores: [Store!]!
 }
 
-type Mutation {
+extend type Mutation {
   createStore(input: CreateStoreInput!): Store!
   activateStore(id: ID!): Store!
   deactivateStore(id: ID!): Store!
 }
-
-scalar Time `, BuiltIn: false},
+`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 

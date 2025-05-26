@@ -12,15 +12,13 @@ input CreateStoreInput {
   description: String!
 }
 
-type Query {
+extend type Query {
   store(id: ID!): Store
   stores: [Store!]!
 }
 
-type Mutation {
+extend type Mutation {
   createStore(input: CreateStoreInput!): Store!
   activateStore(id: ID!): Store!
   deactivateStore(id: ID!): Store!
 }
-
-scalar Time 

@@ -1,5 +1,5 @@
 schema:
-  - services/storeportal/handlers/graphql/schema.graphqls
+  - services/storeportal/handlers/graphql/schema/*.graphqls
 
 exec:
   filename: services/storeportal/handlers/graphql/generated/generated.go
@@ -11,5 +11,6 @@ model:
 
 resolver:
   layout: follow-schema
-  dir: services/storeportal/handlers/graphql
-  package: graphql
+  dir: services/storeportal/handlers/graphql/resolver/
+  package: resolver
+  filename_template: '{name}.resolvers.go'

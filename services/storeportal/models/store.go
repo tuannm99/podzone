@@ -6,13 +6,21 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+type StoreStatus string
+
+const (
+	StoreStatusDraft    StoreStatus = "draft"
+	StoreStatusActive   StoreStatus = "active"
+	StoreStatusInactive StoreStatus = "inactive"
+)
+
 // Store represents a store in the system
 type Store struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	Name        string             `bson:"name"          json:"name"`
 	Description string             `bson:"description"   json:"description"`
 	OwnerID     string             `bson:"owner_id"      json:"ownerId"`
-	Status      string             `bson:"status"        json:"status"`
+	Status      StoreStatus        `bson:"status"        json:"status"`
 	CreatedAt   time.Time          `bson:"created_at"    json:"createdAt"`
 	UpdatedAt   time.Time          `bson:"updated_at"    json:"updatedAt"`
 }
@@ -23,7 +31,7 @@ func NewStore(name, description string) *Store {
 	return &Store{
 		Name:        name,
 		Description: description,
-		Status:      "inactive",
+		Status:      StoreStatusDraft,
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
@@ -31,12 +39,12 @@ func NewStore(name, description string) *Store {
 
 // Activate activates the store
 func (s *Store) Activate() {
-	s.Status = "active"
+	s.Status = StoreStatusActive
 	s.UpdatedAt = time.Now()
 }
 
 // Deactivate deactivates the store
 func (s *Store) Deactivate() {
-	s.Status = "inactive"
+	s.Status = StoreStatusInactive
 	s.UpdatedAt = time.Now()
 }
