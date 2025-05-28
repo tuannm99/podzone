@@ -7,8 +7,8 @@ package resolver
 import (
 	"context"
 
-	"github.com/tuannm99/podzone/services/storeportal/handlers/graphql/generated"
-	"github.com/tuannm99/podzone/services/storeportal/handlers/graphql/model"
+	"github.com/tuannm99/podzone/services/backoffice/handlers/graphql/generated"
+	"github.com/tuannm99/podzone/services/backoffice/handlers/graphql/model"
 )
 
 // CreateStore is the resolver for the createStore field.
@@ -19,7 +19,7 @@ func (r *mutationResolver) CreateStore(ctx context.Context, input model.CreateSt
 	}
 
 	return &model.Store{
-		ID:          store.ID.Hex(),
+		ID:          store.ID,
 		Name:        store.Name,
 		Description: store.Description,
 		Status:      string(store.Status),
@@ -36,7 +36,7 @@ func (r *mutationResolver) ActivateStore(ctx context.Context, id string) (*model
 	}
 
 	return &model.Store{
-		ID:          store.ID.Hex(),
+		ID:          store.ID,
 		Name:        store.Name,
 		Description: store.Description,
 		Status:      string(store.Status),
@@ -53,7 +53,7 @@ func (r *mutationResolver) DeactivateStore(ctx context.Context, id string) (*mod
 	}
 
 	return &model.Store{
-		ID:          store.ID.Hex(),
+		ID:          store.ID,
 		Name:        store.Name,
 		Description: store.Description,
 		Status:      string(store.Status),
@@ -70,7 +70,7 @@ func (r *queryResolver) Store(ctx context.Context, id string) (*model.Store, err
 	}
 
 	return &model.Store{
-		ID:          store.ID.Hex(),
+		ID:          store.ID,
 		Name:        store.Name,
 		Description: store.Description,
 		Status:      string(store.Status),
@@ -89,7 +89,7 @@ func (r *queryResolver) Stores(ctx context.Context) ([]*model.Store, error) {
 	result := make([]*model.Store, len(stores))
 	for i, store := range stores {
 		result[i] = &model.Store{
-			ID:          store.ID.Hex(),
+			ID:          store.ID,
 			Name:        store.Name,
 			Description: store.Description,
 			Status:      string(store.Status),

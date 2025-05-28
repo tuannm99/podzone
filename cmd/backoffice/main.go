@@ -22,9 +22,9 @@ import (
 	"github.com/tuannm99/podzone/pkg/contextfx"
 	"github.com/tuannm99/podzone/pkg/logfx"
 	"github.com/tuannm99/podzone/pkg/toolkit"
-	"github.com/tuannm99/podzone/services/storeportal"
-	"github.com/tuannm99/podzone/services/storeportal/handlers/graphql/generated"
-	"github.com/tuannm99/podzone/services/storeportal/handlers/graphql/resolver"
+	"github.com/tuannm99/podzone/services/backoffice"
+	"github.com/tuannm99/podzone/services/backoffice/handlers/graphql/generated"
+	"github.com/tuannm99/podzone/services/backoffice/handlers/graphql/resolver"
 )
 
 // TenantMiddleware is a GraphQL middleware that extracts tenant_id from request headers
@@ -137,7 +137,7 @@ func main() {
 			},
 		),
 
-		storeportal.Module,
+		backoffice.Module,
 
 		fx.Invoke(startServer),
 	)

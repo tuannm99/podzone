@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/tuannm99/podzone/services/storeportal/models"
-	"github.com/tuannm99/podzone/services/storeportal/repository"
+	"github.com/tuannm99/podzone/services/backoffice/models"
+	"github.com/tuannm99/podzone/services/backoffice/repository"
 )
 
 var ErrUnauthorized = errors.New("unauthorized access")
@@ -24,13 +24,7 @@ func NewStoreService(storeRepo *repository.StoreRepository) *StoreService {
 
 // CreateStore creates a new store
 func (s *StoreService) CreateStore(ctx context.Context, name, description string) (*models.Store, error) {
-	tenantID, ok := ctx.Value("tenant_id").(string)
-	if !ok {
-		return nil, ErrUnauthorized
-	}
-
 	store := models.NewStore(name, description)
-	store.OwnerID = tenantID
 
 	if err := s.storeRepo.Create(ctx, store); err != nil {
 		return nil, err
@@ -41,18 +35,9 @@ func (s *StoreService) CreateStore(ctx context.Context, name, description string
 
 // GetStore retrieves a store by ID
 func (s *StoreService) GetStore(ctx context.Context, id string) (*models.Store, error) {
-	tenantID, ok := ctx.Value("tenant_id").(string)
-	if !ok {
-		return nil, ErrUnauthorized
-	}
-
-	store, err := s.storeRepo.Get(ctx, id)
+	store, err := s.storeRepo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
-	}
-
-	if store.OwnerID != tenantID {
-		return nil, ErrUnauthorized
 	}
 
 	return store, nil
@@ -60,12 +45,7 @@ func (s *StoreService) GetStore(ctx context.Context, id string) (*models.Store, 
 
 // ListStores retrieves all stores for the current tenant
 func (s *StoreService) ListStores(ctx context.Context) ([]*models.Store, error) {
-	tenantID, ok := ctx.Value("tenant_id").(string)
-	if !ok {
-		return nil, ErrUnauthorized
-	}
-
-	return s.storeRepo.ListByOwnerID(ctx, tenantID)
+	return s.storeRepo.List(ctx)
 }
 
 // ActivateStore activates a store

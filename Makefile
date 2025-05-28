@@ -81,6 +81,9 @@ lint:
 	@echo "$(COLOR_GREEN)Running linter...$(COLOR_RESET)"
 	golangci-lint run ./...
 
+gql-backoffice:
+	go run github.com/99designs/gqlgen generate
+
 dev:
 	@echo "🔁 Starting services in parallel..."
 	@for svc in $(SVC); do \
@@ -110,7 +113,6 @@ portfw:
 	kubectl port-forward svc/elasticsearch 9200:9200 -n default &
 	kubectl port-forward svc/kibana 5601:5601 -n default
 
-# Help 
 help:
 	@echo "$(COLOR_YELLOW)Available commands:$(COLOR_RESET)"
 	@echo "  make api                    - Generate protobuf code, swagger api"
@@ -118,5 +120,6 @@ help:
 	@echo "  make lint                   - Run linter"
 	@echo "  make portfw                 - Portfowrding for dev"
 	@echo "  make dev SVC=${service}     - Run service"
-	@echo "  make k8s-dev SVC=${service} - Deploy service to k8s dev EG: k8s-dev SVC="grpcgateway catalog auth storefront storeportal""
+	@echo "  make gql-backoffice         - Generate backoffice graphql"
+	@echo "  make k8s-dev SVC=${service} - Deploy service to k8s dev EG: k8s-dev SVC="grpcgateway catalog auth storefront backoffice""
 

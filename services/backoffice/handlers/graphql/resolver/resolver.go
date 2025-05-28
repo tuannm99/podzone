@@ -1,7 +1,7 @@
 package resolver
 
 import (
-	"github.com/tuannm99/podzone/services/storeportal/service"
+	"github.com/tuannm99/podzone/services/backoffice/service"
 )
 
 // This file will not be regenerated automatically.
