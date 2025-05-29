@@ -9,8 +9,17 @@ import (
 	"go.uber.org/zap"
 )
 
+// Module provides Kafka client
 var Module = fx.Options(
-	fx.Provide(NewKafkaClient),
+	fx.Provide(
+		func(logger *zap.Logger) (*KafkaClient, error) {
+			config := &Config{
+				Brokers: []string{"localhost:9092"},
+				GroupID: "ecommerce-group",
+			}
+			return NewKafkaClient(config, logger)
+		},
+	),
 	fx.Invoke(RegisterLifecycle),
 )
 

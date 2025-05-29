@@ -2,6 +2,7 @@ package kafkafx
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -89,4 +90,8 @@ func (c *LocalClient) Close() error {
 	c.logger.Info("Local messaging client closed")
 
 	return nil
+}
+
+func generateMessageID() string {
+	return fmt.Sprintf("msg-%d", time.Now().UnixNano())
 }
