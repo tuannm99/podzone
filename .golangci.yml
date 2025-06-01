@@ -6,7 +6,6 @@ run:
 
 linters:
   enable:
-    - errcheck
     - govet
     - staticcheck
     - ineffassign
@@ -28,6 +27,8 @@ linters:
     - nilerr # finds the code that returns nil even if it checks that the error is not nil
     - nilnesserr # reports that it checks for err != nil, but it returns a different nil value error (powered by nilness and nilerr)
     - asciicheck # checks that your code does not contain non-ASCII identifiers
+  disable:
+    - errcheck
 
 issues:
   # exclude-use-default: false

@@ -9,7 +9,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// Module provides Kafka client
 var Module = fx.Options(
 	fx.Provide(
 		func(logger *zap.Logger) (*KafkaClient, error) {
@@ -19,6 +18,26 @@ var Module = fx.Options(
 			}
 			return NewKafkaClient(config, logger)
 		},
+		func(client *KafkaClient, logger *zap.Logger) (*PubSubClient, error) {
+			configs := DefaultConfigs(client.config.Brokers)
+			pubsubConfig := configs["pubsub"].(PubSubConfig)
+			return NewPubSubClient(client, &pubsubConfig, logger)
+		},
+		func(client *KafkaClient, logger *zap.Logger) (*QueueClient, error) {
+			configs := DefaultConfigs(client.config.Brokers)
+			queueConfig := configs["queue"].(QueueConfig)
+			return NewQueueClient(client, &queueConfig, logger)
+		},
+		func(client *KafkaClient, logger *zap.Logger) (*ConsumerGroupClient, error) {
+			configs := DefaultConfigs(client.config.Brokers)
+			groupConfig := configs["consumer_group"].(ConsumerGroupConfig)
+			return NewConsumerGroupClient(&groupConfig, logger)
+		},
+		func(client *KafkaClient, logger *zap.Logger) (*ExactlyOnceClient, error) {
+			configs := DefaultConfigs(client.config.Brokers)
+			exactConfig := configs["exactly_once"].(ExactlyOnceConfig)
+			return NewExactlyOnceClient(client, &exactConfig, logger)
+		},
 	),
 	fx.Invoke(RegisterLifecycle),
 )
@@ -26,7 +45,7 @@ var Module = fx.Options(
 func RegisterLifecycle(lc fx.Lifecycle, logger *zap.Logger) {
 	lc.Append(fx.Hook{
 		OnStop: func(ctx context.Context) error {
-			logger.Info("Closing Redis connection")
+			logger.Info("Closing Kafka connection")
 			return nil
 		},
 	})
