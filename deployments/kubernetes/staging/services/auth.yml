@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  labels:
+    app: auth-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+        - name: auth-service
+          image: localhost:5000/podzone-auth:dev
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 50051
+              name: grpc
+          env:
+            - name: APP_ENV
+              valueFrom:
+                secretKeyRef:
+                  name: global-secrets
+                  key: APP_ENV
+            - name: DEFAULT_LOG_LEVEL
+              valueFrom:
+                secretKeyRef:
+                  name: global-secrets
+                  key: DEFAULT_LOG_LEVEL
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: global-secrets
+                  key: GOOGLE_CLIENT_ID
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: global-secrets
+                  key: GOOGLE_CLIENT_SECRET
+            - name: OAUTH_REDIRECT_URL
+              valueFrom:
+                secretKeyRef:
+                  name: global-secrets
+                  key: OAUTH_REDIRECT_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: global-secrets
+                  key: JWT_SECRET
+            # - name: APP_REDIRECT_URL
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: global-secrets
+            #       key: APP_REDIRECT_URL
+            - name: APP_REDIRECT_URL
+              value: 'http://admin-ui.tuannm.uk/home'
+
+            - name: GRPC_PORT
+              value: '50051'
+            - name: REDIS_ADDR
+              value: 'redis://redis:6379/0'
+            - name: PG_AUTH_URI
+              value: 'postgres://postgres:postgres@postgres:5432/auth'
+
+          resources:
+            limits:
+              cpu: '500m'
+              memory: '512Mi'
+            requests:
+              cpu: '100m'
+              memory: '128Mi'
+          readinessProbe:
+            tcpSocket:
+              port: 50051
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 50051
+            initialDelaySeconds: 15
+            periodSeconds: 30
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+spec:
+  selector:
+    app: auth-service
+  ports:
+    - port: 50051
+      name: grpc
+      targetPort: 50051

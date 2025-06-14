@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name:
+    redisinsight-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 5540
+  selector:
+    app: redisinsight
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redisinsight
+  labels:
+    app: redisinsight
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redisinsight
+  template:
+    metadata:
+      labels:
+        app: redisinsight
+    spec:
+      containers:
+        - name: redisinsight
+          image: redis/redisinsight:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5540
+              protocol: TCP
