@@ -52,8 +52,6 @@ spec:
             - name: mongodb-config
               mountPath: /etc/mongod.conf
               subPath: mongod.conf
-            - name: mongodb-init
-              mountPath: /docker-entrypoint-initdb.d
           readinessProbe:
             exec:
               command:
@@ -94,7 +92,7 @@ spec:
         storageClassName: longhorn
         resources:
           requests:
-            storage: 1Gi
+            storage: 10Gi
 ---
 apiVersion: v1
 kind: Service

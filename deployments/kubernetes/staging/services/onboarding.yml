@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: onboarding-service
-          image: localhost:5000/podzone-onboarding:dev
+          image: localhost:5000/podzone-onboarding:staging
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

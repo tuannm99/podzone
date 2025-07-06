@@ -4,8 +4,12 @@ metadata:
   name: apisix-ingress
   namespace: default
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
-    cert-manager.io/cluster-issuer: 'letsencrypt-dev'
+    nginx.ingress.kubernetes.io/ssl-redirect: 'false'
+    nginx.ingress.kubernetes.io/ssl-passthrough: 'true'
+    nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
+    nginx.ingress.kubernetes.io/use-forwarded-headers: 'true'
+    cert-manager.io/cluster-issuer: 'letsencrypt-staging'
+    acme.cert-manager.io/http01-ingress-class: nginx
 spec:
   ingressClassName: nginx
   tls:

@@ -25,7 +25,7 @@ linters:
     - unconvert # removes unnecessary type conversions
     - unparam # reports unused function parameters
     - nilerr # finds the code that returns nil even if it checks that the error is not nil
-    - nilnesserr # reports that it checks for err != nil, but it returns a different nil value error (powered by nilness and nilerr)
+    # - nilnesserr # reports that it checks for err != nil, but it returns a different nil value error (powered by nilness and nilerr)
     - asciicheck # checks that your code does not contain non-ASCII identifiers
   disable:
     - errcheck

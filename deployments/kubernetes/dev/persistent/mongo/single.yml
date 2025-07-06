@@ -83,9 +83,6 @@ spec:
         - name: mongodb-config
           configMap:
             name: mongodb-config
-        - name: mongodb-init
-          configMap:
-            name: mongodb-init
   volumeClaimTemplates:
     - metadata:
         name: mongodb-data

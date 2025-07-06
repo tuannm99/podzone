@@ -105,6 +105,18 @@ k8s-dev:
 		kubectl apply -f deployments/kubernetes/dev/services/$$svc.yml; \
 	done
 
+k8s-staging:
+	@echo "📦 Building and deploying all services..."
+	@for svc in $(SVC); do \
+		echo "🚀 Building $$svc..."; \
+		docker build -t localhost:5000/podzone-$$svc:staging \
+			--build-arg SERVICE_NAME=$$svc \
+			-f Dockerfile .; \
+		docker push localhost:5000/podzone-$$svc:staging; \
+		kubectl delete -f deployments/kubernetes/staging/services/$$svc.yml --ignore-not-found; \
+		kubectl apply -f deployments/kubernetes/staging/services/$$svc.yml; \
+	done
+
 portfw:
 	kubectl port-forward svc/redis 6379:6379 -n default &
 	kubectl port-forward svc/postgres 5432:5432 -n default &

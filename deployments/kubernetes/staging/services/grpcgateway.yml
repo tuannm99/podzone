@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: grpcgateway-service
-          image: localhost:5000/podzone-grpcgateway:dev
+          image: localhost:5000/podzone-grpcgateway:staging
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
