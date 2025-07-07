@@ -49,6 +49,8 @@ spec:
               value: '8080'
             - name: REDIS_ADDR
               value: 'redis://redis:6379/0'
+            - name: MONGO_ONBOARDING_URI
+              value: 'mongodb://mongodb-internal.default.svc.cluster.local:27017/onboarding'
 
           resources:
             limits:
