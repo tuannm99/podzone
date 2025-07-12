@@ -6,7 +6,7 @@ COPY package*.json ./
 
 RUN npm install
 
-ENV VITE_ADMIN_API_URL=https://gateway.local.com/api
+ENV VITE_ADMIN_API_URL=${ADMIN_API_URL}
 
 COPY . .
 

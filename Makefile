@@ -93,32 +93,33 @@ dev:
 	done; \
 	wait
 
-k8s-dev:
-	@echo "📦 Building and deploying all services..."
+k8s:
+	@echo "📦 Building and deploying api services..."
 	@for svc in $(SVC); do \
 		echo "🚀 Building $$svc..."; \
-		docker build -t localhost:5000/podzone-$$svc:dev \
+		docker build -t localhost:5000/podzone-$$svc:$(ENV) \
 			--build-arg SERVICE_NAME=$$svc \
 			-f Dockerfile .; \
-		docker push localhost:5000/podzone-$$svc:dev; \
-		kubectl delete -f deployments/kubernetes/dev/services/$$svc.yml --ignore-not-found; \
-		kubectl apply -f deployments/kubernetes/dev/services/$$svc.yml; \
+		docker push localhost:5000/podzone-$$svc:$(ENV); \
+		kubectl delete -f deployments/kubernetes/$(ENV)/services/$$svc.yml --ignore-not-found; \
+		kubectl apply -f deployments/kubernetes/$(ENV)/services/$$svc.yml; \
 	done
 
-k8s-staging:
-	@echo "📦 Building and deploying all services..."
+k8s-ui:
+	@echo "📦 Building and deploying ui services..."
 	@for svc in $(SVC); do \
 		echo "🚀 Building $$svc..."; \
-		docker build -t localhost:5000/podzone-$$svc:staging \
+		docker build -t localhost:5000/podzone-$$svc:$(ENV) \
 			--build-arg SERVICE_NAME=$$svc \
-			-f Dockerfile .; \
-		docker push localhost:5000/podzone-$$svc:staging; \
-		kubectl delete -f deployments/kubernetes/staging/services/$$svc.yml --ignore-not-found; \
-		kubectl apply -f deployments/kubernetes/staging/services/$$svc.yml; \
+			-f Dockerfile-ui .; \
+		docker push localhost:5000/podzone-$$svc:$(ENV); \
+		kubectl delete -f deployments/kubernetes/$(ENV)/services/$$svc.yml --ignore-not-found; \
+		kubectl apply -f deployments/kubernetes/$(ENV)/services/$$svc.yml; \
 	done
 
 portfw:
 	kubectl port-forward svc/redis 6379:6379 -n default &
+	kubectl port-forward svc/redisinsight-service 6688:80 -n default &
 	kubectl port-forward svc/postgres 5432:5432 -n default &
 	kubectl port-forward svc/mongodb-internal 27017:27017 -n default &
 	kubectl port-forward svc/kafka 9092:9092 -n default &
@@ -127,11 +128,12 @@ portfw:
 
 help:
 	@echo "$(COLOR_YELLOW)Available commands:$(COLOR_RESET)"
-	@echo "  make api                    - Generate protobuf code, swagger api"
-	@echo "  make test                   - Run tests"
-	@echo "  make lint                   - Run linter"
-	@echo "  make portfw                 - Portfowrding for dev"
-	@echo "  make dev SVC=${service}     - Run service"
-	@echo "  make gql-backoffice         - Generate backoffice graphql"
-	@echo "  make k8s-dev SVC=${service} - Deploy service to k8s dev EG: k8s-dev SVC="grpcgateway catalog auth storefront backoffice""
+	@echo "  make api                              - Generate protobuf code, swagger api"
+	@echo "  make test                             - Run tests"
+	@echo "  make lint                             - Run linter"
+	@echo "  make portfw                           - Portfowrding"
+	@echo "  make dev SVC=${service}               - Run service"
+	@echo "  make gql-backoffice                   - Generate backoffice graphql"
+	@echo "  make k8s ENV=${env} SVC=${service}    - Deploy service to k8s dev EG: k8s ENV="staging" SVC="grpcgateway catalog auth storefront backoffice""
+	@echo "  make k8s-ui ENV=${env} SVC=${service} - Deploy service to k8s dev EG: k8s ENV="staging" SVC="ui-admin ""
 
