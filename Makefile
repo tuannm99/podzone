@@ -119,10 +119,12 @@ k8s-ui:
 
 portfw:
 	kubectl port-forward svc/redis 6379:6379 -n default &
-	kubectl port-forward svc/redisinsight-service 6688:80 -n default &
+	kubectl port-forward svc/redisinsight-service 8888:80 -n default &
 	kubectl port-forward svc/postgres 5432:5432 -n default &
+	kubectl port-forward svc/pgadmin 8889:80 -n default &
 	kubectl port-forward svc/mongodb-internal 27017:27017 -n default &
 	kubectl port-forward svc/kafka 9092:9092 -n default &
+	kubectl port-forward svc/kafka-ui 8890:80 -n default &
 	kubectl port-forward svc/elasticsearch 9200:9200 -n default &
 	kubectl port-forward svc/kibana 5601:5601 -n default
 
