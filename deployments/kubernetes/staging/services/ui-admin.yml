@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: ui-admin
-          image: localhost:5000/ui-admin:staging
+          image: localhost:5000/podzone-ui-admin:staging
           imagePullPolicy: Always
           ports:
             - containerPort: 80

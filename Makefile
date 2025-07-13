@@ -107,10 +107,12 @@ k8s:
 
 k8s-ui:
 	@echo "📦 Building and deploying ui services..."
-	@for svc in $(SVC); do \
+	set -a; source .env; set +a;
+	for svc in $(SVC); do \
 		echo "🚀 Building $$svc..."; \
 		docker build -t localhost:5000/podzone-$$svc:$(ENV) \
 			--build-arg SERVICE_NAME=$$svc \
+			--build-arg VITE_ADMIN_API_URL=$$VITE_ADMIN_API_URL \
 			-f Dockerfile-ui .; \
 		docker push localhost:5000/podzone-$$svc:$(ENV); \
 		kubectl delete -f deployments/kubernetes/$(ENV)/services/$$svc.yml --ignore-not-found; \
@@ -136,6 +138,6 @@ help:
 	@echo "  make portfw                           - Portfowrding"
 	@echo "  make dev SVC=${service}               - Run service"
 	@echo "  make gql-backoffice                   - Generate backoffice graphql"
-	@echo "  make k8s ENV=${env} SVC=${service}    - Deploy service to k8s dev EG: k8s ENV="staging" SVC="grpcgateway catalog auth storefront backoffice""
-	@echo "  make k8s-ui ENV=${env} SVC=${service} - Deploy service to k8s dev EG: k8s ENV="staging" SVC="ui-admin ""
+	@echo "  make k8s ENV=${env} SVC=${service}    - Deploy service to k8s dev EG: make k8s ENV="staging" SVC="grpcgateway catalog auth storefront backoffice""
+	@echo "  make k8s-ui ENV=${env} SVC=${service} - Deploy service to k8s dev EG: make k8s-ui ENV="staging" SVC="ui-admin""
 
