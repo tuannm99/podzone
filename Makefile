@@ -97,10 +97,10 @@ k8s:
 	@echo "📦 Building and deploying api services..."
 	@for svc in $(SVC); do \
 		echo "🚀 Building $$svc..."; \
-		docker build -t localhost:5000/podzone-$$svc:$(ENV) \
+		docker build -t tuannm99/podzone-$$svc:$(ENV) \
 			--build-arg SERVICE_NAME=$$svc \
 			-f Dockerfile .; \
-		docker push localhost:5000/podzone-$$svc:$(ENV); \
+		docker push tuannm99/podzone-$$svc:$(ENV); \
 		kubectl delete -f deployments/kubernetes/$(ENV)/services/$$svc.yml --ignore-not-found; \
 		kubectl apply -f deployments/kubernetes/$(ENV)/services/$$svc.yml; \
 	done
@@ -108,27 +108,26 @@ k8s:
 k8s-ui:
 	@echo "📦 Building and deploying ui services..."
 	set -a; source .env; set +a;
-	for svc in $(SVC); do \
-		echo "🚀 Building $$svc..."; \
-		docker build -t localhost:5000/podzone-$$svc:$(ENV) \
+	for svc in $(SVC); do \ echo "🚀 Building $$svc..."; \
+		docker build -t tuannm99/podzone-$$svc:$(ENV) \
 			--build-arg SERVICE_NAME=$$svc \
 			--build-arg VITE_ADMIN_API_URL=$$VITE_ADMIN_API_URL \
 			-f Dockerfile-ui .; \
-		docker push localhost:5000/podzone-$$svc:$(ENV); \
+		docker push tuannm99/podzone-$$svc:$(ENV); \
 		kubectl delete -f deployments/kubernetes/$(ENV)/services/$$svc.yml --ignore-not-found; \
 		kubectl apply -f deployments/kubernetes/$(ENV)/services/$$svc.yml; \
 	done
 
 portfw:
-	kubectl port-forward svc/redis 6379:6379 -n default &
-	kubectl port-forward svc/redisinsight-service 8888:80 -n default &
-	kubectl port-forward svc/postgres 5432:5432 -n default &
-	kubectl port-forward svc/pgadmin 8889:80 -n default &
-	kubectl port-forward svc/mongodb-internal 27017:27017 -n default &
-	kubectl port-forward svc/kafka 9092:9092 -n default &
-	kubectl port-forward svc/kafka-ui 8890:80 -n default &
-	kubectl port-forward svc/elasticsearch 9200:9200 -n default &
-	kubectl port-forward svc/kibana 5601:5601 -n default
+	kubectl port-forward svc/redis 6379:6379 &
+	kubectl port-forward svc/redisinsight-service 8888:80 &
+	kubectl port-forward svc/postgres 5432:5432 &
+	kubectl port-forward svc/pgadmin 8889:80 &
+	kubectl port-forward svc/mongodb-internal 27017:27017 &
+	kubectl port-forward svc/kafka 9092:9092 &
+	kubectl port-forward svc/kafka-ui 8890:80 &
+	kubectl port-forward svc/elasticsearch 9200:9200 &
+	kubectl port-forward svc/kibana 5601:5601
 
 help:
 	@echo "$(COLOR_YELLOW)Available commands:$(COLOR_RESET)"

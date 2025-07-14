@@ -104,3 +104,5 @@ vitest.config.*.timestamp*
 *.njsproj
 *.sln
 *.sw?
+
+Dockerfile-dev-*

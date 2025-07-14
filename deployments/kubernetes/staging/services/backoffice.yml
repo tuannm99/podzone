@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: backoffice-service
-          image: localhost:5000/podzone-backoffice:staging
+          image: tuannm99/podzone-backoffice:staging
           imagePullPolicy: Always
           ports:
             - containerPort: 8000

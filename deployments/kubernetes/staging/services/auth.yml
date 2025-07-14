@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: localhost:5000/podzone-auth:staging
+          image: tuannm99/podzone-auth:staging
           imagePullPolicy: Always
           ports:
             - containerPort: 50051

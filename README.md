@@ -182,8 +182,8 @@ kubectl get crd gateways.gateway.networking.k8s.io &> /dev/null || \
 docker run -d -p 5000:5000 --restart=always --name registry registry:2
 
 # sample tag and push your image
-docker tag podzone-auth:latest localhost:5000/podzone-auth:latest
-docker push localhost:5000/podzone-auth:latest
+docker tag podzone-auth:latest tuannm99/podzone-auth:latest
+docker push tuannm99/podzone-auth:latest
 
 # Configure k3s to use this registry
 sudo tee /etc/rancher/k3s/registries.yaml > /dev/null << EOF

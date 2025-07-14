@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: catalog-service
-          image: localhost:5000/podzone-catalog:staging
+          image: tuannm99/podzone-catalog:staging
           imagePullPolicy: Always
           ports:
             - containerPort: 50051
@@ -38,7 +38,7 @@ spec:
             - name: CATALOG_REDIS_ADDR
               value: 'redis://redis:6379/1'
             - name: MONGO_CATALOG_URI
-              value: 'mongodb://minhtuan:minhtuan123@mongodb-internal.default.svc.cluster.local:5432/catalog'
+              value: 'mongodb://minhtuan:minhtuan123@mongodb-internal.default.svc.cluster.local:27017/catalog'
 
           resources:
             limits:
