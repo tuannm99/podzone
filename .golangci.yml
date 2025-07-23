@@ -10,27 +10,21 @@ linters:
     - staticcheck
     - ineffassign
     - unused
-    # - goimports
-    # - gosimple
-    # - typecheck
-
-    - lll # reports long lines
-    - copyloopvar # detects places where loop variables are copied (Go 1.22+)
-    - errname # checks that sentinel errors are prefixed with the Err and error types are suffixed with the Error
-    - wastedassign # finds wasted assignment statements
-    - whitespace # detects leading and trailing whitespace
-    - testifylint # checks usage of github.com/stretchr/testify
-    - testpackage # makes you use a separate _test package
-    - tparallel # detects inappropriate usage of t.Parallel() method in your Go test codes
-    - unconvert # removes unnecessary type conversions
-    - unparam # reports unused function parameters
-    - nilerr # finds the code that returns nil even if it checks that the error is not nil
-    # - nilnesserr # reports that it checks for err != nil, but it returns a different nil value error (powered by nilness and nilerr)
-    - asciicheck # checks that your code does not contain non-ASCII identifiers
+    - lll
+    - copyloopvar
+    - errname
+    - wastedassign
+    - whitespace
+    - testifylint
+    - testpackage
+    - tparallel
+    - unconvert
+    - unparam
+    - nilerr
+    - asciicheck
   disable:
     - errcheck
 
 issues:
-  # exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0

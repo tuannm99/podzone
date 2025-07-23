@@ -53,7 +53,7 @@ This is a Go monorepo containing a collection of microservices for an e-commerce
   - Jaeger for distributed tracing
   - OpenTelemetry for instrumentation
   - ELK for centralized logging
-- Istio service mesh implementation
+- service mesh implementation ✅ consul
   - Header detection middleware
   - Sidecar deployment configuration
   - Kubernetes deployment updates
@@ -120,10 +120,6 @@ Client Version: v1.32.0
 Kustomize Version: v5.5.0
 Server Version: v1.32.0
 
-- istioctl version
-client version: 1.24.2
-control plane version: 1.24.2
-data plane version: 1.24.2 (1 proxies)
 ```
 
 - Protocol Buffers compiler
@@ -172,37 +168,14 @@ curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="v1.31.0+k3s1" K3S_TOKEN=1234
 sudo cat /etc/rancher/k3s/k3s.yaml > ~/.kubeconfig
 export KUBECONFIG=~/.kubeconfig
 
-# install istio
-istioctl install --set profile=default --set values.global.platform=k3s
-kubectl label namespace default istio-injection=enabled
-kubectl get crd gateways.gateway.networking.k8s.io &> /dev/null || \
-{ kubectl kustomize "github.com/kubernetes-sigs/gateway-api/config/crd?ref=v1.2.1" | kubectl apply -f -; }
+# install service mesh (consul)
+helm repo add hashicorp https://helm.releases.hashicorp.com
+helm install --values deployments/kubernetes/staging/consul-mesh/values.yml consul hashicorp/consul --create-namespace --namespace consul --version "1.2.0"
 
-# local registry for faster k8s push
-docker run -d -p 5000:5000 --restart=always --name registry registry:2
-
-# sample tag and push your image
-docker tag podzone-auth:latest tuannm99/podzone-auth:latest
-docker push tuannm99/podzone-auth:latest
-
-# Configure k3s to use this registry
-sudo tee /etc/rancher/k3s/registries.yaml > /dev/null << EOF
-mirrors:
-  "localhost:5000":
-    endpoint:
-      - "http://localhost:5000"
-EOF
-
-# Restart k3s
-sudo systemctl restart k3s
+kubectl get --namespace consul secrets/consul-bootstrap-acl-token --template={{.data.token}} | base64 -d
 
 # create secret from .env
 kubectl create secret generic global-secrets --from-env-file=.env
-
-# local cicd
-curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64 && \
-chmod +x skaffold && sudo mv skaffold /usr/local/bin
-skaffold version
 
 # this is my ingress nginx controller loadbalancer IP
 # check it by run `kubectl get svc -n ingress-nginx`
@@ -215,19 +188,4 @@ ingress-nginx-controller-admission   ClusterIP      10.43.6.241     <none>      
 # -> update later as I go
 sudo vi /etc/hosts
 10.42.100.100 rancher.local.com harbor.local.com jenkin.local.com longhorn.local.com minio.local.com pg-ui.local.com
-
-# installed local cluster
-./deployments/kind-cluster-dev/install.sh
-# get rancher UI password (or we can view the password is in the script)
-kubectl get secret --namespace cattle-system bootstrap-secret -o go-template='{{.data.bootstrapPassword|base64decode}}{{"\n"}}'
-
-# mongodb
-kubectl get secret --namespace default mongodb -o jsonpath="{.data.mongodb-root-password}" | base64 -d
-
-# elasticsearch + kibana
-- username `elastic`
-kubectl get secret esv8-es-elastic-user -o jsonpath='{.data.elastic}' | base64 -d
-
-- we can login on kibana using this account -> kibana.local.com
-
 ```
