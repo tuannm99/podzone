@@ -86,13 +86,18 @@ pub async fn proxy_handler(
 
         let status = res.status();
         let headers = res.headers().clone();
-        let body = res.bytes().await.unwrap_or_default();
+        let body = res.bytes().await.map_err(|_| StatusCode::BAD_GATEWAY)?;
 
-        let mut response = Response::builder()
-            .status(status)
+        let mut response = Response::builder().status(status);
+        // Copy only valid headers
+        for (key, value) in headers.iter() {
+            if let Ok(val) = value.to_str() {
+                response = response.header(key, val);
+            }
+        }
+        let response = response
             .body(Body::from(body))
-            .unwrap();
-        *response.headers_mut() = headers;
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
         Ok(response)
     } else {
         warn!("No matching route for host={:?}, path={}", host, uri.path());

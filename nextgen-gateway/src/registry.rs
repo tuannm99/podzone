@@ -6,9 +6,9 @@ use tokio::sync::RwLock;
 pub struct RouteRegistry(pub Arc<RwLock<Vec<Route>>>);
 
 impl RouteRegistry {
-    pub async fn from_file(path: &str) -> Self {
-        let config = load_config(path);
-        Self(Arc::new(RwLock::new(config.routes)))
+    pub async fn from_file(path: &str) -> Result<Self, Box<dyn std::error::Error>> {
+        let config = load_config(path)?;
+        Ok(Self(Arc::new(RwLock::new(config.routes))))
     }
 
     pub fn into_shared(self) -> Self {

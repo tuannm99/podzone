@@ -1,7 +1,6 @@
-use serde::Deserialize;
-use std::fs;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Route {
     pub origin: String,
     pub path_prefix: Option<String>,
@@ -19,7 +18,8 @@ pub struct Config {
     pub routes: Vec<Route>,
 }
 
-pub fn load_config(path: &str) -> Config {
-    let content = fs::read_to_string(path).expect("Missing config");
-    serde_yaml::from_str(&content).expect("Invalid YAML")
+pub fn load_config(path: &str) -> Result<Config, Box<dyn std::error::Error>> {
+    let content = std::fs::read_to_string(path)?;
+    let config = serde_yaml::from_str(&content)?;
+    Ok(config)
 }

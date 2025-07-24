@@ -4,9 +4,10 @@ mod controller;
 mod proxy;
 mod registry;
 
-pub use routes::routes;
-
 #[tokio::main]
 async fn main() {
-    app::run().await;
+    if let Err(e) = app::run().await {
+        eprintln!("Application error: {}", e);
+        std::process::exit(1);
+    }
 }
