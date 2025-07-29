@@ -119,15 +119,31 @@ k8s-ui:
 	done
 
 portfw:
-	kubectl port-forward svc/redis 6379:6379 &
-	kubectl port-forward svc/redisinsight-service 8888:80 &
-	kubectl port-forward svc/postgres 5432:5432 &
-	kubectl port-forward svc/pgadmin 8889:80 &
-	kubectl port-forward svc/mongodb-internal 27017:27017 &
-	kubectl port-forward svc/kafka 9092:9092 &
-	kubectl port-forward svc/kafka-ui 8890:80 &
-	kubectl port-forward svc/elasticsearch 9200:9200 &
-	kubectl port-forward svc/kibana 5601:5601
+	@bash -c '\
+		set -e; \
+		pids=(); \
+		cleanup() { \
+			echo "Cleaning up..."; \
+			for pid in "$${pids[@]}"; do \
+				echo "Killing PID $$pid"; \
+				kill $$pid 2>/dev/null || true; \
+			done; \
+		}; \
+		trap cleanup EXIT INT TERM; \
+		\
+		kubectl port-forward svc/redis 6379:6379 -n default & pids+=($$!); \
+		kubectl port-forward svc/redisinsight-service 8888:80 -n default & pids+=($$!); \
+		kubectl port-forward svc/postgres 5432:5432 -n default & pids+=($$!); \
+		kubectl port-forward svc/pgadmin 8889:80 -n default & pids+=($$!); \
+		kubectl port-forward svc/mongodb-internal 27017:27017 -n default & pids+=($$!); \
+		kubectl port-forward svc/kafka 9092:9092 -n default & pids+=($$!); \
+		kubectl port-forward svc/kafka-ui 8890:80 -n default & pids+=($$!); \
+		kubectl port-forward svc/elasticsearch 9200:9200 -n default & pids+=($$!); \
+		kubectl port-forward svc/kibana 5601:5601 -n default & pids+=($$!); \
+		kubectl port-forward svc/consul-server 8501:8501 -n consul & pids+=($$!); \
+		\
+		wait -n || (echo "One process failed"; exit 1); \
+	'
 
 help:
 	@echo "$(COLOR_YELLOW)Available commands:$(COLOR_RESET)"
