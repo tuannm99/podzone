@@ -18,7 +18,7 @@ type StoreController struct {
 type StoreControllerParams struct {
 	fx.In
 
-	Logger  *zap.Logger
+	Logger       *zap.Logger
 	StoreService *StoreService
 }
 
