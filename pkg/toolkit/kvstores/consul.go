@@ -7,25 +7,18 @@ import (
 	"go.uber.org/zap"
 )
 
-type KVStore interface {
-	Get(path string) ([]byte, error)
-	GetKVs(prefix string) (map[string]string, error)
-	Put(path string, value []byte) error
-	Del(path string) error
-}
-
 type ConsulKVStore struct {
 	client *capi.Client
 	logger *zap.Logger
 }
 
 func NewConsulKVStore(logger *zap.Logger, address, token string) (*ConsulKVStore, error) {
-	client, err := capi.NewClient(
-		&capi.Config{
-			Address: address,
-			Token:   token,
-		},
-	)
+	config := &capi.Config{
+		Address:   address,
+		Token:     token,
+		TLSConfig: capi.TLSConfig{InsecureSkipVerify: true}, // dev-only
+	}
+	client, err := capi.NewClient(config)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create consul client %s", err)
 	}

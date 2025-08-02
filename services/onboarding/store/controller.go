@@ -8,13 +8,11 @@ import (
 	"go.uber.org/zap"
 )
 
-// StoreController handles HTTP requests for store management
 type StoreController struct {
 	logger  *zap.Logger
 	service *StoreService
 }
 
-// StoreControllerParams contains dependencies for Controller
 type StoreControllerParams struct {
 	fx.In
 
@@ -22,7 +20,6 @@ type StoreControllerParams struct {
 	StoreService *StoreService
 }
 
-// NewStoreController creates a new store controller
 func NewStoreController(params StoreControllerParams) *StoreController {
 	return &StoreController{
 		logger:  params.Logger,
@@ -30,7 +27,6 @@ func NewStoreController(params StoreControllerParams) *StoreController {
 	}
 }
 
-// RegisterRoutes registers the HTTP routes for store management
 func (c *StoreController) RegisterRoutes(r *gin.RouterGroup) {
 	stores := r.Group("/stores")
 	{
@@ -41,13 +37,11 @@ func (c *StoreController) RegisterRoutes(r *gin.RouterGroup) {
 	}
 }
 
-// CreateStoreRequest represents the request body for creating a store
 type CreateStoreRequest struct {
 	Name      string `json:"name"      binding:"required"`
 	Subdomain string `json:"subdomain" binding:"required"`
 }
 
-// CreateStore handles store creation
 func (c *StoreController) CreateStore(ctx *gin.Context) {
 	var req CreateStoreRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -71,9 +65,7 @@ func (c *StoreController) CreateStore(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, store)
 }
 
-// ListStores handles listing stores for the current user
 func (c *StoreController) ListStores(ctx *gin.Context) {
-	// TODO: Get owner ID from auth context
 	ownerID := "temp-owner-id"
 
 	stores, err := c.service.GetStoresByOwner(ctx, ownerID)
@@ -85,7 +77,6 @@ func (c *StoreController) ListStores(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, stores)
 }
 
-// GetStore handles retrieving a single store
 func (c *StoreController) GetStore(ctx *gin.Context) {
 	id := ctx.Param("id")
 
@@ -102,12 +93,10 @@ func (c *StoreController) GetStore(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, store)
 }
 
-// UpdateStoreStatusRequest represents the request body for updating store status
 type UpdateStoreStatusRequest struct {
 	Status StoreStatus `json:"status" binding:"required"`
 }
 
-// UpdateStoreStatus handles updating a store's status
 func (c *StoreController) UpdateStoreStatus(ctx *gin.Context) {
 	id := ctx.Param("id")
 
