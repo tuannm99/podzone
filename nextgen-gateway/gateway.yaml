@@ -9,3 +9,9 @@ routes:
     path_prefix: /
     target: http://localhost:8080
     max_body_size: 101024
+
+plugins:
+  auth: true
+  ratelimit: true
+  circuit_breaker: true
+  rewrite: true

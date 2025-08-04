@@ -1,4 +1,5 @@
-package postgresfx
+// TODO: FINISHING ME
+package tenantdb
 
 import (
 	"context"
@@ -11,17 +12,32 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	// "github.com/tuannm99/podzone/pkg/contextfx"
+	"github.com/tuannm99/podzone/pkg/toolkit/cache"
+)
+
+type TenantType string
+
+const (
+	TenantTypeGroup     TenantType = "group"     // separate schema per tenant
+	TenantTypeDedicated TenantType = "dedicated" // per-tenant database isolation
+)
+
+const (
+	defaultGroupSize = 999
+	// MaxPoolSize is the maximum number of connections in the pool for group-based isolation
+	MaxPoolSize = 200
+	// MaxDedicatedConnections is the maximum number of connections per application for dedicated databases
+	MaxDedicatedConnections = 50
 )
 
 // TenantDBManager manages tenant-specific database connections
 type TenantDBManager struct {
-	config *Config
-	pool   sync.Map
-	logger *zap.Logger
+	config   *Config
+	pool     sync.Map
+	logger   *zap.Logger
+	lruCache *cache.Lru
 }
 
-// Config holds PostgreSQL connection configuration
 type Config struct {
 	Host     string
 	Port     int
@@ -29,13 +45,67 @@ type Config struct {
 	Password string
 	DBName   string
 	SSLMode  string
+	// TenantType determines the isolation strategy
+	TenantType TenantType
+	// GroupSize is the number of tenants per group (only used for group-based isolation)
+	GroupSize int
+	// MaxPoolSize overrides the default MaxPoolSize for group-based isolation
+	MaxPoolSize int
+	// MaxDedicatedConnections overrides the default MaxDedicatedConnections for dedicated databases
+	MaxDedicatedConnections int
 }
 
 // NewTenantDBManager creates a new tenant database manager
 func NewTenantDBManager(config *Config, logger *zap.Logger) *TenantDBManager {
+	if config.GroupSize <= 0 {
+		config.GroupSize = defaultGroupSize
+	}
+	if config.MaxPoolSize <= 0 {
+		config.MaxPoolSize = MaxPoolSize
+	}
+	if config.MaxDedicatedConnections <= 0 {
+		config.MaxDedicatedConnections = MaxDedicatedConnections
+	}
+
 	return &TenantDBManager{
-		config: config,
-		logger: logger,
+		config:   config,
+		logger:   logger,
+		lruCache: cache.NewCache(config.MaxPoolSize),
+	}
+}
+
+// getGroupID returns the group ID for a tenant
+func (m *TenantDBManager) getGroupID(tenantID string) string {
+	// Simple hash function to determine group
+	hash := 0
+	for _, c := range tenantID {
+		hash = 31*hash + int(c)
+	}
+	groupID := (hash % m.config.GroupSize) + 1
+	return fmt.Sprintf("group_%03d", groupID)
+}
+
+// getDatabaseName returns the database name based on tenant type
+func (m *TenantDBManager) getDatabaseName(tenantID string) string {
+	switch m.config.TenantType {
+	case TenantTypeDedicated:
+		return fmt.Sprintf("tenant_%s", tenantID)
+	case TenantTypeGroup:
+		return m.getGroupID(tenantID)
+	default:
+		return m.config.DBName
+	}
+}
+
+// getSchemaName returns the schema name based on tenant type
+func (m *TenantDBManager) getSchemaName(tenantID string) string {
+	switch m.config.TenantType {
+	case TenantTypeDedicated:
+		return "default"
+	case TenantTypeGroup:
+		return fmt.Sprintf("tenant_%s", tenantID)
+	default:
+		return "public"
 	}
 }
 
@@ -46,7 +116,7 @@ func (m *TenantDBManager) CreateTenantSchema(ctx context.Context, tenantID strin
 		m.config.Port,
 		m.config.User,
 		m.config.Password,
-		m.config.DBName,
+		m.getDatabaseName(tenantID),
 		m.config.SSLMode,
 	)
 
@@ -56,7 +126,7 @@ func (m *TenantDBManager) CreateTenantSchema(ctx context.Context, tenantID strin
 	}
 
 	// Create schema for tenant
-	schemaName := "tenant_" + tenantID
+	schemaName := m.getSchemaName(tenantID)
 	err = db.Exec(fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s", schemaName)).Error
 	if err != nil {
 		return fmt.Errorf("failed to create schema: %w", err)
@@ -64,7 +134,8 @@ func (m *TenantDBManager) CreateTenantSchema(ctx context.Context, tenantID strin
 
 	m.logger.Info("Created new schema for tenant",
 		zap.String("tenant_id", tenantID),
-		zap.String("schema", schemaName))
+		zap.String("schema", schemaName),
+		zap.String("database", m.getDatabaseName(tenantID)))
 
 	return nil
 }
@@ -75,11 +146,46 @@ func (m *TenantDBManager) GetDB(ctx context.Context) (*gorm.DB, error) {
 	// if !ok {
 	// 	return nil, contextfx.ErrUnauthorized
 	// }
-    tenantID := "tenant_1"
+
+	tenantID := "tenant_1"
+
+	// For dedicated databases, check connection limit
+	if m.config.TenantType == TenantTypeDedicated {
+		count := 0
+		m.pool.Range(func(_, _ interface{}) bool {
+			count++
+			return true
+		})
+		if count >= m.config.MaxDedicatedConnections {
+			return nil, fmt.Errorf("maximum dedicated connections (%d) reached", m.config.MaxDedicatedConnections)
+		}
+	}
 
 	// Try to get from pool first
 	if db, ok := m.pool.Load(tenantID); ok {
+		if m.config.TenantType == TenantTypeGroup {
+			m.lruCache.Update(tenantID)
+		}
 		return db.(*gorm.DB), nil
+	}
+
+	// For group-based isolation, check LRU cache
+	if m.config.TenantType == TenantTypeGroup {
+		// If cache is full, remove least recently used connection
+		if m.lruCache.IsFull() {
+			oldTenantID := m.lruCache.RemoveOldest()
+			if oldTenantID != "" {
+				if oldDB, ok := m.pool.Load(oldTenantID); ok {
+					sqlDB, err := oldDB.(*gorm.DB).DB()
+					if err == nil {
+						sqlDB.Close()
+					}
+					m.pool.Delete(oldTenantID)
+					m.logger.Info("Removed old connection from pool",
+						zap.String("tenant_id", oldTenantID))
+				}
+			}
+		}
 	}
 
 	// Create new database connection
@@ -88,7 +194,7 @@ func (m *TenantDBManager) GetDB(ctx context.Context) (*gorm.DB, error) {
 		m.config.Port,
 		m.config.User,
 		m.config.Password,
-		m.config.DBName,
+		m.getDatabaseName(tenantID),
 		m.config.SSLMode,
 	)
 
@@ -111,7 +217,7 @@ func (m *TenantDBManager) GetDB(ctx context.Context) (*gorm.DB, error) {
 	}
 
 	// Set schema for this connection
-	schemaName := "tenant_" + tenantID
+	schemaName := m.getSchemaName(tenantID)
 	err = db.Exec(fmt.Sprintf("SET search_path TO %s", schemaName)).Error
 	if err != nil {
 		// If schema doesn't exist, try to create it
@@ -127,9 +233,14 @@ func (m *TenantDBManager) GetDB(ctx context.Context) (*gorm.DB, error) {
 
 	// Store in pool
 	m.pool.Store(tenantID, db)
+	if m.config.TenantType == TenantTypeGroup {
+		m.lruCache.Add(tenantID)
+	}
+
 	m.logger.Info("Created new database connection for tenant",
 		zap.String("tenant_id", tenantID),
-		zap.String("schema", schemaName))
+		zap.String("schema", schemaName),
+		zap.String("database", m.getDatabaseName(tenantID)))
 
 	return db, nil
 }
@@ -155,6 +266,7 @@ func (m *TenantDBManager) Close() {
 		return true
 	})
 	m.pool = sync.Map{}
+	m.lruCache.Clear()
 }
 
 // GormLogger implements gorm.Logger interface

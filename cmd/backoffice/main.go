@@ -78,7 +78,7 @@ func graphqlHandler(resolver *resolver.Resolver) gin.HandlerFunc {
 }
 
 func playgroundHandler() gin.HandlerFunc {
-	handlerURI := toolkit.FallbackEnv("GRAPHQL_QUERY_URI", "/query")
+	handlerURI := toolkit.GetEnv("GRAPHQL_QUERY_URI", "/query")
 	h := playground.Handler("GraphQL", handlerURI)
 
 	return func(c *gin.Context) {
@@ -126,7 +126,7 @@ func main() {
 		// Provide MongoDB connection
 		fx.Provide(
 			func() string {
-				return toolkit.FallbackEnv("MONGODB_PORTAL_URI", "mongodb://localhost:27017")
+				return toolkit.GetEnv("MONGODB_PORTAL_URI", "mongodb://localhost:27017")
 			},
 			func(uri string) *mongo.Client {
 				client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(uri))

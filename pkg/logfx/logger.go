@@ -21,8 +21,8 @@ type loggerConfig struct {
 
 func fromEnv() *loggerConfig {
 	conf := &loggerConfig{
-		level: toolkit.FallbackEnv("DEFAULT_LOG_LEVEL", "debug"),
-		env:   toolkit.FallbackEnv("APP_ENV", "dev"), // dev | prod
+		level: toolkit.GetEnv("DEFAULT_LOG_LEVEL", "debug"),
+		env:   toolkit.GetEnv("APP_ENV", "dev"), // dev | prod
 	}
 	return conf
 }

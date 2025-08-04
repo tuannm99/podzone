@@ -4,7 +4,7 @@ import (
 	"sync"
 )
 
-type Cache struct {
+type Lru struct {
 	capacity int
 	cache    map[string]*listNode
 	head     *listNode
@@ -18,17 +18,17 @@ type listNode struct {
 	next *listNode
 }
 
-func NewCache(capacity int) *Cache {
+func NewCache(capacity int) *Lru {
 	if capacity <= 0 {
 		capacity = 100
 	}
-	return &Cache{
+	return &Lru{
 		capacity: capacity,
 		cache:    make(map[string]*listNode),
 	}
 }
 
-func (c *Cache) Add(key string) {
+func (c *Lru) Add(key string) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -46,7 +46,7 @@ func (c *Cache) Add(key string) {
 	}
 }
 
-func (c *Cache) Update(key string) {
+func (c *Lru) Update(key string) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -55,28 +55,28 @@ func (c *Cache) Update(key string) {
 	}
 }
 
-func (c *Cache) RemoveOldest() string {
+func (c *Lru) RemoveOldest() string {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	return c.removeOldest()
 }
 
-func (c *Cache) IsFull() bool {
+func (c *Lru) IsFull() bool {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	return len(c.cache) >= c.capacity
 }
 
-func (c *Cache) Size() int {
+func (c *Lru) Size() int {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	return len(c.cache)
 }
 
-func (c *Cache) Contains(key string) bool {
+func (c *Lru) Contains(key string) bool {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
@@ -84,7 +84,7 @@ func (c *Cache) Contains(key string) bool {
 	return exists
 }
 
-func (c *Cache) Clear() {
+func (c *Lru) Clear() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -93,7 +93,7 @@ func (c *Cache) Clear() {
 	c.tail = nil
 }
 
-func (c *Cache) moveToFront(node *listNode) {
+func (c *Lru) moveToFront(node *listNode) {
 	if c.head == node {
 		return
 	}
@@ -119,7 +119,7 @@ func (c *Cache) moveToFront(node *listNode) {
 	}
 }
 
-func (c *Cache) removeOldest() string {
+func (c *Lru) removeOldest() string {
 	if c.tail == nil {
 		return ""
 	}

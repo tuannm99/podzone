@@ -31,7 +31,7 @@ func main() {
 			fx.Annotate(
 				func() grpcgateway.GatewayRegistrar {
 					return &grpcgateway.AuthRegistrar{
-						AddrVal: toolkit.FallbackEnv("AUTH_GRPC_ADDR", "localhost:50051"),
+						AddrVal: toolkit.GetEnv("AUTH_GRPC_ADDR", "localhost:50051"),
 					}
 				},
 				fx.ResultTags(`group:"gateway-registrars"`),
@@ -41,7 +41,7 @@ func main() {
 			fx.Annotate(
 				func() grpcgateway.GatewayRegistrar {
 					return &grpcgateway.CatalogRegistrar{
-						AddrVal: toolkit.FallbackEnv("CATALOG_GRPC_ADDR", "localhost:50052"),
+						AddrVal: toolkit.GetEnv("CATALOG_GRPC_ADDR", "localhost:50052"),
 					}
 				},
 				fx.ResultTags(`group:"gateway-registrars"`),

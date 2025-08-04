@@ -13,9 +13,18 @@ pub struct Route {
     pub max_body_size: usize,
 }
 
+#[derive(Debug, Deserialize, Serialize, Clone, Default)]
+pub struct PluginsConfig {
+    pub auth: Option<bool>,
+    pub ratelimit: Option<bool>,
+    pub circuit_breaker: Option<bool>,
+    pub rewrite: Option<bool>,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct Config {
     pub routes: Vec<Route>,
+    pub plugins: Option<PluginsConfig>,
 }
 
 pub fn load_config(path: &str) -> Result<Config, Box<dyn std::error::Error>> {

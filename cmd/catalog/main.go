@@ -17,13 +17,13 @@ func main() {
 
 	app := fx.New(
 		fx.Provide(func() grpcfx.GrpcPortFx {
-			return toolkit.FallbackEnv("GRPC_PORT", "50052")
+			return toolkit.GetEnv("GRPC_PORT", "50052")
 		}),
 
 		logfx.Module,
 
-		redisfx.ModuleFor("catalog", toolkit.FallbackEnv("CATALOG_REDIS_ADDR", "redis://localhost:6379/1")),
-		mongofx.ModuleFor("catalog", toolkit.FallbackEnv("MONGO_CATALOG_URI", "mongodb://localhost:27017/catalog")),
+		redisfx.ModuleFor("catalog", toolkit.GetEnv("CATALOG_REDIS_ADDR", "redis://localhost:6379/1")),
+		mongofx.ModuleFor("catalog", toolkit.GetEnv("MONGO_CATALOG_URI", "mongodb://localhost:27017/catalog")),
 
 		globalmiddlewarefx.CommonGRPCModule,
 		grpcfx.Module,

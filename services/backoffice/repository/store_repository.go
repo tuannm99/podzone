@@ -33,8 +33,8 @@ func NewStoreRepository(dbManager *postgresfx.TenantDBManager, logger *zap.Logge
 
 // Create creates a new store
 func (r *StoreRepository) Create(ctx context.Context, store *models.Store) error {
-	tenantID, ok := contextfx.GetTenantID(ctx)
-	if !ok {
+	tenantID, err := contextfx.GetTenantID(ctx)
+	if err != nil {
 		return ErrUnauthorized
 	}
 	store.OwnerID = tenantID
@@ -54,8 +54,8 @@ func (r *StoreRepository) Create(ctx context.Context, store *models.Store) error
 
 // GetByID gets a store by ID
 func (r *StoreRepository) GetByID(ctx context.Context, id string) (*models.Store, error) {
-	tenantID, ok := contextfx.GetTenantID(ctx)
-	if !ok {
+	tenantID, err := contextfx.GetTenantID(ctx)
+	if err != nil {
 		return nil, ErrUnauthorized
 	}
 
@@ -78,8 +78,8 @@ func (r *StoreRepository) GetByID(ctx context.Context, id string) (*models.Store
 
 // List lists all stores for a tenant
 func (r *StoreRepository) List(ctx context.Context) ([]*models.Store, error) {
-	tenantID, ok := contextfx.GetTenantID(ctx)
-	if !ok {
+	tenantID, err := contextfx.GetTenantID(ctx)
+	if err != nil {
 		return nil, ErrUnauthorized
 	}
 
@@ -99,8 +99,8 @@ func (r *StoreRepository) List(ctx context.Context) ([]*models.Store, error) {
 
 // Update updates a store
 func (r *StoreRepository) Update(ctx context.Context, store *models.Store) error {
-	tenantID, ok := contextfx.GetTenantID(ctx)
-	if !ok {
+	tenantID, err := contextfx.GetTenantID(ctx)
+	if err != nil {
 		return ErrUnauthorized
 	}
 
@@ -124,8 +124,8 @@ func (r *StoreRepository) Update(ctx context.Context, store *models.Store) error
 
 // Delete deletes a store
 func (r *StoreRepository) Delete(ctx context.Context, id string) error {
-	tenantID, ok := contextfx.GetTenantID(ctx)
-	if !ok {
+	tenantID, err := contextfx.GetTenantID(ctx)
+	if err != nil {
 		return ErrUnauthorized
 	}
 

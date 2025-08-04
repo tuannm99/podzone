@@ -17,7 +17,7 @@ func main() {
 
 	app := fx.New(
 		logfx.Module,
-		mongofx.ModuleFor("onboarding", toolkit.FallbackEnv("MONGO_ONBOARDING_URI", "mongodb://localhost:27017/onboarding")),
+		mongofx.ModuleFor("onboarding", toolkit.GetEnv("MONGO_ONBOARDING_URI", "mongodb://localhost:27017/onboarding")),
 
 		globalmiddlewarefx.CommonGinMiddlewareModule,
 		httpfx.Module,

@@ -17,13 +17,13 @@ const (
 
 // Store represents a store in the system
 type Store struct {
-	ID          string      `gorm:"primaryKey" json:"id"`
-	Name        string      `gorm:"not null" json:"name"`
-	Description string      `gorm:"not null" json:"description"`
-	OwnerID     string      `gorm:"not null;index" json:"ownerId"`
+	ID          string      `gorm:"primaryKey"                json:"id"`
+	Name        string      `gorm:"not null"                  json:"name"`
+	Description string      `gorm:"not null"                  json:"description"`
+	OwnerID     string      `gorm:"not null;index"            json:"ownerId"`
 	Status      StoreStatus `gorm:"not null;type:varchar(20)" json:"status"`
-	CreatedAt   time.Time   `gorm:"not null" json:"createdAt"`
-	UpdatedAt   time.Time   `gorm:"not null" json:"updatedAt"`
+	CreatedAt   time.Time   `gorm:"not null"                  json:"createdAt"`
+	UpdatedAt   time.Time   `gorm:"not null"                  json:"updatedAt"`
 }
 
 // TableName specifies the table name for the Store model

@@ -19,17 +19,17 @@ func main() {
 
 	app := fx.New(
 		fx.Provide(func() grpcfx.GrpcPortFx {
-			return toolkit.FallbackEnv("GRPC_PORT", "50051")
+			return toolkit.GetEnv("GRPC_PORT", "50051")
 		}),
 
 		logfx.Module,
 		postgresfx.ModuleFor(
 			"auth",
-			toolkit.FallbackEnv("PG_AUTH_URI", "postgres://postgres:postgres@localhost:5432/auth"),
+			toolkit.GetEnv("PG_AUTH_URI", "postgres://postgres:postgres@localhost:5432/auth"),
 		),
 		redisfx.ModuleFor(
 			"auth",
-			toolkit.FallbackEnv("REDIS_ADDR", "redis://localhost:6379/0"),
+			toolkit.GetEnv("REDIS_ADDR", "redis://localhost:6379/0"),
 		),
 
 		globalmiddlewarefx.CommonGRPCModule,

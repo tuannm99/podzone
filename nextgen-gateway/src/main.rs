@@ -1,6 +1,7 @@
 mod app;
 mod config;
 mod controller;
+mod plugins;
 mod proxy;
 mod registry;
 

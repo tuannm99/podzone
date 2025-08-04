@@ -1,4 +1,4 @@
-use crate::config::{Config, Route, load_config};
+use crate::config::{Route, load_config};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 

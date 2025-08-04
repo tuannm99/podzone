@@ -17,9 +17,7 @@ pub fn routes(registry: RouteRegistry) -> Router {
         .with_state(registry)
 }
 
-async fn get_all_routes(
-    registry: State<RouteRegistry>,
-) -> axum::response::Response {
+async fn get_all_routes(registry: State<RouteRegistry>) -> axum::response::Response {
     let routes = (registry.0).0.read().await;
     Json(routes.clone()).into_response()
 }
