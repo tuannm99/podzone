@@ -1,33 +1,27 @@
 package dbpool
 
 import (
-	"context"
+	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
 
 	"github.com/tuannm99/podzone/pkg/toolkit"
 	"github.com/tuannm99/podzone/pkg/toolkit/config"
+	"github.com/tuannm99/podzone/pkg/toolkit/tenantdb"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-type DBType string
-
-const (
-	TenantDB DBType = "tenantdb"
-	GroupDB  DBType = "groupdb"
-)
-
 type DBConfig struct {
-	Host      string `json:"host"`
-	Port      int    `json:"port"`
-	User      string `json:"user"`
-	Password  string `json:"password"`
-	DBName    string `json:"dbname"`
-	SSLMode   string `json:"sslmode"`
-	Type      DBType `json:"type"`
-	Namespace string `json:"namespace"`
+	Host      string              `json:"host"`
+	Port      int                 `json:"port"`
+	User      string              `json:"user"`
+	Password  string              `json:"password"`
+	DBName    string              `json:"dbname"`
+	SSLMode   string              `json:"sslmode"`
+	Type      tenantdb.TenantType `json:"type"`
+	Namespace string              `json:"namespace"`
 }
 
 type Pool struct {
@@ -51,8 +45,8 @@ func NewPool(appConfig config.AppConfig, apiURL string, maxConns int) *Pool {
 	}
 }
 
-func (p *Pool) FetchConfigs(ctx context.Context) error {
-	configs, err := p.appConfig.KVStores.Get("/connection/db")
+func (p *Pool) FetchConfigs() error {
+	connection, err := p.appConfig.KVStores.Get("/connection/db")
 	if err != nil {
 		return fmt.Errorf("failed to fetch database configurations: %w", err)
 	}
@@ -60,10 +54,16 @@ func (p *Pool) FetchConfigs(ctx context.Context) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	p.configs = configs
+	var dbConfig map[string]DBConfig
+	err = json.Unmarshal(connection, &dbConfig)
+	if err != nil {
+		return fmt.Errorf("error marshal db connection to application: %w", err)
+	}
+
+	p.configs = dbConfig
 
 	for name, db := range p.conns {
-		if _, exists := configs[name]; !exists {
+		if _, exists := p.configs[name]; !exists {
 			sqlDB, err := db.DB()
 			if err == nil {
 				sqlDB.Close()
@@ -75,7 +75,7 @@ func (p *Pool) FetchConfigs(ctx context.Context) error {
 	return nil
 }
 
-func (p *Pool) findAvailableDB(dbType DBType) (*DBConfig, error) {
+func (p *Pool) findAvailableDB(dbType tenantdb.TenantType) (*DBConfig, error) {
 	var availableDB *DBConfig
 
 	for _, config := range p.configs {
@@ -91,7 +91,7 @@ func (p *Pool) findAvailableDB(dbType DBType) (*DBConfig, error) {
 	return availableDB, nil
 }
 
-func (p *Pool) GetDB(dbType DBType) (*gorm.DB, error) {
+func (p *Pool) GetDB(dbType tenantdb.TenantType) (*gorm.DB, error) {
 	config, err := p.findAvailableDB(dbType)
 	if err != nil {
 		return nil, err
@@ -138,11 +138,11 @@ func (p *Pool) GetDB(dbType DBType) (*gorm.DB, error) {
 }
 
 func (p *Pool) GetTenantDB() (*gorm.DB, error) {
-	return p.GetDB(TenantDB)
+	return p.GetDB(tenantdb.TenantTypeDedicated)
 }
 
 func (p *Pool) GetGroupDB() (*gorm.DB, error) {
-	return p.GetDB(GroupDB)
+	return p.GetDB(tenantdb.TenantTypeGroup)
 }
 
 func (p *Pool) Close() error {
