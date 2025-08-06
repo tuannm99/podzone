@@ -140,7 +140,7 @@ portfw:
 		kubectl port-forward svc/kafka-ui 8890:80 -n default & pids+=($$!); \
 		kubectl port-forward svc/elasticsearch 9200:9200 -n default & pids+=($$!); \
 		kubectl port-forward svc/kibana 5601:5601 -n default & pids+=($$!); \
-		# kubectl port-forward svc/consul-server 8501:8501 -n consul & pids+=($$!); \
+		kubectl port-forward svc/consul-server 8501:8501 -n consul & pids+=($$!); \
 		\
 		wait -n || (echo "One process failed"; exit 1); \
 	'

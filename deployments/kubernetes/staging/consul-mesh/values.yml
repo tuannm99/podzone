@@ -15,8 +15,8 @@ global:
   # Enables ACLs across the cluster to secure access to data and APIs.
   acls:
     # If true, automatically manage ACL tokens and policies for all Consul components.
-    manageSystemACLs: true
-    enabled: true
+    manageSystemACLs: false
+    # enabled: true
   # Exposes Prometheus metrics for the Consul service mesh and sidecars.
   metrics:
     enabled: true

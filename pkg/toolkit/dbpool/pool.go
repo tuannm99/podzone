@@ -13,6 +13,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var KVPathConnectionDB = "/connection/db"
+
 type DBConfig struct {
 	Host      string              `json:"host"`
 	Port      int                 `json:"port"`
@@ -46,7 +48,7 @@ func NewPool(appConfig config.AppConfig, apiURL string, maxConns int) *Pool {
 }
 
 func (p *Pool) FetchConfigs() error {
-	connection, err := p.appConfig.KVStores.Get("/connection/db")
+	connection, err := p.appConfig.KVStores.Get(KVPathConnectionDB)
 	if err != nil {
 		return fmt.Errorf("failed to fetch database configurations: %w", err)
 	}

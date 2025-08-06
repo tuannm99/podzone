@@ -7,6 +7,8 @@ import (
 	"go.uber.org/zap"
 )
 
+var _ KVStore = (*ConsulKVStore)(nil)
+
 type ConsulKVStore struct {
 	client *capi.Client
 	logger *zap.Logger
