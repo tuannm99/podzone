@@ -1,3 +1,17 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: onboarding-service 
+automountServiceAccountToken: true
+---
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ServiceDefaults
+metadata:
+  name: onboarding-service 
+spec:
+  protocol: "http"
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -13,7 +27,11 @@ spec:
     metadata:
       labels:
         app: onboarding-service
+      annotations:
+        consul.hashicorp.com/connect-inject: "true"
+        # consul.hashicorp.com/connect-service-upstream: ""
     spec:
+      serviceAccountName: onboarding-service 
       containers:
         - name: onboarding-service
           image: tuannm99/podzone-onboarding:staging
