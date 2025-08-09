@@ -1,0 +1,15 @@
+{
+  "admin": {
+    "mongo": "mongodb://minhtuan:minhtuan123@mongodb-internal.default.svc.cluster.local:27017",
+    "els": "http://elasticsearch.default.svc.cluster.local:9200",
+    "postgres": "postgres://postgres:postgres@postgres.default.svc.cluster.local:5432",
+    "redis": "redis://redis.default.svc.cluster.local:6379"
+  },
+  "pool": {
+    "mongo-01": "mongodb://minhtuan:minhtuan123@mongodb-internal.mongo-01.svc.cluster.local:27017",
+    "mongo-02": "mongodb://minhtuan:minhtuan123@mongodb-internal.mongo-02.svc.cluster.local:27017",
+    "els-01": "http://elasticsearch.els-01.svc.cluster.local:9200",
+    "postgres-01": "postgres://postgres:postgres@pg-01.default.svc.cluster.local:5432",
+    "redis-01": "redis://redis-01.default.svc.cluster.local:6379"
+  }
+}
