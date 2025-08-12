@@ -11,7 +11,7 @@ import (
 	"github.com/tuannm99/podzone/pkg/redisfx"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 
-	"github.com/tuannm99/podzone/services/auth"
+	"github.com/tuannm99/podzone/internal/auth"
 )
 
 func main() {

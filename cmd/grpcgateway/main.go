@@ -14,7 +14,7 @@ import (
 	"github.com/tuannm99/podzone/pkg/grpcgatewayfx"
 	"github.com/tuannm99/podzone/pkg/logfx"
 	"github.com/tuannm99/podzone/pkg/toolkit"
-	"github.com/tuannm99/podzone/services/grpcgateway"
+	"github.com/tuannm99/podzone/internal/grpcgateway"
 
 	pbAuth "github.com/tuannm99/podzone/pkg/api/proto/auth"
 )

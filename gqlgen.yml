@@ -1,16 +1,16 @@
 schema:
-  - services/backoffice/handlers/graphql/schema/*.graphqls
+  - internal/backoffice/handlers/graphql/schema/*.graphqls
 
 exec:
-  filename: services/backoffice/handlers/graphql/generated/generated.go
+  filename: internal/backoffice/handlers/graphql/generated/generated.go
   package: generated
 
 model:
-  filename: services/backoffice/handlers/graphql/model/models_gen.go
+  filename: internal/backoffice/handlers/graphql/model/models_gen.go
   package: model
 
 resolver:
   layout: follow-schema
-  dir: services/backoffice/handlers/graphql/resolver/
+  dir: internal/backoffice/handlers/graphql/resolver/
   package: resolver
   filename_template: '{name}.resolvers.go'

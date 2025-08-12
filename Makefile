@@ -74,7 +74,7 @@ swagger:
 # Run tests for all packages
 test:
 	@echo "$(COLOR_GREEN)Running tests...$(COLOR_RESET)"
-	$(GO) test -v ./pkg/... ./services/...
+	$(GO) test -v ./pkg/... ./internal/...
 
 # Run linter
 lint:
@@ -140,7 +140,8 @@ portfw:
 		kubectl port-forward svc/kafka-ui 8890:80 -n default & pids+=($$!); \
 		kubectl port-forward svc/elasticsearch 9200:9200 -n default & pids+=($$!); \
 		kubectl port-forward svc/kibana 5601:5601 -n default & pids+=($$!); \
-		kubectl port-forward svc/consul-server 8501:8501 -n consul & pids+=($$!); \
+		# kubectl port-forward svc/consul-server 8501:8501 -n consul & pids+=($$!); \
+		# kubectl port-forward svc/grafana 3000:3000 -n default & pids+=($$!); \
 		\
 		wait -n || (echo "One process failed"; exit 1); \
 	'

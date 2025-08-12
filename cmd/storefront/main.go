@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
-	"github.com/tuannm99/podzone/services/storefront"
+	"github.com/tuannm99/podzone/internal/storefront"
 )
 
 func main() {

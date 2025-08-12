@@ -8,7 +8,7 @@ RUN go mod download
 
 COPY cmd/${SERVICE_NAME}/ cmd/${SERVICE_NAME}/
 COPY pkg/ pkg/
-COPY services/${SERVICE_NAME}/ services/${SERVICE_NAME}/
+COPY internal/${SERVICE_NAME}/ internal/${SERVICE_NAME}/
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/${SERVICE_NAME} ./cmd/${SERVICE_NAME}/main.go
 

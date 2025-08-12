@@ -49,8 +49,10 @@ connectInject:
   webhook:
     certManager:
       enabled: true
+  transparentProxy:
+    defaultEnabled: true
 
-    # Enables metrics for Consul Connect sidecars.
+  # Enables metrics for Consul Connect sidecars.
   metrics:
     defaultEnabled: true
   # apiGateway:

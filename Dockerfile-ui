@@ -3,10 +3,10 @@ FROM node:20-alpine AS builder
 ARG SERVICE_NAME
 WORKDIR /app
 
-COPY ./services/${SERVICE_NAME}/package*.json ./
+COPY ./internal/${SERVICE_NAME}/package*.json ./
 RUN npm install
 
-COPY ./services/${SERVICE_NAME}/ .
+COPY ./internal/${SERVICE_NAME}/ .
 
 ARG VITE_ADMIN_API_URL
 ENV VITE_ADMIN_API_URL=${VITE_ADMIN_API_URL}

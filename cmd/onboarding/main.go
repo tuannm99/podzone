@@ -9,7 +9,7 @@ import (
 	"github.com/tuannm99/podzone/pkg/logfx"
 	"github.com/tuannm99/podzone/pkg/mongofx"
 	"github.com/tuannm99/podzone/pkg/toolkit"
-	"github.com/tuannm99/podzone/services/onboarding"
+	"github.com/tuannm99/podzone/internal/onboarding"
 )
 
 func main() {

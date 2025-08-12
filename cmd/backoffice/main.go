@@ -22,9 +22,9 @@ import (
 	"github.com/tuannm99/podzone/pkg/contextfx"
 	"github.com/tuannm99/podzone/pkg/logfx"
 	"github.com/tuannm99/podzone/pkg/toolkit"
-	"github.com/tuannm99/podzone/services/backoffice"
-	"github.com/tuannm99/podzone/services/backoffice/handlers/graphql/generated"
-	"github.com/tuannm99/podzone/services/backoffice/handlers/graphql/resolver"
+	"github.com/tuannm99/podzone/internal/backoffice"
+	"github.com/tuannm99/podzone/internal/backoffice/handlers/graphql/generated"
+	"github.com/tuannm99/podzone/internal/backoffice/handlers/graphql/resolver"
 )
 
 // TenantMiddleware is a GraphQL middleware that extracts tenant_id from request headers
