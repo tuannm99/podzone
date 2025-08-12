@@ -53,7 +53,7 @@ This is a Go monorepo containing a collection of microservices for an e-commerce
   - Jaeger for distributed tracing
   - OpenTelemetry for instrumentation
   - ELK for centralized logging
-- service mesh implementation ✅ consul
+- service mesh implementation ✅ istio
   - Header detection middleware
   - Sidecar deployment configuration
   - Kubernetes deployment updates
@@ -168,11 +168,26 @@ curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="v1.31.0+k3s1" K3S_TOKEN=1234
 sudo cat /etc/rancher/k3s/k3s.yaml > ~/.kubeconfig
 export KUBECONFIG=~/.kubeconfig
 
-# install service mesh (consul)
-helm repo add hashicorp https://helm.releases.hashicorp.com
-helm install --values deployments/kubernetes/staging/consul-mesh/values.yml consul hashicorp/consul --create-namespace --namespace consul --version "1.2.0"
+# or istio
+kubectl create namespace istio-system
+helm install istiod istio/istiod -n istio-system --wait
+helm install istiod istio/istiod -n istio-system --wait
 
-kubectl get --namespace consul secrets/consul-bootstrap-acl-token --template={{.data.token}} | base64 -d
+kubectl get crd gateways.gateway.networking.k8s.io &> /dev/null || \
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.3.0/standard-install.yaml
+
+kubectl label namespace default istio-injection=enabled
+
+helm status istiod -n istio-system
+helm get all istiod -n istio-system
+
+
+# k8s dashboard
+helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard --create-namespace --namespace kubernetes-dashboard
+
+kubectl create serviceaccount -n kubernetes-dashboard admin-user
+kubectl create clusterrolebinding -n kubernetes-dashboard admin-user --clusterrole cluster-admin --serviceaccount=kubernetes-dashboard:admin-user
+token=$(kubectl -n kubernetes-dashboard create token admin-user)
 
 # create secret from .env
 kubectl create secret generic global-secrets --from-env-file=.env

@@ -77,24 +77,23 @@ spec:
       targetPort: 8080
   type: ClusterIP
 
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: kafka-ui-ingress
-  namespace: default
-  annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: 'false'
-spec:
-  ingressClassName: nginx
-  rules:
-    - host: kafka-ui.tuannm.uk
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: kafka-ui
-                port:
-                  number: 80
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: kafka-ui-ingress
+#   annotations:
+#     nginx.ingress.kubernetes.io/ssl-redirect: 'false'
+# spec:
+#   ingressClassName: nginx
+#   rules:
+#     - host: kafka-ui.tuannm.uk
+#       http:
+#         paths:
+#           - path: /
+#             pathType: Prefix
+#             backend:
+#               service:
+#                 name: kafka-ui
+#                 port:
+#                   number: 80

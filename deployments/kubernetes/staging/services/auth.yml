@@ -63,9 +63,9 @@ spec:
             - name: GRPC_PORT
               value: '50051'
             - name: REDIS_ADDR
-              value: 'redis://redis:6379/0'
+              value: 'redis://redis.persistent-staging.svc.cluster.local:6379/0'
             - name: PG_AUTH_URI
-              value: 'postgres://postgres:postgres@postgres:5432/auth'
+              value: 'postgres://postgres:postgres@postgres.persistent-staging.svc.cluster.local:5432/auth'
 
           resources:
             limits:
