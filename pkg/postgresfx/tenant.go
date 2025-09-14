@@ -6,11 +6,10 @@ import (
 	"sync"
 	"time"
 
-	"go.uber.org/zap"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-
 	// "github.com/tuannm99/podzone/pkg/contextfx"
 )
 
@@ -18,7 +17,7 @@ import (
 type TenantDBManager struct {
 	config *Config
 	pool   sync.Map
-	logger *zap.Logger
+	logger pdlog.Logger
 }
 
 // Config holds PostgreSQL connection configuration
@@ -32,7 +31,7 @@ type Config struct {
 }
 
 // NewTenantDBManager creates a new tenant database manager
-func NewTenantDBManager(config *Config, logger *zap.Logger) *TenantDBManager {
+func NewTenantDBManager(config *Config, logger pdlog.Logger) *TenantDBManager {
 	return &TenantDBManager{
 		config: config,
 		logger: logger,
@@ -62,9 +61,7 @@ func (m *TenantDBManager) CreateTenantSchema(ctx context.Context, tenantID strin
 		return fmt.Errorf("failed to create schema: %w", err)
 	}
 
-	m.logger.Info("Created new schema for tenant",
-		zap.String("tenant_id", tenantID),
-		zap.String("schema", schemaName))
+	m.logger.Info("Created new schema for tenant").With("tenant_id", tenantID).With("schema", schemaName).Send()
 
 	return nil
 }
@@ -75,7 +72,7 @@ func (m *TenantDBManager) GetDB(ctx context.Context) (*gorm.DB, error) {
 	// if !ok {
 	// 	return nil, contextfx.ErrUnauthorized
 	// }
-    tenantID := "tenant_1"
+	tenantID := "tenant_1"
 
 	// Try to get from pool first
 	if db, ok := m.pool.Load(tenantID); ok {
@@ -127,9 +124,10 @@ func (m *TenantDBManager) GetDB(ctx context.Context) (*gorm.DB, error) {
 
 	// Store in pool
 	m.pool.Store(tenantID, db)
-	m.logger.Info("Created new database connection for tenant",
-		zap.String("tenant_id", tenantID),
-		zap.String("schema", schemaName))
+	m.logger.Info("Created new database connection for tenant").
+		With("tenant_id", tenantID).
+		With("schema", schemaName).
+		Send()
 
 	return db, nil
 }
@@ -140,18 +138,13 @@ func (m *TenantDBManager) Close() {
 		db := value.(*gorm.DB)
 		sqlDB, err := db.DB()
 		if err != nil {
-			m.logger.Error("Failed to get underlying SQL DB",
-				zap.String("tenant_id", key.(string)),
-				zap.Error(err))
+			m.logger.Error("Failed to get underlying SQL DB").With("tenant_id", key.(string)).Err(err).Send()
 			return true
 		}
 		if err := sqlDB.Close(); err != nil {
-			m.logger.Error("Failed to close database connection",
-				zap.String("tenant_id", key.(string)),
-				zap.Error(err))
+			m.logger.Error("Failed to close database connection").With("tenant_id", key.(string)).Err(err).Send()
 		}
-		m.logger.Info("Closed database connection for tenant",
-			zap.String("tenant_id", key.(string)))
+		m.logger.Info("Closed database connection for tenant").With("tenant_id", key.(string)).Send()
 		return true
 	})
 	m.pool = sync.Map{}
@@ -159,9 +152,9 @@ func (m *TenantDBManager) Close() {
 
 // GormLogger implements gorm.Logger interface
 type GormLogger struct {
-	*zap.Logger
+	pdlog.Logger
 }
 
 func (l *GormLogger) Printf(format string, args ...interface{}) {
-	l.Info(fmt.Sprintf(format, args...))
+	l.Info(fmt.Sprintf(format, args...)).Send()
 }

@@ -6,52 +6,27 @@ import (
 	"os"
 	"reflect"
 	"strconv"
-	"strings"
 )
 
-func GetEnv(key string, fallback string) string {
-	val := os.Getenv(key)
-	if val == "" {
+func GetEnv[T any](envName string, fallback T) T {
+	v := os.Getenv(envName)
+	if v == "" {
 		return fallback
 	}
-	return val
-}
 
-func GetEnvInt(key string, fallback int) int {
-	if value := os.Getenv(key); value != "" {
-		if intValue, err := strconv.Atoi(value); err == nil {
-			return intValue
+	switch any(fallback).(type) {
+	case string:
+		return any(v).(T)
+	case int:
+		if i, err := strconv.Atoi(v); err == nil {
+			return any(i).(T)
+		}
+	case bool:
+		if b, err := strconv.ParseBool(v); err == nil {
+			return any(b).(T)
 		}
 	}
 	return fallback
-}
-
-func GetEnvBool(key string, fallback bool) bool {
-	if value := os.Getenv(key); value != "" {
-		if boolValue, err := strconv.ParseBool(value); err == nil {
-			return boolValue
-		}
-	}
-	return fallback
-}
-
-func GetEnvSlice(key string, fallback []string) []string {
-	if value := os.Getenv(key); value != "" {
-		return strings.Split(value, ",")
-	}
-	return fallback
-}
-
-func IsDevelopment() bool {
-	return GetEnv("APP_ENV", "development") == "development"
-}
-
-func IsProduction() bool {
-	return GetEnv("APP_ENV", "development") == "production"
-}
-
-func IsStaging() bool {
-	return GetEnv("APP_ENV", "development") == "staging"
 }
 
 func AssertEqual(expected, actual any) {

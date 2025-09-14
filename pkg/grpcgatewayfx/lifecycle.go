@@ -2,19 +2,21 @@ package grpcgatewayfx
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"net/http"
 	"os"
 
 	"github.com/rs/cors"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 )
 
 type Params struct {
 	fx.In
 	Lifecycle fx.Lifecycle
 
-	Logger  *zap.Logger
+	Logger  pdlog.Logger
 	Handler http.Handler
 }
 
@@ -34,9 +36,9 @@ func startHTTPGateway(p Params) {
 	p.Lifecycle.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			go func() {
-				p.Logger.Info("gRPC-Gateway started", zap.String("address", "http://0.0.0.0:"+httpPort))
+				p.Logger.Info("gRPC-Gateway started").With("address", "http://0.0.0.0:"+httpPort).Send()
 				if err := gwServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-					p.Logger.Fatal("Failed to start HTTP server", zap.Error(err))
+					log.Fatal(fmt.Sprintf("Failed to start HTTP server %w", err))
 				}
 			}()
 			return nil

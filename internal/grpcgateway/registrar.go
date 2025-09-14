@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -22,7 +22,7 @@ type GatewayRegistrar interface {
 type GWParams struct {
 	fx.In
 	Mux        *runtime.ServeMux
-	Logger     *zap.Logger
+	Logger     pdlog.Logger
 	Registrars []GatewayRegistrar `group:"gateway-registrars"`
 }
 
@@ -46,7 +46,7 @@ func RegisterGWHandlers(p GWParams) {
 				if err == nil {
 					break
 				}
-				p.Logger.Warn("Failed to dial gRPC for registration", zap.String("service", name), zap.Error(err))
+				p.Logger.Warn("Failed to dial gRPC for registration").With("service", name).Err(err)
 				time.Sleep(3 * time.Second)
 			}
 
@@ -54,11 +54,11 @@ func RegisterGWHandlers(p GWParams) {
 			err = reg.Register(context.Background(), p.Mux, conn)
 			muxMu.Unlock()
 			if err != nil {
-				p.Logger.Error("Handler registration failed", zap.String("service", name), zap.Error(err))
+				p.Logger.Warn("Handler registration failed").With("service", name).Err(err)
 				return
 			}
 
-			p.Logger.Info("Service registered", zap.String("service", name), zap.String("addr", addr))
+			p.Logger.Info("Service registered").With("service", name).With("addr", addr)
 
 			// Launch health check in background
 			go monitorHealth(p.Logger, reg, conn)
@@ -66,7 +66,7 @@ func RegisterGWHandlers(p GWParams) {
 	}
 }
 
-func monitorHealth(logger *zap.Logger, registrar GatewayRegistrar, conn *grpc.ClientConn) {
+func monitorHealth(logger pdlog.Logger, registrar GatewayRegistrar, conn *grpc.ClientConn) {
 	name := registrar.Name()
 	client := grpc_health_v1.NewHealthClient(conn)
 
@@ -76,9 +76,9 @@ func monitorHealth(logger *zap.Logger, registrar GatewayRegistrar, conn *grpc.Cl
 		cancel()
 
 		if err != nil || resp.GetStatus() != grpc_health_v1.HealthCheckResponse_SERVING {
-			logger.Debug("Health check failed", zap.String("service", name), zap.Error(err))
+			logger.Debug("Health check failed").With("service", name).Err(err).Send()
 		} else {
-			logger.Debug("Health check OK", zap.String("service", name))
+			logger.Debug("Health check OK").With("service", name).Send()
 		}
 
 		time.Sleep(3 * time.Second)

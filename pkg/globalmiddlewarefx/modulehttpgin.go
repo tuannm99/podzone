@@ -6,11 +6,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tuannm99/podzone/pkg/httpfx"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 )
 
-func ginLoggerMiddleware(logger *zap.Logger) httpfx.Middleware {
+func ginLoggerMiddleware(logger pdlog.Logger) httpfx.Middleware {
 	return func(r *gin.Engine) {
 		r.Use(func(c *gin.Context) {
 			start := time.Now()
@@ -23,19 +23,19 @@ func ginLoggerMiddleware(logger *zap.Logger) httpfx.Middleware {
 			path := c.Request.URL.Path
 
 			if c.Request.URL.Path != "/healthz" {
-				logger.Info("HTTP request",
-					zap.Int("status", status),
-					zap.String("method", method),
-					zap.String("path", path),
-					zap.Duration("duration", duration),
-				)
+				logger.Info("HTTP request").
+					With("status", status).
+					With("method", method).
+					With("path", path).
+					With("duration", duration).
+					Send()
 			}
 		})
 	}
 }
 
-func ginHealthRoute(logger *zap.Logger) httpfx.RouteRegistrar {
-	logger.Debug("Register healthz handler")
+func ginHealthRoute(logger pdlog.Logger) httpfx.RouteRegistrar {
+	logger.Debug("Register healthz handler").Send()
 	return func(r *gin.Engine) {
 		r.GET("/healthz", func(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{"status": "ok"})

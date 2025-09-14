@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/IBM/sarama"
-	"go.uber.org/zap"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 )
 
 // KafkaClient represents a Kafka client
@@ -14,7 +14,7 @@ type KafkaClient struct {
 	producer sarama.SyncProducer
 	consumer sarama.Consumer
 	config   *Config
-	logger   *zap.Logger
+	logger   pdlog.Logger
 	mu       sync.RWMutex
 }
 
@@ -25,7 +25,7 @@ type Config struct {
 }
 
 // NewKafkaClient creates a new Kafka client
-func NewKafkaClient(config *Config, logger *zap.Logger) (*KafkaClient, error) {
+func NewKafkaClient(config *Config, logger pdlog.Logger) (*KafkaClient, error) {
 	// Producer config
 	producerConfig := sarama.NewConfig()
 	producerConfig.Producer.RequiredAcks = sarama.WaitForAll
@@ -93,14 +93,10 @@ func (c *KafkaClient) Subscribe(ctx context.Context, topic string, handler func(
 			select {
 			case msg := <-partitionConsumer.Messages():
 				if err := handler(msg.Key, msg.Value); err != nil {
-					c.logger.Error("Failed to handle message",
-						zap.String("topic", topic),
-						zap.Error(err))
+					c.logger.Error("Failed to handle message").With("topic", topic).Err(err).Send()
 				}
 			case err := <-partitionConsumer.Errors():
-				c.logger.Error("Failed to consume message",
-					zap.String("topic", topic),
-					zap.Error(err))
+				c.logger.Error("Failed to consume message").With("topic", topic).Err(err).Send()
 			case <-ctx.Done():
 				return
 			}

@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
@@ -36,8 +36,8 @@ func NewUnaryInterceptor(p GRPCParams) GRPCResult {
 	return GRPCResult{Interceptor: chain}
 }
 
-func loggerInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
-	logger.Debug("register grpc logger interceptor")
+func loggerInterceptor(logger pdlog.Logger) grpc.UnaryServerInterceptor {
+	logger.Debug("register grpc logger interceptor").Send()
 	return func(
 		ctx context.Context,
 		req any,
@@ -53,11 +53,11 @@ func loggerInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 			return resp, err
 		}
 
-		logger.Info("gRPC Request",
-			zap.String("method", info.FullMethod),
-			zap.Duration("duration", duration),
-			zap.Bool("error", err != nil),
-		)
+		logger.Info("gRPC Request").
+			With("method", info.FullMethod).
+			With("duration", duration).
+			With("error", err != nil).
+			Send()
 
 		return resp, err
 	}

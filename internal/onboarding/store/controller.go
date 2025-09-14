@@ -4,19 +4,19 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 )
 
 type StoreController struct {
-	logger  *zap.Logger
+	logger  pdlog.Logger
 	service *StoreService
 }
 
 type StoreControllerParams struct {
 	fx.In
 
-	Logger       *zap.Logger
+	Logger       pdlog.Logger
 	StoreService *StoreService
 }
 

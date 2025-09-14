@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 )
 
 func ModuleFor(name string, conStr string) fx.Option {
@@ -26,7 +26,7 @@ func ModuleFor(name string, conStr string) fx.Option {
 
 		fx.Provide(
 			fx.Annotate(
-				func(logger *zap.Logger, uri string) (*redis.Client, error) {
+				func(logger pdlog.Logger, uri string) (*redis.Client, error) {
 					redisUrl, err := url.Parse(uri)
 					if err != nil {
 						return nil, fmt.Errorf("invalid redis uri %s: %w", uri, err)
@@ -40,7 +40,7 @@ func ModuleFor(name string, conStr string) fx.Option {
 						}
 					}
 
-					logger.Info("Initializing Redis connection", zap.String("addr", redisUrl.Host))
+					logger.Info("Initializing Redis connection").With("addr", redisUrl.Host).Send()
 
 					client := redis.NewClient(&redis.Options{
 						Addr:     redisUrl.Host,
@@ -56,7 +56,7 @@ func ModuleFor(name string, conStr string) fx.Option {
 						return nil, fmt.Errorf("failed to connect to Redis at %s: %w", redisUrl.Host, err)
 					}
 
-					logger.Info("Successfully connected to Redis", zap.String("addr", redisUrl.Host))
+					logger.Info("Successfully connected to Redis").With("addr", redisUrl.Host).Send()
 					return client, nil
 				},
 				fx.ParamTags(``, fmt.Sprintf(`name:"%s"`, uriName)),
@@ -66,10 +66,10 @@ func ModuleFor(name string, conStr string) fx.Option {
 
 		fx.Invoke(
 			fx.Annotate(
-				func(lc fx.Lifecycle, logger *zap.Logger, client *redis.Client) {
+				func(lc fx.Lifecycle, logger pdlog.Logger, client *redis.Client) {
 					lc.Append(fx.Hook{
 						OnStop: func(ctx context.Context) error {
-							logger.Info("Closing Redis client", zap.String("name", name))
+							logger.Info("Closing Redis client").With("name", name).Send()
 							return client.Close()
 						},
 					})

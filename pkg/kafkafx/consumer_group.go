@@ -5,17 +5,17 @@ import (
 	"fmt"
 
 	"github.com/IBM/sarama"
-	"go.uber.org/zap"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 )
 
 // ConsumerGroupClient implements consumer group pattern
 type ConsumerGroupClient struct {
-	logger *zap.Logger
+	logger pdlog.Logger
 	config *ConsumerGroupConfig
 	group  sarama.ConsumerGroup
 }
 
-func NewConsumerGroupClient(config *ConsumerGroupConfig, logger *zap.Logger) (*ConsumerGroupClient, error) {
+func NewConsumerGroupClient(config *ConsumerGroupConfig, logger pdlog.Logger) (*ConsumerGroupClient, error) {
 	saramaConfig := config.ToSaramaConfig()
 
 	group, err := sarama.NewConsumerGroup(config.Brokers, config.GroupID, saramaConfig)
@@ -53,7 +53,7 @@ func (c *ConsumerGroupClient) Close() error {
 }
 
 type consumerGroupHandler struct {
-	logger  *zap.Logger
+	logger  pdlog.Logger
 	handler func([]byte) error
 }
 
@@ -66,9 +66,7 @@ func (h *consumerGroupHandler) ConsumeClaim(
 ) error {
 	for msg := range claim.Messages() {
 		if err := h.handler(msg.Value); err != nil {
-			h.logger.Error("Failed to handle message",
-				zap.String("topic", msg.Topic),
-				zap.Error(err))
+			h.logger.Error("Failed to handle message").With("topic", msg.Topic).Err(err).Send()
 		}
 		session.MarkMessage(msg, "")
 	}

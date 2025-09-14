@@ -3,12 +3,13 @@ package httpfx
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 )
 
 var Module = fx.Options(
@@ -24,7 +25,7 @@ type (
 type Params struct {
 	fx.In
 	Lc              fx.Lifecycle
-	Logger          *zap.Logger
+	Logger          pdlog.Logger
 	Middlewares     []Middleware     `group:"gin-middleware"`
 	RegistrarRoutes []RouteRegistrar `group:"gin-routes"`
 }
@@ -52,7 +53,7 @@ func NewHTTPServer(p Params) *gin.Engine {
 
 			go func() {
 				if err := router.Run(addr); err != nil && err != http.ErrServerClosed {
-					panic(fmt.Sprintf("failed to start HTTP server: %v", err))
+					log.Fatal(fmt.Sprintf("failed to start HTTP server: %v", err))
 				}
 			}()
 			return nil

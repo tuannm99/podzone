@@ -2,15 +2,15 @@ package main
 
 import (
 	"context"
-	"os"
+	"log"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"github.com/vektah/gqlparser/v2/ast"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -19,12 +19,12 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 
-	"github.com/tuannm99/podzone/pkg/contextfx"
-	"github.com/tuannm99/podzone/pkg/logfx"
-	"github.com/tuannm99/podzone/pkg/toolkit"
 	"github.com/tuannm99/podzone/internal/backoffice"
 	"github.com/tuannm99/podzone/internal/backoffice/handlers/graphql/generated"
 	"github.com/tuannm99/podzone/internal/backoffice/handlers/graphql/resolver"
+	"github.com/tuannm99/podzone/pkg/contextfx"
+	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 // TenantMiddleware is a GraphQL middleware that extracts tenant_id from request headers
@@ -86,11 +86,8 @@ func playgroundHandler() gin.HandlerFunc {
 	}
 }
 
-func startServer(lc fx.Lifecycle, resolver *resolver.Resolver, logger *zap.Logger) {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8000"
-	}
+func startServer(lc fx.Lifecycle, resolver *resolver.Resolver, logger pdlog.Logger) {
+	port := toolkit.GetEnv("PORT", "8000")
 
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
@@ -106,7 +103,7 @@ func startServer(lc fx.Lifecycle, resolver *resolver.Resolver, logger *zap.Logge
 
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			logger.Info("Starting server", zap.String("port", port))
+			logger.Info("Starting server").With("port", port).Send()
 			go func() {
 				_ = r.Run(":" + port)
 			}()
@@ -120,8 +117,26 @@ func startServer(lc fx.Lifecycle, resolver *resolver.Resolver, logger *zap.Logge
 }
 
 func main() {
+	_ = godotenv.Load()
+
+	logger, err := pdlog.NewFrom(
+		toolkit.GetEnv("LOG_BACKEND", "zap"),
+		context.Background(),
+		pdlog.WithLevel(toolkit.GetEnv("DEFAULT_LOG_LEVEL", "debug")),
+		pdlog.WithEnv(toolkit.GetEnv("APP_ENV", "dev")),
+		pdlog.WithAppName(toolkit.GetEnv("APP_NAME", "podzone_backoffice")),
+	)
+	if err != nil {
+		log.Fatal("error init logger %w", err)
+	}
+
 	app := fx.New(
-		logfx.Module,
+		fx.Provide(func() pdlog.Logger { return logger }),
+		fx.Invoke(func(lc fx.Lifecycle, log pdlog.Logger) {
+			lc.Append(fx.Hook{
+				OnStop: func(context.Context) error { return log.Sync() },
+			})
+		}),
 
 		// Provide MongoDB connection
 		fx.Provide(

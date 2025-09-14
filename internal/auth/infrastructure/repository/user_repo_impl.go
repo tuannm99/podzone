@@ -3,12 +3,12 @@ package repository
 import (
 	"errors"
 
-	"github.com/tuannm99/podzone/pkg/toolkit"
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
 	"github.com/tuannm99/podzone/internal/auth/infrastructure/model"
+	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -16,7 +16,7 @@ var _ outputport.UserRepository = (*UserRepositoryImpl)(nil)
 
 type UserRepoParams struct {
 	fx.In
-	Logger *zap.Logger
+	Logger pdlog.Logger
 	DB     *gorm.DB `name:"gorm-auth"`
 }
 
@@ -28,7 +28,7 @@ func NewUserRepositoryImpl(p UserRepoParams) *UserRepositoryImpl {
 }
 
 type UserRepositoryImpl struct {
-	logger *zap.Logger
+	logger pdlog.Logger
 	db     *gorm.DB `name:"gorm-auth"`
 }
 

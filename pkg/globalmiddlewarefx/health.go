@@ -3,11 +3,11 @@ package globalmiddlewarefx
 import (
 	"net/http"
 
-	"go.uber.org/zap"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 )
 
-func healthMiddleware(logger *zap.Logger) func(http.Handler) http.Handler {
-	logger.Debug("register healthz middleware")
+func healthMiddleware(logger pdlog.Logger) func(http.Handler) http.Handler {
+	logger.Debug("register healthz middleware").Send()
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/healthz" {
@@ -16,7 +16,7 @@ func healthMiddleware(logger *zap.Logger) func(http.Handler) http.Handler {
 				w.WriteHeader(http.StatusOK)
 				_, err := w.Write([]byte(`{"status":"ok"}`))
 				if err != nil {
-					logger.Error("Failed to write health check response", zap.Error(err))
+					logger.Error("Failed to write health check response").Err(err).Send()
 				}
 				return
 			}

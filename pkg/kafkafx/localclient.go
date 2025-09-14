@@ -6,16 +6,16 @@ import (
 	"sync"
 	"time"
 
-	"go.uber.org/zap"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 )
 
 type LocalClient struct {
 	handlers map[string][]MessageHandler
 	mu       sync.RWMutex
-	logger   *zap.Logger
+	logger   pdlog.Logger
 }
 
-func NewLocalClient(logger *zap.Logger) *LocalClient {
+func NewLocalClient(logger pdlog.Logger) *LocalClient {
 	return &LocalClient{
 		handlers: make(map[string][]MessageHandler),
 		logger:   logger,
@@ -35,23 +35,25 @@ func (c *LocalClient) Publish(ctx context.Context, topic string, message Message
 	c.mu.RUnlock()
 
 	if !ok || len(handlers) == 0 {
-		c.logger.Warn("No handlers for topic", zap.String("topic", topic))
+		c.logger.Warn("No handlers for topic").With("topic", topic).Send()
 		return nil
 	}
 
 	for _, handler := range handlers {
 		if err := handler(ctx, message); err != nil {
-			c.logger.Error("Failed to handle message",
-				zap.String("topic", topic),
-				zap.String("message_id", message.ID),
-				zap.Error(err))
+			c.logger.Error("Failed to handle message").
+				With("topic", topic).
+				With("message_id", message.ID).
+				Err(err).
+				Send()
 		}
 	}
 
-	c.logger.Debug("Message published locally",
-		zap.String("topic", topic),
-		zap.String("message_id", message.ID),
-		zap.String("message_type", message.Type))
+	c.logger.Debug("Message published locally").
+		With("topic", topic).
+		With("message_id", message.ID).
+		With("message_type", message.Type).
+		Send()
 
 	return nil
 }
@@ -65,7 +67,7 @@ func (c *LocalClient) Subscribe(ctx context.Context, topic string, handler Messa
 	}
 	c.handlers[topic] = append(c.handlers[topic], handler)
 
-	c.logger.Info("Subscribed to topic locally", zap.String("topic", topic))
+	c.logger.Info("Subscribed to topic locally").With("topic", topic).Send()
 
 	return nil
 }
@@ -76,7 +78,7 @@ func (c *LocalClient) Unsubscribe(topic string) error {
 
 	delete(c.handlers, topic)
 
-	c.logger.Info("Unsubscribed from topic locally", zap.String("topic", topic))
+	c.logger.Info("Unsubscribed from topic locally").With("topic", topic).Send()
 
 	return nil
 }

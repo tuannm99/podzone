@@ -2,10 +2,11 @@ package grpcfx
 
 import (
 	"context"
+	"log"
 	"net"
 
+	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -17,7 +18,7 @@ type Params struct {
 	fx.In
 	Lifecycle fx.Lifecycle
 
-	Logger   *zap.Logger
+	Logger   pdlog.Logger
 	GRPC     *grpc.Server
 	GrpcPort GrpcPortFx
 }
@@ -29,16 +30,14 @@ func startGrpcServer(p Params) {
 		OnStart: func(ctx context.Context) error {
 			lis, err := net.Listen("tcp", ":"+grpcPort)
 			if err != nil {
-				p.Logger.Fatal("Failed to listen on gRPC port",
-					zap.String("port", grpcPort),
-					zap.Error(err))
+				log.Fatal("Failed to listen on gRPC port %w", err)
 				return err
 			}
 
 			go func() {
-				p.Logger.Info("Starting gRPC server", zap.String("port", grpcPort))
+				p.Logger.Info("Starting gRPC server").With("port", grpcPort).Send()
 				if err := p.GRPC.Serve(lis); err != nil {
-					p.Logger.Fatal("Failed to serve gRPC", zap.Error(err))
+					log.Fatal("Failed to serve gRPC %w", err)
 				}
 			}()
 

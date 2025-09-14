@@ -5,35 +5,35 @@ import (
 	"errors"
 	"time"
 
+	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 )
 
 var Module = fx.Options(
 	fx.Provide(
-		func(logger *zap.Logger) (*KafkaClient, error) {
+		func(logger pdlog.Logger) (*KafkaClient, error) {
 			config := &Config{
 				Brokers: []string{"localhost:9092"},
 				GroupID: "ecommerce-group",
 			}
 			return NewKafkaClient(config, logger)
 		},
-		func(client *KafkaClient, logger *zap.Logger) (*PubSubClient, error) {
+		func(client *KafkaClient, logger pdlog.Logger) (*PubSubClient, error) {
 			configs := DefaultConfigs(client.config.Brokers)
 			pubsubConfig := configs["pubsub"].(PubSubConfig)
 			return NewPubSubClient(client, &pubsubConfig, logger)
 		},
-		func(client *KafkaClient, logger *zap.Logger) (*QueueClient, error) {
+		func(client *KafkaClient, logger pdlog.Logger) (*QueueClient, error) {
 			configs := DefaultConfigs(client.config.Brokers)
 			queueConfig := configs["queue"].(QueueConfig)
 			return NewQueueClient(client, &queueConfig, logger)
 		},
-		func(client *KafkaClient, logger *zap.Logger) (*ConsumerGroupClient, error) {
+		func(client *KafkaClient, logger pdlog.Logger) (*ConsumerGroupClient, error) {
 			configs := DefaultConfigs(client.config.Brokers)
 			groupConfig := configs["consumer_group"].(ConsumerGroupConfig)
 			return NewConsumerGroupClient(&groupConfig, logger)
 		},
-		func(client *KafkaClient, logger *zap.Logger) (*ExactlyOnceClient, error) {
+		func(client *KafkaClient, logger pdlog.Logger) (*ExactlyOnceClient, error) {
 			configs := DefaultConfigs(client.config.Brokers)
 			exactConfig := configs["exactly_once"].(ExactlyOnceConfig)
 			return NewExactlyOnceClient(client, &exactConfig, logger)
@@ -42,10 +42,10 @@ var Module = fx.Options(
 	fx.Invoke(RegisterLifecycle),
 )
 
-func RegisterLifecycle(lc fx.Lifecycle, logger *zap.Logger) {
+func RegisterLifecycle(lc fx.Lifecycle, logger pdlog.Logger) {
 	lc.Append(fx.Hook{
 		OnStop: func(ctx context.Context) error {
-			logger.Info("Closing Kafka connection")
+			logger.Info("Closing Kafka connection").Send()
 			return nil
 		},
 	})

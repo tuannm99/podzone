@@ -3,11 +3,11 @@ package onboarding
 import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 
-	"github.com/tuannm99/podzone/pkg/httpfx"
 	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager"
 	"github.com/tuannm99/podzone/internal/onboarding/store"
+	"github.com/tuannm99/podzone/pkg/httpfx"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 )
 
 var Module = fx.Options(
@@ -48,7 +48,7 @@ type Controller interface {
 type RegisterRoutesParams struct {
 	fx.In
 
-	Logger      *zap.Logger
+	Logger      pdlog.Logger
 	Controllers []Controller `group:"onboarding-controllers"`
 }
 

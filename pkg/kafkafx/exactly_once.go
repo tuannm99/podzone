@@ -5,13 +5,13 @@ import (
 	"fmt"
 
 	"github.com/IBM/sarama"
-	"go.uber.org/zap"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 )
 
 // ExactlyOnceClient implements exactly-once delivery pattern
 type ExactlyOnceClient struct {
 	client   *KafkaClient
-	logger   *zap.Logger
+	logger   pdlog.Logger
 	config   *ExactlyOnceConfig
 	producer sarama.SyncProducer
 	consumer sarama.Consumer
@@ -20,7 +20,7 @@ type ExactlyOnceClient struct {
 func NewExactlyOnceClient(
 	client *KafkaClient,
 	config *ExactlyOnceConfig,
-	logger *zap.Logger,
+	logger pdlog.Logger,
 ) (*ExactlyOnceClient, error) {
 	saramaConfig := config.ToSaramaConfig()
 
@@ -80,14 +80,10 @@ func (c *ExactlyOnceClient) Receive(ctx context.Context, topic string, handler f
 			select {
 			case msg := <-partitionConsumer.Messages():
 				if err := handler(msg.Value); err != nil {
-					c.logger.Error("Failed to handle message",
-						zap.String("topic", topic),
-						zap.Error(err))
+					c.logger.Error("Failed to handle message").With("topic", topic).Err(err).Send()
 				}
 			case err := <-partitionConsumer.Errors():
-				c.logger.Error("Failed to consume message",
-					zap.String("topic", topic),
-					zap.Error(err))
+				c.logger.Error("Failed to consume message").With("topic", topic).Err(err).Send()
 			case <-ctx.Done():
 				return
 			}
@@ -99,10 +95,10 @@ func (c *ExactlyOnceClient) Receive(ctx context.Context, topic string, handler f
 
 func (c *ExactlyOnceClient) Close() error {
 	if err := c.producer.Close(); err != nil {
-		c.logger.Error("Failed to close producer", zap.Error(err))
+		c.logger.Error("Failed to close producer").Err(err).Send()
 	}
 	if err := c.consumer.Close(); err != nil {
-		c.logger.Error("Failed to close consumer", zap.Error(err))
+		c.logger.Error("Failed to close consumer").Err(err).Send()
 	}
 	return nil
 }

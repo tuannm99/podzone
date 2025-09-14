@@ -5,19 +5,19 @@ import (
 	"fmt"
 
 	"github.com/IBM/sarama"
-	"go.uber.org/zap"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 )
 
 // PubSubClient implements publish-subscribe pattern
 type PubSubClient struct {
 	client   *KafkaClient
-	logger   *zap.Logger
+	logger   pdlog.Logger
 	config   *PubSubConfig
 	producer sarama.SyncProducer
 	consumer sarama.Consumer
 }
 
-func NewPubSubClient(client *KafkaClient, config *PubSubConfig, logger *zap.Logger) (*PubSubClient, error) {
+func NewPubSubClient(client *KafkaClient, config *PubSubConfig, logger pdlog.Logger) (*PubSubClient, error) {
 	saramaConfig := config.ToSaramaConfig()
 
 	producer, err := sarama.NewSyncProducer(config.Brokers, saramaConfig)
@@ -61,14 +61,10 @@ func (c *PubSubClient) Subscribe(ctx context.Context, topic string, handler func
 			select {
 			case msg := <-partitionConsumer.Messages():
 				if err := handler(msg.Value); err != nil {
-					c.logger.Error("Failed to handle message",
-						zap.String("topic", topic),
-						zap.Error(err))
+					c.logger.Error("Failed to handle message").With("topic", topic).Err(err).Send()
 				}
 			case err := <-partitionConsumer.Errors():
-				c.logger.Error("Failed to consume message",
-					zap.String("topic", topic),
-					zap.Error(err))
+				c.logger.Error("Failed to consume message").With("topic", topic).Err(err).Send()
 			case <-ctx.Done():
 				return
 			}
@@ -80,10 +76,10 @@ func (c *PubSubClient) Subscribe(ctx context.Context, topic string, handler func
 
 func (c *PubSubClient) Close() error {
 	if err := c.producer.Close(); err != nil {
-		c.logger.Error("Failed to close producer", zap.Error(err))
+		c.logger.Error("Failed to close producer").Err(err).Send()
 	}
 	if err := c.consumer.Close(); err != nil {
-		c.logger.Error("Failed to close consumer", zap.Error(err))
+		c.logger.Error("Failed to close consumer").Err(err).Send()
 	}
 	return nil
 }

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 )
 
 func ModuleFor(name string, uri string) fx.Option {
@@ -30,7 +30,7 @@ func ModuleFor(name string, uri string) fx.Option {
 	)
 }
 
-func NewMongoClient(lc fx.Lifecycle, logger *zap.Logger, uri string) (*mongo.Client, error) {
+func NewMongoClient(lc fx.Lifecycle, logger pdlog.Logger, uri string) (*mongo.Client, error) {
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(uri))
 	if err != nil {
 		return nil, fmt.Errorf("mongo connect failed: %w", err)
@@ -45,11 +45,11 @@ func NewMongoClient(lc fx.Lifecycle, logger *zap.Logger, uri string) (*mongo.Cli
 				return fmt.Errorf("mongo ping failed: %w", err)
 			}
 
-			logger.Info("MongoDB is reachable", zap.String("uri", uri))
+			logger.Info("MongoDB is reachable").With("uri", uri).Send()
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			logger.Info("Closing MongoDB connection", zap.String("uri", uri))
+			logger.Info("Closing MongoDB connection").With("uri", uri).Send()
 			return client.Disconnect(ctx)
 		},
 	})

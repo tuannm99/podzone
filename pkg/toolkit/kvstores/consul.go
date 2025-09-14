@@ -4,17 +4,17 @@ import (
 	"fmt"
 
 	capi "github.com/hashicorp/consul/api"
-	"go.uber.org/zap"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 )
 
 var _ KVStore = (*ConsulKVStore)(nil)
 
 type ConsulKVStore struct {
 	client *capi.Client
-	logger *zap.Logger
+	logger pdlog.Logger
 }
 
-func NewConsulKVStore(logger *zap.Logger, address, token string) (*ConsulKVStore, error) {
+func NewConsulKVStore(logger pdlog.Logger, address, token string) (*ConsulKVStore, error) {
 	config := &capi.Config{
 		Address:   address,
 		Token:     token,
@@ -36,7 +36,7 @@ func (c *ConsulKVStore) Get(path string) ([]byte, error) {
 		return nil, fmt.Errorf("cannot get kv %s", err)
 	}
 
-	c.logger.Debug("KV", zap.String("key", pair.Key), zap.ByteString("value", pair.Value))
+	c.logger.Debug("KV").With("key", pair.Key).With("value", pair.Value).Send()
 
 	return pair.Value, nil
 }
@@ -56,7 +56,7 @@ func (c *ConsulKVStore) GetKVs(prefix string) (map[string][]byte, error) {
 		keys = append(keys, kvPair.Key)
 	}
 
-	c.logger.Debug("KV", zap.Strings("keys", keys))
+	c.logger.Debug("KV").With("keys", keys).Send()
 
 	return result, nil
 }
@@ -69,7 +69,7 @@ func (c *ConsulKVStore) Put(path string, val []byte) error {
 		return fmt.Errorf("cannot put kv %s", err)
 	}
 
-	c.logger.Debug("put KV", zap.String("path", path), zap.ByteString("byte", val))
+	c.logger.Debug("put KV").With("path", path).With("byte", val).Send()
 
 	return nil
 }
@@ -82,7 +82,7 @@ func (c *ConsulKVStore) Del(path string) error {
 		return fmt.Errorf("cannot delete kv %s", err)
 	}
 
-	c.logger.Debug("KV deleted", zap.String("path", path))
+	c.logger.Debug("KV deleted").With("path", path).Send()
 
 	return nil
 }

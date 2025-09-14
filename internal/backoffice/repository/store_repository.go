@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 
-	"go.uber.org/zap"
 	"gorm.io/gorm"
 
-	"github.com/tuannm99/podzone/pkg/contextfx"
-	"github.com/tuannm99/podzone/pkg/postgresfx"
 	"github.com/tuannm99/podzone/internal/backoffice/models"
+	"github.com/tuannm99/podzone/pkg/contextfx"
+	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/postgresfx"
 )
 
 var (
@@ -20,11 +20,11 @@ var (
 // StoreRepository handles store data persistence
 type StoreRepository struct {
 	dbManager *postgresfx.TenantDBManager
-	logger    *zap.Logger
+	logger    pdlog.Logger
 }
 
 // NewStoreRepository creates a new store repository
-func NewStoreRepository(dbManager *postgresfx.TenantDBManager, logger *zap.Logger) *StoreRepository {
+func NewStoreRepository(dbManager *postgresfx.TenantDBManager, logger pdlog.Logger) *StoreRepository {
 	return &StoreRepository{
 		dbManager: dbManager,
 		logger:    logger,

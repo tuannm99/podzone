@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"go.uber.org/zap"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 )
 
 type responseWriter struct {
@@ -17,8 +17,8 @@ func (rw *responseWriter) WriteHeader(code int) {
 	rw.ResponseWriter.WriteHeader(code)
 }
 
-func loggerMiddleware(logger *zap.Logger) func(next http.Handler) http.Handler {
-	logger.Debug("register logging middleware")
+func loggerMiddleware(logger pdlog.Logger) func(next http.Handler) http.Handler {
+	logger.Debug("register logging middleware").Send()
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
@@ -28,15 +28,15 @@ func loggerMiddleware(logger *zap.Logger) func(next http.Handler) http.Handler {
 
 			duration := time.Since(start)
 			if r.URL.Path != "/healthz" {
-				logger.Info("HTTP Request",
-					zap.String("method", r.Method),
-					zap.String("path", r.URL.Path),
-					zap.String("query", r.URL.RawQuery),
-					zap.Int("status", rw.statusCode),
-					zap.String("user_agent", r.UserAgent()),
-					zap.String("remote_addr", r.RemoteAddr),
-					zap.Duration("duration", duration),
-				)
+				logger.Info("HTTP Request").
+					With("method", r.Method).
+					With("path", r.URL.Path).
+					With("query", r.URL.RawQuery).
+					With("status", rw.statusCode).
+					With("user_agent", r.UserAgent()).
+					With("remote_addr", r.RemoteAddr).
+					With("duration", duration).
+					Send()
 			}
 		})
 	}

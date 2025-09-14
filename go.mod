@@ -1,8 +1,6 @@
 module github.com/tuannm99/podzone
 
-go 1.23.8
-
-toolchain go1.23.11
+go 1.24.6
 
 require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.1
@@ -26,6 +24,7 @@ require (
 	github.com/hashicorp/consul/api v1.32.1
 	github.com/joho/godotenv v1.5.1
 	github.com/rs/cors v1.11.1
+	github.com/sony/sonyflake v1.3.0
 	github.com/vektah/gqlparser/v2 v2.5.26
 	go.mongodb.org/mongo-driver v1.17.3
 	go.uber.org/fx v1.23.0

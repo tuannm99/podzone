@@ -4,18 +4,18 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 )
 
 type InfrasController struct {
-	logger *zap.Logger
+	logger pdlog.Logger
 }
 
 type StoreControllerParams struct {
 	fx.In
 
-	Logger *zap.Logger
+	Logger pdlog.Logger
 }
 
 func NewController(params StoreControllerParams) *InfrasController {
