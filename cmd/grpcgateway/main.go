@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -22,24 +21,8 @@ import (
 func main() {
 	_ = godotenv.Load()
 
-	logger, err := pdlog.NewFrom(
-		toolkit.GetEnv("LOG_BACKEND", "zap"),
-		context.Background(),
-		pdlog.WithLevel(toolkit.GetEnv("DEFAULT_LOG_LEVEL", "debug")),
-		pdlog.WithEnv(toolkit.GetEnv("APP_ENV", "dev")),
-		pdlog.WithAppName(toolkit.GetEnv("APP_NAME", "podzone_admin_grpcgateway")),
-	)
-	if err != nil {
-		log.Fatal("error init logger %w", err)
-	}
-
 	app := fx.New(
-		fx.Provide(func() pdlog.Logger { return logger }),
-		fx.Invoke(func(lc fx.Lifecycle, log pdlog.Logger) {
-			lc.Append(fx.Hook{
-				OnStop: func(context.Context) error { return log.Sync() },
-			})
-		}),
+		pdlog.ModuleFor("podzone_admin_grpcgateway"),
 
 		pdglobalmiddleware.CommonHttpModule,
 		pdgrpcgateway.Module,
