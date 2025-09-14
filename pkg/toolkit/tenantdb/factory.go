@@ -143,9 +143,9 @@ func (m *TenantDBManager) CreateTenantSchema(ctx context.Context, tenantID strin
 
 // GetDB gets a database instance for the current tenant
 func (m *TenantDBManager) GetDB(ctx context.Context) (*gorm.DB, error) {
-	// tenantID, ok := contextfx.GetTenantID(ctx)
+	// tenantID, ok := pdcontext.GetTenantID(ctx)
 	// if !ok {
-	// 	return nil, contextfx.ErrUnauthorized
+	// 	return nil, pdcontext.ErrUnauthorized
 	// }
 
 	tenantID := "tenant_1"

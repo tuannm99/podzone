@@ -8,9 +8,9 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/tuannm99/podzone/internal/onboarding"
-	"github.com/tuannm99/podzone/pkg/globalmiddlewarefx"
-	"github.com/tuannm99/podzone/pkg/httpfx"
-	"github.com/tuannm99/podzone/pkg/mongofx"
+	"github.com/tuannm99/podzone/pkg/pdglobalmiddleware"
+	"github.com/tuannm99/podzone/pkg/pdhttp"
+	"github.com/tuannm99/podzone/pkg/pdmongo"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
@@ -37,10 +37,10 @@ func main() {
 			})
 		}),
 
-		mongofx.ModuleFor("onboarding", toolkit.GetEnv("MONGO_ONBOARDING_URI", "mongodb://localhost:27017/onboarding")),
+		pdmongo.ModuleFor("onboarding", toolkit.GetEnv("MONGO_ONBOARDING_URI", "mongodb://localhost:27017/onboarding")),
 
-		globalmiddlewarefx.CommonGinMiddlewareModule,
-		httpfx.Module,
+		pdglobalmiddleware.CommonGinMiddlewareModule,
+		pdhttp.Module,
 		onboarding.Module,
 	)
 

@@ -11,8 +11,8 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/tuannm99/podzone/internal/grpcgateway"
-	"github.com/tuannm99/podzone/pkg/globalmiddlewarefx"
-	"github.com/tuannm99/podzone/pkg/grpcgatewayfx"
+	"github.com/tuannm99/podzone/pkg/pdglobalmiddleware"
+	"github.com/tuannm99/podzone/pkg/pdgrpcgateway"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 
@@ -41,8 +41,8 @@ func main() {
 			})
 		}),
 
-		globalmiddlewarefx.CommonHttpModule,
-		grpcgatewayfx.Module,
+		pdglobalmiddleware.CommonHttpModule,
+		pdgrpcgateway.Module,
 
 		fx.Provide(
 			fx.Annotate(

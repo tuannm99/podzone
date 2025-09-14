@@ -6,7 +6,7 @@ import (
 
 	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager"
 	"github.com/tuannm99/podzone/internal/onboarding/store"
-	"github.com/tuannm99/podzone/pkg/httpfx"
+	"github.com/tuannm99/podzone/pkg/pdhttp"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 )
 
@@ -52,7 +52,7 @@ type RegisterRoutesParams struct {
 	Controllers []Controller `group:"onboarding-controllers"`
 }
 
-func RegisterHTTPRoutes(p RegisterRoutesParams) httpfx.RouteRegistrar {
+func RegisterHTTPRoutes(p RegisterRoutesParams) pdhttp.RouteRegistrar {
 	p.Logger.Info("Registering Onboarding HTTP handler")
 	return func(r *gin.Engine) {
 		v1 := r.Group("/onboarding/v1")

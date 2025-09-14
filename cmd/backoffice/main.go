@@ -22,7 +22,7 @@ import (
 	"github.com/tuannm99/podzone/internal/backoffice"
 	"github.com/tuannm99/podzone/internal/backoffice/handlers/graphql/generated"
 	"github.com/tuannm99/podzone/internal/backoffice/handlers/graphql/resolver"
-	"github.com/tuannm99/podzone/pkg/contextfx"
+	"github.com/tuannm99/podzone/pkg/pdcontext"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
@@ -50,7 +50,7 @@ func (m *TenantMiddleware) InterceptResponse(ctx context.Context, next graphql.R
 		return graphql.ErrorResponse(ctx, "tenant_id is required")
 	}
 
-	ctx = contextfx.WithTenantID(ctx, tenantID)
+	ctx = pdcontext.WithTenantID(ctx, tenantID)
 
 	return next(ctx)
 }

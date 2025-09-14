@@ -7,11 +7,11 @@ import (
 	"github.com/joho/godotenv"
 	"go.uber.org/fx"
 
-	"github.com/tuannm99/podzone/pkg/globalmiddlewarefx"
-	"github.com/tuannm99/podzone/pkg/grpcfx"
+	"github.com/tuannm99/podzone/pkg/pdglobalmiddleware"
+	"github.com/tuannm99/podzone/pkg/pdgrpc"
 	"github.com/tuannm99/podzone/pkg/pdlog"
-	"github.com/tuannm99/podzone/pkg/postgresfx"
-	"github.com/tuannm99/podzone/pkg/redisfx"
+	"github.com/tuannm99/podzone/pkg/pdpostgres"
+	"github.com/tuannm99/podzone/pkg/pdredis"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 
 	"github.com/tuannm99/podzone/internal/auth"
@@ -38,21 +38,21 @@ func main() {
 			})
 		}),
 
-		fx.Provide(func() grpcfx.GrpcPortFx {
+		fx.Provide(func() pdgrpc.GrpcPortFx {
 			return toolkit.GetEnv("GRPC_PORT", "50051")
 		}),
 
-		postgresfx.ModuleFor(
+		pdpostgres.ModuleFor(
 			"auth",
 			toolkit.GetEnv("PG_AUTH_URI", "postgres://postgres:postgres@localhost:5432/auth"),
 		),
-		redisfx.ModuleFor(
+		pdredis.ModuleFor(
 			"auth",
 			toolkit.GetEnv("REDIS_ADDR", "redis://localhost:6379/0"),
 		),
 
-		globalmiddlewarefx.CommonGRPCModule,
-		grpcfx.Module,
+		pdglobalmiddleware.CommonGRPCModule,
+		pdgrpc.Module,
 		auth.Module,
 	)
 	app.Run()
