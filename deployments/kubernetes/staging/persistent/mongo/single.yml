@@ -37,7 +37,7 @@ spec:
       containers:
         - name: mongodb
           image: mongo:4.4-bionic
-          command: ["mongod", "--config", "/etc/mongod.conf"]
+          command: ['mongod', '--config', '/etc/mongod.conf']
           ports:
             - containerPort: 27017
               name: mongodb
@@ -72,11 +72,11 @@ spec:
             periodSeconds: 15
           resources:
             requests:
-              cpu: 100m
-              memory: 256Mi
+              cpu: '50m'
+              memory: '128Mi'
             limits:
-              cpu: 300m
-              memory: 512Mi
+              cpu: '100m'
+              memory: '256Mi'
       volumes:
         - name: mongodb-config
           configMap:

@@ -10,6 +10,7 @@ spec:
     # if using kind (run inside docker container)
     # - 172.18.0.100-172.18.0.200
     # - 46.250.230.153/32
-    - 161.97.108.30-161.97.108.200
+    # current using k3s, can use this docker network
+    - 172.18.0.100-172.18.0.200
   autoAssign: true
 

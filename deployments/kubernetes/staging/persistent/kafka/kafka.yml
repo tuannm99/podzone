@@ -44,6 +44,13 @@ spec:
               value: zookeeper:2181
             - name: ALLOW_PLAINTEXT_LISTENER
               value: 'yes'
+          resources:
+            requests:
+              cpu: '50m'
+              memory: '128Mi'
+            limits:
+              cpu: '100m'
+              memory: '256Mi'
           volumeMounts:
             - name: kafka-storage
               mountPath: /bitnami/kafka

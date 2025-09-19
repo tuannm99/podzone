@@ -1,7 +1,9 @@
 # create kind cluster -> move to k3s
 # kind create cluster --config single-cluster.yaml
-curl -sfL https://get.k3s.io | K3S_TOKEN=12345 sh -s - server --disable=traefik --disable=servicelb
-export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="v1.31.0+k3s1" K3S_TOKEN=12345token sh -s - server --disable=traefik --disable=servicelb
+
+sudo cat /etc/rancher/k3s/k3s.yaml > ~/.kubeconfig
+export KUBECONFIG=~/.kubeconfig
 
 # certmanager
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.3/cert-manager.yaml

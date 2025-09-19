@@ -48,10 +48,10 @@ spec:
 
           resources:
             limits:
-              cpu: '500m'
-              memory: '512Mi'
+              cpu: '20m'
+              memory: '50Mi'
             requests:
-              cpu: '100m'
+              cpu: '50m'
               memory: '128Mi'
           readinessProbe:
             httpGet:
