@@ -36,8 +36,17 @@ spec:
               value: http://elasticsearch:9200
           resources:
             requests:
-              cpu: '50m'
-              memory: '128Mi'
-            limits:
               cpu: '100m'
               memory: '256Mi'
+            limits:
+              cpu: '200m'
+              memory: '512Mi'
+
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: 5601
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 10
+

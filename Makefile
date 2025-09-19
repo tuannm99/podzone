@@ -136,7 +136,6 @@ portfw:
 		kubectl port-forward svc/postgres 5432:5432 -n default & pids+=($$!); \
 		kubectl port-forward svc/mongodb-internal 27017:27017 -n default & pids+=($$!); \
 		kubectl port-forward svc/kafka 9092:9092 -n default & pids+=($$!); \
-		kubectl port-forward svc/kafka-ui 8890:80 -n default & pids+=($$!); \
 		kubectl port-forward svc/elasticsearch 9200:9200 -n default & pids+=($$!); \
 		kubectl port-forward svc/kibana 5601:5601 -n default & pids+=($$!); \
 		# kubectl port-forward svc/pgadmin 8889:80 -n default & pids+=($$!); \

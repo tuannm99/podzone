@@ -46,11 +46,11 @@ spec:
               value: 'yes'
           resources:
             requests:
-              cpu: '50m'
-              memory: '128Mi'
+              cpu: '200m'
+              memory: '512Mi'
             limits:
-              cpu: '100m'
-              memory: '256Mi'
+              cpu: '200m'
+              memory: '512Mi'
           volumeMounts:
             - name: kafka-storage
               mountPath: /bitnami/kafka
