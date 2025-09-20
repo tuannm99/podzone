@@ -4,53 +4,63 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/spf13/viper"
 	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 	"go.uber.org/fx"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-func ModuleFor(name string, conStr string) fx.Option {
-	pgName := fmt.Sprintf("%s-postgres-uri", name)
-	resultName := fmt.Sprintf("gorm-%s", name)
-
-	return fx.Options(
-		fx.Provide(
-			fx.Annotate(
-				func() string { return conStr },
-				fx.ResultTags(fmt.Sprintf(`name:"%s"`, pgName)),
-			),
-			fx.Annotate(
-				NewGormDB,
-				fx.ParamTags(``, ``, fmt.Sprintf(`name:"%s"`, pgName)),
-				fx.ResultTags(fmt.Sprintf(`name:"%s"`, resultName)),
-			),
-		),
-	)
+type InstanceConfig struct {
+	URI string `mapstructure:"uri"`
 }
 
-func NewGormDB(lc fx.Lifecycle, logger pdlog.Logger, conStr string) (*gorm.DB, error) {
-	db, err := gorm.Open(postgres.Open(conStr), &gorm.Config{})
-	if err != nil {
-		return nil, fmt.Errorf("postgres connect failed: %w", err)
-	}
+var Registry = toolkit.NewRegistry[*gorm.DB, InstanceConfig]("real")
 
-	sqlDB, _ := db.DB()
-	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
-			logger.Info("Pinging Postgres...").With("dsn", conStr).Send()
-			if err := sqlDB.PingContext(ctx); err != nil {
-				return fmt.Errorf("postgres ping failed: %w", err)
+func init() {
+	Registry.Register("real", PostgresFactory)
+	Registry.Register("noop", NoopPostgresFactory)
+}
+
+func ModuleFor(name string) fx.Option {
+	tag := fmt.Sprintf(`name:"%s"`, "gorm-"+name)
+
+	return fx.Provide(
+		fx.Annotate(func(v *viper.Viper, lc fx.Lifecycle, logger pdlog.Logger) (*gorm.DB, error) {
+			// expect: postgres.<name>.uri
+			sub := v.Sub("postgres")
+			if sub == nil {
+				return nil, fmt.Errorf("missing config block: postgres")
 			}
-			logger.Info("Postgres is reachable").With("dsn", conStr).Send()
-			return nil
-		},
-		OnStop: func(ctx context.Context) error {
-			logger.Info("Closing Postgres connection")
-			return sqlDB.Close()
-		},
-	})
+			sub = sub.Sub(name)
+			if sub == nil {
+				return nil, fmt.Errorf("missing config block: postgres.%s", name)
+			}
 
-	logger.Info("Connected to Postgres").With("dsn", conStr).Send()
-	return db, nil
+			var cfg InstanceConfig
+			if err := sub.Unmarshal(&cfg); err != nil {
+				return nil, fmt.Errorf("unmarshal postgres.%s failed: %w", name, err)
+			}
+
+			factory := Registry.Get()
+			db, err := factory(context.Background(), cfg)
+			if err != nil {
+				return nil, err
+			}
+
+			sqlDB, _ := db.DB()
+			lc.Append(fx.Hook{
+				OnStart: func(ctx context.Context) error {
+					logger.Info("Pinging Postgres...").With("dsn", cfg.URI).Send()
+					return sqlDB.PingContext(ctx)
+				},
+				OnStop: func(ctx context.Context) error {
+					logger.Info("Closing Postgres connection")
+					return sqlDB.Close()
+				},
+			})
+
+			return db, nil
+		}, fx.ResultTags(tag)),
+	)
 }

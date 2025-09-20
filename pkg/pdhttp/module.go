@@ -3,7 +3,6 @@ package pdhttp
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
@@ -42,24 +41,30 @@ func NewHTTPServer(p Params) *gin.Engine {
 		r(router)
 	}
 
+	httpPort := os.Getenv("HTTP_PORT")
+	if httpPort == "" {
+		httpPort = "8000"
+	}
+	addr := fmt.Sprintf(":%s", httpPort)
+
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: router,
+	}
+
 	p.Lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			httpPort := os.Getenv("HTTP_PORT")
-			if httpPort == "" {
-				httpPort = "8000"
-			}
-
-			addr := fmt.Sprintf(":%s", httpPort)
-
 			go func() {
-				if err := router.Run(addr); err != nil && err != http.ErrServerClosed {
-					log.Fatal(fmt.Sprintf("failed to start HTTP server: %v", err))
+				p.Logger.Info("Starting HTTP server").With("address", addr).Send()
+				if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+					p.Logger.Error("HTTP server stopped with error").With("err", err).Send()
 				}
 			}()
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			return nil
+			p.Logger.Info("Shutting down HTTP server")
+			return srv.Shutdown(ctx)
 		},
 	})
 
@@ -67,5 +72,5 @@ func NewHTTPServer(p Params) *gin.Engine {
 }
 
 func StartHTTPServer(_ *gin.Engine) {
-	// no code here, just triggers fx.Lifecycle
+	// only used for triggering fx.Lifecycle
 }

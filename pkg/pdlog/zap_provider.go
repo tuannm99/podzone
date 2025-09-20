@@ -9,39 +9,37 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-type zapBackend struct{}
-
-func (zapBackend) Name() string { return "zap" }
-
-func (zapBackend) New(_ context.Context, opts ...Option) (Logger, error) {
-	o := &Options{Level: "info", Env: "prod", AppName: "app"}
-	for _, f := range opts {
-		f(o)
+var zapFactory LoggerFactory = func(_ context.Context, cfg Config) (Logger, error) {
+	if cfg.Level == "" {
+		cfg.Level = "info"
+	}
+	if cfg.Env == "" {
+		cfg.Env = "prod"
 	}
 
-	var cfg zap.Config
-	if o.Env == "prod" {
-		cfg = zap.NewProductionConfig()
-		cfg.Sampling = &zap.SamplingConfig{Initial: 100, Thereafter: 100}
+	var zcfg zap.Config
+	if cfg.Env == "prod" {
+		zcfg = zap.NewProductionConfig()
+		zcfg.Sampling = &zap.SamplingConfig{Initial: 100, Thereafter: 100}
 	} else {
-		cfg = zap.NewDevelopmentConfig()
-		cfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+		zcfg = zap.NewDevelopmentConfig()
+		zcfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	}
 
 	var lvl zapcore.Level
-	if err := lvl.UnmarshalText([]byte(o.Level)); err != nil {
-		return nil, fmt.Errorf("invalid log level: %s", o.Level)
+	if err := lvl.UnmarshalText([]byte(cfg.Level)); err != nil {
+		return nil, fmt.Errorf("invalid log level: %s", cfg.Level)
 	}
-	cfg.Level = zap.NewAtomicLevelAt(lvl)
-	cfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	zcfg.Level = zap.NewAtomicLevelAt(lvl)
+	zcfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 
-	z, err := cfg.Build()
+	z, err := zcfg.Build()
 	if err != nil {
 		return nil, err
 	}
 
 	zl := &zapLogger{l: z}
-	return zl.With("app", o.AppName, "env", o.Env), nil
+	return zl.With("app", cfg.AppName, "env", cfg.Env), nil
 }
 
 type zapLogger struct{ l *zap.Logger }

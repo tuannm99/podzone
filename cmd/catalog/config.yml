@@ -1,0 +1,15 @@
+logger:
+  provider: "zap" # "zap" | "slog" | "noop"
+  level: "debug"
+  env: "dev"
+
+grpc:
+  port: 50052
+
+redis:
+  catalog:
+    uri: redis://localhost:6379/0
+
+mongo:
+  catalog: 
+    uri: mongodb://localhost:27017/catalog

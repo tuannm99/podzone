@@ -20,8 +20,11 @@ import (
 
 func main() {
 	_ = godotenv.Load()
+	newAppContainer().Run()
+}
 
-	app := fx.New(
+func newAppContainer() *fx.App {
+	return fx.New(
 		pdlog.ModuleFor("podzone_admin_grpcgateway"),
 
 		pdglobalmiddleware.CommonHttpModule,
@@ -57,8 +60,6 @@ func main() {
 
 		fx.Invoke(grpcgateway.RegisterGWHandlers),
 	)
-
-	app.Run()
 }
 
 // Auth Callback redirect

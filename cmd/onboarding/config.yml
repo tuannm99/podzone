@@ -1,0 +1,15 @@
+logger:
+  provider: "zap" # "zap" | "slog" | "noop"
+  level: "debug"
+  env: "dev"
+
+redis:
+  auth:
+    uri: redis://localhost:6379/0
+
+mongo:
+  onboarding:
+    uri: mongodb://localhost:27017/onboarding
+
+grpc:
+  port: 50051
