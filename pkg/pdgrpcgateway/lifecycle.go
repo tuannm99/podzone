@@ -38,7 +38,7 @@ func startHTTPGateway(p Params) {
 			go func() {
 				p.Logger.Info("gRPC-Gateway started").With("address", "http://0.0.0.0:"+httpPort).Send()
 				if err := gwServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-					log.Fatal(fmt.Sprintf("Failed to start HTTP server %w", err))
+					log.Fatal(fmt.Errorf("failed to start HTTP server %w", err).Error())
 				}
 			}()
 			return nil
