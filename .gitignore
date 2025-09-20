@@ -106,3 +106,4 @@ vitest.config.*.timestamp*
 *.sw?
 
 Dockerfile-dev-*
+coverage.out

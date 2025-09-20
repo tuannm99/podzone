@@ -38,7 +38,30 @@ spec:
             - name: discovery.type
               value: single-node
             - name: ES_JAVA_OPTS
-              value: -Xms1g -Xmx1g
+              value: '-Xms512m -Xmx512m'
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "1Gi"
+            limits:
+              cpu: "400m"
+              memory: "1.5Gi"
+
+          readinessProbe:
+            httpGet:
+              path: /_cluster/health
+              port: 9200
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9200
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 5
+
           volumeMounts:
             - name: es-storage
               mountPath: /usr/share/elasticsearch/data

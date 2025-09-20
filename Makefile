@@ -74,7 +74,7 @@ swagger:
 # Run tests for all packages
 test:
 	@echo "$(COLOR_GREEN)Running tests...$(COLOR_RESET)"
-	$(GO) test -v ./pkg/... ./internal/...
+	$(GO) test -v ./pkg/... ./internal/... ./cmd/...
 
 # Run linter
 lint:
@@ -92,6 +92,22 @@ dev:
 			--build.bin "./bin/$$svc" & \
 	done; \
 	wait
+
+sonar:
+	@echo "🔁 Starting quality check..."
+	go test ./internal/... ./pkg/... ./cmd/... -coverprofile=coverage.out
+	docker run --rm \
+	  -e SONAR_HOST_URL="http://sonarqube.tuannm.uk" \
+	  -v $(shell pwd):/usr/src \
+	  -v /etc/hosts:/etc/hosts:ro \
+	  sonarsource/sonar-scanner-cli \
+	  -Dsonar.projectKey=podzone \
+	  -Dsonar.sources=. \
+	  -Dsonar.exclusions=**/*_test.go,**/pkg/api/**,**/docs/**,**/api/**,**/third_party/**,**/scripts/**,**/deployments/**,**/node_modules/** \
+	  -Dsonar.test.inclusions=**/*_test.go \
+	  -Dsonar.go.coverage.reportPaths=coverage.out \
+	  -Dsonar.login=admin \
+	  -Dsonar.password=1
 
 k8s:
 	@echo "📦 Building and deploying api services..."
@@ -131,16 +147,16 @@ portfw:
 		}; \
 		trap cleanup EXIT INT TERM; \
 		\
-		kubectl port-forward svc/redis 6379:6379 -n persistent-staging & pids+=($$!); \
-		kubectl port-forward svc/redisinsight-service 8888:80 -n persistent-staging & pids+=($$!); \
-		kubectl port-forward svc/postgres 5432:5432 -n persistent-staging & pids+=($$!); \
-		kubectl port-forward svc/pgadmin 8889:80 -n persistent-staging & pids+=($$!); \
-		kubectl port-forward svc/mongodb-internal 27017:27017 -n persistent-staging & pids+=($$!); \
-		kubectl port-forward svc/kafka 9092:9092 -n persistent-staging & pids+=($$!); \
-		kubectl port-forward svc/kafka-ui 8890:80 -n persistent-staging & pids+=($$!); \
-		kubectl port-forward svc/elasticsearch 9200:9200 -n persistent-staging & pids+=($$!); \
-		kubectl port-forward svc/kibana 5601:5601 -n persistent-staging & pids+=($$!); \
-		kubectl port-forward svc/kubernetes-dashboard-kong-proxy 8001:443 -n kubernetes-dashboard & pids+=($$!); \
+		kubectl port-forward svc/redis 6379:6379 -n default & pids+=($$!); \
+		kubectl port-forward svc/postgres 5432:5432 -n default & pids+=($$!); \
+		kubectl port-forward svc/mongodb-internal 27017:27017 -n default & pids+=($$!); \
+		kubectl port-forward svc/kafka 9092:9092 -n default & pids+=($$!); \
+		kubectl port-forward svc/elasticsearch 9200:9200 -n default & pids+=($$!); \
+		# kubectl port-forward svc/redisinsight-service 8888:80 -n default & pids+=($$!); \
+		# kubectl port-forward svc/kibana 5601:5601 -n default & pids+=($$!); \
+		# kubectl port-forward svc/sonarqube 9000:9000 -n devops --address=0.0.0.0 & pids+=($$!); \
+		# kubectl port-forward svc/pgadmin 8889:80 -n default & pids+=($$!); \
+		# kubectl port-forward svc/kubernetes-dashboard-kong-proxy 8001:443 -n kubernetes-dashboard & pids+=($$!); \
 		\
 		wait -n || (echo "One process failed"; exit 1); \
 	'

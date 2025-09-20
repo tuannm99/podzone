@@ -34,6 +34,13 @@ spec:
           env:
             - name: ALLOW_ANONYMOUS_LOGIN
               value: 'yes'
+          resources:
+            requests:
+              cpu: '50m'
+              memory: '128Mi'
+            limits:
+              cpu: '100m'
+              memory: '256Mi'
           volumeMounts:
             - name: zoo-storage
               mountPath: /bitnami/zookeeper
