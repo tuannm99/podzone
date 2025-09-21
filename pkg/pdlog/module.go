@@ -38,6 +38,11 @@ func ModuleFor(appName string) fx.Option {
 // Flush logger on shutdown
 func registerLifecycle(lc fx.Lifecycle, log Logger) {
 	lc.Append(fx.Hook{
-		OnStop: func(ctx context.Context) error { return log.Sync() },
+		OnStop: func(ctx context.Context) error {
+			if err := log.Sync(); err != nil {
+				log.Warn("logger sync failed").Err(err).Send()
+			}
+			return nil
+		},
 	})
 }

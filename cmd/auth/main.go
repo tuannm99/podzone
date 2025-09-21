@@ -21,7 +21,7 @@ func main() {
 func newAppContainer() *fx.App {
 	return fx.New(
 		pdlog.ModuleFor("podzone_admin_auth"),
-		pdconfig.Module(),
+		pdconfig.Module,
 
 		pdpostgres.ModuleFor("auth"),
 		pdredis.ModuleFor("auth"),

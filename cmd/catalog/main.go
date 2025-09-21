@@ -20,7 +20,7 @@ func main() {
 func newAppContainer() *fx.App {
 	return fx.New(
 		pdlog.ModuleFor("podzone_admin_catalog"),
-		pdconfig.Module(),
+		pdconfig.Module,
 
 		pdredis.ModuleFor("catalog"),
 		pdmongo.ModuleFor("catalog"),

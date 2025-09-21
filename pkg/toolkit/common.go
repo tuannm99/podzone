@@ -2,9 +2,7 @@ package toolkit
 
 import (
 	"encoding/json"
-	"log"
 	"os"
-	"reflect"
 	"strconv"
 )
 
@@ -27,12 +25,6 @@ func GetEnv[T any](envName string, fallback T) T {
 		}
 	}
 	return fallback
-}
-
-func AssertEqual(expected, actual any) {
-	if !reflect.DeepEqual(expected, actual) {
-		log.Fatalf("assertEqual failed: expected %#v, got %#v", expected, actual)
-	}
 }
 
 func MapStruct[S any, T any](source S) *T {

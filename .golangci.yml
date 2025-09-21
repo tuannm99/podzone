@@ -1,4 +1,4 @@
-version: '2'
+version: "2"
 
 run:
   timeout: 5m
@@ -16,7 +16,6 @@ linters:
     - wastedassign
     - whitespace
     - testifylint
-    - testpackage
     - tparallel
     - unconvert
     - unparam

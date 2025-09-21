@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	"github.com/tuannm99/podzone/internal/grpcgateway"
+	"github.com/tuannm99/podzone/pkg/pdconfig"
 	"github.com/tuannm99/podzone/pkg/pdglobalmiddleware"
 	"github.com/tuannm99/podzone/pkg/pdgrpcgateway"
 	"github.com/tuannm99/podzone/pkg/pdlog"
@@ -26,6 +27,7 @@ func main() {
 func newAppContainer() *fx.App {
 	return fx.New(
 		pdlog.ModuleFor("podzone_admin_grpcgateway"),
+		pdconfig.Module,
 
 		pdglobalmiddleware.CommonHttpModule,
 		pdgrpcgateway.Module,
@@ -62,23 +64,26 @@ func newAppContainer() *fx.App {
 	)
 }
 
-// Auth Callback redirect
 func NewRedirectResponseModifier(logger pdlog.Logger) runtime.ServeMuxOption {
-	return runtime.WithForwardResponseOption(
-		func(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
-			if loginResp, ok := resp.(*pbAuth.GoogleLoginResponse); ok && loginResp.RedirectUrl != "" {
-				logger.Info("Redirecting to OAuth provider").With("url", loginResp.RedirectUrl).Send()
-				w.Header().Set("Location", loginResp.RedirectUrl)
-				w.WriteHeader(http.StatusTemporaryRedirect)
-				return nil
-			}
-			if callbackResp, ok := resp.(*pbAuth.GoogleCallbackResponse); ok && callbackResp.RedirectUrl != "" {
-				logger.Info("Redirecting to app after OAuth callback").With("url", callbackResp.RedirectUrl).Send()
-				w.Header().Set("Location", callbackResp.RedirectUrl)
-				w.WriteHeader(http.StatusTemporaryRedirect)
-				return nil
-			}
+	return runtime.WithForwardResponseOption(RedirectForwardFunc(logger))
+}
+
+func RedirectForwardFunc(
+	logger pdlog.Logger,
+) func(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
+	return func(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
+		if loginResp, ok := resp.(*pbAuth.GoogleLoginResponse); ok && loginResp.RedirectUrl != "" {
+			logger.Info("Redirecting to OAuth provider").With("url", loginResp.RedirectUrl).Send()
+			w.Header().Set("Location", loginResp.RedirectUrl)
+			w.WriteHeader(http.StatusTemporaryRedirect)
 			return nil
-		},
-	)
+		}
+		if callbackResp, ok := resp.(*pbAuth.GoogleCallbackResponse); ok && callbackResp.RedirectUrl != "" {
+			logger.Info("Redirecting to app after OAuth callback").With("url", callbackResp.RedirectUrl).Send()
+			w.Header().Set("Location", callbackResp.RedirectUrl)
+			w.WriteHeader(http.StatusTemporaryRedirect)
+			return nil
+		}
+		return nil
+	}
 }
