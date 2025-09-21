@@ -1,0 +1,17 @@
+logger:
+  provider: "zap" # "zap" | "slog" | "noop"
+  level: "debug"
+  env: "dev"
+
+redis:
+  auth:
+    uri: redis://localhost:6379/0
+# not use yet
+# grpc_client:
+#   auth:
+#     addr: localhost:50051
+#   catalog:
+#     addr: localhost:50052
+# grpc_gateway:
+#   http:
+#     port: 8080

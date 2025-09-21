@@ -3,7 +3,6 @@ package pdgrpcgateway
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
@@ -33,15 +32,26 @@ func startHTTPGateway(p Params) {
 		Handler: handler,
 	}
 
+	errCh := make(chan error, 1)
+
 	p.Lifecycle.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			go func() {
-				p.Logger.Info("gRPC-Gateway started").With("address", "http://0.0.0.0:"+httpPort).Send()
+				p.Logger.Info("HTTP Gateway started").
+					With("address", "http://0.0.0.0:"+httpPort).
+					Send()
+
 				if err := gwServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-					log.Fatal(fmt.Errorf("failed to start HTTP server %w", err).Error())
+					errCh <- err
 				}
 			}()
-			return nil
+
+			select {
+			case err := <-errCh:
+				return fmt.Errorf("start HTTP gateway failed: %w", err)
+			default:
+				return nil
+			}
 		},
 		OnStop: func(ctx context.Context) error {
 			p.Logger.Info("Shutting down HTTP Gateway server")

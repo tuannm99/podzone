@@ -3,56 +3,63 @@ package pdmongo
 import (
 	"context"
 	"fmt"
-	"time"
 
+	"github.com/spf13/viper"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/fx"
 )
 
-func ModuleFor(name string, uri string) fx.Option {
-	uriName := fmt.Sprintf("%s-mongo-uri", name)
-	resultName := fmt.Sprintf("mongo-%s", name)
+func ModuleFor(name string) fx.Option {
+	tag := fmt.Sprintf(`name:"%s"`, "mongo-"+name)
 
-	return fx.Options(
-		fx.Provide(
-			fx.Annotate(
-				func() string { return uri },
-				fx.ResultTags(fmt.Sprintf(`name:"%s"`, uriName)),
-			),
-			fx.Annotate(
-				NewMongoClient,
-				fx.ParamTags(``, ``, fmt.Sprintf(`name:"%s"`, uriName)),
-				fx.ResultTags(fmt.Sprintf(`name:"%s"`, resultName)),
-			),
-		),
-	)
-}
-
-func NewMongoClient(lc fx.Lifecycle, logger pdlog.Logger, uri string) (*mongo.Client, error) {
-	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(uri))
-	if err != nil {
-		return nil, fmt.Errorf("mongo connect failed: %w", err)
-	}
-
-	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
-			pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
-			defer cancel()
-
-			if err := client.Ping(pingCtx, nil); err != nil {
-				return fmt.Errorf("mongo ping failed: %w", err)
+	return fx.Provide(
+		fx.Annotate(func(v *viper.Viper, lc fx.Lifecycle, logger pdlog.Logger) (*mongo.Client, error) {
+			// mongo
+			sub := v.Sub("mongo")
+			if sub == nil {
+				return nil, fmt.Errorf("missing config block: mongo")
+			}
+			// mongo.<name>
+			sub = sub.Sub(name)
+			if sub == nil {
+				return nil, fmt.Errorf("missing config block: mongo.%s", name)
 			}
 
-			logger.Info("MongoDB is reachable").With("uri", uri).Send()
-			return nil
-		},
-		OnStop: func(ctx context.Context) error {
-			logger.Info("Closing MongoDB connection").With("uri", uri).Send()
-			return client.Disconnect(ctx)
-		},
-	})
+			var cfg InstanceConfig
+			if err := sub.Unmarshal(&cfg); err != nil {
+				return nil, fmt.Errorf("unmarshal mongo.%s failed: %w", name, err)
+			}
 
-	return client, nil
+			factory := Registry.Get()
+			client, err := factory(context.Background(), cfg)
+			if err != nil {
+				return nil, err
+			}
+
+			lc.Append(fx.Hook{
+				OnStart: func(ctx context.Context) error {
+					if currentFactoryID == "real" {
+						logger.Info("Pinging Mongo...").With("dsn", cfg.URI).Send()
+						if err := ping(ctx, client); err != nil {
+							return fmt.Errorf("mongo ping failed: %w", err)
+						}
+						logger.Info("Mongo is reachable").With("dsn", cfg.URI).Send()
+					} else {
+						logger.Info("Using NoopMongoFactory (skip connect/ping)").With("name", name).Send()
+					}
+					return nil
+				},
+				OnStop: func(ctx context.Context) error {
+					if currentFactoryID == "real" {
+						logger.Info("Closing Mongo client").With("name", name).Send()
+						return client.Disconnect(ctx)
+					}
+					return nil
+				},
+			})
+
+			return client, nil
+		}, fx.ResultTags(tag)),
+	)
 }

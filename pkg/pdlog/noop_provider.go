@@ -2,10 +2,9 @@ package pdlog
 
 import "context"
 
-type noopBackend struct{}
-
-func (noopBackend) Name() string                                   { return "noop" }
-func (noopBackend) New(context.Context, ...Option) (Logger, error) { return &noopLogger{}, nil }
+var noopFactory LoggerFactory = func(_ context.Context, _ Config) (Logger, error) {
+	return &noopLogger{}, nil
+}
 
 type noopLogger struct{}
 

@@ -117,8 +117,11 @@ func startServer(lc fx.Lifecycle, resolver *resolver.Resolver, logger pdlog.Logg
 
 func main() {
 	_ = godotenv.Load()
+	newAppContainer().Run()
+}
 
-	app := fx.New(
+func newAppContainer() *fx.App {
+	return fx.New(
 		pdlog.ModuleFor("podzone_backoffice"),
 
 		// Provide MongoDB connection
@@ -139,6 +142,4 @@ func main() {
 
 		fx.Invoke(startServer),
 	)
-
-	app.Run()
 }

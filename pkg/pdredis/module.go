@@ -3,79 +3,58 @@ package pdredis
 import (
 	"context"
 	"fmt"
-	"net/url"
-	"strconv"
-	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/spf13/viper"
 	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 	"go.uber.org/fx"
 )
 
-func ModuleFor(name string, conStr string) fx.Option {
-	uriName := fmt.Sprintf("%s-redis-uri", name)
-	resultName := fmt.Sprintf("redis-%s", name)
+type Config struct {
+	URI string `mapstructure:"uri"`
+}
 
-	return fx.Options(
-		fx.Provide(
-			fx.Annotate(
-				func() string { return conStr },
-				fx.ResultTags(fmt.Sprintf(`name:"%s"`, uriName)),
-			),
-		),
+var Registry = toolkit.NewRegistry[*redis.Client, Config]("real")
 
-		fx.Provide(
-			fx.Annotate(
-				func(logger pdlog.Logger, uri string) (*redis.Client, error) {
-					redisUrl, err := url.Parse(uri)
-					if err != nil {
-						return nil, fmt.Errorf("invalid redis uri %s: %w", uri, err)
-					}
+func init() {
+	Registry.Register("real", RedisFactory)
+	Registry.Register("noop", NoopRedisFactory)
+}
 
-					pass, _ := redisUrl.User.Password()
-					db := 0
-					if redisUrl.Path != "" {
-						if parsed, err := strconv.Atoi(redisUrl.Path[1:]); err == nil {
-							db = parsed
-						}
-					}
+func ModuleFor(name string) fx.Option {
+	tag := fmt.Sprintf(`name:"%s"`, "redis-"+name)
 
-					logger.Info("Initializing Redis connection").With("addr", redisUrl.Host).Send()
+	return fx.Provide(
+		fx.Annotate(func(v *viper.Viper, lc fx.Lifecycle, logger pdlog.Logger) (*redis.Client, error) {
+			// expect: redis.<name>.uri
+			sub := v.Sub("redis")
+			if sub == nil {
+				return nil, fmt.Errorf("missing config block: redis")
+			}
+			sub = sub.Sub(name)
+			if sub == nil {
+				return nil, fmt.Errorf("missing config block: redis.%s", name)
+			}
 
-					client := redis.NewClient(&redis.Options{
-						Addr:     redisUrl.Host,
-						Password: pass,
-						DB:       db,
-					})
+			var cfg Config
+			if err := sub.Unmarshal(&cfg); err != nil {
+				return nil, fmt.Errorf("unmarshal redis.%s failed: %w", name, err)
+			}
 
-					ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-					err = client.Ping(ctx).Err()
-					cancel()
+			factory := Registry.Get()
+			client, err := factory(context.Background(), cfg)
+			if err != nil {
+				return nil, err
+			}
 
-					if err != nil {
-						return nil, fmt.Errorf("failed to connect to Redis at %s: %w", redisUrl.Host, err)
-					}
-
-					logger.Info("Successfully connected to Redis").With("addr", redisUrl.Host).Send()
-					return client, nil
+			lc.Append(fx.Hook{
+				OnStop: func(ctx context.Context) error {
+					logger.Info("Closing Redis client").With("name", name).Send()
+					return client.Close()
 				},
-				fx.ParamTags(``, fmt.Sprintf(`name:"%s"`, uriName)),
-				fx.ResultTags(fmt.Sprintf(`name:"%s"`, resultName)),
-			),
-		),
-
-		fx.Invoke(
-			fx.Annotate(
-				func(lc fx.Lifecycle, logger pdlog.Logger, client *redis.Client) {
-					lc.Append(fx.Hook{
-						OnStop: func(ctx context.Context) error {
-							logger.Info("Closing Redis client").With("name", name).Send()
-							return client.Close()
-						},
-					})
-				},
-				fx.ParamTags(``, ``, fmt.Sprintf(`name:"%s"`, resultName)),
-			),
-		),
+			})
+			return client, nil
+		}, fx.ResultTags(tag)),
 	)
 }

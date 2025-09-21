@@ -88,7 +88,7 @@ dev:
 	@echo "🔁 Starting services in parallel..."
 	@for svc in $(SVC); do \
 		echo "▶ Starting $$svc..."; \
-		air --build.cmd "go build -o ./bin/$$svc ./cmd/$$svc/main.go" \
+		CONFIG_PATH=cmd/$$svc/config.yml air --build.cmd "go build -o ./bin/$$svc ./cmd/$$svc/main.go" \
 			--build.bin "./bin/$$svc" & \
 	done; \
 	wait

@@ -3,30 +3,46 @@ package pdlog
 import (
 	"context"
 
-	"github.com/tuannm99/podzone/pkg/toolkit"
+	"github.com/spf13/viper"
 	"go.uber.org/fx"
 )
 
 func ModuleFor(appName string) fx.Option {
 	return fx.Options(
-		fx.Provide(func() (Logger, error) {
-			return NewFrom(
-				toolkit.GetEnv("LOG_PROVIDER", "zap"),
-				context.Background(),
-				WithLevel(toolkit.GetEnv("DEFAULT_LOG_LEVEL", "debug")),
-				WithEnv(toolkit.GetEnv("APP_ENV", "dev")),
-				WithAppName(appName),
-			)
+		fx.Provide(func(v *viper.Viper) (Logger, error) {
+			var cfg Config
+			if sub := v.Sub("logger"); sub != nil {
+				_ = sub.Unmarshal(&cfg) // keep defaults if missing
+			}
+			if cfg.Provider == "" {
+				cfg.Provider = "zap"
+			}
+			if cfg.Level == "" {
+				cfg.Level = "debug"
+			}
+			if cfg.Env == "" {
+				cfg.Env = "dev"
+			}
+			cfg.AppName = appName
+
+			f := Registry.Get()
+			if ff, ok := Registry.Lookup(cfg.Provider); ok {
+				f = ff
+			}
+			return f(context.Background(), cfg)
 		}),
 		fx.Invoke(registerLifecycle),
 	)
 }
 
-// registerLifecycle hook for running logger.Sync() when app shutdown
+// Flush logger on shutdown
 func registerLifecycle(lc fx.Lifecycle, log Logger) {
 	lc.Append(fx.Hook{
 		OnStop: func(ctx context.Context) error {
-			return log.Sync()
+			if err := log.Sync(); err != nil {
+				log.Warn("logger sync failed").Err(err).Send()
+			}
+			return nil
 		},
 	})
 }
