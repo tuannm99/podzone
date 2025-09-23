@@ -1,4 +1,3 @@
-// pkg/pdconfig/config.go
 package pdconfig
 
 import (

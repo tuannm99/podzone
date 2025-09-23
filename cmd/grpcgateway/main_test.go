@@ -4,23 +4,18 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/spf13/viper"
-	"github.com/tuannm99/podzone/pkg/pdlog"
+	pdlog "github.com/tuannm99/podzone/pkg/pdlogv2"
+	"github.com/tuannm99/podzone/pkg/pdlogv2/provider"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxtest"
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	pbAuth "github.com/tuannm99/podzone/pkg/api/proto/auth"
 )
-
-func init() {
-	os.Setenv("CONFIG_PATH", "config.yml")
-	pdlog.Registry.Use("noop")
-}
 
 func TestMain(t *testing.T) {
 	done := make(chan struct{})
@@ -42,12 +37,15 @@ func TestRedirectForwardFunc(t *testing.T) {
 	app := fxtest.New(t,
 		fx.Provide(func() *viper.Viper {
 			v := viper.New()
-			v.Set("logger.provider", "noop")
+			v.Set("logger.provider", "mock")
 			v.Set("logger.level", "debug")
 			v.Set("logger.env", "dev")
 			return v
 		}),
-		pdlog.ModuleFor("test_gw"),
+		pdlog.Module(
+			pdlog.Defaults("podzone_admin_auth"),
+			pdlog.WithProvider("mock", provider.MockFactory),
+		),
 		fx.Invoke(func(l pdlog.Logger) { logger = l }),
 	)
 	app.RequireStart()

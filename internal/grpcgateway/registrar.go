@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/tuannm99/podzone/pkg/pdlog"
+	pdlog "github.com/tuannm99/podzone/pkg/pdlogv2"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -40,13 +40,15 @@ func RegisterGWHandlers(p GWParams) {
 			var conn *grpc.ClientConn
 			var err error
 
+			logCtx := p.Logger.With("service", name)
+
 			// Retry gRPC dial until success
 			for {
 				conn, err = grpc.NewClient(addr, opts...)
 				if err == nil {
 					break
 				}
-				p.Logger.Warn("Failed to dial gRPC for registration").With("service", name).Err(err)
+				logCtx.Warn("Failed to dial gRPC for registration", "err", err)
 				time.Sleep(3 * time.Second)
 			}
 
@@ -54,11 +56,11 @@ func RegisterGWHandlers(p GWParams) {
 			err = reg.Register(context.Background(), p.Mux, conn)
 			muxMu.Unlock()
 			if err != nil {
-				p.Logger.Warn("Handler registration failed").With("service", name).Err(err)
+				logCtx.Warn("Handler registration failed", "err", err)
 				return
 			}
 
-			p.Logger.Info("Service registered").With("service", name).With("addr", addr)
+			logCtx.Info("Service registered", "addr", addr)
 
 			// Launch health check in background
 			go monitorHealth(p.Logger, reg, conn)
@@ -70,15 +72,16 @@ func monitorHealth(logger pdlog.Logger, registrar GatewayRegistrar, conn *grpc.C
 	name := registrar.Name()
 	client := grpc_health_v1.NewHealthClient(conn)
 
+	logCtx := logger.With("service", name)
 	for {
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		resp, err := client.Check(ctx, &grpc_health_v1.HealthCheckRequest{})
 		cancel()
 
 		if err != nil || resp.GetStatus() != grpc_health_v1.HealthCheckResponse_SERVING {
-			logger.Debug("Health check failed").With("service", name).Err(err).Send()
+			logCtx.Debug("Health check failed", "err", err)
 		} else {
-			logger.Debug("Health check OK").With("service", name).Send()
+			logCtx.Debug("Health check OK")
 		}
 
 		time.Sleep(3 * time.Second)

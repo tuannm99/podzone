@@ -9,10 +9,11 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-var RedisFactory = func(ctx context.Context, cfg Config) (*redis.Client, error) {
+// RealProvider: parse redis://[:pass]@host:port/db và tạo client
+var RealProvider ProviderFn = func(ctx context.Context, cfg Config) (*redis.Client, error) {
 	redisURL, err := url.Parse(cfg.URI)
 	if err != nil {
-		return nil, fmt.Errorf("invalid redis uri %s: %w", cfg.URI, err)
+		return nil, fmt.Errorf("invalid redis uri %q: %w", cfg.URI, err)
 	}
 
 	pass, _ := redisURL.User.Password()
@@ -28,13 +29,11 @@ var RedisFactory = func(ctx context.Context, cfg Config) (*redis.Client, error) 
 		Password: pass,
 		DB:       db,
 	})
-
-	if err := client.Ping(ctx).Err(); err != nil {
-		return nil, fmt.Errorf("failed to connect to Redis at %s: %w", redisURL.Host, err)
-	}
+	// Không ping ở đây; ping sẽ làm trong lifecycle OnStart để mock không fail.
 	return client, nil
 }
 
-var NoopRedisFactory = func(ctx context.Context, _ Config) (*redis.Client, error) {
+// MockProvider: client dummy không kết nối thật (Addr: localhost:0)
+var MockProvider ProviderFn = func(context.Context, Config) (*redis.Client, error) {
 	return redis.NewClient(&redis.Options{Addr: "localhost:0"}), nil
 }

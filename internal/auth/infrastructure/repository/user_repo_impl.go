@@ -6,7 +6,7 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
 	"github.com/tuannm99/podzone/internal/auth/infrastructure/model"
-	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/pdlogv2"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 	"go.uber.org/fx"
 	"gorm.io/gorm"
@@ -16,7 +16,7 @@ var _ outputport.UserRepository = (*UserRepositoryImpl)(nil)
 
 type UserRepoParams struct {
 	fx.In
-	Logger pdlog.Logger
+	Logger pdlogv2.Logger
 	DB     *gorm.DB `name:"gorm-auth"`
 }
 
@@ -28,7 +28,7 @@ func NewUserRepositoryImpl(p UserRepoParams) *UserRepositoryImpl {
 }
 
 type UserRepositoryImpl struct {
-	logger pdlog.Logger
+	logger pdlogv2.Logger
 	db     *gorm.DB `name:"gorm-auth"`
 }
 

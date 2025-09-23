@@ -1,19 +1,34 @@
 package main
 
 import (
+	"context"
 	"testing"
 	"time"
 
-	"github.com/tuannm99/podzone/pkg/pdlog"
-	"github.com/tuannm99/podzone/pkg/pdmongo"
-	"github.com/tuannm99/podzone/pkg/pdredis"
+	"github.com/stretchr/testify/require"
 )
 
-func TestMain(t *testing.T) {
-	t.Setenv("CONFIG_PATH", "config.yml")
-	pdlog.Registry.Use("noop")
-	pdredis.Registry.Use("noop")
-	pdmongo.Registry.Use("noop")
+func Test_App_Starts_And_Stops(t *testing.T) {
+	t.Setenv("LOGGER_PROVIDER", "mock")
+	t.Setenv("MONGO_ONBOARDING_PROVIDER", "mock")
+	t.Setenv("MONGO_ONBOARDING_PROVIDER", "mock")
+
+	t.Setenv("HTTP_PORT", "0")
+
+	app := newAppContainer()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	require.NoError(t, app.Start(ctx), "app should start")
+	require.NoError(t, app.Stop(ctx), "app should stop")
+}
+
+func Test_Main_DoesNotPanic(t *testing.T) {
+	t.Setenv("LOGGER_PROVIDER", "mock")
+	t.Setenv("MONGO_ONBOARDING_PROVIDER", "mock")
+	t.Setenv("MONGO_ONBOARDING_PROVIDER", "mock")
+	t.Setenv("HTTP_PORT", "0")
 
 	done := make(chan struct{})
 	go func() {
@@ -24,6 +39,5 @@ func TestMain(t *testing.T) {
 	select {
 	case <-done:
 	case <-time.After(200 * time.Millisecond):
-		t.Log("main() still running, test will stop here")
 	}
 }

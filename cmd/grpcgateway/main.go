@@ -13,7 +13,8 @@ import (
 	"github.com/tuannm99/podzone/pkg/pdconfig"
 	"github.com/tuannm99/podzone/pkg/pdglobalmiddleware"
 	"github.com/tuannm99/podzone/pkg/pdgrpcgateway"
-	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/pdlogv2"
+	"github.com/tuannm99/podzone/pkg/pdlogv2/provider"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 
 	pbAuth "github.com/tuannm99/podzone/pkg/api/proto/auth"
@@ -26,7 +27,14 @@ func main() {
 
 func newAppContainer() *fx.App {
 	return fx.New(
-		pdlog.ModuleFor("podzone_admin_grpcgateway"),
+
+		pdlogv2.Module(
+			pdlogv2.Defaults("podzone_admin_grpcgateway"),
+			pdlogv2.WithProvider("zap", provider.ZapFactory),
+			pdlogv2.WithProvider("slog", provider.SlogFactory),
+			pdlogv2.WithProvider("mock", provider.MockFactory),
+			pdlogv2.WithFallback(provider.ZapFactory),
+		),
 		pdconfig.Module,
 
 		pdglobalmiddleware.CommonHttpModule,
@@ -64,22 +72,22 @@ func newAppContainer() *fx.App {
 	)
 }
 
-func NewRedirectResponseModifier(logger pdlog.Logger) runtime.ServeMuxOption {
+func NewRedirectResponseModifier(logger pdlogv2.Logger) runtime.ServeMuxOption {
 	return runtime.WithForwardResponseOption(RedirectForwardFunc(logger))
 }
 
 func RedirectForwardFunc(
-	logger pdlog.Logger,
+	logger pdlogv2.Logger,
 ) func(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
 	return func(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
 		if loginResp, ok := resp.(*pbAuth.GoogleLoginResponse); ok && loginResp.RedirectUrl != "" {
-			logger.Info("Redirecting to OAuth provider").With("url", loginResp.RedirectUrl).Send()
+			logger.Info("Redirecting to OAuth provider", "url", loginResp.RedirectUrl)
 			w.Header().Set("Location", loginResp.RedirectUrl)
 			w.WriteHeader(http.StatusTemporaryRedirect)
 			return nil
 		}
 		if callbackResp, ok := resp.(*pbAuth.GoogleCallbackResponse); ok && callbackResp.RedirectUrl != "" {
-			logger.Info("Redirecting to app after OAuth callback").With("url", callbackResp.RedirectUrl).Send()
+			logger.Info("Redirecting to app after OAuth callback", "url", callbackResp.RedirectUrl)
 			w.Header().Set("Location", callbackResp.RedirectUrl)
 			w.WriteHeader(http.StatusTemporaryRedirect)
 			return nil

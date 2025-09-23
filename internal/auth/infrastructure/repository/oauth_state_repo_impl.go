@@ -10,7 +10,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
-	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/pdlogv2"
 )
 
 var _ outputport.OauthStateRepository = (*OauthStateRepositoryImpl)(nil)
@@ -18,7 +18,7 @@ var _ outputport.OauthStateRepository = (*OauthStateRepositoryImpl)(nil)
 type OauthStateRepoParams struct {
 	fx.In
 	RedisClient *redis.Client `name:"redis-auth"`
-	Logger      pdlog.Logger
+	Logger      pdlogv2.Logger
 }
 
 func NewOauthStateRepositoryImpl(p OauthStateRepoParams) *OauthStateRepositoryImpl {
@@ -30,13 +30,13 @@ func NewOauthStateRepositoryImpl(p OauthStateRepoParams) *OauthStateRepositoryIm
 
 type OauthStateRepositoryImpl struct {
 	redisClient *redis.Client
-	logger      pdlog.Logger
+	logger      pdlogv2.Logger
 }
 
 func (o *OauthStateRepositoryImpl) Del(key string) error {
 	_, err := o.redisClient.Del(context.Background(), key).Result()
 	if err != nil {
-		o.logger.Info("del state error").Err(err).Send()
+		o.logger.Info("del state error", "err", err)
 	}
 	return nil
 }
@@ -48,7 +48,7 @@ func (o *OauthStateRepositoryImpl) Get(key string) (string, error) {
 	} else if err != nil {
 		return "", fmt.Errorf("failed to get state: %w", err)
 	}
-	o.logger.Debug("get state data success").With("data", data).Send()
+	o.logger.Debug("get state data success", "err", err)
 	return data, nil
 }
 

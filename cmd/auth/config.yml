@@ -6,10 +6,12 @@ logger:
 redis:
   auth:
     uri: redis://localhost:6379/0
+    provider: real
 
 postgres:
   auth:
     uri: postgres://postgres:postgres@localhost:5432/auth
+    provider: real
 
 grpc:
   port: 50051

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/pdlogv2"
 	"go.uber.org/fx"
 )
 
@@ -28,7 +28,7 @@ func ModuleFor(name string, url []string) fx.Option {
 	)
 }
 
-func NewElasticsearchClient(logger pdlog.Logger, lc fx.Lifecycle, url string) (*elasticsearch.Client, error) {
+func NewElasticsearchClient(logger pdlogv2.Logger, lc fx.Lifecycle, url string) (*elasticsearch.Client, error) {
 	cfg := elasticsearch.Config{
 		Addresses: []string{url},
 	}
@@ -39,11 +39,11 @@ func NewElasticsearchClient(logger pdlog.Logger, lc fx.Lifecycle, url string) (*
 
 	lc.Append(fx.Hook{
 		OnStop: func(ctx context.Context) error {
-			logger.Info("Stopping elastic client").With("url", url).Send()
+			logger.Info("Stopping elastic client", "url", url)
 			return nil
 		},
 	})
 
-	logger.Info("Connected to Elasticsearch").With("url", url).Send()
+	logger.Info("Connected to Elasticsearch", "url", url)
 	return client, nil
 }

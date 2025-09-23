@@ -6,55 +6,87 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/spf13/viper"
-	"github.com/tuannm99/podzone/pkg/pdlog"
-	"github.com/tuannm99/podzone/pkg/toolkit"
+	"github.com/tuannm99/podzone/pkg/pdlogv2"
 	"go.uber.org/fx"
 )
 
-type Config struct {
-	URI string `mapstructure:"uri"`
+type options struct {
+	name      string
+	providers map[string]ProviderFn
+	fallback  ProviderFn
 }
 
-var Registry = toolkit.NewRegistry[*redis.Client, Config]("real")
+type Option func(*options)
 
-func init() {
-	Registry.Register("real", RedisFactory)
-	Registry.Register("noop", NoopRedisFactory)
+func WithProvider(id string, f ProviderFn) Option { return func(o *options) { o.providers[id] = f } }
+
+func WithFallback(f ProviderFn) Option { return func(o *options) { o.fallback = f } }
+
+func WithName(name string) Option { return func(o *options) { o.name = name } }
+
+// ViperLoaderFor read redis.<name>
+func ViperLoaderFor(name string) func(*viper.Viper) Config {
+	return func(v *viper.Viper) Config {
+		base := "redis." + name
+		c := Config{
+			Provider: v.GetString(base + ".provider"),
+			URI:      v.GetString(base + ".uri"),
+		}
+		if c.Provider == "" {
+			c.Provider = "real"
+		}
+		return c
+	}
 }
 
-func ModuleFor(name string) fx.Option {
-	tag := fmt.Sprintf(`name:"%s"`, "redis-"+name)
+// Module: Viper -> Config -> chọn Provider -> *redis.Client + lifecycle
+func Module(loader func(*viper.Viper) Config, opts ...Option) fx.Option {
+	base := &options{
+		providers: map[string]ProviderFn{
+			"real": RealProvider,
+			"mock": MockProvider,
+		},
+		fallback: RealProvider,
+		name:     "default",
+	}
+	for _, opt := range opts {
+		opt(base)
+	}
 
-	return fx.Provide(
-		fx.Annotate(func(v *viper.Viper, lc fx.Lifecycle, logger pdlog.Logger) (*redis.Client, error) {
-			// expect: redis.<name>.uri
-			sub := v.Sub("redis")
-			if sub == nil {
-				return nil, fmt.Errorf("missing config block: redis")
-			}
-			sub = sub.Sub(name)
-			if sub == nil {
-				return nil, fmt.Errorf("missing config block: redis.%s", name)
-			}
+	resultTag := fmt.Sprintf(`name:"%s"`, "redis-"+base.name)
 
-			var cfg Config
-			if err := sub.Unmarshal(&cfg); err != nil {
-				return nil, fmt.Errorf("unmarshal redis.%s failed: %w", name, err)
-			}
+	return fx.Options(
+		fx.Provide(
+			fx.Annotate(func(v *viper.Viper, lc fx.Lifecycle, log pdlogv2.Logger) (*redis.Client, error) {
+				cfg := loader(v)
 
-			factory := Registry.Get()
-			client, err := factory(context.Background(), cfg)
-			if err != nil {
-				return nil, err
-			}
+				prov := base.fallback
+				if p, ok := base.providers[cfg.Provider]; ok {
+					prov = p
+				}
 
-			lc.Append(fx.Hook{
-				OnStop: func(ctx context.Context) error {
-					logger.Info("Closing Redis client").With("name", name).Send()
-					return client.Close()
-				},
-			})
-			return client, nil
-		}, fx.ResultTags(tag)),
+				client, err := prov(context.Background(), cfg)
+				if err != nil {
+					return nil, err
+				}
+
+				lc.Append(fx.Hook{
+					OnStart: func(ctx context.Context) error {
+						if cfg.Provider == "mock" {
+							log.Info("Redis mock ready", "name", base.name, "uri", cfg.URI)
+							return nil
+						}
+						log.Info("Pinging Redis...", "name", base.name, "uri", cfg.URI)
+						return client.Ping(ctx).Err()
+					},
+					OnStop: func(ctx context.Context) error {
+						log.Info("Closing Redis client", "name", base.name)
+						return client.Close()
+					},
+				})
+
+				return client, nil
+			}, fx.ResultTags(resultTag)),
+		),
 	)
 }

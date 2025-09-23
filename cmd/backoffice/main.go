@@ -22,7 +22,8 @@ import (
 	"github.com/tuannm99/podzone/internal/backoffice/handlers/graphql/generated"
 	"github.com/tuannm99/podzone/internal/backoffice/handlers/graphql/resolver"
 	"github.com/tuannm99/podzone/pkg/pdcontext"
-	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/pdlogv2"
+	"github.com/tuannm99/podzone/pkg/pdlogv2/provider"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
@@ -85,7 +86,7 @@ func playgroundHandler() gin.HandlerFunc {
 	}
 }
 
-func startServer(lc fx.Lifecycle, resolver *resolver.Resolver, logger pdlog.Logger) {
+func startServer(lc fx.Lifecycle, resolver *resolver.Resolver, logger pdlogv2.Logger) {
 	port := toolkit.GetEnv("PORT", "8000")
 
 	r := gin.Default()
@@ -102,7 +103,7 @@ func startServer(lc fx.Lifecycle, resolver *resolver.Resolver, logger pdlog.Logg
 
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			logger.Info("Starting server").With("port", port).Send()
+			logger.Info("Starting server", "port", port)
 			go func() {
 				_ = r.Run(":" + port)
 			}()
@@ -122,7 +123,13 @@ func main() {
 
 func newAppContainer() *fx.App {
 	return fx.New(
-		pdlog.ModuleFor("podzone_backoffice"),
+		pdlogv2.Module(
+			pdlogv2.Defaults("podzone_backoffice"),
+			pdlogv2.WithProvider("zap", provider.ZapFactory),
+			pdlogv2.WithProvider("slog", provider.SlogFactory),
+			pdlogv2.WithProvider("mock", provider.MockFactory),
+			pdlogv2.WithFallback(provider.ZapFactory),
+		),
 
 		// Provide MongoDB connection
 		fx.Provide(

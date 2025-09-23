@@ -8,7 +8,7 @@ import (
 
 	"github.com/tuannm99/podzone/internal/backoffice/models"
 	"github.com/tuannm99/podzone/pkg/pdcontext"
-	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/pdlogv2"
 	"github.com/tuannm99/podzone/pkg/pdpostgres"
 )
 
@@ -20,11 +20,11 @@ var (
 // StoreRepository handles store data persistence
 type StoreRepository struct {
 	dbManager *pdpostgres.TenantDBManager
-	logger    pdlog.Logger
+	logger    pdlogv2.Logger
 }
 
 // NewStoreRepository creates a new store repository
-func NewStoreRepository(dbManager *pdpostgres.TenantDBManager, logger pdlog.Logger) *StoreRepository {
+func NewStoreRepository(dbManager *pdpostgres.TenantDBManager, logger pdlogv2.Logger) *StoreRepository {
 	return &StoreRepository{
 		dbManager: dbManager,
 		logger:    logger,

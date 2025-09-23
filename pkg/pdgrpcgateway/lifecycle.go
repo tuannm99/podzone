@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/rs/cors"
-	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/pdlogv2"
 	"go.uber.org/fx"
 )
 
@@ -15,7 +15,7 @@ type Params struct {
 	fx.In
 	Lifecycle fx.Lifecycle
 
-	Logger  pdlog.Logger
+	Logger  pdlogv2.Logger
 	Handler http.Handler
 }
 
@@ -37,9 +37,9 @@ func startHTTPGateway(p Params) {
 	p.Lifecycle.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			go func() {
-				p.Logger.Info("HTTP Gateway started").
-					With("address", "http://0.0.0.0:"+httpPort).
-					Send()
+				p.Logger.Info("HTTP Gateway started",
+					"address", "http://0.0.0.0:"+httpPort,
+				)
 
 				if err := gwServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 					errCh <- err

@@ -2,65 +2,98 @@ package pdpostgres
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/spf13/viper"
-	"github.com/tuannm99/podzone/pkg/pdlog"
-	"github.com/tuannm99/podzone/pkg/toolkit"
+	"github.com/tuannm99/podzone/pkg/pdlogv2"
 	"go.uber.org/fx"
 	"gorm.io/gorm"
 )
 
-type InstanceConfig struct {
-	URI string `mapstructure:"uri"`
+func ViperLoaderFor(name string) func(*viper.Viper) Config {
+	return func(v *viper.Viper) Config {
+		base := "postgres." + name
+		return Config{
+			Provider: v.GetString(base + ".provider"),
+			URI:      v.GetString(base + ".uri"),
+		}
+	}
 }
 
-var Registry = toolkit.NewRegistry[*gorm.DB, InstanceConfig]("real")
-
-func init() {
-	Registry.Register("real", PostgresFactory)
-	Registry.Register("noop", NoopPostgresFactory)
+type factoryOptions struct {
+	fallback  ProviderFn
+	providers map[string]ProviderFn
+	name      string
 }
 
-func ModuleFor(name string) fx.Option {
-	tag := fmt.Sprintf(`name:"%s"`, "gorm-"+name)
+type Option func(*factoryOptions)
+
+func WithProvider(id string, p ProviderFn) Option {
+	return func(o *factoryOptions) {
+		if o.providers == nil {
+			o.providers = map[string]ProviderFn{}
+		}
+		o.providers[id] = p
+	}
+}
+
+func WithFallback(p ProviderFn) Option {
+	return func(o *factoryOptions) { o.fallback = p }
+}
+
+func WithName(name string) Option {
+	return func(o *factoryOptions) { o.name = name }
+}
+
+func Module(loader func(*viper.Viper) Config, opts ...Option) fx.Option {
+	var fo factoryOptions
+	for _, f := range opts {
+		f(&fo)
+	}
+	if fo.fallback == nil {
+		fo.fallback = RealProvider
+	}
+	name := fo.name
+	if name == "" {
+		name = "default"
+	}
+	resultTag := `name:"gorm-` + name + `"`
 
 	return fx.Provide(
-		fx.Annotate(func(v *viper.Viper, lc fx.Lifecycle, logger pdlog.Logger) (*gorm.DB, error) {
-			// expect: postgres.<name>.uri
-			sub := v.Sub("postgres")
-			if sub == nil {
-				return nil, fmt.Errorf("missing config block: postgres")
+		fx.Annotate(func(v *viper.Viper, lc fx.Lifecycle, log pdlogv2.Logger) (*gorm.DB, error) {
+			cfg := loader(v)
+			provider := fo.fallback
+			if p, ok := fo.providers[cfg.Provider]; ok {
+				provider = p
 			}
-			sub = sub.Sub(name)
-			if sub == nil {
-				return nil, fmt.Errorf("missing config block: postgres.%s", name)
-			}
-
-			var cfg InstanceConfig
-			if err := sub.Unmarshal(&cfg); err != nil {
-				return nil, fmt.Errorf("unmarshal postgres.%s failed: %w", name, err)
-			}
-
-			factory := Registry.Get()
-			db, err := factory(context.Background(), cfg)
+			db, err := provider(context.Background(), cfg)
 			if err != nil {
 				return nil, err
 			}
 
-			sqlDB, _ := db.DB()
+			isMock := cfg.Provider == "mock"
+			logCtx := log.With("name", name)
+
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
-					logger.Info("Pinging Postgres...").With("dsn", cfg.URI).Send()
+					if isMock {
+						logCtx.Info("Postgres mock ready", "uri", cfg.URI)
+						return nil
+					}
+					logCtx.Info("Pinging Postgres...", "uri", cfg.URI)
+					sqlDB, _ := db.DB()
 					return sqlDB.PingContext(ctx)
 				},
 				OnStop: func(ctx context.Context) error {
-					logger.Info("Closing Postgres connection")
+					if isMock {
+						logCtx.Info("Skipping Postgres close for mock")
+						return nil
+					}
+					logCtx.Info("Closing Postgres connection")
+					sqlDB, _ := db.DB()
 					return sqlDB.Close()
 				},
 			})
-
 			return db, nil
-		}, fx.ResultTags(tag)),
+		}, fx.ResultTags(resultTag)),
 	)
 }
