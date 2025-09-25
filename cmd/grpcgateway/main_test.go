@@ -4,10 +4,13 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
 	pdlog "github.com/tuannm99/podzone/pkg/pdlogv2"
 	"github.com/tuannm99/podzone/pkg/pdlogv2/provider"
 	"go.uber.org/fx"
@@ -17,7 +20,25 @@ import (
 	pbAuth "github.com/tuannm99/podzone/pkg/api/proto/auth"
 )
 
+var configAppTest = `
+logger:
+  app_name: "test"
+  provider: "mock"
+  level: "debug"
+  env: "dev"
+
+redis:
+  auth:
+    uri: redis://localhost:6379/0
+    provider: mock
+`
+
 func TestMain(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yml")
+	require.NoError(t, os.WriteFile(path, []byte(configAppTest), 0o644))
+	t.Setenv("CONFIG_PATH", path)
+
 	done := make(chan struct{})
 	go func() {
 		main()
@@ -43,7 +64,7 @@ func TestRedirectForwardFunc(t *testing.T) {
 			return v
 		}),
 		pdlog.Module(
-			pdlog.Defaults("podzone_admin_auth"),
+			pdlog.ViperLoaderFor("logger"),
 			pdlog.WithProvider("mock", provider.MockFactory),
 		),
 		fx.Invoke(func(l pdlog.Logger) { logger = l }),

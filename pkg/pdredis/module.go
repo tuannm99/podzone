@@ -28,14 +28,11 @@ func WithName(name string) Option { return func(o *options) { o.name = name } }
 func ViperLoaderFor(name string) func(*viper.Viper) Config {
 	return func(v *viper.Viper) Config {
 		base := "redis." + name
-		c := Config{
-			Provider: v.GetString(base + ".provider"),
-			URI:      v.GetString(base + ".uri"),
+		var cfg Config
+		if sub := v.Sub(base); sub != nil {
+			_ = sub.Unmarshal(&cfg)
 		}
-		if c.Provider == "" {
-			c.Provider = "real"
-		}
-		return c
+		return cfg
 	}
 }
 

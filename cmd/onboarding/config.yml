@@ -2,6 +2,7 @@ logger:
   provider: "zap" # "zap" | "slog" | "noop"
   level: "debug"
   env: "dev"
+  app_name: "podzone_onboarding"
 
 redis:
   auth:

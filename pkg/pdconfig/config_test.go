@@ -10,13 +10,13 @@ import (
 )
 
 func Test_configProvider(t *testing.T) {
-	v, err := configProvider()
+	v, err := NewAppConfig()
 
 	require.NoError(t, err)
 	assert.NotNil(t, v)
 
 	t.Setenv("CONFIG_PATH", "config.yml")
-	v, err = configProvider()
+	v, err = NewAppConfig()
 
 	require.NoError(t, err)
 	assert.NotNil(t, v)
@@ -37,7 +37,7 @@ postgres:
 	t.Setenv("CONFIG_PATH", cfgPath)
 	t.Setenv("POSTGRES_AUTH_URI", "postgres://env-user:env-pass@localhost:5432/envdb")
 
-	v, err := configProvider()
+	v, err := NewAppConfig()
 	require.NoError(t, err)
 	assert.NotNil(t, v)
 }

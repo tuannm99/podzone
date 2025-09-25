@@ -1,5 +1,6 @@
 logger:
-  provider: "zap" # "zap" | "slog" | "noop"
+  app_name: "podzone_admin_auth"
+  provider: "zap" # "zap" | "slog" | "mock"
   level: "debug"
   env: "dev"
 

@@ -12,10 +12,11 @@ import (
 func ViperLoaderFor(name string) func(*viper.Viper) Config {
 	return func(v *viper.Viper) Config {
 		base := "postgres." + name
-		return Config{
-			Provider: v.GetString(base + ".provider"),
-			URI:      v.GetString(base + ".uri"),
+		var cfg Config
+		if sub := v.Sub(base); sub != nil {
+			_ = sub.Unmarshal(&cfg)
 		}
+		return cfg
 	}
 }
 

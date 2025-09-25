@@ -30,7 +30,7 @@ func NewFactory(opts ...Option) *factoryOptions {
 	return o
 }
 
-func (o *factoryOptions) Make(ctx context.Context, cfg Config) (Logger, error) {
+func (o *factoryOptions) ByProvider(ctx context.Context, cfg Config) (Logger, error) {
 	f := o.fallback
 	if ff, ok := o.providers[cfg.Provider]; ok {
 		f = ff

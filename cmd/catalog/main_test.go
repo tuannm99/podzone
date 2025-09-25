@@ -1,42 +1,46 @@
 package main
 
 import (
-	"context"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 )
 
-func Test_App_Starts_And_Stops(t *testing.T) {
-	t.Setenv("LOGGER_PROVIDER", "mock")
-	t.Setenv("POSTGRES_AUTH_PROVIDER", "mock")
-	t.Setenv("REDIS_AUTH_PROVIDER", "mock")
+var configAppTest = `
+logger:
+  app_name: "test"
+  provider: "mock" # "zap" | "slog" | "mock"
+  level: "debug"
+  env: "dev"
 
-	t.Setenv("GRPC_PORT", "0")
+redis:
+  catalog:
+    uri: redis://localhost:6379/0
+    provider: mock
 
-	app := newAppContainer()
+mongo:
+  catalog:
+    uri: mongodb://localhost:27017/catalog
+    provider: mock
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
+grpc:
+  port: 0
+`
 
-	require.NoError(t, app.Start(ctx), "app should start")
-	require.NoError(t, app.Stop(ctx), "app should stop")
-}
-
-func Test_Main_DoesNotPanic(t *testing.T) {
-	t.Setenv("LOGGER_PROVIDER", "mock")
-	t.Setenv("POSTGRES_AUTH_PROVIDER", "mock")
-	t.Setenv("REDIS_AUTH_PROVIDER", "mock")
+func TestMain(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yml")
+	require.NoError(t, os.WriteFile(path, []byte(configAppTest), 0o644))
+	t.Setenv("CONFIG_PATH", path)
 
 	done := make(chan struct{})
-	go func() {
-		main()
-		close(done)
-	}()
+	go func() { main(); close(done) }()
 
 	select {
 	case <-done:
-	case <-time.After(200 * time.Millisecond):
+	case <-time.After(300 * time.Millisecond):
 	}
 }

@@ -23,33 +23,29 @@ func main() {
 
 func newAppContainer() *fx.App {
 	return fx.New(
-		pdconfig.Module,
 
-		// logger.*
+		pdconfig.Module,
 		pdlogv2.Module(
-			pdlogv2.Defaults("podzone_admin_auth"),
+			pdlogv2.ViperLoaderFor("logger"),
 			pdlogv2.WithProvider("zap", provider.ZapFactory),
 			pdlogv2.WithProvider("slog", provider.SlogFactory),
 			pdlogv2.WithProvider("mock", provider.MockFactory),
 			pdlogv2.WithFallback(provider.ZapFactory),
 		),
-
 		pdpostgres.Module(
 			pdpostgres.ViperLoaderFor("auth"),
 			pdpostgres.WithProvider("real", pdpostgres.RealProvider),
 			pdpostgres.WithProvider("mock", pdpostgres.MockProvider),
 			pdpostgres.WithFallback(pdpostgres.RealProvider),
-			pdpostgres.WithName("auth"), // provide name:"gorm-auth"
+			pdpostgres.WithName("auth"),
 		),
-
 		pdredis.Module(
 			pdredis.ViperLoaderFor("auth"),
 			pdredis.WithProvider("real", pdredis.RealProvider),
 			pdredis.WithProvider("mock", pdredis.MockProvider),
 			pdredis.WithFallback(pdredis.RealProvider),
-			pdredis.WithName("auth"), // provide name:"redis-auth"
+			pdredis.WithName("auth"),
 		),
-
 		pdglobalmiddleware.CommonGRPCModule,
 		pdgrpc.Module,
 		auth.Module,

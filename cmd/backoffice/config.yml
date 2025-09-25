@@ -1,4 +1,5 @@
 logger:
+  app_name: "podzone_backoffice"
   provider: "zap" # "zap" | "slog" | "noop"
   level: "debug"
   env: "dev"

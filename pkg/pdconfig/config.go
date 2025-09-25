@@ -9,9 +9,9 @@ import (
 	"go.uber.org/fx"
 )
 
-var Module = fx.Provide(configProvider)
+var Module = fx.Provide(NewAppConfig)
 
-func configProvider() (*viper.Viper, error) {
+func NewAppConfig() (*viper.Viper, error) {
 	v := viper.New()
 
 	path := os.Getenv("CONFIG_PATH")

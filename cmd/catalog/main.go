@@ -23,7 +23,7 @@ func newAppContainer() *fx.App {
 		pdconfig.Module,
 
 		pdlogv2.Module(
-			pdlogv2.Defaults("podzone_admin_catalog"),
+			pdlogv2.ViperLoaderFor("logger"),
 			pdlogv2.WithProvider("zap", provider.ZapFactory),
 			pdlogv2.WithProvider("slog", provider.SlogFactory),
 			pdlogv2.WithProvider("mock", provider.MockFactory),

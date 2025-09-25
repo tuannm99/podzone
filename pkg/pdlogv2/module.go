@@ -4,45 +4,35 @@ import (
 	"context"
 	"strings"
 
+	"github.com/spf13/viper"
 	"go.uber.org/fx"
 )
 
-// Module wires: Loader -> Config -> Factory -> Logger, then lifecycle Sync on stop.
+// Init using Fx
 func Module(loader Loader, opts ...Option) fx.Option {
 	return fx.Options(
-		fx.Provide(func() Config {
-			cfg := loader()
-			// final safety defaults if loader omitted some fields
-			if cfg.Provider == "" {
-				cfg.Provider = "zap"
-			}
-			if cfg.Level == "" {
-				cfg.Level = "info"
-			}
-			if cfg.Env == "" {
-				cfg.Env = "prod"
-			}
-			return cfg
+		fx.Provide(func(v *viper.Viper) Config {
+			return loader(v)
 		}),
-		fx.Provide(func() *factoryOptions { return NewFactory(opts...) }),
-		fx.Provide(func(f *factoryOptions, cfg Config) (Logger, error) {
-			return f.Make(context.Background(), cfg)
-		}),
-		fx.Invoke(registerLifecycle),
-	)
-}
 
-func registerLifecycle(lc fx.Lifecycle, log Logger) {
-	lc.Append(fx.Hook{
-		OnStop: func(ctx context.Context) error {
-			if err := log.Sync(); err != nil {
-				// Ignore benign stderr sync errors seen in CI on some platforms
-				if strings.Contains(err.Error(), "sync /dev/stderr") {
+		fx.Provide(func() *factoryOptions {
+			return NewFactory(opts...)
+		}),
+
+		fx.Provide(func(f *factoryOptions, cfg Config) (Logger, error) {
+			return f.ByProvider(context.Background(), cfg)
+		}),
+
+		// Sync logger when application stop
+		fx.Invoke(func(lc fx.Lifecycle, log Logger) {
+			lc.Append(fx.Hook{
+				OnStop: func(ctx context.Context) error {
+					if err := log.Sync(); err != nil && !strings.Contains(err.Error(), "sync /dev/stderr") {
+						log.Warn("logger sync failed", "error", err)
+					}
 					return nil
-				}
-				log.Warn("logger sync failed", "error", err)
-			}
-			return nil
-		},
-	})
+				},
+			})
+		}),
+	)
 }
