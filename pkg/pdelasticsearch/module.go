@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/tuannm99/podzone/pkg/pdlogv2"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
 )
 
@@ -28,7 +28,7 @@ func ModuleFor(name string, url []string) fx.Option {
 	)
 }
 
-func NewElasticsearchClient(logger pdlogv2.Logger, lc fx.Lifecycle, url string) (*elasticsearch.Client, error) {
+func NewElasticsearchClient(logger pdlog.Logger, lc fx.Lifecycle, url string) (*elasticsearch.Client, error) {
 	cfg := elasticsearch.Config{
 		Addresses: []string{url},
 	}

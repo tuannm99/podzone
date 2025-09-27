@@ -10,7 +10,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
-	"github.com/tuannm99/podzone/pkg/pdlogv2"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 )
 
 var _ outputport.OauthStateRepository = (*OauthStateRepositoryImpl)(nil)
@@ -18,7 +18,7 @@ var _ outputport.OauthStateRepository = (*OauthStateRepositoryImpl)(nil)
 type OauthStateRepoParams struct {
 	fx.In
 	RedisClient *redis.Client `name:"redis-auth"`
-	Logger      pdlogv2.Logger
+	Logger      pdlog.Logger
 }
 
 func NewOauthStateRepositoryImpl(p OauthStateRepoParams) *OauthStateRepositoryImpl {
@@ -30,7 +30,7 @@ func NewOauthStateRepositoryImpl(p OauthStateRepoParams) *OauthStateRepositoryIm
 
 type OauthStateRepositoryImpl struct {
 	redisClient *redis.Client
-	logger      pdlogv2.Logger
+	logger      pdlog.Logger
 }
 
 func (o *OauthStateRepositoryImpl) Del(key string) error {

@@ -3,10 +3,10 @@ package pdglobalmiddleware
 import (
 	"net/http"
 
-	"github.com/tuannm99/podzone/pkg/pdlogv2"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 )
 
-func healthMiddleware(logger pdlogv2.Logger) func(http.Handler) http.Handler {
+func healthMiddleware(logger pdlog.Logger) func(http.Handler) http.Handler {
 	logger.Debug("register healthz middleware")
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -1,6 +1,6 @@
 logger:
   app_name: "podzone_admin_auth"
-  provider: "zap" # "zap" | "slog" | "mock"
+  provider: "zap" # "zap" | "slog"
   level: "debug"
   env: "dev"
 
@@ -9,10 +9,10 @@ redis:
     uri: redis://localhost:6379/0
     provider: real
 
-postgres:
+gorm:
   auth:
     uri: postgres://postgres:postgres@localhost:5432/auth
-    provider: real
+    provider: postgres
 
 grpc:
   port: 50051

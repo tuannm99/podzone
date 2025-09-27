@@ -13,8 +13,7 @@ import (
 	"github.com/tuannm99/podzone/pkg/pdconfig"
 	"github.com/tuannm99/podzone/pkg/pdglobalmiddleware"
 	"github.com/tuannm99/podzone/pkg/pdgrpcgateway"
-	"github.com/tuannm99/podzone/pkg/pdlogv2"
-	"github.com/tuannm99/podzone/pkg/pdlogv2/provider"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 
 	pbAuth "github.com/tuannm99/podzone/pkg/api/proto/auth"
@@ -27,15 +26,8 @@ func main() {
 
 func newAppContainer() *fx.App {
 	return fx.New(
-
-		pdlogv2.Module(
-			pdlogv2.ViperLoaderFor("logger"),
-			pdlogv2.WithProvider("zap", provider.ZapFactory),
-			pdlogv2.WithProvider("slog", provider.SlogFactory),
-			pdlogv2.WithProvider("mock", provider.MockFactory),
-			pdlogv2.WithFallback(provider.ZapFactory),
-		),
 		pdconfig.Module,
+		pdlog.Module,
 
 		pdglobalmiddleware.CommonHttpModule,
 		pdgrpcgateway.Module,
@@ -72,12 +64,12 @@ func newAppContainer() *fx.App {
 	)
 }
 
-func NewRedirectResponseModifier(logger pdlogv2.Logger) runtime.ServeMuxOption {
+func NewRedirectResponseModifier(logger pdlog.Logger) runtime.ServeMuxOption {
 	return runtime.WithForwardResponseOption(RedirectForwardFunc(logger))
 }
 
 func RedirectForwardFunc(
-	logger pdlogv2.Logger,
+	logger pdlog.Logger,
 ) func(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
 	return func(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
 		if loginResp, ok := resp.(*pbAuth.GoogleLoginResponse); ok && loginResp.RedirectUrl != "" {

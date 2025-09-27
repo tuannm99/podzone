@@ -5,7 +5,7 @@ package pdkafka
 // 	"fmt"
 //
 // 	"github.com/IBM/sarama"
-// 	pdlog "github.com/tuannm99/podzone/pkg/pdlogv2"
+// 	pdlog "github.com/tuannm99/podzone/pkg/pdlog"
 // )
 //
 // // ConsumerGroupClient implements consumer group pattern

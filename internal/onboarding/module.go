@@ -7,7 +7,7 @@ import (
 	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager"
 	"github.com/tuannm99/podzone/internal/onboarding/store"
 	"github.com/tuannm99/podzone/pkg/pdhttp"
-	pdlog "github.com/tuannm99/podzone/pkg/pdlogv2"
+	pdlog "github.com/tuannm99/podzone/pkg/pdlog"
 )
 
 var Module = fx.Options(

@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tuannm99/podzone/pkg/pdlogv2"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
 )
 
@@ -24,7 +24,7 @@ type (
 type Params struct {
 	fx.In
 	Lc              fx.Lifecycle
-	Logger          pdlogv2.Logger
+	Logger          pdlog.Logger
 	Middlewares     []Middleware     `group:"gin-middleware"`
 	RegistrarRoutes []RouteRegistrar `group:"gin-routes"`
 }

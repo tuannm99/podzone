@@ -16,7 +16,7 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/infrastructure/model"
 	"github.com/tuannm99/podzone/internal/auth/infrastructure/repository"
 	pbAuth "github.com/tuannm99/podzone/pkg/api/proto/auth"
-	"github.com/tuannm99/podzone/pkg/pdlogv2"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 )
 
 var Module = fx.Options(
@@ -39,14 +39,14 @@ var Module = fx.Options(
 	),
 )
 
-func RegisterGRPCServer(server *grpc.Server, authServer *grpchandler.AuthServer, logger pdlogv2.Logger) {
+func RegisterGRPCServer(server *grpc.Server, authServer *grpchandler.AuthServer, logger pdlog.Logger) {
 	logger.Info("Registering Auth GRPC handler")
 	pbAuth.RegisterAuthServiceServer(server, authServer)
 }
 
 type MigrateParams struct {
 	fx.In
-	Logger pdlogv2.Logger
+	Logger pdlog.Logger
 	DB     *gorm.DB `name:"gorm-auth"`
 	V      *viper.Viper
 }

@@ -3,7 +3,7 @@ package pdgrpcclient
 import (
 	"context"
 
-	"github.com/tuannm99/podzone/pkg/pdlogv2"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -17,7 +17,7 @@ type Params struct {
 	fx.In
 
 	Lifecycle fx.Lifecycle
-	Logger    pdlogv2.Logger
+	Logger    pdlog.Logger
 	Host      string
 	Port      string
 }

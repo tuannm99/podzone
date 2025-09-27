@@ -6,10 +6,7 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
-	"go.uber.org/fx"
 )
-
-var Module = fx.Provide(NewAppConfig)
 
 func NewAppConfig() (*viper.Viper, error) {
 	v := viper.New()

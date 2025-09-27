@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tuannm99/podzone/pkg/pdlogv2"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -17,7 +17,7 @@ import (
 type TenantDBManager struct {
 	config *ConfigT
 	pool   sync.Map
-	logger pdlogv2.Logger
+	logger pdlog.Logger
 }
 
 // Config holds PostgreSQL connection configuration
@@ -31,7 +31,7 @@ type ConfigT struct {
 }
 
 // NewTenantDBManager creates a new tenant database manager
-func NewTenantDBManager(config *ConfigT, logger pdlogv2.Logger) *TenantDBManager {
+func NewTenantDBManager(config *ConfigT, logger pdlog.Logger) *TenantDBManager {
 	return &TenantDBManager{
 		config: config,
 		logger: logger,
@@ -149,7 +149,7 @@ func (m *TenantDBManager) Close() {
 
 // GormLogger implements gorm.Logger interface
 type GormLogger struct {
-	pdlogv2.Logger
+	pdlog.Logger
 }
 
 func (l *GormLogger) Printf(format string, args ...interface{}) {

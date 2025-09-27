@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/tuannm99/podzone/pkg/pdlogv2"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 )
 
 type responseWriter struct {
@@ -17,7 +17,7 @@ func (rw *responseWriter) WriteHeader(code int) {
 	rw.ResponseWriter.WriteHeader(code)
 }
 
-func loggerMiddleware(logger pdlogv2.Logger) func(next http.Handler) http.Handler {
+func loggerMiddleware(logger pdlog.Logger) func(next http.Handler) http.Handler {
 	logger.Debug("register logging middleware")
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -3,7 +3,7 @@ package pdworker
 import (
 	"context"
 
-	"github.com/tuannm99/podzone/pkg/pdlogv2"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
 )
 
@@ -11,7 +11,7 @@ type Worker interface {
 	Run(context.Context) error
 }
 
-func StartWorker(lc fx.Lifecycle, logger pdlogv2.Logger, w Worker) {
+func StartWorker(lc fx.Lifecycle, logger pdlog.Logger, w Worker) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			go func() {

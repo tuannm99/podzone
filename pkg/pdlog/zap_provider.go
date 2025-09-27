@@ -1,16 +1,14 @@
-package provider
+package pdlog
 
 import (
-	"context"
 	"fmt"
 	"time"
 
-	"github.com/tuannm99/podzone/pkg/pdlogv2"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-var ZapFactory pdlogv2.FactoryFn = func(_ context.Context, cfg pdlogv2.Config) (pdlogv2.Logger, error) {
+func NewZapLogger(cfg Config) (Logger, error) {
 	levelText := cfg.Level
 	if levelText == "" {
 		levelText = "info"
@@ -47,24 +45,24 @@ var ZapFactory pdlogv2.FactoryFn = func(_ context.Context, cfg pdlogv2.Config) (
 
 type zapLogger struct{ l *zap.Logger }
 
-func (z *zapLogger) With(kv ...any) pdlogv2.Logger { return &zapLogger{l: z.l.With(kvToZap(kv...)...)} }
-func (z *zapLogger) Log(level pdlogv2.Level, msg string, kv ...any) {
+func (z *zapLogger) With(kv ...any) Logger { return &zapLogger{l: z.l.With(kvToZap(kv...)...)} }
+func (z *zapLogger) Log(level Level, msg string, kv ...any) {
 	fs := kvToZap(kv...)
 	switch level {
-	case pdlogv2.LevelDebug:
+	case LevelDebug:
 		z.l.Debug(msg, fs...)
-	case pdlogv2.LevelInfo:
+	case LevelInfo:
 		z.l.Info(msg, fs...)
-	case pdlogv2.LevelWarn:
+	case LevelWarn:
 		z.l.Warn(msg, fs...)
 	default:
 		z.l.Error(msg, fs...)
 	}
 }
-func (z *zapLogger) Debug(msg string, kv ...any) { z.Log(pdlogv2.LevelDebug, msg, kv...) }
-func (z *zapLogger) Info(msg string, kv ...any)  { z.Log(pdlogv2.LevelInfo, msg, kv...) }
-func (z *zapLogger) Warn(msg string, kv ...any)  { z.Log(pdlogv2.LevelWarn, msg, kv...) }
-func (z *zapLogger) Error(msg string, kv ...any) { z.Log(pdlogv2.LevelError, msg, kv...) }
+func (z *zapLogger) Debug(msg string, kv ...any) { z.Log(LevelDebug, msg, kv...) }
+func (z *zapLogger) Info(msg string, kv ...any)  { z.Log(LevelInfo, msg, kv...) }
+func (z *zapLogger) Warn(msg string, kv ...any)  { z.Log(LevelWarn, msg, kv...) }
+func (z *zapLogger) Error(msg string, kv ...any) { z.Log(LevelError, msg, kv...) }
 func (z *zapLogger) Sync() error                 { return z.l.Sync() }
 
 func kvToZap(kv ...any) []zap.Field {

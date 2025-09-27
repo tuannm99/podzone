@@ -21,9 +21,9 @@ import (
 	"github.com/tuannm99/podzone/internal/backoffice"
 	"github.com/tuannm99/podzone/internal/backoffice/handlers/graphql/generated"
 	"github.com/tuannm99/podzone/internal/backoffice/handlers/graphql/resolver"
+	"github.com/tuannm99/podzone/pkg/pdconfig"
 	"github.com/tuannm99/podzone/pkg/pdcontext"
-	"github.com/tuannm99/podzone/pkg/pdlogv2"
-	"github.com/tuannm99/podzone/pkg/pdlogv2/provider"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
@@ -86,7 +86,7 @@ func playgroundHandler() gin.HandlerFunc {
 	}
 }
 
-func startServer(lc fx.Lifecycle, resolver *resolver.Resolver, logger pdlogv2.Logger) {
+func startServer(lc fx.Lifecycle, resolver *resolver.Resolver, logger pdlog.Logger) {
 	port := toolkit.GetEnv("PORT", "8000")
 
 	r := gin.Default()
@@ -123,13 +123,8 @@ func main() {
 
 func newAppContainer() *fx.App {
 	return fx.New(
-		pdlogv2.Module(
-			pdlogv2.ViperLoaderFor("logger"),
-			pdlogv2.WithProvider("zap", provider.ZapFactory),
-			pdlogv2.WithProvider("slog", provider.SlogFactory),
-			pdlogv2.WithProvider("mock", provider.MockFactory),
-			pdlogv2.WithFallback(provider.ZapFactory),
-		),
+		pdconfig.Module,
+		pdlog.Module,
 
 		// Provide MongoDB connection
 		fx.Provide(

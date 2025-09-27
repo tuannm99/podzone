@@ -1,8 +1,7 @@
-package pdlogv2
+package pdlog
 
-import (
-	"github.com/spf13/viper"
-)
+import "fmt"
+
 
 const (
 	LevelDebug Level = iota
@@ -34,16 +33,11 @@ type (
 		Env      string `mapstructure:"env"`      // "dev" | "prod"
 		AppName  string `mapstructure:"app_name"` // set by caller
 	}
-	// loader used to provide config - config can loaded via Viper,...
-	Loader func(v *viper.Viper) Config
 )
 
-func ViperLoaderFor(name string) func(*viper.Viper) Config {
-	return func(v *viper.Viper) Config {
-		var cfg Config
-		if sub := v.Sub(name); sub != nil {
-			_ = sub.Unmarshal(&cfg)
-		}
-		return cfg
+func toString(v any) string {
+	if s, ok := v.(string); ok {
+		return s
 	}
+	return fmt.Sprint(v)
 }

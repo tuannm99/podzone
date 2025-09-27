@@ -11,7 +11,7 @@ package tenantdb
 // 	"gorm.io/gorm"
 // 	"gorm.io/gorm/logger"
 //
-// 	pdlog "github.com/tuannm99/podzone/pkg/pdlogv2"
+// 	pdlog "github.com/tuannm99/podzone/pkg/pdlog"
 // 	"github.com/tuannm99/podzone/pkg/toolkit/cache"
 // )
 

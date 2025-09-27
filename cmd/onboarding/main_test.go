@@ -12,7 +12,7 @@ import (
 var configAppTest = `
 logger:
   app_name: "test"
-  provider: "mock" # "zap" | "slog" | "mock"
+  provider: "slog" # "zap" | "slog"
   level: "debug"
   env: "dev"
 

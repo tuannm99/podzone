@@ -11,8 +11,7 @@ import (
 
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
-	pdlog "github.com/tuannm99/podzone/pkg/pdlogv2"
-	"github.com/tuannm99/podzone/pkg/pdlogv2/provider"
+	pdlog "github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxtest"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -23,7 +22,7 @@ import (
 var configAppTest = `
 logger:
   app_name: "test"
-  provider: "mock"
+  provider: "slog"
   level: "debug"
   env: "dev"
 
@@ -58,15 +57,18 @@ func TestRedirectForwardFunc(t *testing.T) {
 	app := fxtest.New(t,
 		fx.Provide(func() *viper.Viper {
 			v := viper.New()
-			v.Set("logger.provider", "mock")
+			v.Set("logger.provider", "slog")
 			v.Set("logger.level", "debug")
 			v.Set("logger.env", "dev")
 			return v
 		}),
-		pdlog.Module(
-			pdlog.ViperLoaderFor("logger"),
-			pdlog.WithProvider("mock", provider.MockFactory),
-		),
+		fx.Provide(func(v *viper.Viper) (*pdlog.Config, error) {
+			return pdlog.GetLogConfigFromViper(v)
+		}),
+
+		fx.Provide(func(cfg *pdlog.Config) (pdlog.Logger, error) {
+			return pdlog.NewLogger(cfg)
+		}),
 		fx.Invoke(func(l pdlog.Logger) { logger = l }),
 	)
 	app.RequireStart()

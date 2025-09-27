@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/rs/cors"
-	"github.com/tuannm99/podzone/pkg/pdlogv2"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
 )
 
@@ -15,7 +15,7 @@ type Params struct {
 	fx.In
 	Lifecycle fx.Lifecycle
 
-	Logger  pdlogv2.Logger
+	Logger  pdlog.Logger
 	Handler http.Handler
 }
 

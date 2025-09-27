@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	capi "github.com/hashicorp/consul/api"
-	pdlog "github.com/tuannm99/podzone/pkg/pdlogv2"
+	pdlog "github.com/tuannm99/podzone/pkg/pdlog"
 )
 
 var _ KVStore = (*ConsulKVStore)(nil)

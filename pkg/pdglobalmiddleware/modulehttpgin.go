@@ -6,11 +6,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tuannm99/podzone/pkg/pdhttp"
-	"github.com/tuannm99/podzone/pkg/pdlogv2"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
 )
 
-func ginLoggerMiddleware(logger pdlogv2.Logger) pdhttp.Middleware {
+func ginLoggerMiddleware(logger pdlog.Logger) pdhttp.Middleware {
 	return func(r *gin.Engine) {
 		r.Use(func(c *gin.Context) {
 			start := time.Now()
@@ -35,7 +35,7 @@ func ginLoggerMiddleware(logger pdlogv2.Logger) pdhttp.Middleware {
 	}
 }
 
-func ginHealthRoute(logger pdlogv2.Logger) pdhttp.RouteRegistrar {
+func ginHealthRoute(logger pdlog.Logger) pdhttp.RouteRegistrar {
 	logger.Debug("Register healthz handler")
 	return func(r *gin.Engine) {
 		r.GET("/healthz", func(c *gin.Context) {

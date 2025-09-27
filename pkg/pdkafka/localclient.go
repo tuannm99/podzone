@@ -6,7 +6,7 @@ package pdkafka
 // 	"sync"
 // 	"time"
 //
-// 	pdlog "github.com/tuannm99/podzone/pkg/pdlogv2"
+// 	pdlog "github.com/tuannm99/podzone/pkg/pdlog"
 // )
 //
 // type LocalClient struct {

@@ -6,7 +6,7 @@ package pdkafka
 // 	"sync"
 //
 // 	"github.com/IBM/sarama"
-// 	pdlog "github.com/tuannm99/podzone/pkg/pdlogv2"
+// 	pdlog "github.com/tuannm99/podzone/pkg/pdlog"
 // )
 //
 // // KafkaClient represents a Kafka client

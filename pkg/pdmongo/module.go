@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
-	"github.com/tuannm99/podzone/pkg/pdlogv2"
+	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.uber.org/fx"
@@ -62,7 +62,7 @@ func Module(loader func(*viper.Viper) Config, opts ...Option) fx.Option {
 
 	return fx.Options(
 		fx.Provide(
-			fx.Annotate(func(v *viper.Viper, lc fx.Lifecycle, log pdlogv2.Logger) (*mongo.Client, error) {
+			fx.Annotate(func(v *viper.Viper, lc fx.Lifecycle, log pdlog.Logger) (*mongo.Client, error) {
 				cfg := loader(v)
 
 				prov := base.fallback

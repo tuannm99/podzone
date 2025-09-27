@@ -5,14 +5,14 @@ import (
 	// "github.com/tuannm99/podzone/internal/backoffice/handlers/graphql/resolver"
 	// "github.com/tuannm99/podzone/internal/backoffice/repository"
 	// "github.com/tuannm99/podzone/internal/backoffice/service"
-	// "github.com/tuannm99/podzone/pkg/pdlogv2"
+	// "github.com/tuannm99/podzone/pkg/pdlog"
 	// "github.com/tuannm99/podzone/pkg/pdpostgres"
 )
 
 // Module provides backoffice services
 var Module = fx.Options(
 	fx.Provide(
-	// func(logger pdlogv2.Logger) *pdpostgres.TenantDBManager {
+	// func(logger pdlog.Logger) *pdpostgres.TenantDBManager {
 	// 	config := &pdpostgres.Config{
 	// 		Host:     "localhost",
 	// 		Port:     5432,
