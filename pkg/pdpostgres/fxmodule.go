@@ -12,7 +12,7 @@ func ModuleFor(name string) fx.Option {
 	if name == "" {
 		name = "default"
 	}
-	nameTag := `name:"` + name + `"`
+	nameTag := `name:"pdpostgres-` + name + `"`
 	resultTag := `name:"gorm-` + name + `"`
 
 	return fx.Options(

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/fx"
 
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"

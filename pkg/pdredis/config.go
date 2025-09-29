@@ -4,8 +4,7 @@ package pdredis
 import "github.com/spf13/viper"
 
 type Config struct {
-	URI      string `mapstructure:"uri"`
-	Provider string `mapstructure:"provider"`
+	URI string `mapstructure:"uri"`
 }
 
 func GetConfigFromViper(name string, v *viper.Viper) (*Config, error) {

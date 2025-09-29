@@ -18,11 +18,12 @@ require (
 	github.com/elastic/go-elasticsearch/v8 v8.18.0
 	github.com/gin-contrib/cors v1.7.5
 	github.com/gin-gonic/gin v1.10.0
-	github.com/go-redis/redis/v8 v8.11.5
+	github.com/go-redis/redismock/v9 v9.2.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/consul/api v1.32.1
 	github.com/joho/godotenv v1.5.1
+	github.com/redis/go-redis/v9 v9.2.0
 	github.com/rs/cors v1.11.1
 	github.com/sony/sonyflake v1.3.0
 	github.com/spf13/viper v1.21.0

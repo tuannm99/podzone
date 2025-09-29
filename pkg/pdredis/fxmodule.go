@@ -3,7 +3,7 @@ package pdredis
 import (
 	"context"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
 )
@@ -12,7 +12,7 @@ func ModuleFor(name string) fx.Option {
 	if name == "" {
 		name = "default"
 	}
-	nameTag := `name:"` + name + `"`
+	nameTag := `name:"pdredis-` + name + `"`
 	resultTag := `name:"redis-` + name + `"`
 
 	return fx.Options(
