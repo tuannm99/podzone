@@ -36,7 +36,7 @@ type OauthStateRepositoryImpl struct {
 func (o *OauthStateRepositoryImpl) Del(key string) error {
 	_, err := o.redisClient.Del(context.Background(), key).Result()
 	if err != nil {
-		o.logger.Info("del state error").Err(err).Send()
+		o.logger.Info("del state error", "err", err)
 	}
 	return nil
 }
@@ -48,7 +48,7 @@ func (o *OauthStateRepositoryImpl) Get(key string) (string, error) {
 	} else if err != nil {
 		return "", fmt.Errorf("failed to get state: %w", err)
 	}
-	o.logger.Debug("get state data success").With("data", data).Send()
+	o.logger.Debug("get state data success", "err", err)
 	return data, nil
 }
 

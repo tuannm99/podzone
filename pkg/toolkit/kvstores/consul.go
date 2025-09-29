@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	capi "github.com/hashicorp/consul/api"
-	"github.com/tuannm99/podzone/pkg/pdlog"
+	pdlog "github.com/tuannm99/podzone/pkg/pdlog"
 )
 
 var _ KVStore = (*ConsulKVStore)(nil)
@@ -36,7 +36,7 @@ func (c *ConsulKVStore) Get(path string) ([]byte, error) {
 		return nil, fmt.Errorf("cannot get kv %s", err)
 	}
 
-	c.logger.Debug("KV").With("key", pair.Key).With("value", pair.Value).Send()
+	c.logger.Debug("KV", "key", pair.Key, "value", pair.Value)
 
 	return pair.Value, nil
 }
@@ -56,7 +56,7 @@ func (c *ConsulKVStore) GetKVs(prefix string) (map[string][]byte, error) {
 		keys = append(keys, kvPair.Key)
 	}
 
-	c.logger.Debug("KV").With("keys", keys).Send()
+	c.logger.Debug("KV", "keys", keys)
 
 	return result, nil
 }
@@ -69,7 +69,7 @@ func (c *ConsulKVStore) Put(path string, val []byte) error {
 		return fmt.Errorf("cannot put kv %s", err)
 	}
 
-	c.logger.Debug("put KV").With("path", path).With("byte", val).Send()
+	c.logger.Debug("put KV", "path", path, "byte", val)
 
 	return nil
 }
@@ -82,7 +82,7 @@ func (c *ConsulKVStore) Del(path string) error {
 		return fmt.Errorf("cannot delete kv %s", err)
 	}
 
-	c.logger.Debug("KV deleted").With("path", path).Send()
+	c.logger.Debug("KV deleted", "path", path)
 
 	return nil
 }

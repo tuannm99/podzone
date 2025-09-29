@@ -37,9 +37,9 @@ func startHTTPGateway(p Params) {
 	p.Lifecycle.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			go func() {
-				p.Logger.Info("HTTP Gateway started").
-					With("address", "http://0.0.0.0:"+httpPort).
-					Send()
+				p.Logger.Info("HTTP Gateway started",
+					"address", "http://0.0.0.0:"+httpPort,
+				)
 
 				if err := gwServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 					errCh <- err

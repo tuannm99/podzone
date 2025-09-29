@@ -103,8 +103,8 @@ sonar:
 	  sonarsource/sonar-scanner-cli \
 	  -Dsonar.projectKey=podzone \
 	  -Dsonar.sources=. \
-	  -Dsonar.exclusions=**/*_test.go,**/pkg/api/**,**/docs/**,**/api/**,**/third_party/**,**/scripts/**,**/deployments/**,**/node_modules/** \
-	  -Dsonar.test.inclusions=**/*_test.go \
+	  -Dsonar.exclusions=**/*_test.go,**/pkg/api/**,**/docs/**,**/api/**,**/third_party/**,**/scripts/**,**/deployments/**,**/node_modules/**,**/generated/**,**/mocks/** \
+	  -Dsonar.test.inclusions=**/*_test.go,**/generated/** \
 	  -Dsonar.go.coverage.reportPaths=coverage.out \
 	  -Dsonar.login=admin \
 	  -Dsonar.password=1

@@ -37,7 +37,7 @@ func NewUnaryInterceptor(p GRPCParams) GRPCResult {
 }
 
 func loggerInterceptor(logger pdlog.Logger) grpc.UnaryServerInterceptor {
-	logger.Debug("register grpc logger interceptor").Send()
+	logger.Debug("register grpc logger interceptor")
 	return func(
 		ctx context.Context,
 		req any,
@@ -53,11 +53,11 @@ func loggerInterceptor(logger pdlog.Logger) grpc.UnaryServerInterceptor {
 			return resp, err
 		}
 
-		logger.Info("gRPC Request").
-			With("method", info.FullMethod).
-			With("duration", duration).
-			With("error", err != nil).
-			Send()
+		logger.Info("gRPC Request",
+			"method", info.FullMethod,
+			"duration", duration,
+			"error", err != nil,
+		)
 
 		return resp, err
 	}

@@ -1,0 +1,25 @@
+all: false
+with-expecter: true     
+outpkg: mocks
+packages:
+  github.com/tuannm99/podzone/pkg/pdlog:
+    interfaces:
+      Logger:
+        config:
+          dir: pkg/pdlog/mocks
+
+  github.com/tuannm99/podzone/internal/auth/domain/inputport:
+    config:
+      dir: internal/auth/domain/inputport/mocks
+    interfaces:
+      AuthUsecase:
+      TokenUsecase:
+      UserUsecase:
+
+  github.com/tuannm99/podzone/internal/auth/domain/outputport:
+    config:
+      dir: internal/auth/domain/outputport/mocks
+    interfaces:
+      GoogleOauthExternal:
+      OauthStateRepository:
+      UserRepository:

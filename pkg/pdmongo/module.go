@@ -3,63 +3,107 @@ package pdmongo
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/spf13/viper"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.uber.org/fx"
 )
 
-func ModuleFor(name string) fx.Option {
-	tag := fmt.Sprintf(`name:"%s"`, "mongo-"+name)
+type moduleOptions struct {
+	name      string
+	providers map[string]ProviderFn
+	fallback  ProviderFn
+}
 
-	return fx.Provide(
-		fx.Annotate(func(v *viper.Viper, lc fx.Lifecycle, logger pdlog.Logger) (*mongo.Client, error) {
-			// mongo
-			sub := v.Sub("mongo")
-			if sub == nil {
-				return nil, fmt.Errorf("missing config block: mongo")
-			}
-			// mongo.<name>
-			sub = sub.Sub(name)
-			if sub == nil {
-				return nil, fmt.Errorf("missing config block: mongo.%s", name)
-			}
+type Option func(*moduleOptions)
 
-			var cfg InstanceConfig
-			if err := sub.Unmarshal(&cfg); err != nil {
-				return nil, fmt.Errorf("unmarshal mongo.%s failed: %w", name, err)
-			}
+func WithProvider(id string, f ProviderFn) Option {
+	return func(o *moduleOptions) { o.providers[id] = f }
+}
 
-			factory := Registry.Get()
-			client, err := factory(context.Background(), cfg)
-			if err != nil {
-				return nil, err
-			}
+func WithFallback(f ProviderFn) Option { return func(o *moduleOptions) { o.fallback = f } }
 
-			lc.Append(fx.Hook{
-				OnStart: func(ctx context.Context) error {
-					if currentFactoryID == "real" {
-						logger.Info("Pinging Mongo...").With("dsn", cfg.URI).Send()
-						if err := ping(ctx, client); err != nil {
+// tag: name:"mongo-<name>"
+func WithName(name string) Option { return func(o *moduleOptions) { o.name = name } }
+
+// ViperLoaderFor  mongo.<name>
+func ViperLoaderFor(name string) func(*viper.Viper) Config {
+	return func(v *viper.Viper) Config {
+		base := "mongo." + name
+		c := Config{
+			Provider: v.GetString(base + ".provider"),
+			URI:      v.GetString(base + ".uri"),
+		}
+		if c.Provider == "" {
+			c.Provider = "real"
+		}
+		return c
+	}
+}
+
+// Module: Viper -> Config -> Provider -> *mongo.Client + lifecycle
+func Module(loader func(*viper.Viper) Config, opts ...Option) fx.Option {
+	base := &moduleOptions{
+		providers: map[string]ProviderFn{
+			"real": RealProvider,
+			"mock": MockProvider,
+		},
+		fallback: RealProvider,
+		name:     "default",
+	}
+	for _, opt := range opts {
+		opt(base)
+	}
+
+	resultTag := fmt.Sprintf(`name:"%s"`, "mongo-"+base.name)
+
+	return fx.Options(
+		fx.Provide(
+			fx.Annotate(func(v *viper.Viper, lc fx.Lifecycle, log pdlog.Logger) (*mongo.Client, error) {
+				cfg := loader(v)
+
+				prov := base.fallback
+				if p, ok := base.providers[cfg.Provider]; ok {
+					prov = p
+				}
+
+				cl, err := prov(context.Background(), cfg)
+				if err != nil {
+					return nil, err
+				}
+
+				lc.Append(fx.Hook{
+					OnStart: func(ctx context.Context) error {
+						if cfg.Provider == "mock" {
+							log.Info("Using Mongo mock provider", "name", base.name, "uri", cfg.URI)
+							return nil
+						}
+						log.Info("Pinging Mongo...", "name", base.name, "dsn", cfg.URI)
+						tctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+						defer cancel()
+						if err := cl.Ping(tctx, readpref.Primary()); err != nil {
 							return fmt.Errorf("mongo ping failed: %w", err)
 						}
-						logger.Info("Mongo is reachable").With("dsn", cfg.URI).Send()
-					} else {
-						logger.Info("Using NoopMongoFactory (skip connect/ping)").With("name", name).Send()
-					}
-					return nil
-				},
-				OnStop: func(ctx context.Context) error {
-					if currentFactoryID == "real" {
-						logger.Info("Closing Mongo client").With("name", name).Send()
-						return client.Disconnect(ctx)
-					}
-					return nil
-				},
-			})
+						log.Info("Mongo is reachable", "name", base.name)
+						return nil
+					},
+					OnStop: func(ctx context.Context) error {
+						if cfg.Provider == "mock" {
+							log.Info("Skipping Mongo Disconnect for mock", "name", base.name)
+							return nil
+						}
+						log.Info("Closing Mongo client", "name", base.name)
+						tctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+						defer cancel()
+						return cl.Disconnect(tctx)
+					},
+				})
 
-			return client, nil
-		}, fx.ResultTags(tag)),
+				return cl, nil
+			}, fx.ResultTags(resultTag)),
+		),
 	)
 }

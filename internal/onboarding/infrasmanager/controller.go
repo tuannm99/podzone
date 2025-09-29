@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tuannm99/podzone/pkg/pdlog"
+	pdlog "github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
 )
 

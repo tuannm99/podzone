@@ -26,8 +26,8 @@ func main() {
 
 func newAppContainer() *fx.App {
 	return fx.New(
-		pdlog.ModuleFor("podzone_admin_grpcgateway"),
 		pdconfig.Module,
+		pdlog.Module,
 
 		pdglobalmiddleware.CommonHttpModule,
 		pdgrpcgateway.Module,
@@ -73,13 +73,13 @@ func RedirectForwardFunc(
 ) func(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
 	return func(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
 		if loginResp, ok := resp.(*pbAuth.GoogleLoginResponse); ok && loginResp.RedirectUrl != "" {
-			logger.Info("Redirecting to OAuth provider").With("url", loginResp.RedirectUrl).Send()
+			logger.Info("Redirecting to OAuth provider", "url", loginResp.RedirectUrl)
 			w.Header().Set("Location", loginResp.RedirectUrl)
 			w.WriteHeader(http.StatusTemporaryRedirect)
 			return nil
 		}
 		if callbackResp, ok := resp.(*pbAuth.GoogleCallbackResponse); ok && callbackResp.RedirectUrl != "" {
-			logger.Info("Redirecting to app after OAuth callback").With("url", callbackResp.RedirectUrl).Send()
+			logger.Info("Redirecting to app after OAuth callback", "url", callbackResp.RedirectUrl)
 			w.Header().Set("Location", callbackResp.RedirectUrl)
 			w.WriteHeader(http.StatusTemporaryRedirect)
 			return nil

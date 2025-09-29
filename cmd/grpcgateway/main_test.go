@@ -5,11 +5,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/spf13/viper"
-	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/stretchr/testify/require"
+	pdlog "github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxtest"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -17,12 +19,25 @@ import (
 	pbAuth "github.com/tuannm99/podzone/pkg/api/proto/auth"
 )
 
-func init() {
-	os.Setenv("CONFIG_PATH", "config.yml")
-	pdlog.Registry.Use("noop")
-}
+var configAppTest = `
+logger:
+  app_name: "test"
+  provider: "slog"
+  level: "debug"
+  env: "dev"
+
+redis:
+  auth:
+    uri: redis://localhost:6379/0
+    provider: mock
+`
 
 func TestMain(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yml")
+	require.NoError(t, os.WriteFile(path, []byte(configAppTest), 0o644))
+	t.Setenv("CONFIG_PATH", path)
+
 	done := make(chan struct{})
 	go func() {
 		main()
@@ -42,12 +57,18 @@ func TestRedirectForwardFunc(t *testing.T) {
 	app := fxtest.New(t,
 		fx.Provide(func() *viper.Viper {
 			v := viper.New()
-			v.Set("logger.provider", "noop")
+			v.Set("logger.provider", "slog")
 			v.Set("logger.level", "debug")
 			v.Set("logger.env", "dev")
 			return v
 		}),
-		pdlog.ModuleFor("test_gw"),
+		fx.Provide(func(v *viper.Viper) (*pdlog.Config, error) {
+			return pdlog.GetLogConfigFromViper(v)
+		}),
+
+		fx.Provide(func(cfg *pdlog.Config) (pdlog.Logger, error) {
+			return pdlog.NewLogger(cfg)
+		}),
 		fx.Invoke(func(l pdlog.Logger) { logger = l }),
 	)
 	app.RequireStart()

@@ -26,7 +26,7 @@ type Params struct {
 func startGrpcServer(p Params) {
 	grpcPort := p.Config.GetString("grpc.port")
 	if grpcPort == "" {
-		grpcPort = "50051"
+		grpcPort = "0"
 	}
 
 	p.Lifecycle.Append(fx.Hook{
@@ -37,13 +37,9 @@ func startGrpcServer(p Params) {
 			}
 
 			go func() {
-				p.Logger.Info("Starting gRPC server").
-					With("address", lis.Addr().String()).
-					Send()
+				p.Logger.Info("Starting gRPC server", "address", lis.Addr().String())
 				if err := p.GRPC.Serve(lis); err != nil && !errors.Is(err, grpc.ErrServerStopped) {
-					p.Logger.Error("gRPC server stopped with error").
-						With("err", err).
-						Send()
+					p.Logger.Error("gRPC server stopped with error", "error", err)
 				}
 			}()
 

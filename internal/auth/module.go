@@ -1,6 +1,9 @@
 package auth
 
 import (
+	"strings"
+
+	"github.com/spf13/viper"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
@@ -20,31 +23,13 @@ var Module = fx.Options(
 	fx.Provide(
 		config.NewAuthConfig,
 
-		fx.Annotate(
-			repository.NewGoogleOauthImpl,
-			fx.As(new(outputport.GoogleOauthExternal)),
-		),
-		fx.Annotate(
-			repository.NewOauthStateRepositoryImpl,
-			fx.As(new(outputport.OauthStateRepository)),
-		),
-		fx.Annotate(
-			repository.NewUserRepositoryImpl,
-			fx.As(new(outputport.UserRepository)),
-		),
+		fx.Annotate(repository.NewGoogleOauthImpl, fx.As(new(outputport.GoogleOauthExternal))),
+		fx.Annotate(repository.NewOauthStateRepositoryImpl, fx.As(new(outputport.OauthStateRepository))),
+		fx.Annotate(repository.NewUserRepositoryImpl, fx.As(new(outputport.UserRepository))),
 
-		fx.Annotate(
-			domain.NewTokenUsecase,
-			fx.As(new(inputport.TokenUsecase)),
-		),
-		fx.Annotate(
-			domain.NewUserUsecase,
-			fx.As(new(inputport.UserUsecase)),
-		),
-		fx.Annotate(
-			domain.NewAuthUsecase,
-			fx.As(new(inputport.AuthUsecase)),
-		),
+		fx.Annotate(domain.NewTokenUsecase, fx.As(new(inputport.TokenUsecase))),
+		fx.Annotate(domain.NewUserUsecase, fx.As(new(inputport.UserUsecase))),
+		fx.Annotate(domain.NewAuthUsecase, fx.As(new(inputport.AuthUsecase))),
 
 		grpchandler.NewAuthServer,
 	),
@@ -55,7 +40,7 @@ var Module = fx.Options(
 )
 
 func RegisterGRPCServer(server *grpc.Server, authServer *grpchandler.AuthServer, logger pdlog.Logger) {
-	logger.Info("Registering Auth GRPC handler").Send()
+	logger.Info("Registering Auth GRPC handler")
 	pbAuth.RegisterAuthServiceServer(server, authServer)
 }
 
@@ -63,12 +48,18 @@ type MigrateParams struct {
 	fx.In
 	Logger pdlog.Logger
 	DB     *gorm.DB `name:"gorm-auth"`
+	V      *viper.Viper
 }
 
 func RegisterMigration(p MigrateParams) {
-	p.Logger.Info("Mirating database...").Send()
-	err := p.DB.AutoMigrate(&model.User{})
-	if err != nil {
-		p.Logger.Error("error migration database").Err(err).Send()
+	provider := strings.ToLower(p.V.GetString("postgres.auth.provider"))
+	if provider == "mock" {
+		p.Logger.Info("Skipping database migration (postgres provider=mock)")
+		return
+	}
+
+	p.Logger.Info("Migrating database...")
+	if err := p.DB.AutoMigrate(&model.User{}); err != nil {
+		p.Logger.Error("error migration database", "err", err)
 	}
 }

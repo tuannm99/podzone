@@ -1,4 +1,3 @@
-// pkg/pdconfig/config.go
 package pdconfig
 
 import (
@@ -7,12 +6,9 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
-	"go.uber.org/fx"
 )
 
-var Module = fx.Provide(configProvider)
-
-func configProvider() (*viper.Viper, error) {
+func NewAppConfig() (*viper.Viper, error) {
 	v := viper.New()
 
 	path := os.Getenv("CONFIG_PATH")

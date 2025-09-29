@@ -39,11 +39,11 @@ func NewElasticsearchClient(logger pdlog.Logger, lc fx.Lifecycle, url string) (*
 
 	lc.Append(fx.Hook{
 		OnStop: func(ctx context.Context) error {
-			logger.Info("Stopping elastic client").With("url", url).Send()
+			logger.Info("Stopping elastic client", "url", url)
 			return nil
 		},
 	})
 
-	logger.Info("Connected to Elasticsearch").With("url", url).Send()
+	logger.Info("Connected to Elasticsearch", "url", url)
 	return client, nil
 }

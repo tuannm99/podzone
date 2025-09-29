@@ -2,14 +2,17 @@ logger:
   provider: "zap" # "zap" | "slog" | "noop"
   level: "debug"
   env: "dev"
+  app_name: "podzone_onboarding"
 
 redis:
   auth:
     uri: redis://localhost:6379/0
+    provider: real
 
 mongo:
   onboarding:
     uri: mongodb://localhost:27017/onboarding
+    provider: real
 
 grpc:
   port: 50051

@@ -19,11 +19,24 @@ func main() {
 
 func newAppContainer() *fx.App {
 	return fx.New(
-		pdlog.ModuleFor("podzone_admin_catalog"),
 		pdconfig.Module,
+		pdlog.Module,
 
-		pdredis.ModuleFor("catalog"),
-		pdmongo.ModuleFor("catalog"),
+		pdredis.Module(
+			pdredis.ViperLoaderFor("catalog"), // redis.catalog.*
+			pdredis.WithProvider("real", pdredis.RealProvider),
+			pdredis.WithProvider("mock", pdredis.MockProvider),
+			pdredis.WithFallback(pdredis.RealProvider),
+			pdredis.WithName("catalog"), // provide name:"redis-catalog"
+		),
+
+		pdmongo.Module(
+			pdmongo.ViperLoaderFor("catalog"), // mongo.catalog.*
+			pdmongo.WithProvider("real", pdmongo.RealProvider),
+			pdmongo.WithProvider("mock", pdmongo.MockProvider),
+			pdmongo.WithFallback(pdmongo.RealProvider),
+			pdmongo.WithName("catalog"), // provide name:"mongo-catalog"
+		),
 
 		pdglobalmiddleware.CommonGRPCModule,
 		pdgrpc.Module,

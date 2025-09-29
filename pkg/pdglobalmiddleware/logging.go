@@ -18,26 +18,28 @@ func (rw *responseWriter) WriteHeader(code int) {
 }
 
 func loggerMiddleware(logger pdlog.Logger) func(next http.Handler) http.Handler {
-	logger.Debug("register logging middleware").Send()
+	logger.Debug("register logging middleware")
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
 
-			rw := &responseWriter{w, http.StatusOK}
+			rw := &responseWriter{ResponseWriter: w, statusCode: http.StatusOK}
 			next.ServeHTTP(rw, r)
 
-			duration := time.Since(start)
-			if r.URL.Path != "/healthz" {
-				logger.Info("HTTP Request").
-					With("method", r.Method).
-					With("path", r.URL.Path).
-					With("query", r.URL.RawQuery).
-					With("status", rw.statusCode).
-					With("user_agent", r.UserAgent()).
-					With("remote_addr", r.RemoteAddr).
-					With("duration", duration).
-					Send()
+			if r.URL.Path == "/healthz" {
+				return
 			}
+
+			duration := time.Since(start)
+			logger.Info("HTTP Request",
+				"method", r.Method,
+				"path", r.URL.Path,
+				"query", r.URL.RawQuery,
+				"status", rw.statusCode,
+				"user_agent", r.UserAgent(),
+				"remote_addr", r.RemoteAddr,
+				"duration", duration,
+			)
 		})
 	}
 }

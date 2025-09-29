@@ -1,7 +1,6 @@
 package pdlog
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -9,16 +8,18 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-var zapFactory LoggerFactory = func(_ context.Context, cfg Config) (Logger, error) {
-	if cfg.Level == "" {
-		cfg.Level = "info"
+func NewZapLogger(cfg Config) (Logger, error) {
+	levelText := cfg.Level
+	if levelText == "" {
+		levelText = "info"
 	}
-	if cfg.Env == "" {
-		cfg.Env = "prod"
+	env := cfg.Env
+	if env == "" {
+		env = "prod"
 	}
 
 	var zcfg zap.Config
-	if cfg.Env == "prod" {
+	if env == "prod" {
 		zcfg = zap.NewProductionConfig()
 		zcfg.Sampling = &zap.SamplingConfig{Initial: 100, Thereafter: 100}
 	} else {
@@ -27,8 +28,8 @@ var zapFactory LoggerFactory = func(_ context.Context, cfg Config) (Logger, erro
 	}
 
 	var lvl zapcore.Level
-	if err := lvl.UnmarshalText([]byte(cfg.Level)); err != nil {
-		return nil, fmt.Errorf("invalid log level: %s", cfg.Level)
+	if err := lvl.UnmarshalText([]byte(levelText)); err != nil {
+		return nil, fmt.Errorf("invalid log level: %s", levelText)
 	}
 	zcfg.Level = zap.NewAtomicLevelAt(lvl)
 	zcfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
@@ -39,47 +40,30 @@ var zapFactory LoggerFactory = func(_ context.Context, cfg Config) (Logger, erro
 	}
 
 	zl := &zapLogger{l: z}
-	return zl.With("app", cfg.AppName, "env", cfg.Env), nil
+	return zl.With("app", cfg.AppName, "env", env), nil
 }
 
 type zapLogger struct{ l *zap.Logger }
 
-func (z *zapLogger) With(kv ...any) Logger  { return &zapLogger{l: z.l.With(kvToZap(kv...)...)} }
-func (z *zapLogger) Debug(msg string) Entry { return newZapEntry(z.l, LevelDebug, msg) }
-func (z *zapLogger) Info(msg string) Entry  { return newZapEntry(z.l, LevelInfo, msg) }
-func (z *zapLogger) Warn(msg string) Entry  { return newZapEntry(z.l, LevelWarn, msg) }
-func (z *zapLogger) Error(msg string) Entry { return newZapEntry(z.l, LevelError, msg) }
-func (z *zapLogger) Sync() error            { return z.l.Sync() }
-
-type zapEntry struct {
-	l     *zap.Logger
-	level Level
-	msg   string
-	fs    []zap.Field
-	err   error
-}
-
-func newZapEntry(l *zap.Logger, lvl Level, msg string) *zapEntry {
-	return &zapEntry{l: l, level: lvl, msg: msg, fs: make([]zap.Field, 0, 8)}
-}
-
-func (e *zapEntry) With(kv ...any) Entry { e.fs = append(e.fs, kvToZap(kv...)...); return e }
-func (e *zapEntry) Err(err error) Entry  { e.err = err; return e }
-func (e *zapEntry) Send() {
-	if e.err != nil {
-		e.fs = append(e.fs, zap.NamedError("error", e.err))
-	}
-	switch e.level {
+func (z *zapLogger) With(kv ...any) Logger { return &zapLogger{l: z.l.With(kvToZap(kv...)...)} }
+func (z *zapLogger) Log(level Level, msg string, kv ...any) {
+	fs := kvToZap(kv...)
+	switch level {
 	case LevelDebug:
-		e.l.Debug(e.msg, e.fs...)
+		z.l.Debug(msg, fs...)
 	case LevelInfo:
-		e.l.Info(e.msg, e.fs...)
+		z.l.Info(msg, fs...)
 	case LevelWarn:
-		e.l.Warn(e.msg, e.fs...)
+		z.l.Warn(msg, fs...)
 	default:
-		e.l.Error(e.msg, e.fs...)
+		z.l.Error(msg, fs...)
 	}
 }
+func (z *zapLogger) Debug(msg string, kv ...any) { z.Log(LevelDebug, msg, kv...) }
+func (z *zapLogger) Info(msg string, kv ...any)  { z.Log(LevelInfo, msg, kv...) }
+func (z *zapLogger) Warn(msg string, kv ...any)  { z.Log(LevelWarn, msg, kv...) }
+func (z *zapLogger) Error(msg string, kv ...any) { z.Log(LevelError, msg, kv...) }
+func (z *zapLogger) Sync() error                 { return z.l.Sync() }
 
 func kvToZap(kv ...any) []zap.Field {
 	if len(kv)%2 != 0 {
@@ -109,13 +93,4 @@ func kvToZap(kv ...any) []zap.Field {
 		}
 	}
 	return out
-}
-
-func toString(v any) string {
-	switch s := v.(type) {
-	case string:
-		return s
-	default:
-		return fmt.Sprint(s)
-	}
 }

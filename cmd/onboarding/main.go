@@ -19,10 +19,16 @@ func main() {
 
 func newAppContainer() *fx.App {
 	return fx.New(
-		pdlog.ModuleFor("podzone_onboarding"),
 		pdconfig.Module,
+		pdlog.Module,
 
-		pdmongo.ModuleFor("onboarding"),
+		pdmongo.Module(
+			pdmongo.ViperLoaderFor("onboarding"), // mongo.onboarding.*
+			pdmongo.WithProvider("real", pdmongo.RealProvider),
+			pdmongo.WithProvider("mock", pdmongo.MockProvider),
+			pdmongo.WithFallback(pdmongo.RealProvider),
+			pdmongo.WithName("onboarding"), // provide name:"mongo-onboarding"
+		),
 
 		pdglobalmiddleware.CommonGinMiddlewareModule,
 		pdhttp.Module,

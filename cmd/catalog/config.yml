@@ -2,14 +2,17 @@ logger:
   provider: "zap" # "zap" | "slog" | "noop"
   level: "debug"
   env: "dev"
-
-grpc:
-  port: 50052
+  app_name: "podzone_admin_catalog"
 
 redis:
   catalog:
     uri: redis://localhost:6379/0
+    provider: real
 
 mongo:
-  catalog: 
+  catalog:
     uri: mongodb://localhost:27017/catalog
+    provider: real
+
+grpc:
+  port: 50052

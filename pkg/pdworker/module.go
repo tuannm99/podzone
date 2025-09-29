@@ -16,7 +16,7 @@ func StartWorker(lc fx.Lifecycle, logger pdlog.Logger, w Worker) {
 		OnStart: func(ctx context.Context) error {
 			go func() {
 				if err := w.Run(ctx); err != nil {
-					logger.Error("Worker exited").Err(err).Send()
+					logger.Error("Worker exited", "error", err)
 				}
 			}()
 			return nil

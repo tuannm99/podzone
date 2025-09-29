@@ -21,6 +21,7 @@ import (
 	"github.com/tuannm99/podzone/internal/backoffice"
 	"github.com/tuannm99/podzone/internal/backoffice/handlers/graphql/generated"
 	"github.com/tuannm99/podzone/internal/backoffice/handlers/graphql/resolver"
+	"github.com/tuannm99/podzone/pkg/pdconfig"
 	"github.com/tuannm99/podzone/pkg/pdcontext"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/toolkit"
@@ -102,7 +103,7 @@ func startServer(lc fx.Lifecycle, resolver *resolver.Resolver, logger pdlog.Logg
 
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			logger.Info("Starting server").With("port", port).Send()
+			logger.Info("Starting server", "port", port)
 			go func() {
 				_ = r.Run(":" + port)
 			}()
@@ -122,7 +123,8 @@ func main() {
 
 func newAppContainer() *fx.App {
 	return fx.New(
-		pdlog.ModuleFor("podzone_backoffice"),
+		pdconfig.Module,
+		pdlog.Module,
 
 		// Provide MongoDB connection
 		fx.Provide(

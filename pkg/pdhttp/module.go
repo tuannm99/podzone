@@ -55,9 +55,9 @@ func NewHTTPServer(p Params) *gin.Engine {
 	p.Lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			go func() {
-				p.Logger.Info("Starting HTTP server").With("address", addr).Send()
+				p.Logger.Info("Starting HTTP server", "address", addr)
 				if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-					p.Logger.Error("HTTP server stopped with error").With("err", err).Send()
+					p.Logger.Error("HTTP server stopped with error", "error", err)
 				}
 			}()
 			return nil

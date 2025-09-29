@@ -1,23 +1,39 @@
 package pdlog
 
 import (
-	"github.com/tuannm99/podzone/pkg/toolkit"
+	"fmt"
+	"strings"
+
+	"github.com/spf13/viper"
 )
 
-type LoggerFactory = toolkit.Factory[Logger, Config]
+func GetLogConfigFromViper(v *viper.Viper) (*Config, error) {
+	var cfg Config
+	cfg.Provider = "zap"
+	cfg.Level = "info"
+	cfg.Env = "dev"
 
-// config.yml -> `logger.*`
-type Config struct {
-	Provider string `mapstructure:"provider"` // "zap" | "slog" | "noop"
-	Level    string `mapstructure:"level"`    // "debug" | "info" | "warn" | "error"
-	Env      string `mapstructure:"env"`      // "dev" | "prod"
-	AppName  string `mapstructure:"-"`        // set trong ModuleFor(appName)
+	if sub := v.Sub("logger"); sub != nil {
+		if err := sub.Unmarshal(&cfg); err != nil {
+			return nil, err
+		}
+	}
+	return &cfg, nil
 }
 
-var Registry = toolkit.NewRegistry[Logger, Config]("zap")
+func NewLogger(cfg *Config) (Logger, error) {
+	switch cfg.Provider {
+	case "slog":
+		return NewSlogLogger(*cfg)
+	case "zap", "":
+		return NewZapLogger(*cfg)
+	default:
+		return nil, fmt.Errorf("unknown logger provider: %q", cfg.Provider)
+	}
+}
 
-func init() {
-	Registry.Register("zap", zapFactory)
-	Registry.Register("slog", slogFactory)
-	Registry.Register("noop", noopFactory)
+func Cleanup(logger Logger) {
+	if err := logger.Sync(); err != nil && !strings.Contains(err.Error(), "sync /dev/stderr") {
+		logger.Warn("logger sync failed", "error", err)
+	}
 }

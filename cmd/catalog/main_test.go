@@ -1,29 +1,46 @@
 package main
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
-	"github.com/tuannm99/podzone/pkg/pdlog"
-	"github.com/tuannm99/podzone/pkg/pdmongo"
-	"github.com/tuannm99/podzone/pkg/pdredis"
+	"github.com/stretchr/testify/require"
 )
 
+var configAppTest = `
+logger:
+  app_name: "test"
+  provider: "slog" # "zap" | "slog"
+  level: "debug"
+  env: "dev"
+
+redis:
+  catalog:
+    uri: redis://localhost:6379/0
+    provider: mock
+
+mongo:
+  catalog:
+    uri: mongodb://localhost:27017/catalog
+    provider: mock
+
+grpc:
+  port: 0
+`
+
 func TestMain(t *testing.T) {
-	t.Setenv("CONFIG_PATH", "config.yml")
-	pdlog.Registry.Use("noop")
-	pdredis.Registry.Use("noop")
-	pdmongo.Registry.Use("noop")
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yml")
+	require.NoError(t, os.WriteFile(path, []byte(configAppTest), 0o644))
+	t.Setenv("CONFIG_PATH", path)
 
 	done := make(chan struct{})
-	go func() {
-		main()
-		close(done)
-	}()
+	go func() { main(); close(done) }()
 
 	select {
 	case <-done:
-	case <-time.After(200 * time.Millisecond):
-		t.Log("main() still running, test will stop here")
+	case <-time.After(300 * time.Millisecond):
 	}
 }
