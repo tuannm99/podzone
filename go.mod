@@ -1,6 +1,6 @@
 module github.com/tuannm99/podzone
 
-go 1.24.6
+go 1.25.1
 
 require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.1
@@ -13,16 +13,18 @@ require (
 
 require (
 	github.com/99designs/gqlgen v0.17.73
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/IBM/sarama v1.45.2
 	github.com/a-h/templ v0.3.865
 	github.com/elastic/go-elasticsearch/v8 v8.18.0
 	github.com/gin-contrib/cors v1.7.5
 	github.com/gin-gonic/gin v1.10.0
-	github.com/go-redis/redismock/v9 v9.2.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/consul/api v1.32.1
+	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
+	github.com/lib/pq v1.10.9
 	github.com/redis/go-redis/v9 v9.2.0
 	github.com/rs/cors v1.11.1
 	github.com/sony/sonyflake v1.3.0
@@ -40,6 +42,7 @@ require (
 
 require (
 	cloud.google.com/go/compute/metadata v0.6.0 // indirect
+	github.com/Masterminds/squirrel v1.5.4 // indirect
 	github.com/agnivade/levenshtein v1.2.1 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/bytedance/sonic v1.13.2 // indirect
@@ -90,6 +93,8 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
+	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
+	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

@@ -67,7 +67,7 @@ type srcBad struct {
 
 func TestMapStruct_OK(t *testing.T) {
 	s := srcOK{A: 7, B: "hi"}
-	out := MapStruct[srcOK, dstOK](s)
+	out, _ := MapStruct[srcOK, dstOK](s)
 	if out == nil {
 		t.Fatalf("MapStruct returned nil")
 	}
@@ -78,7 +78,7 @@ func TestMapStruct_OK(t *testing.T) {
 
 func TestMapStruct_UnsupportedField_ReturnNil(t *testing.T) {
 	s := srcBad{C: make(chan int)}
-	out := MapStruct[srcBad, dstOK](s)
+	out, _ := MapStruct[srcBad, dstOK](s)
 	if out != nil {
 		t.Fatalf("expected nil due to marshal error")
 	}

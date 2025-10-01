@@ -43,9 +43,9 @@ func GeneratePasswordHash(password string) (string, error) {
 }
 
 var (
-	ErrUsernameExisted = errors.New("username existed")
-	ErrEmailExisted    = errors.New("email existed")
-
-	ErrUserNotFound  = errors.New("user not found")
-	ErrWrongPassword = errors.New("wrong password")
+	ErrUsernameExisted   = errors.New("username existed")
+	ErrEmailExisted      = errors.New("email existed")
+	ErrUserNotFound      = errors.New("user not found")
+	ErrWrongPassword     = errors.New("wrong password")
+	ErrUserAlreadyExists = errors.New("user already exists")
 )

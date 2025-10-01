@@ -2,6 +2,7 @@ package toolkit
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"strconv"
 )
@@ -27,18 +28,18 @@ func GetEnv[T any](envName string, fallback T) T {
 	return fallback
 }
 
-func MapStruct[S any, T any](source S) *T {
+func MapStruct[S any, T any](source S) (*T, error) {
 	var target T
 
 	data, err := json.Marshal(source)
 	if err != nil {
-		return nil
+		return nil, fmt.Errorf("err marshal from source %w", err)
 	}
 
 	err = json.Unmarshal(data, &target)
 	if err != nil {
-		return nil
+		return nil, fmt.Errorf("err unmarshal to target %w", err)
 	}
 
-	return &target
+	return &target, nil
 }

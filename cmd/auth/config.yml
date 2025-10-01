@@ -9,9 +9,9 @@ redis:
     uri: redis://localhost:6379/0
     provider: real
 
-gorm:
+sql:
   auth:
-    uri: postgres://postgres:postgres@localhost:5432/auth
+    uri: postgres://postgres:postgres@localhost:5432/auth?sslmode=disable
     provider: postgres
 
 grpc:

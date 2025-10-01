@@ -1,87 +1,31 @@
 package model
 
 import (
-	"fmt"
 	"time"
 
-	"gorm.io/gorm"
-
-	"github.com/tuannm99/podzone/pkg/toolkit"
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 type User struct {
-	gorm.Model
-
-	Username    string    `gorm:"uniqueIndex" json:"username"`
-	Email       string    `gorm:"uniqueIndex" json:"email"`
-	Password    string    `                   json:"password"`
-	FullName    string    `                   json:"full_name"`
-	MiddleName  string    `                   json:"middle_name"`
-	FirstName   string    `                   json:"first_name"`
-	LastName    string    `                   json:"last_name"`
-	Address     string    `                   json:"address"`
-	InitialFrom string    `                   json:"initial_from"`
-	Age         uint8     `                   json:"age"`
-	Dob         time.Time `                   json:"dob"`
-	CreatedAt   time.Time `                   json:"created_at"`
-	UpdatedAt   time.Time `                   json:"updated_at"`
+	ID          uint64    `db:"id"           json:"id"`
+	Username    string    `db:"username"     json:"username"`
+	Email       string    `db:"email"        json:"email"`
+	Password    string    `db:"password"     json:"password"`
+	FullName    string    `db:"full_name"    json:"full_name"`
+	MiddleName  string    `db:"middle_name"  json:"middle_name"`
+	FirstName   string    `db:"first_name"   json:"first_name"`
+	LastName    string    `db:"last_name"    json:"last_name"`
+	Address     string    `db:"address"      json:"address"`
+	InitialFrom string    `db:"initial_from" json:"initial_from"`
+	Age         uint8     `db:"age"          json:"age"`
+	Dob         time.Time `db:"dob"          json:"dob"`
+	CreatedAt   time.Time `db:"created_at"   json:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"   json:"updated_at"`
 }
 
-func (User) TableName() string {
-	return "users"
-}
+func (User) TableName() string { return "users" }
 
-func (u *User) ToEntity() *entity.User {
+func (u *User) ToEntity() (*entity.User, error) {
 	return toolkit.MapStruct[User, entity.User](*u)
-}
-
-func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
-	var count int64
-
-	tx.Model(&User{}).Where("username = ?", u.Username).Count(&count)
-	if count > 0 {
-		return fmt.Errorf("username %s already exists", u.Username)
-	}
-
-	tx.Model(&User{}).Where("email = ?", u.Email).Count(&count)
-	if count > 0 {
-		return fmt.Errorf("email %s already exists", u.Email)
-	}
-
-	if u.Password != "" {
-		pass, err := entity.GeneratePasswordHash(u.Password)
-		if err != nil {
-			return err
-		}
-
-		u.Password = pass
-	}
-
-	return nil
-}
-
-func (u *User) BeforeUpdate(tx *gorm.DB) (err error) {
-	var count int64
-
-	tx.Model(&User{}).Where("username = ? AND id != ?", u.Username, u.ID).Count(&count)
-	if count > 0 {
-		return fmt.Errorf("username %s already exists", u.Username)
-	}
-
-	tx.Model(&User{}).Where("email = ? AND id != ?", u.Email, u.ID).Count(&count)
-	if count > 0 {
-		return fmt.Errorf("email %s already exists", u.Email)
-	}
-
-	if u.Password != "" {
-		pass, err := entity.GeneratePasswordHash(u.Password)
-		if err != nil {
-			return err
-		}
-
-		u.Password = pass
-	}
-
-	return nil
 }

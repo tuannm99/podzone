@@ -1,19 +1,20 @@
 package auth
 
 import (
-	"strings"
+	"context"
+	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/spf13/viper"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
-	"gorm.io/gorm"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/tuannm99/podzone/internal/auth/config"
 	"github.com/tuannm99/podzone/internal/auth/controller/grpchandler"
 	"github.com/tuannm99/podzone/internal/auth/domain"
 	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
-	"github.com/tuannm99/podzone/internal/auth/infrastructure/model"
 	"github.com/tuannm99/podzone/internal/auth/infrastructure/repository"
 	pbAuth "github.com/tuannm99/podzone/pkg/api/proto/auth"
 	"github.com/tuannm99/podzone/pkg/pdlog"
@@ -47,19 +48,68 @@ func RegisterGRPCServer(server *grpc.Server, authServer *grpchandler.AuthServer,
 type MigrateParams struct {
 	fx.In
 	Logger pdlog.Logger
-	DB     *gorm.DB `name:"gorm-auth"`
+	DB     *sqlx.DB `name:"sql-auth"`
 	V      *viper.Viper
 }
 
+var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+
+// execDDL runs a list of DDL Sqlizers with context + logging
+func execDDL(ctx context.Context, db *sqlx.DB, log pdlog.Logger, steps ...sq.Sqlizer) error {
+	for _, s := range steps {
+		sqlStr, args, err := s.ToSql()
+		if err != nil {
+			log.Error("build DDL failed", "err", err)
+			return err
+		}
+		// args will be empty for pure DDL; safe to pass anyway
+		if _, err := db.ExecContext(ctx, sqlStr, args...); err != nil {
+			log.Error("exec DDL failed", "sql", sqlStr, "err", err)
+			return err
+		}
+	}
+	return nil
+}
+
 func RegisterMigration(p MigrateParams) {
-	provider := strings.ToLower(p.V.GetString("postgres.auth.provider"))
-	if provider == "mock" {
-		p.Logger.Info("Skipping database migration (postgres provider=mock)")
-		return
+	p.Logger.Info("Migrating database...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	// Optional: enable extensions (Postgres)
+	createExts := []sq.Sqlizer{
+		// sq.Expr(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`),
+		// sq.Expr(`CREATE EXTENSION IF NOT EXISTS "citext"`),
 	}
 
-	p.Logger.Info("Migrating database...")
-	if err := p.DB.AutoMigrate(&model.User{}); err != nil {
-		p.Logger.Error("error migration database", "err", err)
+	createUsers := []sq.Sqlizer{
+		sq.Expr(`
+CREATE TABLE IF NOT EXISTS users (
+  id           BIGSERIAL PRIMARY KEY,
+  username     TEXT UNIQUE,
+  email        TEXT UNIQUE,
+  password     TEXT NOT NULL DEFAULT '',
+  full_name    TEXT NOT NULL DEFAULT '',
+  middle_name  TEXT NOT NULL DEFAULT '',
+  first_name   TEXT NOT NULL DEFAULT '',
+  last_name    TEXT NOT NULL DEFAULT '',
+  address      TEXT NOT NULL DEFAULT '',
+  initial_from TEXT NOT NULL DEFAULT '',
+  age          SMALLINT NOT NULL DEFAULT 0,
+  dob          TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+)`),
+		// Useful indexes (idempotent)
+		sq.Expr(`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`),
+		sq.Expr(`CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)`),
 	}
+
+	// Run steps in order
+	if err := execDDL(ctx, p.DB, p.Logger, append(createExts, createUsers...)...); err != nil {
+		p.Logger.Error("Migration failed", "err", err)
+		return
+	}
+	p.Logger.Info("Migration completed")
 }

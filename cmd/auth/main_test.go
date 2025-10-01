@@ -21,10 +21,10 @@ redis:
     uri: redis://localhost:6379/0
     provider: mock
 
-postgres:
+sql:
   auth:
     uri: postgres://postgres:postgres@localhost:5432/auth
-    provider: mock
+    provider: postgres
 
 grpc:
   port: 0

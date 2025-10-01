@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tuannm99/podzone/pkg/toolkit"
 	"github.com/tuannm99/podzone/internal/auth/config"
 	"github.com/tuannm99/podzone/internal/auth/domain/dto"
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 var _ inputport.AuthUsecase = (*authInteractorImpl)(nil)
@@ -134,8 +134,11 @@ func (u *authInteractorImpl) HandleOAuthCallback(
 		return nil, fmt.Errorf("failed to fetch user info: %w", err)
 	}
 
-	userEntityMapped := *toolkit.MapStruct[outputport.GoogleUserInfo, entity.User](*userInfo)
-	usr, err := u.userUC.CreateNewAfterAuthCallback(userEntityMapped)
+	userEntityMapped, err := toolkit.MapStruct[outputport.GoogleUserInfo, entity.User](*userInfo)
+	if err != nil {
+		return nil, err
+	}
+	usr, err := u.userUC.CreateNewAfterAuthCallback(*userEntityMapped)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new user: %w", err)
 	}
@@ -147,7 +150,10 @@ func (u *authInteractorImpl) HandleOAuthCallback(
 
 	redirectURL := fmt.Sprintf("%s?token=%s", u.appRedirectURL, jwtToken)
 
-	userInfoResp := toolkit.MapStruct[outputport.GoogleUserInfo, dto.UserInfoResp](*userInfo)
+	userInfoResp, err := toolkit.MapStruct[outputport.GoogleUserInfo, dto.UserInfoResp](*userInfo)
+	if err != nil {
+		return nil, err
+	}
 
 	return &dto.GoogleCallbackResp{
 		JwtToken:    jwtToken,
