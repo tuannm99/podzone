@@ -16,6 +16,7 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
 	"github.com/tuannm99/podzone/internal/auth/infrastructure/repository"
+	"github.com/tuannm99/podzone/internal/auth/migrations"
 	pbAuth "github.com/tuannm99/podzone/pkg/api/proto/auth"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 )
@@ -76,7 +77,8 @@ func RegisterMigration(p MigrateParams) {
 	defer cancel()
 
 	// Run steps in order
-	if err := execDDL(ctx, p.DB, p.Logger, append(CreateExts, CreateUsers...)...); err != nil {
+	err := execDDL(ctx, p.DB, p.Logger, append(migrations.CreateExts, migrations.CreateTableUsers...)...)
+	if err != nil {
 		p.Logger.Error("Migration failed", "err", err)
 		return
 	}

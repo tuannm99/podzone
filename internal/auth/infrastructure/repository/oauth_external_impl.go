@@ -15,7 +15,9 @@ import (
 var _ outputport.GoogleOauthExternal = (*googleOauthImpl)(nil)
 
 type googleOauthImpl struct {
-	config *oauth2.Config
+	config      *oauth2.Config
+	httpClient  *http.Client
+	userInfoURL string
 }
 
 func NewGoogleOauthImpl() *googleOauthImpl {
@@ -32,6 +34,20 @@ func NewGoogleOauthImpl() *googleOauthImpl {
 	return &googleOauthImpl{config: config}
 }
 
+func NewGoogleOauthImplWithOptions(cfg *oauth2.Config, hc *http.Client, userInfoURL string) *googleOauthImpl {
+	if hc == nil {
+		hc = http.DefaultClient
+	}
+	if userInfoURL == "" {
+		userInfoURL = "https://www.googleapis.com/oauth2/v3/userinfo"
+	}
+	return &googleOauthImpl{
+		config:      cfg,
+		httpClient:  hc,
+		userInfoURL: userInfoURL,
+	}
+}
+
 func (g *googleOauthImpl) GetConfig() *oauth2.Config {
 	return g.config
 }
@@ -41,7 +57,7 @@ func (g *googleOauthImpl) ExchangeCode(ctx context.Context, code string) (*oauth
 }
 
 func (g *googleOauthImpl) FetchUserInfo(accessToken string) (*outputport.GoogleUserInfo, error) {
-	req, err := http.NewRequest("GET", "https://www.googleapis.com/oauth2/v3/userinfo", nil)
+	req, err := http.NewRequest("GET", g.userInfoURL, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -49,8 +65,7 @@ func (g *googleOauthImpl) FetchUserInfo(accessToken string) (*outputport.GoogleU
 	q.Add("access_token", accessToken)
 	req.URL.RawQuery = q.Encode()
 
-	client := http.DefaultClient
-	resp, err := client.Do(req)
+	resp, err := g.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

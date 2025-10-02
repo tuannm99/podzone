@@ -2,258 +2,162 @@ package repository
 
 import (
 	"context"
-	"database/sql"
-	"regexp"
+	"fmt"
 	"testing"
 	"time"
 
-	"github.com/DATA-DOG/go-sqlmock"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
-	"github.com/stretchr/testify/assert"
+	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/require"
+	tcpg "github.com/testcontainers/testcontainers-go/modules/postgres"
+
+	"github.com/tuannm99/podzone/internal/auth/domain/entity"
+	"github.com/tuannm99/podzone/internal/auth/migrations"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 )
 
-var testLogger = &pdlog.NopLogger{}
+type nopLogger = pdlog.NopLogger
 
-func newSQLXMock(t *testing.T) (*sqlx.DB, sqlmock.Sqlmock, func()) {
-	t.Helper()
-	raw, mock, err := sqlmock.New()
-	require.NoError(t, err)
-	db := sqlx.NewDb(raw, "sqlmock")
-	cleanup := func() { _ = db.Close() }
-	return db, mock, cleanup
-}
-
-func userCols() []string {
-	return []string{
-		"id", "username", "email", "password",
-		"full_name", "middle_name", "first_name", "last_name",
-		"address", "initial_from", "age", "dob",
-		"created_at", "updated_at",
+func execDDL(ctx context.Context, db *sqlx.DB, steps ...sq.Sqlizer) error {
+	for _, s := range steps {
+		sqlStr, args, err := s.ToSql()
+		if err != nil {
+			return err
+		}
+		if _, err := db.ExecContext(ctx, sqlStr, args...); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
-func makeUserRow() *sqlmock.Rows {
-	now := time.Now().UTC()
-	return sqlmock.NewRows(userCols()).
-		AddRow(
-			int64(1),
-			"jdoe",
-			"jdoe@example.com",
-			"hashed-pass",
-			"John Doe",
-			"", "John", "Doe",
-			"Somewhere", "google",
-			int64(30), now, now, now,
-		)
+func setupPostgres(t require.TestingT) (*sqlx.DB, func()) {
+	ctx := context.Background()
+
+	pgC, err := tcpg.RunContainer(ctx,
+		tcpg.WithDatabase("testdb"),
+		tcpg.WithUsername("testuser"),
+		tcpg.WithPassword("testpass"),
+	)
+	require.NoError(t, err)
+
+	dsn, err := pgC.ConnectionString(ctx, "sslmode=disable")
+	require.NoError(t, err)
+
+	var db *sqlx.DB
+	const (
+		maxAttempts    = 30
+		initialBackoff = 200 * time.Millisecond
+		maxBackoff     = 2 * time.Second
+	)
+	backoff := initialBackoff
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		db, err = sqlx.Connect("postgres", dsn)
+		if err == nil {
+			pingCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+			pErr := db.PingContext(pingCtx)
+			cancel()
+			if pErr == nil {
+				break
+			}
+			err = pErr
+		}
+		if attempt == maxAttempts {
+			require.NoError(t, err, "postgres not ready after retries")
+		}
+		time.Sleep(backoff)
+		if backoff *= 2; backoff > maxBackoff {
+			backoff = maxBackoff
+		}
+	}
+
+	db.SetMaxOpenConns(5)
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxLifetime(2 * time.Minute)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	require.NoError(t, execDDL(ctx, db, append(migrations.CreateExts, migrations.CreateTableUsers...)...))
+	cleanup := func() {
+		_ = db.Close()
+		_ = pgC.Terminate(context.Background())
+	}
+	return db, cleanup
 }
 
-// ---------------- GetByUsernameOrEmail ----------------
+func newUserRepo(t *testing.T, db *sqlx.DB) *UserRepositoryImpl {
+	t.Helper()
+	return NewUserRepositoryImpl(UserRepoParams{
+		Logger: nopLogger{},
+		DB:     db,
+	})
+}
 
-func TestGetByUsernameOrEmail_Found(t *testing.T) {
-	sqlxDB, mock, cleanup := newSQLXMock(t)
+func TestUserRepository_Postgres_Integration_CRUD(t *testing.T) {
+	db, cleanup := setupPostgres(t)
 	defer cleanup()
 
-	rawQ := "SELECT id, username, email, password, full_name, middle_name, first_name, last_name, address, initial_from, age, dob, created_at, updated_at FROM users WHERE (email = $1 OR username = $2) LIMIT 1"
-	mock.ExpectQuery(regexp.QuoteMeta(rawQ)).
-		WithArgs("jdoe@example.com", "jdoe@example.com").
-		WillReturnRows(makeUserRow())
+	repo := newUserRepo(t, db)
 
-	repo := NewUserRepositoryImpl(UserRepoParams{Logger: testLogger, DB: sqlxDB})
-	u, err := repo.GetByUsernameOrEmail("jdoe@example.com")
+	u, err := repo.Create(entity.User{
+		Username: "jdoe",
+		Email:    "jdoe@example.com",
+		Password: "secret",
+		FullName: "John Doe",
+		Age:      30,
+	})
 	require.NoError(t, err)
 	require.NotNil(t, u)
-	assert.Equal(t, "jdoe@example.com", u.Email)
+	require.NotZero(t, u.Id)
+	require.Equal(t, "jdoe@example.com", u.Email)
+	require.NotEmpty(t, u.Password) // hashed
+	require.NotEqual(t, "secret", u.Password)
 
-	require.NoError(t, mock.ExpectationsWereMet())
-}
+	g1, err := repo.GetByUsernameOrEmail("jdoe@example.com")
+	require.NoError(t, err)
+	require.Equal(t, u.Id, g1.Id)
 
-func TestGetByUsernameOrEmail_NotFound(t *testing.T) {
-	sqlxDB, mock, cleanup := newSQLXMock(t) // matcher mặc định
-	defer cleanup()
+	g2, err := repo.GetByUsernameOrEmail("jdoe")
+	require.NoError(t, err)
+	require.Equal(t, u.Id, g2.Id)
 
-	identity := "nope@example.com"
+	_, err = repo.Create(entity.User{
+		Username: "another",
+		Email:    "jdoe@example.com",
+	})
+	require.Error(t, err)
 
-	query, _, err := psql.
-		Select(userColumns...).
-		From("users").
-		Where(sq.Or{
-			sq.Eq{"email": identity},
-			sq.Eq{"username": identity},
-		}).
-		Limit(1).
-		ToSql()
+	u2, err := repo.CreateByEmailIfNotExisted("new@example.com")
+	require.NoError(t, err)
+	require.NotNil(t, u2)
+	require.Equal(t, "new@example.com", u2.Email)
+	require.Equal(t, "google", u2.InitialFrom)
+
+	u3, err := repo.CreateByEmailIfNotExisted("new@example.com")
+	require.NoError(t, err)
+	require.NotNil(t, u3)
+	require.Equal(t, u2.Id, u3.Id)
+
+	err = repo.Update(entity.User{
+		Id:          u.Id,
+		FullName:    "John X. Doe",
+		Password:    "changed",
+		Age:         31,
+		InitialFrom: "podzone",
+	})
 	require.NoError(t, err)
 
-	mock.ExpectQuery(regexp.QuoteMeta(query)).
-		WithArgs(identity, identity).
-		WillReturnError(sql.ErrNoRows)
+	got, err := repo.GetByID(toStr(u.Id))
+	require.NoError(t, err)
+	require.Equal(t, "John X. Doe", got.FullName)
+	require.Equal(t, uint8(31), got.Age)
+	require.Equal(t, "podzone", got.InitialFrom)
+	require.NotEqual(t, "changed", got.Password)
+	require.NotEmpty(t, got.Password)
 
-	repo := NewUserRepositoryImpl(UserRepoParams{Logger: testLogger, DB: sqlxDB})
-	u, err := repo.GetByUsernameOrEmail(identity)
+	_, err = repo.GetByID("999999999")
 	require.Error(t, err)
-	assert.Nil(t, u)
-
-	require.NoError(t, mock.ExpectationsWereMet())
 }
 
-// ---------------- Create ----------------
-
-// func TestCreate_Success(t *testing.T) {
-// 	sqlxDB, mock, cleanup := newSQLXMock(t)
-// 	defer cleanup()
-//
-// 	re := regexp.MustCompile(`INSERT INTO users .* RETURNING .*`)
-// 	// ExpectQuery vì dùng QueryRowx (RETURNING)
-// 	mock.ExpectQuery(re.String()).
-// 		WithArgs(
-// 			"jdoe", "jdoe@example.com", // username, email
-// 			sqlmock.AnyArg(),              // password (hashed)
-// 			"John Doe", "", "John", "Doe", // names
-// 			"Somewhere", "google",
-// 			int64(30),
-// 			sqlmock.AnyArg(),                   // dob time.Time
-// 			sqlmock.AnyArg(), sqlmock.AnyArg(), // created_at, updated_at
-// 		).
-// 		WillReturnRows(makeUserRow())
-//
-// 	repo := NewUserRepositoryImpl(UserRepoParams{Logger: testLogger, DB: sqlxDB})
-// 	u, err := repo.Create(entity.User{
-// 		Username:    "jdoe",
-// 		Email:       "jdoe@example.com",
-// 		Password:    "plain-pass",
-// 		FullName:    "John Doe",
-// 		FirstName:   "John",
-// 		LastName:    "Doe",
-// 		Address:     "Somewhere",
-// 		InitialFrom: "google",
-// 		Age:         30,
-// 		Dob:         time.Now().UTC(),
-// 	})
-// 	require.NoError(t, err)
-// 	require.NotNil(t, u)
-//
-// 	require.NoError(t, mock.ExpectationsWereMet())
-// }
-//
-// func TestCreate_UniqueViolation(t *testing.T) {
-// 	sqlxDB, mock, cleanup := newSQLXMock(t)
-// 	defer cleanup()
-//
-// 	re := regexp.MustCompile(`INSERT INTO users .* RETURNING .*`)
-// 	mock.ExpectQuery(re.String()).
-// 		WithArgs(
-// 			"jdoe", "jdoe@example.com",
-// 			sqlmock.AnyArg(),
-// 			"John Doe", "", "John", "Doe",
-// 			"Somewhere", "google",
-// 			int64(30),
-// 			sqlmock.AnyArg(),
-// 			sqlmock.AnyArg(), sqlmock.AnyArg(),
-// 		).
-// 		WillReturnError(sqlmock.ErrCancelled) // dùng 1 error có message; hoặc errors.New("duplicate key …")
-//
-// 	repo := NewUserRepositoryImpl(UserRepoParams{Logger: testLogger, DB: sqlxDB})
-//
-// 	_, err := repo.Create(entity.User{
-// 		Username:    "jdoe",
-// 		Email:       "jdoe@example.com",
-// 		Password:    "plain-pass",
-// 		FullName:    "John Doe",
-// 		FirstName:   "John",
-// 		LastName:    "Doe",
-// 		Address:     "Somewhere",
-// 		InitialFrom: "google",
-// 		Age:         30,
-// 		Dob:         time.Now().UTC(),
-// 	})
-// 	require.Error(t, err)
-// 	require.NoError(t, mock.ExpectationsWereMet())
-// }
-//
-// // ---------------- CreateByEmailIfNotExisted ----------------
-//
-// func TestCreateByEmailIfNotExisted_Inserted(t *testing.T) {
-// 	sqlxDB, mock, cleanup := newSQLXMock(t)
-// 	defer cleanup()
-//
-// 	reInsert := regexp.MustCompile(`INSERT INTO users .* ON CONFLICT .* DO NOTHING RETURNING .*`)
-// 	mock.ExpectQuery(reInsert.String()).
-// 		WithArgs("new@example.com").
-// 		WillReturnRows(makeUserRow())
-//
-// 	repo := NewUserRepositoryImpl(UserRepoParams{Logger: testLogger, DB: sqlxDB})
-// 	u, err := repo.CreateByEmailIfNotExisted("new@example.com")
-// 	require.NoError(t, err)
-// 	require.NotNil(t, u)
-//
-// 	require.NoError(t, mock.ExpectationsWereMet())
-// }
-//
-// func TestCreateByEmailIfNotExisted_AlreadyExists(t *testing.T) {
-// 	sqlxDB, mock, cleanup := newSQLXMock(t)
-// 	defer cleanup()
-//
-// 	reInsert := regexp.MustCompile(`INSERT INTO users .* ON CONFLICT .* DO NOTHING RETURNING .*`)
-// 	mock.ExpectQuery(reInsert.String()).
-// 		WithArgs("exist@example.com").
-// 		WillReturnError(sql.ErrNoRows) // không có RETURNING row
-//
-// 	reSelect := regexp.MustCompile(`SELECT .* FROM users .* WHERE .*email .* OR .*username .* LIMIT 1`)
-// 	mock.ExpectQuery(reSelect.String()).
-// 		WithArgs("exist@example.com", "exist@example.com").
-// 		WillReturnRows(makeUserRow())
-//
-// 	repo := NewUserRepositoryImpl(UserRepoParams{Logger: testLogger, DB: sqlxDB})
-// 	u, err := repo.CreateByEmailIfNotExisted("exist@example.com")
-// 	require.NoError(t, err)
-// 	require.NotNil(t, u)
-//
-// 	require.NoError(t, mock.ExpectationsWereMet())
-// }
-//
-// // ---------------- GetByID ----------------
-//
-// func TestGetByID_Found(t *testing.T) {
-// 	sqlxDB, mock, cleanup := newSQLXMock(t)
-// 	defer cleanup()
-//
-// 	re := regexp.MustCompile(`SELECT .* FROM users .* WHERE .*id .* LIMIT 1`)
-// 	mock.ExpectQuery(re.String()).
-// 		WithArgs("1").
-// 		WillReturnRows(makeUserRow())
-//
-// 	repo := NewUserRepositoryImpl(UserRepoParams{Logger: testLogger, DB: sqlxDB})
-// 	u, err := repo.GetByID("1")
-// 	require.NoError(t, err)
-// 	require.NotNil(t, u)
-//
-// 	require.NoError(t, mock.ExpectationsWereMet())
-// }
-//
-// func TestGetByID_NotFound(t *testing.T) {
-// 	sqlxDB, mock, cleanup := newSQLXMock(t)
-// 	defer cleanup()
-//
-// 	re := regexp.MustCompile(`SELECT .* FROM users .* WHERE .*id .* LIMIT 1`)
-// 	mock.ExpectQuery(re.String()).
-// 		WithArgs("404").
-// 		WillReturnError(sql.ErrNoRows)
-//
-// 	repo := NewUserRepositoryImpl(UserRepoParams{Logger: testLogger, DB: sqlxDB})
-// 	u, err := repo.GetByID("404")
-// 	require.Error(t, err)
-// 	assert.Nil(t, u)
-//
-// 	require.NoError(t, mock.ExpectationsWereMet())
-// }
-
-// -------------- optional: context compile sanity --------------
-
-func TestContextAvailable(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	assert.NotNil(t, ctx)
-}
+func toStr(id uint) string { return fmt.Sprintf("%d", id) }

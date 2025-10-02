@@ -1,4 +1,4 @@
-package auth
+package migrations
 
 import (
 	sq "github.com/Masterminds/squirrel"
@@ -10,12 +10,12 @@ var CreateExts = []sq.Sqlizer{
 	// sq.Expr(`CREATE EXTENSION IF NOT EXISTS "citext"`),
 }
 
-var CreateUsers = []sq.Sqlizer{
+var CreateTableUsers = []sq.Sqlizer{
 	sq.Expr(`
 CREATE TABLE IF NOT EXISTS users (
   id           BIGSERIAL PRIMARY KEY,
-  username     TEXT UNIQUE,
-  email        TEXT UNIQUE,
+  username     TEXT NOT NULL DEFAULT '' UNIQUE,
+  email        TEXT NOT NULL DEFAULT '' UNIQUE,
   password     TEXT NOT NULL DEFAULT '',
   full_name    TEXT NOT NULL DEFAULT '',
   middle_name  TEXT NOT NULL DEFAULT '',
@@ -28,7 +28,6 @@ CREATE TABLE IF NOT EXISTS users (
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 )`),
-	// Useful indexes (idempotent)
 	sq.Expr(`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`),
 	sq.Expr(`CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)`),
 }
