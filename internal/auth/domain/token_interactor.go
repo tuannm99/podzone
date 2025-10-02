@@ -35,5 +35,6 @@ func (t *tokenUCImpl) CreateJwtToken(user entity.User) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(t.cfg.JWTSecret)
+	secret := []byte(t.cfg.JWTSecret)
+	return token.SignedString(secret)
 }
