@@ -52,8 +52,6 @@ type MigrateParams struct {
 	V      *viper.Viper
 }
 
-var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
-
 // execDDL runs a list of DDL Sqlizers with context + logging
 func execDDL(ctx context.Context, db *sqlx.DB, log pdlog.Logger, steps ...sq.Sqlizer) error {
 	for _, s := range steps {
@@ -77,37 +75,8 @@ func RegisterMigration(p MigrateParams) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	// Optional: enable extensions (Postgres)
-	createExts := []sq.Sqlizer{
-		// sq.Expr(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`),
-		// sq.Expr(`CREATE EXTENSION IF NOT EXISTS "citext"`),
-	}
-
-	createUsers := []sq.Sqlizer{
-		sq.Expr(`
-CREATE TABLE IF NOT EXISTS users (
-  id           BIGSERIAL PRIMARY KEY,
-  username     TEXT UNIQUE,
-  email        TEXT UNIQUE,
-  password     TEXT NOT NULL DEFAULT '',
-  full_name    TEXT NOT NULL DEFAULT '',
-  middle_name  TEXT NOT NULL DEFAULT '',
-  first_name   TEXT NOT NULL DEFAULT '',
-  last_name    TEXT NOT NULL DEFAULT '',
-  address      TEXT NOT NULL DEFAULT '',
-  initial_from TEXT NOT NULL DEFAULT '',
-  age          SMALLINT NOT NULL DEFAULT 0,
-  dob          TIMESTAMPTZ NOT NULL DEFAULT now(),
-  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
-)`),
-		// Useful indexes (idempotent)
-		sq.Expr(`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`),
-		sq.Expr(`CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)`),
-	}
-
 	// Run steps in order
-	if err := execDDL(ctx, p.DB, p.Logger, append(createExts, createUsers...)...); err != nil {
+	if err := execDDL(ctx, p.DB, p.Logger, append(CreateExts, CreateUsers...)...); err != nil {
 		p.Logger.Error("Migration failed", "err", err)
 		return
 	}

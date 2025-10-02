@@ -42,7 +42,7 @@ require (
 
 require (
 	cloud.google.com/go/compute/metadata v0.6.0 // indirect
-	github.com/Masterminds/squirrel v1.5.4 // indirect
+	github.com/Masterminds/squirrel v1.5.4 // direct
 	github.com/agnivade/levenshtein v1.2.1 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/bytedance/sonic v1.13.2 // indirect

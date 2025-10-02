@@ -22,13 +22,7 @@ func newAppContainer() *fx.App {
 		pdconfig.Module,
 		pdlog.Module,
 
-		pdredis.Module(
-			pdredis.ViperLoaderFor("catalog"), // redis.catalog.*
-			pdredis.WithProvider("real", pdredis.RealProvider),
-			pdredis.WithProvider("mock", pdredis.MockProvider),
-			pdredis.WithFallback(pdredis.RealProvider),
-			pdredis.WithName("catalog"), // provide name:"redis-catalog"
-		),
+		pdredis.ModuleFor("catalog"),
 
 		pdmongo.Module(
 			pdmongo.ViperLoaderFor("catalog"), // mongo.catalog.*

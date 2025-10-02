@@ -27,7 +27,7 @@ func (t *tokenUCImpl) CreateJwtToken(user entity.User) (string, error) {
 		UserID:   user.Id,
 		Email:    user.Email,
 		Username: user.Username,
-		Key:      "jwt-key",
+		Key:      t.cfg.JWTKey,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
 			IssuedAt:  time.Now().Unix(),

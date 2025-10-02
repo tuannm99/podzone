@@ -37,7 +37,7 @@ func NewAuthUsecase(
 }
 
 type authInteractorImpl struct {
-	jwtSecret      []byte
+	jwtSecret      string
 	appRedirectURL string
 
 	userUC  inputport.UserUsecase
