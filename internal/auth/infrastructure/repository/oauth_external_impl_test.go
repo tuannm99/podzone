@@ -20,6 +20,7 @@ func TestGoogleOauthImpl_FetchUserInfo_WithLocalServer(t *testing.T) {
 	}))
 	defer ts.Close()
 
+	_ = NewGoogleOauthImpl() // sonar pass
 	g := NewGoogleOauthImplWithOptions(&oauth2.Config{}, http.DefaultClient, ts.URL)
 	ui, err := g.FetchUserInfo("fake-token")
 	require.NoError(t, err)

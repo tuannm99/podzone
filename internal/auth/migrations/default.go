@@ -1,3 +1,5 @@
+// TODO: using goose for migration tool for sql
+// go install github.com/pressly/goose/v3/cmd/goose@latest
 package migrations
 
 import (

@@ -30,6 +30,8 @@ require (
 	github.com/sony/sonyflake v1.3.0
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
+	github.com/testcontainers/testcontainers-go/modules/postgres v0.31.0
+	github.com/testcontainers/testcontainers-go/modules/redis v0.31.0
 	github.com/vektah/gqlparser/v2 v2.5.26
 	go.mongodb.org/mongo-driver v1.17.3
 	go.uber.org/fx v1.23.0
@@ -71,8 +73,6 @@ require (
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/testcontainers/testcontainers-go v0.31.0 // indirect
-	github.com/testcontainers/testcontainers-go/modules/postgres v0.31.0 // indirect
-	github.com/testcontainers/testcontainers-go/modules/redis v0.31.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
