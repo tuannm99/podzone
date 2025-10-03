@@ -19,12 +19,10 @@ logger:
 redis:
   catalog:
     uri: redis://localhost:6379/0
-    provider: mock
 
 mongo:
   catalog:
     uri: mongodb://localhost:27017/catalog
-    provider: mock
 
 grpc:
   port: 0

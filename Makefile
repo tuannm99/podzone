@@ -93,6 +93,13 @@ dev:
 	done; \
 	wait
 
+migrate:
+	export GOOSE_DRIVER=postgres
+	export GOOSE_DBSTRING="postgres://user:pass@localhost:5432/dbname?sslmode=disable"
+	goose -dir ./internal/auth/migrations/sql status
+	goose -dir ./internal/auth/migrations/sql up
+	goose -dir ./internal/auth/migrations/sql down
+
 sonar:
 	@echo "🔁 Starting quality check..."
 	go test ./internal/... ./pkg/... ./cmd/... -coverprofile=coverage.out

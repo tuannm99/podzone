@@ -1,13 +1,12 @@
 logger:
-  provider: "zap" # "zap" | "slog" | "noop"
-  level: "debug"
-  env: "dev"
-  app_name: "podzone_admin_grpcgateway"
+  provider: 'zap' # "zap" | "slog" | "noop"
+  level: 'debug'
+  env: 'dev'
+  app_name: 'podzone_admin_grpcgateway'
 
 redis:
   auth:
     uri: redis://localhost:6379/0
-    provider: real
 # not use yet
 # grpc_client:
 #   auth:

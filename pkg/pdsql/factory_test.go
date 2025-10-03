@@ -38,12 +38,12 @@ func TestGetConfigFromViper_WithSub_UnmarshalOK(t *testing.T) {
 
 func TestNewDbFromConfig_Sqlmock_Succeeds(t *testing.T) {
 	cfg := &Config{
-		Provider: ProviderType("sqlmock"),
+		Provider: ProviderType("postgres"),
 		URI:      "any",
 	}
 
 	db, err := NewDbFromConfig(cfg)
-	require.NoError(t, err, "NewDbFromConfig should succeed for supported provider sqlmock")
+	require.NoError(t, err, "NewDbFromConfig should succeed for supported provider postgres")
 	require.NotNil(t, db, "db should be non-nil on success")
 	_ = db.Close()
 }
@@ -55,7 +55,7 @@ func TestNewDbFromConfig_Sqlmock_Succeeds_WithDSN(t *testing.T) {
 	defer rawDB.Close()
 
 	cfg := &Config{
-		Provider: ProviderType("sqlmock"),
+		Provider: ProviderType("postgres"),
 		URI:      dsn,
 	}
 

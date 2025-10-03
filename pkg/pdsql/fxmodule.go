@@ -13,23 +13,32 @@ func ModuleFor(name string) fx.Option {
 	if name == "" {
 		name = "default"
 	}
-	nameTag := `name:"pdsql` + name + `"`
-	resultTag := `name:"sql-` + name + `"`
+	nameParamTag := `name:"pdsql-` + name + `"`
+	configResultTag := `name:"sql-` + name + `-config"`
+	dbResultTag := `name:"sql-` + name + `"`
 
 	return fx.Options(
 		fx.Supply(
-			// provide the name string into the container
-			fx.Annotate(name, fx.ResultTags(nameTag)),
+			fx.Annotate(name, fx.ResultTags(nameParamTag)),
 		),
 		fx.Provide(
-			fx.Annotate(GetConfigFromViper, fx.ParamTags(nameTag)), // inject string[name="<name>"]
-			fx.Annotate(NewDbFromConfig, fx.ResultTags(resultTag)), // provides *sqlx.DB[name="sql-<name>"]
+			// GetConfigFromViper(name) -> *pdsql.Config[named]
+			fx.Annotate(
+				GetConfigFromViper,
+				fx.ParamTags(nameParamTag),
+				fx.ResultTags(configResultTag),
+			),
+			// NewDbFromConfig(*pdsql.Config[named]) -> *sqlx.DB[named]
+			fx.Annotate(
+				NewDbFromConfig,
+				fx.ParamTags(configResultTag),
+				fx.ResultTags(dbResultTag),
+			),
 		),
 		fx.Invoke(
 			fx.Annotate(
 				registerLifecycle,
-				// params: lc, *sqlx.DB(named), pdlog.Logger, *Config
-				fx.ParamTags(``, resultTag, ``, ``),
+				fx.ParamTags(``, dbResultTag, ``, configResultTag),
 			),
 		),
 	)

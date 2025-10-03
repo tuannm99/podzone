@@ -29,7 +29,6 @@ logger:
 redis:
   auth:
     uri: redis://localhost:6379/0
-    provider: mock
 `
 
 func TestMain(t *testing.T) {

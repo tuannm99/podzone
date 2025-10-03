@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/require"
@@ -18,19 +17,6 @@ import (
 )
 
 type nopLogger = pdlog.NopLogger
-
-func execDDL(ctx context.Context, db *sqlx.DB, steps ...sq.Sqlizer) error {
-	for _, s := range steps {
-		sqlStr, args, err := s.ToSql()
-		if err != nil {
-			return err
-		}
-		if _, err := db.ExecContext(ctx, sqlStr, args...); err != nil {
-			return err
-		}
-	}
-	return nil
-}
 
 func setupPostgres(t require.TestingT) (*sqlx.DB, func()) {
 	ctx := context.Background()
@@ -77,8 +63,8 @@ func setupPostgres(t require.TestingT) (*sqlx.DB, func()) {
 	db.SetConnMaxLifetime(2 * time.Minute)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	migrations.Apply(ctx, db.DB, "postgres")
 	defer cancel()
-	require.NoError(t, execDDL(ctx, db, append(migrations.CreateExts, migrations.CreateTableUsers...)...))
 	cleanup := func() {
 		_ = db.Close()
 		_ = pgC.Terminate(context.Background())
