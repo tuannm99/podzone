@@ -22,15 +22,23 @@ This is a Go monorepo containing a collection of microservices for an e-commerce
 
 🔄 **Microservice Implementation**
 
-- Gateway Service (apisix ✅) (TODO: replace it by using ./nextgen-gateway)
-- Auth Service ✅
-- Cart Service
-- Catalog Service
-- Order Service
-- Payment Service
-- User Service
-- Onboarding Service
-- Storefront
+- Gateway Service (apisix ✅) (TODO: replace it by using ./nextgen-gateway - if I can complete)
+- Auth Service (gRPC) ✅
+- User/Tenant Service (gRPC)
+- Cart Service (gRPC)
+- Catalog Service (gRPC)
+- Order Service (gRPC)
+- Payment Service (gRPC)
+- gRPC-Gateway Service (thin layer transform from grpc to http for all these admin services) ✅
+- Onboarding Service (Restful API, In-progress)
+- Backoffice (Graphql, monolithic Seller Portal - domain driven design + clean-arch, In-progress)
+- Storefront (Server Side Rendering, for surfing products of Seller Store)
+
+🔄 **Our pkg**
+
+- reused tools, use Fx as backbone, Viper for dynamic config (with Consul KV) + yaml file (need refactor and add more setup)
+- pkg/pdtenantdb - multi-tenant db manager, used for manage connection pool/db switching (In-progress)
+- pkg/toolkit - utility
 
 ### Planned
 
