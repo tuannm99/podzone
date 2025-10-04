@@ -24,8 +24,6 @@ type User struct {
 	UpdatedAt   time.Time `db:"updated_at"   json:"updated_at"`
 }
 
-func (User) TableName() string { return "users" }
-
 func (u *User) ToEntity() (*entity.User, error) {
 	return toolkit.MapStruct[User, entity.User](*u)
 }

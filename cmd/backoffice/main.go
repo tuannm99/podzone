@@ -7,8 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/vektah/gqlparser/v2/ast"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/fx"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -19,8 +17,8 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 
 	"github.com/tuannm99/podzone/internal/backoffice"
-	"github.com/tuannm99/podzone/internal/backoffice/handlers/graphql/generated"
-	"github.com/tuannm99/podzone/internal/backoffice/handlers/graphql/resolver"
+	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/generated"
+	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/resolver"
 	"github.com/tuannm99/podzone/pkg/pdconfig"
 	"github.com/tuannm99/podzone/pkg/pdcontext"
 	"github.com/tuannm99/podzone/pkg/pdlog"
@@ -126,19 +124,7 @@ func newAppContainer() *fx.App {
 		pdconfig.Module,
 		pdlog.Module,
 
-		// Provide MongoDB connection
-		fx.Provide(
-			func() string {
-				return toolkit.GetEnv("MONGODB_PORTAL_URI", "mongodb://localhost:27017")
-			},
-			func(uri string) *mongo.Client {
-				client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(uri))
-				if err != nil {
-					panic(err)
-				}
-				return client
-			},
-		),
+        // TODO: make pdtenent pool db manager
 
 		backoffice.Module,
 

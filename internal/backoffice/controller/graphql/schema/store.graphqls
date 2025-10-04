@@ -1,10 +1,12 @@
 type Store {
   id: ID!
   name: String!
+  owner_id: String!
+  is_active: Boolean!
   description: String!
   status: String!
-  createdAt: Time!
-  updatedAt: Time!
+  created_at: Time!
+  updated_at: Time!
 }
 
 input CreateStoreInput {
@@ -13,8 +15,8 @@ input CreateStoreInput {
 }
 
 extend type Query {
-  store(id: ID!): Store
   stores: [Store!]!
+  store(id: ID!): Store
 }
 
 extend type Mutation {

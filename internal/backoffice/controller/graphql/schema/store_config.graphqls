@@ -1,0 +1,12 @@
+type StoreConfig {
+  id: ID!
+  name: String!
+  store_id: ID!
+  created_at: Time!
+  updated_at: Time!
+}
+
+extend type Query {
+  storeConfigs: [StoreConfig!]!
+  storeConfig(id: ID!): StoreConfig!
+}
