@@ -19,12 +19,13 @@ logger:
 redis:
   auth:
     uri: redis://localhost:6379/0
-    provider: real
 
 mongo:
   onboarding:
     uri: mongodb://localhost:27017/onboarding
-    provider: real
+    database: catalog
+    ping_timeout: 3s
+    connect_timeout: 5s
 
 grpc:
   port: 0

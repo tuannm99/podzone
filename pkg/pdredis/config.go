@@ -1,4 +1,3 @@
-// pkg/pdredis/config.go
 package pdredis
 
 import "github.com/spf13/viper"

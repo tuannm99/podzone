@@ -1,11 +1,11 @@
-package pdsql
+package pdmongo
 
 import (
 	"context"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/tuannm99/podzone/pkg/pdlog"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/fx"
 )
 
@@ -13,9 +13,10 @@ func ModuleFor(name string) fx.Option {
 	if name == "" {
 		name = "default"
 	}
-	nameParamTag := `name:"pdsql-` + name + `"`
-	configResultTag := `name:"sql-` + name + `-config"`
-	dbResultTag := `name:"sql-` + name + `"`
+
+	nameParamTag := `name:"pdmongo-` + name + `"`
+	configResultTag := `name:"mongo-` + name + `-config"`
+	clientResultTag := `name:"mongo-` + name + `"`
 
 	return fx.Options(
 		fx.Supply(
@@ -28,21 +29,21 @@ func ModuleFor(name string) fx.Option {
 				fx.ResultTags(configResultTag),
 			),
 			fx.Annotate(
-				NewDbFromConfig,
+				NewMongoDbFromConfig,
 				fx.ParamTags(configResultTag),
-				fx.ResultTags(dbResultTag),
+				fx.ResultTags(clientResultTag),
 			),
 		),
 		fx.Invoke(
 			fx.Annotate(
 				registerLifecycle,
-				fx.ParamTags(``, dbResultTag, ``, configResultTag),
+				fx.ParamTags(``, clientResultTag, ``, configResultTag),
 			),
 		),
 	)
 }
 
-func registerLifecycle(lc fx.Lifecycle, db *sqlx.DB, log pdlog.Logger, cfg *Config) {
+func registerLifecycle(lc fx.Lifecycle, client *mongo.Client, log pdlog.Logger, cfg *Config) {
 	const (
 		maxAttempts    = 5
 		initialBackoff = 200 * time.Millisecond
@@ -54,9 +55,12 @@ func registerLifecycle(lc fx.Lifecycle, db *sqlx.DB, log pdlog.Logger, cfg *Conf
 			backoff := initialBackoff
 			var lastErr error
 			for attempt := 1; attempt <= maxAttempts; attempt++ {
-				log.Info("Pinging database...", "uri", cfg.URI, "attempt", attempt, "max_attempts", maxAttempts)
-				if lastErr = db.PingContext(ctx); lastErr == nil {
-					log.Info("Database ping OK", "uri", cfg.URI)
+				log.Info("Pinging Mongo...", "uri", cfg.URI, "attempt", attempt, "max_attempts", maxAttempts)
+				pingCtx, cancel := context.WithTimeout(ctx, cfg.PingTimeout)
+				lastErr = client.Ping(pingCtx, nil)
+				cancel()
+				if lastErr == nil {
+					log.Info("Mongo ping OK", "uri", cfg.URI)
 					return nil
 				}
 				if ctx.Err() != nil {
@@ -73,19 +77,16 @@ func registerLifecycle(lc fx.Lifecycle, db *sqlx.DB, log pdlog.Logger, cfg *Conf
 					backoff = maxBackoff
 				}
 			}
-			log.Error("Database ping failed", "error", lastErr, "uri", cfg.URI)
+			log.Error("Mongo ping failed", "error", lastErr, "uri", cfg.URI)
 			return lastErr
 		},
 		OnStop: func(ctx context.Context) error {
-			log.Info("Closing DB connection", "uri", cfg.URI)
-			if db == nil {
-				return nil
-			}
-			if err := db.Close(); err != nil {
-				log.Error("Close DB failed", "error", err)
+			log.Info("Closing Mongo connection", "uri", cfg.URI)
+			if err := client.Disconnect(ctx); err != nil {
+				log.Error("Close Mongo failed", "error", err)
 				return err
 			}
-			log.Info("DB connection closed")
+			log.Info("Mongo connection closed")
 			return nil
 		},
 	})

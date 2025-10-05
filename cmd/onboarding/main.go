@@ -22,13 +22,7 @@ func newAppContainer() *fx.App {
 		pdconfig.Module,
 		pdlog.Module,
 
-		pdmongo.Module(
-			pdmongo.ViperLoaderFor("onboarding"), // mongo.onboarding.*
-			pdmongo.WithProvider("real", pdmongo.RealProvider),
-			pdmongo.WithProvider("mock", pdmongo.MockProvider),
-			pdmongo.WithFallback(pdmongo.RealProvider),
-			pdmongo.WithName("onboarding"), // provide name:"mongo-onboarding"
-		),
+		pdmongo.ModuleFor("onboarding"),
 
 		pdglobalmiddleware.CommonGinMiddlewareModule,
 		pdhttp.Module,

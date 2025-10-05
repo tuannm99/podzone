@@ -23,14 +23,7 @@ func newAppContainer() *fx.App {
 		pdlog.Module,
 
 		pdredis.ModuleFor("catalog"),
-
-		pdmongo.Module(
-			pdmongo.ViperLoaderFor("catalog"), // mongo.catalog.*
-			pdmongo.WithProvider("real", pdmongo.RealProvider),
-			pdmongo.WithProvider("mock", pdmongo.MockProvider),
-			pdmongo.WithFallback(pdmongo.RealProvider),
-			pdmongo.WithName("catalog"), // provide name:"mongo-catalog"
-		),
+		pdmongo.ModuleFor("catalog"),
 
 		pdglobalmiddleware.CommonGRPCModule,
 		pdgrpc.Module,

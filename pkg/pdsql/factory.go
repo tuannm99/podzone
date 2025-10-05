@@ -11,6 +11,11 @@ import (
 	"github.com/spf13/viper"
 )
 
+var (
+	sqlOpen     = sql.Open
+	sqlxConnect = sqlx.Connect
+)
+
 func GetConfigFromViper(name string, v *viper.Viper) (*Config, error) {
 	base := "sql." + name
 	var cfg Config
@@ -33,7 +38,7 @@ func NewDbFromConfig(cfg *Config) (*sqlx.DB, error) {
 			return nil, fmt.Errorf("ensure db %q: %w", dbName, err)
 		}
 
-		db, err := sqlx.Connect("postgres", fullDSN)
+		db, err := sqlxConnect("postgres", fullDSN)
 		if err != nil {
 			return nil, err
 		}
@@ -55,7 +60,7 @@ func postgresAdminDSN(dsn string) (adminDSN, dbName string, err error) {
 }
 
 func ensurePostgresDatabase(adminDSN, dbName string) error {
-	admin, err := sql.Open("postgres", adminDSN)
+	admin, err := sqlOpen("postgres", adminDSN)
 	if err != nil {
 		return err
 	}

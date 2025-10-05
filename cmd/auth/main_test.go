@@ -1,15 +1,22 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/tuannm99/podzone/pkg/pdtestenv"
 )
 
-var configAppTest = `
+func TestMain(t *testing.T) {
+	testenv := pdtestenv.Setup(t)
+	pgDSN := testenv.PostgresDSN
+	redisURI := testenv.RedisURI
+
+	config := fmt.Sprintf(`
 logger:
   app_name: "test"
   provider: "slog"
@@ -18,28 +25,33 @@ logger:
 
 redis:
   auth:
-    uri: redis://localhost:6379/0
+    uri: %q
 
 sql:
   auth:
-    uri: postgres://postgres:postgres@localhost:5432/auth
+    uri: %q
     provider: postgres
+    should_run_migration: false
 
 grpc:
   port: 0
-`
+`, redisURI, pgDSN)
 
-func TestMain(t *testing.T) {
+	// Write config to tmp file
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.yml")
-	require.NoError(t, os.WriteFile(path, []byte(configAppTest), 0o644))
+	require.NoError(t, os.WriteFile(path, []byte(config), 0o644))
 	t.Setenv("CONFIG_PATH", path)
 
+	// Start main in goroutine
 	done := make(chan struct{})
-	go func() { main(); close(done) }()
+	go func() {
+		main()
+		close(done)
+	}()
 
 	select {
 	case <-done:
-	case <-time.After(300 * time.Millisecond):
+	case <-time.After(2 * time.Second): // allow Fx to boot and ping DB/Redis
 	}
 }

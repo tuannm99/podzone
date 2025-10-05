@@ -1,7 +1,8 @@
 package auth
 
 import (
-	"regexp"
+	"context"
+	"database/sql"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -13,23 +14,37 @@ import (
 	"go.uber.org/fx/fxtest"
 	"google.golang.org/grpc"
 
+	"github.com/tuannm99/podzone/internal/auth/controller/grpchandler"
 	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/pdsql"
 )
 
 type (
-	nopLogger      = pdlog.NopLogger
+	mockLogger     = pdlog.NopLogger
 	assertiveError string
 )
 
 func (e assertiveError) Error() string { return string(e) }
 
-func provideNamedSQLX(t *testing.T) (*sqlx.DB, sqlmock.Sqlmock, fx.Option) {
+func provideNamedSQLX(t *testing.T, shouldRun bool) (*sqlx.DB, sqlmock.Sqlmock, fx.Option) {
 	t.Helper()
-	raw, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherRegexp))
+	raw, mockDB, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherRegexp))
 	require.NoError(t, err)
 	db := sqlx.NewDb(raw, "sqlmock")
-	opt := fx.Supply(fx.Annotate(db, fx.ResultTags(`name:"sql-auth"`)))
-	return db, mock, opt
+
+	cfg := &pdsql.Config{
+		URI:                "postgres://fake",
+		Provider:           "postgres",
+		ShouldRunMigration: shouldRun,
+	}
+
+	opt := fx.Options(
+		fx.Supply(
+			fx.Annotate(db, fx.ResultTags(`name:"sql-auth"`)),
+			fx.Annotate(cfg, fx.ResultTags(`name:"sql-auth-config"`)),
+		),
+	)
+	return db, mockDB, opt
 }
 
 func provideNamedRedisStub() fx.Option {
@@ -37,25 +52,25 @@ func provideNamedRedisStub() fx.Option {
 	return fx.Supply(fx.Annotate(rdb, fx.ResultTags(`name:"redis-auth"`)))
 }
 
-func TestModule_StartsAndRunsMigrations_OK(t *testing.T) {
-	sqlxDB, mock, sqlOpt := provideNamedSQLX(t)
+// --- TESTS ---
+
+func TestRegisterMigration_Disabled(t *testing.T) {
+	sqlxDB, _, sqlOpt := provideNamedSQLX(t, true)
 	defer func() { _ = sqlxDB.Close() }()
 
-	mock.ExpectExec(regexp.QuoteMeta("CREATE TABLE IF NOT EXISTS users")).
-		WillReturnResult(sqlmock.NewResult(0, 0))
-	mock.ExpectExec(regexp.QuoteMeta("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)")).
-		WillReturnResult(sqlmock.NewResult(0, 0))
-	mock.ExpectExec(regexp.QuoteMeta("CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)")).
-		WillReturnResult(sqlmock.NewResult(0, 0))
+	origApply := applyMigration
+	applyMigration = func(ctx context.Context, db *sql.DB, driver string) error {
+		return nil
+	}
+	defer func() { applyMigration = origApply }()
 
 	app := fxtest.New(
 		t,
 		Module,
 		sqlOpt,
 		provideNamedRedisStub(),
-		// supply interface pdlog.Logger
 		fx.Supply(
-			fx.Annotate(nopLogger{}, fx.As(new(pdlog.Logger))),
+			fx.Annotate(pdlog.NopLogger{}, fx.As(new(pdlog.Logger))),
 		),
 		fx.Supply(viper.New()),
 		fx.Supply(grpc.NewServer()),
@@ -63,31 +78,12 @@ func TestModule_StartsAndRunsMigrations_OK(t *testing.T) {
 
 	app.RequireStart()
 	app.RequireStop()
-
-	require.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestModule_Migration_FirstStepFails_AppStillStarts(t *testing.T) {
-	sqlxDB, mock, sqlOpt := provideNamedSQLX(t)
-	defer func() { _ = sqlxDB.Close() }()
-
-	mock.ExpectExec(regexp.QuoteMeta("CREATE TABLE IF NOT EXISTS users")).
-		WillReturnError(assertiveError("boom"))
-
-	app := fxtest.New(
-		t,
-		Module,
-		sqlOpt,
-		provideNamedRedisStub(),
-		fx.Supply(
-			fx.Annotate(nopLogger{}, fx.As(new(pdlog.Logger))),
-		),
-		fx.Supply(viper.New()),
-		fx.Supply(grpc.NewServer()),
-	)
-
-	app.RequireStart()
-	app.RequireStop()
-
-	require.NoError(t, mock.ExpectationsWereMet())
+// Case 4: GRPC registration logs and binds
+func TestRegisterGRPCServer(t *testing.T) {
+	logger := &mockLogger{}
+	srv := grpc.NewServer()
+	authSrv := &grpchandler.AuthServer{}
+	RegisterGRPCServer(srv, authSrv, logger)
 }

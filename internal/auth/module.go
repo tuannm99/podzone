@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -54,6 +55,10 @@ type MigrateParams struct {
 	AuthDB       *sqlx.DB      `name:"sql-auth"`
 }
 
+var applyMigration = func(ctx context.Context, db *sql.DB, dialect string) error {
+	return migrations.Apply(ctx, db, dialect)
+}
+
 func RegisterMigration(p MigrateParams) {
 	if !p.AuthDBConfig.ShouldRunMigration {
 		p.Logger.Info("Disabled migration ...")
@@ -64,7 +69,7 @@ func RegisterMigration(p MigrateParams) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	if err := migrations.Apply(ctx, p.AuthDB.DB, "postgres"); err != nil {
+	if err := applyMigration(ctx, p.AuthDB.DB, "postgres"); err != nil {
 		p.Logger.Error("Migration failed", "err", err)
 		return
 	}

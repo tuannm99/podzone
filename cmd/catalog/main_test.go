@@ -22,7 +22,10 @@ redis:
 
 mongo:
   catalog:
-    uri: mongodb://localhost:27017/catalog
+    uri: mongodb://localhost:27017
+    database: catalog
+    ping_timeout: 3s
+    connect_timeout: 5s
 
 grpc:
   port: 0
