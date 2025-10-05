@@ -12,9 +12,16 @@ import (
 )
 
 func TestMain(t *testing.T) {
-	testenv := pdtestenv.Setup(t)
-	pgDSN := testenv.PostgresDSN
-	redisURI := testenv.RedisURI
+	mockConn := pdtestenv.Setup(t, pdtestenv.Options{
+		StartPostgres: true,
+		StartRedis:    true,
+		// StartMongo:      true,
+		// StartOpenSearch: true,
+		Reuse:     true,
+		Namespace: "podzone",
+	})
+	pgDSN := mockConn.PostgresDSN
+	redisURI := mockConn.RedisURI
 
 	config := fmt.Sprintf(`
 logger:
@@ -52,6 +59,6 @@ grpc:
 
 	select {
 	case <-done:
-	case <-time.After(2 * time.Second): // allow Fx to boot and ping DB/Redis
+	case <-time.After(2 * time.Second):
 	}
 }

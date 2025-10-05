@@ -2,7 +2,6 @@ package pdsql
 
 import (
 	"context"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/tuannm99/podzone/pkg/pdlog"
@@ -43,38 +42,14 @@ func ModuleFor(name string) fx.Option {
 }
 
 func registerLifecycle(lc fx.Lifecycle, db *sqlx.DB, log pdlog.Logger, cfg *Config) {
-	const (
-		maxAttempts    = 5
-		initialBackoff = 200 * time.Millisecond
-		maxBackoff     = 2 * time.Second
-	)
-
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			backoff := initialBackoff
-			var lastErr error
-			for attempt := 1; attempt <= maxAttempts; attempt++ {
-				log.Info("Pinging database...", "uri", cfg.URI, "attempt", attempt, "max_attempts", maxAttempts)
-				if lastErr = db.PingContext(ctx); lastErr == nil {
-					log.Info("Database ping OK", "uri", cfg.URI)
-					return nil
-				}
-				if ctx.Err() != nil {
-					break
-				}
-				t := time.NewTimer(backoff)
-				select {
-				case <-ctx.Done():
-					t.Stop()
-					return ctx.Err()
-				case <-t.C:
-				}
-				if backoff *= 2; backoff > maxBackoff {
-					backoff = maxBackoff
-				}
+			err := db.PingContext(ctx)
+			if err != nil {
+				log.Error("Database ping failed", "error", err, "uri", cfg.URI)
+				return err
 			}
-			log.Error("Database ping failed", "error", lastErr, "uri", cfg.URI)
-			return lastErr
+			return nil
 		},
 		OnStop: func(ctx context.Context) error {
 			log.Info("Closing DB connection", "uri", cfg.URI)

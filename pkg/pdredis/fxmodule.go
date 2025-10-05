@@ -9,16 +9,13 @@ import (
 )
 
 func ModuleFor(name string) fx.Option {
-	if name == "" {
-		name = "default"
-	}
 	nameTag := `name:"pdredis-` + name + `"`
 	resultTag := `name:"redis-` + name + `"`
 
 	return fx.Options(
 		fx.Supply(fx.Annotate(name, fx.ResultTags(nameTag))),
 		fx.Provide(
-			fx.Annotate(GetConfigFromViper, fx.ParamTags(nameTag)),     // -> *pdredis.Config
+			fx.Annotate(GetConfigFromViper, fx.ParamTags(nameTag, "")), // -> *pdredis.Config
 			fx.Annotate(NewClientFromConfig, fx.ResultTags(resultTag)), // -> *redis.Client[name="redis-<name>"]
 		),
 		fx.Invoke(

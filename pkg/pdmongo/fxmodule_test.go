@@ -1,4 +1,4 @@
-package pdsql
+package pdmongo
 
 import (
 	"fmt"
@@ -10,16 +10,16 @@ import (
 	"go.uber.org/fx/fxtest"
 )
 
-func TestModuleFor(t *testing.T) {
+func TestMongoModule_Integration(t *testing.T) {
 	mockConn := pdtestenv.Setup(t, pdtestenv.Options{
-		StartPostgres: true,
-		// StartRedis: true,
-		// StartMongo:      true,
+		// StartPostgres:   true,
+		// StartRedis:      true,
+		StartMongo:      true,
 		// StartOpenSearch: true,
-		Reuse:     true,
-		Namespace: "podzone",
+		Reuse:           true,
+		Namespace:       "podzone",
 	})
-	postgresDSN := mockConn.PostgresDSN
+	mongoURI := mockConn.MongoURI
 	config := fmt.Sprintf(`
 logger:
   app_name: "test"
@@ -27,13 +27,14 @@ logger:
   level: "debug"
   env: "dev"
 
-sql:
+mongo:
   test:
     uri: %q
-    provider: postgres
-    should_run_migration: false
+    database: catalog
+    ping_timeout: 3s
+    connect_timeout: 5s
 
-`, postgresDSN)
+`, mongoURI)
 	pdtestenv.MakeConfigDir(t, config)
 
 	appTest := fxtest.New(

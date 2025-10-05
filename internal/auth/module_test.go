@@ -19,12 +19,7 @@ import (
 	"github.com/tuannm99/podzone/pkg/pdsql"
 )
 
-type (
-	mockLogger     = pdlog.NopLogger
-	assertiveError string
-)
-
-func (e assertiveError) Error() string { return string(e) }
+type mockLogger = pdlog.NopLogger
 
 func provideNamedSQLX(t *testing.T, shouldRun bool) (*sqlx.DB, sqlmock.Sqlmock, fx.Option) {
 	t.Helper()
