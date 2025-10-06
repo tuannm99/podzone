@@ -1,12 +1,10 @@
 package main
 
 import (
-	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
+	"github.com/tuannm99/podzone/pkg/pdtestenv"
 )
 
 var configAppTest = `
@@ -32,10 +30,7 @@ grpc:
 `
 
 func TestMain(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "config.yml")
-	require.NoError(t, os.WriteFile(path, []byte(configAppTest), 0o644))
-	t.Setenv("CONFIG_PATH", path)
+	pdtestenv.MakeConfigDir(t, configAppTest)
 
 	done := make(chan struct{})
 	go func() { main(); close(done) }()

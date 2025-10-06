@@ -2,6 +2,8 @@ package pdelasticsearch
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/tuannm99/podzone/pkg/pdlog"
@@ -13,7 +15,7 @@ func ModuleFor(name string) fx.Option {
 		name = "default"
 	}
 
-	nameParamTag := `name:"pdelasticsearch-` + name + `"`
+	nameParamTag := `name:"elasticsearch-` + name + `"`
 	configResultTag := `name:"es-` + name + `-config"`
 	clientResultTag := `name:"es-` + name + `"`
 
@@ -42,23 +44,30 @@ func ModuleFor(name string) fx.Option {
 func registerLifecycle(lc fx.Lifecycle, client *elasticsearch.Client, log pdlog.Logger, cfg *Config) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			pingCtx, cancel := context.WithTimeout(ctx, cfg.PingTimeout)
-			res, err := client.Ping(client.Ping.WithContext(pingCtx))
-			cancel()
+			timeout := cfg.PingTimeout
+			if timeout <= 0 {
+				timeout = 3 * time.Second
+			}
 
+			pingCtx, cancel := context.WithTimeout(ctx, timeout)
+			defer cancel()
+
+			res, err := client.Ping(client.Ping.WithContext(pingCtx))
 			if err != nil {
 				log.Error("Elasticsearch ping failed", "error", err, "addresses", cfg.Addresses)
 				return err
 			}
+			if res == nil {
+				return fmt.Errorf("elasticsearch ping returned nil response")
+			}
+			defer res.Body.Close()
 
-			if err == nil && !res.IsError() {
-				res.Body.Close()
-				log.Info("Elasticsearch ping OK", "addresses", cfg.Addresses)
-				return nil
+			if res.IsError() {
+				log.Error("Elasticsearch ping status error", "status", res.Status(), "addresses", cfg.Addresses)
+				return fmt.Errorf("ping status error: %s", res.Status())
 			}
-			if res != nil {
-				res.Body.Close()
-			}
+
+			log.Info("Elasticsearch ping OK", "addresses", cfg.Addresses)
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {

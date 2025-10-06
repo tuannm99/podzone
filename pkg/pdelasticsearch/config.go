@@ -21,9 +21,6 @@ func GetConfigFromViper(name string, v *viper.Viper) (*Config, error) {
 	if sub := v.Sub(base); sub != nil {
 		_ = sub.Unmarshal(&cfg)
 	}
-	if len(cfg.Addresses) == 0 {
-		cfg.Addresses = []string{"http://localhost:9200"}
-	}
 	if cfg.ConnectTimeout == 0 {
 		cfg.ConnectTimeout = 5 * time.Second
 	}

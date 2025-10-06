@@ -2,12 +2,9 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
 	"github.com/tuannm99/podzone/pkg/pdtestenv"
 )
 
@@ -44,11 +41,7 @@ grpc:
   port: 0
 `, redisURI, pgDSN)
 
-	// Write config to tmp file
-	dir := t.TempDir()
-	path := filepath.Join(dir, "config.yml")
-	require.NoError(t, os.WriteFile(path, []byte(config), 0o644))
-	t.Setenv("CONFIG_PATH", path)
+	pdtestenv.MakeConfigDir(t, config)
 
 	// Start main in goroutine
 	done := make(chan struct{})

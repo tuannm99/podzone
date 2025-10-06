@@ -2,11 +2,8 @@ package pdelasticsearch
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"testing"
 
-	"github.com/stretchr/testify/require"
 	"go.uber.org/fx/fxtest"
 
 	"github.com/tuannm99/podzone/pkg/pdconfig"
@@ -15,17 +12,14 @@ import (
 )
 
 func TestElasticsearchModule_Integration(t *testing.T) {
-	mockConn := pdtestenv.Setup(t, pdtestenv.Options{
-		// StartPostgres:   true,
-		// StartRedis:      true,
-		// StartMongo:      true,
+	mock := pdtestenv.Setup(t, pdtestenv.Options{
 		StartElasticsearch: true,
 		Reuse:              true,
 		Namespace:          "podzone",
 	})
-	esURL := mockConn.OpenSearchURL
+	esURL := mock.ElasticsearchURL
 
-	config := fmt.Sprintf(`
+	cfg := fmt.Sprintf(`
 logger:
   app_name: "test"
   provider: "slog"
@@ -35,14 +29,8 @@ logger:
 elasticsearch:
   test:
     addresses: ["%s"]
-    ping_timeout: 3
-    connect_timeout: 5
 `, esURL)
-
-	dir := t.TempDir()
-	path := filepath.Join(dir, "config.yml")
-	require.NoError(t, os.WriteFile(path, []byte(config), 0o644))
-	t.Setenv("CONFIG_PATH", path)
+	pdtestenv.MakeConfigDir(t, cfg)
 
 	app := fxtest.New(t,
 		pdconfig.Module,

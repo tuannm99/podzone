@@ -4,14 +4,12 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/spf13/viper"
-	"github.com/stretchr/testify/require"
 	pdlog "github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/pdtestenv"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxtest"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -32,10 +30,7 @@ redis:
 `
 
 func TestMain(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "config.yml")
-	require.NoError(t, os.WriteFile(path, []byte(configAppTest), 0o644))
-	t.Setenv("CONFIG_PATH", path)
+	pdtestenv.MakeConfigDir(t, configAppTest)
 
 	done := make(chan struct{})
 	go func() {

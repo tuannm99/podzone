@@ -1,5 +1,5 @@
 // Package pdtestenv spins up infra containers for integration tests.
-// Supports Postgres, Redis, MongoDB, OpenSearch (ES-compatible), Kafka.
+// Supports Postgres, Redis, MongoDB, Elasticsearch, Kafka.
 // Requires: github.com/testcontainers/testcontainers-go v0.39.0
 package pdtestenv
 
@@ -29,7 +29,6 @@ type Options struct {
 	StartPostgres      bool
 	StartRedis         bool
 	StartMongo         bool
-	StartOpenSearch    bool
 	StartElasticsearch bool
 	// StartKafka       bool
 	Reuse              bool
@@ -37,7 +36,6 @@ type Options struct {
 	PostgresImage      string // default: "postgres:16-alpine"
 	RedisImage         string // default: "redis:7-alpine"
 	MongoImage         string // default: "mongo:6.0"
-	OpenSearchImage    string // default: "opensearchproject/opensearch:2.12.0"
 	ElasticsearchImage string
 	KafkaImage         string // default: "confluentinc/cp-kafka:7.6.1"
 	PostgresUser       string // default: "postgres"
@@ -59,11 +57,8 @@ func (o *Options) fillDefaults() {
 	if o.MongoImage == "" {
 		o.MongoImage = "mongo:6.0"
 	}
-	if o.OpenSearchImage == "" {
-		o.OpenSearchImage = "opensearchproject/opensearch:2.12.0"
-	}
 	if o.ElasticsearchImage == "" {
-		o.ElasticsearchImage = "docker.elastic.co/elasticsearch/elasticsearch:8.9.0"
+		o.ElasticsearchImage = "docker.elastic.co/elasticsearch/elasticsearch:8.12.0"
 	}
 
 	if o.KafkaImage == "" {
@@ -85,7 +80,6 @@ type Env struct {
 	PostgresDSN      string
 	RedisURI         string
 	MongoURI         string
-	OpenSearchURL    string
 	ElasticsearchURL string
 	KafkaBootstrap   string
 
@@ -155,11 +149,6 @@ func Setup(t *testing.T, opts Options) *Env {
 		env.MongoURI = fmt.Sprintf("mongodb://%s:%s", host, port)
 	}
 
-	if opts.StartOpenSearch {
-		env.osCont = startOpenSearch(t, ctx, opts, addCleanup)
-		host, port := hostPort(t, ctx, env.osCont, nat.Port("9200/tcp"))
-		env.OpenSearchURL = fmt.Sprintf("http://%s:%s", host, port)
-	}
 	if opts.StartElasticsearch { // 👈
 		env.esCont = startElasticsearch(t, ctx, opts, addCleanup)
 		host, port := hostPort(t, ctx, env.esCont, nat.Port("9200/tcp"))
@@ -253,34 +242,6 @@ func startMongo(t *testing.T, ctx context.Context, o Options, addCleanup func(fu
 		WaitingFor:   wait.ForListeningPort(nat.Port("27017/tcp")).WithStartupTimeout(1 * time.Minute),
 	}
 	withReuse(&req, o.Reuse, fmt.Sprintf("%s-mongo", o.Namespace))
-
-	c, err := tc.GenericContainer(ctx, tc.GenericContainerRequest{
-		ContainerRequest: req,
-		Started:          true,
-		Reuse:            o.Reuse,
-	})
-	require.NoError(t, err)
-	addCleanup(func() { _ = c.Terminate(context.Background()) })
-	return c
-}
-
-func startOpenSearch(t *testing.T, ctx context.Context, o Options, addCleanup func(func())) tc.Container {
-	req := tc.ContainerRequest{
-		Image: o.OpenSearchImage,
-		Env: map[string]string{
-			"DISABLE_SECURITY_PLUGIN":           "true",       // no auth
-			"OPENSEARCH_INITIAL_ADMIN_PASSWORD": "opensearch", // ignored if security disabled
-			"discovery.type":                    "single-node",
-			"plugins.security.disabled":         "true",
-			"OPENSEARCH_JAVA_OPTS":              "-Xms256m -Xmx256m",
-		},
-		ExposedPorts: []string{"9200/tcp"},
-		WaitingFor: wait.ForAll(
-			wait.ForListeningPort(nat.Port("9200/tcp")),
-			wait.ForHTTP("/").WithPort("9200/tcp"),
-		).WithStartupTimeout(2 * time.Minute),
-	}
-	withReuse(&req, o.Reuse, fmt.Sprintf("%s-opensearch", o.Namespace))
 
 	c, err := tc.GenericContainer(ctx, tc.GenericContainerRequest{
 		ContainerRequest: req,

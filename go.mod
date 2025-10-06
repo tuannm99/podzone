@@ -16,7 +16,9 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/IBM/sarama v1.45.2
 	github.com/a-h/templ v0.3.865
+	github.com/docker/docker v28.3.3+incompatible
 	github.com/docker/go-connections v0.6.0
+	github.com/docker/go-units v0.5.0
 	github.com/elastic/go-elasticsearch/v8 v8.18.0
 	github.com/gin-contrib/cors v1.7.5
 	github.com/gin-gonic/gin v1.10.0
@@ -33,7 +35,6 @@ require (
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.39.0
-	github.com/testcontainers/testcontainers-go/modules/kafka v0.39.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.31.0
 	github.com/testcontainers/testcontainers-go/modules/redis v0.31.0
 	github.com/vektah/gqlparser/v2 v2.5.30
@@ -54,8 +55,6 @@ require (
 	github.com/containerd/platforms v0.2.1 // indirect
 	github.com/cpuguy83/dockercfg v0.3.2 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
-	github.com/docker/docker v28.3.3+incompatible // indirect
-	github.com/docker/go-units v0.5.0 // indirect
 	github.com/ebitengine/purego v0.8.4 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
@@ -82,6 +81,8 @@ require (
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.19.0 // indirect
+	go.opentelemetry.io/proto/otlp v1.0.0 // indirect
 )
 
 require (
