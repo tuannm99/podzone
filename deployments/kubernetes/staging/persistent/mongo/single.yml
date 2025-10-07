@@ -52,24 +52,6 @@ spec:
             - name: mongodb-config
               mountPath: /etc/mongod.conf
               subPath: mongod.conf
-          readinessProbe:
-            exec:
-              command:
-                - mongo
-                - --eval
-                - "db.adminCommand('ping')"
-            initialDelaySeconds: 15
-            timeoutSeconds: 5
-            periodSeconds: 10
-          livenessProbe:
-            exec:
-              command:
-                - mongo
-                - --eval
-                - "db.adminCommand('ping')"
-            initialDelaySeconds: 30
-            timeoutSeconds: 5
-            periodSeconds: 15
           resources:
             requests:
               cpu: '100m'
