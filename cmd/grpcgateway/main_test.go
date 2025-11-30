@@ -27,6 +27,10 @@ logger:
 redis:
   auth:
     uri: redis://localhost:6379/0
+
+pprof:
+  enable: false
+  addr: "127.0.0.1:6060"
 `
 
 func TestMain(t *testing.T) {

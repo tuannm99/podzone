@@ -8,6 +8,7 @@ import (
 	"github.com/tuannm99/podzone/pkg/pdglobalmiddleware"
 	"github.com/tuannm99/podzone/pkg/pdgrpc"
 	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/pdpprof"
 	"github.com/tuannm99/podzone/pkg/pdredis"
 	"github.com/tuannm99/podzone/pkg/pdsql"
 
@@ -23,6 +24,7 @@ func newAppContainer() *fx.App {
 	return fx.New(
 		pdconfig.Module,
 		pdlog.Module,
+		pdpprof.Module,
 		pdsql.ModuleFor("auth"),
 		pdredis.ModuleFor("auth"),
 		pdglobalmiddleware.CommonGRPCModule,

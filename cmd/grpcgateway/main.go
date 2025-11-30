@@ -14,6 +14,7 @@ import (
 	"github.com/tuannm99/podzone/pkg/pdglobalmiddleware"
 	"github.com/tuannm99/podzone/pkg/pdgrpcgateway"
 	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/pdpprof"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 
 	pbAuth "github.com/tuannm99/podzone/pkg/api/proto/auth"
@@ -29,6 +30,7 @@ func newAppContainer() *fx.App {
 		pdconfig.Module,
 		pdlog.Module,
 
+		pdpprof.Module,
 		pdglobalmiddleware.CommonHttpModule,
 		pdgrpcgateway.Module,
 
