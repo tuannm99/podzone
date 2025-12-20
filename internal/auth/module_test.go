@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/go-redis/redismock/v9"
 	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
@@ -19,9 +20,7 @@ import (
 	"github.com/tuannm99/podzone/pkg/pdsql"
 )
 
-type mockLogger = pdlog.NopLogger
-
-func provideNamedSQLX(t *testing.T, shouldRun bool) (*sqlx.DB, sqlmock.Sqlmock, fx.Option) {
+func provideNamedSQLX(t *testing.T, shouldRunMigration bool) (*sqlx.DB, sqlmock.Sqlmock, fx.Option) {
 	t.Helper()
 	raw, mockDB, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherRegexp))
 	require.NoError(t, err)
@@ -30,7 +29,7 @@ func provideNamedSQLX(t *testing.T, shouldRun bool) (*sqlx.DB, sqlmock.Sqlmock, 
 	cfg := &pdsql.Config{
 		URI:                "postgres://fake",
 		Provider:           "postgres",
-		ShouldRunMigration: shouldRun,
+		ShouldRunMigration: shouldRunMigration,
 	}
 
 	opt := fx.Options(
@@ -42,16 +41,34 @@ func provideNamedSQLX(t *testing.T, shouldRun bool) (*sqlx.DB, sqlmock.Sqlmock, 
 	return db, mockDB, opt
 }
 
-func provideNamedRedisStub() fx.Option {
-	rdb := redis.NewClient(&redis.Options{Addr: "127.0.0.1:0", DB: 0})
-	return fx.Supply(fx.Annotate(rdb, fx.ResultTags(`name:"redis-auth"`)))
+func provideNamedRedisStub(t *testing.T) (*redis.Client, redismock.ClientMock, fx.Option) {
+	t.Helper()
+	rdb, mock := redismock.NewClientMock()
+	opt := fx.Options(
+		fx.Supply(
+			fx.Annotate(rdb, fx.ResultTags(`name:"redis-auth"`)),
+		),
+		fx.Provide(
+			fx.Annotate(
+				func(c *redis.Client) redis.Cmdable { return c },
+				fx.ParamTags(`name:"redis-auth"`),
+				fx.ResultTags(`name:"redis-auth"`),
+			),
+		),
+	)
+
+	return rdb, mock, opt
 }
 
 // --- TESTS ---
 
 func TestRegisterMigration_Disabled(t *testing.T) {
 	sqlxDB, _, sqlOpt := provideNamedSQLX(t, true)
-	defer func() { _ = sqlxDB.Close() }()
+	rdb, _, rdbOpt := provideNamedRedisStub(t)
+	defer func() {
+		_ = sqlxDB.Close()
+		_ = rdb.Close()
+	}()
 
 	origApply := applyMigration
 	applyMigration = func(ctx context.Context, db *sql.DB, driver string) error {
@@ -63,7 +80,7 @@ func TestRegisterMigration_Disabled(t *testing.T) {
 		t,
 		Module,
 		sqlOpt,
-		provideNamedRedisStub(),
+		rdbOpt,
 		fx.Supply(
 			fx.Annotate(pdlog.NopLogger{}, fx.As(new(pdlog.Logger))),
 		),
@@ -75,10 +92,8 @@ func TestRegisterMigration_Disabled(t *testing.T) {
 	app.RequireStop()
 }
 
-// Case 4: GRPC registration logs and binds
 func TestRegisterGRPCServer(t *testing.T) {
-	logger := &mockLogger{}
 	srv := grpc.NewServer()
 	authSrv := &grpchandler.AuthServer{}
-	RegisterGRPCServer(srv, authSrv, logger)
+	RegisterGRPCServer(srv, authSrv, pdlog.NopLogger{})
 }

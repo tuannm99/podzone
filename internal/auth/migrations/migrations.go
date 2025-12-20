@@ -10,6 +10,7 @@ import (
 )
 
 // this comment below for ensuring goose know where ./sql dir is
+//
 //go:embed sql/*.sql
 var MigrationsFS embed.FS
 

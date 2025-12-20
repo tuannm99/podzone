@@ -17,9 +17,15 @@ func ModuleFor(name string) fx.Option {
 		fx.Provide(
 			fx.Annotate(GetConfigFromViper, fx.ParamTags(nameTag, "")), // -> *pdredis.Config
 			fx.Annotate(NewClientFromConfig, fx.ResultTags(resultTag)), // -> *redis.Client[name="redis-<name>"]
+
+			fx.Annotate(
+				func(c *redis.Client) redis.Cmdable { return c },
+				fx.ParamTags(resultTag),
+				fx.ResultTags(resultTag),
+			),
 		),
 		fx.Invoke(
-			fx.Annotate(registerLifecycle, fx.ParamTags("", resultTag, "", "")), // lc, client(tagged), log, cfg
+			fx.Annotate(registerLifecycle, fx.ParamTags("", resultTag, "", "")),
 		),
 	)
 }

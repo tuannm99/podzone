@@ -17,7 +17,7 @@ var _ outputport.OauthStateRepository = (*OauthStateRepositoryImpl)(nil)
 
 type OauthStateRepoParams struct {
 	fx.In
-	RedisClient *redis.Client `name:"redis-auth"`
+	RedisClient redis.Cmdable `name:"redis-auth"`
 	Logger      pdlog.Logger
 }
 
@@ -29,7 +29,7 @@ func NewOauthStateRepositoryImpl(p OauthStateRepoParams) *OauthStateRepositoryIm
 }
 
 type OauthStateRepositoryImpl struct {
-	redisClient *redis.Client
+	redisClient redis.Cmdable
 	logger      pdlog.Logger
 }
 
@@ -37,6 +37,7 @@ func (o *OauthStateRepositoryImpl) Del(key string) error {
 	_, err := o.redisClient.Del(context.Background(), key).Result()
 	if err != nil {
 		o.logger.Info("del state error", "err", err)
+		return err
 	}
 	return nil
 }
@@ -53,7 +54,7 @@ func (o *OauthStateRepositoryImpl) Get(key string) (string, error) {
 }
 
 func (o *OauthStateRepositoryImpl) Set(key string, duration time.Duration) error {
-	if err := o.redisClient.Set(context.Background(), key, time.Now().String(), 10*time.Minute).Err(); err != nil {
+	if err := o.redisClient.Set(context.Background(), key, time.Now().String(), duration).Err(); err != nil {
 		return fmt.Errorf("error storing state: %w", err)
 	}
 	return nil

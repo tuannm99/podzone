@@ -1,41 +1,17 @@
 package repository
 
 import (
-	"context"
+	"errors"
 	"testing"
 	"time"
 
+	"github.com/go-redis/redismock/v9"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
-	tcred "github.com/testcontainers/testcontainers-go/modules/redis"
 )
 
-func setupRedis(t *testing.T) (*redis.Client, func()) {
-	t.Helper()
-
-	ctx := context.Background()
-	rc, err := tcred.RunContainer(ctx)
-	require.NoError(t, err)
-
-	endpoint, err := rc.Endpoint(ctx, "")
-	require.NoError(t, err)
-
-	client := redis.NewClient(&redis.Options{
-		Addr: endpoint, // "host:port"
-		DB:   0,
-	})
-	require.NoError(t, client.Ping(ctx).Err())
-
-	cleanup := func() {
-		_ = client.Close()
-		_ = rc.Terminate(context.Background())
-	}
-	return client, cleanup
-}
-
-func TestOauthStateRepository_Redis_Integration(t *testing.T) {
-	rdb, cleanup := setupRedis(t)
-	defer cleanup()
+func TestOauthStateRepository_Set_OK(t *testing.T) {
+	rdb, mock := redismock.NewClientMock()
 
 	repo := NewOauthStateRepositoryImpl(OauthStateRepoParams{
 		RedisClient: rdb,
@@ -43,15 +19,107 @@ func TestOauthStateRepository_Redis_Integration(t *testing.T) {
 	})
 
 	key := "oauth:google:test"
-	err := repo.Set(key, 2*time.Minute)
+	ttl := 2 * time.Minute
+
+	mock.Regexp().ExpectSet(key, `.+`, ttl).SetVal("OK")
+
+	err := repo.Set(key, ttl)
 	require.NoError(t, err)
+	require.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestOauthStateRepository_Get_OK(t *testing.T) {
+	rdb, mock := redismock.NewClientMock()
+	repo := NewOauthStateRepositoryImpl(OauthStateRepoParams{
+		RedisClient: rdb,
+		Logger:      nopLogger{},
+	})
+
+	key := "oauth:google:test"
+	mock.ExpectGet(key).SetVal("some-state")
 
 	val, err := repo.Get(key)
 	require.NoError(t, err)
-	require.NotEmpty(t, val)
+	require.Equal(t, "some-state", val)
+	require.NoError(t, mock.ExpectationsWereMet())
+}
 
-	require.NoError(t, repo.Del(key))
+func TestOauthStateRepository_Get_NotFound(t *testing.T) {
+	rdb, mock := redismock.NewClientMock()
+	repo := NewOauthStateRepositoryImpl(OauthStateRepoParams{
+		RedisClient: rdb,
+		Logger:      nopLogger{},
+	})
 
-	_, err = repo.Get(key)
+	key := "oauth:missing"
+	mock.ExpectGet(key).RedisNil()
+
+	val, err := repo.Get(key)
 	require.Error(t, err)
+	require.Empty(t, val)
+	require.Contains(t, err.Error(), "invalid state")
+	require.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestOauthStateRepository_Get_RedisError(t *testing.T) {
+	rdb, mock := redismock.NewClientMock()
+	repo := NewOauthStateRepositoryImpl(OauthStateRepoParams{
+		RedisClient: rdb,
+		Logger:      nopLogger{},
+	})
+
+	key := "oauth:error"
+	mock.ExpectGet(key).SetErr(errors.New("boom"))
+
+	_, err := repo.Get(key)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "failed to get state")
+	require.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestOauthStateRepository_Del_OK(t *testing.T) {
+	rdb, mock := redismock.NewClientMock()
+	repo := NewOauthStateRepositoryImpl(OauthStateRepoParams{
+		RedisClient: rdb,
+		Logger:      nopLogger{},
+	})
+
+	key := "oauth:del"
+	mock.ExpectDel(key).SetVal(1)
+
+	err := repo.Del(key)
+	require.NoError(t, err)
+	require.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestOauthStateRepository_Del_Error(t *testing.T) {
+	rdb, mock := redismock.NewClientMock()
+	repo := NewOauthStateRepositoryImpl(OauthStateRepoParams{
+		RedisClient: rdb,
+		Logger:      nopLogger{},
+	})
+
+	key := "oauth:del:err"
+	mock.ExpectDel(key).SetErr(errors.New("del failed"))
+
+	err := repo.Del(key)
+	require.Error(t, err)
+	require.NoError(t, mock.ExpectationsWereMet())
+}
+
+// Optional: test redis.Nil branch explicitly (tương tự RedisNil() ở trên)
+func TestOauthStateRepository_Get_RedisNil_UsingErr(t *testing.T) {
+	rdb, mock := redismock.NewClientMock()
+	repo := NewOauthStateRepositoryImpl(OauthStateRepoParams{
+		RedisClient: rdb,
+		Logger:      nopLogger{},
+	})
+
+	key := "oauth:nil"
+	mock.ExpectGet(key).SetErr(redis.Nil)
+
+	_, err := repo.Get(key)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "invalid state")
+	require.NoError(t, mock.ExpectationsWereMet())
 }
