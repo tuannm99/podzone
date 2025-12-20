@@ -6,21 +6,12 @@ import (
 
 	"github.com/tuannm99/podzone/pkg/pdconfig"
 	"github.com/tuannm99/podzone/pkg/pdlog"
-	"github.com/tuannm99/podzone/pkg/pdtestenv"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 	"go.uber.org/fx/fxtest"
 )
 
 func TestMongoModule_Integration(t *testing.T) {
-	mockConn := pdtestenv.Setup(t, pdtestenv.Options{
-		// StartPostgres:   true,
-		// StartRedis:      true,
-		StartMongo:      true,
-		// StartOpenSearch: true,
-		Reuse:           true,
-		Namespace:       "podzone",
-	})
-	mongoURI := mockConn.MongoURI
-	config := fmt.Sprintf(`
+	cfg := fmt.Sprintf(`
 logger:
   app_name: "test"
   provider: "slog"
@@ -34,8 +25,8 @@ mongo:
     ping_timeout: 3s
     connect_timeout: 5s
 
-`, mongoURI)
-	pdtestenv.MakeConfigDir(t, config)
+`, "mongodb://localhost:27017")
+	toolkit.MakeConfigDir(t, cfg)
 
 	appTest := fxtest.New(
 		t,

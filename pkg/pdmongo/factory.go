@@ -18,12 +18,5 @@ func NewMongoDbFromConfig(cfg *Config) (*mongo.Client, error) {
 		return nil, fmt.Errorf("pdmongo: connect failed: %w", err)
 	}
 
-	pingCtx, cancelPing := context.WithTimeout(context.Background(), cfg.PingTimeout)
-	defer cancelPing()
-	if err := client.Ping(pingCtx, nil); err != nil {
-		_ = client.Disconnect(context.Background())
-		return nil, fmt.Errorf("pdmongo: ping failed: %w", err)
-	}
-
 	return client, nil
 }

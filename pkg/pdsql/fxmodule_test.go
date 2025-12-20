@@ -6,20 +6,11 @@ import (
 
 	"github.com/tuannm99/podzone/pkg/pdconfig"
 	"github.com/tuannm99/podzone/pkg/pdlog"
-	"github.com/tuannm99/podzone/pkg/pdtestenv"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 	"go.uber.org/fx/fxtest"
 )
 
 func TestModuleFor(t *testing.T) {
-	mockConn := pdtestenv.Setup(t, pdtestenv.Options{
-		StartPostgres: true,
-		// StartRedis: true,
-		// StartMongo:      true,
-		// StartOpenSearch: true,
-		Reuse:     true,
-		Namespace: "podzone",
-	})
-	postgresDSN := mockConn.PostgresDSN
 	config := fmt.Sprintf(`
 logger:
   app_name: "test"
@@ -33,8 +24,8 @@ sql:
     provider: postgres
     should_run_migration: false
 
-`, postgresDSN)
-	pdtestenv.MakeConfigDir(t, config)
+`, "postgres://localhost:5432")
+	toolkit.MakeConfigDir(t, config)
 
 	appTest := fxtest.New(
 		t,

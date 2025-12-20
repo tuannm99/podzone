@@ -4,7 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
+	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func GetEnv[T any](envName string, fallback T) T {
@@ -42,4 +46,14 @@ func MapStruct[S any, T any](source S) (*T, error) {
 	}
 
 	return &target, nil
+}
+
+// test helper
+func MakeConfigDir(t *testing.T, config string) string {
+	t.Helper()
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yml")
+	require.NoError(t, os.WriteFile(path, []byte(config), 0o644))
+	t.Setenv("CONFIG_PATH", path)
+	return path
 }
