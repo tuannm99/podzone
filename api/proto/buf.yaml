@@ -1,0 +1,13 @@
+version: v1
+name: buf.build/tuannm99/podzone
+
+deps:
+  - buf.build/googleapis/googleapis
+
+lint:
+  use:
+    - STANDARD
+
+breaking:
+  use:
+    - FILE

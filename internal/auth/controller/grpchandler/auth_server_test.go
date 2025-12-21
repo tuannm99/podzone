@@ -11,7 +11,7 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/domain/dto"
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	inputmocks "github.com/tuannm99/podzone/internal/auth/domain/inputport/mocks"
-	pbAuth "github.com/tuannm99/podzone/pkg/api/proto/auth"
+	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
 )
 
 func newServerWithMock() (*AuthServer, *inputmocks.MockAuthUsecase) {
@@ -27,7 +27,7 @@ func TestGoogleLogin_OK(t *testing.T) {
 	uc.On("GenerateOAuthURL", mock.Anything).
 		Return("https://accounts.google.com/auth?state=xyz", nil)
 
-	res, err := srv.GoogleLogin(ctx, &pbAuth.GoogleLoginRequest{})
+	res, err := srv.GoogleLogin(ctx, &pbauthv1.GoogleLoginRequest{})
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	assert.Equal(t, "https://accounts.google.com/auth?state=xyz", res.RedirectUrl)
@@ -42,7 +42,7 @@ func TestGoogleLogin_Err(t *testing.T) {
 	uc.On("GenerateOAuthURL", mock.Anything).
 		Return("", assert.AnError)
 
-	res, err := srv.GoogleLogin(ctx, &pbAuth.GoogleLoginRequest{})
+	res, err := srv.GoogleLogin(ctx, &pbauthv1.GoogleLoginRequest{})
 	require.Error(t, err)
 	assert.Nil(t, res)
 
@@ -65,7 +65,7 @@ func TestGoogleCallback_OK(t *testing.T) {
 	uc.On("HandleOAuthCallback", mock.Anything, "CODE", "STATE").
 		Return(cb, nil)
 
-	res, err := srv.GoogleCallback(ctx, &pbAuth.GoogleCallbackRequest{
+	res, err := srv.GoogleCallback(ctx, &pbauthv1.GoogleCallbackRequest{
 		Code:  "CODE",
 		State: "STATE",
 	})
@@ -86,7 +86,7 @@ func TestGoogleCallback_Err(t *testing.T) {
 	uc.On("HandleOAuthCallback", mock.Anything, "BAD", "STATE").
 		Return((*dto.GoogleCallbackResp)(nil), assert.AnError)
 
-	res, err := srv.GoogleCallback(ctx, &pbAuth.GoogleCallbackRequest{
+	res, err := srv.GoogleCallback(ctx, &pbauthv1.GoogleCallbackRequest{
 		Code:  "BAD",
 		State: "STATE",
 	})
@@ -103,7 +103,7 @@ func TestLogout_OK(t *testing.T) {
 	uc.On("Logout", mock.Anything).
 		Return("/", nil)
 
-	res, err := srv.Logout(ctx, &pbAuth.LogoutRequest{})
+	res, err := srv.Logout(ctx, &pbauthv1.LogoutRequest{})
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	assert.True(t, res.Success)
@@ -127,7 +127,7 @@ func TestLogin_OK(t *testing.T) {
 			UserInfo: user,
 		}, nil)
 
-	res, err := srv.Login(ctx, &pbAuth.LoginRequest{
+	res, err := srv.Login(ctx, &pbauthv1.LoginRequest{
 		Username: "jdoe",
 		Password: "pass",
 	})
@@ -147,7 +147,7 @@ func TestLogin_Err(t *testing.T) {
 	uc.On("Login", mock.Anything, "jdoe", "bad").
 		Return((*dto.LoginResp)(nil), assert.AnError)
 
-	res, err := srv.Login(ctx, &pbAuth.LoginRequest{
+	res, err := srv.Login(ctx, &pbauthv1.LoginRequest{
 		Username: "jdoe",
 		Password: "bad",
 	})
@@ -161,7 +161,7 @@ func TestRegister_OK(t *testing.T) {
 	srv, uc := newServerWithMock()
 	ctx := context.Background()
 
-	inReq := &pbAuth.RegisterRequest{
+	inReq := &pbauthv1.RegisterRequest{
 		Username: "neo",
 		Password: "TheOne!",
 		Email:    "neo@mx.io",
@@ -194,7 +194,7 @@ func TestRegister_Err(t *testing.T) {
 	srv, uc := newServerWithMock()
 	ctx := context.Background()
 
-	inReq := &pbAuth.RegisterRequest{
+	inReq := &pbauthv1.RegisterRequest{
 		Username: "neo",
 		Password: "x",
 		Email:    "neo@mx.io",

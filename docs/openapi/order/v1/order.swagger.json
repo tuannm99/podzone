@@ -1,0 +1,1154 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "order/v1/order.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "OrderService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/order/v1/admin/customers/{customerId}/orders": {
+      "get": {
+        "summary": "GetOrdersByCustomer gets orders for a specific customer (admin/staff only)",
+        "operationId": "OrderService_GetOrdersByCustomer",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/orderListOrdersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sortDesc",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "ORDER_STATUS_UNSPECIFIED",
+              "ORDER_STATUS_PENDING",
+              "ORDER_STATUS_PROCESSING",
+              "ORDER_STATUS_COMPLETED",
+              "ORDER_STATUS_CANCELLED",
+              "ORDER_STATUS_REFUNDED",
+              "ORDER_STATUS_FAILED",
+              "ORDER_STATUS_ON_HOLD",
+              "ORDER_STATUS_SHIPPED",
+              "ORDER_STATUS_DELIVERED"
+            ],
+            "default": "ORDER_STATUS_UNSPECIFIED"
+          }
+        ],
+        "tags": [
+          "OrderService"
+        ]
+      }
+    },
+    "/order/v1/admin/orders": {
+      "get": {
+        "summary": "ListAllOrders lists all orders (admin/staff only)",
+        "operationId": "OrderService_ListAllOrders",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/orderListOrdersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sortDesc",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "ORDER_STATUS_UNSPECIFIED",
+              "ORDER_STATUS_PENDING",
+              "ORDER_STATUS_PROCESSING",
+              "ORDER_STATUS_COMPLETED",
+              "ORDER_STATUS_CANCELLED",
+              "ORDER_STATUS_REFUNDED",
+              "ORDER_STATUS_FAILED",
+              "ORDER_STATUS_ON_HOLD",
+              "ORDER_STATUS_SHIPPED",
+              "ORDER_STATUS_DELIVERED"
+            ],
+            "default": "ORDER_STATUS_UNSPECIFIED"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "customerId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "minTotal",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "double"
+          },
+          {
+            "name": "maxTotal",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "double"
+          }
+        ],
+        "tags": [
+          "OrderService"
+        ]
+      }
+    },
+    "/order/v1/admin/orders/{id}/status": {
+      "patch": {
+        "summary": "UpdateOrderStatus updates an order's status (admin/staff only)",
+        "operationId": "OrderService_UpdateOrderStatus",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/orderOrder"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/OrderServiceUpdateOrderStatusBody"
+            }
+          }
+        ],
+        "tags": [
+          "OrderService"
+        ]
+      }
+    },
+    "/order/v1/admin/orders/{orderId}/refunds": {
+      "post": {
+        "summary": "CreateRefund creates a refund for an order (admin/staff only)",
+        "operationId": "OrderService_CreateRefund",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/orderRefund"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/OrderServiceCreateRefundBody"
+            }
+          }
+        ],
+        "tags": [
+          "OrderService"
+        ]
+      }
+    },
+    "/order/v1/orders": {
+      "get": {
+        "summary": "ListOrders lists orders for the current user",
+        "operationId": "OrderService_ListOrders",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/orderListOrdersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sortDesc",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "ORDER_STATUS_UNSPECIFIED",
+              "ORDER_STATUS_PENDING",
+              "ORDER_STATUS_PROCESSING",
+              "ORDER_STATUS_COMPLETED",
+              "ORDER_STATUS_CANCELLED",
+              "ORDER_STATUS_REFUNDED",
+              "ORDER_STATUS_FAILED",
+              "ORDER_STATUS_ON_HOLD",
+              "ORDER_STATUS_SHIPPED",
+              "ORDER_STATUS_DELIVERED"
+            ],
+            "default": "ORDER_STATUS_UNSPECIFIED"
+          }
+        ],
+        "tags": [
+          "OrderService"
+        ]
+      },
+      "post": {
+        "summary": "CreateOrder creates a new order",
+        "operationId": "OrderService_CreateOrder",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/orderOrder"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/orderCreateOrderRequest"
+            }
+          }
+        ],
+        "tags": [
+          "OrderService"
+        ]
+      }
+    },
+    "/order/v1/orders/{id}": {
+      "get": {
+        "summary": "GetOrder retrieves an order by ID",
+        "operationId": "OrderService_GetOrder",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/orderOrder"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "OrderService"
+        ]
+      }
+    },
+    "/order/v1/orders/{id}/cancel": {
+      "post": {
+        "summary": "CancelOrder cancels an order",
+        "operationId": "OrderService_CancelOrder",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/orderOrder"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/OrderServiceCancelOrderBody"
+            }
+          }
+        ],
+        "tags": [
+          "OrderService"
+        ]
+      }
+    },
+    "/order/v1/orders/{id}/notes": {
+      "post": {
+        "summary": "AddOrderNote adds a note to an order",
+        "operationId": "OrderService_AddOrderNote",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/orderOrder"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/OrderServiceAddOrderNoteBody"
+            }
+          }
+        ],
+        "tags": [
+          "OrderService"
+        ]
+      }
+    },
+    "/order/v1/orders/{orderId}/refunds": {
+      "get": {
+        "summary": "GetOrderRefunds gets all refunds for an order",
+        "operationId": "OrderService_GetOrderRefunds",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/orderListRefundsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "OrderService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "OrderServiceAddOrderNoteBody": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string"
+        },
+        "isCustomerVisible": {
+          "type": "boolean"
+        }
+      },
+      "title": "AddOrderNoteRequest is used to add a note to an order"
+    },
+    "OrderServiceCancelOrderBody": {
+      "type": "object",
+      "properties": {
+        "reason": {
+          "type": "string"
+        }
+      },
+      "title": "CancelOrderRequest is used to cancel an order"
+    },
+    "OrderServiceCreateRefundBody": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number",
+          "format": "double"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/orderRefundItem"
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "title": "CreateRefundRequest is used to create a refund for an order"
+    },
+    "OrderServiceUpdateOrderStatusBody": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/orderOrderStatus"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "trackingNumber": {
+          "type": "string"
+        },
+        "trackingUrl": {
+          "type": "string"
+        }
+      },
+      "title": "UpdateOrderStatusRequest is used to update an order's status"
+    },
+    "orderBillingAddress": {
+      "type": "object",
+      "properties": {
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "addressLine1": {
+          "type": "string"
+        },
+        "addressLine2": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "postalCode": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        },
+        "company": {
+          "type": "string"
+        }
+      },
+      "title": "BillingAddress represents a billing address"
+    },
+    "orderCreateOrderRequest": {
+      "type": "object",
+      "properties": {
+        "cartId": {
+          "type": "string"
+        },
+        "billingAddress": {
+          "$ref": "#/definitions/orderBillingAddress"
+        },
+        "shippingAddress": {
+          "$ref": "#/definitions/orderShippingAddress"
+        },
+        "shippingMethodId": {
+          "type": "string"
+        },
+        "paymentMethodId": {
+          "type": "string"
+        },
+        "paymentMetadata": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "title": "CreateOrderRequest is used to create an order"
+    },
+    "orderCustomer": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        }
+      },
+      "title": "Customer represents customer information"
+    },
+    "orderListOrdersResponse": {
+      "type": "object",
+      "properties": {
+        "orders": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/orderOrder"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "page": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "pageSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalPages": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "ListOrdersResponse contains a list of orders"
+    },
+    "orderListRefundsResponse": {
+      "type": "object",
+      "properties": {
+        "refunds": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/orderRefund"
+          }
+        },
+        "totalRefunded": {
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "title": "ListRefundsResponse contains a list of refunds"
+    },
+    "orderOrder": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "orderNumber": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/orderOrderStatus"
+        },
+        "paymentStatus": {
+          "$ref": "#/definitions/orderPaymentStatus"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/orderOrderItem"
+          }
+        },
+        "totals": {
+          "$ref": "#/definitions/orderOrderTotals"
+        },
+        "billingAddress": {
+          "$ref": "#/definitions/orderBillingAddress"
+        },
+        "shippingAddress": {
+          "$ref": "#/definitions/orderShippingAddress"
+        },
+        "shippingInfo": {
+          "$ref": "#/definitions/orderShippingInfo"
+        },
+        "paymentInfo": {
+          "$ref": "#/definitions/orderPaymentInfo"
+        },
+        "coupons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/orderOrderCoupon"
+          }
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/orderOrderNote"
+          }
+        },
+        "customer": {
+          "$ref": "#/definitions/orderCustomer"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "completedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "Order represents an order"
+    },
+    "orderOrderCoupon": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "value": {
+          "type": "number",
+          "format": "double"
+        },
+        "discountAmount": {
+          "type": "number",
+          "format": "double"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "title": "OrderCoupon represents a coupon applied to an order"
+    },
+    "orderOrderItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "productId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "sku": {
+          "type": "string"
+        },
+        "quantity": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "unitPrice": {
+          "type": "number",
+          "format": "double"
+        },
+        "subtotal": {
+          "type": "number",
+          "format": "double"
+        },
+        "discount": {
+          "type": "number",
+          "format": "double"
+        },
+        "total": {
+          "type": "number",
+          "format": "double"
+        },
+        "imageUrl": {
+          "type": "string"
+        },
+        "attributes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "OrderItem represents a line item in an order"
+    },
+    "orderOrderNote": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "isCustomerVisible": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "title": "OrderNote represents a note on an order"
+    },
+    "orderOrderStatus": {
+      "type": "string",
+      "enum": [
+        "ORDER_STATUS_UNSPECIFIED",
+        "ORDER_STATUS_PENDING",
+        "ORDER_STATUS_PROCESSING",
+        "ORDER_STATUS_COMPLETED",
+        "ORDER_STATUS_CANCELLED",
+        "ORDER_STATUS_REFUNDED",
+        "ORDER_STATUS_FAILED",
+        "ORDER_STATUS_ON_HOLD",
+        "ORDER_STATUS_SHIPPED",
+        "ORDER_STATUS_DELIVERED"
+      ],
+      "default": "ORDER_STATUS_UNSPECIFIED",
+      "title": "OrderStatus defines the status of an order"
+    },
+    "orderOrderTotals": {
+      "type": "object",
+      "properties": {
+        "subtotal": {
+          "type": "number",
+          "format": "double"
+        },
+        "discountTotal": {
+          "type": "number",
+          "format": "double"
+        },
+        "taxTotal": {
+          "type": "number",
+          "format": "double"
+        },
+        "shippingTotal": {
+          "type": "number",
+          "format": "double"
+        },
+        "grandTotal": {
+          "type": "number",
+          "format": "double"
+        },
+        "itemsCount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "itemsQuantity": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "OrderTotals represents the order's totals"
+    },
+    "orderPaymentInfo": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string"
+        },
+        "transactionId": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number",
+          "format": "double"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "paidAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "PaymentInfo represents payment information"
+    },
+    "orderPaymentStatus": {
+      "type": "string",
+      "enum": [
+        "PAYMENT_STATUS_UNSPECIFIED",
+        "PAYMENT_STATUS_PENDING",
+        "PAYMENT_STATUS_COMPLETED",
+        "PAYMENT_STATUS_FAILED",
+        "PAYMENT_STATUS_REFUNDED",
+        "PAYMENT_STATUS_PARTIALLY_REFUNDED"
+      ],
+      "default": "PAYMENT_STATUS_UNSPECIFIED",
+      "title": "PaymentStatus defines the payment status of an order"
+    },
+    "orderRefund": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "orderId": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number",
+          "format": "double"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "transactionId": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "isPartial": {
+          "type": "boolean"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/orderRefundItem"
+          }
+        },
+        "notes": {
+          "type": "string"
+        },
+        "createdBy": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "title": "Refund represents a refund for an order"
+    },
+    "orderRefundItem": {
+      "type": "object",
+      "properties": {
+        "orderItemId": {
+          "type": "string"
+        },
+        "quantity": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "amount": {
+          "type": "number",
+          "format": "double"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "title": "RefundItem represents an item in a refund"
+    },
+    "orderShippingAddress": {
+      "type": "object",
+      "properties": {
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "addressLine1": {
+          "type": "string"
+        },
+        "addressLine2": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "postalCode": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        },
+        "company": {
+          "type": "string"
+        },
+        "deliveryNotes": {
+          "type": "string"
+        }
+      },
+      "title": "ShippingAddress represents a shipping address"
+    },
+    "orderShippingInfo": {
+      "type": "object",
+      "properties": {
+        "carrier": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string"
+        },
+        "trackingNumber": {
+          "type": "string"
+        },
+        "trackingUrl": {
+          "type": "string"
+        },
+        "cost": {
+          "type": "number",
+          "format": "double"
+        },
+        "estimatedDelivery": {
+          "type": "string"
+        }
+      },
+      "title": "ShippingInfo represents shipping information"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

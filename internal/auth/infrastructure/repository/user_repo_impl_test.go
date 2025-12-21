@@ -71,7 +71,6 @@ func Test_isUniqueViolation_Table(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			require.Equal(t, tc.want, isUniqueViolation(tc.err))
@@ -124,7 +123,6 @@ func TestUserRepository_GetByUsernameOrEmail_Table(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -199,7 +197,6 @@ func TestUserRepository_GetByID_Table(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -283,7 +280,6 @@ func TestUserRepository_Create_Table(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -332,7 +328,6 @@ func TestUserRepository_Update_EarlyReturn_Table(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -408,7 +403,6 @@ func TestUserRepository_Update_Exec_Table(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -457,7 +451,6 @@ func TestUserRepository_UpdateById_Table(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

@@ -6,7 +6,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 
-	pb "github.com/tuannm99/podzone/pkg/api/proto/catalog"
+	pb "github.com/tuannm99/podzone/pkg/api/proto/catalog/v1"
 )
 
 type CatalogRegistrar struct {

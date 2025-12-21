@@ -17,7 +17,7 @@ import (
 	"github.com/tuannm99/podzone/pkg/pdpprof"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 
-	pbAuth "github.com/tuannm99/podzone/pkg/api/proto/auth"
+	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
 )
 
 func main() {
@@ -74,13 +74,13 @@ func RedirectForwardFunc(
 	logger pdlog.Logger,
 ) func(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
 	return func(ctx context.Context, w http.ResponseWriter, resp proto.Message) error {
-		if loginResp, ok := resp.(*pbAuth.GoogleLoginResponse); ok && loginResp.RedirectUrl != "" {
+		if loginResp, ok := resp.(*pbauthv1.GoogleLoginResponse); ok && loginResp.RedirectUrl != "" {
 			logger.Info("Redirecting to OAuth provider", "url", loginResp.RedirectUrl)
 			w.Header().Set("Location", loginResp.RedirectUrl)
 			w.WriteHeader(http.StatusTemporaryRedirect)
 			return nil
 		}
-		if callbackResp, ok := resp.(*pbAuth.GoogleCallbackResponse); ok && callbackResp.RedirectUrl != "" {
+		if callbackResp, ok := resp.(*pbauthv1.GoogleCallbackResponse); ok && callbackResp.RedirectUrl != "" {
 			logger.Info("Redirecting to app after OAuth callback", "url", callbackResp.RedirectUrl)
 			w.Header().Set("Location", callbackResp.RedirectUrl)
 			w.WriteHeader(http.StatusTemporaryRedirect)

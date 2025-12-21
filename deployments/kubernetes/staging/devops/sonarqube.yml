@@ -1,30 +1,31 @@
-# PVC cho data
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: sonarqube-data-pvc
-  namespace: devops
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
-  storageClassName: longhorn
----
-# PVC cho extensions (plugin, config)
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: sonarqube-extensions-pvc
-  namespace: devops
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
-  storageClassName: longhorn
+# DEFAULT username/password is admin/admin
+
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: sonarqube-data-pvc
+#   namespace: devops
+# spec:
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 10Gi
+#   storageClassName: longhorn
+# ---
+# # PVC cho extensions (plugin, config)
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: sonarqube-extensions-pvc
+#   namespace: devops
+# spec:
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 5Gi
+#   storageClassName: longhorn
 ---
 # Deployment SonarQube
 apiVersion: apps/v1
@@ -52,25 +53,40 @@ spec:
           env:
             - name: SONAR_ES_BOOTSTRAP_CHECKS_DISABLE
               value: 'true'
-          volumeMounts:
-            - mountPath: /opt/sonarqube/data
-              name: sonarqube-data
-            - mountPath: /opt/sonarqube/extensions
-              name: sonarqube-extensions
+
+            - name: SONAR_WEB_JAVAOPTS
+              value: '-Xms256m -Xmx512m'
+            - name: SONAR_CE_JAVAOPTS
+              value: '-Xms256m -Xmx512m'
+            - name: SONAR_SEARCH_JAVAOPTS
+              value: '-Xms512m -Xmx512m'
+
+            - name: SONAR_WEB_HTTP_MAXTHREADS
+              value: '20'
+            - name: SONAR_WEB_HTTP_MINTHREADS
+              value: '2'
+            - name: SONAR_WEB_HTTP_ACCEPTCOUNT
+              value: '10'
+
+          # volumeMounts:
+          #   - mountPath: /opt/sonarqube/data
+          #     name: sonarqube-data
+          #   - mountPath: /opt/sonarqube/extensions
+          #     name: sonarqube-extensions
           resources:
             requests:
-              cpu: '1000m'
-              memory: '2Gi'
+              cpu: '250m'
+              memory: '512M'
             limits:
-              cpu: '2000'
-              memory: '4Gi'
-      volumes:
-        - name: sonarqube-data
-          persistentVolumeClaim:
-            claimName: sonarqube-data-pvc
-        - name: sonarqube-extensions
-          persistentVolumeClaim:
-            claimName: sonarqube-extensions-pvc
+              cpu: '500m'
+              memory: '2Gi'
+      # volumes:
+      #   - name: sonarqube-data
+      #     persistentVolumeClaim:
+      #       claimName: sonarqube-data-pvc
+      #   - name: sonarqube-extensions
+      #     persistentVolumeClaim:
+      #       claimName: sonarqube-extensions-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -84,3 +100,25 @@ spec:
       targetPort: 9000
   selector:
     app: sonarqube
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sonarqube-ingress
+  namespace: devops
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: 'false'
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: sonarqube.tuannm.uk
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sonarqube
+                port:
+                  number: 9000

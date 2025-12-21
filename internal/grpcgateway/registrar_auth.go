@@ -6,7 +6,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 
-	pb "github.com/tuannm99/podzone/pkg/api/proto/auth"
+	pb "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
 )
 
 type AuthRegistrar struct {

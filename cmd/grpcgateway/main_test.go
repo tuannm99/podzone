@@ -14,7 +14,7 @@ import (
 	"go.uber.org/fx/fxtest"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	pbAuth "github.com/tuannm99/podzone/pkg/api/proto/auth"
+	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
 )
 
 var configAppTest = `
@@ -77,7 +77,7 @@ func TestRedirectForwardFunc(t *testing.T) {
 
 	t.Run("login_redirect", func(t *testing.T) {
 		rr := httptest.NewRecorder()
-		msg := &pbAuth.GoogleLoginResponse{RedirectUrl: "https://example.com/login"}
+		msg := &pbauthv1.GoogleLoginResponse{RedirectUrl: "https://example.com/login"}
 		if err := fn(ctx, rr, msg); err != nil {
 			t.Fatalf("fn error: %v", err)
 		}
@@ -91,7 +91,7 @@ func TestRedirectForwardFunc(t *testing.T) {
 
 	t.Run("callback_redirect", func(t *testing.T) {
 		rr := httptest.NewRecorder()
-		msg := &pbAuth.GoogleCallbackResponse{RedirectUrl: "https://example.com/app"}
+		msg := &pbauthv1.GoogleCallbackResponse{RedirectUrl: "https://example.com/app"}
 		if err := fn(ctx, rr, msg); err != nil {
 			t.Fatalf("fn error: %v", err)
 		}

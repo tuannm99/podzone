@@ -17,7 +17,7 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
 	"github.com/tuannm99/podzone/internal/auth/infrastructure/repository"
 	"github.com/tuannm99/podzone/internal/auth/migrations"
-	pbAuth "github.com/tuannm99/podzone/pkg/api/proto/auth"
+	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/pdsql"
 )
@@ -44,7 +44,7 @@ var Module = fx.Options(
 
 func RegisterGRPCServer(server *grpc.Server, authServer *grpchandler.AuthServer, logger pdlog.Logger) {
 	logger.Info("Registering Auth GRPC handler")
-	pbAuth.RegisterAuthServiceServer(server, authServer)
+	pbauthv1.RegisterAuthServiceServer(server, authServer)
 }
 
 type MigrateParams struct {

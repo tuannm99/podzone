@@ -1,0 +1,273 @@
+syntax = "proto3";
+
+package catalog;
+
+option go_package = "github.com/tuannm99/podzone/pkg/api/proto/catalog/v1;pbcatalogv1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+// CatalogService handles catalog and product operations
+service CatalogService {
+  // GetProduct retrieves a product by ID
+  rpc GetProduct(GetProductRequest) returns (Product) {
+    option (google.api.http) = {
+      get: "/catalog/v1/products/{id}"
+    };
+  }
+
+  // ListProducts retrieves a list of products with optional filtering
+  rpc ListProducts(ListProductsRequest) returns (ListProductsResponse) {
+    option (google.api.http) = {
+      get: "/catalog/v1/products"
+    };
+  }
+
+  // CreateProduct creates a new product (admin only)
+  rpc CreateProduct(CreateProductRequest) returns (Product) {
+    option (google.api.http) = {
+      post: "/catalog/v1/admin/products"
+      body: "*"
+    };
+  }
+
+  // UpdateProduct updates an existing product (admin only)
+  rpc UpdateProduct(UpdateProductRequest) returns (Product) {
+    option (google.api.http) = {
+      put: "/catalog/v1/admin/products/{id}"
+      body: "*"
+    };
+  }
+
+  // DeleteProduct removes a product (admin only)
+  rpc DeleteProduct(DeleteProductRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/catalog/v1/admin/products/{id}"
+    };
+  }
+
+  // SearchProducts searches for products
+  rpc SearchProducts(SearchProductsRequest) returns (ListProductsResponse) {
+    option (google.api.http) = {
+      get: "/catalog/v1/products/search"
+    };
+  }
+
+  // GetCategory retrieves a category by ID
+  rpc GetCategory(GetCategoryRequest) returns (Category) {
+    option (google.api.http) = {
+      get: "/catalog/v1/categories/{id}"
+    };
+  }
+
+  // ListCategories retrieves all categories
+  rpc ListCategories(ListCategoriesRequest) returns (ListCategoriesResponse) {
+    option (google.api.http) = {
+      get: "/catalog/v1/categories"
+    };
+  }
+
+  // CreateCategory creates a new category (admin only)
+  rpc CreateCategory(CreateCategoryRequest) returns (Category) {
+    option (google.api.http) = {
+      post: "/catalog/v1/admin/categories"
+      body: "*"
+    };
+  }
+
+  // UpdateCategory updates an existing category (admin only)
+  rpc UpdateCategory(UpdateCategoryRequest) returns (Category) {
+    option (google.api.http) = {
+      put: "/catalog/v1/admin/categories/{id}"
+      body: "*"
+    };
+  }
+
+  // DeleteCategory removes a category (admin only)
+  rpc DeleteCategory(DeleteCategoryRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/catalog/v1/admin/categories/{id}"
+    };
+  }
+
+  // UpdateInventory updates a product's inventory (admin/staff only)
+  rpc UpdateInventory(UpdateInventoryRequest) returns (Product) {
+    option (google.api.http) = {
+      patch: "/catalog/v1/admin/products/{id}/inventory"
+      body: "*"
+    };
+  }
+}
+
+// Product represents a product in the catalog
+message Product {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string sku = 4;
+  double price = 5;
+  double sale_price = 6;
+  int32 inventory_count = 7;
+  string category_id = 8;
+  Category category = 9;
+  repeated string image_urls = 10;
+  map<string, string> attributes = 11;
+  bool active = 12;
+  string slug = 13;
+  double weight = 14;
+  Dimensions dimensions = 15;
+  repeated string tags = 16;
+  google.protobuf.Timestamp created_at = 17;
+  google.protobuf.Timestamp updated_at = 18;
+}
+
+// Dimensions represents the physical dimensions of a product
+message Dimensions {
+  double length = 1;
+  double width = 2;
+  double height = 3;
+  string unit = 4; // cm, in, etc.
+}
+
+// Category represents a product category
+message Category {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string slug = 4;
+  string parent_id = 5;
+  string image_url = 6;
+  int32 product_count = 7;
+  bool active = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+// GetProductRequest is used to request a product by ID
+message GetProductRequest {
+  string id = 1;
+}
+
+// ListProductsRequest is used to request a filtered list of products
+message ListProductsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string category_id = 3;
+  string sort_by = 4;
+  bool sort_desc = 5;
+  double min_price = 6;
+  double max_price = 7;
+  repeated string tags = 8;
+  bool include_inactive = 9;
+}
+
+// ListProductsResponse contains a list of products and pagination info
+message ListProductsResponse {
+  repeated Product products = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  int32 total_pages = 5;
+}
+
+// CreateProductRequest is used to create a new product
+message CreateProductRequest {
+  string name = 1;
+  string description = 2;
+  string sku = 3;
+  double price = 4;
+  double sale_price = 5;
+  int32 inventory_count = 6;
+  string category_id = 7;
+  repeated string image_urls = 8;
+  map<string, string> attributes = 9;
+  bool active = 10;
+  string slug = 11;
+  double weight = 12;
+  Dimensions dimensions = 13;
+  repeated string tags = 14;
+}
+
+// UpdateProductRequest is used to update an existing product
+message UpdateProductRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+  double sale_price = 5;
+  string category_id = 6;
+  repeated string image_urls = 7;
+  map<string, string> attributes = 8;
+  bool active = 9;
+  string slug = 10;
+  double weight = 11;
+  Dimensions dimensions = 12;
+  repeated string tags = 13;
+}
+
+// DeleteProductRequest is used to delete a product
+message DeleteProductRequest {
+  string id = 1;
+}
+
+// SearchProductsRequest is used to search for products
+message SearchProductsRequest {
+  string query = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  string category_id = 4;
+  double min_price = 5;
+  double max_price = 6;
+  repeated string tags = 7;
+}
+
+// GetCategoryRequest is used to retrieve a category by ID
+message GetCategoryRequest {
+  string id = 1;
+}
+
+// ListCategoriesRequest is used to list categories
+message ListCategoriesRequest {
+  bool include_inactive = 1;
+  string parent_id = 2;
+}
+
+// ListCategoriesResponse contains a list of categories
+message ListCategoriesResponse {
+  repeated Category categories = 1;
+  int32 total = 2;
+}
+
+// CreateCategoryRequest is used to create a new category
+message CreateCategoryRequest {
+  string name = 1;
+  string description = 2;
+  string slug = 3;
+  string parent_id = 4;
+  string image_url = 5;
+  bool active = 6;
+}
+
+// UpdateCategoryRequest is used to update an existing category
+message UpdateCategoryRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string slug = 4;
+  string parent_id = 5;
+  string image_url = 6;
+  bool active = 7;
+}
+
+// DeleteCategoryRequest is used to delete a category
+message DeleteCategoryRequest {
+  string id = 1;
+}
+
+// UpdateInventoryRequest is used to update a product's inventory
+message UpdateInventoryRequest {
+  string id = 1;
+  int32 inventory_count = 2;
+  string reason = 3; // stock adjustment, order fulfillment, etc.
+}
