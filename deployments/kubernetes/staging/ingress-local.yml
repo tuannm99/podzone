@@ -1,25 +1,8 @@
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: sonarqube-ingress
-  namespace: devops
-  annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: 'false'
-spec:
-  ingressClassName: nginx
-  rules:
-    - host: sonarqube.tuannm.uk
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: sonarqube
-                port:
-                  number: 9000
-
+# Using local DNS, point to k8s ingress IP
+#
+# /etc/hosts
+# 10.84.103.90 gateway.tuannm.uk admin-ui.tuannm.uk kafka-ui.tuannm.uk
+# 10.84.103.90 sonarqube.tuannm.uk harbor.tuannm.uk jenkins.tuannm.uk kibana.tuannm.uk redisinsight.tuannm.uk
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -41,7 +24,6 @@ spec:
                 name: kibana
                 port:
                   number: 5601
-
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -61,5 +43,26 @@ spec:
             backend:
               service:
                 name: redisinsight-service
+                port:
+                  number: 80
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kafka-ui-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: 'false'
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: kafka-ui.tuannm.uk
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kafka-ui
                 port:
                   number: 80
