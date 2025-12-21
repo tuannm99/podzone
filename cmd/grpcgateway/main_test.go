@@ -9,7 +9,7 @@ import (
 
 	"github.com/spf13/viper"
 	pdlog "github.com/tuannm99/podzone/pkg/pdlog"
-	"github.com/tuannm99/podzone/pkg/pdtestenv"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxtest"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -34,7 +34,7 @@ pprof:
 `
 
 func TestMain(t *testing.T) {
-	pdtestenv.MakeConfigDir(t, configAppTest)
+	toolkit.MakeConfigTestDir(t, configAppTest)
 
 	done := make(chan struct{})
 	go func() {

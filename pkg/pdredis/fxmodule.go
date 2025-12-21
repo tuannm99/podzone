@@ -2,39 +2,83 @@ package pdredis
 
 import (
 	"context"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
 )
 
+type RedisClient interface {
+	Ping(ctx context.Context) error
+	Close() error
+}
+
+type redisClientAdapter struct {
+	c *redis.Client
+}
+
+func (a redisClientAdapter) Ping(ctx context.Context) error {
+	return a.c.Ping(ctx).Err()
+}
+
+func (a redisClientAdapter) Close() error {
+	return a.c.Close()
+}
+
 func ModuleFor(name string) fx.Option {
-	nameTag := `name:"pdredis-` + name + `"`
-	resultTag := `name:"redis-` + name + `"`
+	if name == "" {
+		name = "default"
+	}
+
+	nameParamTag := `name:"pdredis-` + name + `"`
+	configResultTag := `name:"redis-` + name + `-config"`
+	clientResultTag := `name:"redis-` + name + `"`
 
 	return fx.Options(
-		fx.Supply(fx.Annotate(name, fx.ResultTags(nameTag))),
-		fx.Provide(
-			fx.Annotate(GetConfigFromViper, fx.ParamTags(nameTag, "")), // -> *pdredis.Config
-			fx.Annotate(NewClientFromConfig, fx.ResultTags(resultTag)), // -> *redis.Client[name="redis-<name>"]
+		fx.Supply(fx.Annotate(name, fx.ResultTags(nameParamTag))),
 
+		fx.Provide(
+			fx.Annotate(
+				GetConfigFromViper,
+				fx.ParamTags(nameParamTag, ``),
+				fx.ResultTags(configResultTag),
+			),
+			fx.Annotate(
+				NewClientFromConfig,
+				fx.ParamTags(configResultTag),
+				fx.ResultTags(clientResultTag),
+			),
+
+			// Provide redis.Cmdable (for app usage)
 			fx.Annotate(
 				func(c *redis.Client) redis.Cmdable { return c },
-				fx.ParamTags(resultTag),
-				fx.ResultTags(resultTag),
+				fx.ParamTags(clientResultTag),
+				fx.ResultTags(clientResultTag),
+			),
+
+			// Provide RedisClient adapter (for lifecycle mocking)
+			fx.Annotate(
+				func(c *redis.Client) RedisClient { return redisClientAdapter{c: c} },
+				fx.ParamTags(clientResultTag),
+				fx.ResultTags(clientResultTag),
 			),
 		),
+
 		fx.Invoke(
-			fx.Annotate(registerLifecycle, fx.ParamTags("", resultTag, "", "")),
+			fx.Annotate(registerLifecycle, fx.ParamTags(``, clientResultTag, ``, configResultTag)),
 		),
 	)
 }
 
-func registerLifecycle(lc fx.Lifecycle, client *redis.Client, log pdlog.Logger, cfg *Config) {
+func registerLifecycle(lc fx.Lifecycle, client RedisClient, log pdlog.Logger, cfg *Config) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			log.Info("Pinging Redis...", "uri", cfg.URI)
-			return client.Ping(ctx).Err()
+
+			_ = time.Second
+
+			return client.Ping(ctx)
 		},
 		OnStop: func(ctx context.Context) error {
 			log.Info("Closing Redis client")

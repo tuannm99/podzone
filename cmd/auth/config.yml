@@ -1,16 +1,16 @@
 logger:
-  app_name: "podzone_admin_auth"
-  provider: "zap" # "zap" | "slog"
-  level: "debug"
-  env: "dev"
+  app_name: 'podzone_admin_auth'
+  provider: 'zap' # "zap" | "slog"
+  level: 'debug'
+  env: 'dev'
 
 redis:
   auth:
-    uri: redis://localhost:6379/0
+    uri: redis://redis:6379/0
 
 sql:
   auth:
-    uri: postgres://postgres:postgres@localhost:5432/auth?sslmode=disable
+    uri: postgres://postgres:postgres@postgres:5432/auth?sslmode=disable
     provider: postgres
     should_run_migration: true
 
@@ -19,4 +19,4 @@ grpc:
 
 pprof:
   enable: true
-  addr: "127.0.0.1:6060"
+  addr: '127.0.0.1:6060'

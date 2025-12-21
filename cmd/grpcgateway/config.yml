@@ -6,7 +6,7 @@ logger:
 
 redis:
   auth:
-    uri: redis://localhost:6379/0
+    uri: redis://redis:6379/0
 # not use yet
 # grpc_client:
 #   auth:

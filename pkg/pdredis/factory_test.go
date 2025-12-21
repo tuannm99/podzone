@@ -35,3 +35,12 @@ func TestNewClientFromConfig_NilConfig(t *testing.T) {
 	assert.Nil(t, client)
 	assert.Contains(t, err.Error(), "nil redis config")
 }
+
+func TestNewClientFromConfig_InvalidURI(t *testing.T) {
+	t.Parallel()
+
+	cfg := &Config{URI: "redis://localhost:abc/0"}
+	client, err := NewClientFromConfig(cfg)
+	require.Error(t, err)
+	require.Nil(t, client)
+}

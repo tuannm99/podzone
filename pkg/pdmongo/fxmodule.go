@@ -8,6 +8,23 @@ import (
 	"go.uber.org/fx"
 )
 
+type MongoClient interface {
+	Ping(ctx context.Context) error
+	Disconnect(ctx context.Context) error
+}
+
+type mongoClientAdapter struct {
+	c *mongo.Client
+}
+
+func (a mongoClientAdapter) Ping(ctx context.Context) error {
+	return a.c.Ping(ctx, nil)
+}
+
+func (a mongoClientAdapter) Disconnect(ctx context.Context) error {
+	return a.c.Disconnect(ctx)
+}
+
 func ModuleFor(name string) fx.Option {
 	if name == "" {
 		name = "default"
@@ -32,22 +49,28 @@ func ModuleFor(name string) fx.Option {
 				fx.ParamTags(configResultTag),
 				fx.ResultTags(clientResultTag),
 			),
+			fx.Annotate(
+				func(c *mongo.Client) MongoClient { return mongoClientAdapter{c: c} },
+				fx.ParamTags(clientResultTag),
+				fx.ResultTags(clientResultTag),
+			),
 		),
 		fx.Invoke(
-			fx.Annotate(
-				registerLifecycle,
-				fx.ParamTags(``, clientResultTag, ``, configResultTag),
-			),
+			fx.Annotate(registerLifecycle, fx.ParamTags(``, clientResultTag, ``, configResultTag)),
 		),
 	)
 }
 
-func registerLifecycle(lc fx.Lifecycle, client *mongo.Client, log pdlog.Logger, cfg *Config) {
+func registerLifecycle(lc fx.Lifecycle, client MongoClient, log pdlog.Logger, cfg *Config) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			err := client.Ping(context.Background(), nil)
-			log.Error("Mongo ping failed", "error", err, "uri", cfg.URI)
-			return err
+			err := client.Ping(ctx)
+			if err != nil {
+				log.Error("Mongo ping failed", "error", err, "uri", cfg.URI)
+				return err
+			}
+			log.Info("Mongo ping OK", "uri", cfg.URI)
+			return nil
 		},
 		OnStop: func(ctx context.Context) error {
 			log.Info("Closing Mongo connection", "uri", cfg.URI)

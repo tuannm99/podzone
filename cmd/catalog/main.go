@@ -12,20 +12,23 @@ import (
 	"github.com/tuannm99/podzone/pkg/pdredis"
 )
 
+var connOpts = fx.Options(
+	pdredis.ModuleFor("catalog"),
+	pdmongo.ModuleFor("catalog"),
+)
+
 func main() {
-	_ = godotenv.Load()
-	newAppContainer().Run()
+	newAppContainer(connOpts).Run()
 }
 
-func newAppContainer() *fx.App {
+func newAppContainer(extra ...fx.Option) *fx.App {
+	_ = godotenv.Load()
 	return fx.New(
 		pdconfig.Module,
 		pdlog.Module,
-
-		pdredis.ModuleFor("catalog"),
-		pdmongo.ModuleFor("catalog"),
-
 		pdglobalmiddleware.CommonGRPCModule,
 		pdgrpc.Module,
+
+		fx.Options(extra...),
 	)
 }

@@ -1,3 +1,4 @@
+// pkg/pdsql/fxmodule.go
 package pdsql
 
 import (
@@ -7,6 +8,18 @@ import (
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
 )
+
+type SQLDB interface {
+	PingContext(ctx context.Context) error
+	Close() error
+}
+
+type sqlxDBAdapter struct {
+	db *sqlx.DB
+}
+
+func (a sqlxDBAdapter) PingContext(ctx context.Context) error { return a.db.PingContext(ctx) }
+func (a sqlxDBAdapter) Close() error                          { return a.db.Close() }
 
 func ModuleFor(name string) fx.Option {
 	if name == "" {
@@ -31,6 +44,12 @@ func ModuleFor(name string) fx.Option {
 				fx.ParamTags(configResultTag),
 				fx.ResultTags(dbResultTag),
 			),
+
+			fx.Annotate(
+				func(db *sqlx.DB) SQLDB { return sqlxDBAdapter{db: db} },
+				fx.ParamTags(dbResultTag),
+				fx.ResultTags(dbResultTag),
+			),
 		),
 		fx.Invoke(
 			fx.Annotate(
@@ -41,7 +60,7 @@ func ModuleFor(name string) fx.Option {
 	)
 }
 
-func registerLifecycle(lc fx.Lifecycle, db *sqlx.DB, log pdlog.Logger, cfg *Config) {
+func registerLifecycle(lc fx.Lifecycle, db SQLDB, log pdlog.Logger, cfg *Config) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			err := db.PingContext(ctx)
@@ -49,13 +68,11 @@ func registerLifecycle(lc fx.Lifecycle, db *sqlx.DB, log pdlog.Logger, cfg *Conf
 				log.Error("Database ping failed", "error", err, "uri", cfg.URI)
 				return err
 			}
+			log.Info("Database ping OK", "uri", cfg.URI)
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
 			log.Info("Closing DB connection", "uri", cfg.URI)
-			if db == nil {
-				return nil
-			}
 			if err := db.Close(); err != nil {
 				log.Error("Close DB failed", "error", err)
 				return err

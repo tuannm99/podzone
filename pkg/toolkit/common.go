@@ -49,7 +49,7 @@ func MapStruct[S any, T any](source S) (*T, error) {
 }
 
 // test helper
-func MakeConfigDir(t *testing.T, config string) string {
+func MakeConfigTestDir(t *testing.T, config string) string {
 	t.Helper()
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.yml")

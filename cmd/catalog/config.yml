@@ -6,14 +6,14 @@ logger:
 
 redis:
   catalog:
-    uri: redis://localhost:6379/0
+    uri: redis://redis:6379/0
 
 mongo:
   catalog:
-    uri: mongodb://localhost:27017
+    uri: mongodb://podzone:podzone123@mongo:27017
     database: catalog
     ping_timeout: 3s
     connect_timeout: 5s
 
 grpc:
-  port: 50052
+  port: 50051

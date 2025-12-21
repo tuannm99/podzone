@@ -12,20 +12,23 @@ import (
 	"github.com/tuannm99/podzone/pkg/pdmongo"
 )
 
+var connOpts = fx.Options(
+	pdmongo.ModuleFor("onboarding"),
+	onboarding.Module,
+)
+
 func main() {
-	_ = godotenv.Load()
-	newAppContainer().Run()
+	newAppContainer(connOpts).Run()
 }
 
-func newAppContainer() *fx.App {
+func newAppContainer(extra ...fx.Option) *fx.App {
+	_ = godotenv.Load()
 	return fx.New(
 		pdconfig.Module,
 		pdlog.Module,
-
-		pdmongo.ModuleFor("onboarding"),
-
 		pdglobalmiddleware.CommonGinMiddlewareModule,
 		pdhttp.Module,
-		onboarding.Module,
+
+		fx.Options(extra...),
 	)
 }

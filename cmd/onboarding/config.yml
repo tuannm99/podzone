@@ -6,11 +6,11 @@ logger:
 
 redis:
   auth:
-    uri: redis://localhost:6379/0
+    uri: redis://redis:6379/0
 
 mongo:
   onboarding:
-    uri: mongodb://localhost:27017/onboarding
+    uri: mongodb://podzone:podzone123@mongo:27017/onboarding
     database: catalog
     ping_timeout: 3s
     connect_timeout: 5s

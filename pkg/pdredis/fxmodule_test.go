@@ -1,35 +1,61 @@
 package pdredis
 
 import (
-	"fmt"
+	"context"
 	"testing"
+	"time"
 
-	"github.com/tuannm99/podzone/pkg/pdconfig"
+	"github.com/redis/go-redis/v9"
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/fx"
+
 	"github.com/tuannm99/podzone/pkg/pdlog"
-	"github.com/tuannm99/podzone/pkg/toolkit"
-	"go.uber.org/fx/fxtest"
 )
 
-func TestModuleFor(t *testing.T) {
-	config := fmt.Sprintf(`
-logger:
-  app_name: "test"
-  provider: "slog"
-  level: "debug"
-  env: "dev"
+func TestModuleFor_DefaultName_Wiring(t *testing.T) {
+	t.Parallel()
 
-redis:
-  test:
-    uri: %q
-`, "localhost:6379")
-	toolkit.MakeConfigDir(t, config)
+	v := viper.New()
+	v.Set("redis.default.uri", "redis://127.0.0.1:6379/0")
 
-	appTest := fxtest.New(t,
-		pdconfig.Module,
-		pdlog.Module,
-		ModuleFor("test"),
+	app := fx.New(
+		ModuleFor(""),
+		fx.Supply(v),
+		fx.Supply(fx.Annotate(pdlog.NopLogger{}, fx.As(new(pdlog.Logger)))),
 	)
 
-	defer appTest.RequireStop()
-	appTest.RequireStart()
+	require.NoError(t, app.Err())
+}
+
+func TestModuleFor_CustomName_Wiring(t *testing.T) {
+	t.Parallel()
+
+	v := viper.New()
+	v.Set("redis.test.uri", "redis://127.0.0.1:6379/0")
+
+	app := fx.New(
+		ModuleFor("test"),
+		fx.Supply(v),
+		fx.Supply(fx.Annotate(pdlog.NopLogger{}, fx.As(new(pdlog.Logger)))),
+	)
+
+	require.NoError(t, app.Err())
+}
+
+func TestRedisClientAdapter_PingClose_NoServer(t *testing.T) {
+	t.Parallel()
+
+	c := redis.NewClient(&redis.Options{
+		Addr: "127.0.0.1:1",
+		DB:   0,
+	})
+
+	a := redisClientAdapter{c: c}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	defer cancel()
+
+	require.Error(t, a.Ping(ctx))
+	require.NoError(t, a.Close())
 }

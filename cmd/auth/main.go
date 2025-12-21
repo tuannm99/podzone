@@ -15,20 +15,27 @@ import (
 	"github.com/tuannm99/podzone/internal/auth"
 )
 
+var connOpts = fx.Options(
+	pdsql.ModuleFor("auth"),
+	pdredis.ModuleFor("auth"),
+
+	auth.Module,
+)
+
 func main() {
-	_ = godotenv.Load()
-	newAppContainer().Run()
+	newAppContainer(connOpts).Run()
 }
 
-func newAppContainer() *fx.App {
+func newAppContainer(extra ...fx.Option) *fx.App {
+	_ = godotenv.Load()
+
 	return fx.New(
 		pdconfig.Module,
 		pdlog.Module,
 		pdpprof.Module,
-		pdsql.ModuleFor("auth"),
-		pdredis.ModuleFor("auth"),
 		pdglobalmiddleware.CommonGRPCModule,
 		pdgrpc.Module,
-		auth.Module,
+
+		fx.Options(extra...),
 	)
 }

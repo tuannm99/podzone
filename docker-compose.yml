@@ -148,19 +148,20 @@ services:
       dockerfile: Dockerfile
       args:
         SERVICE_NAME: grpcgateway
-    container_name: grpcgateway-service
+    container_name: admin-grpcgateway
     environment:
-      APP_ENV: dev
-      DEFAULT_LOG_LEVEL: debug
-      GW_HTTP_PORT: 8080
-      AUTH_GRPC_ADDR: 'auth-service:50051'
-      ORDER_GRPC_ADDR: 'order-service:50051'
-      CATALOG_GRPC_ADDR: 'catalog-service:50051'
-      PAYMENT_GRPC_ADDR: 'payment-service:50051'
-      CART_GRPC_ADDR: 'cart-service:50051'
+      CONFIG_PATH: /app/config.yml
+      GW_HTTP_PORT: '8080'
+      AUTH_GRPC_ADDR: admin-auth:50051
+      ORDER_GRPC_ADDR: admin-order:50051
+      CATALOG_GRPC_ADDR: admin-catalog:50051
+      PAYMENT_GRPC_ADDR: admin-payment:50051
+      CART_GRPC_ADDR: admin-cart:50051
     ports:
       - '8080:8080'
     restart: always
+    volumes:
+      - ./cmd/grpcgateway/config.yml:/app/config.yml
 
   # Microservices
   auth-service:
@@ -169,40 +170,35 @@ services:
       dockerfile: Dockerfile
       args:
         SERVICE_NAME: auth
-    container_name: auth-service
+    container_name: admin-auth
     environment:
-      GOOGLE_CLIENT_ID: '${GOOGLE_CLIENT_ID}'
-      GOOGLE_CLIENT_SECRET: '${GOOGLE_CLIENT_SECRET}'
-      OAUTH_REDIRECT_URL: '${OAUTH_REDIRECT_URL}'
-      JWT_SECRET: '${JWT_SECRET}'
-      APP_REDIRECT_URL: '${APP_REDIRECT_URL}'
-      GRPC_PORT: '50051'
-      GW_HTTP_PORT: '8080'
-    ports:
-      - '50051:50051'
+      CONFIG_PATH: /app/config.yml
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      OAUTH_REDIRECT_URL: ${OAUTH_REDIRECT_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      APP_REDIRECT_URL: ${APP_REDIRECT_URL}
+    # ports:
+    #   - '50051:50051'
     restart: always
+    volumes:
+      - ./cmd/auth/config.yml:/app/config.yml
 
-  # catalog:
-  #   build:
-  #     context: .
-  #     dockerfile: services/catalog/Dockerfile
-  #   environment:
-  #     - DB_HOST=postgres
-  #     - REDIS_HOST=redis
-  #     - SERVICE_NAME=catalog
-  #     - SERVICE_PORT=9001
-  #     - ENV=development
-  #   ports:
-  #     - '9001:9001'
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
-  #   volumes:
-  #     - ./services/catalog:/app/services/catalog
-  #     - ./pkg:/app/pkg
-  #
+  catalog-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: catalog
+    container_name: admin-catalog
+    # ports:
+    #   - '50052:50051'
+    restart: always
+    environment:
+      CONFIG_PATH: /app/config.yml
+    volumes:
+      - ./cmd/catalog/config.yml:/app/config.yml
+
   # order:
   #   build:
   #     context: .
@@ -286,3 +282,18 @@ services:
   #   volumes:
   #     - ./services/payment:/app/services/payment
   #     - ./pkg:/app/pkg
+
+  backoffice:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: backoffice
+    container_name: backoffice
+    ports:
+      - '8000:8000'
+    restart: always
+    environment:
+      CONFIG_PATH: /app/config.yml
+    volumes:
+      - ./cmd/backoffice/config.yml:/app/config.yml
