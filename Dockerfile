@@ -23,7 +23,9 @@ RUN apk add --no-cache ca-certificates tzdata curl
 WORKDIR /app
 
 COPY --from=builder /app/${SERVICE_NAME} /app/${SERVICE_NAME}
+COPY --from=builder /app/cmd/${SERVICE_NAME}/config.prod.yml /app/config.yml
 
+ENV CONFIG_PATH=/app/config.yml
 ENV SERVICE_NAME=${SERVICE_NAME}
 
 RUN echo '#!/bin/sh' > /entrypoint.sh && \

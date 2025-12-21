@@ -28,10 +28,10 @@ spec:
               value: '3000'
 
           resources:
-            limits:
+            requests:
               cpu: '20m'
               memory: '50Mi'
-            requests:
+            limits:
               cpu: '50m'
               memory: '128Mi'
           # readinessProbe:

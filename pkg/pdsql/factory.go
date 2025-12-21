@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/knadh/koanf/v2"
 	"github.com/lib/pq"
-	"github.com/spf13/viper"
 )
 
 var (
@@ -16,11 +16,12 @@ var (
 	sqlxConnect = sqlx.Connect
 )
 
-func GetConfigFromViper(name string, v *viper.Viper) (*Config, error) {
+func GetConfigFromKoanf(name string, k *koanf.Koanf) (*Config, error) {
 	base := "sql." + name
+
 	var cfg Config
-	if sub := v.Sub(base); sub != nil {
-		_ = sub.Unmarshal(&cfg)
+	if err := k.Unmarshal(base, &cfg); err != nil {
+		return nil, fmt.Errorf("unmarshal %q: %w", base, err)
 	}
 	return &cfg, nil
 }

@@ -25,7 +25,7 @@ func ModuleFor(name string) fx.Option {
 		),
 		fx.Provide(
 			fx.Annotate(
-				GetConfigFromViper,
+				GetConfig,
 				fx.ParamTags(nameParamTag, ``),
 				fx.ResultTags(configResultTag),
 			),

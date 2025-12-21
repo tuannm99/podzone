@@ -9,7 +9,7 @@ import (
 // Module wires logger configuration and sync lifecycle
 var Module = fx.Options(
 	fx.Provide(
-		GetLogConfigFromViper,
+		GetLogConfig,
 		NewLogger,
 	),
 	fx.Invoke(registerLoggerLifecycle),

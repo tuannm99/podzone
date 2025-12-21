@@ -1,4 +1,3 @@
-// pkg/pdsql/fxmodule.go
 package pdsql
 
 import (
@@ -35,7 +34,7 @@ func ModuleFor(name string) fx.Option {
 		),
 		fx.Provide(
 			fx.Annotate(
-				GetConfigFromViper,
+				GetConfigFromKoanf,
 				fx.ParamTags(nameParamTag, ``),
 				fx.ResultTags(configResultTag),
 			),

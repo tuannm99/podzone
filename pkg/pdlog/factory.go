@@ -4,20 +4,23 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/spf13/viper"
+	"github.com/knadh/koanf/v2"
 )
 
-func GetLogConfigFromViper(v *viper.Viper) (*Config, error) {
-	var cfg Config
-	cfg.Provider = "zap"
-	cfg.Level = "info"
-	cfg.Env = "dev"
+func GetLogConfig(k *koanf.Koanf) (*Config, error) {
+	cfg := Config{
+		Provider: "zap",
+		Level:    "info",
+		Env:      "dev",
+	}
 
-	if sub := v.Sub("logger"); sub != nil {
-		if err := sub.Unmarshal(&cfg); err != nil {
-			return nil, err
+	// Merge overrides from config
+	if k != nil && k.Exists("logger") {
+		if err := k.Unmarshal("logger", &cfg); err != nil {
+			return nil, fmt.Errorf("unmarshal logger config: %w", err)
 		}
 	}
+
 	return &cfg, nil
 }
 

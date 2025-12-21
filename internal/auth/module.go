@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/spf13/viper"
+	"github.com/knadh/koanf/v2"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
 
@@ -50,7 +50,7 @@ func RegisterGRPCServer(server *grpc.Server, authServer *grpchandler.AuthServer,
 type MigrateParams struct {
 	fx.In
 	Logger       pdlog.Logger
-	V            *viper.Viper
+	V            *koanf.Koanf
 	AuthDBConfig *pdsql.Config `name:"sql-auth-config"`
 	AuthDB       *sqlx.DB      `name:"sql-auth"`
 }

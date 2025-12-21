@@ -1,0 +1,19 @@
+logger:
+  provider: zap # zap | slog
+  level: debug"
+  env: dev
+  app_name: podzone_onboarding
+
+redis:
+  auth:
+    uri: '${REDIS_ONBOARDING_DSN}'
+
+mongo:
+  onboarding:
+    uri: '${MONGO_ONBOARDING_DSN}'
+    database: onboarding
+    ping_timeout: 3s
+    connect_timeout: 5s
+
+grpc:
+  port: 50051

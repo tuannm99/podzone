@@ -1,0 +1,19 @@
+logger:
+  provider: zap # zap | slog
+  level: debug
+  env: dev
+  app_name: podzone_admin_catalog
+
+redis:
+  catalog:
+    uri: '${REDIS_CATALOG_DSN}'
+
+mongo:
+  catalog:
+    uri: '${MONGO_CATALOG_DSN}'
+    database: catalog
+    ping_timeout: 3s
+    connect_timeout: 5s
+
+grpc:
+  port: 50051

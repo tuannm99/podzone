@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/spf13/viper"
+	"github.com/knadh/koanf/v2"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxtest"
@@ -93,15 +93,16 @@ func TestMongoLifecycle_Table(t *testing.T) {
 func TestModuleFor_DefaultName_Wiring(t *testing.T) {
 	t.Parallel()
 
-	v := viper.New()
-	v.Set("mongo.default.uri", "mongodb://127.0.0.1:27017")
-	v.Set("mongo.default.database", "db")
-	v.Set("mongo.default.ping_timeout", "50ms")
-	v.Set("mongo.default.connect_timeout", "50ms")
+	k := koanf.New(".")
+
+	k.Set("mongo.default.uri", "mongodb://127.0.0.1:27017")
+	k.Set("mongo.default.database", "db")
+	k.Set("mongo.default.ping_timeout", "50ms")
+	k.Set("mongo.default.connect_timeout", "50ms")
 
 	app := fx.New(
-		ModuleFor(""), // <- cover nhánh default
-		fx.Supply(v),
+		ModuleFor(""), // <- cover default name branch
+		fx.Supply(k),
 		fx.Supply(fx.Annotate(pdlog.NopLogger{}, fx.As(new(pdlog.Logger)))),
 	)
 

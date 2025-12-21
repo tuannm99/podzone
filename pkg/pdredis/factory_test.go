@@ -3,16 +3,17 @@ package pdredis
 import (
 	"testing"
 
-	"github.com/spf13/viper"
+	"github.com/knadh/koanf/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetConfigFromViper(t *testing.T) {
-	v := viper.New()
-	v.Set("redis.test.uri", "redis://localhost:6379/0")
+func TestGetConfigFromKoanf(t *testing.T) {
+	k := koanf.New(".")
 
-	cfg, err := GetConfigFromViper("test", v)
+	k.Set("redis.test.uri", "redis://localhost:6379/0")
+
+	cfg, err := GetConfigFromKoanf("test", k)
 	require.NoError(t, err)
 	assert.Equal(t, "redis://localhost:6379/0", cfg.URI)
 }

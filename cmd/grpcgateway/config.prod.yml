@@ -4,9 +4,9 @@ logger:
   env: 'dev'
   app_name: 'podzone_admin_grpcgateway'
 
-redis:
-  auth:
-    uri: redis://redis:6379/0
+# redis:
+#   auth:
+#     uri: redis://redis:6379/0
 # not use yet
 # grpc_client:
 #   auth:

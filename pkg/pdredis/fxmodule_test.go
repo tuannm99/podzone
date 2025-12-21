@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/knadh/koanf/v2"
 	"github.com/redis/go-redis/v9"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
 
@@ -16,12 +16,12 @@ import (
 func TestModuleFor_DefaultName_Wiring(t *testing.T) {
 	t.Parallel()
 
-	v := viper.New()
-	v.Set("redis.default.uri", "redis://127.0.0.1:6379/0")
+	k := koanf.New(".")
+	k.Set("redis.default.uri", "redis://127.0.0.1:6379/0")
 
 	app := fx.New(
 		ModuleFor(""),
-		fx.Supply(v),
+		fx.Supply(k),
 		fx.Supply(fx.Annotate(pdlog.NopLogger{}, fx.As(new(pdlog.Logger)))),
 	)
 
@@ -31,12 +31,12 @@ func TestModuleFor_DefaultName_Wiring(t *testing.T) {
 func TestModuleFor_CustomName_Wiring(t *testing.T) {
 	t.Parallel()
 
-	v := viper.New()
-	v.Set("redis.test.uri", "redis://127.0.0.1:6379/0")
+	k := koanf.New(".")
+	k.Set("redis.test.uri", "redis://127.0.0.1:6379/0")
 
 	app := fx.New(
 		ModuleFor("test"),
-		fx.Supply(v),
+		fx.Supply(k),
 		fx.Supply(fx.Annotate(pdlog.NopLogger{}, fx.As(new(pdlog.Logger)))),
 	)
 

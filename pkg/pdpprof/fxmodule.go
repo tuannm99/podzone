@@ -7,24 +7,25 @@ import (
 	// register pprof handlers on DefaultServeMux
 	_ "net/http/pprof"
 
-	"github.com/spf13/viper"
+	"github.com/knadh/koanf/v2"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
 )
 
 type Config struct {
-	Enable bool   `mapstructure:"enable" yaml:"enable"`
-	Addr   string `mapstructure:"addr"   yaml:"addr"`
+	Enable bool   `koanf:"enable" mapstructure:"enable" yaml:"enable"`
+	Addr   string `koanf:"addr"   mapstructure:"addr"   yaml:"addr"`
 }
 
-func NewConfigFromViper(v *viper.Viper) *Config {
+func NewConfigFromKoanf(k *koanf.Koanf) *Config {
 	cfg := &Config{
-		Enable: v.GetBool("pprof_enable"),
-		Addr:   v.GetString("pprof_addr"),
+		Enable: false,
+		Addr:   ":6060",
 	}
 
-	if sub := v.Sub("pprof"); sub != nil {
-		_ = sub.Unmarshal(cfg)
+	// Unmarshal from "pprof" section if present
+	if k != nil && k.Exists("pprof") {
+		_ = k.Unmarshal("pprof", cfg)
 	}
 
 	if cfg.Addr == "" {
@@ -36,7 +37,7 @@ func NewConfigFromViper(v *viper.Viper) *Config {
 
 var Module = fx.Options(
 	fx.Provide(
-		NewConfigFromViper,
+		NewConfigFromKoanf,
 	),
 	fx.Invoke(
 		registerLifecycle,

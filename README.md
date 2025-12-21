@@ -36,7 +36,7 @@ This is a Go monorepo containing a collection of microservices for an e-commerce
 
 🔄 **Our pkg**
 
-- reused tools, use Fx as backbone, Viper for dynamic config (with Consul KV) + yaml file (need refactor and add more setup)
+- reused tools, use Fx as backbone, Koanf yaml file
 - pkg/pdtenantdb - multi-tenant db manager, used for manage connection pool/db switching (In-progress)
 - pkg/toolkit - utility
 

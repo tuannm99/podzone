@@ -8,8 +8,8 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/go-redis/redismock/v9"
 	"github.com/jmoiron/sqlx"
+	"github.com/knadh/koanf/v2"
 	"github.com/redis/go-redis/v9"
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxtest"
@@ -84,7 +84,7 @@ func TestRegisterMigration_Disabled(t *testing.T) {
 		fx.Supply(
 			fx.Annotate(pdlog.NopLogger{}, fx.As(new(pdlog.Logger))),
 		),
-		fx.Supply(viper.New()),
+		fx.Supply(koanf.New(".")),
 		fx.Supply(grpc.NewServer()),
 	)
 

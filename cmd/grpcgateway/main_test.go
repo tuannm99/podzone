@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/spf13/viper"
+	"github.com/knadh/koanf/v2"
 	pdlog "github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 	"go.uber.org/fx"
@@ -53,22 +53,24 @@ func TestRedirectForwardFunc(t *testing.T) {
 	var logger pdlog.Logger
 
 	app := fxtest.New(t,
-		fx.Provide(func() *viper.Viper {
-			v := viper.New()
-			v.Set("logger.provider", "slog")
-			v.Set("logger.level", "debug")
-			v.Set("logger.env", "dev")
-			return v
+		fx.Provide(func() *koanf.Koanf {
+			k := koanf.New(".")
+			k.Set("logger.provider", "slog")
+			k.Set("logger.level", "debug")
+			k.Set("logger.env", "dev")
+			// optional:
+			// k.Set("logger.app_name", "test")
+			return k
 		}),
-		fx.Provide(func(v *viper.Viper) (*pdlog.Config, error) {
-			return pdlog.GetLogConfigFromViper(v)
+		fx.Provide(func(k *koanf.Koanf) (*pdlog.Config, error) {
+			return pdlog.GetLogConfig(k)
 		}),
-
 		fx.Provide(func(cfg *pdlog.Config) (pdlog.Logger, error) {
 			return pdlog.NewLogger(cfg)
 		}),
 		fx.Invoke(func(l pdlog.Logger) { logger = l }),
 	)
+
 	app.RequireStart()
 	defer app.RequireStop()
 

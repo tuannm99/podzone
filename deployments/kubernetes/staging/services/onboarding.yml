@@ -47,16 +47,16 @@ spec:
               value: 'release'
             - name: HTTP_PORT
               value: '8080'
-            - name: REDIS_ADDR
-              value: 'redis://redis.persistent-staging.svc.cluster.local:6379/0'
+            - name: REDIS_ONBOARDING_URI
+              value: 'redis://redis.default.svc.cluster.local:6379/0'
             - name: MONGO_ONBOARDING_URI
-              value: 'mongodb://mongodb-internal.persistent-staging.svc.cluster.local:27017/onboarding'
+              value: 'mongodb://mongodb-internal.default.svc.cluster.local:27017/onboarding'
 
           resources:
-            limits:
+            requests:
               cpu: '20m'
               memory: '50Mi'
-            requests:
+            limit:
               cpu: '50m'
               memory: '128Mi'
           readinessProbe:

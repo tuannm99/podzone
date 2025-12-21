@@ -8,7 +8,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
-	"github.com/spf13/viper"
+	"github.com/knadh/koanf/v2"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxtest"
@@ -92,10 +92,10 @@ func TestSQLLifecycle_Table(t *testing.T) {
 func TestModuleFor_DefaultName_Wiring(t *testing.T) {
 	t.Parallel()
 
-	v := viper.New()
-	v.Set("sql.default.uri", "postgres://u:p@127.0.0.1:5432/testdb?sslmode=disable")
-	v.Set("sql.default.provider", "postgres")
-	v.Set("sql.default.should_run_migration", false)
+	k := koanf.New(".")
+	k.Set("sql.default.uri", "postgres://u:p@127.0.0.1:5432/testdb?sslmode=disable")
+	k.Set("sql.default.provider", "postgres")
+	k.Set("sql.default.should_run_migration", false)
 
 	rawDB, _, err := sqlmock.New()
 	require.NoError(t, err)
@@ -106,9 +106,10 @@ func TestModuleFor_DefaultName_Wiring(t *testing.T) {
 	app := fx.New(
 		ModuleFor(""), // => default
 
-		fx.Supply(v),
+		fx.Supply(k),
 		fx.Supply(fx.Annotate(pdlog.NopLogger{}, fx.As(new(pdlog.Logger)))),
 
+		// Keep these replaces: they make wiring deterministic and avoid real DB ops.
 		fx.Replace(
 			fx.Annotate(&Config{
 				URI:                "postgres://u:p@127.0.0.1:5432/testdb?sslmode=disable",

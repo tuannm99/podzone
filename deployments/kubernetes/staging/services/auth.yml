@@ -52,26 +52,22 @@ spec:
                 secretKeyRef:
                   name: global-secrets
                   key: JWT_SECRET
-            # - name: APP_REDIRECT_URL
-            #   valueFrom:
-            #     secretKeyRef:
-            #       name: global-secrets
-            #       key: APP_REDIRECT_URL
+
             - name: APP_REDIRECT_URL
               value: 'http://admin-ui.tuannm.uk/home'
 
             - name: GRPC_PORT
               value: '50051'
-            - name: REDIS_ADDR
-              value: 'redis://redis.persistent-staging.svc.cluster.local:6379/0'
-            - name: PG_AUTH_URI
-              value: 'postgres://postgres:postgres@postgres.persistent-staging.svc.cluster.local:5432/auth'
+            - name: REDIS_AUTH_URI
+              value: 'redis://redis.default.svc.cluster.local:6379/0'
+            - name: SQL_AUTH_URI
+              value: 'postgres://postgres:postgres@postgres.default.svc.cluster.local:5432/auth?sslmode=disable'
 
           resources:
-            limits:
+            requests:
               cpu: '20m'
               memory: '50Mi'
-            requests:
+            limits:
               cpu: '50m'
               memory: '128Mi'
           readinessProbe:

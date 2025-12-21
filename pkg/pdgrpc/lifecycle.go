@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/spf13/viper"
+	"github.com/knadh/koanf/v2"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
@@ -20,21 +20,26 @@ type Params struct {
 
 	Logger pdlog.Logger
 	GRPC   *grpc.Server
-	Config *viper.Viper
+	Config *koanf.Koanf
 }
 
 func startGrpcServer(p Params) {
-	grpcPort := p.Config.GetString("grpc.port")
-	if grpcPort == "" {
-		grpcPort = "0"
+	grpcPort := p.Config.Int("grpc.port")
+	if grpcPort == 0 {
+		grpcPort = 50051 // sensible default (or keep 0 if you want random port)
 	}
 
 	p.Lifecycle.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			lis, err := net.Listen("tcp", ":"+grpcPort)
+			lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 			if err != nil {
-				return fmt.Errorf("failed to listen on gRPC port %s: %w", grpcPort, err)
+				return fmt.Errorf("failed to listen on gRPC port %d: %w", grpcPort, err)
 			}
+
+			// Register health service BEFORE Serve (best practice)
+			healthServer := health.NewServer()
+			grpc_health_v1.RegisterHealthServer(p.GRPC, healthServer)
+			healthServer.SetServingStatus("", grpc_health_v1.HealthCheckResponse_SERVING)
 
 			go func() {
 				p.Logger.Info("Starting gRPC server", "address", lis.Addr().String())
@@ -42,11 +47,6 @@ func startGrpcServer(p Params) {
 					p.Logger.Error("gRPC server stopped with error", "error", err)
 				}
 			}()
-
-			// Register health service
-			healthServer := health.NewServer()
-			grpc_health_v1.RegisterHealthServer(p.GRPC, healthServer)
-			healthServer.SetServingStatus("", grpc_health_v1.HealthCheckResponse_SERVING)
 
 			return nil
 		},

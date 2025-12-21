@@ -1,16 +1,21 @@
 package pdredis
 
-import "github.com/spf13/viper"
+import (
+	"fmt"
+
+	"github.com/knadh/koanf/v2"
+)
 
 type Config struct {
-	URI string `mapstructure:"uri"`
+	URI string `koanf:"uri" mapstructure:"uri"`
 }
 
-func GetConfigFromViper(name string, v *viper.Viper) (*Config, error) {
+func GetConfigFromKoanf(name string, k *koanf.Koanf) (*Config, error) {
 	base := "redis." + name
+
 	var cfg Config
-	if sub := v.Sub(base); sub != nil {
-		_ = sub.Unmarshal(&cfg)
+	if err := k.Unmarshal(base, &cfg); err != nil {
+		return nil, fmt.Errorf("unmarshal %q: %w", base, err)
 	}
 	return &cfg, nil
 }

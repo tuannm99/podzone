@@ -124,7 +124,7 @@ func newAppContainer() *fx.App {
 		pdconfig.Module,
 		pdlog.Module,
 
-        // TODO: make pdtenent pool db manager
+		// TODO: make pdtenent pool db manager
 
 		backoffice.Module,
 

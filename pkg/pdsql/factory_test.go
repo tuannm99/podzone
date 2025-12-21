@@ -7,29 +7,36 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
-	"github.com/spf13/viper"
+	"github.com/knadh/koanf/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetConfigFromViper_NoSub(t *testing.T) {
-	v := viper.New()
-	cfg, err := GetConfigFromViper("missing", v)
+func TestGetConfigFromKoanf_NoSub(t *testing.T) {
+	k := koanf.New(".")
+
+	cfg, err := GetConfigFromKoanf("missing", k)
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
+
 	assert.Empty(t, cfg.URI)
 	assert.Empty(t, cfg.Provider)
+	assert.False(t, cfg.ShouldRunMigration)
 }
 
-func TestGetConfigFromViper_WithSub(t *testing.T) {
-	v := viper.New()
-	v.Set("sql.main.uri", "postgres://user:pass@localhost:5432/db?sslmode=disable")
-	v.Set("sql.main.provider", "postgres")
+func TestGetConfigFromKoanf_WithSub(t *testing.T) {
+	k := koanf.New(".")
 
-	cfg, err := GetConfigFromViper("main", v)
+	k.Set("sql.main.uri", "postgres://user:pass@localhost:5432/db?sslmode=disable")
+	k.Set("sql.main.provider", "postgres")
+	k.Set("sql.main.should_run_migration", true)
+
+	cfg, err := GetConfigFromKoanf("main", k)
 	require.NoError(t, err)
+
 	assert.Equal(t, "postgres://user:pass@localhost:5432/db?sslmode=disable", cfg.URI)
 	assert.Equal(t, ProviderType("postgres"), cfg.Provider)
+	assert.True(t, cfg.ShouldRunMigration)
 }
 
 func TestPostgresAdminDSN_OK(t *testing.T) {

@@ -2,7 +2,6 @@ package pdlog
 
 import "fmt"
 
-
 const (
 	LevelDebug Level = iota
 	LevelInfo
@@ -28,10 +27,10 @@ type (
 	Level int
 	// Config is usually loaded by app (e.g. via Viper) and injected.
 	Config struct {
-		Provider string `mapstructure:"provider"` // "zap" | "slog" | "noop"
-		Level    string `mapstructure:"level"`    // "debug" | "info" | "warn" | "error"
-		Env      string `mapstructure:"env"`      // "dev" | "prod"
-		AppName  string `mapstructure:"app_name"` // set by caller
+		Provider string `koanf:"provider" mapstructure:"provider"` // "zap" | "slog" | "noop"
+		Level    string `koanf:"level"    mapstructure:"level"`    // "debug" | "info" | "warn" | "error"
+		Env      string `koanf:"env"      mapstructure:"env"`      // "dev" | "prod"
+		AppName  string `koanf:"app_name" mapstructure:"app_name"` // set by caller
 	}
 )
 
