@@ -59,8 +59,8 @@ spec:
               cpu: '100m'
               memory: '256Mi'
           volumeMounts:
-            - name: redis-data
-              mountPath: /data
+            # - name: redis-data
+            #   mountPath: /data
             - name: redis-config
               mountPath: /etc/redis
           livenessProbe:
@@ -78,23 +78,23 @@ spec:
             initialDelaySeconds: 5
             timeoutSeconds: 1
       volumes:
-        - name: redis-data
-          persistentVolumeClaim:
-            claimName: redis-data
+        # - name: redis-data
+        #   persistentVolumeClaim:
+        #     claimName: redis-data
         - name: redis-config
           configMap:
             name: redis-config
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: redis-data
-  labels:
-    app: redis
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
-  storageClassName: longhorn
+# ---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: redis-data
+#   labels:
+#     app: redis
+# spec:
+#   accessModes:
+#     - ReadWriteOnce
+#   resources:
+#     requests:
+#       storage: 1Gi
+#   storageClassName: longhorn
