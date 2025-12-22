@@ -6,6 +6,8 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/domain/dto"
 	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
 	"github.com/tuannm99/podzone/pkg/toolkit"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
 )
@@ -27,7 +29,7 @@ func (s *AuthServer) GoogleLogin(
 ) (*pbauthv1.GoogleLoginResponse, error) {
 	authURL, err := s.usecase.GenerateOAuthURL(ctx)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &pbauthv1.GoogleLoginResponse{
 		RedirectUrl: authURL,
@@ -40,11 +42,11 @@ func (s *AuthServer) GoogleCallback(
 ) (*pbauthv1.GoogleCallbackResponse, error) {
 	callbackResp, err := s.usecase.HandleOAuthCallback(ctx, req.Code, req.State)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	resp, err := toolkit.MapStruct[dto.GoogleCallbackResp, pbauthv1.GoogleCallbackResponse](*callbackResp)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return resp, nil
 }
@@ -60,11 +62,11 @@ func (s *AuthServer) Logout(ctx context.Context, req *pbauthv1.LogoutRequest) (*
 func (s *AuthServer) Login(ctx context.Context, req *pbauthv1.LoginRequest) (*pbauthv1.LoginResponse, error) {
 	loginResp, err := s.usecase.Login(ctx, req.Username, req.Password)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	resp, err := toolkit.MapStruct[dto.LoginResp, pbauthv1.LoginResponse](*loginResp)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return resp, nil
 }
@@ -72,15 +74,15 @@ func (s *AuthServer) Login(ctx context.Context, req *pbauthv1.LoginRequest) (*pb
 func (s *AuthServer) Register(ctx context.Context, req *pbauthv1.RegisterRequest) (*pbauthv1.RegisterResponse, error) {
 	registerDto, err := toolkit.MapStruct[*pbauthv1.RegisterRequest, dto.RegisterReq](req)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	registerResp, err := s.usecase.Register(ctx, *registerDto)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	resp, err := toolkit.MapStruct[dto.RegisterResp, pbauthv1.RegisterResponse](*registerResp)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return resp, nil
 }

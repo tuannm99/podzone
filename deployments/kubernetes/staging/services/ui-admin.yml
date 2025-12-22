@@ -42,17 +42,17 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ui-admin
-  namespace: default
+  # namespace: staging
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: 'true'
-    cert-manager.io/cluster-issuer: 'letsencrypt-dev'
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    # cert-manager.io/cluster-issuer: 'letsencrypt-dev'
+    # nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   ingressClassName: nginx
-  tls:
-    - hosts:
-        - admin-ui.tuannm.uk
-      secretName: gateway-tls
+  # tls:
+  #   - hosts:
+  #       - admin-ui.tuannm.uk
+  #     secretName: gateway-tls
   rules:
     - host: admin-ui.tuannm.uk
       http:

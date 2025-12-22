@@ -36,15 +36,15 @@ spec:
             - name: GW_HTTP_PORT
               value: '8080'
             - name: AUTH_GRPC_ADDR
-              value: 'auth-service.default.svc.cluster.local:50051'
+              value: 'auth-service.staging.svc.cluster.local:50051'
             - name: ORDER_GRPC_ADDR
-              value: 'order-service.default.svc.cluster.local:50051'
+              value: 'order-service.staging.svc.cluster.local:50051'
             - name: CATALOG_GRPC_ADDR
-              value: 'catalog-service.default.svc.cluster.local:50051'
+              value: 'catalog-service.staging.svc.cluster.local:50051'
             - name: PAYMENT_GRPC_ADDR
-              value: 'payment-service.default.svc.cluster.local:50051'
+              value: 'payment-service.staging.svc.cluster.local:50051'
             - name: CART_GRPC_ADDR
-              value: 'cart-service.default.svc.cluster.local:50051'
+              value: 'cart-service.staging.svc.cluster.local:50051'
 
           resources:
             requests:

@@ -1,6 +1,6 @@
 logger:
   provider: zap # zap | slog
-  level: debug"
+  level: debug
   env: dev
   app_name: podzone_onboarding
 

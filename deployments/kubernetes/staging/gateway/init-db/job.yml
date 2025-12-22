@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: etcd-apisix-restore
+  namespace: staging
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+
+      volumes:
+        - name: backup
+          hostPath:
+            path: /opt/backups
+            type: Directory
+        - name: data
+          persistentVolumeClaim:
+            claimName: etcd-data-etcd-0
+
+      initContainers:
+        - name: wipe-data
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              echo "Wiping /var/lib/etcd ..."
+              rm -rf /var/lib/etcd/*
+              echo "Done."
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/etcd
+
+      containers:
+        - name: restore
+          image: quay.io/coreos/etcd:v3.5.21
+          command:
+            - etcdctl
+            - snapshot
+            - restore
+            - /backup/etcd-backup.db
+            - --data-dir=/var/lib/etcd
+            - --name=etcd-0
+            - --initial-cluster=etcd-0=http://etcd-0.etcd-headless:2380
+            - --initial-advertise-peer-urls=http://etcd-0.etcd-headless:2380
+            - --initial-cluster-token=etcd-cluster-1
+          volumeMounts:
+            - name: backup
+              mountPath: /backup
+            - name: data
+              mountPath: /var/lib/etcd

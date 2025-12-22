@@ -1,12 +1,27 @@
 all: false
-with-expecter: true     
-outpkg: mocks
+pkgname: mocks
+template: testify
+
 packages:
   github.com/tuannm99/podzone/pkg/pdlog:
+    config:
+      dir: pkg/pdlog/mocks
     interfaces:
       Logger:
-        config:
-          dir: pkg/pdlog/mocks
+
+  github.com/tuannm99/podzone/pkg/toolkit/kvstores:
+    config:
+      dir: pkg/toolkit/kvstores/mocks
+    interfaces:
+      KVStore:
+
+  github.com/tuannm99/podzone/pkg/pdtenantdb:
+    config:
+      dir: pkg/pdtenantdb/mocks
+    interfaces:
+      Manager:
+      PlacementResolver:
+      ClusterRegistry:
 
   github.com/tuannm99/podzone/internal/auth/domain/inputport:
     config:

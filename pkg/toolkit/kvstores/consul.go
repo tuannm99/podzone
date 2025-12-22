@@ -35,9 +35,11 @@ func (c *ConsulKVStore) Get(path string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cannot get kv %s", err)
 	}
+	if pair == nil {
+		return nil, fmt.Errorf("kv not found: %s", path)
+	}
 
 	c.logger.Debug("KV", "key", pair.Key, "value", pair.Value)
-
 	return pair.Value, nil
 }
 

@@ -27,7 +27,7 @@ proto_svc:
 # Run tests for all packages
 test:
 	@echo "$(COLOR_GREEN)Running tests...$(COLOR_RESET)"
-	$(GO) test -v ./pkg/... ./internal/... ./cmd/...
+	$(GO) test -v -cover ./pkg/... ./internal/... ./cmd/...
 
 # Run linter
 lint:

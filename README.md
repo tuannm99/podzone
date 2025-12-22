@@ -115,9 +115,8 @@ This is a Go monorepo containing a collection of microservices for an e-commerce
 
 ### Prerequisites
 
-- Go 1.23
+- Go 1.25
 - Docker, Kind, kubectl, helm
-
 ```bash
 Docker version 28.0.2, build 0442a73
 Docker Compose version v2.34.0
@@ -129,6 +128,8 @@ version.BuildInfo{Version:"v3.17.0", GitCommit:"301108edc7ac2a8ba79e4ebf5701b0b6
 Client Version: v1.32.0
 Kustomize Version: v5.5.0
 Server Version: v1.32.0
+
+- Golang tools
 
 ```
 

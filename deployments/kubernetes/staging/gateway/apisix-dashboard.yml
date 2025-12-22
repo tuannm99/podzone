@@ -26,11 +26,11 @@ spec:
               mountPath: /usr/local/apisix-dashboard/conf/conf.yaml
               subPath: conf.yaml
           resources:
-            limits:
-              cpu: '300m'
-              memory: '256Mi'
             requests:
               cpu: '100m'
+              memory: '100Mi'
+            limits:
+              cpu: '200m'
               memory: '128Mi'
       volumes:
         - name: dashboard-config

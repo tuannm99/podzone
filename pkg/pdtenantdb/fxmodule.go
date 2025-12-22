@@ -1,5 +1,21 @@
 package pdtenantdb
 
-import "go.uber.org/fx"
+import (
+	"context"
 
-var Module = fx.Module("pdtenantdb", fx.Provide(NewManager))
+	"go.uber.org/fx"
+)
+
+var Module = fx.Module(
+	"pdtenantdb",
+	fx.Provide(
+		NewDefaultConsulClusterRegistry,
+		NewManager,
+		NewStaticPlacementResolver,
+	),
+	fx.Invoke(func(lc fx.Lifecycle, m Manager) {
+		lc.Append(fx.Hook{
+			OnStop: func(ctx context.Context) error { return m.CloseAll() },
+		})
+	}),
+)

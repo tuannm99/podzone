@@ -1,21 +1,49 @@
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: apisix-ingress
+#   namespace: default
+#   annotations:
+#     nginx.ingress.kubernetes.io/ssl-redirect: 'false'
+#     # nginx.ingress.kubernetes.io/ssl-passthrough: 'true'
+#     nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
+#     nginx.ingress.kubernetes.io/use-forwarded-headers: 'true'
+#     cert-manager.io/cluster-issuer: 'letsencrypt-staging'
+#     acme.cert-manager.io/http01-ingress-class: nginx
+# spec:
+#   ingressClassName: nginx
+#   tls:
+#     - hosts:
+#         - gateway.tuannm.uk
+#       secretName: gateway-tls
+#   rules:
+#     - host: gateway.tuannm.uk
+#       http:
+#         paths:
+#           - path: /api
+#             pathType: Prefix
+#             backend:
+#               service:
+#                 name: apisix-gateway
+#                 port:
+#                   number: 9080
+#           - path: /
+#             pathType: Prefix
+#             backend:
+#               service:
+#                 name: apisix-dashboard
+#                 port:
+#                   number: 9000
+
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: apisix-ingress
-  namespace: default
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: 'false'
-    # nginx.ingress.kubernetes.io/ssl-passthrough: 'true'
-    nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
-    nginx.ingress.kubernetes.io/use-forwarded-headers: 'true'
-    cert-manager.io/cluster-issuer: 'letsencrypt-staging'
-    acme.cert-manager.io/http01-ingress-class: nginx
 spec:
   ingressClassName: nginx
-  tls:
-    - hosts:
-        - gateway.tuannm.uk
-      secretName: gateway-tls
   rules:
     - host: gateway.tuannm.uk
       http:
@@ -33,4 +61,3 @@ spec:
               service:
                 name: apisix-dashboard
                 port:
-                  number: 9000
