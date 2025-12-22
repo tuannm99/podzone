@@ -20,7 +20,7 @@ import (
 var configAppTest = `
 logger:
   app_name: "test"
-  provider: "slog"
+  provider: "zap"
   level: "debug"
   env: "dev"
 `
@@ -52,17 +52,21 @@ func TestRegisterLoggerLifecycle(t *testing.T) {
 			m.On("Sync").Return(tt.syncErr).Once()
 
 			if tt.expectWarn {
-				m.On("Warn", mock.MatchedBy(func(msg string) bool {
-					return strings.Contains(msg, "logger sync failed")
-				}), "error", tt.syncErr).Once()
+				m.On(
+					"Warn",
+					mock.MatchedBy(func(msg string) bool {
+						return strings.Contains(msg, "logger sync failed")
+					}),
+					mock.MatchedBy(func(args []interface{}) bool {
+						return len(args) == 2 && args[0] == "error" && args[1] == tt.syncErr
+					}),
+				).Once()
 			}
 
 			app := fx.New(
 				pdconfig.Module,
 				pdlog.Module,
-				fx.Decorate(
-					func(_ pdlog.Logger) pdlog.Logger { return m },
-				),
+				fx.Decorate(func(_ pdlog.Logger) pdlog.Logger { return m }),
 			)
 
 			require.NoError(t, app.Start(context.Background()))

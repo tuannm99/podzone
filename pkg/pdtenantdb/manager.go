@@ -14,6 +14,8 @@ import (
 	"golang.org/x/sync/singleflight"
 )
 
+var SQLXOpen = sqlx.Open
+
 type Manager interface {
 	DBForTenant(ctx context.Context, tenantID string) (*sqlx.DB, Placement, error)
 	WithTenantTx(ctx context.Context, tenantID string, opts *sql.TxOptions, fn func(tx *sqlx.Tx) error) error
@@ -150,7 +152,7 @@ func (m *managerImpl) getOrCreateDB(ctx context.Context, key ConnKey) (*sqlx.DB,
 		}
 
 		dsn := buildDSN(clusterCfg, key.DBName)
-		db, err := sqlx.Open("postgres", dsn)
+		db, err := SQLXOpen("postgres", dsn)
 		if err != nil {
 			return nil, err
 		}

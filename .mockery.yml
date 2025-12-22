@@ -1,6 +1,9 @@
 all: false
 pkgname: mocks
 template: testify
+filename: "mock_{{.InterfaceName}}.go"
+formatter: goimports
+force-file-write: true
 
 packages:
   github.com/tuannm99/podzone/pkg/pdlog:

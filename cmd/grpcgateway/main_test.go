@@ -11,6 +11,7 @@ import (
 	pdlog "github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
 	"go.uber.org/fx/fxtest"
 	"google.golang.org/protobuf/types/known/emptypb"
 
@@ -69,6 +70,7 @@ func TestRedirectForwardFunc(t *testing.T) {
 			return pdlog.NewLogger(cfg)
 		}),
 		fx.Invoke(func(l pdlog.Logger) { logger = l }),
+		fx.WithLogger(func() fxevent.Logger { return fxevent.NopLogger }),
 	)
 
 	app.RequireStart()

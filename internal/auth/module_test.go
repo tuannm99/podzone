@@ -12,6 +12,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
 	"go.uber.org/fx/fxtest"
 	"google.golang.org/grpc"
 
@@ -86,6 +87,7 @@ func TestRegisterMigration_Disabled(t *testing.T) {
 		),
 		fx.Supply(koanf.New(".")),
 		fx.Supply(grpc.NewServer()),
+		fx.WithLogger(func() fxevent.Logger { return fxevent.NopLogger }),
 	)
 
 	app.RequireStart()

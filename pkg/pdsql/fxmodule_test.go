@@ -11,6 +11,7 @@ import (
 	"github.com/knadh/koanf/v2"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
 	"go.uber.org/fx/fxtest"
 
 	"github.com/tuannm99/podzone/pkg/pdlog"
@@ -63,6 +64,7 @@ func TestSQLLifecycle_Table(t *testing.T) {
 					fx.Annotate(pdlog.NopLogger{}, fx.As(new(pdlog.Logger))),
 				),
 				fx.Invoke(registerLifecycle),
+				fx.WithLogger(func() fxevent.Logger { return fxevent.NopLogger }),
 			)
 
 			ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)

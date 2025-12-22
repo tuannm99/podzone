@@ -117,7 +117,8 @@ This is a Go monorepo containing a collection of microservices for an e-commerce
 
 - Go 1.25
 - Docker, Kind, kubectl, helm
-```bash
+
+````bash
 Docker version 28.0.2, build 0442a73
 Docker Compose version v2.34.0
 
@@ -129,25 +130,16 @@ Client Version: v1.32.0
 Kustomize Version: v5.5.0
 Server Version: v1.32.0
 
-- Golang tools
-
-```
-
-- Protocol Buffers compiler
-
-```bash
-google.golang.org/protobuf v1.36.6
-github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3
-google.golang.org/genproto/googleapis/api v0.0.0-20250303144028-a0af3efb3deb
-
-```
-
-- Swagger-gen
-
-```bash
-go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
-
-```
+- Golang CLI tools (go1.25.1)
+go install github.com/99designs/gqlgen@v0.17.81
+go install github.com/vektra/mockery/v3@v3.6.1
+go install github.com/air-verse/air@v1.63.0
+go install github.com/bufbuild/buf/cmd/buf@v1.61.0
+go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.7.2
+go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.27.3
+go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.27.3
+go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
 ### Development Workflow
 
@@ -157,7 +149,7 @@ go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
 # Hot reload with air
 air --build.cmd "go build -o ./bin/${svc} ./cmd/${svc}/main.go" --build.bin "./bin/${svc}"
 
-```
+````
 
 #### Setup Development Environment
 
@@ -174,7 +166,7 @@ sudo apt install dmsetup cryptsetup nfs-common open-iscsi -y # k8s longhorn stor
 
 # helm
 
-# for local machine using k3s (single node)
+# for dev development, on local machine using k3s (single node)
 curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="v1.31.0+k3s1" K3S_TOKEN=12345token sh -s - server --disable=traefik --disable=servicelb
 sudo cat /etc/rancher/k3s/k3s.yaml > ~/.kubeconfig
 export KUBECONFIG=~/.kubeconfig
@@ -213,5 +205,8 @@ ingress-nginx-controller-admission   ClusterIP      10.43.6.241     <none>      
 # setting /etc/hosts for some UI Infrastructure
 # -> update later as I go
 sudo vi /etc/hosts
-10.42.100.100 rancher.local.com harbor.local.com jenkin.local.com longhorn.local.com minio.local.com pg-ui.local.com
+10.42.100.100 rancher.tuannm.uk longhorn.tuannm.uk minio.tuannm.uk pg-ui.tuannm.uk
+10.42.100.100 gateway.tuannm.uk admin-ui.tuannm.uk kafka-ui.tuannm.uk
+10.42.100.100 sonarqube.tuannm.uk harbor.tuannm.uk jenkins.tuannm.uk kibana.tuannm.uk redisinsight.tuannm.uk
+
 ```
