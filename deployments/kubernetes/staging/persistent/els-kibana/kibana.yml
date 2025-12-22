@@ -36,11 +36,11 @@ spec:
               value: http://elasticsearch:9200
           resources:
             requests:
-              cpu: '100m'
-              memory: '256Mi'
+              cpu: "25m"
+              memory: "128Mi"
             limits:
-              cpu: '200m'
-              memory: '512Mi'
+              cpu: "200m"
+              memory: "384Mi"
 
           readinessProbe:
             httpGet:

@@ -82,14 +82,16 @@ spec:
 
             - name: KAFKA_CLUSTER_ID
               value: 'MkU3OEVBNTcwNTJENDM2Qk'
+            - name: KAFKA_HEAP_OPTS
+              value: "-Xms96m -Xmx192m"
 
           resources:
             requests:
-              cpu: '200m'
-              memory: '512Mi'
+              cpu: "50m"
+              memory: "192Mi"
             limits:
-              cpu: '200m'
-              memory: '512Mi'
+              cpu: "200m"
+              memory: "384Mi"
           volumeMounts:
             - name: kafka-storage
               mountPath: /var/lib/kafka/data

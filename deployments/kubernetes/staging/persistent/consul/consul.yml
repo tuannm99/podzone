@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: consul
+spec:
+  type: ClusterIP
+  selector:
+    app: consul
+  ports:
+    - name: http
+      port: 8500
+      targetPort: 8500
+    - name: dns
+      port: 8600
+      targetPort: 8600
+      protocol: UDP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consul
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consul
+  template:
+    metadata:
+      labels:
+        app: consul
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: consul
+          image: hashicorp/consul:1.18
+          imagePullPolicy: IfNotPresent
+          args:
+            - 'agent'
+            - '-dev'
+            - '-client=0.0.0.0'
+            - '-ui'
+          ports:
+            - name: http
+              containerPort: 8500
+            - name: dns
+              containerPort: 8600
+              protocol: UDP
+          resources:
+            requests:
+              cpu: '5m'
+              memory: '24Mi'
+          readinessProbe:
+            httpGet:
+              path: /v1/status/leader
+              port: 8500
+            initialDelaySeconds: 2
+            periodSeconds: 5

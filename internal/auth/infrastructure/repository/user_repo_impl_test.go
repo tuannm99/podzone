@@ -37,7 +37,7 @@ func userRow(
 	username, email, password, fullName, initialFrom string,
 	age int64,
 ) *sqlmock.Rows {
-	// English comment: Avoid NULL for non-nullable Go fields (string/time.Time) in StructScan.
+	// Avoid NULL for non-nullable Go fields (string/time.Time) in StructScan.
 	return sqlmock.NewRows(userColumns).AddRow(
 		id,
 		username,
@@ -138,7 +138,7 @@ func TestUserRepository_GetByUsernameOrEmail_Table(t *testing.T) {
 				require.Equal(t, tc.wantID, u.Id)
 			} else {
 				require.Error(t, err)
-				// English comment: For sentinel errors, use ErrorIs; for raw errors, check message.
+				// For sentinel errors, use ErrorIs; for raw errors, check message.
 				if errors.Is(tc.wantErr, entity.ErrUserNotFound) {
 					require.ErrorIs(t, err, tc.wantErr)
 				} else {
@@ -247,7 +247,7 @@ func TestUserRepository_Create_Table(t *testing.T) {
 				Age:      30,
 			},
 			setup: func(mock sqlmock.Sqlmock) {
-				// English comment: Keep expectations loose; hashing and timestamps are not deterministic.
+				// Keep expectations loose; hashing and timestamps are not deterministic.
 				mock.ExpectQuery(insertRe).
 					WillReturnRows(userRow(now, 10, "jdoe", "jdoe@example.com", "hashed-secret", "John Doe", "", 30))
 			},
@@ -341,7 +341,7 @@ func TestUserRepository_Update_EarlyReturn_Table(t *testing.T) {
 				require.ErrorIs(t, err, tc.wantErr)
 			}
 
-			// English comment: No SQL expectations should be pending in early-return paths.
+			// No SQL expectations should be pending in early-return paths.
 			require.NoError(t, mock.ExpectationsWereMet())
 		})
 	}

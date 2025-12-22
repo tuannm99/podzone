@@ -38,14 +38,17 @@ spec:
             - name: discovery.type
               value: single-node
             - name: ES_JAVA_OPTS
-              value: '-Xms512m -Xmx512m'
+              value: "-Xms192m -Xmx192m"
+            - name: xpack.security.enabled
+              value: 'false'
+
           resources:
             requests:
-              cpu: "200m"
-              memory: "1Gi"
+              cpu: '100m'
+              memory: '256Mi'
             limits:
-              cpu: "400m"
-              memory: "1.5Gi"
+              cpu: '400m'
+              memory: '768Mi'
 
           readinessProbe:
             httpGet:
