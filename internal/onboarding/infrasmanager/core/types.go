@@ -1,6 +1,6 @@
 package core
 
-import "fmt"
+import "time"
 
 type InfraType string
 
@@ -13,10 +13,15 @@ const (
 )
 
 type ProvisionInput struct {
+	// ID can stay for backward compatibility (e.g. request id),
+	// but the "connection identity" should be (TenantID, InfraType, Name).
 	ID        string
+	TenantID  string
+	Name      string // optional: "default", "analytics", ...
 	InfraType InfraType
-	Metadata  map[string]string      // e.g. cluster, namespace, pod, labels
-	Config    map[string]interface{} // e.g. version, size, etc.
+
+	Metadata map[string]string      // cluster, namespace, pod, labels...
+	Config   map[string]interface{} // version, size, pool mode...
 }
 
 type ProvisionResult struct {
@@ -26,11 +31,53 @@ type ProvisionResult struct {
 }
 
 type ConnectionInfo struct {
-	ID        string
+	TenantID  string
+	Name      string
 	InfraType InfraType
+
 	Endpoint  string
-	Auth      map[string]string
-	Meta      map[string]string
+	SecretRef string
+
+	Status  string
+	Version int64
+
+	Meta   map[string]string
+	Config map[string]interface{}
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time
+}
+
+type ConnectionEvent struct {
+	EventID   string
+	TenantID  string
+	Name      string
+	InfraType InfraType
+
+	Action string // create|destroy|publish_consul...
+	Status string // started|succeeded|failed
+
+	Request map[string]interface{}
+	Result  map[string]interface{}
+	Error   string
+
+	Actor map[string]string // user/service/ip/trace_id...
+
+	CreatedAt time.Time
+}
+
+type OutboxMessage struct {
+	EventID string
+	Topic   string // "consul.publish"
+	Payload map[string]interface{}
+
+	Status     string // pending|done|failed
+	RetryCount int
+	NextRetry  time.Time
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type InfraProvisioner interface {
@@ -38,50 +85,16 @@ type InfraProvisioner interface {
 	Destroy(input ProvisionInput) error
 }
 
+// ConnectionStore = current state + history + outbox
 type ConnectionStore interface {
-	Save(info ConnectionInfo) error
-	Delete(id string) error
-	Get(id string) (*ConnectionInfo, error)
-}
+	Upsert(info ConnectionInfo) error
+	SoftDelete(tenantID string, infraType InfraType, name string) error
+	Get(tenantID string, infraType InfraType, name string) (*ConnectionInfo, error)
 
-type InfraManager struct {
-	provisioners map[InfraType]InfraProvisioner
-	store        ConnectionStore
-}
+	AppendEvent(ev ConnectionEvent) error
 
-func NewInfraManager(provs map[InfraType]InfraProvisioner, store ConnectionStore) *InfraManager {
-	return &InfraManager{
-		provisioners: provs,
-		store:        store,
-	}
-}
-
-func (m *InfraManager) CreateInfra(input ProvisionInput) (*ProvisionResult, error) {
-	prov, ok := m.provisioners[input.InfraType]
-	if !ok {
-		return nil, fmt.Errorf("no provisioner found for type %s", input.InfraType)
-	}
-	res, err := prov.Create(input)
-	if err != nil {
-		return nil, err
-	}
-	conn := ConnectionInfo{
-		ID:        input.ID,
-		InfraType: input.InfraType,
-		Endpoint:  res.Endpoint,
-		Auth:      map[string]string{"secretRef": res.SecretRef},
-		Meta:      map[string]string{"status": res.Status},
-	}
-	return res, m.store.Save(conn)
-}
-
-func (m *InfraManager) DestroyInfra(input ProvisionInput) error {
-	prov, ok := m.provisioners[input.InfraType]
-	if !ok {
-		return fmt.Errorf("no provisioner found for type %s", input.InfraType)
-	}
-	if err := prov.Destroy(input); err != nil {
-		return err
-	}
-	return m.store.Delete(input.ID)
+	EnqueueOutbox(msg OutboxMessage) error
+	FindDueOutbox(limit int) ([]OutboxMessage, error)
+	MarkOutboxDone(eventID string) error
+	MarkOutboxFailed(eventID string, nextRetry time.Time) error
 }
