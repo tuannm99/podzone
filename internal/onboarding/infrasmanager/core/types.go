@@ -13,11 +13,11 @@ const (
 )
 
 type ProvisionInput struct {
-	// ID can stay for backward compatibility (e.g. request id),
-	// but the "connection identity" should be (TenantID, InfraType, Name).
+	// ID can be used as request id / legacy id, but "connection identity"
+	// is (TenantID, InfraType, Name).
 	ID        string
 	TenantID  string
-	Name      string // optional: "default", "analytics", ...
+	Name      string // default, analytics, ...
 	InfraType InfraType
 
 	Metadata map[string]string      // cluster, namespace, pod, labels...
@@ -50,12 +50,17 @@ type ConnectionInfo struct {
 }
 
 type ConnectionEvent struct {
-	EventID   string
+	// ID must be unique for each event record.
+	ID string
+
+	// CorrelationID groups multiple events in one operation (create/destroy/publish).
+	CorrelationID string
+
 	TenantID  string
 	Name      string
 	InfraType InfraType
 
-	Action string // create|destroy|publish_consul...
+	Action string // create|destroy|manual_upsert|publish_consul|delete_consul...
 	Status string // started|succeeded|failed
 
 	Request map[string]interface{}
@@ -68,9 +73,19 @@ type ConnectionEvent struct {
 }
 
 type OutboxMessage struct {
+	// EventID is unique for each outbox message (idempotency key).
 	EventID string
-	Topic   string // "consul.publish"
+
+	// CorrelationID links outbox execution back to operation.
+	CorrelationID string
+
+	Topic   string // consul.publish / consul.delete
 	Payload map[string]interface{}
+
+	// Useful metadata for logging/history writing in worker.
+	TenantID  string
+	InfraType InfraType
+	Name      string
 
 	Status     string // pending|done|failed
 	RetryCount int
@@ -91,6 +106,21 @@ type ConnectionStore interface {
 	SoftDelete(tenantID string, infraType InfraType, name string) error
 	Get(tenantID string, infraType InfraType, name string) (*ConnectionInfo, error)
 
+	// Optional query methods for APIs.
+	ListConnections(
+		tenantID string,
+		infraType InfraType,
+		includeDeleted bool,
+		limit, offset int,
+	) ([]ConnectionInfo, error)
+	ListEvents(
+		tenantID string,
+		infraType InfraType,
+		name string,
+		correlationID string,
+		limit, offset int,
+	) ([]ConnectionEvent, error)
+
 	AppendEvent(ev ConnectionEvent) error
 
 	EnqueueOutbox(msg OutboxMessage) error
@@ -98,3 +128,4 @@ type ConnectionStore interface {
 	MarkOutboxDone(eventID string) error
 	MarkOutboxFailed(eventID string, nextRetry time.Time) error
 }
+

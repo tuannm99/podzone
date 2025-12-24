@@ -113,7 +113,7 @@ portfw:
 		kubectl port-forward svc/mongodb-internal 27017:27017 -n default & pids+=($$!); \
 		kubectl port-forward svc/kafka 29092:29092 -n default & pids+=($$!); \
 		kubectl port-forward svc/elasticsearch 9200:9200 -n default & pids+=($$!); \
-		# kubectl port-forward svc/consul 8500:8500 -n default & pids+=($$!); \
+		kubectl port-forward svc/consul 8500:8500 -n default & pids+=($$!); \
 		# kubectl port-forward svc/redisinsight-service 8888:80 -n default & pids+=($$!); \
 		# kubectl port-forward svc/kibana 5601:5601 -n default & pids+=($$!); \
 		# kubectl port-forward svc/sonarqube 9000:9000 -n devops --address=0.0.0.0 & pids+=($$!); \

@@ -11,8 +11,6 @@ import (
 type InfraManager struct {
 	provisioners map[InfraType]InfraProvisioner
 	store        ConnectionStore
-
-	// Consul publishing is async via outbox, so manager doesn't need consul directly.
 }
 
 func NewInfraManager(provs map[InfraType]InfraProvisioner, store ConnectionStore) *InfraManager {
@@ -24,41 +22,41 @@ func (m *InfraManager) CreateInfra(input ProvisionInput) (*ProvisionResult, erro
 	if !ok {
 		return nil, fmt.Errorf("no provisioner found for type %s", input.InfraType)
 	}
-
 	if input.Name == "" {
 		input.Name = "default"
 	}
 
-	evID := uuid.NewString()
-	now := time.Now()
+	corrID := uuid.NewString()
 
 	_ = m.store.AppendEvent(ConnectionEvent{
-		EventID:   evID,
-		TenantID:  input.TenantID,
-		Name:      input.Name,
-		InfraType: input.InfraType,
-		Action:    "create",
-		Status:    "started",
+		ID:            uuid.NewString(),
+		CorrelationID: corrID,
+		TenantID:      input.TenantID,
+		Name:          input.Name,
+		InfraType:     input.InfraType,
+		Action:        "create",
+		Status:        "started",
 		Request: map[string]interface{}{
 			"id":        input.ID,
 			"metadata":  input.Metadata,
 			"config":    input.Config,
 			"infraType": string(input.InfraType),
 		},
-		CreatedAt: now,
+		CreatedAt: time.Now(),
 	})
 
 	res, err := prov.Create(input)
 	if err != nil {
 		_ = m.store.AppendEvent(ConnectionEvent{
-			EventID:   evID,
-			TenantID:  input.TenantID,
-			Name:      input.Name,
-			InfraType: input.InfraType,
-			Action:    "create",
-			Status:    "failed",
-			Error:     err.Error(),
-			CreatedAt: time.Now(),
+			ID:            uuid.NewString(),
+			CorrelationID: corrID,
+			TenantID:      input.TenantID,
+			Name:          input.Name,
+			InfraType:     input.InfraType,
+			Action:        "create",
+			Status:        "failed",
+			Error:         err.Error(),
+			CreatedAt:     time.Now(),
 		})
 		return nil, err
 	}
@@ -72,31 +70,33 @@ func (m *InfraManager) CreateInfra(input ProvisionInput) (*ProvisionResult, erro
 		Status:    res.Status,
 		Meta:      input.Metadata,
 		Config:    input.Config,
-		UpdatedAt: time.Now(),
 		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	if err := m.store.Upsert(conn); err != nil {
 		_ = m.store.AppendEvent(ConnectionEvent{
-			EventID:   evID,
-			TenantID:  input.TenantID,
-			Name:      input.Name,
-			InfraType: input.InfraType,
-			Action:    "create",
-			Status:    "failed",
-			Error:     "save connection failed: " + err.Error(),
-			CreatedAt: time.Now(),
+			ID:            uuid.NewString(),
+			CorrelationID: corrID,
+			TenantID:      input.TenantID,
+			Name:          input.Name,
+			InfraType:     input.InfraType,
+			Action:        "create",
+			Status:        "failed",
+			Error:         "save connection failed: " + err.Error(),
+			CreatedAt:     time.Now(),
 		})
 		return nil, err
 	}
 
 	_ = m.store.AppendEvent(ConnectionEvent{
-		EventID:   evID,
-		TenantID:  input.TenantID,
-		Name:      input.Name,
-		InfraType: input.InfraType,
-		Action:    "create",
-		Status:    "succeeded",
+		ID:            uuid.NewString(),
+		CorrelationID: corrID,
+		TenantID:      input.TenantID,
+		Name:          input.Name,
+		InfraType:     input.InfraType,
+		Action:        "create",
+		Status:        "succeeded",
 		Result: map[string]interface{}{
 			"endpoint":   res.Endpoint,
 			"secretRef":  res.SecretRef,
@@ -106,29 +106,49 @@ func (m *InfraManager) CreateInfra(input ProvisionInput) (*ProvisionResult, erro
 		CreatedAt: time.Now(),
 	})
 
-	// Enqueue outbox for Consul publish (runtime snapshot)
-	consulKey := buildConsulKey(input.TenantID, input.InfraType, input.Name)
-	consulVal, _ := json.Marshal(map[string]interface{}{
+	// Enqueue outbox for Consul publish
+	consulKey := BuildConsulKey(input.TenantID, input.InfraType, input.Name)
+
+	snap := map[string]interface{}{
+		"tenantID":  input.TenantID,
+		"infraType": string(input.InfraType),
+		"name":      input.Name,
 		"endpoint":  res.Endpoint,
 		"secretRef": res.SecretRef,
 		"status":    res.Status,
 		"updatedAt": time.Now().UTC().Format(time.RFC3339),
-		"tenantID":  input.TenantID,
-		"infraType": string(input.InfraType),
-		"name":      input.Name,
 		"meta":      input.Metadata,
 		"config":    input.Config,
-	})
+	}
+	consulValBytes, err := json.Marshal(snap)
+	if err != nil {
+		_ = m.store.AppendEvent(ConnectionEvent{
+			ID:            uuid.NewString(),
+			CorrelationID: corrID,
+			TenantID:      input.TenantID,
+			Name:          input.Name,
+			InfraType:     input.InfraType,
+			Action:        "create",
+			Status:        "failed",
+			Error:         "marshal consul snapshot failed: " + err.Error(),
+			CreatedAt:     time.Now(),
+		})
+		return nil, err
+	}
 
 	_ = m.store.EnqueueOutbox(OutboxMessage{
-		EventID:    evID,
-		Topic:      "consul.publish",
-		Payload:    map[string]interface{}{"key": consulKey, "value": string(consulVal)},
-		Status:     "pending",
-		RetryCount: 0,
-		NextRetry:  time.Now(),
-		CreatedAt:  time.Now(),
-		UpdatedAt:  time.Now(),
+		EventID:       uuid.NewString(),
+		CorrelationID: corrID,
+		Topic:         "consul.publish",
+		Payload:       map[string]interface{}{"key": consulKey, "value": string(consulValBytes)},
+		TenantID:      input.TenantID,
+		InfraType:     input.InfraType,
+		Name:          input.Name,
+		Status:        "pending",
+		RetryCount:    0,
+		NextRetry:     time.Now(),
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
 	})
 
 	return res, nil
@@ -143,27 +163,30 @@ func (m *InfraManager) DestroyInfra(input ProvisionInput) error {
 		input.Name = "default"
 	}
 
-	evID := uuid.NewString()
+	corrID := uuid.NewString()
+
 	_ = m.store.AppendEvent(ConnectionEvent{
-		EventID:   evID,
-		TenantID:  input.TenantID,
-		Name:      input.Name,
-		InfraType: input.InfraType,
-		Action:    "destroy",
-		Status:    "started",
-		CreatedAt: time.Now(),
+		ID:            uuid.NewString(),
+		CorrelationID: corrID,
+		TenantID:      input.TenantID,
+		Name:          input.Name,
+		InfraType:     input.InfraType,
+		Action:        "destroy",
+		Status:        "started",
+		CreatedAt:     time.Now(),
 	})
 
 	if err := prov.Destroy(input); err != nil {
 		_ = m.store.AppendEvent(ConnectionEvent{
-			EventID:   evID,
-			TenantID:  input.TenantID,
-			Name:      input.Name,
-			InfraType: input.InfraType,
-			Action:    "destroy",
-			Status:    "failed",
-			Error:     err.Error(),
-			CreatedAt: time.Now(),
+			ID:            uuid.NewString(),
+			CorrelationID: corrID,
+			TenantID:      input.TenantID,
+			Name:          input.Name,
+			InfraType:     input.InfraType,
+			Action:        "destroy",
+			Status:        "failed",
+			Error:         err.Error(),
+			CreatedAt:     time.Now(),
 		})
 		return err
 	}
@@ -172,30 +195,38 @@ func (m *InfraManager) DestroyInfra(input ProvisionInput) error {
 		return err
 	}
 
-	// Enqueue consul delete
-	consulKey := buildConsulKey(input.TenantID, input.InfraType, input.Name)
+	consulKey := BuildConsulKey(input.TenantID, input.InfraType, input.Name)
 	_ = m.store.EnqueueOutbox(OutboxMessage{
-		EventID:   evID,
-		Topic:     "consul.delete",
-		Payload:   map[string]interface{}{"key": consulKey},
-		Status:    "pending",
-		NextRetry: time.Now(),
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		EventID:       uuid.NewString(),
+		CorrelationID: corrID,
+		Topic:         "consul.delete",
+		Payload:       map[string]interface{}{"key": consulKey},
+		TenantID:      input.TenantID,
+		InfraType:     input.InfraType,
+		Name:          input.Name,
+		Status:        "pending",
+		NextRetry:     time.Now(),
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
 	})
 
 	_ = m.store.AppendEvent(ConnectionEvent{
-		EventID:   evID,
-		TenantID:  input.TenantID,
-		Name:      input.Name,
-		InfraType: input.InfraType,
-		Action:    "destroy",
-		Status:    "succeeded",
-		CreatedAt: time.Now(),
+		ID:            uuid.NewString(),
+		CorrelationID: corrID,
+		TenantID:      input.TenantID,
+		Name:          input.Name,
+		InfraType:     input.InfraType,
+		Action:        "destroy",
+		Status:        "succeeded",
+		CreatedAt:     time.Now(),
 	})
 	return nil
 }
 
-func buildConsulKey(tenantID string, infraType InfraType, name string) string {
+func BuildConsulKey(tenantID string, infraType InfraType, name string) string {
+	if name == "" {
+		name = "default"
+	}
 	return fmt.Sprintf("podzone/tenants/%s/connections/%s/%s", tenantID, infraType, name)
 }
+

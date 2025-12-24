@@ -9,7 +9,6 @@ import (
 )
 
 // ConsulPublisher publishes runtime snapshot to Consul via KVStore.
-
 type ConsulPublisher struct {
 	kv kvstores.KVStore
 }

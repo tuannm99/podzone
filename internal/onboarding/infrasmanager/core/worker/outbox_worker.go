@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/core"
 	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/core/publisher"
 	"github.com/tuannm99/podzone/pkg/pdlog"
@@ -57,22 +58,33 @@ func (w *OutboxWorker) tick(ctx context.Context) {
 			if err := w.pub.Put(ctx, key, val); err != nil {
 				next := time.Now().Add(publisher.DefaultBackoff(m.RetryCount + 1))
 				_ = w.st.MarkOutboxFailed(m.EventID, next)
+
 				_ = w.st.AppendEvent(core.ConnectionEvent{
-					EventID:   m.EventID,
-					Action:    "publish_consul",
-					Status:    "failed",
-					Error:     err.Error(),
-					CreatedAt: time.Now(),
+					ID:            uuid.NewString(),
+					CorrelationID: m.CorrelationID,
+					TenantID:      m.TenantID,
+					InfraType:     m.InfraType,
+					Name:          m.Name,
+					Action:        "publish_consul",
+					Status:        "failed",
+					Error:         err.Error(),
+					Result:        map[string]interface{}{"key": key, "next_retry": next.UTC().Format(time.RFC3339)},
+					CreatedAt:     time.Now(),
 				})
 				continue
 			}
 
 			_ = w.st.MarkOutboxDone(m.EventID)
 			_ = w.st.AppendEvent(core.ConnectionEvent{
-				EventID:   m.EventID,
-				Action:    "publish_consul",
-				Status:    "succeeded",
-				CreatedAt: time.Now(),
+				ID:            uuid.NewString(),
+				CorrelationID: m.CorrelationID,
+				TenantID:      m.TenantID,
+				InfraType:     m.InfraType,
+				Name:          m.Name,
+				Action:        "publish_consul",
+				Status:        "succeeded",
+				Result:        map[string]interface{}{"key": key, "bytes": len(val)},
+				CreatedAt:     time.Now(),
 			})
 
 		case "consul.delete":
@@ -80,22 +92,33 @@ func (w *OutboxWorker) tick(ctx context.Context) {
 			if err := w.pub.Delete(ctx, key); err != nil {
 				next := time.Now().Add(publisher.DefaultBackoff(m.RetryCount + 1))
 				_ = w.st.MarkOutboxFailed(m.EventID, next)
+
 				_ = w.st.AppendEvent(core.ConnectionEvent{
-					EventID:   m.EventID,
-					Action:    "delete_consul",
-					Status:    "failed",
-					Error:     err.Error(),
-					CreatedAt: time.Now(),
+					ID:            uuid.NewString(),
+					CorrelationID: m.CorrelationID,
+					TenantID:      m.TenantID,
+					InfraType:     m.InfraType,
+					Name:          m.Name,
+					Action:        "delete_consul",
+					Status:        "failed",
+					Error:         err.Error(),
+					Result:        map[string]interface{}{"key": key, "next_retry": next.UTC().Format(time.RFC3339)},
+					CreatedAt:     time.Now(),
 				})
 				continue
 			}
 
 			_ = w.st.MarkOutboxDone(m.EventID)
 			_ = w.st.AppendEvent(core.ConnectionEvent{
-				EventID:   m.EventID,
-				Action:    "delete_consul",
-				Status:    "succeeded",
-				CreatedAt: time.Now(),
+				ID:            uuid.NewString(),
+				CorrelationID: m.CorrelationID,
+				TenantID:      m.TenantID,
+				InfraType:     m.InfraType,
+				Name:          m.Name,
+				Action:        "delete_consul",
+				Status:        "succeeded",
+				Result:        map[string]interface{}{"key": key},
+				CreatedAt:     time.Now(),
 			})
 		}
 	}

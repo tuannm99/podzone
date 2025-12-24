@@ -4,6 +4,12 @@ logger:
   env: dev
   app_name: podzone_onboarding
 
+consul_kv:
+  address: "http://localhost:8500"
+  token: ""
+  tls:
+    insecure_skip_verify: true
+
 redis:
   auth:
     uri: redis://redis:6379/0
