@@ -24,7 +24,7 @@ func NewOutboxWorker(log pdlog.Logger, st core.ConnectionStore, pub *publisher.C
 		log:      log,
 		st:       st,
 		pub:      pub,
-		interval: 2 * time.Second,
+		interval: 5 * time.Second,
 	}
 }
 
@@ -45,10 +45,11 @@ func (w *OutboxWorker) Run(ctx context.Context) {
 func (w *OutboxWorker) tick(ctx context.Context) {
 	msgs, err := w.st.FindDueOutbox(50)
 	if err != nil {
-		w.log.Warn("outbox poll failed", "error", err)
+		w.log.Error("outbox poll failed", "error", err)
 		return
 	}
 
+	w.log.Debug("outbox publish event", "total msgs", len(msgs))
 	for _, m := range msgs {
 		switch m.Topic {
 		case "consul.publish":

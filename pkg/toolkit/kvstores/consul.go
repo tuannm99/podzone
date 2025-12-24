@@ -14,11 +14,11 @@ type ConsulKVStore struct {
 	logger pdlog.Logger
 }
 
-func NewConsulKVStore(logger pdlog.Logger, address, token string) (*ConsulKVStore, error) {
+func NewConsulKVStore(logger pdlog.Logger, address, token string, useTls bool) (*ConsulKVStore, error) {
 	config := &capi.Config{
 		Address:   address,
 		Token:     token,
-		TLSConfig: capi.TLSConfig{InsecureSkipVerify: true}, // dev-only
+		TLSConfig: capi.TLSConfig{InsecureSkipVerify: useTls},
 	}
 	client, err := capi.NewClient(config)
 	if err != nil {

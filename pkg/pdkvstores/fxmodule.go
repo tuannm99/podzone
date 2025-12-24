@@ -20,7 +20,7 @@ type ConsulKVConfig struct {
 
 func NewConsulKVConfigFromKoanf(k *koanf.Koanf) (ConsulKVConfig, error) {
 	var cfg ConsulKVConfig
-	cfg.TLS.InsecureSkipVerify = true // dev default
+	cfg.TLS.InsecureSkipVerify = true
 
 	if k == nil {
 		return cfg, fmt.Errorf("koanf is nil")
@@ -36,12 +36,12 @@ func NewConsulKVConfigFromKoanf(k *koanf.Koanf) (ConsulKVConfig, error) {
 }
 
 func NewConsulKVStoreFromConfig(logger pdlog.Logger, cfg ConsulKVConfig) (*kvstores.ConsulKVStore, error) {
-	return kvstores.NewConsulKVStore(logger, cfg.Address, cfg.Token)
+	return kvstores.NewConsulKVStore(logger, cfg.Address, cfg.Token, cfg.TLS.InsecureSkipVerify)
 }
 
-var ConsulKVStoreModule = fx.Options(
+var Module = fx.Options(
 	fx.Provide(
 		NewConsulKVConfigFromKoanf,
-		NewConsulKVStoreFromConfig,
+		fx.Annotate(NewConsulKVStoreFromConfig, fx.As(new(kvstores.KVStore))),
 	),
 )

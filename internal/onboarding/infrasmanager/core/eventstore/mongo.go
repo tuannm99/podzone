@@ -1,4 +1,4 @@
-package store
+package eventstore
 
 import (
 	"context"
@@ -8,7 +8,10 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.uber.org/fx"
 )
+
+var _ core.ConnectionStore = (*MongoStore)(nil)
 
 type MongoStore struct {
 	db *mongo.Database
@@ -18,7 +21,15 @@ type MongoStore struct {
 	outboxCol *mongo.Collection
 }
 
-func NewMongoStore(db *mongo.Database) *MongoStore {
+type MongoStoreParams struct {
+	fx.In
+
+	Client *mongo.Client `name:"mongo-onboarding"`
+	DB     string        `name:"mongo-onboarding-db"`
+}
+
+func NewMongoStore(p MongoStoreParams) *MongoStore {
+	db := p.Client.Database(p.DB)
 	return &MongoStore{
 		db:        db,
 		connCol:   db.Collection("connections"),
@@ -30,16 +41,13 @@ func NewMongoStore(db *mongo.Database) *MongoStore {
 func (s *MongoStore) EnsureIndexes(ctx context.Context) error {
 	_, err := s.connCol.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
-			Keys:    bson.D{{Key: "tenant_id", Value: 1}, {Key: "infra_type", Value: 1}, {Key: "name", Value: 1}},
-			Options: options.Index().SetUnique(true).SetName("uniq_tenant_infra_name"),
+			Keys: bson.D{{Key: "tenant_id", Value: 1}, {Key: "infra_type", Value: 1}, {Key: "name", Value: 1}},
 		},
 		{
-			Keys:    bson.D{{Key: "infra_type", Value: 1}, {Key: "status", Value: 1}},
-			Options: options.Index().SetName("infra_status"),
+			Keys: bson.D{{Key: "infra_type", Value: 1}, {Key: "status", Value: 1}},
 		},
 		{
-			Keys:    bson.D{{Key: "tenant_id", Value: 1}, {Key: "updated_at", Value: -1}},
-			Options: options.Index().SetName("tenant_updated_at"),
+			Keys: bson.D{{Key: "tenant_id", Value: 1}, {Key: "updated_at", Value: -1}},
 		},
 	})
 	if err != nil {
@@ -49,12 +57,10 @@ func (s *MongoStore) EnsureIndexes(ctx context.Context) error {
 	// events: unique by "id" (NOT correlation_id)
 	_, err = s.eventCol.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
-			Keys:    bson.D{{Key: "id", Value: 1}},
-			Options: options.Index().SetUnique(true).SetName("uniq_event_id"),
+			Keys: bson.D{{Key: "id", Value: 1}},
 		},
 		{
-			Keys:    bson.D{{Key: "correlation_id", Value: 1}, {Key: "created_at", Value: -1}},
-			Options: options.Index().SetName("corr_time"),
+			Keys: bson.D{{Key: "correlation_id", Value: 1}, {Key: "created_at", Value: -1}},
 		},
 		{
 			Keys: bson.D{
@@ -63,7 +69,6 @@ func (s *MongoStore) EnsureIndexes(ctx context.Context) error {
 				{Key: "name", Value: 1},
 				{Key: "created_at", Value: -1},
 			},
-			Options: options.Index().SetName("tenant_infra_name_time"),
 		},
 	})
 	if err != nil {
@@ -120,7 +125,6 @@ func (s *MongoStore) Upsert(info core.ConnectionInfo) error {
 		},
 		"$setOnInsert": bson.M{
 			"created_at": info.CreatedAt,
-			"version":    int64(0),
 		},
 		"$inc": bson.M{"version": int64(1)},
 	}
@@ -506,4 +510,3 @@ func (s *MongoStore) MarkOutboxFailed(eventID string, nextRetry time.Time) error
 	})
 	return err
 }
-

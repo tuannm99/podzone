@@ -146,7 +146,6 @@ func (c *InfrasController) ListEvents(ctx *gin.Context) {
 }
 
 func getTenantID(ctx *gin.Context) (string, bool) {
-	// Prefer header for multi-tenant gateway.
 	tenantID := ctx.GetHeader("X-Tenant-ID")
 	if tenantID == "" {
 		tenantID = ctx.Query("tenant_id")
@@ -187,4 +186,3 @@ func parseInt(s string, def int) int {
 	}
 	return v
 }
-

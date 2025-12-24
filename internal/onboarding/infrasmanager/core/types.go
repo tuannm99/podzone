@@ -1,6 +1,9 @@
 package core
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type InfraType string
 
@@ -102,6 +105,7 @@ type InfraProvisioner interface {
 
 // ConnectionStore = current state + history + outbox
 type ConnectionStore interface {
+	EnsureIndexes(ctx context.Context) error
 	Upsert(info ConnectionInfo) error
 	SoftDelete(tenantID string, infraType InfraType, name string) error
 	Get(tenantID string, infraType InfraType, name string) (*ConnectionInfo, error)
@@ -128,4 +132,3 @@ type ConnectionStore interface {
 	MarkOutboxDone(eventID string) error
 	MarkOutboxFailed(eventID string, nextRetry time.Time) error
 }
-
