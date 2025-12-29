@@ -1,4 +1,9 @@
-use axum::{http::{Request, Uri}, middleware::Next, response::Response, body::Body};
+use axum::{
+    body::Body,
+    http::{Request, Uri},
+    middleware::Next,
+    response::Response,
+};
 
 pub async fn rewrite_middleware(mut req: Request<Body>, next: Next) -> Response {
     let orig_path = req.uri().path();

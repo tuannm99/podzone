@@ -4,6 +4,7 @@ mod controller;
 mod plugins;
 mod proxy;
 mod registry;
+mod state;
 
 #[tokio::main]
 async fn main() {
