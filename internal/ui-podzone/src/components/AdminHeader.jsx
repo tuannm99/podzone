@@ -6,7 +6,7 @@ import { tokenStorage } from '../services/tokenStorage';
 
 const { Text } = Typography;
 
-const Header = () => {
+const AdminHeader = () => {
   const location = useLocation();
   const token = tokenStorage.getToken();
   const user = tokenStorage.getUser();
@@ -27,7 +27,7 @@ const Header = () => {
         boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
       }}
     >
-      <Link to="/" style={{ textDecoration: 'none' }}>
+      <Link to="/admin" style={{ textDecoration: 'none' }}>
         <div
           style={{
             fontSize: '20px',
@@ -82,4 +82,4 @@ const Header = () => {
   );
 };
 
-export default Header;
+export default AdminHeader;

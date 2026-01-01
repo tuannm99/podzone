@@ -18,5 +18,5 @@ redis:
 #     port: 8080
 
 pprof:
-  enable: true
+  enable: false
   addr: '127.0.0.1:6060'

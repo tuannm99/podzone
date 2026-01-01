@@ -2,21 +2,19 @@ import React from 'react';
 import { Layout } from 'antd';
 import { Outlet } from 'react-router-dom';
 
-import AppHeader from './Header';
-import Sidebar from './Sidebar';
+import AdminHeader from '../components/AdminHeader';
+import AdminSidebar from '../components/AdminSidebar';
 
-const AppLayout = () => {
+export default function AdminLayout() {
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <AppHeader />
+      <AdminHeader />
       <Layout>
-        <Sidebar />
+        <AdminSidebar />
         <Layout.Content style={{ padding: 24, overflow: 'auto' }}>
           <Outlet />
         </Layout.Content>
       </Layout>
     </Layout>
   );
-};
-
-export default AppLayout;
+}

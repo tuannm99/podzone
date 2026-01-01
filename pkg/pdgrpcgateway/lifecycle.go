@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/rs/cors"
 	"github.com/tuannm99/podzone/pkg/pdlog"
@@ -25,7 +26,36 @@ func startHTTPGateway(p Params) {
 		httpPort = "8080"
 	}
 
-	handler := cors.Default().Handler(p.Handler)
+	c := cors.New(cors.Options{
+		AllowOriginFunc: func(origin string) bool {
+			o := strings.ToLower(origin)
+
+			if strings.HasPrefix(o, "http://localhost:") ||
+				strings.HasPrefix(o, "https://localhost:") ||
+				strings.HasPrefix(o, "http://127.0.0.1:") ||
+				strings.HasPrefix(o, "https://127.0.0.1:") {
+				return true
+			}
+
+			if strings.Contains(o, "tuannm") || strings.Contains(o, "podzone") {
+				return true
+			}
+
+			return false
+		},
+
+		AllowedMethods: []string{
+			http.MethodGet, http.MethodPost, http.MethodPut,
+			http.MethodPatch, http.MethodDelete, http.MethodOptions,
+		},
+		AllowedHeaders: []string{
+			"Authorization", "Content-Type",
+			"X-Tenant-ID", "X-Request-ID", "X-User",
+		},
+		AllowCredentials: true,
+		MaxAge:           86400,
+	})
+	handler := c.Handler(p.Handler)
 
 	gwServer := &http.Server{
 		Addr:    ":" + httpPort,

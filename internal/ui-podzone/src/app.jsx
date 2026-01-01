@@ -1,44 +1,58 @@
 import React from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
-
-import { tokenStorage } from './services/tokenStorage.js';
-import PageFallback from './components/PageFallback.jsx';
+import { tokenStorage } from './services/tokenStorage';
+import PageFallback from './components/PageFallback';
 
 const LoginPage = React.lazy(() => import('./pages/auth/LoginPage.jsx'));
 const RegisterPage = React.lazy(() => import('./pages/auth/RegisterPage.jsx'));
-
-const HomePage = React.lazy(() => import('./pages/private/HomePage.jsx'));
-const SettingsPage = React.lazy(
-  () => import('./pages/private/SettingsPage.jsx'),
-);
 const Page404 = React.lazy(() => import('./pages/Page404.jsx'));
 
-const AppLayout = React.lazy(() => import('./layouts/layout.jsx'));
+// Layouts
+const AdminLayout = React.lazy(() => import('./layouts/AdminLayout.jsx'));
+const TenantLayout = React.lazy(() => import('./layouts/TenantLayout.jsx'));
 
-const PrivateRoute = () => {
-  const isAuthenticated = !!tokenStorage.getToken();
-  return isAuthenticated ? <Outlet /> : <Navigate to="/auth/login" replace />;
+// Admin pages (REST)
+const AdminHome = React.lazy(() => import('./pages/admin/AdminHome.jsx'));
+const AdminSettings = React.lazy(
+  () => import('./pages/admin/AdminSettings.jsx'),
+);
+
+// Tenant pages (GraphQL)
+const TenantHome = React.lazy(() => import('./pages/tenant/TenantHome.jsx'));
+const TenantOrders = React.lazy(
+  () => import('./pages/tenant/TenantOrders.jsx'),
+);
+
+const RequireAuth = () => {
+  const ok = !!tokenStorage.getToken();
+  return ok ? <Outlet /> : <Navigate to="/auth/login" replace />;
 };
 
 export default function App() {
   return (
     <React.Suspense fallback={<PageFallback />}>
       <Routes>
-        {/* Public routes */}
+        {/* Public */}
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
+        <Route path="/404" element={<Page404 />} />
 
-        {/* Private routes */}
-        <Route element={<PrivateRoute />}>
-          <Route element={<AppLayout />}>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/home" element={<HomePage />} />
-            <Route path="/settings" element={<SettingsPage />} />
+        {/* Protected */}
+        <Route element={<RequireAuth />}>
+          {/* Admin (REST) */}
+          <Route element={<AdminLayout />}>
+            <Route path="/admin" element={<AdminHome />} />
+            <Route path="/admin/settings" element={<AdminSettings />} />
+          </Route>
+
+          {/* Tenant (GraphQL) */}
+          <Route path="/t/:tenantId" element={<TenantLayout />}>
+            <Route index element={<TenantHome />} />
+            <Route path="orders" element={<TenantOrders />} />
           </Route>
         </Route>
 
         {/* Fallback */}
-        <Route path="/404" element={<Page404 />} />
         <Route path="*" element={<Navigate to="/404" replace />} />
       </Routes>
     </React.Suspense>

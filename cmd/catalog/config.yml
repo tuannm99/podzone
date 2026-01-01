@@ -17,3 +17,7 @@ mongo:
 
 grpc:
   port: 50051
+
+pprof:
+  enable: false
+  addr: '127.0.0.1:6060'

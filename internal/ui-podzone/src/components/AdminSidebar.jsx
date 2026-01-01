@@ -3,11 +3,14 @@ import { Layout, Menu } from 'antd';
 import { HomeOutlined, SettingOutlined } from '@ant-design/icons';
 import { Link, useLocation } from 'react-router-dom';
 
-const Sidebar = () => {
+const AdminSidebar = () => {
   const location = useLocation();
   const path = location.pathname;
 
-  const selectedKey = path.startsWith('/settings') ? '/settings' : '/';
+  const selectedKey =
+    path.startsWith('/admin/settings') || path.startsWith('/settings')
+      ? 'settings'
+      : 'home';
 
   return (
     <Layout.Sider
@@ -22,16 +25,16 @@ const Sidebar = () => {
         selectedKeys={[selectedKey]}
         style={{ height: '100%', borderRight: 0 }}
       >
-        <Menu.Item key="/" icon={<HomeOutlined />}>
-          <Link to="/">Home</Link>
+        <Menu.Item key="home" icon={<HomeOutlined />}>
+          <Link to="/admin">Home</Link>
         </Menu.Item>
 
-        <Menu.Item key="/settings" icon={<SettingOutlined />}>
-          <Link to="/settings">Settings</Link>
+        <Menu.Item key="settings" icon={<SettingOutlined />}>
+          <Link to="/admin/settings">Settings</Link>
         </Menu.Item>
       </Menu>
     </Layout.Sider>
   );
 };
 
-export default Sidebar;
+export default AdminSidebar;

@@ -3,3 +3,7 @@ logger:
   provider: 'zap' # "zap" | "slog" | "noop"
   level: 'debug'
   env: 'dev'
+
+pprof:
+  enable: false
+  addr: '127.0.0.1:6060'

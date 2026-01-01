@@ -1,8 +1,8 @@
 import { http } from './http';
-import { ADMIN_API_URL } from './baseurl';
+import { GW_API_URL } from './baseurl';
 import { tokenStorage } from './tokenStorage';
 
-export const loginGG = () => `${ADMIN_API_URL}/auth/v1/google/login`;
+export const loginGG = () => `${GW_API_URL}/auth/v1/google/login`;
 
 export const login = async (payload) => {
   try {

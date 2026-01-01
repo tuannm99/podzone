@@ -1,9 +1,9 @@
 import axios from 'axios';
-import { ADMIN_API_URL } from './baseurl';
+import { GW_API_URL } from './baseurl';
 import { tokenStorage } from './tokenStorage';
 
 export const http = axios.create({
-  baseURL: ADMIN_API_URL,
+  baseURL: GW_API_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 20000,
 });
