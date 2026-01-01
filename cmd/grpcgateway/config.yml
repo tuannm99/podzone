@@ -1,6 +1,6 @@
 logger:
   provider: 'zap' # "zap" | "slog" | "noop"
-  level: 'debug'
+  level: 'info'
   env: 'dev'
   app_name: 'podzone_admin_grpcgateway'
 

@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ui-podzone
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ui-podzone
+  template:
+    metadata:
+      labels:
+        app: ui-podzone
+    spec:
+      containers:
+        - name: ui-podzone
+          image: tuannm99/podzone-ui-podzone:staging
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              memory: '256Mi'
+              cpu: '250m'
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui-podzone
+spec:
+  selector:
+    app: ui-podzone
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ui-podzone
+  # namespace: staging
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+    # cert-manager.io/cluster-issuer: 'letsencrypt-dev'
+    # nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  # tls:
+  #   - hosts:
+  #       - podzone-ui.tuannm.uk
+  #     secretName: gateway-tls
+  rules:
+    - host: podzone-ui.tuannm.uk
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ui-podzone
+                port:
+                  number: 80

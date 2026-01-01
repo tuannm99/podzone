@@ -79,8 +79,7 @@ func hashIfSet(plain string) (string, error) {
 
 // GetByUsernameOrEmail implements outputport.UserRepository.
 func (u *UserRepositoryImpl) GetByUsernameOrEmail(identity string) (*entity.User, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
+	ctx := context.Background()
 
 	qb := psql.
 		Select(userColumns...).
@@ -108,8 +107,7 @@ func (u *UserRepositoryImpl) GetByUsernameOrEmail(identity string) (*entity.User
 
 // Create implements outputport.UserRepository.
 func (u *UserRepositoryImpl) Create(e entity.User) (*entity.User, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	ctx := context.Background()
 
 	m, err := toolkit.MapStruct[entity.User, model.User](e)
 	if err != nil {
@@ -161,8 +159,7 @@ func (u *UserRepositoryImpl) Create(e entity.User) (*entity.User, error) {
 // CreateByEmailIfNotExisted implements outputport.UserRepository.
 // INSERT ... ON CONFLICT DO NOTHING RETURNING ... ; if no row returned, SELECT one.
 func (u *UserRepositoryImpl) CreateByEmailIfNotExisted(email string) (*entity.User, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
-	defer cancel()
+	ctx := context.Background()
 
 	qb := psql.
 		Insert("users").
@@ -189,8 +186,7 @@ func (u *UserRepositoryImpl) Update(usr entity.User) error {
 		return entity.ErrUserNotFound
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	ctx := context.Background()
 
 	set := sq.Eq{"updated_at": time.Now().UTC()}
 
@@ -263,8 +259,7 @@ func (u *UserRepositoryImpl) Update(usr entity.User) error {
 
 // GetByID implements outputport.UserRepository.
 func (u *UserRepositoryImpl) GetByID(id string) (*entity.User, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
+	ctx := context.Background()
 
 	qb := psql.
 		Select(userColumns...).

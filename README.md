@@ -206,7 +206,7 @@ ingress-nginx-controller-admission   ClusterIP      10.43.6.241     <none>      
 # -> update later as I go
 sudo vi /etc/hosts
 10.42.100.100 rancher.tuannm.uk longhorn.tuannm.uk minio.tuannm.uk pg-ui.tuannm.uk
-10.42.100.100 gateway.tuannm.uk admin-ui.tuannm.uk kafka-ui.tuannm.uk
+10.42.100.100 gateway.tuannm.uk podzone-ui.tuannm.uk kafka-ui.tuannm.uk
 10.42.100.100 sonarqube.tuannm.uk harbor.tuannm.uk jenkins.tuannm.uk kibana.tuannm.uk redisinsight.tuannm.uk
 
 ```

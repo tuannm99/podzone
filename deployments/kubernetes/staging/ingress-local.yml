@@ -1,7 +1,7 @@
 # Using local DNS, point to k8s ingress IP
 #
 # /etc/hosts
-# 10.84.103.90 gateway.tuannm.uk admin-ui.tuannm.uk kafka-ui.tuannm.uk
+# 10.84.103.90 gateway.tuannm.uk podzone-ui.tuannm.uk kafka-ui.tuannm.uk
 # 10.84.103.90 sonarqube.tuannm.uk harbor.tuannm.uk jenkins.tuannm.uk kibana.tuannm.uk redisinsight.tuannm.uk
 ---
 apiVersion: networking.k8s.io/v1

@@ -132,5 +132,5 @@ help:
 	@echo "  make dev SVC=${service}               - Run service"
 	@echo "  make gql-backoffice                   - Generate backoffice graphql"
 	@echo "  make k8s ENV=${env} SVC=${service}    - Deploy service to k8s dev EG: make k8s ENV="staging" SVC="grpcgateway catalog auth storefront backoffice""
-	@echo "  make k8s-ui ENV=${env} SVC=${service} - Deploy service to k8s dev EG: make k8s-ui ENV="staging" SVC="ui-admin""
+	@echo "  make k8s-ui ENV=${env} SVC=${service} - Deploy service to k8s dev EG: make k8s-ui ENV="staging" SVC="ui-podzone""
 
