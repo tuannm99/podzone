@@ -57,3 +57,14 @@ func MakeConfigTestDir(t *testing.T, config string) string {
 	t.Setenv("CONFIG_PATH", path)
 	return path
 }
+
+func ParseInt(s string, def int) int {
+	if s == "" {
+		return def
+	}
+	v, err := strconv.Atoi(s)
+	if err != nil {
+		return def
+	}
+	return v
+}

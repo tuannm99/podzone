@@ -1,9 +1,26 @@
 logger:
-  app_name: 'podzone_backoffice'
-  provider: 'zap' # "zap" | "slog" | "noop"
-  level: 'debug'
-  env: 'dev'
+  app_name: "podzone_backoffice"
+  provider: "zap" # "zap" | "slog" | "noop"
+  level: "debug"
+  env: "dev"
+
+consul_kv:
+  address: "http://localhost:8500"
+  token: ""
+  tls:
+    insecure_skip_verify: true
+
+http:
+  address: ":8000"
+  trusted_proxies: []
+
+  graphql:
+    enabled: true
+    query_path: "/query"
+    playground:
+      enabled: true
+      path: "/"
 
 pprof:
   enable: false
-  addr: '127.0.0.1:6060'
+  addr: "127.0.0.1:6060"

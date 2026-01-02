@@ -30,7 +30,7 @@ func NewConsulKVConfigFromKoanf(k *koanf.Koanf) (ConsulKVConfig, error) {
 		return cfg, fmt.Errorf("unmarshal consul config failed: %w", err)
 	}
 	if cfg.Address == "" {
-		return cfg, fmt.Errorf("missing config: consul.address")
+		return cfg, fmt.Errorf("missing config: consul_kv.address")
 	}
 	return cfg, nil
 }

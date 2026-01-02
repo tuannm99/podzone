@@ -22,4 +22,6 @@ var Module = fx.Options(
 		// --- GraphQL resolver root ---
 		resolver.NewResolver,
 	),
+
+	graphqlModule,
 )

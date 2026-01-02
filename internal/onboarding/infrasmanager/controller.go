@@ -2,11 +2,11 @@ package infrasmanager
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/core"
 	pdlog "github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 	"go.uber.org/fx"
 )
 
@@ -44,7 +44,7 @@ func (c *InfrasController) RegisterRoutes(r *gin.RouterGroup) {
 }
 
 func (c *InfrasController) UpsertConnection(ctx *gin.Context) {
-	tenantID, ok := getTenantID(ctx)
+	tenantID, ok := toolkit.GetTenantIDFromGinCtx(ctx)
 	if !ok {
 		return
 	}
@@ -55,7 +55,8 @@ func (c *InfrasController) UpsertConnection(ctx *gin.Context) {
 		return
 	}
 
-	resp, err := c.service.ManualUpsertConnection(tenantID, req, extractActor(ctx))
+	resp, err := c.service.ManualUpsertConnection(
+		tenantID, req, toolkit.ExtractActorFromGinCtx(ctx))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal_error", "message": err.Error()})
 		return
@@ -64,7 +65,7 @@ func (c *InfrasController) UpsertConnection(ctx *gin.Context) {
 }
 
 func (c *InfrasController) DeleteConnection(ctx *gin.Context) {
-	tenantID, ok := getTenantID(ctx)
+	tenantID, ok := toolkit.GetTenantIDFromGinCtx(ctx)
 	if !ok {
 		return
 	}
@@ -72,7 +73,8 @@ func (c *InfrasController) DeleteConnection(ctx *gin.Context) {
 	infraType := core.InfraType(ctx.Param("infraType"))
 	name := ctx.Param("name")
 
-	corrID, err := c.service.DeleteConnection(tenantID, infraType, name, extractActor(ctx))
+	corrID, err := c.service.DeleteConnection(
+		tenantID, infraType, name, toolkit.ExtractActorFromGinCtx(ctx))
 	if err != nil {
 		ctx.JSON(
 			http.StatusInternalServerError,
@@ -84,7 +86,7 @@ func (c *InfrasController) DeleteConnection(ctx *gin.Context) {
 }
 
 func (c *InfrasController) GetConnection(ctx *gin.Context) {
-	tenantID, ok := getTenantID(ctx)
+	tenantID, ok := toolkit.GetTenantIDFromGinCtx(ctx)
 	if !ok {
 		return
 	}
@@ -105,7 +107,7 @@ func (c *InfrasController) GetConnection(ctx *gin.Context) {
 }
 
 func (c *InfrasController) ListConnections(ctx *gin.Context) {
-	tenantID, ok := getTenantID(ctx)
+	tenantID, ok := toolkit.GetTenantIDFromGinCtx(ctx)
 	if !ok {
 		return
 	}
@@ -113,10 +115,11 @@ func (c *InfrasController) ListConnections(ctx *gin.Context) {
 	infraType := core.InfraType(ctx.Query("infra_type")) // optional: "" => all
 	includeDeleted := ctx.Query("include_deleted") == "true"
 
-	limit := parseInt(ctx.Query("limit"), 50)
-	offset := parseInt(ctx.Query("offset"), 0)
+	limit := toolkit.ParseInt(ctx.Query("limit"), 50)
+	offset := toolkit.ParseInt(ctx.Query("offset"), 0)
 
-	items, err := c.service.ListConnections(tenantID, infraType, includeDeleted, limit, offset)
+	items, err := c.service.ListConnections(
+		tenantID, infraType, includeDeleted, limit, offset)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal_error", "message": err.Error()})
 		return
@@ -125,7 +128,7 @@ func (c *InfrasController) ListConnections(ctx *gin.Context) {
 }
 
 func (c *InfrasController) ListEvents(ctx *gin.Context) {
-	tenantID, ok := getTenantID(ctx)
+	tenantID, ok := toolkit.GetTenantIDFromGinCtx(ctx)
 	if !ok {
 		return
 	}
@@ -134,55 +137,14 @@ func (c *InfrasController) ListEvents(ctx *gin.Context) {
 	name := ctx.Query("name")                            // optional
 	corrID := ctx.Query("correlation_id")                // optional
 
-	limit := parseInt(ctx.Query("limit"), 50)
-	offset := parseInt(ctx.Query("offset"), 0)
+	limit := toolkit.ParseInt(ctx.Query("limit"), 50)
+	offset := toolkit.ParseInt(ctx.Query("offset"), 0)
 
-	items, err := c.service.ListEvents(tenantID, infraType, name, corrID, limit, offset)
+	items, err := c.service.ListEvents(
+		tenantID, infraType, name, corrID, limit, offset)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal_error", "message": err.Error()})
 		return
 	}
 	ctx.JSON(http.StatusOK, ListEventsResponse{Items: items})
-}
-
-func getTenantID(ctx *gin.Context) (string, bool) {
-	tenantID := ctx.GetHeader("X-Tenant-ID")
-	if tenantID == "" {
-		tenantID = ctx.Query("tenant_id")
-	}
-	if tenantID == "" {
-		ctx.JSON(
-			http.StatusBadRequest,
-			gin.H{"error": "missing_tenant", "message": "missing tenant id (X-Tenant-ID or tenant_id)"},
-		)
-		return "", false
-	}
-	return tenantID, true
-}
-
-func extractActor(ctx *gin.Context) map[string]string {
-	actor := map[string]string{
-		"user":       ctx.GetHeader("X-User"),
-		"request_id": ctx.GetHeader("X-Request-ID"),
-		"ip":         ctx.ClientIP(),
-		"ua":         ctx.GetHeader("User-Agent"),
-	}
-	// Remove empty to keep event small
-	for k, v := range actor {
-		if v == "" {
-			delete(actor, k)
-		}
-	}
-	return actor
-}
-
-func parseInt(s string, def int) int {
-	if s == "" {
-		return def
-	}
-	v, err := strconv.Atoi(s)
-	if err != nil {
-		return def
-	}
-	return v
 }

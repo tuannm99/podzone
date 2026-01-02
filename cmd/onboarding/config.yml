@@ -5,8 +5,8 @@ logger:
   app_name: podzone_onboarding
 
 consul_kv:
-  address: 'http://localhost:8500'
-  token: ''
+  address: "http://localhost:8500"
+  token: ""
   tls:
     insecure_skip_verify: true
 
@@ -21,6 +21,10 @@ mongo:
     ping_timeout: 3s
     connect_timeout: 5s
 
+http:
+  address: ":8800"
+  trusted_proxies: []
+
 pprof:
   enable: false
-  addr: '127.0.0.1:6060'
+  addr: "127.0.0.1:6060"
