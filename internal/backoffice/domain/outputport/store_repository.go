@@ -8,8 +8,8 @@ import (
 )
 
 type StoreRepository interface {
-	FindAll() ([]entity.Store, error)
-	FindByID(id string) (*entity.Store, error)
+	FindAll(ctx context.Context) ([]entity.Store, error)
+	FindByID(ctx context.Context, id string) (*entity.Store, error)
 	Create(ctx context.Context, s *model.Store) error
 	UpdateStatus(ctx context.Context, id string, status model.StoreStatus) error
 }

@@ -107,7 +107,7 @@ func (s *Service) ManualUpsertConnection(
 		return nil, err
 	}
 
-	_ = s.st.EnqueueOutbox(core.OutboxMessage{
+	if err := s.st.EnqueueOutbox(core.OutboxMessage{
 		EventID:       uuid.NewString(),
 		CorrelationID: corrID,
 		Topic:         "consul.publish",
@@ -120,7 +120,21 @@ func (s *Service) ManualUpsertConnection(
 		NextRetry:     time.Now(),
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
-	})
+	}); err != nil {
+		_ = s.st.AppendEvent(core.ConnectionEvent{
+			ID:            uuid.NewString(),
+			CorrelationID: corrID,
+			TenantID:      tenantID,
+			InfraType:     req.InfraType,
+			Name:          name,
+			Action:        "manual_upsert",
+			Status:        "failed",
+			Error:         "enqueue outbox failed: " + err.Error(),
+			Actor:         actor,
+			CreatedAt:     time.Now(),
+		})
+		return nil, err
+	}
 
 	_ = s.st.AppendEvent(core.ConnectionEvent{
 		ID:            uuid.NewString(),
@@ -193,7 +207,7 @@ func (s *Service) DeleteConnection(
 	}
 
 	consulKey := core.BuildConsulKey(tenantID, infraType, name)
-	_ = s.st.EnqueueOutbox(core.OutboxMessage{
+	if err := s.st.EnqueueOutbox(core.OutboxMessage{
 		EventID:       uuid.NewString(),
 		CorrelationID: corrID,
 		Topic:         "consul.delete",
@@ -205,7 +219,21 @@ func (s *Service) DeleteConnection(
 		NextRetry:     time.Now(),
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
-	})
+	}); err != nil {
+		_ = s.st.AppendEvent(core.ConnectionEvent{
+			ID:            uuid.NewString(),
+			CorrelationID: corrID,
+			TenantID:      tenantID,
+			InfraType:     infraType,
+			Name:          name,
+			Action:        "manual_delete",
+			Status:        "failed",
+			Error:         "enqueue outbox failed: " + err.Error(),
+			Actor:         actor,
+			CreatedAt:     time.Now(),
+		})
+		return corrID, err
+	}
 
 	_ = s.st.AppendEvent(core.ConnectionEvent{
 		ID:            uuid.NewString(),
@@ -273,4 +301,3 @@ func firstNonEmpty(v string, d string) string {
 	}
 	return v
 }
-

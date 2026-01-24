@@ -1,10 +1,14 @@
 package inputport
 
-import "github.com/tuannm99/podzone/internal/backoffice/domain/entity"
+import (
+	"context"
+
+	"github.com/tuannm99/podzone/internal/backoffice/domain/entity"
+)
 
 type StoreUsecase interface {
-	GetAllStores() ([]entity.Store, error)
-	GetStoreByID(id string) (*entity.Store, error)
-	CreateStore(name, description string) (*entity.Store, error)
-	UpdateStoreStatus(id string, active bool) (*entity.Store, error)
+	GetAllStores(ctx context.Context) ([]entity.Store, error)
+	GetStoreByID(ctx context.Context, id string) (*entity.Store, error)
+	CreateStore(ctx context.Context, name, description string) (*entity.Store, error)
+	UpdateStoreStatus(ctx context.Context, id string, active bool) (*entity.Store, error)
 }

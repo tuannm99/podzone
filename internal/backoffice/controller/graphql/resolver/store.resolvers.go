@@ -15,7 +15,7 @@ import (
 
 // CreateStore is the resolver for the createStore field.
 func (r *mutationResolver) CreateStore(ctx context.Context, input model.CreateStoreInput) (*model.Store, error) {
-	store, err := r.StoreUsecase.CreateStore(input.Name, input.Description)
+	store, err := r.StoreUsecase.CreateStore(ctx, input.Name, input.Description)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (r *mutationResolver) CreateStore(ctx context.Context, input model.CreateSt
 
 // ActivateStore is the resolver for the activateStore field.
 func (r *mutationResolver) ActivateStore(ctx context.Context, id string) (*model.Store, error) {
-	store, err := r.StoreUsecase.UpdateStoreStatus(id, true)
+	store, err := r.StoreUsecase.UpdateStoreStatus(ctx, id, true)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (r *mutationResolver) ActivateStore(ctx context.Context, id string) (*model
 
 // DeactivateStore is the resolver for the deactivateStore field.
 func (r *mutationResolver) DeactivateStore(ctx context.Context, id string) (*model.Store, error) {
-	store, err := r.StoreUsecase.UpdateStoreStatus(id, false)
+	store, err := r.StoreUsecase.UpdateStoreStatus(ctx, id, false)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (r *mutationResolver) DeactivateStore(ctx context.Context, id string) (*mod
 
 // Stores is the resolver for the stores field.
 func (r *queryResolver) Stores(ctx context.Context) ([]*model.Store, error) {
-	stores, err := r.StoreUsecase.GetAllStores()
+	stores, err := r.StoreUsecase.GetAllStores(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func (r *queryResolver) Stores(ctx context.Context) ([]*model.Store, error) {
 
 // Store is the resolver for the store field.
 func (r *queryResolver) Store(ctx context.Context, id string) (*model.Store, error) {
-	store, err := r.StoreUsecase.GetStoreByID(id)
+	store, err := r.StoreUsecase.GetStoreByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}

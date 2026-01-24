@@ -2,8 +2,10 @@ package grpchandler
 
 import (
 	"context"
+	"errors"
 
 	"github.com/tuannm99/podzone/internal/auth/domain/dto"
+	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 	"google.golang.org/grpc/codes"
@@ -29,7 +31,7 @@ func (s *AuthServer) GoogleLogin(
 ) (*pbauthv1.GoogleLoginResponse, error) {
 	authURL, err := s.usecase.GenerateOAuthURL(ctx)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, mapAuthErr(err)
 	}
 	return &pbauthv1.GoogleLoginResponse{
 		RedirectUrl: authURL,
@@ -42,7 +44,7 @@ func (s *AuthServer) GoogleCallback(
 ) (*pbauthv1.GoogleCallbackResponse, error) {
 	callbackResp, err := s.usecase.HandleOAuthCallback(ctx, req.Code, req.State)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, mapAuthErr(err)
 	}
 	resp, err := toolkit.MapStruct[dto.GoogleCallbackResp, pbauthv1.GoogleCallbackResponse](*callbackResp)
 	if err != nil {
@@ -62,7 +64,7 @@ func (s *AuthServer) Logout(ctx context.Context, req *pbauthv1.LogoutRequest) (*
 func (s *AuthServer) Login(ctx context.Context, req *pbauthv1.LoginRequest) (*pbauthv1.LoginResponse, error) {
 	loginResp, err := s.usecase.Login(ctx, req.Username, req.Password)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, mapAuthErr(err)
 	}
 	resp, err := toolkit.MapStruct[dto.LoginResp, pbauthv1.LoginResponse](*loginResp)
 	if err != nil {
@@ -78,11 +80,27 @@ func (s *AuthServer) Register(ctx context.Context, req *pbauthv1.RegisterRequest
 	}
 	registerResp, err := s.usecase.Register(ctx, *registerDto)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, mapAuthErr(err)
 	}
 	resp, err := toolkit.MapStruct[dto.RegisterResp, pbauthv1.RegisterResponse](*registerResp)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return resp, nil
+}
+
+func mapAuthErr(err error) error {
+	if err == nil {
+		return nil
+	}
+	switch {
+	case errors.Is(err, entity.ErrWrongPassword), errors.Is(err, entity.ErrUserNotFound):
+		return status.Error(codes.Unauthenticated, "invalid credentials")
+	case errors.Is(err, entity.ErrUserAlreadyExists),
+		errors.Is(err, entity.ErrEmailExisted),
+		errors.Is(err, entity.ErrUsernameExisted):
+		return status.Error(codes.AlreadyExists, err.Error())
+	default:
+		return status.Error(codes.Internal, err.Error())
+	}
 }

@@ -57,7 +57,8 @@ func (s *MongoStore) EnsureIndexes(ctx context.Context) error {
 	// events: unique by "id" (NOT correlation_id)
 	_, err = s.eventCol.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
-			Keys: bson.D{{Key: "id", Value: 1}},
+			Keys:    bson.D{{Key: "id", Value: 1}},
+			Options: options.Index().SetUnique(true).SetName("uniq_event_id"),
 		},
 		{
 			Keys: bson.D{{Key: "correlation_id", Value: 1}, {Key: "created_at", Value: -1}},

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -31,7 +32,11 @@ func NewGoogleOauthImpl() *googleOauthImpl {
 		},
 		Endpoint: google.Endpoint,
 	}
-	return &googleOauthImpl{config: config}
+	return &googleOauthImpl{
+		config:      config,
+		httpClient:  http.DefaultClient,
+		userInfoURL: "https://www.googleapis.com/oauth2/v3/userinfo",
+	}
 }
 
 func NewGoogleOauthImplWithOptions(cfg *oauth2.Config, hc *http.Client, userInfoURL string) *googleOauthImpl {
@@ -70,6 +75,9 @@ func (g *googleOauthImpl) FetchUserInfo(accessToken string) (*outputport.GoogleU
 		return nil, err
 	}
 	defer func() { _ = resp.Body.Close() }()
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return nil, fmt.Errorf("userinfo request failed: %s", resp.Status)
+	}
 
 	var userInfo outputport.GoogleUserInfo
 	if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {

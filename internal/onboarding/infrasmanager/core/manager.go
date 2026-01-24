@@ -136,7 +136,7 @@ func (m *InfraManager) CreateInfra(input ProvisionInput) (*ProvisionResult, erro
 		return nil, err
 	}
 
-	_ = m.store.EnqueueOutbox(OutboxMessage{
+	if err := m.store.EnqueueOutbox(OutboxMessage{
 		EventID:       uuid.NewString(),
 		CorrelationID: corrID,
 		Topic:         "consul.publish",
@@ -149,7 +149,20 @@ func (m *InfraManager) CreateInfra(input ProvisionInput) (*ProvisionResult, erro
 		NextRetry:     time.Now(),
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
-	})
+	}); err != nil {
+		_ = m.store.AppendEvent(ConnectionEvent{
+			ID:            uuid.NewString(),
+			CorrelationID: corrID,
+			TenantID:      input.TenantID,
+			Name:          input.Name,
+			InfraType:     input.InfraType,
+			Action:        "create",
+			Status:        "failed",
+			Error:         "enqueue outbox failed: " + err.Error(),
+			CreatedAt:     time.Now(),
+		})
+		return nil, err
+	}
 
 	return res, nil
 }
@@ -196,7 +209,7 @@ func (m *InfraManager) DestroyInfra(input ProvisionInput) error {
 	}
 
 	consulKey := BuildConsulKey(input.TenantID, input.InfraType, input.Name)
-	_ = m.store.EnqueueOutbox(OutboxMessage{
+	if err := m.store.EnqueueOutbox(OutboxMessage{
 		EventID:       uuid.NewString(),
 		CorrelationID: corrID,
 		Topic:         "consul.delete",
@@ -208,7 +221,20 @@ func (m *InfraManager) DestroyInfra(input ProvisionInput) error {
 		NextRetry:     time.Now(),
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
-	})
+	}); err != nil {
+		_ = m.store.AppendEvent(ConnectionEvent{
+			ID:            uuid.NewString(),
+			CorrelationID: corrID,
+			TenantID:      input.TenantID,
+			Name:          input.Name,
+			InfraType:     input.InfraType,
+			Action:        "destroy",
+			Status:        "failed",
+			Error:         "enqueue outbox failed: " + err.Error(),
+			CreatedAt:     time.Now(),
+		})
+		return err
+	}
 
 	_ = m.store.AppendEvent(ConnectionEvent{
 		ID:            uuid.NewString(),
@@ -229,4 +255,3 @@ func BuildConsulKey(tenantID string, infraType InfraType, name string) string {
 	}
 	return fmt.Sprintf("podzone/tenants/%s/connections/%s/%s", tenantID, infraType, name)
 }
-

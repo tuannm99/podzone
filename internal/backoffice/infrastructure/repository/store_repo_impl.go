@@ -12,19 +12,21 @@ import (
 	"github.com/tuannm99/podzone/internal/backoffice/domain/entity"
 	"github.com/tuannm99/podzone/internal/backoffice/domain/outputport"
 	"github.com/tuannm99/podzone/internal/backoffice/infrastructure/model"
+	"github.com/tuannm99/podzone/pkg/pdtenantdb"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 type StoreRepositoryImpl struct {
-	db *sqlx.DB
+	mgr pdtenantdb.Manager
 }
 
-func NewStoreRepository(db *sqlx.DB) outputport.StoreRepository {
-	return &StoreRepositoryImpl{db: db}
+func NewStoreRepository(mgr pdtenantdb.Manager) outputport.StoreRepository {
+	return &StoreRepositoryImpl{mgr: mgr}
 }
 
-func (r *StoreRepositoryImpl) FindAll() ([]entity.Store, error) {
+func (r *StoreRepositoryImpl) FindAll(ctx context.Context) ([]entity.Store, error) {
 	query, args, err := psql.
 		Select("id", "name", "description", "owner_id", "status", "created_at", "updated_at").
 		From(model.Store{}.TableName()).
@@ -35,7 +37,9 @@ func (r *StoreRepositoryImpl) FindAll() ([]entity.Store, error) {
 	}
 
 	var stores []model.Store
-	if err := r.db.Select(&stores, query, args...); err != nil {
+	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
+		return tx.SelectContext(ctx, &stores, query, args...)
+	}); err != nil {
 		return nil, err
 	}
 
@@ -51,7 +55,7 @@ func (r *StoreRepositoryImpl) FindAll() ([]entity.Store, error) {
 	return res, nil
 }
 
-func (r *StoreRepositoryImpl) FindByID(id string) (*entity.Store, error) {
+func (r *StoreRepositoryImpl) FindByID(ctx context.Context, id string) (*entity.Store, error) {
 	query, args, err := psql.
 		Select("id", "name", "description", "owner_id", "status", "created_at", "updated_at").
 		From(model.Store{}.TableName()).
@@ -62,10 +66,15 @@ func (r *StoreRepositoryImpl) FindByID(id string) (*entity.Store, error) {
 	}
 
 	var s model.Store
-	if err := r.db.Get(&s, query, args...); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New("store not found")
+	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
+		if err := tx.GetContext(ctx, &s, query, args...); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return errors.New("store not found")
+			}
+			return err
 		}
+		return nil
+	}); err != nil {
 		return nil, err
 	}
 
@@ -87,8 +96,10 @@ func (r *StoreRepositoryImpl) Create(ctx context.Context, s *model.Store) error 
 		return err
 	}
 
-	_, err = r.db.ExecContext(ctx, query, args...)
-	return err
+	return r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
+		_, err = tx.ExecContext(ctx, query, args...)
+		return err
+	})
 }
 
 func (r *StoreRepositoryImpl) UpdateStatus(ctx context.Context, id string, status model.StoreStatus) error {
@@ -102,14 +113,23 @@ func (r *StoreRepositoryImpl) UpdateStatus(ctx context.Context, id string, statu
 		return err
 	}
 
-	res, err := r.db.ExecContext(ctx, query, args...)
+	return r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
+		res, err := tx.ExecContext(ctx, query, args...)
+		if err != nil {
+			return err
+		}
+		rows, _ := res.RowsAffected()
+		if rows == 0 {
+			return errors.New("store not found")
+		}
+		return nil
+	})
+}
+
+func (r *StoreRepositoryImpl) withTenantTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error {
+	tenantID, err := toolkit.GetTenantID(ctx)
 	if err != nil {
 		return err
 	}
-
-	rows, _ := res.RowsAffected()
-	if rows == 0 {
-		return errors.New("store not found")
-	}
-	return nil
+	return r.mgr.WithTenantTx(ctx, tenantID, nil, fn)
 }

@@ -8,11 +8,14 @@ import (
 	"github.com/tuannm99/podzone/internal/backoffice/domain/inputport"
 	"github.com/tuannm99/podzone/internal/backoffice/domain/outputport"
 	"github.com/tuannm99/podzone/internal/backoffice/infrastructure/repository"
+	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 )
 
 // Module provides all backoffice dependencies (GraphQL, domain, infra)
 var Module = fx.Options(
 	fx.Provide(
+		func() *pdtenantdb.Config { return &pdtenantdb.Config{} },
+
 		// --- Infrastructure layer ---
 		fx.Annotate(repository.NewStoreRepository, fx.As(new(outputport.StoreRepository))),
 
@@ -23,5 +26,6 @@ var Module = fx.Options(
 		resolver.NewResolver,
 	),
 
+	pdtenantdb.Module,
 	graphqlModule,
 )
