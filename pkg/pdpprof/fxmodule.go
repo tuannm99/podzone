@@ -2,13 +2,13 @@ package pdpprof
 
 import (
 	"context"
-	"net/http"
 
 	// register pprof handlers on DefaultServeMux
 	_ "net/http/pprof"
 
 	"github.com/knadh/koanf/v2"
 	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/pdserver"
 	"go.uber.org/fx"
 )
 
@@ -45,39 +45,15 @@ var Module = fx.Options(
 )
 
 func registerLifecycle(lc fx.Lifecycle, log pdlog.Logger, cfg *Config) {
-	srv := &http.Server{
-		Addr:    cfg.Addr,
-		Handler: nil,
-	}
-
-	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
-			if !cfg.Enable {
+	if !cfg.Enable {
+		lc.Append(fx.Hook{
+			OnStart: func(ctx context.Context) error {
 				log.Info("pprof disabled")
 				return nil
-			}
+			},
+		})
+		return
+	}
 
-			log.Info("Starting pprof server", "addr", cfg.Addr)
-
-			go func() {
-				if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-					log.Error("pprof server error", "err", err)
-				}
-			}()
-
-			return nil
-		},
-		OnStop: func(ctx context.Context) error {
-			if !cfg.Enable {
-				return nil
-			}
-			log.Info("Shutting down pprof server", "addr", cfg.Addr)
-			if err := srv.Shutdown(ctx); err != nil {
-				log.Error("pprof shutdown error", "err", err)
-				return err
-			}
-			log.Info("pprof server stopped")
-			return nil
-		},
-	})
+	pdserver.RegisterHTTPServer(lc, log, cfg.Addr, nil, pdserver.WithComponent("pprof"))
 }

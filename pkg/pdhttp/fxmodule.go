@@ -1,11 +1,9 @@
 package pdhttp
 
 import (
-	"context"
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/pdserver"
 	"go.uber.org/fx"
 )
 
@@ -78,25 +76,5 @@ type StartParams struct {
 
 func StartHTTPServer(p StartParams) {
 	addr := p.Cfg.Address
-
-	srv := &http.Server{
-		Addr:    addr,
-		Handler: p.Router,
-	}
-
-	p.Lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
-			go func() {
-				p.Logger.Info("Starting HTTP server", "address", addr)
-				if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-					p.Logger.Error("HTTP server stopped with error", "error", err)
-				}
-			}()
-			return nil
-		},
-		OnStop: func(ctx context.Context) error {
-			p.Logger.Info("Shutting down HTTP server")
-			return srv.Shutdown(ctx)
-		},
-	})
+	pdserver.RegisterHTTPServer(p.Lc, p.Logger, addr, p.Router, pdserver.WithComponent("http"))
 }

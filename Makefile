@@ -110,6 +110,7 @@ portfw:
 		\
 		kubectl port-forward svc/redis 6379:6379 -n default & pids+=($$!); \
 		kubectl port-forward svc/postgres 5432:5432 -n default & pids+=($$!); \
+		kubectl port-forward svc/pgbouncer 6432:6432 -n staging & pids+=($$!); \
 		kubectl port-forward svc/mongodb-internal 27017:27017 -n default & pids+=($$!); \
 		kubectl port-forward svc/kafka 29092:29092 -n default & pids+=($$!); \
 		kubectl port-forward svc/elasticsearch 9200:9200 -n default & pids+=($$!); \

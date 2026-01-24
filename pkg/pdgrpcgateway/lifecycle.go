@@ -1,14 +1,13 @@
 package pdgrpcgateway
 
 import (
-	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"strings"
 
 	"github.com/rs/cors"
 	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/pdserver"
 	"go.uber.org/fx"
 )
 
@@ -57,35 +56,11 @@ func startHTTPGateway(p Params) {
 	})
 	handler := c.Handler(p.Handler)
 
-	gwServer := &http.Server{
-		Addr:    ":" + httpPort,
-		Handler: handler,
-	}
-
-	errCh := make(chan error, 1)
-
-	p.Lifecycle.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
-			go func() {
-				p.Logger.Info("HTTP Gateway started",
-					"address", "http://0.0.0.0:"+httpPort,
-				)
-
-				if err := gwServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-					errCh <- err
-				}
-			}()
-
-			select {
-			case err := <-errCh:
-				return fmt.Errorf("start HTTP gateway failed: %w", err)
-			default:
-				return nil
-			}
-		},
-		OnStop: func(ctx context.Context) error {
-			p.Logger.Info("Shutting down HTTP Gateway server")
-			return gwServer.Shutdown(ctx)
-		},
-	})
+	pdserver.RegisterHTTPServer(
+		p.Lifecycle,
+		p.Logger,
+		":"+httpPort,
+		handler,
+		pdserver.WithComponent("grpc-gateway"),
+	)
 }
