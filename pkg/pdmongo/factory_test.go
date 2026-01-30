@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/tuannm99/podzone/pkg/testkit"
 )
 
 func TestNewMongoDbFromConfig(t *testing.T) {
@@ -20,11 +22,6 @@ func TestNewMongoDbFromConfig(t *testing.T) {
 			name:    "invalid_uri_returns_error",
 			uri:     "mongodb://localhost:abc", // invalid port -> ERROR
 			wantErr: true,
-		},
-		{
-			name:    "valid_uri_returns_client_without_need_server",
-			uri:     "mongodb://127.0.0.1:27017",
-			wantErr: false,
 		},
 	}
 
@@ -50,4 +47,23 @@ func TestNewMongoDbFromConfig(t *testing.T) {
 			_ = c.Disconnect(context.Background())
 		})
 	}
+}
+
+func TestNewMongoDbFromConfig_WithServer(t *testing.T) {
+	uri := testkit.MongoURI(t)
+
+	c, err := NewMongoDbFromConfig(&Config{
+		URI:            uri,
+		Database:       "db",
+		ConnectTimeout: 2 * time.Second,
+		PingTimeout:    2 * time.Second,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, c)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	require.NoError(t, c.Ping(ctx, nil))
+
+	_ = c.Disconnect(context.Background())
 }

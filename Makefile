@@ -27,6 +27,8 @@ proto_svc:
 # Run tests for all packages
 test:
 	@echo "$(COLOR_GREEN)Running tests...$(COLOR_RESET)"
+	@set -e; \
+	export PODZONE_TC_REUSE=1; \
 	$(GO) test -v -cover ./pkg/... ./internal/... ./cmd/...
 
 # Run linter
@@ -56,6 +58,8 @@ migrate:
 
 sonar:
 	@echo "🔁 Starting quality check..."
+	@set -e; \
+	export PODZONE_TC_REUSE=1; \
 	go test ./internal/... ./pkg/... ./cmd/... -coverprofile=coverage.out
 	docker run --rm \
 	  -e SONAR_HOST_URL="http://sonarqube.tuannm.uk" \

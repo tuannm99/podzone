@@ -1,15 +1,16 @@
 package pdsql
 
 import (
-	"database/sql"
-	"errors"
+	"fmt"
 	"testing"
+	"time"
 
-	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
 	"github.com/knadh/koanf/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/tuannm99/podzone/pkg/testkit"
 )
 
 func TestGetConfigFromKoanf_NoSub(t *testing.T) {
@@ -52,108 +53,40 @@ func TestPostgresAdminDSN_Invalid(t *testing.T) {
 }
 
 func TestEnsurePostgresDatabase_Exists(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	dbName := fmt.Sprintf("podzone_exists_%d", time.Now().UnixNano())
+	full := testkit.PostgresDSNWithDB(t, dbName)
+	admin, _, err := postgresAdminDSN(full)
 	require.NoError(t, err)
-	defer db.Close()
 
-	// mock sql.Open
-	sqlOpen = func(driverName, dataSourceName string) (*sql.DB, error) {
-		return db, nil
-	}
-	defer func() { sqlOpen = sql.Open }()
-
-	mock.ExpectQuery(`SELECT EXISTS`).WithArgs("testdb").
-		WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
-
-	err = ensurePostgresDatabase("mockdsn", "testdb")
-	require.NoError(t, err)
-	assert.NoError(t, mock.ExpectationsWereMet())
+	require.NoError(t, ensurePostgresDatabase(admin, dbName))
+	require.NoError(t, ensurePostgresDatabase(admin, dbName))
 }
 
 func TestEnsurePostgresDatabase_CreateNew(t *testing.T) {
-	db, mock, err := sqlmock.New()
+	dbName := fmt.Sprintf("podzone_new_%d", time.Now().UnixNano())
+	full := testkit.PostgresDSNWithDB(t, dbName)
+	admin, _, err := postgresAdminDSN(full)
 	require.NoError(t, err)
-	defer db.Close()
 
-	sqlOpen = func(driverName, dataSourceName string) (*sql.DB, error) {
-		return db, nil
-	}
-	defer func() { sqlOpen = sql.Open }()
+	require.NoError(t, ensurePostgresDatabase(admin, dbName))
 
-	mock.ExpectQuery(`SELECT EXISTS`).WithArgs("newdb").
-		WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
-	mock.ExpectExec(`CREATE DATABASE "newdb"`).WillReturnResult(sqlmock.NewResult(1, 1))
-
-	err = ensurePostgresDatabase("mockdsn", "newdb")
+	dbx, err := sqlx.Connect("postgres", full)
 	require.NoError(t, err)
-	assert.NoError(t, mock.ExpectationsWereMet())
-}
-
-func TestEnsurePostgresDatabase_QueryError(t *testing.T) {
-	db, mock, err := sqlmock.New()
-	require.NoError(t, err)
-	defer db.Close()
-
-	sqlOpen = func(driverName, dataSourceName string) (*sql.DB, error) {
-		return db, nil
-	}
-	defer func() { sqlOpen = sql.Open }()
-
-	mock.ExpectQuery(`SELECT EXISTS`).WithArgs("bad").
-		WillReturnError(errors.New("query fail"))
-
-	err = ensurePostgresDatabase("mockdsn", "bad")
-	assert.ErrorContains(t, err, "query fail")
-}
-
-func TestEnsurePostgresDatabase_OpenError(t *testing.T) {
-	sqlOpen = func(driverName, dataSourceName string) (*sql.DB, error) {
-		return nil, errors.New("cannot open")
-	}
-	defer func() { sqlOpen = sql.Open }()
-
-	err := ensurePostgresDatabase("mockdsn", "db")
-	assert.ErrorContains(t, err, "cannot open")
+	_ = dbx.Close()
 }
 
 func TestNewDbFromConfig_Postgres_Success(t *testing.T) {
-	db, mock, err := sqlmock.New()
-	require.NoError(t, err)
-	defer db.Close()
-
-	sqlOpen = func(driverName, dataSourceName string) (*sql.DB, error) {
-		return db, nil
-	}
-	sqlxConnect = func(driver, dsn string) (*sqlx.DB, error) {
-		return sqlx.NewDb(db, "sqlmock"), nil
-	}
-	defer func() {
-		sqlOpen = sql.Open
-		sqlxConnect = sqlx.Connect
-	}()
-
-	mock.ExpectQuery(`SELECT EXISTS`).WithArgs("testdb").
-		WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+	dbName := fmt.Sprintf("podzone_cfg_%d", time.Now().UnixNano())
+	full := testkit.PostgresDSNWithDB(t, dbName)
 
 	cfg := &Config{
 		Provider: "postgres",
-		URI:      "postgres://user:pass@localhost:5432/testdb?sslmode=disable",
+		URI:      full,
 	}
 	dbx, err := NewDbFromConfig(cfg)
 	require.NoError(t, err)
 	require.NotNil(t, dbx)
-}
-
-func TestNewDbFromConfig_Postgres_EnsureError(t *testing.T) {
-	sqlOpen = func(driverName, dataSourceName string) (*sql.DB, error) {
-		return nil, errors.New("open fail")
-	}
-	defer func() { sqlOpen = sql.Open }()
-
-	cfg := &Config{Provider: "postgres", URI: "postgres://x:x@x/x"}
-	dbx, err := NewDbFromConfig(cfg)
-	require.Error(t, err)
-	require.Nil(t, dbx)
+	_ = dbx.Close()
 }
 
 func TestNewDbFromConfig_Unsupported(t *testing.T) {

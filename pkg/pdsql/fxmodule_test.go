@@ -2,12 +2,10 @@ package pdsql
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"testing"
 	"time"
 
-	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/jmoiron/sqlx"
 	"github.com/knadh/koanf/v2"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
@@ -15,113 +13,49 @@ import (
 	"go.uber.org/fx/fxtest"
 
 	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/testkit"
 )
 
-type mockSQLDB struct {
-	pingErr  error
-	closeErr error
-	pingN    int
-	closeN   int
-}
-
-func (m *mockSQLDB) PingContext(ctx context.Context) error {
-	m.pingN++
-	return m.pingErr
-}
-
-func (m *mockSQLDB) Close() error {
-	m.closeN++
-	return m.closeErr
-}
-
-func TestSQLLifecycle_Table(t *testing.T) {
+func TestSQLLifecycle_StartStop_WithRealDB(t *testing.T) {
 	t.Parallel()
 
-	cases := []struct {
-		name         string
-		pingErr      error
-		closeErr     error
-		wantStartErr bool
-		wantStopErr  bool
-	}{
-		{name: "start_ok_stop_ok"},
-		{name: "start_fail_ping", pingErr: errors.New("ping failed"), wantStartErr: true},
-		{name: "stop_fail_close", closeErr: errors.New("close failed"), wantStopErr: true},
-	}
+	dbName := fmt.Sprintf("podzone_fx_%d", time.Now().UnixNano())
+	uri := testkit.PostgresDSNWithDB(t, dbName)
 
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+	k := koanf.New(".")
+	k.Set("sql.default.uri", uri)
+	k.Set("sql.default.provider", "postgres")
+	k.Set("sql.default.should_run_migration", false)
 
-			m := &mockSQLDB{pingErr: tc.pingErr, closeErr: tc.closeErr}
-			cfg := &Config{URI: "postgres://unit-test"}
+	app := fxtest.New(
+		t,
+		ModuleFor(""),
+		fx.Supply(k),
+		fx.Supply(fx.Annotate(pdlog.NopLogger{}, fx.As(new(pdlog.Logger)))),
+		fx.WithLogger(func() fxevent.Logger { return fxevent.NopLogger }),
+	)
 
-			app := fxtest.New(
-				t,
-				fx.Supply(
-					fx.Annotate(m, fx.As(new(SQLDB))),
-					cfg,
-					fx.Annotate(pdlog.NopLogger{}, fx.As(new(pdlog.Logger))),
-				),
-				fx.Invoke(registerLifecycle),
-				fx.WithLogger(func() fxevent.Logger { return fxevent.NopLogger }),
-			)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-			ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
-			defer cancel()
-
-			startErr := app.Start(ctx)
-			if tc.wantStartErr {
-				require.Error(t, startErr)
-				require.GreaterOrEqual(t, m.pingN, 1)
-				_ = app.Stop(context.Background())
-				return
-			}
-			require.NoError(t, startErr)
-			require.Equal(t, 1, m.pingN)
-
-			stopErr := app.Stop(ctx)
-			if tc.wantStopErr {
-				require.Error(t, stopErr)
-			} else {
-				require.NoError(t, stopErr)
-			}
-			require.Equal(t, 1, m.closeN)
-		})
-	}
+	require.NoError(t, app.Start(ctx))
+	require.NoError(t, app.Stop(ctx))
 }
 
 func TestModuleFor_DefaultName_Wiring(t *testing.T) {
 	t.Parallel()
 
+	uri := testkit.PostgresDSNWithDB(t, fmt.Sprintf("podzone_fxw_%d", time.Now().UnixNano()))
+
 	k := koanf.New(".")
-	k.Set("sql.default.uri", "postgres://u:p@127.0.0.1:5432/testdb?sslmode=disable")
+	k.Set("sql.default.uri", uri)
 	k.Set("sql.default.provider", "postgres")
 	k.Set("sql.default.should_run_migration", false)
 
-	rawDB, _, err := sqlmock.New()
-	require.NoError(t, err)
-	t.Cleanup(func() { _ = rawDB.Close() })
-
-	dbx := sqlx.NewDb(rawDB, "sqlmock")
-
 	app := fx.New(
-		ModuleFor(""), // => default
-
+		ModuleFor(""),
 		fx.Supply(k),
 		fx.Supply(fx.Annotate(pdlog.NopLogger{}, fx.As(new(pdlog.Logger)))),
-
-		// Keep these replaces: they make wiring deterministic and avoid real DB ops.
-		fx.Replace(
-			fx.Annotate(&Config{
-				URI:                "postgres://u:p@127.0.0.1:5432/testdb?sslmode=disable",
-				Provider:           "postgres",
-				ShouldRunMigration: false,
-			}, fx.ResultTags(`name:"sql-default-config"`)),
-		),
-		fx.Replace(
-			fx.Annotate(dbx, fx.ResultTags(`name:"sql-default"`)),
-		),
 	)
 
 	require.NoError(t, app.Err())

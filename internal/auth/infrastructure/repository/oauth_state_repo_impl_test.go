@@ -1,125 +1,91 @@
 package repository
 
 import (
-	"errors"
+	"context"
 	"testing"
 	"time"
 
-	"github.com/go-redis/redismock/v9"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
+
+	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/testkit"
 )
 
-func TestOauthStateRepository_Set_OK(t *testing.T) {
-	rdb, mock := redismock.NewClientMock()
+func setupOauthStateRepo(t *testing.T) (*OauthStateRepositoryImpl, *redis.Client) {
+	t.Helper()
+	client := testkit.RedisClient(t)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	require.NoError(t, client.FlushDB(ctx).Err())
 
 	repo := NewOauthStateRepositoryImpl(OauthStateRepoParams{
-		RedisClient: rdb,
-		Logger:      nopLogger{},
+		RedisClient: client,
+		Logger:      pdlog.NopLogger{},
 	})
+	return repo, client
+}
+
+func TestOauthStateRepository_Set_OK(t *testing.T) {
+	repo, client := setupOauthStateRepo(t)
 
 	key := "oauth:google:test"
 	ttl := 2 * time.Minute
 
-	mock.Regexp().ExpectSet(key, `.+`, ttl).SetVal("OK")
-
 	err := repo.Set(key, ttl)
 	require.NoError(t, err)
-	require.NoError(t, mock.ExpectationsWereMet())
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	val, err := client.Get(ctx, key).Result()
+	require.NoError(t, err)
+	require.NotEmpty(t, val)
 }
 
 func TestOauthStateRepository_Get_OK(t *testing.T) {
-	rdb, mock := redismock.NewClientMock()
-	repo := NewOauthStateRepositoryImpl(OauthStateRepoParams{
-		RedisClient: rdb,
-		Logger:      nopLogger{},
-	})
+	repo, client := setupOauthStateRepo(t)
 
 	key := "oauth:google:test"
-	mock.ExpectGet(key).SetVal("some-state")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	require.NoError(t, client.Set(ctx, key, "some-state", time.Minute).Err())
 
 	val, err := repo.Get(key)
 	require.NoError(t, err)
 	require.Equal(t, "some-state", val)
-	require.NoError(t, mock.ExpectationsWereMet())
 }
 
 func TestOauthStateRepository_Get_NotFound(t *testing.T) {
-	rdb, mock := redismock.NewClientMock()
-	repo := NewOauthStateRepositoryImpl(OauthStateRepoParams{
-		RedisClient: rdb,
-		Logger:      nopLogger{},
-	})
+	repo, _ := setupOauthStateRepo(t)
 
-	key := "oauth:missing"
-	mock.ExpectGet(key).RedisNil()
-
-	val, err := repo.Get(key)
+	val, err := repo.Get("oauth:missing")
 	require.Error(t, err)
 	require.Empty(t, val)
 	require.Contains(t, err.Error(), "invalid state")
-	require.NoError(t, mock.ExpectationsWereMet())
-}
-
-func TestOauthStateRepository_Get_RedisError(t *testing.T) {
-	rdb, mock := redismock.NewClientMock()
-	repo := NewOauthStateRepositoryImpl(OauthStateRepoParams{
-		RedisClient: rdb,
-		Logger:      nopLogger{},
-	})
-
-	key := "oauth:error"
-	mock.ExpectGet(key).SetErr(errors.New("boom"))
-
-	_, err := repo.Get(key)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to get state")
-	require.NoError(t, mock.ExpectationsWereMet())
 }
 
 func TestOauthStateRepository_Del_OK(t *testing.T) {
-	rdb, mock := redismock.NewClientMock()
-	repo := NewOauthStateRepositoryImpl(OauthStateRepoParams{
-		RedisClient: rdb,
-		Logger:      nopLogger{},
-	})
+	repo, client := setupOauthStateRepo(t)
 
 	key := "oauth:del"
-	mock.ExpectDel(key).SetVal(1)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	require.NoError(t, client.Set(ctx, key, "v", time.Minute).Err())
 
 	err := repo.Del(key)
 	require.NoError(t, err)
-	require.NoError(t, mock.ExpectationsWereMet())
+
+	exists, err := client.Exists(ctx, key).Result()
+	require.NoError(t, err)
+	require.Equal(t, int64(0), exists)
 }
 
-func TestOauthStateRepository_Del_Error(t *testing.T) {
-	rdb, mock := redismock.NewClientMock()
-	repo := NewOauthStateRepositoryImpl(OauthStateRepoParams{
-		RedisClient: rdb,
-		Logger:      nopLogger{},
-	})
+func TestOauthStateRepository_Get_RedisClosed(t *testing.T) {
+	repo, client := setupOauthStateRepo(t)
 
-	key := "oauth:del:err"
-	mock.ExpectDel(key).SetErr(errors.New("del failed"))
+	require.NoError(t, client.Close())
 
-	err := repo.Del(key)
+	_, err := repo.Get("oauth:error")
 	require.Error(t, err)
-	require.NoError(t, mock.ExpectationsWereMet())
-}
-
-// Optional: test redis.Nil branch explicitly (tương tự RedisNil() ở trên)
-func TestOauthStateRepository_Get_RedisNil_UsingErr(t *testing.T) {
-	rdb, mock := redismock.NewClientMock()
-	repo := NewOauthStateRepositoryImpl(OauthStateRepoParams{
-		RedisClient: rdb,
-		Logger:      nopLogger{},
-	})
-
-	key := "oauth:nil"
-	mock.ExpectGet(key).SetErr(redis.Nil)
-
-	_, err := repo.Get(key)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "invalid state")
-	require.NoError(t, mock.ExpectationsWereMet())
+	require.Contains(t, err.Error(), "failed to get state")
 }

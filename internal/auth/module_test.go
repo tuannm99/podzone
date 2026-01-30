@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/go-redis/redismock/v9"
 	"github.com/jmoiron/sqlx"
 	"github.com/knadh/koanf/v2"
 	"github.com/redis/go-redis/v9"
@@ -19,16 +17,15 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/controller/grpchandler"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/pdsql"
+	"github.com/tuannm99/podzone/pkg/testkit"
 )
 
-func provideNamedSQLX(t *testing.T, shouldRunMigration bool) (*sqlx.DB, sqlmock.Sqlmock, fx.Option) {
+func provideNamedSQLX(t *testing.T, shouldRunMigration bool) (*sqlx.DB, fx.Option) {
 	t.Helper()
-	raw, mockDB, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherRegexp))
-	require.NoError(t, err)
-	db := sqlx.NewDb(raw, "sqlmock")
+	db := testkit.PostgresDB(t)
 
 	cfg := &pdsql.Config{
-		URI:                "postgres://fake",
+		URI:                testkit.PostgresDSN(t),
 		Provider:           "postgres",
 		ShouldRunMigration: shouldRunMigration,
 	}
@@ -39,12 +36,12 @@ func provideNamedSQLX(t *testing.T, shouldRunMigration bool) (*sqlx.DB, sqlmock.
 			fx.Annotate(cfg, fx.ResultTags(`name:"sql-auth-config"`)),
 		),
 	)
-	return db, mockDB, opt
+	return db, opt
 }
 
-func provideNamedRedisStub(t *testing.T) (*redis.Client, redismock.ClientMock, fx.Option) {
+func provideNamedRedisStub(t *testing.T) (*redis.Client, fx.Option) {
 	t.Helper()
-	rdb, mock := redismock.NewClientMock()
+	rdb := testkit.RedisClient(t)
 	opt := fx.Options(
 		fx.Supply(
 			fx.Annotate(rdb, fx.ResultTags(`name:"redis-auth"`)),
@@ -58,21 +55,23 @@ func provideNamedRedisStub(t *testing.T) (*redis.Client, redismock.ClientMock, f
 		),
 	)
 
-	return rdb, mock, opt
+	return rdb, opt
 }
 
 // --- TESTS ---
 
 func TestRegisterMigration_Disabled(t *testing.T) {
-	sqlxDB, _, sqlOpt := provideNamedSQLX(t, true)
-	rdb, _, rdbOpt := provideNamedRedisStub(t)
+	sqlxDB, sqlOpt := provideNamedSQLX(t, false)
+	rdb, rdbOpt := provideNamedRedisStub(t)
 	defer func() {
 		_ = sqlxDB.Close()
 		_ = rdb.Close()
 	}()
 
 	origApply := applyMigration
+	applied := false
 	applyMigration = func(ctx context.Context, db *sql.DB, driver string) error {
+		applied = true
 		return nil
 	}
 	defer func() { applyMigration = origApply }()
@@ -92,6 +91,7 @@ func TestRegisterMigration_Disabled(t *testing.T) {
 
 	app.RequireStart()
 	app.RequireStop()
+	require.False(t, applied, "migration should be disabled")
 }
 
 func TestRegisterGRPCServer(t *testing.T) {

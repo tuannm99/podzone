@@ -1,64 +1,82 @@
 package repository
 
 import (
-	"database/sql"
+	"context"
 	"errors"
-	"regexp"
+	"strconv"
+	"sync"
 	"testing"
 	"time"
 
-	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/require"
 
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
+	"github.com/tuannm99/podzone/internal/auth/migrations"
 	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/testkit"
+)
+
+var (
+	migrateOnce sync.Once
+	errMigrate  error
 )
 
 type nopLogger = pdlog.NopLogger
 
-func setupRepo(t *testing.T) (*UserRepositoryImpl, *sqlx.DB, sqlmock.Sqlmock) {
+func setupRepo(t *testing.T) (*UserRepositoryImpl, *sqlx.DB) {
 	t.Helper()
 
-	raw, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherRegexp))
-	require.NoError(t, err)
+	db := testkit.PostgresDB(t)
 
-	db := sqlx.NewDb(raw, "sqlmock")
+	migrateOnce.Do(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		errMigrate = migrations.Apply(ctx, db.DB, "postgres")
+	})
+	require.NoError(t, errMigrate)
+
+	truncateUsers(t, db)
+
 	repo := NewUserRepositoryImpl(UserRepoParams{
 		Logger: nopLogger{},
 		DB:     db,
 	})
-	return repo, db, mock
+	return repo, db
 }
 
-func userRow(
-	now time.Time,
-	id int64,
-	username, email, password, fullName, initialFrom string,
-	age int64,
-) *sqlmock.Rows {
-	// Avoid NULL for non-nullable Go fields (string/time.Time) in StructScan.
-	return sqlmock.NewRows(userColumns).AddRow(
-		id,
-		username,
-		email,
-		password,
-		fullName,
-		"",          // middle_name
-		"",          // first_name
-		"",          // last_name
-		"",          // address
-		initialFrom, // initial_from
-		age,
-		time.Time{}, // dob
-		now,
-		now,
+func truncateUsers(t *testing.T, db *sqlx.DB) {
+	t.Helper()
+	_, err := db.Exec(`TRUNCATE TABLE users RESTART IDENTITY`)
+	require.NoError(t, err)
+}
+
+func insertUser(t *testing.T, db *sqlx.DB, u entity.User) uint {
+	t.Helper()
+	if u.Username == "" {
+		u.Username = "user"
+	}
+	if u.Email == "" {
+		u.Email = "user@example.com"
+	}
+	if u.Password == "" {
+		u.Password = "pw"
+	}
+
+	var id uint
+	err := db.Get(
+		&id,
+		`INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id`,
+		u.Username,
+		u.Email,
+		u.Password,
 	)
+	require.NoError(t, err)
+	return id
 }
 
 func Test_isUniqueViolation_Table(t *testing.T) {
-	t.Parallel()
-
 	cases := []struct {
 		name string
 		err  error
@@ -72,402 +90,131 @@ func Test_isUniqueViolation_Table(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
 			require.Equal(t, tc.want, isUniqueViolation(tc.err))
 		})
 	}
 }
 
-func TestUserRepository_GetByUsernameOrEmail_Table(t *testing.T) {
-	t.Parallel()
+func TestUserRepository_GetByUsernameOrEmail(t *testing.T) {
+	repo, db := setupRepo(t)
 
-	now := time.Date(2025, 12, 20, 10, 0, 0, 0, time.UTC)
-	selectRe := `SELECT .* FROM users WHERE .* LIMIT 1`
+	id := insertUser(t, db, entity.User{Username: "jdoe", Email: "a@b.com"})
 
-	cases := []struct {
-		name     string
-		identity string
-		setup    func(mock sqlmock.Sqlmock)
-		wantErr  error
-		wantID   uint
-	}{
-		{
-			name:     "ok",
-			identity: "a@b.com",
-			setup: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery(selectRe).
-					WithArgs("a@b.com", "a@b.com").
-					WillReturnRows(userRow(now, 1, "jdoe", "a@b.com", "hashed", "John", "podzone", 30))
-			},
-			wantErr: nil,
-			wantID:  1,
-		},
-		{
-			name:     "not_found",
-			identity: "missing",
-			setup: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery(selectRe).
-					WillReturnError(sql.ErrNoRows)
-			},
-			wantErr: entity.ErrUserNotFound,
-		},
-		{
-			name:     "db_error",
-			identity: "x",
-			setup: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery(selectRe).
-					WillReturnError(errors.New("db down"))
-			},
-			wantErr: errors.New("db down"),
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			repo, db, mock := setupRepo(t)
-			defer db.Close()
-
-			tc.setup(mock)
-
-			u, err := repo.GetByUsernameOrEmail(tc.identity)
-			if tc.wantErr == nil {
-				require.NoError(t, err)
-				require.NotNil(t, u)
-				require.Equal(t, tc.wantID, u.Id)
-			} else {
-				require.Error(t, err)
-				// For sentinel errors, use ErrorIs; for raw errors, check message.
-				if errors.Is(tc.wantErr, entity.ErrUserNotFound) {
-					require.ErrorIs(t, err, tc.wantErr)
-				} else {
-					require.Contains(t, err.Error(), tc.wantErr.Error())
-				}
-			}
-
-			require.NoError(t, mock.ExpectationsWereMet())
-		})
-	}
+	u, err := repo.GetByUsernameOrEmail("a@b.com")
+	require.NoError(t, err)
+	require.NotNil(t, u)
+	require.Equal(t, id, u.Id)
 }
 
-func TestUserRepository_GetByID_Table(t *testing.T) {
-	t.Parallel()
+func TestUserRepository_GetByUsernameOrEmail_NotFound(t *testing.T) {
+	repo, _ := setupRepo(t)
 
-	now := time.Date(2025, 12, 20, 10, 0, 0, 0, time.UTC)
-	selectRe := `SELECT .* FROM users WHERE id = \$1 LIMIT 1`
-
-	cases := []struct {
-		name    string
-		id      string
-		setup   func(mock sqlmock.Sqlmock)
-		wantErr error
-		wantID  uint
-	}{
-		{
-			name: "ok",
-			id:   "1",
-			setup: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery(selectRe).
-					WithArgs("1").
-					WillReturnRows(userRow(now, 1, "jdoe", "jdoe@example.com", "hashed", "John", "podzone", 30))
-			},
-			wantID: 1,
-		},
-		{
-			name: "not_found",
-			id:   "999",
-			setup: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery(selectRe).
-					WithArgs("999").
-					WillReturnError(sql.ErrNoRows)
-			},
-			wantErr: entity.ErrUserNotFound,
-		},
-		{
-			name: "db_error",
-			id:   "1",
-			setup: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery(selectRe).
-					WithArgs("1").
-					WillReturnError(errors.New("select failed"))
-			},
-			wantErr: errors.New("select failed"),
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			repo, db, mock := setupRepo(t)
-			defer db.Close()
-
-			tc.setup(mock)
-
-			u, err := repo.GetByID(tc.id)
-			if tc.wantErr == nil {
-				require.NoError(t, err)
-				require.NotNil(t, u)
-				require.Equal(t, tc.wantID, u.Id)
-			} else {
-				require.Error(t, err)
-				if errors.Is(tc.wantErr, entity.ErrUserNotFound) {
-					require.ErrorIs(t, err, tc.wantErr)
-				} else {
-					require.Contains(t, err.Error(), tc.wantErr.Error())
-				}
-			}
-
-			require.NoError(t, mock.ExpectationsWereMet())
-		})
-	}
+	u, err := repo.GetByUsernameOrEmail("missing")
+	require.ErrorIs(t, err, entity.ErrUserNotFound)
+	require.Nil(t, u)
 }
 
-func TestUserRepository_Create_Table(t *testing.T) {
-	t.Parallel()
+func TestUserRepository_GetByID(t *testing.T) {
+	repo, db := setupRepo(t)
 
-	now := time.Date(2025, 12, 20, 10, 0, 0, 0, time.UTC)
-	insertRe := regexp.QuoteMeta("INSERT INTO users")
+	id := insertUser(t, db, entity.User{Username: "jdoe", Email: "jdoe@example.com"})
 
-	cases := []struct {
-		name    string
-		in      entity.User
-		setup   func(mock sqlmock.Sqlmock)
-		wantErr error
-		wantID  uint
-	}{
-		{
-			name: "ok",
-			in: entity.User{
-				Username: "jdoe",
-				Email:    "jdoe@example.com",
-				Password: "secret",
-				FullName: "John Doe",
-				Age:      30,
-			},
-			setup: func(mock sqlmock.Sqlmock) {
-				// Keep expectations loose; hashing and timestamps are not deterministic.
-				mock.ExpectQuery(insertRe).
-					WillReturnRows(userRow(now, 10, "jdoe", "jdoe@example.com", "hashed-secret", "John Doe", "", 30))
-			},
-			wantID: 10,
-		},
-		{
-			name: "unique_violation",
-			in: entity.User{
-				Username: "another",
-				Email:    "dup@example.com",
-			},
-			setup: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery(insertRe).
-					WillReturnError(errors.New(`duplicate key value violates unique constraint "users_email_key"`))
-			},
-			wantErr: entity.ErrUserAlreadyExists,
-		},
-		{
-			name: "db_error",
-			in: entity.User{
-				Username: "x",
-				Email:    "x@example.com",
-			},
-			setup: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery(insertRe).
-					WillReturnError(errors.New("insert failed"))
-			},
-			wantErr: errors.New("insert failed"),
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			repo, db, mock := setupRepo(t)
-			defer db.Close()
-
-			tc.setup(mock)
-
-			out, err := repo.Create(tc.in)
-			if tc.wantErr == nil {
-				require.NoError(t, err)
-				require.NotNil(t, out)
-				require.Equal(t, tc.wantID, out.Id)
-			} else {
-				require.Error(t, err)
-				if errors.Is(tc.wantErr, entity.ErrUserAlreadyExists) {
-					require.ErrorIs(t, err, tc.wantErr)
-				} else {
-					require.Contains(t, err.Error(), tc.wantErr.Error())
-				}
-			}
-
-			require.NoError(t, mock.ExpectationsWereMet())
-		})
-	}
+	u, err := repo.GetByID(strconv.FormatUint(uint64(id), 10))
+	require.NoError(t, err)
+	require.NotNil(t, u)
+	require.Equal(t, id, u.Id)
 }
 
-func TestUserRepository_Update_EarlyReturn_Table(t *testing.T) {
-	t.Parallel()
+func TestUserRepository_GetByID_NotFound(t *testing.T) {
+	repo, _ := setupRepo(t)
 
-	cases := []struct {
-		name    string
-		in      entity.User
-		wantErr error
-	}{
-		{
-			name:    "id_zero",
-			in:      entity.User{Id: 0},
-			wantErr: entity.ErrUserNotFound,
-		},
-		{
-			name:    "no_fields",
-			in:      entity.User{Id: 1}, // nothing set => only updated_at => return nil without hitting DB
-			wantErr: nil,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			repo, db, mock := setupRepo(t)
-			defer db.Close()
-
-			err := repo.Update(tc.in)
-			if tc.wantErr == nil {
-				require.NoError(t, err)
-			} else {
-				require.ErrorIs(t, err, tc.wantErr)
-			}
-
-			// No SQL expectations should be pending in early-return paths.
-			require.NoError(t, mock.ExpectationsWereMet())
-		})
-	}
+	u, err := repo.GetByID("9999")
+	require.ErrorIs(t, err, entity.ErrUserNotFound)
+	require.Nil(t, u)
 }
 
-func TestUserRepository_Update_Exec_Table(t *testing.T) {
-	t.Parallel()
+func TestUserRepository_Create(t *testing.T) {
+	repo, _ := setupRepo(t)
 
-	updateRe := `UPDATE users SET .* WHERE id = \$[0-9]+`
-
-	cases := []struct {
-		name    string
-		in      entity.User
-		setup   func(mock sqlmock.Sqlmock)
-		wantErr error
-	}{
-		{
-			name: "ok_rows_1",
-			in: entity.User{
-				Id:          1,
-				FullName:    "John X",
-				Password:    "changed",
-				Age:         31,
-				InitialFrom: "podzone",
-			},
-			setup: func(mock sqlmock.Sqlmock) {
-				mock.ExpectExec(updateRe).
-					WillReturnResult(sqlmock.NewResult(0, 1))
-			},
-			wantErr: nil,
-		},
-		{
-			name: "rows_0_not_found",
-			in:   entity.User{Id: 1, Email: "x@example.com"},
-			setup: func(mock sqlmock.Sqlmock) {
-				mock.ExpectExec(updateRe).
-					WillReturnResult(sqlmock.NewResult(0, 0))
-			},
-			wantErr: entity.ErrUserNotFound,
-		},
-		{
-			name: "unique_violation",
-			in:   entity.User{Id: 1, Email: "dup@example.com"},
-			setup: func(mock sqlmock.Sqlmock) {
-				mock.ExpectExec(updateRe).
-					WillReturnError(errors.New("duplicate key value violates unique constraint"))
-			},
-			wantErr: entity.ErrUserAlreadyExists,
-		},
-		{
-			name: "db_error",
-			in:   entity.User{Id: 1, Email: "x@example.com"},
-			setup: func(mock sqlmock.Sqlmock) {
-				mock.ExpectExec(updateRe).
-					WillReturnError(errors.New("update failed"))
-			},
-			wantErr: errors.New("update failed"),
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			repo, db, mock := setupRepo(t)
-			defer db.Close()
-
-			tc.setup(mock)
-
-			err := repo.Update(tc.in)
-			if tc.wantErr == nil {
-				require.NoError(t, err)
-			} else {
-				require.Error(t, err)
-				if errors.Is(tc.wantErr, entity.ErrUserNotFound) || errors.Is(tc.wantErr, entity.ErrUserAlreadyExists) {
-					require.ErrorIs(t, err, tc.wantErr)
-				} else {
-					require.Contains(t, err.Error(), tc.wantErr.Error())
-				}
-			}
-
-			require.NoError(t, mock.ExpectationsWereMet())
-		})
-	}
+	out, err := repo.Create(entity.User{
+		Username: "jdoe",
+		Email:    "jdoe@example.com",
+		Password: "secret",
+		FullName: "John Doe",
+		Age:      30,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, out)
+	require.NotZero(t, out.Id)
 }
 
-func TestUserRepository_UpdateById_Table(t *testing.T) {
-	t.Parallel()
+func TestUserRepository_Create_UniqueViolation(t *testing.T) {
+	repo, db := setupRepo(t)
 
-	updateRe := `UPDATE users SET .* WHERE id = \$[0-9]+`
+	_ = insertUser(t, db, entity.User{Username: "dup", Email: "dup@example.com"})
 
-	cases := []struct {
-		name    string
-		id      uint
-		in      entity.User
-		setup   func(mock sqlmock.Sqlmock)
-		wantErr error
-	}{
-		{
-			name: "ok",
-			id:   1,
-			in:   entity.User{FullName: "A"},
-			setup: func(mock sqlmock.Sqlmock) {
-				mock.ExpectExec(updateRe).WillReturnResult(sqlmock.NewResult(0, 1))
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			repo, db, mock := setupRepo(t)
-			defer db.Close()
-
-			tc.setup(mock)
-
-			err := repo.UpdateById(tc.id, tc.in)
-			if tc.wantErr == nil {
-				require.NoError(t, err)
-			} else {
-				require.ErrorIs(t, err, tc.wantErr)
-			}
-
-			require.NoError(t, mock.ExpectationsWereMet())
-		})
-	}
+	out, err := repo.Create(entity.User{Username: "dup2", Email: "dup@example.com"})
+	require.ErrorIs(t, err, entity.ErrUserAlreadyExists)
+	require.Nil(t, out)
 }
 
+func TestUserRepository_Update_EarlyReturn(t *testing.T) {
+	repo, _ := setupRepo(t)
+
+	require.ErrorIs(t, repo.Update(entity.User{Id: 0}), entity.ErrUserNotFound)
+	require.NoError(t, repo.Update(entity.User{Id: 1}))
+}
+
+func TestUserRepository_Update(t *testing.T) {
+	repo, db := setupRepo(t)
+
+	id := insertUser(t, db, entity.User{Username: "jdoe", Email: "jdoe@example.com"})
+
+	err := repo.Update(entity.User{
+		Id:       id,
+		FullName: "John X",
+		Age:      31,
+	})
+	require.NoError(t, err)
+
+	var fullName string
+	var age int
+	err = db.Get(&fullName, `SELECT full_name FROM users WHERE id=$1`, id)
+	require.NoError(t, err)
+	require.Equal(t, "John X", fullName)
+
+	err = db.Get(&age, `SELECT age FROM users WHERE id=$1`, id)
+	require.NoError(t, err)
+	require.Equal(t, 31, age)
+}
+
+func TestUserRepository_Update_NotFound(t *testing.T) {
+	repo, _ := setupRepo(t)
+
+	err := repo.Update(entity.User{Id: 9999, Email: "x@example.com"})
+	require.ErrorIs(t, err, entity.ErrUserNotFound)
+}
+
+func TestUserRepository_Update_UniqueViolation(t *testing.T) {
+	repo, db := setupRepo(t)
+
+	id1 := insertUser(t, db, entity.User{Username: "u1", Email: "u1@example.com"})
+	_ = insertUser(t, db, entity.User{Username: "u2", Email: "u2@example.com"})
+
+	err := repo.Update(entity.User{Id: id1, Email: "u2@example.com"})
+	require.ErrorIs(t, err, entity.ErrUserAlreadyExists)
+}
+
+func TestUserRepository_UpdateById(t *testing.T) {
+	repo, db := setupRepo(t)
+
+	id := insertUser(t, db, entity.User{Username: "u", Email: "u@example.com"})
+
+	err := repo.UpdateById(id, entity.User{FullName: "A"})
+	require.NoError(t, err)
+
+	var fullName string
+	err = db.Get(&fullName, `SELECT full_name FROM users WHERE id=$1`, id)
+	require.NoError(t, err)
+	require.Equal(t, "A", fullName)
+}

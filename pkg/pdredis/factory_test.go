@@ -1,11 +1,15 @@
 package pdredis
 
 import (
+	"context"
 	"testing"
+	"time"
 
 	"github.com/knadh/koanf/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/tuannm99/podzone/pkg/testkit"
 )
 
 func TestGetConfigFromKoanf(t *testing.T) {
@@ -19,15 +23,19 @@ func TestGetConfigFromKoanf(t *testing.T) {
 }
 
 func TestNewClientFromConfig_ValidURI(t *testing.T) {
-	cfg := &Config{URI: "redis://:pass@localhost:6379/2"}
+	addr := testkit.RedisAddr(t)
+	cfg := &Config{URI: "redis://" + addr + "/2"}
 	client, err := NewClientFromConfig(cfg)
 	require.NoError(t, err)
 	require.NotNil(t, client)
 
 	opts := client.Options()
-	assert.Equal(t, "localhost:6379", opts.Addr)
-	assert.Equal(t, "pass", opts.Password)
+	assert.Equal(t, addr, opts.Addr)
 	assert.Equal(t, 2, opts.DB)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	require.NoError(t, client.Ping(ctx).Err())
 }
 
 func TestNewClientFromConfig_NilConfig(t *testing.T) {

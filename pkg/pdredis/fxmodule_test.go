@@ -6,56 +6,67 @@ import (
 	"time"
 
 	"github.com/knadh/koanf/v2"
-	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
+	"go.uber.org/fx/fxtest"
 
 	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/testkit"
 )
 
 func TestModuleFor_DefaultName_Wiring(t *testing.T) {
 	t.Parallel()
 
 	k := koanf.New(".")
-	k.Set("redis.default.uri", "redis://127.0.0.1:6379/0")
+	k.Set("redis.default.uri", testkit.RedisURI(t, 0))
 
-	app := fx.New(
+	app := fxtest.New(
+		t,
 		ModuleFor(""),
 		fx.Supply(k),
 		fx.Supply(fx.Annotate(pdlog.NopLogger{}, fx.As(new(pdlog.Logger)))),
+		fx.WithLogger(func() fxevent.Logger { return fxevent.NopLogger }),
 	)
 
-	require.NoError(t, app.Err())
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	require.NoError(t, app.Start(ctx))
+	require.NoError(t, app.Stop(ctx))
 }
 
 func TestModuleFor_CustomName_Wiring(t *testing.T) {
 	t.Parallel()
 
 	k := koanf.New(".")
-	k.Set("redis.test.uri", "redis://127.0.0.1:6379/0")
+	k.Set("redis.test.uri", testkit.RedisURI(t, 0))
 
-	app := fx.New(
+	app := fxtest.New(
+		t,
 		ModuleFor("test"),
 		fx.Supply(k),
 		fx.Supply(fx.Annotate(pdlog.NopLogger{}, fx.As(new(pdlog.Logger)))),
+		fx.WithLogger(func() fxevent.Logger { return fxevent.NopLogger }),
 	)
 
-	require.NoError(t, app.Err())
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	require.NoError(t, app.Start(ctx))
+	require.NoError(t, app.Stop(ctx))
 }
 
 func TestRedisClientAdapter_PingClose_NoServer(t *testing.T) {
 	t.Parallel()
 
-	c := redis.NewClient(&redis.Options{
-		Addr: "127.0.0.1:1",
-		DB:   0,
-	})
+	c := testkit.RedisClient(t)
 
 	a := redisClientAdapter{c: c}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
 
-	require.Error(t, a.Ping(ctx))
+	require.NoError(t, a.Ping(ctx))
 	require.NoError(t, a.Close())
 }

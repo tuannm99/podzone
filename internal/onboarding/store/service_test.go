@@ -2,42 +2,34 @@ package store
 
 import (
 	"context"
-	"errors"
 	"testing"
+	"time"
 
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"github.com/tuannm99/podzone/pkg/testkit"
 )
 
-type fakeCollection struct {
-	findOneResult   *mongo.SingleResult
-	insertOneResult *mongo.InsertOneResult
-	insertOneErr    error
-}
+func setupStoreService(t *testing.T) (*StoreService, *mongo.Collection, context.Context) {
+	t.Helper()
+	client := testkit.MongoClient(t)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	t.Cleanup(cancel)
 
-func (f *fakeCollection) FindOne(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) *mongo.SingleResult {
-	return f.findOneResult
-}
+	collection := client.Database("podzone").Collection("stores")
+	_, err := collection.DeleteMany(ctx, bson.M{})
+	require.NoError(t, err)
 
-func (f *fakeCollection) InsertOne(ctx context.Context, document interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
-	return f.insertOneResult, f.insertOneErr
-}
-
-func (f *fakeCollection) Find(ctx context.Context, filter interface{}, opts ...*options.FindOptions) (*mongo.Cursor, error) {
-	return nil, errors.New("unexpected call to Find")
-}
-
-func (f *fakeCollection) UpdateOne(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
-	return nil, errors.New("unexpected call to UpdateOne")
-}
-
-func (f *fakeCollection) Indexes() mongo.IndexView {
-	return mongo.IndexView{}
+	svc := NewStoreService(StoreServiceParams{MongoClient: client})
+	return svc, collection, ctx
 }
 
 func TestCreateStore_ReturnsErrSubdomainTaken_WhenExistingStoreFound(t *testing.T) {
+	svc, col, ctx := setupStoreService(t)
+
 	existing := Store{
 		ID:        primitive.NewObjectID(),
 		Name:      "Existing",
@@ -46,30 +38,22 @@ func TestCreateStore_ReturnsErrSubdomainTaken_WhenExistingStoreFound(t *testing.
 		Status:    StoreStatusActive,
 	}
 
-	service := &StoreService{
-		collection: &fakeCollection{
-			findOneResult: mongo.NewSingleResultFromDocument(existing, nil, nil),
-		},
-	}
+	_, err := col.InsertOne(ctx, existing)
+	require.NoError(t, err)
 
-	_, err := service.CreateStore(context.Background(), "New", "taken", "owner-2")
-	if !errors.Is(err, ErrSubdomainTaken) {
-		t.Fatalf("expected ErrSubdomainTaken, got %v", err)
-	}
+	_, err = svc.CreateStore(ctx, "New", "taken", "owner-2")
+	require.ErrorIs(t, err, ErrSubdomainTaken)
 }
 
-func TestCreateStore_ReturnsErrSubdomainTaken_WhenInsertDuplicateKey(t *testing.T) {
-	service := &StoreService{
-		collection: &fakeCollection{
-			findOneResult: mongo.NewSingleResultFromDocument(bson.D{}, mongo.ErrNoDocuments, nil),
-			insertOneErr: mongo.WriteException{
-				WriteErrors: []mongo.WriteError{{Code: 11000}},
-			},
-		},
-	}
+func TestCreateStore_Success(t *testing.T) {
+	svc, col, ctx := setupStoreService(t)
 
-	_, err := service.CreateStore(context.Background(), "New", "taken", "owner-2")
-	if !errors.Is(err, ErrSubdomainTaken) {
-		t.Fatalf("expected ErrSubdomainTaken, got %v", err)
-	}
+	store, err := svc.CreateStore(ctx, "New", "new", "owner-1")
+	require.NoError(t, err)
+	require.NotNil(t, store)
+	require.NotZero(t, store.ID)
+
+	count, err := col.CountDocuments(ctx, bson.M{"subdomain": "new"})
+	require.NoError(t, err)
+	require.Equal(t, int64(1), count)
 }
