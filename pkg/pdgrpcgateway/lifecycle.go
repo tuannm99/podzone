@@ -22,7 +22,7 @@ type Params struct {
 func startHTTPGateway(p Params) {
 	httpPort := os.Getenv("GW_HTTP_PORT")
 	if httpPort == "" {
-		httpPort = "8080"
+		httpPort = "8088"
 	}
 
 	c := cors.New(cors.Options{

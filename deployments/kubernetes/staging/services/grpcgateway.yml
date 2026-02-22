@@ -34,7 +34,7 @@ spec:
                   key: DEFAULT_LOG_LEVEL
 
             - name: GW_HTTP_PORT
-              value: '8080'
+              value: '8088'
             - name: AUTH_GRPC_ADDR
               value: 'auth-service.staging.svc.cluster.local:50051'
             - name: ORDER_GRPC_ADDR
@@ -56,13 +56,13 @@ spec:
           readinessProbe:
             httpGet:
               path: /healthz
-              port: 8080
+              port: 8088
             initialDelaySeconds: 2
             periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /healthz
-              port: 8080
+              port: 8088
             initialDelaySeconds: 15
             periodSeconds: 30
 
