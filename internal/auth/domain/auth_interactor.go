@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/tuannm99/podzone/internal/auth/config"
-	"github.com/tuannm99/podzone/internal/auth/domain/dto"
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
@@ -48,7 +47,7 @@ type authInteractorImpl struct {
 	userRepository       outputport.UserRepository
 }
 
-func (u *authInteractorImpl) Login(ctx context.Context, username, password string) (*dto.LoginResp, error) {
+func (u *authInteractorImpl) Login(ctx context.Context, username, password string) (*inputport.AuthResult, error) {
 	user, err := u.userRepository.GetByUsernameOrEmail(username)
 	if err != nil {
 		return nil, err
@@ -64,13 +63,13 @@ func (u *authInteractorImpl) Login(ctx context.Context, username, password strin
 		return nil, err
 	}
 
-	return &dto.LoginResp{
+	return &inputport.AuthResult{
 		JwtToken: token,
 		UserInfo: *user,
 	}, nil
 }
 
-func (u *authInteractorImpl) Register(ctx context.Context, req dto.RegisterReq) (*dto.RegisterResp, error) {
+func (u *authInteractorImpl) Register(ctx context.Context, req inputport.RegisterCmd) (*inputport.AuthResult, error) {
 	user, err := u.userRepository.Create(
 		entity.User{
 			Username: req.Username,
@@ -92,7 +91,7 @@ func (u *authInteractorImpl) Register(ctx context.Context, req dto.RegisterReq) 
 		return nil, err
 	}
 
-	return &dto.RegisterResp{
+	return &inputport.AuthResult{
 		JwtToken: token,
 		UserInfo: *user,
 	}, nil
@@ -117,7 +116,7 @@ func (u *authInteractorImpl) GenerateOAuthURL(ctx context.Context) (string, erro
 func (u *authInteractorImpl) HandleOAuthCallback(
 	ctx context.Context,
 	code, state string,
-) (*dto.GoogleCallbackResp, error) {
+) (*inputport.GoogleCallbackResult, error) {
 	key := "oauth:google:" + state
 	if _, err := u.oauthStateRepository.Get(key); err != nil {
 		return nil, err
@@ -150,12 +149,12 @@ func (u *authInteractorImpl) HandleOAuthCallback(
 
 	redirectURL := fmt.Sprintf("%s?token=%s", u.appRedirectURL, jwtToken)
 
-	userInfoResp, err := toolkit.MapStruct[outputport.GoogleUserInfo, dto.UserInfoResp](*userInfo)
+	userInfoResp, err := toolkit.MapStruct[outputport.GoogleUserInfo, inputport.GoogleUserInfo](*userInfo)
 	if err != nil {
 		return nil, err
 	}
 
-	return &dto.GoogleCallbackResp{
+	return &inputport.GoogleCallbackResult{
 		JwtToken:    jwtToken,
 		RedirectUrl: redirectURL,
 		UserInfo:    *userInfoResp,

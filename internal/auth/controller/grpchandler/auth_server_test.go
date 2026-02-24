@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tuannm99/podzone/internal/auth/domain/dto"
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
+	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
 	inputmocks "github.com/tuannm99/podzone/internal/auth/domain/inputport/mocks"
 	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
 )
@@ -53,10 +53,10 @@ func TestGoogleCallback_OK(t *testing.T) {
 	srv, uc := newServerWithMock()
 	ctx := context.Background()
 
-	cb := &dto.GoogleCallbackResp{
+	cb := &inputport.GoogleCallbackResult{
 		JwtToken:    "jwt-abc",
 		RedirectUrl: "https://app.example.com?token=jwt-abc",
-		UserInfo: dto.UserInfoResp{
+		UserInfo: inputport.GoogleUserInfo{
 			Id:    "gid-1",
 			Email: "neo@mx.io",
 			Name:  "Neo",
@@ -84,7 +84,7 @@ func TestGoogleCallback_Err(t *testing.T) {
 	ctx := context.Background()
 
 	uc.On("HandleOAuthCallback", mock.Anything, "BAD", "STATE").
-		Return((*dto.GoogleCallbackResp)(nil), assert.AnError)
+		Return((*inputport.GoogleCallbackResult)(nil), assert.AnError)
 
 	res, err := srv.GoogleCallback(ctx, &pbauthv1.GoogleCallbackRequest{
 		Code:  "BAD",
@@ -122,7 +122,7 @@ func TestLogin_OK(t *testing.T) {
 		Username: "jdoe",
 	}
 	uc.On("Login", mock.Anything, "jdoe", "pass").
-		Return(&dto.LoginResp{
+		Return(&inputport.AuthResult{
 			JwtToken: "jwt-login",
 			UserInfo: user,
 		}, nil)
@@ -145,7 +145,7 @@ func TestLogin_Err(t *testing.T) {
 	ctx := context.Background()
 
 	uc.On("Login", mock.Anything, "jdoe", "bad").
-		Return((*dto.LoginResp)(nil), assert.AnError)
+		Return((*inputport.AuthResult)(nil), assert.AnError)
 
 	res, err := srv.Login(ctx, &pbauthv1.LoginRequest{
 		Username: "jdoe",
@@ -166,7 +166,7 @@ func TestRegister_OK(t *testing.T) {
 		Password: "TheOne!",
 		Email:    "neo@mx.io",
 	}
-	out := &dto.RegisterResp{
+	out := &inputport.AuthResult{
 		JwtToken: "jwt-reg",
 		UserInfo: entity.User{
 			Id:       9,
@@ -176,7 +176,7 @@ func TestRegister_OK(t *testing.T) {
 	}
 
 	// Dùng MatchedBy để không phụ thuộc chi tiết mapping (toolkit.MapStruct)
-	uc.On("Register", mock.Anything, mock.MatchedBy(func(r dto.RegisterReq) bool {
+	uc.On("Register", mock.Anything, mock.MatchedBy(func(r inputport.RegisterCmd) bool {
 		return r.Username == "neo" && r.Password == "TheOne!" && r.Email == "neo@mx.io"
 	})).Return(out, nil)
 
@@ -199,8 +199,8 @@ func TestRegister_Err(t *testing.T) {
 		Password: "x",
 		Email:    "neo@mx.io",
 	}
-	uc.On("Register", mock.Anything, mock.AnythingOfType("dto.RegisterReq")).
-		Return((*dto.RegisterResp)(nil), assert.AnError)
+	uc.On("Register", mock.Anything, mock.AnythingOfType("inputport.RegisterCmd")).
+		Return((*inputport.AuthResult)(nil), assert.AnError)
 
 	res, err := srv.Register(ctx, inReq)
 	require.Error(t, err)

@@ -8,7 +8,7 @@ import (
 	"context"
 
 	mock "github.com/stretchr/testify/mock"
-	"github.com/tuannm99/podzone/internal/auth/domain/dto"
+	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
 )
 
 // NewMockAuthUsecase creates a new instance of MockAuthUsecase. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -99,23 +99,23 @@ func (_c *MockAuthUsecase_GenerateOAuthURL_Call) RunAndReturn(run func(ctx conte
 }
 
 // HandleOAuthCallback provides a mock function for the type MockAuthUsecase
-func (_mock *MockAuthUsecase) HandleOAuthCallback(ctx context.Context, code string, state string) (*dto.GoogleCallbackResp, error) {
+func (_mock *MockAuthUsecase) HandleOAuthCallback(ctx context.Context, code string, state string) (*inputport.GoogleCallbackResult, error) {
 	ret := _mock.Called(ctx, code, state)
 
 	if len(ret) == 0 {
 		panic("no return value specified for HandleOAuthCallback")
 	}
 
-	var r0 *dto.GoogleCallbackResp
+	var r0 *inputport.GoogleCallbackResult
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (*dto.GoogleCallbackResp, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (*inputport.GoogleCallbackResult, error)); ok {
 		return returnFunc(ctx, code, state)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) *dto.GoogleCallbackResp); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) *inputport.GoogleCallbackResult); ok {
 		r0 = returnFunc(ctx, code, state)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*dto.GoogleCallbackResp)
+			r0 = ret.Get(0).(*inputport.GoogleCallbackResult)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
@@ -162,34 +162,34 @@ func (_c *MockAuthUsecase_HandleOAuthCallback_Call) Run(run func(ctx context.Con
 	return _c
 }
 
-func (_c *MockAuthUsecase_HandleOAuthCallback_Call) Return(googleCallbackResp *dto.GoogleCallbackResp, err error) *MockAuthUsecase_HandleOAuthCallback_Call {
-	_c.Call.Return(googleCallbackResp, err)
+func (_c *MockAuthUsecase_HandleOAuthCallback_Call) Return(googleCallbackResult *inputport.GoogleCallbackResult, err error) *MockAuthUsecase_HandleOAuthCallback_Call {
+	_c.Call.Return(googleCallbackResult, err)
 	return _c
 }
 
-func (_c *MockAuthUsecase_HandleOAuthCallback_Call) RunAndReturn(run func(ctx context.Context, code string, state string) (*dto.GoogleCallbackResp, error)) *MockAuthUsecase_HandleOAuthCallback_Call {
+func (_c *MockAuthUsecase_HandleOAuthCallback_Call) RunAndReturn(run func(ctx context.Context, code string, state string) (*inputport.GoogleCallbackResult, error)) *MockAuthUsecase_HandleOAuthCallback_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Login provides a mock function for the type MockAuthUsecase
-func (_mock *MockAuthUsecase) Login(ctx context.Context, username string, password string) (*dto.LoginResp, error) {
+func (_mock *MockAuthUsecase) Login(ctx context.Context, username string, password string) (*inputport.AuthResult, error) {
 	ret := _mock.Called(ctx, username, password)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Login")
 	}
 
-	var r0 *dto.LoginResp
+	var r0 *inputport.AuthResult
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (*dto.LoginResp, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (*inputport.AuthResult, error)); ok {
 		return returnFunc(ctx, username, password)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) *dto.LoginResp); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) *inputport.AuthResult); ok {
 		r0 = returnFunc(ctx, username, password)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*dto.LoginResp)
+			r0 = ret.Get(0).(*inputport.AuthResult)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
@@ -236,12 +236,12 @@ func (_c *MockAuthUsecase_Login_Call) Run(run func(ctx context.Context, username
 	return _c
 }
 
-func (_c *MockAuthUsecase_Login_Call) Return(loginResp *dto.LoginResp, err error) *MockAuthUsecase_Login_Call {
-	_c.Call.Return(loginResp, err)
+func (_c *MockAuthUsecase_Login_Call) Return(authResult *inputport.AuthResult, err error) *MockAuthUsecase_Login_Call {
+	_c.Call.Return(authResult, err)
 	return _c
 }
 
-func (_c *MockAuthUsecase_Login_Call) RunAndReturn(run func(ctx context.Context, username string, password string) (*dto.LoginResp, error)) *MockAuthUsecase_Login_Call {
+func (_c *MockAuthUsecase_Login_Call) RunAndReturn(run func(ctx context.Context, username string, password string) (*inputport.AuthResult, error)) *MockAuthUsecase_Login_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -307,26 +307,26 @@ func (_c *MockAuthUsecase_Logout_Call) RunAndReturn(run func(ctx context.Context
 }
 
 // Register provides a mock function for the type MockAuthUsecase
-func (_mock *MockAuthUsecase) Register(ctx context.Context, req dto.RegisterReq) (*dto.RegisterResp, error) {
+func (_mock *MockAuthUsecase) Register(ctx context.Context, req inputport.RegisterCmd) (*inputport.AuthResult, error) {
 	ret := _mock.Called(ctx, req)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Register")
 	}
 
-	var r0 *dto.RegisterResp
+	var r0 *inputport.AuthResult
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, dto.RegisterReq) (*dto.RegisterResp, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.RegisterCmd) (*inputport.AuthResult, error)); ok {
 		return returnFunc(ctx, req)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, dto.RegisterReq) *dto.RegisterResp); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.RegisterCmd) *inputport.AuthResult); ok {
 		r0 = returnFunc(ctx, req)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*dto.RegisterResp)
+			r0 = ret.Get(0).(*inputport.AuthResult)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, dto.RegisterReq) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, inputport.RegisterCmd) error); ok {
 		r1 = returnFunc(ctx, req)
 	} else {
 		r1 = ret.Error(1)
@@ -341,20 +341,20 @@ type MockAuthUsecase_Register_Call struct {
 
 // Register is a helper method to define mock.On call
 //   - ctx context.Context
-//   - req dto.RegisterReq
+//   - req inputport.RegisterCmd
 func (_e *MockAuthUsecase_Expecter) Register(ctx interface{}, req interface{}) *MockAuthUsecase_Register_Call {
 	return &MockAuthUsecase_Register_Call{Call: _e.mock.On("Register", ctx, req)}
 }
 
-func (_c *MockAuthUsecase_Register_Call) Run(run func(ctx context.Context, req dto.RegisterReq)) *MockAuthUsecase_Register_Call {
+func (_c *MockAuthUsecase_Register_Call) Run(run func(ctx context.Context, req inputport.RegisterCmd)) *MockAuthUsecase_Register_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 dto.RegisterReq
+		var arg1 inputport.RegisterCmd
 		if args[1] != nil {
-			arg1 = args[1].(dto.RegisterReq)
+			arg1 = args[1].(inputport.RegisterCmd)
 		}
 		run(
 			arg0,
@@ -364,12 +364,12 @@ func (_c *MockAuthUsecase_Register_Call) Run(run func(ctx context.Context, req d
 	return _c
 }
 
-func (_c *MockAuthUsecase_Register_Call) Return(registerResp *dto.RegisterResp, err error) *MockAuthUsecase_Register_Call {
-	_c.Call.Return(registerResp, err)
+func (_c *MockAuthUsecase_Register_Call) Return(authResult *inputport.AuthResult, err error) *MockAuthUsecase_Register_Call {
+	_c.Call.Return(authResult, err)
 	return _c
 }
 
-func (_c *MockAuthUsecase_Register_Call) RunAndReturn(run func(ctx context.Context, req dto.RegisterReq) (*dto.RegisterResp, error)) *MockAuthUsecase_Register_Call {
+func (_c *MockAuthUsecase_Register_Call) RunAndReturn(run func(ctx context.Context, req inputport.RegisterCmd) (*inputport.AuthResult, error)) *MockAuthUsecase_Register_Call {
 	_c.Call.Return(run)
 	return _c
 }

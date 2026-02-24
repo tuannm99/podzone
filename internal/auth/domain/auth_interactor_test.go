@@ -21,8 +21,8 @@ import (
 
 	// domain
 	"github.com/tuannm99/podzone/internal/auth/config"
-	"github.com/tuannm99/podzone/internal/auth/domain/dto"
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
+	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
 )
 
@@ -147,7 +147,7 @@ func TestRegister_Success(t *testing.T) {
 
 	uc := newUC(t, uuc, tuc, ext, ur, sr)
 
-	resp, err := uc.Register(ctx, dto.RegisterReq{
+	resp, err := uc.Register(ctx, inputport.RegisterCmd{
 		Username: "neo", Password: "TheOne!", Email: "neo@mx.io",
 	})
 	require.NoError(t, err)
