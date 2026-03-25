@@ -14,6 +14,14 @@ type UpsertConnectionRequest struct {
 	Status    string                 `json:"status"`
 	Meta      map[string]string      `json:"meta"`
 	Config    map[string]interface{} `json:"config"`
+
+	// Placement fields — only for infra_type == postgres.
+	// When provided, onboarding also writes podzone/tenants/{tenantID}/placement
+	// to Consul so that pdtenantdb can route queries to the correct cluster/schema.
+	ClusterName string `json:"cluster_name"`
+	Mode        string `json:"mode"` // "schema" | "database"
+	DBName      string `json:"db_name"`
+	SchemaName  string `json:"schema_name"` // only for mode=schema
 }
 
 type UpsertConnectionResponse struct {
@@ -94,4 +102,3 @@ func toEventDTO(e core.ConnectionEvent) ConnectionEventDTO {
 		CreatedAt:     e.CreatedAt,
 	}
 }
-

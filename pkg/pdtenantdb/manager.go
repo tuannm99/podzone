@@ -34,6 +34,10 @@ type managerImpl struct {
 
 	// Track last used for dedicated DB pools (to close idle pools)
 	lastUsed map[ConnKey]time.Time
+
+	// bootstrapped tracks schemas that have already had CREATE SCHEMA IF NOT EXISTS run,
+	// keyed by "clusterName|dbName|schemaName".
+	bootstrapped sync.Map
 }
 
 func NewManager(cfg *Config, resolver PlacementResolver, registry ClusterRegistry) Manager {
@@ -90,10 +94,29 @@ func (m *managerImpl) DBForTenant(ctx context.Context, tenantID string) (*sqlx.D
 		return nil, Placement{}, err
 	}
 
+	if pl.Mode == ModeSchema && pl.SchemaName != "" {
+		if err := m.ensureSchema(ctx, db, key, pl.SchemaName); err != nil {
+			return nil, Placement{}, err
+		}
+	}
+
 	if pl.Mode == ModeDatabase && key.DBName != m.cfg.SharedDB {
 		m.markUsed(key)
 	}
 	return db, pl, nil
+}
+
+func (m *managerImpl) ensureSchema(ctx context.Context, db *sqlx.DB, key ConnKey, schemaName string) error {
+	bsKey := key.ClusterName + "|" + key.DBName + "|" + schemaName
+	if _, loaded := m.bootstrapped.LoadOrStore(bsKey, struct{}{}); loaded {
+		return nil
+	}
+	_, err := db.ExecContext(ctx, fmt.Sprintf(`CREATE SCHEMA IF NOT EXISTS %s`, pgQuoteIdent(schemaName)))
+	if err != nil {
+		// Remove so the next call can retry.
+		m.bootstrapped.Delete(bsKey)
+	}
+	return err
 }
 
 func (m *managerImpl) WithTenantTx(

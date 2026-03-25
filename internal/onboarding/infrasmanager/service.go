@@ -136,6 +136,34 @@ func (s *Service) ManualUpsertConnection(
 		return nil, err
 	}
 
+	// For postgres connections, also write placement routing data so that
+	// pdtenantdb's ConsulPlacementResolver can route tenant queries.
+	if req.InfraType == core.InfraPostgres && req.ClusterName != "" {
+		placementKey := "podzone/tenants/" + tenantID + "/placement"
+		placementSnap := map[string]interface{}{
+			"cluster_name": req.ClusterName,
+			"mode":         firstNonEmpty(req.Mode, "schema"),
+			"db_name":      req.DBName,
+			"schema_name":  req.SchemaName,
+		}
+		if placementBytes, err := json.Marshal(placementSnap); err == nil {
+			_ = s.st.EnqueueOutbox(core.OutboxMessage{
+				EventID:       uuid.NewString(),
+				CorrelationID: corrID,
+				Topic:         "consul.publish",
+				Payload:       map[string]interface{}{"key": placementKey, "value": string(placementBytes)},
+				TenantID:      tenantID,
+				InfraType:     req.InfraType,
+				Name:          name,
+				Status:        "pending",
+				RetryCount:    0,
+				NextRetry:     time.Now(),
+				CreatedAt:     time.Now(),
+				UpdatedAt:     time.Now(),
+			})
+		}
+	}
+
 	_ = s.st.AppendEvent(core.ConnectionEvent{
 		ID:            uuid.NewString(),
 		CorrelationID: corrID,

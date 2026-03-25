@@ -11,7 +11,7 @@ var Module = fx.Module(
 	fx.Provide(
 		NewDefaultConsulClusterRegistry,
 		NewManager,
-		NewStaticPlacementResolver,
+		NewConsulPlacementResolver,
 	),
 	fx.Invoke(func(lc fx.Lifecycle, m Manager) {
 		lc.Append(fx.Hook{
