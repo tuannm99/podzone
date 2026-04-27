@@ -1,0 +1,122 @@
+services:
+  auth-service:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile.go-dev
+    container_name: podzone-auth-dev
+    working_dir: /workspace
+    command:
+      [
+        'air',
+        '--build.cmd',
+        'go build -o ./bin/auth ./cmd/auth/main.go',
+        '--build.bin',
+        './bin/auth',
+      ]
+    environment:
+      CONFIG_PATH: deployments/docker/config/auth.yml
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      OAUTH_REDIRECT_URL: ${OAUTH_REDIRECT_URL:-}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret}
+      APP_REDIRECT_URL: ${APP_REDIRECT_URL:-http://localhost:3000}
+    volumes:
+      - ../../:/workspace
+      - podzone_go_mod_cache:/go/pkg/mod
+      - podzone_go_build_cache:/root/.cache/go-build
+    depends_on:
+      redis:
+        condition: service_healthy
+      pgbouncer:
+        condition: service_started
+    ports:
+      - '50051:50051'
+
+  catalog-service:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile.go-dev
+    container_name: podzone-catalog-dev
+    working_dir: /workspace
+    command:
+      [
+        'air',
+        '--build.cmd',
+        'go build -o ./bin/catalog ./cmd/catalog/main.go',
+        '--build.bin',
+        './bin/catalog',
+      ]
+    environment:
+      CONFIG_PATH: cmd/catalog/config.yml
+    volumes:
+      - ../../:/workspace
+      - podzone_go_mod_cache:/go/pkg/mod
+      - podzone_go_build_cache:/root/.cache/go-build
+    depends_on:
+      redis:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    ports:
+      - '50052:50051'
+
+  grpc-gateway:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile.go-dev
+    container_name: podzone-grpcgateway-dev
+    working_dir: /workspace
+    command:
+      [
+        'air',
+        '--build.cmd',
+        'go build -o ./bin/grpcgateway ./cmd/grpcgateway/main.go',
+        '--build.bin',
+        './bin/grpcgateway',
+      ]
+    environment:
+      CONFIG_PATH: cmd/grpcgateway/config.yml
+      GW_HTTP_PORT: '8080'
+      AUTH_GRPC_ADDR: auth-service:50051
+      CATALOG_GRPC_ADDR: catalog-service:50051
+      ORDER_GRPC_ADDR: order-service:50051
+      PAYMENT_GRPC_ADDR: payment-service:50051
+      CART_GRPC_ADDR: cart-service:50051
+    volumes:
+      - ../../:/workspace
+      - podzone_go_mod_cache:/go/pkg/mod
+      - podzone_go_build_cache:/root/.cache/go-build
+    depends_on:
+      auth-service:
+        condition: service_started
+      catalog-service:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    ports:
+      - '8080:8080'
+
+  ui-podzone:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile.ui-dev
+    container_name: podzone-ui-dev
+    working_dir: /app
+    command: ['npm', 'run', 'dev', '--', '--host', '0.0.0.0', '--port', '3000']
+    environment:
+      VITE_PODZONE_GW_API_URL: http://localhost:8080
+      VITE_PODZONE_GRAPHQL_API_URL: http://localhost:8000/graphql
+      VITE_API_PROXY_TARGET: http://grpc-gateway:8080
+    volumes:
+      - ../../internal/ui-podzone:/app
+      - podzone_ui_node_modules:/app/node_modules
+    depends_on:
+      grpc-gateway:
+        condition: service_started
+    ports:
+      - '3000:3000'
+
+volumes:
+  podzone_go_mod_cache:
+  podzone_go_build_cache:
+  podzone_ui_node_modules:

@@ -1,4 +1,4 @@
-.PHONY: all proto swagger build test lint dev down clean help
+.PHONY: all proto swagger build test lint dev down clean help docker-dev docker-dev-infra docker-dev-down
 
 GO := go
 
@@ -35,6 +35,15 @@ test:
 lint:
 	@echo "$(COLOR_GREEN)Running linter...$(COLOR_RESET)"
 	golangci-lint run ./...
+
+docker-dev-infra:
+	docker compose -f deployments/docker/infras.yml up -d
+
+docker-dev:
+	docker compose -f deployments/docker/infras.yml -f deployments/docker/services.yml up --build
+
+docker-dev-down:
+	docker compose -f deployments/docker/infras.yml -f deployments/docker/services.yml down
 
 gql-backoffice:
 	go run github.com/99designs/gqlgen generate
@@ -135,6 +144,9 @@ help:
 	@echo "  make lint                             - Run linter"
 	@echo "  make portfw                           - Portfowrding"
 	@echo "  make dev SVC=${service}               - Run service"
+	@echo "  make docker-dev                       - Run dockerized dev infra + hot reload services"
+	@echo "  make docker-dev-infra                 - Run only dockerized dev infrastructure"
+	@echo "  make docker-dev-down                  - Stop dockerized dev infra + services"
 	@echo "  make gql-backoffice                   - Generate backoffice graphql"
 	@echo "  make k8s ENV=${env} SVC=${service}    - Deploy service to k8s dev EG: make k8s ENV="staging" SVC="grpcgateway catalog auth storefront backoffice""
 	@echo "  make k8s-ui ENV=${env} SVC=${service} - Deploy service to k8s dev EG: make k8s-ui ENV="staging" SVC="ui-podzone""

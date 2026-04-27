@@ -5,29 +5,37 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
     "@apollo/client": "^4.0.11",
-    "antd": "^5.25.0",
+    "@codemirror/lang-go": "^6.0.1",
+    "@codemirror/lang-javascript": "^6.2.5",
+    "@codemirror/lang-python": "^6.2.1",
+    "@codemirror/lang-rust": "^6.0.2",
+    "@replit/codemirror-vim": "^6.3.0",
+    "@tanstack/solid-router": "^1.168.17",
+    "@toast-ui/editor": "^3.1.0",
     "axios": "^1.9.0",
+    "codemirror": "^6.0.2",
+    "flowbite": "^4.0.1",
     "graphql": "^16.12.0",
-    "nprogress": "^0.2.0",
-    "react": "^18.1.0",
-    "react-dom": "^18.1.0",
-    "react-router-dom": "^7.5.3",
-    "react-toastify": "^11.0.5"
+    "qrcode": "^1.5.4",
+    "solid-js": "^1.9.9"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
-    "@types/react": "^18.1.2",
-    "@vitejs/plugin-react-swc": "^3.9.0",
+    "@tailwindcss/vite": "^4.2.2",
+    "@types/node": "^24.12.0",
     "eslint": "^9.25.0",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
-    "vite": "^6.3.5"
+    "prettier": "^3.6.2",
+    "tailwindcss": "^4.2.2",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.57.0",
+    "vite": "^8.0.10",
+    "vite-plugin-solid": "^2.11.8"
   }
 }
