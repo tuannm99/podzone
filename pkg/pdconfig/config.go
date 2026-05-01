@@ -55,4 +55,3 @@ func NewAppConfig() (*koanf.Koanf, error) {
 
 	return k, nil
 }
-

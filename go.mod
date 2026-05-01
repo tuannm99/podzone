@@ -1,6 +1,6 @@
 module github.com/tuannm99/podzone
 
-go 1.25.1
+go 1.26.0
 
 require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.1

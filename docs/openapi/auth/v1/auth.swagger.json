@@ -82,6 +82,271 @@
         ]
       }
     },
+    "/auth/v1/iam/permissions:check": {
+      "post": {
+        "operationId": "AuthService_CheckPermission",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authCheckPermissionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authCheckPermissionRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/auth/v1/iam/tenants": {
+      "post": {
+        "operationId": "AuthService_CreateTenant",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authCreateTenantResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authCreateTenantRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/auth/v1/iam/tenants/{tenantId}/members": {
+      "get": {
+        "operationId": "AuthService_ListTenantMembers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authListTenantMembersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      },
+      "post": {
+        "operationId": "AuthService_AddTenantMember",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authAddTenantMemberResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AuthServiceAddTenantMemberBody"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/auth/v1/iam/tenants/{tenantId}/members/{userId}": {
+      "get": {
+        "operationId": "AuthService_GetTenantMembership",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authGetTenantMembershipResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      },
+      "delete": {
+        "operationId": "AuthService_RemoveTenantMember",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authRemoveTenantMemberResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/auth/v1/iam/tenants:switch": {
+      "post": {
+        "operationId": "AuthService_SwitchActiveTenant",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authSwitchActiveTenantResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authSwitchActiveTenantRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/auth/v1/iam/users/{userId}/tenants": {
+      "get": {
+        "operationId": "AuthService_ListUserTenants",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authListUserTenantsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
     "/auth/v1/login": {
       "post": {
         "operationId": "AuthService_Login",
@@ -115,7 +380,7 @@
       }
     },
     "/auth/v1/logout": {
-      "get": {
+      "post": {
         "operationId": "AuthService_Logout",
         "responses": {
           "200": {
@@ -133,10 +398,44 @@
         },
         "parameters": [
           {
-            "name": "token",
-            "in": "query",
-            "required": false,
-            "type": "string"
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authLogoutRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/auth/v1/refresh": {
+      "post": {
+        "operationId": "AuthService_RefreshToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authRefreshTokenResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authRefreshTokenRequest"
+            }
           }
         ],
         "tags": [
@@ -175,9 +474,119 @@
           "AuthService"
         ]
       }
+    },
+    "/auth/v1/sessions/{sessionId}": {
+      "get": {
+        "operationId": "AuthService_GetSession",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authGetSessionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
     }
   },
   "definitions": {
+    "AuthServiceAddTenantMemberBody": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "roleName": {
+          "type": "string"
+        }
+      }
+    },
+    "authAddTenantMemberResponse": {
+      "type": "object"
+    },
+    "authCheckPermissionRequest": {
+      "type": "object",
+      "properties": {
+        "tenantId": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "permission": {
+          "type": "string"
+        }
+      }
+    },
+    "authCheckPermissionResponse": {
+      "type": "object",
+      "properties": {
+        "allowed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "authCreateTenantRequest": {
+      "type": "object",
+      "properties": {
+        "ownerUserId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "authCreateTenantResponse": {
+      "type": "object",
+      "properties": {
+        "tenant": {
+          "$ref": "#/definitions/authTenant"
+        },
+        "ownerMembership": {
+          "$ref": "#/definitions/authTenantMembership"
+        }
+      }
+    },
+    "authGetSessionResponse": {
+      "type": "object",
+      "properties": {
+        "session": {
+          "$ref": "#/definitions/authSession"
+        }
+      }
+    },
+    "authGetTenantMembershipResponse": {
+      "type": "object",
+      "properties": {
+        "membership": {
+          "$ref": "#/definitions/authTenantMembership"
+        }
+      }
+    },
     "authGoogleCallbackResponse": {
       "type": "object",
       "properties": {
@@ -226,6 +635,30 @@
         }
       }
     },
+    "authListTenantMembersResponse": {
+      "type": "object",
+      "properties": {
+        "memberships": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/authTenantMembership"
+          }
+        }
+      }
+    },
+    "authListUserTenantsResponse": {
+      "type": "object",
+      "properties": {
+        "memberships": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/authTenantMembership"
+          }
+        }
+      }
+    },
     "authLoginRequest": {
       "type": "object",
       "properties": {
@@ -245,6 +678,17 @@
         },
         "userInfo": {
           "$ref": "#/definitions/authUserInfo"
+        },
+        "refreshToken": {
+          "type": "string"
+        }
+      }
+    },
+    "authLogoutRequest": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
         }
       }
     },
@@ -255,6 +699,28 @@
           "type": "boolean"
         },
         "redirectUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "authRefreshTokenRequest": {
+      "type": "object",
+      "properties": {
+        "refreshToken": {
+          "type": "string"
+        }
+      }
+    },
+    "authRefreshTokenResponse": {
+      "type": "object",
+      "properties": {
+        "jwtToken": {
+          "type": "string"
+        },
+        "userInfo": {
+          "$ref": "#/definitions/authUserInfo"
+        },
+        "refreshToken": {
           "type": "string"
         }
       }
@@ -281,6 +747,119 @@
         },
         "userInfo": {
           "$ref": "#/definitions/authUserInfo"
+        },
+        "refreshToken": {
+          "type": "string"
+        }
+      }
+    },
+    "authRemoveTenantMemberResponse": {
+      "type": "object"
+    },
+    "authSession": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "activeTenantId": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        },
+        "expiresAt": {
+          "type": "string"
+        },
+        "revokedAt": {
+          "type": "string"
+        }
+      }
+    },
+    "authSwitchActiveTenantRequest": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "tenantId": {
+          "type": "string"
+        },
+        "accessToken": {
+          "type": "string"
+        }
+      }
+    },
+    "authSwitchActiveTenantResponse": {
+      "type": "object",
+      "properties": {
+        "jwtToken": {
+          "type": "string"
+        },
+        "userInfo": {
+          "$ref": "#/definitions/authUserInfo"
+        },
+        "refreshToken": {
+          "type": "string"
+        }
+      }
+    },
+    "authTenant": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      }
+    },
+    "authTenantMembership": {
+      "type": "object",
+      "properties": {
+        "tenantId": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "roleId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "roleName": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
         }
       }
     },

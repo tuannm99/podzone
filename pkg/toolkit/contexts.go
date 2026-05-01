@@ -9,11 +9,13 @@ import (
 )
 
 var ErrTenantNotFound = errors.New("tenant not found")
+var ErrUserNotFound = errors.New("user not found")
 
 type ContextKey string
 
 const (
 	TenantIDKey ContextKey = "tenant_id"
+	UserIDKey   ContextKey = "user_id"
 )
 
 func WithTenantID(ctx context.Context, tenantID string) context.Context {
@@ -26,6 +28,18 @@ func GetTenantID(ctx context.Context) (string, error) {
 		return "", ErrTenantNotFound
 	}
 	return tenantID, nil
+}
+
+func WithUserID(ctx context.Context, userID string) context.Context {
+	return context.WithValue(ctx, UserIDKey, userID)
+}
+
+func GetUserID(ctx context.Context) (string, error) {
+	userID, ok := ctx.Value(UserIDKey).(string)
+	if !ok || userID == "" {
+		return "", ErrUserNotFound
+	}
+	return userID, nil
 }
 
 func GetTenantIDFromGinCtx(ctx *gin.Context) (string, bool) {

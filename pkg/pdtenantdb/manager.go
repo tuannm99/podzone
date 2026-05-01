@@ -34,6 +34,7 @@ type managerImpl struct {
 
 	// Track last used for dedicated DB pools (to close idle pools)
 	lastUsed map[ConnKey]time.Time
+	creating map[ConnKey]struct{}
 
 	// bootstrapped tracks schemas that have already had CREATE SCHEMA IF NOT EXISTS run,
 	// keyed by "clusterName|dbName|schemaName".
@@ -66,6 +67,7 @@ func NewManager(cfg *Config, resolver PlacementResolver, registry ClusterRegistr
 		registry: registry,
 		pools:    make(map[ConnKey]*sqlx.DB),
 		lastUsed: make(map[ConnKey]time.Time),
+		creating: make(map[ConnKey]struct{}),
 	}
 }
 
@@ -82,25 +84,25 @@ func (m *managerImpl) DBForTenant(ctx context.Context, tenantID string) (*sqlx.D
 	}
 	key := ConnKey{ClusterName: pl.ClusterName, DBName: pl.DBName}
 
-	// Cap dedicated pools (DB-per-tenant)
-	if pl.Mode == ModeDatabase && key.DBName != m.cfg.SharedDB {
-		if err := m.ensureDedicatedCapacity(); err != nil {
-			return nil, Placement{}, err
-		}
-	}
-
-	db, err := m.getOrCreateDB(ctx, key)
+	dedicated := pl.Mode == ModeDatabase && key.DBName != m.cfg.SharedDB
+	db, err := m.getOrCreateDB(ctx, key, dedicated)
 	if err != nil {
 		return nil, Placement{}, err
 	}
 
-	if pl.Mode == ModeSchema && pl.SchemaName != "" {
+	if pl.Mode == ModeSchema {
+		if pl.SchemaName == "" {
+			return nil, Placement{}, fmt.Errorf(
+				"pdtenantdb: missing schema_name for tenant %s in schema mode",
+				tenantID,
+			)
+		}
 		if err := m.ensureSchema(ctx, db, key, pl.SchemaName); err != nil {
 			return nil, Placement{}, err
 		}
 	}
 
-	if pl.Mode == ModeDatabase && key.DBName != m.cfg.SharedDB {
+	if dedicated {
 		m.markUsed(key)
 	}
 	return db, pl, nil
@@ -153,7 +155,7 @@ func (m *managerImpl) WithTenantTx(
 	return tx.Commit()
 }
 
-func (m *managerImpl) getOrCreateDB(ctx context.Context, key ConnKey) (*sqlx.DB, error) {
+func (m *managerImpl) getOrCreateDB(ctx context.Context, key ConnKey, dedicated bool) (*sqlx.DB, error) {
 	m.mu.Lock()
 	if db := m.pools[key]; db != nil {
 		m.mu.Unlock()
@@ -167,7 +169,16 @@ func (m *managerImpl) getOrCreateDB(ctx context.Context, key ConnKey) (*sqlx.DB,
 			m.mu.Unlock()
 			return db, nil
 		}
+		if dedicated {
+			if err := m.reserveDedicatedLocked(key); err != nil {
+				m.mu.Unlock()
+				return nil, err
+			}
+		}
 		m.mu.Unlock()
+		if dedicated {
+			defer m.releaseDedicatedReservation(key)
+		}
 
 		clusterCfg, err := m.registry.GetCluster(ctx, key.ClusterName)
 		if err != nil {
@@ -200,20 +211,28 @@ func (m *managerImpl) getOrCreateDB(ctx context.Context, key ConnKey) (*sqlx.DB,
 	return v.(*sqlx.DB), nil
 }
 
-func (m *managerImpl) ensureDedicatedCapacity() error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
+func (m *managerImpl) reserveDedicatedLocked(key ConnKey) error {
+	if _, exists := m.creating[key]; exists {
+		return nil
+	}
 	count := 0
 	for k := range m.pools {
 		if k.DBName != m.cfg.SharedDB {
 			count++
 		}
 	}
+	count += len(m.creating)
 	if count >= m.cfg.MaxDedicatedPools {
-		return fmt.Errorf("pdtenantdb: dedicated pool capacity reached (%d)", m.cfg.MaxDedicatedPools)
+		return fmt.Errorf("%w (%d)", ErrDedicatedPoolCapacity, m.cfg.MaxDedicatedPools)
 	}
+	m.creating[key] = struct{}{}
 	return nil
+}
+
+func (m *managerImpl) releaseDedicatedReservation(key ConnKey) {
+	m.mu.Lock()
+	delete(m.creating, key)
+	m.mu.Unlock()
 }
 
 func (m *managerImpl) markUsed(key ConnKey) {

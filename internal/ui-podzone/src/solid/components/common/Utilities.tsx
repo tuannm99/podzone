@@ -1,21 +1,21 @@
-import { Show, createSignal, type ParentProps } from 'solid-js'
-import { classes } from '../../shared/utils'
+import { Show, createSignal, type ParentProps } from 'solid-js';
+import { classes } from '../../shared/utils';
 
 export function ClipboardButton(props: {
-  text: string
-  label?: string
-  copiedLabel?: string
-  class?: string
+  text: string;
+  label?: string;
+  copiedLabel?: string;
+  class?: string;
 }) {
-  const [copied, setCopied] = createSignal(false)
+  const [copied, setCopied] = createSignal(false);
 
   async function handleCopy() {
     try {
-      await navigator.clipboard.writeText(props.text)
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 1500)
+      await navigator.clipboard.writeText(props.text);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
     } catch {
-      setCopied(false)
+      setCopied(false);
     }
   }
 
@@ -29,20 +29,24 @@ export function ClipboardButton(props: {
       )}
       onClick={() => void handleCopy()}
     >
-      <span>{copied() ? (props.copiedLabel ?? 'Copied') : (props.label ?? 'Copy')}</span>
+      <span>
+        {copied() ? (props.copiedLabel ?? 'Copied') : (props.label ?? 'Copy')}
+      </span>
     </button>
-  )
+  );
 }
 
 export function DeviceMockup(
   props: ParentProps<{
-    label?: string
-    class?: string
-    screenClass?: string
+    label?: string;
+    class?: string;
+    screenClass?: string;
   }>
 ) {
   return (
-    <div class={classes('inline-flex flex-col items-center gap-3', props.class)}>
+    <div
+      class={classes('inline-flex flex-col items-center gap-3', props.class)}
+    >
       <div class="rounded-[2.5rem] border-8 border-gray-900 bg-gray-900 p-3 shadow-2xl">
         <div class="mx-auto mb-3 h-1.5 w-20 rounded-full bg-gray-700" />
         <div
@@ -58,5 +62,5 @@ export function DeviceMockup(
         <p class="text-sm font-medium text-gray-500">{props.label}</p>
       </Show>
     </div>
-  )
+  );
 }

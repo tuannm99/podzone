@@ -5,6 +5,7 @@ import {
   lazyRouteComponent,
   redirect,
 } from '@tanstack/solid-router';
+import { ensureActiveTenant } from '../services/auth';
 import Root from './root';
 import { tokenStorage } from '../services/tokenStorage';
 
@@ -16,6 +17,15 @@ function requireAuth() {
 
 function requireGuest() {
   if (tokenStorage.getToken()) {
+    throw redirect({ to: '/admin' });
+  }
+}
+
+async function requireTenantAccess(tenantId: string) {
+  requireAuth();
+
+  const { success } = await ensureActiveTenant(tenantId);
+  if (!success) {
     throw redirect({ to: '/admin' });
   }
 }
@@ -66,14 +76,14 @@ const adminSettingsRoute = createRoute({
 const tenantHomeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/t/$tenantId',
-  beforeLoad: requireAuth,
+  beforeLoad: async ({ params }) => requireTenantAccess(params.tenantId),
   component: lazyRouteComponent(() => import('./pages/podzone/TenantHomePage')),
 });
 
 const tenantOrdersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/t/$tenantId/orders',
-  beforeLoad: requireAuth,
+  beforeLoad: async ({ params }) => requireTenantAccess(params.tenantId),
   component: lazyRouteComponent(
     () => import('./pages/podzone/TenantOrdersPage')
   ),

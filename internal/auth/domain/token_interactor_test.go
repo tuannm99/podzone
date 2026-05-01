@@ -40,6 +40,7 @@ func TestTokenUsecase_CreateJwtToken_Success(t *testing.T) {
 	assert.Equal(t, "neo@mx.io", claims.Email)
 	assert.Equal(t, "neo", claims.Username)
 	assert.Equal(t, "app-key", claims.Key)
+	assert.Empty(t, claims.ActiveTenantID)
 
 	now := time.Now().Unix()
 	assert.Greater(t, claims.ExpiresAt, now)
@@ -61,4 +62,27 @@ func TestTokenUsecase_CreateJwtToken_DifferentUsers_ProduceDifferentTokens(t *te
 	require.NotEmpty(t, t1)
 	require.NotEmpty(t, t2)
 	assert.NotEqual(t, t1, t2, "tokens for different users should differ")
+}
+
+func TestTokenUsecase_CreateJwtTokenForTenant_SetsActiveTenantClaim(t *testing.T) {
+	cfg := config.AuthConfig{
+		JWTSecret: "secret",
+		JWTKey:    "tenant-key",
+	}
+	uc := NewTokenUsecase(cfg)
+
+	tokenStr, err := uc.CreateJwtTokenForTenant(entity.User{
+		Id:       3,
+		Email:    "shop@podzone.io",
+		Username: "shop-owner",
+	}, "tenant-123")
+	require.NoError(t, err)
+
+	var claims entity.JWTClaims
+	parsed, err := jwt.ParseWithClaims(tokenStr, &claims, func(tok *jwt.Token) (interface{}, error) {
+		return []byte(cfg.JWTSecret), nil
+	})
+	require.NoError(t, err)
+	require.True(t, parsed.Valid)
+	assert.Equal(t, "tenant-123", claims.ActiveTenantID)
 }

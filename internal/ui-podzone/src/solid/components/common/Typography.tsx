@@ -1,8 +1,8 @@
-import type { ParentProps, JSX } from 'solid-js'
-import { Dynamic } from 'solid-js/web'
-import { classes } from '../../shared/utils'
+import type { ParentProps, JSX } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
+import { classes } from '../../shared/utils';
 
-type HeadingTag = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+type HeadingTag = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 
 const headingClasses: Record<HeadingTag, string> = {
   h1: 'text-4xl font-semibold tracking-tight sm:text-5xl',
@@ -10,25 +10,30 @@ const headingClasses: Record<HeadingTag, string> = {
   h3: 'text-2xl font-semibold tracking-tight',
   h4: 'text-xl font-semibold tracking-tight',
   h5: 'text-lg font-semibold',
-  h6: 'text-base font-semibold uppercase tracking-wide'
-}
+  h6: 'text-base font-semibold uppercase tracking-wide',
+};
 
 export function Heading(
   props: ParentProps<{
-    as?: HeadingTag
-    class?: string
+    as?: HeadingTag;
+    class?: string;
   }>
 ) {
-  const tag = () => props.as ?? 'h2'
+  const tag = () => props.as ?? 'h2';
 
   return (
-    <Dynamic component={tag()} class={classes('text-gray-900', headingClasses[tag()], props.class)}>
+    <Dynamic
+      component={tag()}
+      class={classes('text-gray-900', headingClasses[tag()], props.class)}
+    >
       {props.children}
     </Dynamic>
-  )
+  );
 }
 
-export function Paragraph(props: ParentProps<{ muted?: boolean; class?: string }>) {
+export function Paragraph(
+  props: ParentProps<{ muted?: boolean; class?: string }>
+) {
   return (
     <p
       class={classes(
@@ -39,27 +44,36 @@ export function Paragraph(props: ParentProps<{ muted?: boolean; class?: string }
     >
       {props.children}
     </p>
-  )
+  );
 }
 
-export function Blockquote(props: ParentProps<{ cite?: string; class?: string }>) {
+export function Blockquote(
+  props: ParentProps<{ cite?: string; class?: string }>
+) {
   return (
     <figure
-      class={classes('rounded-2xl border-s-4 border-blue-600 bg-blue-50 px-5 py-4', props.class)}
+      class={classes(
+        'rounded-2xl border-s-4 border-blue-600 bg-blue-50 px-5 py-4',
+        props.class
+      )}
     >
-      <blockquote class="text-base leading-7 text-gray-700">{props.children}</blockquote>
+      <blockquote class="text-base leading-7 text-gray-700">
+        {props.children}
+      </blockquote>
       {props.cite ? (
-        <figcaption class="mt-3 text-sm font-medium text-gray-500">{props.cite}</figcaption>
+        <figcaption class="mt-3 text-sm font-medium text-gray-500">
+          {props.cite}
+        </figcaption>
       ) : null}
     </figure>
-  )
+  );
 }
 
 export function TextLink(
   props: ParentProps<{
-    href: string
-    target?: string
-    class?: string
+    href: string;
+    target?: string;
+    class?: string;
   }>
 ) {
   return (
@@ -74,17 +88,20 @@ export function TextLink(
     >
       {props.children}
     </a>
-  )
+  );
 }
 
 export function InlineCode(props: ParentProps<{ class?: string }>) {
   return (
     <code
-      class={classes('rounded-md bg-gray-100 px-1.5 py-0.5 text-sm text-gray-800', props.class)}
+      class={classes(
+        'rounded-md bg-gray-100 px-1.5 py-0.5 text-sm text-gray-800',
+        props.class
+      )}
     >
       {props.children}
     </code>
-  )
+  );
 }
 
 export function Kbd(props: ParentProps<{ class?: string }>) {
@@ -97,7 +114,7 @@ export function Kbd(props: ParentProps<{ class?: string }>) {
     >
       {props.children}
     </kbd>
-  )
+  );
 }
 
 export function Divider(props: { label?: string; class?: string }) {
@@ -113,15 +130,15 @@ export function Divider(props: { label?: string; class?: string }) {
         </>
       ) : null}
     </div>
-  )
+  );
 }
 
 export function ProseList(props: {
-  items: Array<string | JSX.Element>
-  ordered?: boolean
-  class?: string
+  items: Array<string | JSX.Element>;
+  ordered?: boolean;
+  class?: string;
 }) {
-  const Component = props.ordered ? 'ol' : 'ul'
+  const Component = props.ordered ? 'ol' : 'ul';
 
   return (
     <Dynamic
@@ -136,5 +153,5 @@ export function ProseList(props: {
         <li>{item}</li>
       ))}
     </Dynamic>
-  )
+  );
 }

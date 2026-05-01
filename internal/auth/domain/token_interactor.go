@@ -23,11 +23,21 @@ type tokenUCImpl struct {
 
 // CreateJwtToken implements inputport.TokenUsecase.
 func (t *tokenUCImpl) CreateJwtToken(user entity.User) (string, error) {
+	return t.CreateJwtTokenForSession(user, "", "")
+}
+
+func (t *tokenUCImpl) CreateJwtTokenForTenant(user entity.User, activeTenantID string) (string, error) {
+	return t.CreateJwtTokenForSession(user, activeTenantID, "")
+}
+
+func (t *tokenUCImpl) CreateJwtTokenForSession(user entity.User, activeTenantID, sessionID string) (string, error) {
 	claims := entity.JWTClaims{
-		UserID:   user.Id,
-		Email:    user.Email,
-		Username: user.Username,
-		Key:      t.cfg.JWTKey,
+		UserID:         user.Id,
+		Email:          user.Email,
+		Username:       user.Username,
+		ActiveTenantID: activeTenantID,
+		SessionID:      sessionID,
+		Key:            t.cfg.JWTKey,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
 			IssuedAt:  time.Now().Unix(),

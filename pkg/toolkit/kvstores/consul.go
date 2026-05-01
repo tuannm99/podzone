@@ -1,6 +1,7 @@
 package kvstores
 
 import (
+	"errors"
 	"fmt"
 
 	capi "github.com/hashicorp/consul/api"
@@ -36,7 +37,7 @@ func (c *ConsulKVStore) Get(path string) ([]byte, error) {
 		return nil, fmt.Errorf("cannot get kv %s", err)
 	}
 	if pair == nil {
-		return nil, fmt.Errorf("kv not found: %s", path)
+		return nil, fmt.Errorf("%w: %s", ErrKeyNotFound, path)
 	}
 
 	c.logger.Debug("KV", "key", pair.Key, "value", pair.Value)
@@ -87,4 +88,8 @@ func (c *ConsulKVStore) Del(path string) error {
 	c.logger.Debug("KV deleted", "path", path)
 
 	return nil
+}
+
+func IsNotFound(err error) bool {
+	return errors.Is(err, ErrKeyNotFound)
 }

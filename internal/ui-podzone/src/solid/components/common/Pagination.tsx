@@ -1,42 +1,48 @@
-import { For, Show, createMemo } from 'solid-js'
-import { classes } from '../../shared/utils'
-import { Button } from './Primitives'
+import { For, Show, createMemo } from 'solid-js';
+import { classes } from '../../shared/utils';
+import { Button } from './Primitives';
 
 type PaginationProps = {
-  page: number
-  pageSize: number
-  total: number
-  class?: string
-  onPageChange: (page: number) => void
-}
+  page: number;
+  pageSize: number;
+  total: number;
+  class?: string;
+  onPageChange: (page: number) => void;
+};
 
 function buildPageItems(page: number, totalPages: number) {
   if (totalPages <= 7) {
-    return Array.from({ length: totalPages }, (_, index) => index + 1)
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
   }
 
-  const pages = new Set<number>([1, totalPages, page - 1, page, page + 1])
+  const pages = new Set<number>([1, totalPages, page - 1, page, page + 1]);
   const visible = [...pages]
     .filter((value) => value >= 1 && value <= totalPages)
-    .sort((a, b) => a - b)
-  const items: Array<number | 'ellipsis'> = []
+    .sort((a, b) => a - b);
+  const items: Array<number | 'ellipsis'> = [];
 
   for (const value of visible) {
-    const previous = items[items.length - 1]
+    const previous = items[items.length - 1];
     if (typeof previous === 'number' && value - previous > 1) {
-      items.push('ellipsis')
+      items.push('ellipsis');
     }
-    items.push(value)
+    items.push(value);
   }
 
-  return items
+  return items;
 }
 
 export function Pagination(props: PaginationProps) {
-  const totalPages = createMemo(() => Math.max(1, Math.ceil(props.total / props.pageSize)))
-  const start = createMemo(() => (props.total === 0 ? 0 : (props.page - 1) * props.pageSize + 1))
-  const finish = createMemo(() => Math.min(props.page * props.pageSize, props.total))
-  const items = createMemo(() => buildPageItems(props.page, totalPages()))
+  const totalPages = createMemo(() =>
+    Math.max(1, Math.ceil(props.total / props.pageSize))
+  );
+  const start = createMemo(() =>
+    props.total === 0 ? 0 : (props.page - 1) * props.pageSize + 1
+  );
+  const finish = createMemo(() =>
+    Math.min(props.page * props.pageSize, props.total)
+  );
+  const items = createMemo(() => buildPageItems(props.page, totalPages()));
 
   return (
     <Show when={totalPages() > 1}>
@@ -85,12 +91,14 @@ export function Pagination(props: PaginationProps) {
             size="xs"
             color="alternative"
             disabled={props.page >= totalPages()}
-            onClick={() => props.onPageChange(Math.min(totalPages(), props.page + 1))}
+            onClick={() =>
+              props.onPageChange(Math.min(totalPages(), props.page + 1))
+            }
           >
             Next
           </Button>
         </div>
       </div>
     </Show>
-  )
+  );
 }

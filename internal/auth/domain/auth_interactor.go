@@ -7,10 +7,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
 	"github.com/tuannm99/podzone/internal/auth/config"
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
+	iamdomain "github.com/tuannm99/podzone/internal/iam/domain"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
@@ -22,21 +25,29 @@ func NewAuthUsecase(
 	oauthExternal outputport.GoogleOauthExternal,
 	oauthStateRepotory outputport.OauthStateRepository,
 	userRepository outputport.UserRepository,
+	sessionRepository outputport.SessionRepository,
+	refreshTokenRepository outputport.RefreshTokenRepository,
+	iamUC iamdomain.IAMUsecase,
 	cfg config.AuthConfig,
 ) *authInteractorImpl {
 	return &authInteractorImpl{
 		jwtSecret:            cfg.JWTSecret,
+		jwtKey:               cfg.JWTKey,
 		appRedirectURL:       cfg.AppRedirectURL,
 		userUC:               userUC,
 		tokenUC:              tokenUC,
 		oauthExternal:        oauthExternal,
 		oauthStateRepository: oauthStateRepotory,
 		userRepository:       userRepository,
+		sessionRepository:    sessionRepository,
+		refreshTokenRepo:     refreshTokenRepository,
+		iamUC:                iamUC,
 	}
 }
 
 type authInteractorImpl struct {
 	jwtSecret      string
+	jwtKey         string
 	appRedirectURL string
 
 	userUC  inputport.UserUsecase
@@ -45,6 +56,9 @@ type authInteractorImpl struct {
 	oauthExternal        outputport.GoogleOauthExternal
 	oauthStateRepository outputport.OauthStateRepository
 	userRepository       outputport.UserRepository
+	sessionRepository    outputport.SessionRepository
+	refreshTokenRepo     outputport.RefreshTokenRepository
+	iamUC                iamdomain.IAMUsecase
 }
 
 func (u *authInteractorImpl) Login(ctx context.Context, username, password string) (*inputport.AuthResult, error) {
@@ -58,15 +72,7 @@ func (u *authInteractorImpl) Login(ctx context.Context, username, password strin
 		return nil, err
 	}
 
-	token, err := u.tokenUC.CreateJwtToken(*user)
-	if err != nil {
-		return nil, err
-	}
-
-	return &inputport.AuthResult{
-		JwtToken: token,
-		UserInfo: *user,
-	}, nil
+	return u.newSessionAuthResult(ctx, user, "")
 }
 
 func (u *authInteractorImpl) Register(ctx context.Context, req inputport.RegisterCmd) (*inputport.AuthResult, error) {
@@ -86,7 +92,43 @@ func (u *authInteractorImpl) Register(ctx context.Context, req inputport.Registe
 		return nil, err
 	}
 
-	token, err := u.tokenUC.CreateJwtToken(*user)
+	return u.newSessionAuthResult(ctx, user, "")
+}
+
+func (u *authInteractorImpl) SwitchActiveTenant(ctx context.Context, userID uint, tenantID, accessToken string) (*inputport.AuthResult, error) {
+	if userID == 0 {
+		return nil, iamdomain.ErrInvalidUserID
+	}
+
+	membership, err := u.iamUC.GetMembership(ctx, tenantID, userID)
+	if err != nil {
+		return nil, err
+	}
+	if membership.Status != iamdomain.MembershipStatusActive {
+		return nil, iamdomain.ErrInactiveMembership
+	}
+
+	user, err := u.userRepository.GetByID(fmt.Sprintf("%d", userID))
+	if err != nil {
+		return nil, err
+	}
+
+	session, err := u.sessionFromAccessToken(accessToken)
+	if err != nil {
+		return nil, err
+	}
+	if session.UserID != userID {
+		return nil, entity.ErrSessionRevoked
+	}
+	now := time.Now().UTC()
+	if session.Status != entity.SessionStatusActive || session.RevokedAt != nil || now.After(session.ExpiresAt) {
+		return nil, entity.ErrSessionRevoked
+	}
+	if err := u.sessionRepository.UpdateActiveTenant(ctx, session.ID, tenantID, now); err != nil {
+		return nil, err
+	}
+
+	token, err := u.tokenUC.CreateJwtTokenForSession(*user, tenantID, session.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -94,6 +136,54 @@ func (u *authInteractorImpl) Register(ctx context.Context, req inputport.Registe
 	return &inputport.AuthResult{
 		JwtToken: token,
 		UserInfo: *user,
+	}, nil
+}
+
+func (u *authInteractorImpl) RefreshAccessToken(ctx context.Context, refreshToken string) (*inputport.AuthResult, error) {
+	hashed := entity.HashToken(refreshToken)
+	stored, err := u.refreshTokenRepo.GetByTokenHash(ctx, hashed)
+	if err != nil {
+		return nil, err
+	}
+	now := time.Now().UTC()
+	if stored.RevokedAt != nil {
+		return nil, entity.ErrRefreshTokenInvalid
+	}
+	if now.After(stored.ExpiresAt) {
+		return nil, entity.ErrRefreshTokenExpired
+	}
+
+	session, err := u.sessionRepository.GetByID(ctx, stored.SessionID)
+	if err != nil {
+		return nil, err
+	}
+	if session.Status != entity.SessionStatusActive || session.RevokedAt != nil || now.After(session.ExpiresAt) {
+		return nil, entity.ErrSessionRevoked
+	}
+
+	user, err := u.userRepository.GetByID(fmt.Sprintf("%d", session.UserID))
+	if err != nil {
+		return nil, err
+	}
+
+	newRefreshToken, refreshEntity, err := u.newRefreshToken(session.ID, now)
+	if err != nil {
+		return nil, err
+	}
+	if err := u.refreshTokenRepo.Revoke(ctx, stored.ID, now, &refreshEntity.ID); err != nil {
+		return nil, err
+	}
+	if err := u.refreshTokenRepo.Create(ctx, refreshEntity); err != nil {
+		return nil, err
+	}
+	accessToken, err := u.tokenUC.CreateJwtTokenForSession(*user, session.ActiveTenantID, session.ID)
+	if err != nil {
+		return nil, err
+	}
+	return &inputport.AuthResult{
+		JwtToken:     accessToken,
+		RefreshToken: newRefreshToken,
+		UserInfo:     *user,
 	}, nil
 }
 
@@ -161,6 +251,102 @@ func (u *authInteractorImpl) HandleOAuthCallback(
 	}, nil
 }
 
-func (u *authInteractorImpl) Logout(ctx context.Context) (string, error) {
+func (u *authInteractorImpl) Logout(ctx context.Context, accessToken string) (string, error) {
+	session, err := u.sessionFromAccessToken(accessToken)
+	if err != nil {
+		return "/", err
+	}
+	now := time.Now().UTC()
+	if err := u.sessionRepository.Revoke(ctx, session.ID, now); err != nil {
+		return "/", err
+	}
+	if err := u.refreshTokenRepo.RevokeBySession(ctx, session.ID, now); err != nil {
+		return "/", err
+	}
 	return "/", nil
+}
+
+func (u *authInteractorImpl) newSessionAuthResult(ctx context.Context, user *entity.User, tenantID string) (*inputport.AuthResult, error) {
+	now := time.Now().UTC()
+	session := entity.Session{
+		ID:             uuid.NewString(),
+		UserID:         user.Id,
+		ActiveTenantID: tenantID,
+		Status:         entity.SessionStatusActive,
+		CreatedAt:      now,
+		UpdatedAt:      now,
+		ExpiresAt:      now.Add(30 * 24 * time.Hour),
+	}
+	if err := u.sessionRepository.Create(ctx, session); err != nil {
+		return nil, err
+	}
+
+	refreshToken, refreshEntity, err := u.newRefreshToken(session.ID, now)
+	if err != nil {
+		return nil, err
+	}
+	if err := u.refreshTokenRepo.Create(ctx, refreshEntity); err != nil {
+		return nil, err
+	}
+
+	accessToken, err := u.tokenUC.CreateJwtTokenForSession(*user, tenantID, session.ID)
+	if err != nil {
+		return nil, err
+	}
+	return &inputport.AuthResult{
+		JwtToken:     accessToken,
+		RefreshToken: refreshToken,
+		UserInfo:     *user,
+	}, nil
+}
+
+func (u *authInteractorImpl) newRefreshToken(sessionID string, now time.Time) (string, entity.RefreshToken, error) {
+	raw, err := randomToken(48)
+	if err != nil {
+		return "", entity.RefreshToken{}, err
+	}
+	refresh := entity.RefreshToken{
+		ID:        uuid.NewString(),
+		SessionID: sessionID,
+		TokenHash: entity.HashToken(raw),
+		ExpiresAt: now.Add(30 * 24 * time.Hour),
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+	return raw, refresh, nil
+}
+
+func randomToken(n int) (string, error) {
+	b := make([]byte, n)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(b), nil
+}
+
+func (u *authInteractorImpl) sessionFromAccessToken(raw string) (*entity.Session, error) {
+	if raw == "" {
+		return nil, entity.ErrSessionNotFound
+	}
+	claims := &entity.JWTClaims{}
+	token, err := jwt.ParseWithClaims(raw, claims, func(tok *jwt.Token) (interface{}, error) {
+		if tok.Method != jwt.SigningMethodHS256 {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return []byte(u.jwtSecret), nil
+	})
+	if err != nil || !token.Valid {
+		return nil, entity.ErrSessionNotFound
+	}
+	if u.jwtKey != "" && claims.Key != u.jwtKey {
+		return nil, entity.ErrSessionNotFound
+	}
+	if claims.SessionID == "" {
+		return nil, entity.ErrSessionNotFound
+	}
+	session, err := u.sessionRepository.GetByID(context.Background(), claims.SessionID)
+	if err != nil {
+		return nil, err
+	}
+	return session, nil
 }

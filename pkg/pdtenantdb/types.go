@@ -50,5 +50,6 @@ type PlacementResolver interface {
 
 var (
 	ErrPlacementNotFound     = errors.New("pdtenantdb: placement not found")
+	ErrPlacementBackend      = errors.New("pdtenantdb: placement backend error")
 	ErrDedicatedPoolCapacity = errors.New("pdtenantdb: dedicated pool capacity reached")
 )

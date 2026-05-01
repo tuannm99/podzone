@@ -1,33 +1,44 @@
-import { For, Show, createEffect, createMemo, createSignal, onCleanup } from 'solid-js'
-import { classes } from '../../shared/utils'
-import { FieldLabel } from './Primitives'
+import {
+  For,
+  Show,
+  createEffect,
+  createMemo,
+  createSignal,
+  onCleanup,
+} from 'solid-js';
+import { classes } from '../../shared/utils';
+import { FieldLabel } from './Primitives';
 
-const weekdayLabels = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+const weekdayLabels = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
 function pad(value: number) {
-  return String(value).padStart(2, '0')
+  return String(value).padStart(2, '0');
 }
 
 function toDateValue(date: Date) {
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
 function parseDateValue(value: string | undefined) {
-  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null
-  const [year, month, day] = value.split('-').map(Number)
-  const date = new Date(year, month - 1, day)
-  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
-    return null
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const [year, month, day] = value.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
   }
-  return date
+  return date;
 }
 
 function addMonths(date: Date, amount: number) {
-  return new Date(date.getFullYear(), date.getMonth() + amount, 1)
+  return new Date(date.getFullYear(), date.getMonth() + amount, 1);
 }
 
 function startOfMonth(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), 1)
+  return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
 function isSameDay(left: Date | null, right: Date) {
@@ -36,82 +47,90 @@ function isSameDay(left: Date | null, right: Date) {
     left.getFullYear() === right.getFullYear() &&
     left.getMonth() === right.getMonth() &&
     left.getDate() === right.getDate()
-  )
+  );
 }
 
 function isSameMonth(left: Date, right: Date) {
-  return left.getFullYear() === right.getFullYear() && left.getMonth() === right.getMonth()
+  return (
+    left.getFullYear() === right.getFullYear() &&
+    left.getMonth() === right.getMonth()
+  );
 }
 
 function buildMonthGrid(cursor: Date) {
-  const firstDay = startOfMonth(cursor)
-  const gridStart = new Date(firstDay)
-  gridStart.setDate(firstDay.getDate() - firstDay.getDay())
+  const firstDay = startOfMonth(cursor);
+  const gridStart = new Date(firstDay);
+  gridStart.setDate(firstDay.getDate() - firstDay.getDay());
 
   return Array.from({ length: 42 }, (_, index) => {
-    const date = new Date(gridStart)
-    date.setDate(gridStart.getDate() + index)
-    return date
-  })
+    const date = new Date(gridStart);
+    date.setDate(gridStart.getDate() + index);
+    return date;
+  });
 }
 
 function formatMonthYear(date: Date) {
   return date.toLocaleDateString(undefined, {
     month: 'long',
-    year: 'numeric'
-  })
+    year: 'numeric',
+  });
 }
 
 function formatDisplayValue(value: string | undefined, placeholder: string) {
-  const parsed = parseDateValue(value)
-  if (!parsed) return placeholder
-  return parsed.toLocaleDateString()
+  const parsed = parseDateValue(value);
+  if (!parsed) return placeholder;
+  return parsed.toLocaleDateString();
 }
 
 function isBeforeOrEqual(left: Date, right: Date) {
-  return toDateValue(left) <= toDateValue(right)
+  return toDateValue(left) <= toDateValue(right);
 }
 
 function isAfterOrEqual(left: Date, right: Date) {
-  return toDateValue(left) >= toDateValue(right)
+  return toDateValue(left) >= toDateValue(right);
 }
 
 export function Calendar(props: {
-  value?: string
-  min?: string
-  max?: string
-  class?: string
-  onSelect: (value: string) => void
+  value?: string;
+  min?: string;
+  max?: string;
+  class?: string;
+  onSelect: (value: string) => void;
 }) {
-  const selectedDate = createMemo(() => parseDateValue(props.value))
-  const minDate = createMemo(() => parseDateValue(props.min))
-  const maxDate = createMemo(() => parseDateValue(props.max))
-  const [cursor, setCursor] = createSignal(selectedDate() ?? new Date())
+  const selectedDate = createMemo(() => parseDateValue(props.value));
+  const minDate = createMemo(() => parseDateValue(props.min));
+  const maxDate = createMemo(() => parseDateValue(props.max));
+  const [cursor, setCursor] = createSignal(selectedDate() ?? new Date());
 
   createEffect(() => {
-    const next = selectedDate()
-    if (next) setCursor(startOfMonth(next))
-  })
+    const next = selectedDate();
+    if (next) setCursor(startOfMonth(next));
+  });
 
-  const grid = createMemo(() => buildMonthGrid(cursor()))
+  const grid = createMemo(() => buildMonthGrid(cursor()));
 
   const isDisabled = (date: Date) => {
-    const lowerBound = minDate()
-    const upperBound = maxDate()
+    const lowerBound = minDate();
+    const upperBound = maxDate();
 
     if (lowerBound && !isAfterOrEqual(date, lowerBound)) {
-      return toDateValue(date) !== toDateValue(lowerBound)
+      return toDateValue(date) !== toDateValue(lowerBound);
     }
 
     if (upperBound && !isBeforeOrEqual(date, upperBound)) {
-      return toDateValue(date) !== toDateValue(upperBound)
+      return toDateValue(date) !== toDateValue(upperBound);
     }
 
-    return false
-  }
+    return false;
+  };
 
   return (
-    <div class={classes('rounded-2xl border border-gray-200 bg-white p-4 shadow-xl', props.class)}>
+    <div
+      class={classes(
+        'rounded-2xl border border-gray-200 bg-white p-4 shadow-xl',
+        props.class
+      )}
+    >
       <div class="flex items-center justify-between gap-3">
         <button
           type="button"
@@ -121,7 +140,9 @@ export function Calendar(props: {
         >
           ←
         </button>
-        <p class="text-sm font-semibold text-gray-900">{formatMonthYear(cursor())}</p>
+        <p class="text-sm font-semibold text-gray-900">
+          {formatMonthYear(cursor())}
+        </p>
         <button
           type="button"
           class="rounded-xl px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
@@ -143,10 +164,10 @@ export function Calendar(props: {
 
         <For each={grid()}>
           {(date) => {
-            const disabled = () => isDisabled(date)
-            const inMonth = () => isSameMonth(date, cursor())
-            const selected = () => isSameDay(selectedDate(), date)
-            const today = () => isSameDay(new Date(), date)
+            const disabled = () => isDisabled(date);
+            const inMonth = () => isSameMonth(date, cursor());
+            const selected = () => isSameDay(selectedDate(), date);
+            const today = () => isSameDay(new Date(), date);
 
             return (
               <button
@@ -160,13 +181,14 @@ export function Calendar(props: {
                       ? 'text-gray-700 hover:bg-gray-100'
                       : 'text-gray-300 hover:bg-gray-50',
                   today() && !selected() && 'ring-1 ring-blue-200',
-                  disabled() && 'cursor-not-allowed opacity-40 hover:bg-transparent'
+                  disabled() &&
+                    'cursor-not-allowed opacity-40 hover:bg-transparent'
                 )}
                 onClick={() => props.onSelect(toDateValue(date))}
               >
                 {date.getDate()}
               </button>
-            )
+            );
           }}
         </For>
       </div>
@@ -176,47 +198,49 @@ export function Calendar(props: {
           type="button"
           class="rounded-xl px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
           onClick={() => {
-            const today = new Date()
-            setCursor(startOfMonth(today))
-            if (!isDisabled(today)) props.onSelect(toDateValue(today))
+            const today = new Date();
+            setCursor(startOfMonth(today));
+            if (!isDisabled(today)) props.onSelect(toDateValue(today));
           }}
         >
           Today
         </button>
         <Show when={props.value}>
-          <span class="text-sm text-gray-500">{formatDisplayValue(props.value, '')}</span>
+          <span class="text-sm text-gray-500">
+            {formatDisplayValue(props.value, '')}
+          </span>
         </Show>
       </div>
     </div>
-  )
+  );
 }
 
 export function DatepickerField(props: {
-  label: string
-  value: string
-  min?: string
-  max?: string
-  placeholder?: string
-  class?: string
-  onChange: (value: string) => void
+  label: string;
+  value: string;
+  min?: string;
+  max?: string;
+  placeholder?: string;
+  class?: string;
+  onChange: (value: string) => void;
 }) {
-  const [open, setOpen] = createSignal(false)
-  let container: HTMLDivElement | undefined
+  const [open, setOpen] = createSignal(false);
+  let container: HTMLDivElement | undefined;
 
   createEffect(() => {
-    if (!open()) return
+    if (!open()) return;
 
     const handlePointerDown = (event: MouseEvent) => {
       if (container && !container.contains(event.target as Node)) {
-        setOpen(false)
+        setOpen(false);
       }
-    }
+    };
 
-    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('mousedown', handlePointerDown);
     onCleanup(() => {
-      document.removeEventListener('mousedown', handlePointerDown)
-    })
-  })
+      document.removeEventListener('mousedown', handlePointerDown);
+    });
+  });
 
   return (
     <FieldLabel label={props.label}>
@@ -227,7 +251,10 @@ export function DatepickerField(props: {
           onClick={() => setOpen((value) => !value)}
         >
           <span class={props.value ? 'text-gray-900' : 'text-gray-400'}>
-            {formatDisplayValue(props.value, props.placeholder ?? 'Select a date')}
+            {formatDisplayValue(
+              props.value,
+              props.placeholder ?? 'Select a date'
+            )}
           </span>
           <span class="text-gray-400">⌄</span>
         </button>
@@ -239,15 +266,15 @@ export function DatepickerField(props: {
               min={props.min}
               max={props.max}
               onSelect={(value) => {
-                props.onChange(value)
-                setOpen(false)
+                props.onChange(value);
+                setOpen(false);
               }}
             />
           </div>
         </Show>
       </div>
     </FieldLabel>
-  )
+  );
 }
 
-export const Datepicker = DatepickerField
+export const Datepicker = DatepickerField;

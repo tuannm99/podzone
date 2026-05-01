@@ -3,3 +3,10 @@ logger:
   provider: 'zap' # "zap" | "slog" | "noop"
   level: 'debug'
   env: 'dev'
+
+backoffice:
+  auth:
+    jwt_secret: "${JWT_SECRET}"
+    jwt_key: "${JWT_KEY}"
+    grpc_host: "${AUTH_GRPC_HOST}"
+    grpc_port: "${AUTH_GRPC_PORT}"

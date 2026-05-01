@@ -1,16 +1,16 @@
-import { For } from 'solid-js'
-import { classes } from '../../shared/utils'
+import { For } from 'solid-js';
+import { classes } from '../../shared/utils';
 
 export type TabItem = {
-  value: string
-  label: string
-}
+  value: string;
+  label: string;
+};
 
 export function Tabs(props: {
-  value: string
-  items: TabItem[]
-  onChange: (value: string) => void
-  class?: string
+  value: string;
+  items: TabItem[];
+  onChange: (value: string) => void;
+  class?: string;
 }) {
   return (
     <div class={classes('flex flex-wrap items-center gap-2', props.class)}>
@@ -31,5 +31,5 @@ export function Tabs(props: {
         )}
       </For>
     </div>
-  )
+  );
 }

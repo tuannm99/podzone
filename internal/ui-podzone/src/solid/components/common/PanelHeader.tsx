@@ -1,11 +1,11 @@
-import type { JSX } from 'solid-js'
-import { classes } from '../../shared/utils'
+import type { JSX } from 'solid-js';
+import { classes } from '../../shared/utils';
 
 export function PanelHeader(props: {
-  title: string
-  copy?: string
-  action?: JSX.Element
-  class?: string
+  title: string;
+  copy?: string;
+  action?: JSX.Element;
+  class?: string;
 }) {
   return (
     <div
@@ -15,10 +15,12 @@ export function PanelHeader(props: {
       )}
     >
       <div class="space-y-1">
-        <h2 class="text-xl font-semibold tracking-tight text-gray-900">{props.title}</h2>
+        <h2 class="text-xl font-semibold tracking-tight text-gray-900">
+          {props.title}
+        </h2>
         {props.copy ? <p class="text-sm text-gray-500">{props.copy}</p> : null}
       </div>
       {props.action ? <div class="shrink-0">{props.action}</div> : null}
     </div>
-  )
+  );
 }

@@ -1,49 +1,56 @@
-import { For, Show, createEffect, createSignal, onCleanup, type JSX } from 'solid-js'
-import { classes } from '../../shared/utils'
+import {
+  For,
+  Show,
+  createEffect,
+  createSignal,
+  onCleanup,
+  type JSX,
+} from 'solid-js';
+import { classes } from '../../shared/utils';
 
 export type MegaMenuLink = {
-  label: string
-  href: string
-  description?: string
-  icon?: JSX.Element
-}
+  label: string;
+  href: string;
+  description?: string;
+  icon?: JSX.Element;
+};
 
 export type MegaMenuSection = {
-  title: string
-  links: MegaMenuLink[]
-}
+  title: string;
+  links: MegaMenuLink[];
+};
 
 export type MegaMenuItem = {
-  label: string
-  href?: string
-  active?: boolean
-  sections?: MegaMenuSection[]
-}
+  label: string;
+  href?: string;
+  active?: boolean;
+  sections?: MegaMenuSection[];
+};
 
 export function MegaMenu(props: {
-  brand?: JSX.Element
-  items: MegaMenuItem[]
-  actions?: JSX.Element
-  class?: string
+  brand?: JSX.Element;
+  items: MegaMenuItem[];
+  actions?: JSX.Element;
+  class?: string;
 }) {
-  const [openIndex, setOpenIndex] = createSignal<number | null>(null)
-  let container: HTMLDivElement | undefined
+  const [openIndex, setOpenIndex] = createSignal<number | null>(null);
+  let container: HTMLDivElement | undefined;
 
   createEffect(() => {
-    const current = openIndex()
-    if (current === null) return
+    const current = openIndex();
+    if (current === null) return;
 
     const handlePointerDown = (event: MouseEvent) => {
       if (container && !container.contains(event.target as Node)) {
-        setOpenIndex(null)
+        setOpenIndex(null);
       }
-    }
+    };
 
-    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('mousedown', handlePointerDown);
     onCleanup(() => {
-      document.removeEventListener('mousedown', handlePointerDown)
-    })
-  })
+      document.removeEventListener('mousedown', handlePointerDown);
+    });
+  });
 
   return (
     <div
@@ -75,7 +82,11 @@ export function MegaMenu(props: {
                       ? 'bg-blue-50 text-blue-900'
                       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                   )}
-                  onClick={() => setOpenIndex((value) => (value === index() ? null : index()))}
+                  onClick={() =>
+                    setOpenIndex((value) =>
+                      value === index() ? null : index()
+                    )
+                  }
                 >
                   <span>{item.label}</span>
                   <span
@@ -130,9 +141,13 @@ export function MegaMenu(props: {
                             <div class="pt-0.5 text-blue-700">{link.icon}</div>
                           </Show>
                           <div class="space-y-1">
-                            <p class="text-sm font-semibold text-gray-900">{link.label}</p>
+                            <p class="text-sm font-semibold text-gray-900">
+                              {link.label}
+                            </p>
                             <Show when={link.description}>
-                              <p class="text-sm leading-6 text-gray-500">{link.description}</p>
+                              <p class="text-sm leading-6 text-gray-500">
+                                {link.description}
+                              </p>
                             </Show>
                           </div>
                         </div>
@@ -146,5 +161,5 @@ export function MegaMenu(props: {
         </div>
       </Show>
     </div>
-  )
+  );
 }

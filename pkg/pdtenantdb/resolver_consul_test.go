@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
+	"github.com/tuannm99/podzone/pkg/toolkit/kvstores"
 	kvsmocks "github.com/tuannm99/podzone/pkg/toolkit/kvstores/mocks"
 )
 
@@ -56,11 +57,23 @@ func TestConsulPlacementResolver_NotFound(t *testing.T) {
 	r := pdtenantdb.NewConsulPlacementResolver(kv)
 
 	key := "podzone/tenants/unknown/placement"
-	kv.EXPECT().Get(key).Return(nil, pdtenantdb.ErrPlacementNotFound).Once()
+	kv.EXPECT().Get(key).Return(nil, kvstores.ErrKeyNotFound).Once()
 
 	_, err := r.Resolve(context.Background(), "unknown")
 	require.Error(t, err)
 	require.ErrorIs(t, err, pdtenantdb.ErrPlacementNotFound)
+}
+
+func TestConsulPlacementResolver_BackendError(t *testing.T) {
+	kv := kvsmocks.NewMockKVStore(t)
+	r := pdtenantdb.NewConsulPlacementResolver(kv)
+
+	key := "podzone/tenants/down/placement"
+	kv.EXPECT().Get(key).Return(nil, context.DeadlineExceeded).Once()
+
+	_, err := r.Resolve(context.Background(), "down")
+	require.Error(t, err)
+	require.ErrorIs(t, err, pdtenantdb.ErrPlacementBackend)
 }
 
 func TestConsulPlacementResolver_InvalidJSON(t *testing.T) {
@@ -85,6 +98,18 @@ func TestConsulPlacementResolver_MissingFields(t *testing.T) {
 	_, err := r.Resolve(context.Background(), "partial")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "incomplete placement")
+}
+
+func TestConsulPlacementResolver_SchemaModeMissingSchemaName(t *testing.T) {
+	kv := kvsmocks.NewMockKVStore(t)
+	r := pdtenantdb.NewConsulPlacementResolver(kv)
+
+	key := "podzone/tenants/no-schema/placement"
+	kv.EXPECT().Get(key).Return([]byte(`{"cluster_name":"pg-01","mode":"schema","db_name":"backoffice"}`), nil).Once()
+
+	_, err := r.Resolve(context.Background(), "no-schema")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "missing schema_name")
 }
 
 func TestConsulPlacementResolver_SingleflightConcurrent(t *testing.T) {

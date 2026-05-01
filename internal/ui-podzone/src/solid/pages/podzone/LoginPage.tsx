@@ -35,8 +35,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div class="mx-auto flex min-h-[calc(100vh-3rem)] max-w-6xl items-center px-4 py-10 sm:px-6 lg:px-8">
-      <div class="grid w-full gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+    <div class="mx-auto flex min-h-[calc(100vh-2rem)] max-w-5xl items-center px-4 py-8 sm:px-5 lg:px-6">
+      <div class="grid w-full gap-5 lg:grid-cols-[1.05fr_0.95fr]">
         <Card class="space-y-6 bg-[linear-gradient(135deg,_#dbeafe,_#ffffff_45%,_#eff6ff)]">
           <SectionLead
             eyebrow="PODZONE"

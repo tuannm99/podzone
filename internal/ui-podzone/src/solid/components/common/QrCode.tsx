@@ -1,25 +1,25 @@
-import { Show, createEffect, createSignal, onCleanup } from 'solid-js'
-import QRCode from 'qrcode'
-import { classes } from '../../shared/utils'
+import { Show, createEffect, createSignal, onCleanup } from 'solid-js';
+import QRCode from 'qrcode';
+import { classes } from '../../shared/utils';
 
 export function QrCode(props: {
-  value: string
-  size?: number
-  class?: string
-  panelClass?: string
+  value: string;
+  size?: number;
+  class?: string;
+  panelClass?: string;
 }) {
-  const [svg, setSvg] = createSignal('')
-  const [error, setError] = createSignal('')
+  const [svg, setSvg] = createSignal('');
+  const [error, setError] = createSignal('');
 
   createEffect(() => {
-    const nextValue = props.value.trim()
+    const nextValue = props.value.trim();
     if (!nextValue) {
-      setSvg('')
-      setError('')
-      return
+      setSvg('');
+      setError('');
+      return;
     }
 
-    let active = true
+    let active = true;
 
     void QRCode.toString(nextValue, {
       type: 'svg',
@@ -28,24 +28,28 @@ export function QrCode(props: {
       errorCorrectionLevel: 'M',
       color: {
         dark: '#111827',
-        light: '#FFFFFFFF'
-      }
+        light: '#FFFFFFFF',
+      },
     })
       .then((value: string) => {
-        if (!active) return
-        setSvg(value)
-        setError('')
+        if (!active) return;
+        setSvg(value);
+        setError('');
       })
       .catch((nextError: unknown) => {
-        if (!active) return
-        setSvg('')
-        setError(nextError instanceof Error ? nextError.message : 'Unable to generate QR code')
-      })
+        if (!active) return;
+        setSvg('');
+        setError(
+          nextError instanceof Error
+            ? nextError.message
+            : 'Unable to generate QR code'
+        );
+      });
 
     onCleanup(() => {
-      active = false
-    })
-  })
+      active = false;
+    });
+  });
 
   return (
     <div
@@ -70,14 +74,14 @@ export function QrCode(props: {
         <div class={props.panelClass} innerHTML={svg()} />
       </Show>
     </div>
-  )
+  );
 }
 
 export function QrCodeCard(props: {
-  value: string
-  title?: string
-  copy?: string
-  class?: string
+  value: string;
+  title?: string;
+  copy?: string;
+  class?: string;
 }) {
   return (
     <section
@@ -98,5 +102,5 @@ export function QrCodeCard(props: {
       </Show>
       <QrCode value={props.value} />
     </section>
-  )
+  );
 }

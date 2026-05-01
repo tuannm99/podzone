@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -24,6 +25,7 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
+	iamdomain "github.com/tuannm99/podzone/internal/iam/domain"
 )
 
 //
@@ -55,9 +57,137 @@ func newUC(
 	t.Helper()
 	cfg := config.AuthConfig{
 		JWTSecret:      "secret",
+		JWTKey:         "app-key",
 		AppRedirectURL: "https://app.example.com/after-auth",
 	}
-	return NewAuthUsecase(uuc, tuc, ext, sr, ur, cfg)
+	iamUC := &iamUsecaseFakeForAuthInteractor{
+		getMembershipFunc: func(ctx context.Context, tenantID string, userID uint) (*iamdomain.Membership, error) {
+			return nil, iamdomain.ErrMembershipNotFound
+		},
+	}
+	return NewAuthUsecase(uuc, tuc, ext, sr, ur, &sessionRepoFake{}, &refreshTokenRepoFake{}, iamUC, cfg)
+}
+
+type sessionRepoFake struct {
+	items map[string]entity.Session
+}
+
+func (r *sessionRepoFake) Create(ctx context.Context, session entity.Session) error {
+	if r.items == nil {
+		r.items = map[string]entity.Session{}
+	}
+	r.items[session.ID] = session
+	return nil
+}
+
+func (r *sessionRepoFake) GetByID(ctx context.Context, id string) (*entity.Session, error) {
+	item, ok := r.items[id]
+	if !ok {
+		return nil, entity.ErrSessionNotFound
+	}
+	copyItem := item
+	return &copyItem, nil
+}
+
+func (r *sessionRepoFake) UpdateActiveTenant(ctx context.Context, id, tenantID string, updatedAt time.Time) error {
+	item, ok := r.items[id]
+	if !ok {
+		return entity.ErrSessionNotFound
+	}
+	item.ActiveTenantID = tenantID
+	item.UpdatedAt = updatedAt
+	r.items[id] = item
+	return nil
+}
+
+func (r *sessionRepoFake) Revoke(ctx context.Context, id string, revokedAt time.Time) error {
+	item, ok := r.items[id]
+	if !ok {
+		return entity.ErrSessionNotFound
+	}
+	item.Status = entity.SessionStatusRevoked
+	item.RevokedAt = &revokedAt
+	r.items[id] = item
+	return nil
+}
+
+type refreshTokenRepoFake struct {
+	items map[string]entity.RefreshToken
+}
+
+func (r *refreshTokenRepoFake) Create(ctx context.Context, token entity.RefreshToken) error {
+	if r.items == nil {
+		r.items = map[string]entity.RefreshToken{}
+	}
+	r.items[token.TokenHash] = token
+	return nil
+}
+
+func (r *refreshTokenRepoFake) GetByTokenHash(ctx context.Context, tokenHash string) (*entity.RefreshToken, error) {
+	item, ok := r.items[tokenHash]
+	if !ok {
+		return nil, entity.ErrRefreshTokenInvalid
+	}
+	copyItem := item
+	return &copyItem, nil
+}
+
+func (r *refreshTokenRepoFake) Revoke(ctx context.Context, id string, revokedAt time.Time, replacedByTokenID *string) error {
+	for key, item := range r.items {
+		if item.ID == id {
+			item.RevokedAt = &revokedAt
+			item.ReplacedByTokenID = replacedByTokenID
+			r.items[key] = item
+			return nil
+		}
+	}
+	return entity.ErrRefreshTokenInvalid
+}
+
+func (r *refreshTokenRepoFake) RevokeBySession(ctx context.Context, sessionID string, revokedAt time.Time) error {
+	for key, item := range r.items {
+		if item.SessionID == sessionID {
+			item.RevokedAt = &revokedAt
+			r.items[key] = item
+		}
+	}
+	return nil
+}
+
+type iamUsecaseFakeForAuthInteractor struct {
+	getMembershipFunc func(ctx context.Context, tenantID string, userID uint) (*iamdomain.Membership, error)
+}
+
+func (f *iamUsecaseFakeForAuthInteractor) CreateTenant(ctx context.Context, ownerUserID uint, cmd iamdomain.CreateTenantCmd) (*iamdomain.Tenant, error) {
+	return nil, nil
+}
+
+func (f *iamUsecaseFakeForAuthInteractor) AddMember(ctx context.Context, tenantID string, userID uint, roleName string) error {
+	return nil
+}
+
+func (f *iamUsecaseFakeForAuthInteractor) GetMembership(ctx context.Context, tenantID string, userID uint) (*iamdomain.Membership, error) {
+	return f.getMembershipFunc(ctx, tenantID, userID)
+}
+
+func (f *iamUsecaseFakeForAuthInteractor) ListUserTenants(ctx context.Context, userID uint) ([]iamdomain.Membership, error) {
+	return nil, nil
+}
+
+func (f *iamUsecaseFakeForAuthInteractor) ListTenantMembers(ctx context.Context, tenantID string) ([]iamdomain.Membership, error) {
+	return nil, nil
+}
+
+func (f *iamUsecaseFakeForAuthInteractor) RemoveMember(ctx context.Context, tenantID string, userID uint) error {
+	return nil
+}
+
+func (f *iamUsecaseFakeForAuthInteractor) CheckPermission(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
+	return false, nil
+}
+
+func (f *iamUsecaseFakeForAuthInteractor) RequirePermission(ctx context.Context, tenantID string, userID uint, permission string) error {
+	return nil
 }
 
 func makeTokenServerOK(t *testing.T) *httptest.Server {
@@ -113,7 +243,7 @@ func TestLogin_Success(t *testing.T) {
 	}
 
 	ur.On("GetByUsernameOrEmail", "jdoe").Return(user, nil)
-	tuc.On("CreateJwtToken", *user).Return("jwt-token", nil)
+	tuc.On("CreateJwtTokenForSession", *user, "", mock.AnythingOfType("string")).Return("jwt-token", nil)
 
 	uc := newUC(t, uuc, tuc, ext, ur, sr)
 
@@ -142,7 +272,7 @@ func TestRegister_Success(t *testing.T) {
 		Return(nil)
 
 	tuc.
-		On("CreateJwtToken", *created).
+		On("CreateJwtTokenForSession", *created, "", mock.AnythingOfType("string")).
 		Return("jwt-register", nil)
 
 	uc := newUC(t, uuc, tuc, ext, ur, sr)
@@ -266,6 +396,77 @@ func TestHandleOAuthCallback_InvalidState(t *testing.T) {
 	sr.AssertExpectations(t)
 }
 
+func TestSwitchActiveTenant_Success(t *testing.T) {
+	ctx := context.Background()
+	uuc, tuc, ext, ur, sr := initMock()
+	iamUC := &iamUsecaseFakeForAuthInteractor{
+		getMembershipFunc: func(ctx context.Context, tenantID string, userID uint) (*iamdomain.Membership, error) {
+			return &iamdomain.Membership{
+				TenantID: tenantID,
+				UserID:   userID,
+				Status:   iamdomain.MembershipStatusActive,
+			}, nil
+		},
+	}
+
+	cfg := config.AuthConfig{
+		JWTSecret:      "secret",
+		JWTKey:         "app-key",
+		AppRedirectURL: "https://app.example.com/after-auth",
+	}
+	sessionRepo := &sessionRepoFake{
+		items: map[string]entity.Session{
+			"session-1": {
+				ID:        "session-1",
+				UserID:    5,
+				Status:    entity.SessionStatusActive,
+				ExpiresAt: time.Now().Add(time.Hour),
+			},
+		},
+	}
+	refreshRepo := &refreshTokenRepoFake{}
+	uc := NewAuthUsecase(uuc, tuc, ext, sr, ur, sessionRepo, refreshRepo, iamUC, cfg)
+
+	user := &entity.User{Id: 5, Username: "neo", Email: "neo@mx.io"}
+	ur.On("GetByID", "5").Return(user, nil)
+	tuc.On("CreateJwtTokenForSession", *user, "tenant-1", "session-1").Return("jwt-tenant-1", nil)
+
+	tokenUC := NewTokenUsecase(cfg)
+	accessToken, err := tokenUC.CreateJwtTokenForSession(entity.User{Id: 5, Email: "neo@mx.io", Username: "neo"}, "", "session-1")
+	require.NoError(t, err)
+
+	resp, err := uc.SwitchActiveTenant(ctx, 5, "tenant-1", accessToken)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	assert.Equal(t, "jwt-tenant-1", resp.JwtToken)
+	assert.Equal(t, "neo@mx.io", resp.UserInfo.Email)
+}
+
+func TestSwitchActiveTenant_InactiveMembership(t *testing.T) {
+	ctx := context.Background()
+	uuc, tuc, ext, ur, sr := initMock()
+	iamUC := &iamUsecaseFakeForAuthInteractor{
+		getMembershipFunc: func(ctx context.Context, tenantID string, userID uint) (*iamdomain.Membership, error) {
+			return &iamdomain.Membership{
+				TenantID: tenantID,
+				UserID:   userID,
+				Status:   "inactive",
+			}, nil
+		},
+	}
+
+	cfg := config.AuthConfig{
+		JWTSecret:      "secret",
+		JWTKey:         "app-key",
+		AppRedirectURL: "https://app.example.com/after-auth",
+	}
+	uc := NewAuthUsecase(uuc, tuc, ext, sr, ur, &sessionRepoFake{}, &refreshTokenRepoFake{}, iamUC, cfg)
+
+	resp, err := uc.SwitchActiveTenant(ctx, 5, "tenant-1", "access-token")
+	require.ErrorIs(t, err, iamdomain.ErrInactiveMembership)
+	assert.Nil(t, resp)
+}
+
 func TestHandleOAuthCallback_ExchangeError(t *testing.T) {
 	ts := makeTokenServerErr(t)
 	defer ts.Close()
@@ -385,15 +586,112 @@ func TestHandleOAuthCallback_CreateJWTError(t *testing.T) {
 }
 
 func TestLogout(t *testing.T) {
-	uc := newUC(
-		t,
+	cfg := config.AuthConfig{
+		JWTSecret:      "secret",
+		JWTKey:         "app-key",
+		AppRedirectURL: "https://app.example.com/after-auth",
+	}
+	sessionRepo := &sessionRepoFake{
+		items: map[string]entity.Session{
+			"session-1": {
+				ID:        "session-1",
+				UserID:    9,
+				Status:    entity.SessionStatusActive,
+				ExpiresAt: time.Now().Add(time.Hour),
+			},
+		},
+	}
+	refreshRepo := &refreshTokenRepoFake{
+		items: map[string]entity.RefreshToken{
+			"h1": {ID: "refresh-1", SessionID: "session-1"},
+		},
+	}
+	uc := NewAuthUsecase(
 		&inputmocks.MockUserUsecase{},
 		&inputmocks.MockTokenUsecase{},
 		&outputmocks.MockGoogleOauthExternal{},
-		&outputmocks.MockUserRepository{},
 		&outputmocks.MockOauthStateRepository{},
+		&outputmocks.MockUserRepository{},
+		sessionRepo,
+		refreshRepo,
+		&iamUsecaseFakeForAuthInteractor{getMembershipFunc: func(ctx context.Context, tenantID string, userID uint) (*iamdomain.Membership, error) {
+			return nil, nil
+		}},
+		cfg,
 	)
-	loc, err := uc.Logout(context.Background())
+	tokenUC := NewTokenUsecase(cfg)
+	accessToken, err := tokenUC.CreateJwtTokenForSession(entity.User{Id: 9}, "", "session-1")
+	require.NoError(t, err)
+
+	loc, err := uc.Logout(context.Background(), accessToken)
 	require.NoError(t, err)
 	assert.Equal(t, "/", loc)
+	assert.Equal(t, entity.SessionStatusRevoked, sessionRepo.items["session-1"].Status)
+}
+
+func TestRefreshAccessToken_Success(t *testing.T) {
+	cfg := config.AuthConfig{
+		JWTSecret:      "secret",
+		JWTKey:         "app-key",
+		AppRedirectURL: "https://app.example.com/after-auth",
+	}
+	now := time.Now().UTC()
+	sessionRepo := &sessionRepoFake{
+		items: map[string]entity.Session{
+			"session-1": {
+				ID:             "session-1",
+				UserID:         9,
+				ActiveTenantID: "tenant-1",
+				Status:         entity.SessionStatusActive,
+				CreatedAt:      now,
+				UpdatedAt:      now,
+				ExpiresAt:      now.Add(time.Hour),
+			},
+		},
+	}
+	rawRefresh := "refresh-raw-token"
+	refreshRepo := &refreshTokenRepoFake{
+		items: map[string]entity.RefreshToken{
+			entity.HashToken(rawRefresh): {
+				ID:        "refresh-1",
+				SessionID: "session-1",
+				TokenHash: entity.HashToken(rawRefresh),
+				ExpiresAt: now.Add(time.Hour),
+				CreatedAt: now,
+				UpdatedAt: now,
+			},
+		},
+	}
+	userRepo := &outputmocks.MockUserRepository{}
+	userRepo.On("GetByID", "9").Return(&entity.User{
+		Id:       9,
+		Email:    "neo@mx.io",
+		Username: "neo",
+	}, nil)
+	uc := NewAuthUsecase(
+		&inputmocks.MockUserUsecase{},
+		NewTokenUsecase(cfg),
+		&outputmocks.MockGoogleOauthExternal{},
+		&outputmocks.MockOauthStateRepository{},
+		userRepo,
+		sessionRepo,
+		refreshRepo,
+		&iamUsecaseFakeForAuthInteractor{getMembershipFunc: func(ctx context.Context, tenantID string, userID uint) (*iamdomain.Membership, error) {
+			return nil, nil
+		}},
+		cfg,
+	)
+
+	resp, err := uc.RefreshAccessToken(context.Background(), rawRefresh)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	assert.NotEmpty(t, resp.JwtToken)
+	assert.NotEmpty(t, resp.RefreshToken)
+	assert.NotEqual(t, rawRefresh, resp.RefreshToken)
+	assert.Equal(t, uint(9), resp.UserInfo.Id)
+
+	storedOld, err := refreshRepo.GetByTokenHash(context.Background(), entity.HashToken(rawRefresh))
+	require.NoError(t, err)
+	assert.NotNil(t, storedOld.RevokedAt)
+	userRepo.AssertExpectations(t)
 }

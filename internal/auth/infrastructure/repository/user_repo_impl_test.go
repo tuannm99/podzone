@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"strconv"
-	"sync"
 	"testing"
 	"time"
 
@@ -18,11 +17,6 @@ import (
 	"github.com/tuannm99/podzone/pkg/testkit"
 )
 
-var (
-	migrateOnce sync.Once
-	errMigrate  error
-)
-
 type nopLogger = pdlog.NopLogger
 
 func setupRepo(t *testing.T) (*UserRepositoryImpl, *sqlx.DB) {
@@ -30,12 +24,9 @@ func setupRepo(t *testing.T) (*UserRepositoryImpl, *sqlx.DB) {
 
 	db := testkit.PostgresDB(t)
 
-	migrateOnce.Do(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-		errMigrate = migrations.Apply(ctx, db.DB, "postgres")
-	})
-	require.NoError(t, errMigrate)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	require.NoError(t, migrations.Apply(ctx, db.DB, "postgres"))
 
 	truncateUsers(t, db)
 
@@ -48,7 +39,7 @@ func setupRepo(t *testing.T) (*UserRepositoryImpl, *sqlx.DB) {
 
 func truncateUsers(t *testing.T, db *sqlx.DB) {
 	t.Helper()
-	_, err := db.Exec(`TRUNCATE TABLE users RESTART IDENTITY`)
+	_, err := db.Exec(`TRUNCATE TABLE users RESTART IDENTITY CASCADE`)
 	require.NoError(t, err)
 }
 

@@ -2,6 +2,7 @@ package infrasmanager
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -22,6 +23,10 @@ func (s *Service) ManualUpsertConnection(
 	req UpsertConnectionRequest,
 	actor map[string]string,
 ) (*UpsertConnectionResponse, error) {
+	if err := validatePlacementRequest(req); err != nil {
+		return nil, err
+	}
+
 	name := req.Name
 	if name == "" {
 		name = "default"
@@ -234,6 +239,37 @@ func (s *Service) DeleteConnection(
 		return corrID, err
 	}
 
+	if infraType == core.InfraPostgres {
+		placementKey := "podzone/tenants/" + tenantID + "/placement"
+		if err := s.st.EnqueueOutbox(core.OutboxMessage{
+			EventID:       uuid.NewString(),
+			CorrelationID: corrID,
+			Topic:         "consul.delete",
+			Payload:       map[string]interface{}{"key": placementKey},
+			TenantID:      tenantID,
+			InfraType:     infraType,
+			Name:          name,
+			Status:        "pending",
+			NextRetry:     time.Now(),
+			CreatedAt:     time.Now(),
+			UpdatedAt:     time.Now(),
+		}); err != nil {
+			_ = s.st.AppendEvent(core.ConnectionEvent{
+				ID:            uuid.NewString(),
+				CorrelationID: corrID,
+				TenantID:      tenantID,
+				InfraType:     infraType,
+				Name:          name,
+				Action:        "manual_delete",
+				Status:        "failed",
+				Error:         "enqueue placement delete failed: " + err.Error(),
+				Actor:         actor,
+				CreatedAt:     time.Now(),
+			})
+			return corrID, err
+		}
+	}
+
 	consulKey := core.BuildConsulKey(tenantID, infraType, name)
 	if err := s.st.EnqueueOutbox(core.OutboxMessage{
 		EventID:       uuid.NewString(),
@@ -277,6 +313,31 @@ func (s *Service) DeleteConnection(
 	})
 
 	return corrID, nil
+}
+
+func validatePlacementRequest(req UpsertConnectionRequest) error {
+	if req.InfraType != core.InfraPostgres || req.ClusterName == "" {
+		return nil
+	}
+
+	mode := firstNonEmpty(req.Mode, "schema")
+	switch mode {
+	case "schema":
+		if req.DBName == "" {
+			return fmt.Errorf("db_name is required for postgres schema mode")
+		}
+		if req.SchemaName == "" {
+			return fmt.Errorf("schema_name is required for postgres schema mode")
+		}
+	case "database":
+		if req.DBName == "" {
+			return fmt.Errorf("db_name is required for postgres database mode")
+		}
+	default:
+		return fmt.Errorf("invalid postgres placement mode: %s", req.Mode)
+	}
+
+	return nil
 }
 
 func (s *Service) GetConnection(tenantID string, infraType core.InfraType, name string) (*ConnectionDTO, error) {

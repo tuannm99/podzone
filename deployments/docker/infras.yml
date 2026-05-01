@@ -46,7 +46,7 @@ services:
     restart: unless-stopped
 
   mongo:
-    image: mongo:6
+    image: mongo:8.0
     container_name: podzone-mongo
     environment:
       MONGO_INITDB_ROOT_USERNAME: podzone
@@ -59,7 +59,8 @@ services:
       test:
         [
           'CMD-SHELL',
-          'echo "db.runCommand({ ping: 1 }).ok" | mongosh mongodb://podzone:podzone123@127.0.0.1:27017/admin --quiet'
+          'echo "db.runCommand({ ping: 1 }).ok" | mongosh
+            mongodb://podzone:podzone123@127.0.0.1:27017/admin --quiet',
         ]
       interval: 10s
       timeout: 5s
@@ -67,7 +68,7 @@ services:
     restart: unless-stopped
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.10
+    image: elasticsearch:8.12.0
     container_name: podzone-elasticsearch
     environment:
       discovery.type: single-node
@@ -80,20 +81,28 @@ services:
     restart: unless-stopped
 
   etcd:
-    image: bitnami/etcd:3.5.21
+    image: quay.io/coreos/etcd:v3.5.21
     container_name: podzone-etcd
-    user: '0'
-    command: sh -c "mkdir -p /bitnami/etcd/data && chmod 777 /bitnami/etcd/data && etcd"
-    environment:
-      ETCD_ENABLE_V2: 'true'
-      ALLOW_NONE_AUTHENTICATION: 'yes'
-      ETCD_ADVERTISE_CLIENT_URLS: http://etcd:2379
+    command:
+      - /usr/local/bin/etcd
+      - --name=etcd0
+      - --data-dir=/etcd-data
+      - --advertise-client-urls=http://etcd:2379,http://127.0.0.1:2379
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --enable-v2=true
     ports:
       - '2379:2379'
     volumes:
-      - podzone_etcd_data:/bitnami/etcd
+      - podzone_etcd_data:/etcd-data
     healthcheck:
-      test: ['CMD', 'etcdctl', 'endpoint', 'health']
+      test:
+        [
+          'CMD',
+          '/usr/local/bin/etcdctl',
+          '--endpoints=http://127.0.0.1:2379',
+          'endpoint',
+          'health',
+        ]
       interval: 5s
       timeout: 5s
       retries: 10

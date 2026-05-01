@@ -95,3 +95,129 @@ func (_c *MockTokenUsecase_CreateJwtToken_Call) RunAndReturn(run func(user entit
 	_c.Call.Return(run)
 	return _c
 }
+
+// CreateJwtTokenForTenant provides a mock function for the type MockTokenUsecase
+func (_mock *MockTokenUsecase) CreateJwtTokenForTenant(user entity.User, activeTenantID string) (string, error) {
+	ret := _mock.Called(user, activeTenantID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateJwtTokenForTenant")
+	}
+
+	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(entity.User, string) (string, error)); ok {
+		return returnFunc(user, activeTenantID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(entity.User, string) string); ok {
+		r0 = returnFunc(user, activeTenantID)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	if returnFunc, ok := ret.Get(1).(func(entity.User, string) error); ok {
+		r1 = returnFunc(user, activeTenantID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockTokenUsecase_CreateJwtTokenForTenant_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateJwtTokenForTenant'
+type MockTokenUsecase_CreateJwtTokenForTenant_Call struct {
+	*mock.Call
+}
+
+// CreateJwtTokenForTenant is a helper method to define mock.On call
+//   - user entity.User
+//   - activeTenantID string
+func (_e *MockTokenUsecase_Expecter) CreateJwtTokenForTenant(user interface{}, activeTenantID interface{}) *MockTokenUsecase_CreateJwtTokenForTenant_Call {
+	return &MockTokenUsecase_CreateJwtTokenForTenant_Call{Call: _e.mock.On("CreateJwtTokenForTenant", user, activeTenantID)}
+}
+
+func (_c *MockTokenUsecase_CreateJwtTokenForTenant_Call) Run(run func(user entity.User, activeTenantID string)) *MockTokenUsecase_CreateJwtTokenForTenant_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 entity.User
+		if args[0] != nil {
+			arg0 = args[0].(entity.User)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(arg0, arg1)
+	})
+	return _c
+}
+
+func (_c *MockTokenUsecase_CreateJwtTokenForTenant_Call) Return(s string, err error) *MockTokenUsecase_CreateJwtTokenForTenant_Call {
+	_c.Call.Return(s, err)
+	return _c
+}
+
+func (_c *MockTokenUsecase_CreateJwtTokenForTenant_Call) RunAndReturn(run func(user entity.User, activeTenantID string) (string, error)) *MockTokenUsecase_CreateJwtTokenForTenant_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateJwtTokenForSession provides a mock function for the type MockTokenUsecase
+func (_mock *MockTokenUsecase) CreateJwtTokenForSession(user entity.User, activeTenantID string, sessionID string) (string, error) {
+	ret := _mock.Called(user, activeTenantID, sessionID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateJwtTokenForSession")
+	}
+
+	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(entity.User, string, string) (string, error)); ok {
+		return returnFunc(user, activeTenantID, sessionID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(entity.User, string, string) string); ok {
+		r0 = returnFunc(user, activeTenantID, sessionID)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	if returnFunc, ok := ret.Get(1).(func(entity.User, string, string) error); ok {
+		r1 = returnFunc(user, activeTenantID, sessionID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+type MockTokenUsecase_CreateJwtTokenForSession_Call struct {
+	*mock.Call
+}
+
+func (_e *MockTokenUsecase_Expecter) CreateJwtTokenForSession(user interface{}, activeTenantID interface{}, sessionID interface{}) *MockTokenUsecase_CreateJwtTokenForSession_Call {
+	return &MockTokenUsecase_CreateJwtTokenForSession_Call{Call: _e.mock.On("CreateJwtTokenForSession", user, activeTenantID, sessionID)}
+}
+
+func (_c *MockTokenUsecase_CreateJwtTokenForSession_Call) Run(run func(user entity.User, activeTenantID string, sessionID string)) *MockTokenUsecase_CreateJwtTokenForSession_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 entity.User
+		if args[0] != nil {
+			arg0 = args[0].(entity.User)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(arg0, arg1, arg2)
+	})
+	return _c
+}
+
+func (_c *MockTokenUsecase_CreateJwtTokenForSession_Call) Return(s string, err error) *MockTokenUsecase_CreateJwtTokenForSession_Call {
+	_c.Call.Return(s, err)
+	return _c
+}
+
+func (_c *MockTokenUsecase_CreateJwtTokenForSession_Call) RunAndReturn(run func(user entity.User, activeTenantID string, sessionID string) (string, error)) *MockTokenUsecase_CreateJwtTokenForSession_Call {
+	_c.Call.Return(run)
+	return _c
+}

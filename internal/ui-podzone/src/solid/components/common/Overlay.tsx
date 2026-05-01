@@ -5,60 +5,67 @@ import {
   createSignal,
   onCleanup,
   type JSX,
-  type ParentProps
-} from 'solid-js'
-import { classes } from '../../shared/utils'
+  type ParentProps,
+} from 'solid-js';
+import { classes } from '../../shared/utils';
 
-type OverlayPosition = 'top' | 'right' | 'bottom' | 'left'
+type OverlayPosition = 'top' | 'right' | 'bottom' | 'left';
 
 const floatingPositionClasses: Record<OverlayPosition, string> = {
   top: 'bottom-full left-1/2 mb-2 -translate-x-1/2',
   right: 'left-full top-1/2 ml-2 -translate-y-1/2',
   bottom: 'left-1/2 top-full mt-2 -translate-x-1/2',
-  left: 'right-full top-1/2 mr-2 -translate-y-1/2'
-}
+  left: 'right-full top-1/2 mr-2 -translate-y-1/2',
+};
 
 export type DropdownItem = {
-  label: string
-  href?: string
-  onSelect?: () => void
-  tone?: 'default' | 'danger'
-}
+  label: string;
+  href?: string;
+  onSelect?: () => void;
+  tone?: 'default' | 'danger';
+};
 
 export function DropdownMenu(props: {
-  label?: string
-  trigger?: JSX.Element
-  items: DropdownItem[]
-  class?: string
-  menuClass?: string
+  label?: string;
+  trigger?: JSX.Element;
+  items: DropdownItem[];
+  class?: string;
+  menuClass?: string;
 }) {
-  const [open, setOpen] = createSignal(false)
-  let container: HTMLDivElement | undefined
+  const [open, setOpen] = createSignal(false);
+  let container: HTMLDivElement | undefined;
 
   createEffect(() => {
-    if (!open()) return
+    if (!open()) return;
 
     const handlePointerDown = (event: MouseEvent) => {
       if (container && !container.contains(event.target as Node)) {
-        setOpen(false)
+        setOpen(false);
       }
-    }
+    };
 
-    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('mousedown', handlePointerDown);
     onCleanup(() => {
-      document.removeEventListener('mousedown', handlePointerDown)
-    })
-  })
+      document.removeEventListener('mousedown', handlePointerDown);
+    });
+  });
 
   return (
-    <div class={classes('relative inline-block text-left', props.class)} ref={container}>
+    <div
+      class={classes('relative inline-block text-left', props.class)}
+      ref={container}
+    >
       <button
         type="button"
         class="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50"
         onClick={() => setOpen((value) => !value)}
       >
         {props.trigger ?? props.label ?? 'More'}
-        <span class={classes('text-gray-400 transition', open() && 'rotate-180')}>⌄</span>
+        <span
+          class={classes('text-gray-400 transition', open() && 'rotate-180')}
+        >
+          ⌄
+        </span>
       </button>
 
       <Show when={open()}>
@@ -90,8 +97,8 @@ export function DropdownMenu(props: {
                       item.tone === 'danger' ? 'text-red-600' : 'text-gray-700'
                     )}
                     onClick={() => {
-                      item.onSelect?.()
-                      setOpen(false)
+                      item.onSelect?.();
+                      setOpen(false);
                     }}
                   >
                     {item.label}
@@ -103,15 +110,15 @@ export function DropdownMenu(props: {
         </div>
       </Show>
     </div>
-  )
+  );
 }
 
 export function Tooltip(
   props: ParentProps<{
-    content: JSX.Element
-    position?: OverlayPosition
-    class?: string
-    panelClass?: string
+    content: JSX.Element;
+    position?: OverlayPosition;
+    class?: string;
+    panelClass?: string;
   }>
 ) {
   return (
@@ -127,15 +134,15 @@ export function Tooltip(
         {props.content}
       </div>
     </div>
-  )
+  );
 }
 
 export function Popover(
   props: ParentProps<{
-    content: JSX.Element
-    position?: OverlayPosition
-    class?: string
-    panelClass?: string
+    content: JSX.Element;
+    position?: OverlayPosition;
+    class?: string;
+    panelClass?: string;
   }>
 ) {
   return (
@@ -151,26 +158,26 @@ export function Popover(
         {props.content}
       </div>
     </div>
-  )
+  );
 }
 
-type ModalSize = 'sm' | 'md' | 'lg' | 'xl'
+type ModalSize = 'sm' | 'md' | 'lg' | 'xl';
 
 const modalSizeClasses: Record<ModalSize, string> = {
   sm: 'max-w-md',
   md: 'max-w-2xl',
   lg: 'max-w-4xl',
-  xl: 'max-w-6xl'
-}
+  xl: 'max-w-6xl',
+};
 
 export function Modal(
   props: ParentProps<{
-    open: boolean
-    title?: string
-    footer?: JSX.Element
-    size?: ModalSize
-    class?: string
-    onClose?: () => void
+    open: boolean;
+    title?: string;
+    footer?: JSX.Element;
+    size?: ModalSize;
+    class?: string;
+    onClose?: () => void;
   }>
 ) {
   return (
@@ -179,7 +186,7 @@ export function Modal(
         class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 p-4 backdrop-blur-sm"
         onClick={(event) => {
           if (event.target === event.currentTarget) {
-            props.onClose?.()
+            props.onClose?.();
           }
         }}
       >
@@ -192,7 +199,9 @@ export function Modal(
         >
           <div class="flex items-start justify-between gap-4">
             <Show when={props.title}>
-              <h2 class="text-xl font-semibold tracking-tight text-gray-900">{props.title}</h2>
+              <h2 class="text-xl font-semibold tracking-tight text-gray-900">
+                {props.title}
+              </h2>
             </Show>
             <Show when={props.onClose}>
               <button
@@ -207,28 +216,30 @@ export function Modal(
           </div>
           <div class="mt-4">{props.children}</div>
           <Show when={props.footer}>
-            <div class="mt-6 flex flex-wrap justify-end gap-3">{props.footer}</div>
+            <div class="mt-6 flex flex-wrap justify-end gap-3">
+              {props.footer}
+            </div>
           </Show>
         </div>
       </div>
     </Show>
-  )
+  );
 }
 
-type DrawerSide = 'left' | 'right'
+type DrawerSide = 'left' | 'right';
 
 const drawerSideClasses: Record<DrawerSide, string> = {
   left: 'left-0',
-  right: 'right-0'
-}
+  right: 'right-0',
+};
 
 export function Drawer(
   props: ParentProps<{
-    open: boolean
-    title?: string
-    side?: DrawerSide
-    class?: string
-    onClose?: () => void
+    open: boolean;
+    title?: string;
+    side?: DrawerSide;
+    class?: string;
+    onClose?: () => void;
   }>
 ) {
   return (
@@ -237,7 +248,7 @@ export function Drawer(
         class="fixed inset-0 z-50 bg-gray-900/30 backdrop-blur-sm"
         onClick={(event) => {
           if (event.target === event.currentTarget) {
-            props.onClose?.()
+            props.onClose?.();
           }
         }}
       >
@@ -268,5 +279,5 @@ export function Drawer(
         </aside>
       </div>
     </Show>
-  )
+  );
 }

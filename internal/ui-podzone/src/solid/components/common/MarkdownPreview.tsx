@@ -1,16 +1,20 @@
-import Viewer from '@toast-ui/editor/viewer'
-import type ToastViewer from '@toast-ui/editor/viewer'
-import '@toast-ui/editor/dist/toastui-editor-viewer.css'
-import { Show, createEffect, onCleanup, onMount } from 'solid-js'
-import { classes } from '../../shared/utils'
+import Viewer from '@toast-ui/editor/viewer';
+import type ToastViewer from '@toast-ui/editor/viewer';
+import '@toast-ui/editor/dist/toastui-editor-viewer.css';
+import { Show, createEffect, onCleanup, onMount } from 'solid-js';
+import { classes } from '../../shared/utils';
 
-export function MarkdownPreview(props: { source: string; class?: string; emptyMessage?: string }) {
-  let containerRef: HTMLDivElement | undefined
-  let viewer: ToastViewer | undefined
-  let lastSource = props.source
+export function MarkdownPreview(props: {
+  source: string;
+  class?: string;
+  emptyMessage?: string;
+}) {
+  let containerRef: HTMLDivElement | undefined;
+  let viewer: ToastViewer | undefined;
+  let lastSource = props.source;
 
   onMount(() => {
-    if (!containerRef) return
+    if (!containerRef) return;
 
     viewer = new Viewer({
       el: containerRef,
@@ -18,26 +22,26 @@ export function MarkdownPreview(props: { source: string; class?: string; emptyMe
       usageStatistics: false,
       linkAttributes: {
         target: '_blank',
-        rel: 'noreferrer noopener'
-      }
-    })
+        rel: 'noreferrer noopener',
+      },
+    });
 
-    lastSource = props.source
+    lastSource = props.source;
 
     onCleanup(() => {
-      viewer?.destroy()
-      viewer = undefined
-    })
-  })
+      viewer?.destroy();
+      viewer = undefined;
+    });
+  });
 
   createEffect(() => {
-    const nextSource = props.source
-    const currentViewer = viewer
-    if (!currentViewer || nextSource === lastSource) return
+    const nextSource = props.source;
+    const currentViewer = viewer;
+    if (!currentViewer || nextSource === lastSource) return;
 
-    currentViewer.setMarkdown(nextSource)
-    lastSource = nextSource
-  })
+    currentViewer.setMarkdown(nextSource);
+    lastSource = nextSource;
+  });
 
   return (
     <Show
@@ -62,5 +66,5 @@ export function MarkdownPreview(props: { source: string; class?: string; emptyMe
         <div ref={containerRef} />
       </div>
     </Show>
-  )
+  );
 }

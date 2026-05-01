@@ -13,8 +13,9 @@ type RegisterCmd struct {
 }
 
 type AuthResult struct {
-	JwtToken string      `json:"jwt_token"`
-	UserInfo entity.User `json:"user_info"`
+	JwtToken     string      `json:"jwt_token"`
+	RefreshToken string      `json:"refresh_token"`
+	UserInfo     entity.User `json:"user_info"`
 }
 
 type GoogleCallbackResult struct {
@@ -38,5 +39,7 @@ type AuthUsecase interface {
 	HandleOAuthCallback(ctx context.Context, code, state string) (*GoogleCallbackResult, error)
 	Login(ctx context.Context, username, password string) (*AuthResult, error)
 	Register(ctx context.Context, req RegisterCmd) (*AuthResult, error)
-	Logout(ctx context.Context) (string, error)
+	RefreshAccessToken(ctx context.Context, refreshToken string) (*AuthResult, error)
+	SwitchActiveTenant(ctx context.Context, userID uint, tenantID, accessToken string) (*AuthResult, error)
+	Logout(ctx context.Context, accessToken string) (string, error)
 }

@@ -246,9 +246,68 @@ func (_c *MockAuthUsecase_Login_Call) RunAndReturn(run func(ctx context.Context,
 	return _c
 }
 
+// RefreshAccessToken provides a mock function for the type MockAuthUsecase
+func (_mock *MockAuthUsecase) RefreshAccessToken(ctx context.Context, refreshToken string) (*inputport.AuthResult, error) {
+	ret := _mock.Called(ctx, refreshToken)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RefreshAccessToken")
+	}
+
+	var r0 *inputport.AuthResult
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*inputport.AuthResult, error)); ok {
+		return returnFunc(ctx, refreshToken)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *inputport.AuthResult); ok {
+		r0 = returnFunc(ctx, refreshToken)
+	} else if ret.Get(0) != nil {
+		r0 = ret.Get(0).(*inputport.AuthResult)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, refreshToken)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+type MockAuthUsecase_RefreshAccessToken_Call struct {
+	*mock.Call
+}
+
+func (_e *MockAuthUsecase_Expecter) RefreshAccessToken(ctx interface{}, refreshToken interface{}) *MockAuthUsecase_RefreshAccessToken_Call {
+	return &MockAuthUsecase_RefreshAccessToken_Call{Call: _e.mock.On("RefreshAccessToken", ctx, refreshToken)}
+}
+
+func (_c *MockAuthUsecase_RefreshAccessToken_Call) Run(run func(ctx context.Context, refreshToken string)) *MockAuthUsecase_RefreshAccessToken_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(arg0, arg1)
+	})
+	return _c
+}
+
+func (_c *MockAuthUsecase_RefreshAccessToken_Call) Return(authResult *inputport.AuthResult, err error) *MockAuthUsecase_RefreshAccessToken_Call {
+	_c.Call.Return(authResult, err)
+	return _c
+}
+
+func (_c *MockAuthUsecase_RefreshAccessToken_Call) RunAndReturn(run func(ctx context.Context, refreshToken string) (*inputport.AuthResult, error)) *MockAuthUsecase_RefreshAccessToken_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Logout provides a mock function for the type MockAuthUsecase
-func (_mock *MockAuthUsecase) Logout(ctx context.Context) (string, error) {
-	ret := _mock.Called(ctx)
+func (_mock *MockAuthUsecase) Logout(ctx context.Context, accessToken string) (string, error) {
+	ret := _mock.Called(ctx, accessToken)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Logout")
@@ -272,26 +331,25 @@ func (_mock *MockAuthUsecase) Logout(ctx context.Context) (string, error) {
 	return r0, r1
 }
 
-// MockAuthUsecase_Logout_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Logout'
 type MockAuthUsecase_Logout_Call struct {
 	*mock.Call
 }
 
-// Logout is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *MockAuthUsecase_Expecter) Logout(ctx interface{}) *MockAuthUsecase_Logout_Call {
-	return &MockAuthUsecase_Logout_Call{Call: _e.mock.On("Logout", ctx)}
+func (_e *MockAuthUsecase_Expecter) Logout(ctx interface{}, accessToken interface{}) *MockAuthUsecase_Logout_Call {
+	return &MockAuthUsecase_Logout_Call{Call: _e.mock.On("Logout", ctx, accessToken)}
 }
 
-func (_c *MockAuthUsecase_Logout_Call) Run(run func(ctx context.Context)) *MockAuthUsecase_Logout_Call {
+func (_c *MockAuthUsecase_Logout_Call) Run(run func(ctx context.Context, accessToken string)) *MockAuthUsecase_Logout_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		run(
-			arg0,
-		)
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(arg0, arg1)
 	})
 	return _c
 }
@@ -301,7 +359,74 @@ func (_c *MockAuthUsecase_Logout_Call) Return(s string, err error) *MockAuthUsec
 	return _c
 }
 
-func (_c *MockAuthUsecase_Logout_Call) RunAndReturn(run func(ctx context.Context) (string, error)) *MockAuthUsecase_Logout_Call {
+func (_c *MockAuthUsecase_Logout_Call) RunAndReturn(run func(ctx context.Context, accessToken string) (string, error)) *MockAuthUsecase_Logout_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SwitchActiveTenant provides a mock function for the type MockAuthUsecase
+func (_mock *MockAuthUsecase) SwitchActiveTenant(ctx context.Context, userID uint, tenantID string, accessToken string) (*inputport.AuthResult, error) {
+	ret := _mock.Called(ctx, userID, tenantID, accessToken)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SwitchActiveTenant")
+	}
+
+	var r0 *inputport.AuthResult
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string, string) (*inputport.AuthResult, error)); ok {
+		return returnFunc(ctx, userID, tenantID, accessToken)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string, string) *inputport.AuthResult); ok {
+		r0 = returnFunc(ctx, userID, tenantID, accessToken)
+	} else if ret.Get(0) != nil {
+		r0 = ret.Get(0).(*inputport.AuthResult)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint, string, string) error); ok {
+		r1 = returnFunc(ctx, userID, tenantID, accessToken)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+type MockAuthUsecase_SwitchActiveTenant_Call struct {
+	*mock.Call
+}
+
+func (_e *MockAuthUsecase_Expecter) SwitchActiveTenant(ctx interface{}, userID interface{}, tenantID interface{}, accessToken interface{}) *MockAuthUsecase_SwitchActiveTenant_Call {
+	return &MockAuthUsecase_SwitchActiveTenant_Call{Call: _e.mock.On("SwitchActiveTenant", ctx, userID, tenantID, accessToken)}
+}
+
+func (_c *MockAuthUsecase_SwitchActiveTenant_Call) Run(run func(ctx context.Context, userID uint, tenantID string, accessToken string)) *MockAuthUsecase_SwitchActiveTenant_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(arg0, arg1, arg2, arg3)
+	})
+	return _c
+}
+
+func (_c *MockAuthUsecase_SwitchActiveTenant_Call) Return(authResult *inputport.AuthResult, err error) *MockAuthUsecase_SwitchActiveTenant_Call {
+	_c.Call.Return(authResult, err)
+	return _c
+}
+
+func (_c *MockAuthUsecase_SwitchActiveTenant_Call) RunAndReturn(run func(ctx context.Context, userID uint, tenantID string, accessToken string) (*inputport.AuthResult, error)) *MockAuthUsecase_SwitchActiveTenant_Call {
 	_c.Call.Return(run)
 	return _c
 }

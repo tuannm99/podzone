@@ -34,9 +34,75 @@ service AuthService {
     };
   }
 
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/refresh"
+      body: "*"
+    };
+  }
+
   rpc Logout(LogoutRequest) returns (LogoutResponse) {
     option (google.api.http) = {
-      get: "/auth/v1/logout"
+      post: "/auth/v1/logout"
+      body: "*"
+    };
+  }
+
+  rpc CreateTenant(CreateTenantRequest) returns (CreateTenantResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/tenants"
+      body: "*"
+    };
+  }
+
+  rpc AddTenantMember(AddTenantMemberRequest) returns (AddTenantMemberResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/tenants/{tenant_id}/members"
+      body: "*"
+    };
+  }
+
+  rpc GetTenantMembership(GetTenantMembershipRequest) returns (GetTenantMembershipResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}"
+    };
+  }
+
+  rpc CheckPermission(CheckPermissionRequest) returns (CheckPermissionResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/permissions:check"
+      body: "*"
+    };
+  }
+
+  rpc SwitchActiveTenant(SwitchActiveTenantRequest) returns (SwitchActiveTenantResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/tenants:switch"
+      body: "*"
+    };
+  }
+
+  rpc GetSession(GetSessionRequest) returns (GetSessionResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/sessions/{session_id}"
+    };
+  }
+
+  rpc ListUserTenants(ListUserTenantsRequest) returns (ListUserTenantsResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/users/{user_id}/tenants"
+    };
+  }
+
+  rpc ListTenantMembers(ListTenantMembersRequest) returns (ListTenantMembersResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/tenants/{tenant_id}/members"
+    };
+  }
+
+  rpc RemoveTenantMember(RemoveTenantMemberRequest) returns (RemoveTenantMemberResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}"
     };
   }
 }
@@ -49,6 +115,7 @@ message LoginRequest {
 message LoginResponse {
   string jwt_token = 1;
   UserInfo user_info = 2;
+  string refresh_token = 3;
 }
 
 message RegisterRequest {
@@ -60,6 +127,17 @@ message RegisterRequest {
 message RegisterResponse {
   string jwt_token = 1;
   UserInfo user_info = 2;
+  string refresh_token = 3;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+message RefreshTokenResponse {
+  string jwt_token = 1;
+  UserInfo user_info = 2;
+  string refresh_token = 3;
 }
 
 message GoogleLoginRequest {
@@ -88,6 +166,116 @@ message LogoutRequest {
 message LogoutResponse {
   bool success = 1;
   string redirect_url = 2;
+}
+
+message Session {
+  string id = 1;
+  uint64 user_id = 2;
+  string active_tenant_id = 3;
+  string status = 4;
+  string created_at = 5;
+  string updated_at = 6;
+  string expires_at = 7;
+  string revoked_at = 8;
+}
+
+message Tenant {
+  string id = 1;
+  string slug = 2;
+  string name = 3;
+  string created_at = 4;
+  string updated_at = 5;
+}
+
+message TenantMembership {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+  uint64 role_id = 3;
+  string role_name = 4;
+  string status = 5;
+  string created_at = 6;
+  string updated_at = 7;
+}
+
+message CreateTenantRequest {
+  uint64 owner_user_id = 1;
+  string slug = 2;
+  string name = 3;
+}
+
+message CreateTenantResponse {
+  Tenant tenant = 1;
+  TenantMembership owner_membership = 2;
+}
+
+message AddTenantMemberRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+  string role_name = 3;
+}
+
+message AddTenantMemberResponse {}
+
+message ListUserTenantsRequest {
+  uint64 user_id = 1;
+}
+
+message ListUserTenantsResponse {
+  repeated TenantMembership memberships = 1;
+}
+
+message GetTenantMembershipRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+}
+
+message GetTenantMembershipResponse {
+  TenantMembership membership = 1;
+}
+
+message CheckPermissionRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+  string permission = 3;
+}
+
+message CheckPermissionResponse {
+  bool allowed = 1;
+}
+
+message ListTenantMembersRequest {
+  string tenant_id = 1;
+}
+
+message ListTenantMembersResponse {
+  repeated TenantMembership memberships = 1;
+}
+
+message RemoveTenantMemberRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+}
+
+message RemoveTenantMemberResponse {}
+
+message SwitchActiveTenantRequest {
+  uint64 user_id = 1;
+  string tenant_id = 2;
+  string access_token = 3;
+}
+
+message SwitchActiveTenantResponse {
+  string jwt_token = 1;
+  UserInfo user_info = 2;
+  string refresh_token = 3;
+}
+
+message GetSessionRequest {
+  string session_id = 1;
+}
+
+message GetSessionResponse {
+  Session session = 1;
 }
 
 message GoogleUserInfo {

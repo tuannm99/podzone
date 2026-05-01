@@ -17,6 +17,7 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
 	"github.com/tuannm99/podzone/internal/auth/infrastructure/repository"
 	"github.com/tuannm99/podzone/internal/auth/migrations"
+	"github.com/tuannm99/podzone/internal/iam"
 	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/pdsql"
@@ -29,6 +30,8 @@ var Module = fx.Options(
 		fx.Annotate(repository.NewGoogleOauthImpl, fx.As(new(outputport.GoogleOauthExternal))),
 		fx.Annotate(repository.NewOauthStateRepositoryImpl, fx.As(new(outputport.OauthStateRepository))),
 		fx.Annotate(repository.NewUserRepositoryImpl, fx.As(new(outputport.UserRepository))),
+		fx.Annotate(repository.NewSessionRepositoryImpl, fx.As(new(outputport.SessionRepository))),
+		fx.Annotate(repository.NewRefreshTokenRepositoryImpl, fx.As(new(outputport.RefreshTokenRepository))),
 
 		fx.Annotate(domain.NewTokenUsecase, fx.As(new(inputport.TokenUsecase))),
 		fx.Annotate(domain.NewUserUsecase, fx.As(new(inputport.UserUsecase))),
@@ -40,6 +43,7 @@ var Module = fx.Options(
 		RegisterGRPCServer,
 		RegisterMigration,
 	),
+	iam.Module,
 )
 
 func RegisterGRPCServer(server *grpc.Server, authServer *grpchandler.AuthServer, logger pdlog.Logger) {

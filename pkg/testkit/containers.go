@@ -23,29 +23,25 @@ import (
 )
 
 var (
-	postgresOnce    sync.Once
-	postgresCleanup sync.Once
-	postgresDSN     string
-	errPostgres     error
-	postgresC       testcontainers.Container
+	postgresMu  sync.Mutex
+	postgresDSN string
+	errPostgres error
+	postgresC   testcontainers.Container
 
-	redisOnce    sync.Once
-	redisCleanup sync.Once
-	redisAddr    string
-	errRedis     error
-	redisC       testcontainers.Container
+	redisMu   sync.Mutex
+	redisAddr string
+	errRedis  error
+	redisC    testcontainers.Container
 
-	mongoOnce    sync.Once
-	mongoCleanup sync.Once
-	mongoURI     string
-	errMongo     error
-	mongoC       testcontainers.Container
+	mongoMu  sync.Mutex
+	mongoURI string
+	errMongo error
+	mongoC   testcontainers.Container
 
-	esOnce    sync.Once
-	esCleanup sync.Once
-	esURL     string
-	errES     error
-	esC       testcontainers.Container
+	esMu  sync.Mutex
+	esURL string
+	errES error
+	esC   testcontainers.Container
 )
 
 func reuseEnabled() bool {
@@ -55,17 +51,15 @@ func reuseEnabled() bool {
 	return strings.EqualFold(os.Getenv("TESTCONTAINERS_REUSE_ENABLE"), "true")
 }
 
-func registerCleanup(t *testing.T, c testcontainers.Container, once *sync.Once) {
+func registerCleanup(t *testing.T, c testcontainers.Container) {
 	t.Helper()
 	if c == nil || reuseEnabled() {
 		return
 	}
-	once.Do(func() {
-		t.Cleanup(func() {
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
-			_ = c.Terminate(ctx)
-		})
+	t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		_ = c.Terminate(ctx)
 	})
 }
 
@@ -89,7 +83,7 @@ func PostgresDSN(t *testing.T) string {
 		}
 		t.Fatalf("start postgres container: %v", errPostgres)
 	}
-	registerCleanup(t, postgresC, &postgresCleanup)
+	registerCleanup(t, postgresC)
 	return postgresDSN
 }
 
@@ -178,46 +172,51 @@ func EnsurePostgresDB(t *testing.T, dbName string) {
 
 func startPostgres(t *testing.T) {
 	t.Helper()
-	postgresOnce.Do(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-		defer cancel()
+	postgresMu.Lock()
+	defer postgresMu.Unlock()
 
-		req := testcontainers.ContainerRequest{
-			Image:        "postgres:15",
-			ExposedPorts: []string{"5432/tcp"},
-			Env: map[string]string{
-				"POSTGRES_USER":     "postgres",
-				"POSTGRES_PASSWORD": "postgres",
-				"POSTGRES_DB":       "podzone",
-			},
-			WaitingFor: wait.ForListeningPort("5432/tcp").WithStartupTimeout(2 * time.Minute),
-		}
-		reuse := reuseEnabled()
-		if reuse {
-			req.Name = "podzone-it-postgres"
-		}
+	if isContainerRunning(postgresC) {
+		return
+	}
 
-		postgresC, errPostgres = testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-			ContainerRequest: req,
-			Started:          true,
-			Reuse:            reuse,
-		})
-		if errPostgres != nil {
-			return
-		}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
 
-		host, err := postgresC.Host(ctx)
-		if err != nil {
-			errPostgres = err
-			return
-		}
-		port, err := postgresC.MappedPort(ctx, "5432/tcp")
-		if err != nil {
-			errPostgres = err
-			return
-		}
-		postgresDSN = fmt.Sprintf("postgres://postgres:postgres@%s:%s/podzone?sslmode=disable", host, port.Port())
+	req := testcontainers.ContainerRequest{
+		Image:        "postgres:15",
+		ExposedPorts: []string{"5432/tcp"},
+		Env: map[string]string{
+			"POSTGRES_USER":     "postgres",
+			"POSTGRES_PASSWORD": "postgres",
+			"POSTGRES_DB":       "postgres",
+		},
+		WaitingFor: wait.ForListeningPort("5432/tcp").WithStartupTimeout(2 * time.Minute),
+	}
+	reuse := reuseEnabled()
+	if reuse {
+		req.Name = "podzone-it-postgres"
+	}
+
+	postgresC, errPostgres = testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: req,
+		Started:          true,
+		Reuse:            reuse,
 	})
+	if errPostgres != nil {
+		return
+	}
+
+	host, err := postgresC.Host(ctx)
+	if err != nil {
+		errPostgres = err
+		return
+	}
+	port, err := postgresC.MappedPort(ctx, "5432/tcp")
+	if err != nil {
+		errPostgres = err
+		return
+	}
+	postgresDSN = fmt.Sprintf("postgres://postgres:postgres@%s:%s/postgres?sslmode=disable", host, port.Port())
 }
 
 func RedisAddr(t *testing.T) string {
@@ -229,7 +228,7 @@ func RedisAddr(t *testing.T) string {
 		}
 		t.Fatalf("start redis container: %v", errRedis)
 	}
-	registerCleanup(t, redisC, &redisCleanup)
+	registerCleanup(t, redisC)
 	return redisAddr
 }
 
@@ -253,41 +252,46 @@ func RedisClient(t *testing.T) *redis.Client {
 
 func startRedis(t *testing.T) {
 	t.Helper()
-	redisOnce.Do(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-		defer cancel()
+	redisMu.Lock()
+	defer redisMu.Unlock()
 
-		req := testcontainers.ContainerRequest{
-			Image:        "redis:7",
-			ExposedPorts: []string{"6379/tcp"},
-			WaitingFor:   wait.ForListeningPort("6379/tcp").WithStartupTimeout(2 * time.Minute),
-		}
-		reuse := reuseEnabled()
-		if reuse {
-			req.Name = "podzone-it-redis"
-		}
+	if isContainerRunning(redisC) {
+		return
+	}
 
-		redisC, errRedis = testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-			ContainerRequest: req,
-			Started:          true,
-			Reuse:            reuse,
-		})
-		if errRedis != nil {
-			return
-		}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
 
-		host, err := redisC.Host(ctx)
-		if err != nil {
-			errRedis = err
-			return
-		}
-		port, err := redisC.MappedPort(ctx, "6379/tcp")
-		if err != nil {
-			errRedis = err
-			return
-		}
-		redisAddr = fmt.Sprintf("%s:%s", host, port.Port())
+	req := testcontainers.ContainerRequest{
+		Image:        "redis:7",
+		ExposedPorts: []string{"6379/tcp"},
+		WaitingFor:   wait.ForListeningPort("6379/tcp").WithStartupTimeout(2 * time.Minute),
+	}
+	reuse := reuseEnabled()
+	if reuse {
+		req.Name = "podzone-it-redis"
+	}
+
+	redisC, errRedis = testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: req,
+		Started:          true,
+		Reuse:            reuse,
 	})
+	if errRedis != nil {
+		return
+	}
+
+	host, err := redisC.Host(ctx)
+	if err != nil {
+		errRedis = err
+		return
+	}
+	port, err := redisC.MappedPort(ctx, "6379/tcp")
+	if err != nil {
+		errRedis = err
+		return
+	}
+	redisAddr = fmt.Sprintf("%s:%s", host, port.Port())
 }
 
 func MongoURI(t *testing.T) string {
@@ -299,7 +303,7 @@ func MongoURI(t *testing.T) string {
 		}
 		t.Fatalf("start mongo container: %v", errMongo)
 	}
-	registerCleanup(t, mongoC, &mongoCleanup)
+	registerCleanup(t, mongoC)
 	return mongoURI
 }
 
@@ -321,41 +325,60 @@ func MongoClient(t *testing.T) *mongo.Client {
 
 func startMongo(t *testing.T) {
 	t.Helper()
-	mongoOnce.Do(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-		defer cancel()
+	mongoMu.Lock()
+	defer mongoMu.Unlock()
 
-		req := testcontainers.ContainerRequest{
-			Image:        "mongo:6",
-			ExposedPorts: []string{"27017/tcp"},
-			WaitingFor:   wait.ForListeningPort("27017/tcp").WithStartupTimeout(2 * time.Minute),
-		}
-		reuse := reuseEnabled()
-		if reuse {
-			req.Name = "podzone-it-mongo"
-		}
+	if isContainerRunning(mongoC) {
+		return
+	}
 
-		mongoC, errMongo = testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-			ContainerRequest: req,
-			Started:          true,
-			Reuse:            reuse,
-		})
-		if errMongo != nil {
-			return
-		}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
 
-		host, err := mongoC.Host(ctx)
-		if err != nil {
-			errMongo = err
-			return
-		}
-		port, err := mongoC.MappedPort(ctx, "27017/tcp")
-		if err != nil {
-			errMongo = err
-			return
-		}
-		mongoURI = fmt.Sprintf("mongodb://%s:%s", host, port.Port())
+	req := testcontainers.ContainerRequest{
+		Image:        "mongo:8.0",
+		ExposedPorts: []string{"27017/tcp"},
+		Env: map[string]string{
+			"MONGO_INITDB_ROOT_USERNAME": "podzone",
+			"MONGO_INITDB_ROOT_PASSWORD": "podzone123",
+		},
+		WaitingFor: wait.ForAll(
+			wait.ForListeningPort("27017/tcp"),
+			wait.ForLog("Waiting for connections"),
+		).WithStartupTimeout(2 * time.Minute),
+	}
+	reuse := reuseEnabled()
+	if reuse {
+		req.Name = "podzone-it-mongo"
+	}
+
+	mongoC, errMongo = testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: req,
+		Started:          true,
+		Reuse:            reuse,
 	})
+	if errMongo != nil {
+		return
+	}
+
+	host, err := mongoC.Host(ctx)
+	if err != nil {
+		errMongo = err
+		return
+	}
+	port, err := mongoC.MappedPort(ctx, "27017/tcp")
+	if err != nil {
+		errMongo = err
+		return
+	}
+	mongoURI = fmt.Sprintf(
+		"mongodb://podzone:podzone123@%s:%s/?authSource=admin&directConnection=true",
+		host,
+		port.Port(),
+	)
+	if err := waitForMongoReady(ctx, mongoURI); err != nil {
+		errMongo = err
+	}
 }
 
 func ElasticsearchURL(t *testing.T) string {
@@ -367,50 +390,93 @@ func ElasticsearchURL(t *testing.T) string {
 		}
 		t.Fatalf("start elasticsearch container: %v", errES)
 	}
-	registerCleanup(t, esC, &esCleanup)
+	registerCleanup(t, esC)
 	return esURL
 }
 
 func startElasticsearch(t *testing.T) {
 	t.Helper()
-	esOnce.Do(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
-		defer cancel()
+	esMu.Lock()
+	defer esMu.Unlock()
 
-		req := testcontainers.ContainerRequest{
-			Image:        "docker.elastic.co/elasticsearch/elasticsearch:7.17.10",
-			ExposedPorts: []string{"9200/tcp"},
-			Env: map[string]string{
-				"discovery.type":         "single-node",
-				"xpack.security.enabled": "false",
-				"ES_JAVA_OPTS":           "-Xms512m -Xmx512m",
-			},
-			WaitingFor: wait.ForListeningPort("9200/tcp").WithStartupTimeout(3 * time.Minute),
-		}
-		reuse := reuseEnabled()
-		if reuse {
-			req.Name = "podzone-it-es"
-		}
+	if isContainerRunning(esC) {
+		return
+	}
 
-		esC, errES = testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-			ContainerRequest: req,
-			Started:          true,
-			Reuse:            reuse,
-		})
-		if errES != nil {
-			return
-		}
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+	defer cancel()
 
-		host, err := esC.Host(ctx)
-		if err != nil {
-			errES = err
-			return
-		}
-		port, err := esC.MappedPort(ctx, "9200/tcp")
-		if err != nil {
-			errES = err
-			return
-		}
-		esURL = fmt.Sprintf("http://%s:%s", host, port.Port())
+	req := testcontainers.ContainerRequest{
+		Image:        "elasticsearch:8.12.0",
+		ExposedPorts: []string{"9200/tcp"},
+		Env: map[string]string{
+			"discovery.type":         "single-node",
+			"xpack.security.enabled": "false",
+			"ES_JAVA_OPTS":           "-Xms512m -Xmx512m",
+		},
+		WaitingFor: wait.ForListeningPort("9200/tcp").WithStartupTimeout(3 * time.Minute),
+	}
+	reuse := reuseEnabled()
+	if reuse {
+		req.Name = "podzone-it-es"
+	}
+
+	esC, errES = testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: req,
+		Started:          true,
+		Reuse:            reuse,
 	})
+	if errES != nil {
+		return
+	}
+
+	host, err := esC.Host(ctx)
+	if err != nil {
+		errES = err
+		return
+	}
+	port, err := esC.MappedPort(ctx, "9200/tcp")
+	if err != nil {
+		errES = err
+		return
+	}
+	esURL = fmt.Sprintf("http://%s:%s", host, port.Port())
+}
+
+func isContainerRunning(c testcontainers.Container) bool {
+	if c == nil {
+		return false
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	state, err := c.State(ctx)
+	return err == nil && state.Running
+}
+
+func waitForMongoReady(ctx context.Context, uri string) error {
+	deadline := time.Now().Add(30 * time.Second)
+	var lastErr error
+
+	for time.Now().Before(deadline) {
+		pingCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+		client, err := mongo.Connect(pingCtx, options.Client().ApplyURI(uri))
+		if err == nil {
+			err = client.Ping(pingCtx, nil)
+		}
+		if client != nil {
+			_ = client.Disconnect(context.Background())
+		}
+		cancel()
+
+		if err == nil {
+			return nil
+		}
+		lastErr = err
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	if lastErr == nil {
+		lastErr = fmt.Errorf("mongo not ready before timeout")
+	}
+	return lastErr
 }

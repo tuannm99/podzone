@@ -10,6 +10,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	boconfig "github.com/tuannm99/podzone/internal/backoffice/config"
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/generated"
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/resolver"
 	"github.com/tuannm99/podzone/pkg/pdgraphql"
@@ -22,7 +23,7 @@ func provideCORSMiddleware() pdhttp.Middleware {
 		r.Use(cors.New(cors.Config{
 			AllowOrigins:     []string{"*"},
 			AllowMethods:     []string{"POST", "GET", "OPTIONS"},
-			AllowHeaders:     []string{"Content-Type", "Authorization", "X-Tenant-ID"},
+			AllowHeaders:     []string{"Content-Type", "Authorization"},
 			ExposeHeaders:    []string{"Content-Length"},
 			AllowCredentials: true,
 		}))
@@ -32,6 +33,8 @@ func provideCORSMiddleware() pdhttp.Middleware {
 type gqlRegistrarParams struct {
 	fx.In
 	Cfg      pdgraphql.Config
+	BOCfg    boconfig.Config
+	Authz    TenantAuthorizer
 	Resolver *resolver.Resolver
 }
 
@@ -55,7 +58,7 @@ func graphQLRegistrar(p gqlRegistrarParams) pdhttp.RouteRegistrar {
 		srv.Use(extension.AutomaticPersistedQuery{Cache: lru.New[string](100)})
 
 		// app-specific extension
-		srv.Use(&TenantMiddleware{})
+		srv.Use(NewTenantMiddleware(p.BOCfg, p.Authz))
 
 		r.POST(p.Cfg.QueryPath, gin.HandlerFunc(func(c *gin.Context) {
 			srv.ServeHTTP(c.Writer, c.Request)

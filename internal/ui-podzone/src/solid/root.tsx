@@ -1,6 +1,6 @@
 import { Outlet, useRouterState } from '@tanstack/solid-router';
 import { Show, createEffect } from 'solid-js';
-import { AppShell } from './components/common/AppShell';
+import { AppShell, Container } from './components/common/AppShell';
 import { ScrollToTopButton } from './components/common/ScrollToTop';
 import { PodzoneNavbar } from './layout/PodzoneNavbar';
 
@@ -26,8 +26,17 @@ export default function Root() {
         <PodzoneNavbar currentPath={pathname()} />
       </Show>
 
-      <main class="mt-4 pb-10">
-        <Outlet />
+      <main class="pb-8">
+        <Show
+          when={!isAuthRoute()}
+          fallback={<Outlet />}
+        >
+          <Container class="mt-3">
+            <div class="grid min-h-0 grid-cols-1 gap-0 xl:grid-cols-[minmax(0,1fr)]">
+              <Outlet />
+            </div>
+          </Container>
+        </Show>
       </main>
 
       <Show when={!isAuthRoute()}>

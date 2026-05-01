@@ -8,6 +8,7 @@ import (
 	"github.com/tuannm99/podzone/internal/backoffice/domain/inputport"
 	"github.com/tuannm99/podzone/internal/backoffice/domain/outputport"
 	"github.com/tuannm99/podzone/internal/backoffice/infrastructure/model"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 type StoreInteractor struct {
@@ -30,15 +31,23 @@ func (i *StoreInteractor) CreateStore(ctx context.Context, name, description str
 	if name == "" {
 		return nil, errors.New("store name is required")
 	}
-	s := model.NewStore(name, description, "owner_1") // later: extract from ctx
+	ownerID, err := toolkit.GetUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	s := model.NewStore(name, description, ownerID)
 	if err := i.repo.Create(ctx, s); err != nil {
 		return nil, err
 	}
 	return &entity.Store{
 		ID:          s.ID,
 		Name:        s.Name,
+		OwnerID:     s.OwnerID,
 		Description: s.Description,
 		IsActive:    false,
+		Status:      string(s.Status),
+		CreatedAt:   s.CreatedAt,
+		UpdatedAt:   s.UpdatedAt,
 	}, nil
 }
 

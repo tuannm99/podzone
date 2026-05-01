@@ -1,15 +1,19 @@
-import { For, Show, type JSX, type ParentProps } from 'solid-js'
-import { classes } from '../../shared/utils'
+import { For, Show, type JSX, type ParentProps } from 'solid-js';
+import { classes } from '../../shared/utils';
 
 export type NavItem = {
-  label: string
-  href?: string
-  active?: boolean
-  icon?: JSX.Element
-  onClick?: () => void
-}
+  label: string;
+  href?: string;
+  active?: boolean;
+  icon?: JSX.Element;
+  onClick?: () => void;
+};
 
-function NavAction(props: { item: NavItem; class?: string; activeClass?: string }) {
+function NavAction(props: {
+  item: NavItem;
+  class?: string;
+  activeClass?: string;
+}) {
   const className = () =>
     classes(
       'inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition',
@@ -17,7 +21,7 @@ function NavAction(props: { item: NavItem; class?: string; activeClass?: string 
         ? (props.activeClass ?? 'bg-blue-700 text-white')
         : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
       props.class
-    )
+    );
 
   const content = (
     <>
@@ -26,24 +30,28 @@ function NavAction(props: { item: NavItem; class?: string; activeClass?: string 
       </Show>
       <span>{props.item.label}</span>
     </>
-  )
+  );
 
   return props.item.href ? (
     <a href={props.item.href} class={className()}>
       {content}
     </a>
   ) : (
-    <button type="button" class={className()} onClick={() => props.item.onClick?.()}>
+    <button
+      type="button"
+      class={className()}
+      onClick={() => props.item.onClick?.()}
+    >
       {content}
     </button>
-  )
+  );
 }
 
 export function Navbar(props: {
-  brand: JSX.Element
-  items?: NavItem[]
-  actions?: JSX.Element
-  class?: string
+  brand: JSX.Element;
+  items?: NavItem[];
+  actions?: JSX.Element;
+  class?: string;
 }) {
   return (
     <header
@@ -61,7 +69,9 @@ export function Navbar(props: {
         </div>
         <div class="flex flex-1 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <nav class="flex flex-wrap items-center gap-2">
-            <For each={props.items ?? []}>{(item) => <NavAction item={item} />}</For>
+            <For each={props.items ?? []}>
+              {(item) => <NavAction item={item} />}
+            </For>
           </nav>
           <Show when={props.actions}>
             <div class="hidden lg:block">{props.actions}</div>
@@ -69,20 +79,23 @@ export function Navbar(props: {
         </div>
       </div>
     </header>
-  )
+  );
 }
 
 export function Sidebar(
   props: ParentProps<{
-    title?: string
-    items: NavItem[]
-    footer?: JSX.Element
-    class?: string
+    title?: string;
+    items: NavItem[];
+    footer?: JSX.Element;
+    class?: string;
   }>
 ) {
   return (
     <aside
-      class={classes('rounded-2xl border border-gray-200 bg-white p-4 shadow-sm', props.class)}
+      class={classes(
+        'rounded-2xl border border-gray-200 bg-white p-4 shadow-sm',
+        props.class
+      )}
     >
       <div class="space-y-4">
         <Show when={props.title || props.children}>
@@ -111,7 +124,7 @@ export function Sidebar(
         </Show>
       </div>
     </aside>
-  )
+  );
 }
 
 export function BottomNavigation(props: { items: NavItem[]; class?: string }) {
@@ -134,15 +147,15 @@ export function BottomNavigation(props: { items: NavItem[]; class?: string }) {
         </For>
       </div>
     </nav>
-  )
+  );
 }
 
 export function Footer(
   props: ParentProps<{
-    brand?: JSX.Element
-    links?: NavItem[]
-    note?: string
-    class?: string
+    brand?: JSX.Element;
+    links?: NavItem[];
+    note?: string;
+    class?: string;
   }>
 ) {
   return (
@@ -179,18 +192,23 @@ export function Footer(
         </Show>
       </div>
     </footer>
-  )
+  );
 }
 
 export type SpeedDialItem = {
-  label: string
-  href?: string
-  onClick?: () => void
-}
+  label: string;
+  href?: string;
+  onClick?: () => void;
+};
 
 export function SpeedDial(props: { items: SpeedDialItem[]; class?: string }) {
   return (
-    <div class={classes('fixed bottom-6 right-6 z-40 hidden flex-col gap-2 md:flex', props.class)}>
+    <div
+      class={classes(
+        'fixed bottom-6 right-6 z-40 hidden flex-col gap-2 md:flex',
+        props.class
+      )}
+    >
       <For each={props.items}>
         {(item) =>
           item.href ? (
@@ -212,5 +230,5 @@ export function SpeedDial(props: { items: SpeedDialItem[]; class?: string }) {
         }
       </For>
     </div>
-  )
+  );
 }

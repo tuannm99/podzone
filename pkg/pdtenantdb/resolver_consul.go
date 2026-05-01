@@ -3,6 +3,7 @@ package pdtenantdb
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -69,7 +70,10 @@ func (r *ConsulPlacementResolver) Resolve(ctx context.Context, tenantID string) 
 		key := fmt.Sprintf("%s/%s/placement", r.prefix, tenantID)
 		raw, err := r.kv.Get(key)
 		if err != nil {
-			return Placement{}, fmt.Errorf("%w: consul get %s: %v", ErrPlacementNotFound, key, err)
+			if errors.Is(err, kvstores.ErrKeyNotFound) {
+				return Placement{}, fmt.Errorf("%w: consul get %s: %v", ErrPlacementNotFound, key, err)
+			}
+			return Placement{}, fmt.Errorf("%w: consul get %s: %v", ErrPlacementBackend, key, err)
 		}
 
 		var p placementJSON
@@ -86,6 +90,12 @@ func (r *ConsulPlacementResolver) Resolve(ctx context.Context, tenantID string) 
 		mode := ModeSchema
 		if p.Mode == string(ModeDatabase) {
 			mode = ModeDatabase
+		}
+		if mode == ModeSchema && p.SchemaName == "" {
+			return Placement{}, fmt.Errorf(
+				"pdtenantdb: incomplete placement for tenant %s (missing schema_name for schema mode)",
+				tenantID,
+			)
 		}
 
 		pl := Placement{

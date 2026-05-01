@@ -1,19 +1,23 @@
-import { For } from 'solid-js'
-import { classes } from '../../shared/utils'
+import { For } from 'solid-js';
+import { classes } from '../../shared/utils';
 
 export type BreadcrumbItem = {
-  label: string
-  href?: string
-  current?: boolean
-}
+  label: string;
+  href?: string;
+  current?: boolean;
+};
 
-export function Breadcrumbs(props: { items: BreadcrumbItem[]; class?: string }) {
+export function Breadcrumbs(props: {
+  items: BreadcrumbItem[];
+  class?: string;
+}) {
   return (
     <nav aria-label="Breadcrumb" class={props.class}>
       <ol class="flex flex-wrap items-center gap-2 text-sm text-gray-500">
         <For each={props.items}>
           {(item, index) => {
-            const current = () => item.current || index() === props.items.length - 1
+            const current = () =>
+              item.current || index() === props.items.length - 1;
 
             return (
               <>
@@ -27,7 +31,10 @@ export function Breadcrumbs(props: { items: BreadcrumbItem[]; class?: string }) 
                     </a>
                   ) : (
                     <span
-                      class={classes('font-medium', current() ? 'text-gray-900' : 'text-gray-600')}
+                      class={classes(
+                        'font-medium',
+                        current() ? 'text-gray-900' : 'text-gray-600'
+                      )}
                       aria-current={current() ? 'page' : undefined}
                     >
                       {item.label}
@@ -42,10 +49,10 @@ export function Breadcrumbs(props: { items: BreadcrumbItem[]; class?: string }) 
                   /
                 </li>
               </>
-            )
+            );
           }}
         </For>
       </ol>
     </nav>
-  )
+  );
 }

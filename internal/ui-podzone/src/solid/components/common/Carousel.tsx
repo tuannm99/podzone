@@ -1,48 +1,57 @@
-import { For, Show, createEffect, createSignal, onCleanup, type JSX } from 'solid-js'
-import { classes } from '../../shared/utils'
+import {
+  For,
+  Show,
+  createEffect,
+  createSignal,
+  onCleanup,
+  type JSX,
+} from 'solid-js';
+import { classes } from '../../shared/utils';
 
 export type CarouselSlide = {
-  id?: string
-  eyebrow?: string
-  title?: string
-  copy?: string
-  imageSrc?: string
-  imageAlt?: string
-  content?: JSX.Element
-  action?: JSX.Element
-}
+  id?: string;
+  eyebrow?: string;
+  title?: string;
+  copy?: string;
+  imageSrc?: string;
+  imageAlt?: string;
+  content?: JSX.Element;
+  action?: JSX.Element;
+};
 
 export function Carousel(props: {
-  slides: CarouselSlide[]
-  autoPlay?: boolean
-  intervalMs?: number
-  class?: string
+  slides: CarouselSlide[];
+  autoPlay?: boolean;
+  intervalMs?: number;
+  class?: string;
 }) {
-  const [currentIndex, setCurrentIndex] = createSignal(0)
+  const [currentIndex, setCurrentIndex] = createSignal(0);
 
   createEffect(() => {
-    if (!props.autoPlay || props.slides.length <= 1) return
+    if (!props.autoPlay || props.slides.length <= 1) return;
 
     const timer = window.setInterval(() => {
-      setCurrentIndex((index) => (index + 1) % props.slides.length)
-    }, props.intervalMs ?? 5000)
+      setCurrentIndex((index) => (index + 1) % props.slides.length);
+    }, props.intervalMs ?? 5000);
 
     onCleanup(() => {
-      window.clearInterval(timer)
-    })
-  })
+      window.clearInterval(timer);
+    });
+  });
 
   const goTo = (index: number) => {
-    setCurrentIndex(index)
-  }
+    setCurrentIndex(index);
+  };
 
   const previous = () => {
-    setCurrentIndex((index) => (index - 1 + props.slides.length) % props.slides.length)
-  }
+    setCurrentIndex(
+      (index) => (index - 1 + props.slides.length) % props.slides.length
+    );
+  };
 
   const next = () => {
-    setCurrentIndex((index) => (index + 1) % props.slides.length)
-  }
+    setCurrentIndex((index) => (index + 1) % props.slides.length);
+  };
 
   return (
     <section
@@ -54,7 +63,11 @@ export function Carousel(props: {
     >
       <Show
         when={props.slides.length > 0}
-        fallback={<div class="px-6 py-10 text-sm text-gray-500">No slides configured.</div>}
+        fallback={
+          <div class="px-6 py-10 text-sm text-gray-500">
+            No slides configured.
+          </div>
+        }
       >
         <div class="relative min-h-[24rem]">
           <For each={props.slides}>
@@ -73,7 +86,9 @@ export function Carousel(props: {
                       </h2>
                     </Show>
                     <Show when={slide.copy}>
-                      <p class="max-w-2xl text-base leading-7 text-gray-600">{slide.copy}</p>
+                      <p class="max-w-2xl text-base leading-7 text-gray-600">
+                        {slide.copy}
+                      </p>
                     </Show>
                     <Show when={slide.content}>
                       <div>{slide.content}</div>
@@ -125,7 +140,9 @@ export function Carousel(props: {
                       type="button"
                       class={classes(
                         'size-2.5 rounded-full transition',
-                        index() === currentIndex() ? 'bg-blue-700' : 'bg-gray-300 hover:bg-gray-400'
+                        index() === currentIndex()
+                          ? 'bg-blue-700'
+                          : 'bg-gray-300 hover:bg-gray-400'
                       )}
                       onClick={() => goTo(index())}
                       aria-label={`Go to slide ${index() + 1}`}
@@ -138,5 +155,5 @@ export function Carousel(props: {
         </div>
       </Show>
     </section>
-  )
+  );
 }

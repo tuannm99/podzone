@@ -3,6 +3,7 @@ package backoffice
 import (
 	"go.uber.org/fx"
 
+	boconfig "github.com/tuannm99/podzone/internal/backoffice/config"
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/resolver"
 	interactor "github.com/tuannm99/podzone/internal/backoffice/domain"
 	"github.com/tuannm99/podzone/internal/backoffice/domain/inputport"
@@ -15,6 +16,8 @@ import (
 var Module = fx.Options(
 	fx.Provide(
 		func() *pdtenantdb.Config { return &pdtenantdb.Config{} },
+		boconfig.NewConfigFromKoanf,
+		fx.Annotate(NewTenantAuthorizer, fx.As(new(TenantAuthorizer))),
 
 		// --- Infrastructure layer ---
 		fx.Annotate(repository.NewStoreRepository, fx.As(new(outputport.StoreRepository))),
