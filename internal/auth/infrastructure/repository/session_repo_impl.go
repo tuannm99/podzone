@@ -57,6 +57,29 @@ func (r *SessionRepositoryImpl) GetByID(ctx context.Context, id string) (*entity
 	return out.ToEntity(), nil
 }
 
+func (r *SessionRepositoryImpl) ListByUser(ctx context.Context, userID uint) ([]entity.Session, error) {
+	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+		Select("id", "user_id", "active_tenant_id", "status", "created_at", "updated_at", "expires_at", "revoked_at").
+		From("auth_sessions").
+		Where(sq.Eq{"user_id": userID}).
+		OrderBy("created_at DESC").
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+	var rows []model.Session
+	if err := r.db.SelectContext(ctx, &rows, query, args...); err != nil {
+		return nil, err
+	}
+	out := make([]entity.Session, 0, len(rows))
+	for _, row := range rows {
+		if rowEntity := row.ToEntity(); rowEntity != nil {
+			out = append(out, *rowEntity)
+		}
+	}
+	return out, nil
+}
+
 func (r *SessionRepositoryImpl) UpdateActiveTenant(ctx context.Context, id, tenantID string, updatedAt time.Time) error {
 	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
 		Update("auth_sessions").

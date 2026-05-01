@@ -10,6 +10,7 @@ import (
 type SessionRepository interface {
 	Create(ctx context.Context, session entity.Session) error
 	GetByID(ctx context.Context, id string) (*entity.Session, error)
+	ListByUser(ctx context.Context, userID uint) ([]entity.Session, error)
 	UpdateActiveTenant(ctx context.Context, id, tenantID string, updatedAt time.Time) error
 	Revoke(ctx context.Context, id string, revokedAt time.Time) error
 }

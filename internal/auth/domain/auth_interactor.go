@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -231,13 +232,23 @@ func (u *authInteractorImpl) HandleOAuthCallback(
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new user: %w", err)
 	}
-
-	jwtToken, err := u.tokenUC.CreateJwtToken(*usr)
+	authResult, err := u.newSessionAuthResult(ctx, usr, "")
 	if err != nil {
-		return nil, fmt.Errorf("failed to create JWT: %w", err)
+		return nil, fmt.Errorf("failed to create auth session: %w", err)
 	}
-
-	redirectURL := fmt.Sprintf("%s?token=%s", u.appRedirectURL, jwtToken)
+	exchangeCode, err := randomToken(24)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create exchange code: %w", err)
+	}
+	payload, err := json.Marshal(authResult)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode auth result: %w", err)
+	}
+	exchangeKey := "oauth:google:exchange:" + exchangeCode
+	if err := u.oauthStateRepository.SetValue(exchangeKey, string(payload), 2*time.Minute); err != nil {
+		return nil, fmt.Errorf("failed to persist exchange code: %w", err)
+	}
+	redirectURL := fmt.Sprintf("%s?exchange_code=%s", u.appRedirectURL, exchangeCode)
 
 	userInfoResp, err := toolkit.MapStruct[outputport.GoogleUserInfo, inputport.GoogleUserInfo](*userInfo)
 	if err != nil {
@@ -245,10 +256,27 @@ func (u *authInteractorImpl) HandleOAuthCallback(
 	}
 
 	return &inputport.GoogleCallbackResult{
-		JwtToken:    jwtToken,
-		RedirectUrl: redirectURL,
-		UserInfo:    *userInfoResp,
+		ExchangeCode: exchangeCode,
+		RedirectUrl:  redirectURL,
+		UserInfo:     *userInfoResp,
 	}, nil
+}
+
+func (u *authInteractorImpl) ExchangeOAuthLogin(ctx context.Context, exchangeCode string) (*inputport.AuthResult, error) {
+	if exchangeCode == "" {
+		return nil, entity.ErrRefreshTokenInvalid
+	}
+	key := "oauth:google:exchange:" + exchangeCode
+	raw, err := u.oauthStateRepository.Get(key)
+	if err != nil {
+		return nil, err
+	}
+	_ = u.oauthStateRepository.Del(key)
+	var result inputport.AuthResult
+	if err := json.Unmarshal([]byte(raw), &result); err != nil {
+		return nil, fmt.Errorf("failed to decode oauth exchange payload: %w", err)
+	}
+	return &result, nil
 }
 
 func (u *authInteractorImpl) Logout(ctx context.Context, accessToken string) (string, error) {

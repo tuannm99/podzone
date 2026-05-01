@@ -21,7 +21,8 @@ type TenantAuthorizer interface {
 }
 
 type authTenantAuthorizer struct {
-	client pbauthv1.AuthServiceClient
+	authClient pbauthv1.AuthServiceClient
+	iamClient  pbauthv1.IAMServiceClient
 }
 
 type authClientParams struct {
@@ -33,27 +34,45 @@ type authClientParams struct {
 }
 
 func NewTenantAuthorizer(p authClientParams) (TenantAuthorizer, error) {
-	addr := p.Config.Auth.GRPCHost + ":" + p.Config.Auth.GRPCPort
-	conn, err := grpc.NewClient(
-		addr,
+	authAddr := p.Config.Auth.GRPCHost + ":" + p.Config.Auth.GRPCPort
+	authConn, err := grpc.NewClient(
+		authAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("connect auth grpc %s: %w", addr, err)
+		return nil, fmt.Errorf("connect auth grpc %s: %w", authAddr, err)
+	}
+
+	iamAddr := p.Config.IAM.GRPCHost + ":" + p.Config.IAM.GRPCPort
+	iamConn, err := grpc.NewClient(
+		iamAddr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		_ = authConn.Close()
+		return nil, fmt.Errorf("connect iam grpc %s: %w", iamAddr, err)
 	}
 
 	p.Lifecycle.Append(fx.Hook{
 		OnStop: func(ctx context.Context) error {
-			return conn.Close()
+			if err := authConn.Close(); err != nil {
+				_ = iamConn.Close()
+				return err
+			}
+			return iamConn.Close()
 		},
 	})
 
-	p.Logger.Info("backoffice auth gRPC client connected", "addr", addr)
-	return &authTenantAuthorizer{client: pbauthv1.NewAuthServiceClient(conn)}, nil
+	p.Logger.Info("backoffice auth gRPC client connected", "addr", authAddr)
+	p.Logger.Info("backoffice iam gRPC client connected", "addr", iamAddr)
+	return &authTenantAuthorizer{
+		authClient: pbauthv1.NewAuthServiceClient(authConn),
+		iamClient:  pbauthv1.NewIAMServiceClient(iamConn),
+	}, nil
 }
 
 func (a *authTenantAuthorizer) AuthorizeTenant(ctx context.Context, sessionID, userID, tenantID string) error {
-	sessionResp, err := a.client.GetSession(ctx, &pbauthv1.GetSessionRequest{SessionId: sessionID})
+	sessionResp, err := a.authClient.GetSession(ctx, &pbauthv1.GetSessionRequest{SessionId: sessionID})
 	if err != nil {
 		return mapAuthzError("session validation failed", err)
 	}
@@ -76,7 +95,7 @@ func (a *authTenantAuthorizer) AuthorizeTenant(ctx context.Context, sessionID, u
 		return err
 	}
 
-	resp, err := a.client.GetTenantMembership(ctx, &pbauthv1.GetTenantMembershipRequest{
+	resp, err := a.iamClient.GetTenantMembership(ctx, &pbauthv1.GetTenantMembershipRequest{
 		TenantId: tenantID,
 		UserId:   userIDNum,
 	})
@@ -98,7 +117,7 @@ func (a *authTenantAuthorizer) RequirePermission(ctx context.Context, userID, te
 		return err
 	}
 
-	resp, err := a.client.CheckPermission(ctx, &pbauthv1.CheckPermissionRequest{
+	resp, err := a.iamClient.CheckPermission(ctx, &pbauthv1.CheckPermissionRequest{
 		TenantId:   tenantID,
 		UserId:     userIDNum,
 		Permission: permission,

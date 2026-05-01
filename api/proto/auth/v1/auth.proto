@@ -20,6 +20,13 @@ service AuthService {
     };
   }
 
+  rpc ExchangeGoogleLogin(ExchangeGoogleLoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/google/exchange"
+      body: "*"
+    };
+  }
+
   rpc Login(LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
       post: "/auth/v1/login"
@@ -48,6 +55,40 @@ service AuthService {
     };
   }
 
+  rpc SwitchActiveTenant(SwitchActiveTenantRequest) returns (SwitchActiveTenantResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/tenants:switch"
+      body: "*"
+    };
+  }
+
+  rpc GetSession(GetSessionRequest) returns (GetSessionResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/sessions/{session_id}"
+    };
+  }
+
+  rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/sessions"
+    };
+  }
+
+  rpc RevokeSession(RevokeSessionRequest) returns (RevokeSessionResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/sessions/{session_id}"
+    };
+  }
+
+  rpc ListAuditLogs(ListAuditLogsRequest) returns (ListAuditLogsResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/audit-logs"
+    };
+  }
+
+}
+
+service IAMService {
   rpc CreateTenant(CreateTenantRequest) returns (CreateTenantResponse) {
     option (google.api.http) = {
       post: "/auth/v1/iam/tenants"
@@ -75,22 +116,35 @@ service AuthService {
     };
   }
 
-  rpc SwitchActiveTenant(SwitchActiveTenantRequest) returns (SwitchActiveTenantResponse) {
+  rpc CheckPlatformPermission(CheckPlatformPermissionRequest) returns (CheckPermissionResponse) {
     option (google.api.http) = {
-      post: "/auth/v1/iam/tenants:switch"
+      post: "/auth/v1/iam/platform-permissions:check"
       body: "*"
-    };
-  }
-
-  rpc GetSession(GetSessionRequest) returns (GetSessionResponse) {
-    option (google.api.http) = {
-      get: "/auth/v1/sessions/{session_id}"
     };
   }
 
   rpc ListUserTenants(ListUserTenantsRequest) returns (ListUserTenantsResponse) {
     option (google.api.http) = {
       get: "/auth/v1/iam/users/{user_id}/tenants"
+    };
+  }
+
+  rpc ListPlatformRoles(ListPlatformRolesRequest) returns (ListPlatformRolesResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/platform-users/{target_user_id}/roles"
+    };
+  }
+
+  rpc AddPlatformRole(AddPlatformRoleRequest) returns (AddPlatformRoleResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/platform-users/{target_user_id}/roles"
+      body: "*"
+    };
+  }
+
+  rpc RemovePlatformRole(RemovePlatformRoleRequest) returns (RemovePlatformRoleResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/platform-users/{target_user_id}/roles/{role_name}"
     };
   }
 
@@ -154,9 +208,13 @@ message GoogleCallbackRequest {
 }
 
 message GoogleCallbackResponse {
-  string jwt_token = 1;
+  string exchange_code = 1;
   string redirect_url = 2;
   GoogleUserInfo user_info = 3;
+}
+
+message ExchangeGoogleLoginRequest {
+  string exchange_code = 1;
 }
 
 message LogoutRequest {
@@ -177,6 +235,18 @@ message Session {
   string updated_at = 6;
   string expires_at = 7;
   string revoked_at = 8;
+}
+
+message AuditLog {
+  string id = 1;
+  uint64 actor_user_id = 2;
+  string action = 3;
+  string resource_type = 4;
+  string resource_id = 5;
+  string tenant_id = 6;
+  string status = 7;
+  string payload_json = 8;
+  string created_at = 9;
 }
 
 message Tenant {
@@ -224,6 +294,40 @@ message ListUserTenantsResponse {
   repeated TenantMembership memberships = 1;
 }
 
+message PlatformRoleMembership {
+  uint64 user_id = 1;
+  uint64 role_id = 2;
+  string role_name = 3;
+  string status = 4;
+  string created_at = 5;
+  string updated_at = 6;
+}
+
+message ListPlatformRolesRequest {
+  uint64 actor_user_id = 1;
+  uint64 target_user_id = 2;
+}
+
+message ListPlatformRolesResponse {
+  repeated PlatformRoleMembership memberships = 1;
+}
+
+message AddPlatformRoleRequest {
+  uint64 actor_user_id = 1;
+  uint64 target_user_id = 2;
+  string role_name = 3;
+}
+
+message AddPlatformRoleResponse {}
+
+message RemovePlatformRoleRequest {
+  uint64 actor_user_id = 1;
+  uint64 target_user_id = 2;
+  string role_name = 3;
+}
+
+message RemovePlatformRoleResponse {}
+
 message GetTenantMembershipRequest {
   string tenant_id = 1;
   uint64 user_id = 2;
@@ -237,6 +341,11 @@ message CheckPermissionRequest {
   string tenant_id = 1;
   uint64 user_id = 2;
   string permission = 3;
+}
+
+message CheckPlatformPermissionRequest {
+  uint64 user_id = 1;
+  string permission = 2;
 }
 
 message CheckPermissionResponse {
@@ -276,6 +385,26 @@ message GetSessionRequest {
 
 message GetSessionResponse {
   Session session = 1;
+}
+
+message ListSessionsRequest {}
+
+message ListSessionsResponse {
+  repeated Session sessions = 1;
+}
+
+message RevokeSessionRequest {
+  string session_id = 1;
+}
+
+message RevokeSessionResponse {}
+
+message ListAuditLogsRequest {
+  int32 page_size = 1;
+}
+
+message ListAuditLogsResponse {
+  repeated AuditLog logs = 1;
 }
 
 message GoogleUserInfo {

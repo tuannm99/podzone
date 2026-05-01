@@ -19,9 +19,9 @@ type AuthResult struct {
 }
 
 type GoogleCallbackResult struct {
-	JwtToken    string         `json:"jwt_token"`
-	RedirectUrl string         `json:"redirect_url"`
-	UserInfo    GoogleUserInfo `json:"user_info"`
+	ExchangeCode string         `json:"exchange_code"`
+	RedirectUrl  string         `json:"redirect_url"`
+	UserInfo     GoogleUserInfo `json:"user_info"`
 }
 
 type GoogleUserInfo struct {
@@ -37,6 +37,7 @@ type GoogleUserInfo struct {
 type AuthUsecase interface {
 	GenerateOAuthURL(ctx context.Context) (string, error)
 	HandleOAuthCallback(ctx context.Context, code, state string) (*GoogleCallbackResult, error)
+	ExchangeOAuthLogin(ctx context.Context, exchangeCode string) (*AuthResult, error)
 	Login(ctx context.Context, username, password string) (*AuthResult, error)
 	Register(ctx context.Context, req RegisterCmd) (*AuthResult, error)
 	RefreshAccessToken(ctx context.Context, refreshToken string) (*AuthResult, error)

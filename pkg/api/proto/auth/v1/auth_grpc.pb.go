@@ -21,19 +21,16 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	AuthService_GoogleLogin_FullMethodName         = "/auth.AuthService/GoogleLogin"
 	AuthService_GoogleCallback_FullMethodName      = "/auth.AuthService/GoogleCallback"
+	AuthService_ExchangeGoogleLogin_FullMethodName = "/auth.AuthService/ExchangeGoogleLogin"
 	AuthService_Login_FullMethodName               = "/auth.AuthService/Login"
 	AuthService_Register_FullMethodName            = "/auth.AuthService/Register"
 	AuthService_RefreshToken_FullMethodName        = "/auth.AuthService/RefreshToken"
 	AuthService_Logout_FullMethodName              = "/auth.AuthService/Logout"
-	AuthService_CreateTenant_FullMethodName        = "/auth.AuthService/CreateTenant"
-	AuthService_AddTenantMember_FullMethodName     = "/auth.AuthService/AddTenantMember"
-	AuthService_GetTenantMembership_FullMethodName = "/auth.AuthService/GetTenantMembership"
-	AuthService_CheckPermission_FullMethodName     = "/auth.AuthService/CheckPermission"
 	AuthService_SwitchActiveTenant_FullMethodName  = "/auth.AuthService/SwitchActiveTenant"
 	AuthService_GetSession_FullMethodName          = "/auth.AuthService/GetSession"
-	AuthService_ListUserTenants_FullMethodName     = "/auth.AuthService/ListUserTenants"
-	AuthService_ListTenantMembers_FullMethodName   = "/auth.AuthService/ListTenantMembers"
-	AuthService_RemoveTenantMember_FullMethodName  = "/auth.AuthService/RemoveTenantMember"
+	AuthService_ListSessions_FullMethodName        = "/auth.AuthService/ListSessions"
+	AuthService_RevokeSession_FullMethodName       = "/auth.AuthService/RevokeSession"
+	AuthService_ListAuditLogs_FullMethodName       = "/auth.AuthService/ListAuditLogs"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -42,19 +39,16 @@ const (
 type AuthServiceClient interface {
 	GoogleLogin(ctx context.Context, in *GoogleLoginRequest, opts ...grpc.CallOption) (*GoogleLoginResponse, error)
 	GoogleCallback(ctx context.Context, in *GoogleCallbackRequest, opts ...grpc.CallOption) (*GoogleCallbackResponse, error)
+	ExchangeGoogleLogin(ctx context.Context, in *ExchangeGoogleLoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
 	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error)
-	CreateTenant(ctx context.Context, in *CreateTenantRequest, opts ...grpc.CallOption) (*CreateTenantResponse, error)
-	AddTenantMember(ctx context.Context, in *AddTenantMemberRequest, opts ...grpc.CallOption) (*AddTenantMemberResponse, error)
-	GetTenantMembership(ctx context.Context, in *GetTenantMembershipRequest, opts ...grpc.CallOption) (*GetTenantMembershipResponse, error)
-	CheckPermission(ctx context.Context, in *CheckPermissionRequest, opts ...grpc.CallOption) (*CheckPermissionResponse, error)
 	SwitchActiveTenant(ctx context.Context, in *SwitchActiveTenantRequest, opts ...grpc.CallOption) (*SwitchActiveTenantResponse, error)
 	GetSession(ctx context.Context, in *GetSessionRequest, opts ...grpc.CallOption) (*GetSessionResponse, error)
-	ListUserTenants(ctx context.Context, in *ListUserTenantsRequest, opts ...grpc.CallOption) (*ListUserTenantsResponse, error)
-	ListTenantMembers(ctx context.Context, in *ListTenantMembersRequest, opts ...grpc.CallOption) (*ListTenantMembersResponse, error)
-	RemoveTenantMember(ctx context.Context, in *RemoveTenantMemberRequest, opts ...grpc.CallOption) (*RemoveTenantMemberResponse, error)
+	ListSessions(ctx context.Context, in *ListSessionsRequest, opts ...grpc.CallOption) (*ListSessionsResponse, error)
+	RevokeSession(ctx context.Context, in *RevokeSessionRequest, opts ...grpc.CallOption) (*RevokeSessionResponse, error)
+	ListAuditLogs(ctx context.Context, in *ListAuditLogsRequest, opts ...grpc.CallOption) (*ListAuditLogsResponse, error)
 }
 
 type authServiceClient struct {
@@ -79,6 +73,16 @@ func (c *authServiceClient) GoogleCallback(ctx context.Context, in *GoogleCallba
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GoogleCallbackResponse)
 	err := c.cc.Invoke(ctx, AuthService_GoogleCallback_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) ExchangeGoogleLogin(ctx context.Context, in *ExchangeGoogleLoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LoginResponse)
+	err := c.cc.Invoke(ctx, AuthService_ExchangeGoogleLogin_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -125,46 +129,6 @@ func (c *authServiceClient) Logout(ctx context.Context, in *LogoutRequest, opts 
 	return out, nil
 }
 
-func (c *authServiceClient) CreateTenant(ctx context.Context, in *CreateTenantRequest, opts ...grpc.CallOption) (*CreateTenantResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateTenantResponse)
-	err := c.cc.Invoke(ctx, AuthService_CreateTenant_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *authServiceClient) AddTenantMember(ctx context.Context, in *AddTenantMemberRequest, opts ...grpc.CallOption) (*AddTenantMemberResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AddTenantMemberResponse)
-	err := c.cc.Invoke(ctx, AuthService_AddTenantMember_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *authServiceClient) GetTenantMembership(ctx context.Context, in *GetTenantMembershipRequest, opts ...grpc.CallOption) (*GetTenantMembershipResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetTenantMembershipResponse)
-	err := c.cc.Invoke(ctx, AuthService_GetTenantMembership_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *authServiceClient) CheckPermission(ctx context.Context, in *CheckPermissionRequest, opts ...grpc.CallOption) (*CheckPermissionResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CheckPermissionResponse)
-	err := c.cc.Invoke(ctx, AuthService_CheckPermission_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *authServiceClient) SwitchActiveTenant(ctx context.Context, in *SwitchActiveTenantRequest, opts ...grpc.CallOption) (*SwitchActiveTenantResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SwitchActiveTenantResponse)
@@ -185,30 +149,30 @@ func (c *authServiceClient) GetSession(ctx context.Context, in *GetSessionReques
 	return out, nil
 }
 
-func (c *authServiceClient) ListUserTenants(ctx context.Context, in *ListUserTenantsRequest, opts ...grpc.CallOption) (*ListUserTenantsResponse, error) {
+func (c *authServiceClient) ListSessions(ctx context.Context, in *ListSessionsRequest, opts ...grpc.CallOption) (*ListSessionsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListUserTenantsResponse)
-	err := c.cc.Invoke(ctx, AuthService_ListUserTenants_FullMethodName, in, out, cOpts...)
+	out := new(ListSessionsResponse)
+	err := c.cc.Invoke(ctx, AuthService_ListSessions_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authServiceClient) ListTenantMembers(ctx context.Context, in *ListTenantMembersRequest, opts ...grpc.CallOption) (*ListTenantMembersResponse, error) {
+func (c *authServiceClient) RevokeSession(ctx context.Context, in *RevokeSessionRequest, opts ...grpc.CallOption) (*RevokeSessionResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListTenantMembersResponse)
-	err := c.cc.Invoke(ctx, AuthService_ListTenantMembers_FullMethodName, in, out, cOpts...)
+	out := new(RevokeSessionResponse)
+	err := c.cc.Invoke(ctx, AuthService_RevokeSession_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authServiceClient) RemoveTenantMember(ctx context.Context, in *RemoveTenantMemberRequest, opts ...grpc.CallOption) (*RemoveTenantMemberResponse, error) {
+func (c *authServiceClient) ListAuditLogs(ctx context.Context, in *ListAuditLogsRequest, opts ...grpc.CallOption) (*ListAuditLogsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RemoveTenantMemberResponse)
-	err := c.cc.Invoke(ctx, AuthService_RemoveTenantMember_FullMethodName, in, out, cOpts...)
+	out := new(ListAuditLogsResponse)
+	err := c.cc.Invoke(ctx, AuthService_ListAuditLogs_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -221,19 +185,16 @@ func (c *authServiceClient) RemoveTenantMember(ctx context.Context, in *RemoveTe
 type AuthServiceServer interface {
 	GoogleLogin(context.Context, *GoogleLoginRequest) (*GoogleLoginResponse, error)
 	GoogleCallback(context.Context, *GoogleCallbackRequest) (*GoogleCallbackResponse, error)
+	ExchangeGoogleLogin(context.Context, *ExchangeGoogleLoginRequest) (*LoginResponse, error)
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
-	CreateTenant(context.Context, *CreateTenantRequest) (*CreateTenantResponse, error)
-	AddTenantMember(context.Context, *AddTenantMemberRequest) (*AddTenantMemberResponse, error)
-	GetTenantMembership(context.Context, *GetTenantMembershipRequest) (*GetTenantMembershipResponse, error)
-	CheckPermission(context.Context, *CheckPermissionRequest) (*CheckPermissionResponse, error)
 	SwitchActiveTenant(context.Context, *SwitchActiveTenantRequest) (*SwitchActiveTenantResponse, error)
 	GetSession(context.Context, *GetSessionRequest) (*GetSessionResponse, error)
-	ListUserTenants(context.Context, *ListUserTenantsRequest) (*ListUserTenantsResponse, error)
-	ListTenantMembers(context.Context, *ListTenantMembersRequest) (*ListTenantMembersResponse, error)
-	RemoveTenantMember(context.Context, *RemoveTenantMemberRequest) (*RemoveTenantMemberResponse, error)
+	ListSessions(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error)
+	RevokeSession(context.Context, *RevokeSessionRequest) (*RevokeSessionResponse, error)
+	ListAuditLogs(context.Context, *ListAuditLogsRequest) (*ListAuditLogsResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -250,6 +211,9 @@ func (UnimplementedAuthServiceServer) GoogleLogin(context.Context, *GoogleLoginR
 func (UnimplementedAuthServiceServer) GoogleCallback(context.Context, *GoogleCallbackRequest) (*GoogleCallbackResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GoogleCallback not implemented")
 }
+func (UnimplementedAuthServiceServer) ExchangeGoogleLogin(context.Context, *ExchangeGoogleLoginRequest) (*LoginResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExchangeGoogleLogin not implemented")
+}
 func (UnimplementedAuthServiceServer) Login(context.Context, *LoginRequest) (*LoginResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
 }
@@ -262,32 +226,20 @@ func (UnimplementedAuthServiceServer) RefreshToken(context.Context, *RefreshToke
 func (UnimplementedAuthServiceServer) Logout(context.Context, *LogoutRequest) (*LogoutResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Logout not implemented")
 }
-func (UnimplementedAuthServiceServer) CreateTenant(context.Context, *CreateTenantRequest) (*CreateTenantResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateTenant not implemented")
-}
-func (UnimplementedAuthServiceServer) AddTenantMember(context.Context, *AddTenantMemberRequest) (*AddTenantMemberResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddTenantMember not implemented")
-}
-func (UnimplementedAuthServiceServer) GetTenantMembership(context.Context, *GetTenantMembershipRequest) (*GetTenantMembershipResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetTenantMembership not implemented")
-}
-func (UnimplementedAuthServiceServer) CheckPermission(context.Context, *CheckPermissionRequest) (*CheckPermissionResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CheckPermission not implemented")
-}
 func (UnimplementedAuthServiceServer) SwitchActiveTenant(context.Context, *SwitchActiveTenantRequest) (*SwitchActiveTenantResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SwitchActiveTenant not implemented")
 }
 func (UnimplementedAuthServiceServer) GetSession(context.Context, *GetSessionRequest) (*GetSessionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSession not implemented")
 }
-func (UnimplementedAuthServiceServer) ListUserTenants(context.Context, *ListUserTenantsRequest) (*ListUserTenantsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListUserTenants not implemented")
+func (UnimplementedAuthServiceServer) ListSessions(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListSessions not implemented")
 }
-func (UnimplementedAuthServiceServer) ListTenantMembers(context.Context, *ListTenantMembersRequest) (*ListTenantMembersResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListTenantMembers not implemented")
+func (UnimplementedAuthServiceServer) RevokeSession(context.Context, *RevokeSessionRequest) (*RevokeSessionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RevokeSession not implemented")
 }
-func (UnimplementedAuthServiceServer) RemoveTenantMember(context.Context, *RemoveTenantMemberRequest) (*RemoveTenantMemberResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RemoveTenantMember not implemented")
+func (UnimplementedAuthServiceServer) ListAuditLogs(context.Context, *ListAuditLogsRequest) (*ListAuditLogsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAuditLogs not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -342,6 +294,24 @@ func _AuthService_GoogleCallback_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServiceServer).GoogleCallback(ctx, req.(*GoogleCallbackRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_ExchangeGoogleLogin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExchangeGoogleLoginRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ExchangeGoogleLogin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ExchangeGoogleLogin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ExchangeGoogleLogin(ctx, req.(*ExchangeGoogleLoginRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -418,78 +388,6 @@ func _AuthService_Logout_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AuthService_CreateTenant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateTenantRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthServiceServer).CreateTenant(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AuthService_CreateTenant_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).CreateTenant(ctx, req.(*CreateTenantRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AuthService_AddTenantMember_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddTenantMemberRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthServiceServer).AddTenantMember(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AuthService_AddTenantMember_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).AddTenantMember(ctx, req.(*AddTenantMemberRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AuthService_GetTenantMembership_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetTenantMembershipRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthServiceServer).GetTenantMembership(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AuthService_GetTenantMembership_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).GetTenantMembership(ctx, req.(*GetTenantMembershipRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AuthService_CheckPermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CheckPermissionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthServiceServer).CheckPermission(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AuthService_CheckPermission_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).CheckPermission(ctx, req.(*CheckPermissionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _AuthService_SwitchActiveTenant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SwitchActiveTenantRequest)
 	if err := dec(in); err != nil {
@@ -526,56 +424,56 @@ func _AuthService_GetSession_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AuthService_ListUserTenants_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListUserTenantsRequest)
+func _AuthService_ListSessions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSessionsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServiceServer).ListUserTenants(ctx, in)
+		return srv.(AuthServiceServer).ListSessions(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AuthService_ListUserTenants_FullMethodName,
+		FullMethod: AuthService_ListSessions_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).ListUserTenants(ctx, req.(*ListUserTenantsRequest))
+		return srv.(AuthServiceServer).ListSessions(ctx, req.(*ListSessionsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AuthService_ListTenantMembers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListTenantMembersRequest)
+func _AuthService_RevokeSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokeSessionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServiceServer).ListTenantMembers(ctx, in)
+		return srv.(AuthServiceServer).RevokeSession(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AuthService_ListTenantMembers_FullMethodName,
+		FullMethod: AuthService_RevokeSession_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).ListTenantMembers(ctx, req.(*ListTenantMembersRequest))
+		return srv.(AuthServiceServer).RevokeSession(ctx, req.(*RevokeSessionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AuthService_RemoveTenantMember_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RemoveTenantMemberRequest)
+func _AuthService_ListAuditLogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAuditLogsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServiceServer).RemoveTenantMember(ctx, in)
+		return srv.(AuthServiceServer).ListAuditLogs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AuthService_RemoveTenantMember_FullMethodName,
+		FullMethod: AuthService_ListAuditLogs_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).RemoveTenantMember(ctx, req.(*RemoveTenantMemberRequest))
+		return srv.(AuthServiceServer).ListAuditLogs(ctx, req.(*ListAuditLogsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -596,6 +494,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AuthService_GoogleCallback_Handler,
 		},
 		{
+			MethodName: "ExchangeGoogleLogin",
+			Handler:    _AuthService_ExchangeGoogleLogin_Handler,
+		},
+		{
 			MethodName: "Login",
 			Handler:    _AuthService_Login_Handler,
 		},
@@ -612,22 +514,6 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AuthService_Logout_Handler,
 		},
 		{
-			MethodName: "CreateTenant",
-			Handler:    _AuthService_CreateTenant_Handler,
-		},
-		{
-			MethodName: "AddTenantMember",
-			Handler:    _AuthService_AddTenantMember_Handler,
-		},
-		{
-			MethodName: "GetTenantMembership",
-			Handler:    _AuthService_GetTenantMembership_Handler,
-		},
-		{
-			MethodName: "CheckPermission",
-			Handler:    _AuthService_CheckPermission_Handler,
-		},
-		{
 			MethodName: "SwitchActiveTenant",
 			Handler:    _AuthService_SwitchActiveTenant_Handler,
 		},
@@ -636,16 +522,498 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AuthService_GetSession_Handler,
 		},
 		{
+			MethodName: "ListSessions",
+			Handler:    _AuthService_ListSessions_Handler,
+		},
+		{
+			MethodName: "RevokeSession",
+			Handler:    _AuthService_RevokeSession_Handler,
+		},
+		{
+			MethodName: "ListAuditLogs",
+			Handler:    _AuthService_ListAuditLogs_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "auth/v1/auth.proto",
+}
+
+const (
+	IAMService_CreateTenant_FullMethodName            = "/auth.IAMService/CreateTenant"
+	IAMService_AddTenantMember_FullMethodName         = "/auth.IAMService/AddTenantMember"
+	IAMService_GetTenantMembership_FullMethodName     = "/auth.IAMService/GetTenantMembership"
+	IAMService_CheckPermission_FullMethodName         = "/auth.IAMService/CheckPermission"
+	IAMService_CheckPlatformPermission_FullMethodName = "/auth.IAMService/CheckPlatformPermission"
+	IAMService_ListUserTenants_FullMethodName         = "/auth.IAMService/ListUserTenants"
+	IAMService_ListPlatformRoles_FullMethodName       = "/auth.IAMService/ListPlatformRoles"
+	IAMService_AddPlatformRole_FullMethodName         = "/auth.IAMService/AddPlatformRole"
+	IAMService_RemovePlatformRole_FullMethodName      = "/auth.IAMService/RemovePlatformRole"
+	IAMService_ListTenantMembers_FullMethodName       = "/auth.IAMService/ListTenantMembers"
+	IAMService_RemoveTenantMember_FullMethodName      = "/auth.IAMService/RemoveTenantMember"
+)
+
+// IAMServiceClient is the client API for IAMService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type IAMServiceClient interface {
+	CreateTenant(ctx context.Context, in *CreateTenantRequest, opts ...grpc.CallOption) (*CreateTenantResponse, error)
+	AddTenantMember(ctx context.Context, in *AddTenantMemberRequest, opts ...grpc.CallOption) (*AddTenantMemberResponse, error)
+	GetTenantMembership(ctx context.Context, in *GetTenantMembershipRequest, opts ...grpc.CallOption) (*GetTenantMembershipResponse, error)
+	CheckPermission(ctx context.Context, in *CheckPermissionRequest, opts ...grpc.CallOption) (*CheckPermissionResponse, error)
+	CheckPlatformPermission(ctx context.Context, in *CheckPlatformPermissionRequest, opts ...grpc.CallOption) (*CheckPermissionResponse, error)
+	ListUserTenants(ctx context.Context, in *ListUserTenantsRequest, opts ...grpc.CallOption) (*ListUserTenantsResponse, error)
+	ListPlatformRoles(ctx context.Context, in *ListPlatformRolesRequest, opts ...grpc.CallOption) (*ListPlatformRolesResponse, error)
+	AddPlatformRole(ctx context.Context, in *AddPlatformRoleRequest, opts ...grpc.CallOption) (*AddPlatformRoleResponse, error)
+	RemovePlatformRole(ctx context.Context, in *RemovePlatformRoleRequest, opts ...grpc.CallOption) (*RemovePlatformRoleResponse, error)
+	ListTenantMembers(ctx context.Context, in *ListTenantMembersRequest, opts ...grpc.CallOption) (*ListTenantMembersResponse, error)
+	RemoveTenantMember(ctx context.Context, in *RemoveTenantMemberRequest, opts ...grpc.CallOption) (*RemoveTenantMemberResponse, error)
+}
+
+type iAMServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewIAMServiceClient(cc grpc.ClientConnInterface) IAMServiceClient {
+	return &iAMServiceClient{cc}
+}
+
+func (c *iAMServiceClient) CreateTenant(ctx context.Context, in *CreateTenantRequest, opts ...grpc.CallOption) (*CreateTenantResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateTenantResponse)
+	err := c.cc.Invoke(ctx, IAMService_CreateTenant_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) AddTenantMember(ctx context.Context, in *AddTenantMemberRequest, opts ...grpc.CallOption) (*AddTenantMemberResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AddTenantMemberResponse)
+	err := c.cc.Invoke(ctx, IAMService_AddTenantMember_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) GetTenantMembership(ctx context.Context, in *GetTenantMembershipRequest, opts ...grpc.CallOption) (*GetTenantMembershipResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetTenantMembershipResponse)
+	err := c.cc.Invoke(ctx, IAMService_GetTenantMembership_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) CheckPermission(ctx context.Context, in *CheckPermissionRequest, opts ...grpc.CallOption) (*CheckPermissionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CheckPermissionResponse)
+	err := c.cc.Invoke(ctx, IAMService_CheckPermission_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) CheckPlatformPermission(ctx context.Context, in *CheckPlatformPermissionRequest, opts ...grpc.CallOption) (*CheckPermissionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CheckPermissionResponse)
+	err := c.cc.Invoke(ctx, IAMService_CheckPlatformPermission_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) ListUserTenants(ctx context.Context, in *ListUserTenantsRequest, opts ...grpc.CallOption) (*ListUserTenantsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListUserTenantsResponse)
+	err := c.cc.Invoke(ctx, IAMService_ListUserTenants_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) ListPlatformRoles(ctx context.Context, in *ListPlatformRolesRequest, opts ...grpc.CallOption) (*ListPlatformRolesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPlatformRolesResponse)
+	err := c.cc.Invoke(ctx, IAMService_ListPlatformRoles_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) AddPlatformRole(ctx context.Context, in *AddPlatformRoleRequest, opts ...grpc.CallOption) (*AddPlatformRoleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AddPlatformRoleResponse)
+	err := c.cc.Invoke(ctx, IAMService_AddPlatformRole_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) RemovePlatformRole(ctx context.Context, in *RemovePlatformRoleRequest, opts ...grpc.CallOption) (*RemovePlatformRoleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemovePlatformRoleResponse)
+	err := c.cc.Invoke(ctx, IAMService_RemovePlatformRole_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) ListTenantMembers(ctx context.Context, in *ListTenantMembersRequest, opts ...grpc.CallOption) (*ListTenantMembersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListTenantMembersResponse)
+	err := c.cc.Invoke(ctx, IAMService_ListTenantMembers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) RemoveTenantMember(ctx context.Context, in *RemoveTenantMemberRequest, opts ...grpc.CallOption) (*RemoveTenantMemberResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemoveTenantMemberResponse)
+	err := c.cc.Invoke(ctx, IAMService_RemoveTenantMember_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// IAMServiceServer is the server API for IAMService service.
+// All implementations must embed UnimplementedIAMServiceServer
+// for forward compatibility.
+type IAMServiceServer interface {
+	CreateTenant(context.Context, *CreateTenantRequest) (*CreateTenantResponse, error)
+	AddTenantMember(context.Context, *AddTenantMemberRequest) (*AddTenantMemberResponse, error)
+	GetTenantMembership(context.Context, *GetTenantMembershipRequest) (*GetTenantMembershipResponse, error)
+	CheckPermission(context.Context, *CheckPermissionRequest) (*CheckPermissionResponse, error)
+	CheckPlatformPermission(context.Context, *CheckPlatformPermissionRequest) (*CheckPermissionResponse, error)
+	ListUserTenants(context.Context, *ListUserTenantsRequest) (*ListUserTenantsResponse, error)
+	ListPlatformRoles(context.Context, *ListPlatformRolesRequest) (*ListPlatformRolesResponse, error)
+	AddPlatformRole(context.Context, *AddPlatformRoleRequest) (*AddPlatformRoleResponse, error)
+	RemovePlatformRole(context.Context, *RemovePlatformRoleRequest) (*RemovePlatformRoleResponse, error)
+	ListTenantMembers(context.Context, *ListTenantMembersRequest) (*ListTenantMembersResponse, error)
+	RemoveTenantMember(context.Context, *RemoveTenantMemberRequest) (*RemoveTenantMemberResponse, error)
+	mustEmbedUnimplementedIAMServiceServer()
+}
+
+// UnimplementedIAMServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedIAMServiceServer struct{}
+
+func (UnimplementedIAMServiceServer) CreateTenant(context.Context, *CreateTenantRequest) (*CreateTenantResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateTenant not implemented")
+}
+func (UnimplementedIAMServiceServer) AddTenantMember(context.Context, *AddTenantMemberRequest) (*AddTenantMemberResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddTenantMember not implemented")
+}
+func (UnimplementedIAMServiceServer) GetTenantMembership(context.Context, *GetTenantMembershipRequest) (*GetTenantMembershipResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTenantMembership not implemented")
+}
+func (UnimplementedIAMServiceServer) CheckPermission(context.Context, *CheckPermissionRequest) (*CheckPermissionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckPermission not implemented")
+}
+func (UnimplementedIAMServiceServer) CheckPlatformPermission(context.Context, *CheckPlatformPermissionRequest) (*CheckPermissionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckPlatformPermission not implemented")
+}
+func (UnimplementedIAMServiceServer) ListUserTenants(context.Context, *ListUserTenantsRequest) (*ListUserTenantsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListUserTenants not implemented")
+}
+func (UnimplementedIAMServiceServer) ListPlatformRoles(context.Context, *ListPlatformRolesRequest) (*ListPlatformRolesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPlatformRoles not implemented")
+}
+func (UnimplementedIAMServiceServer) AddPlatformRole(context.Context, *AddPlatformRoleRequest) (*AddPlatformRoleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddPlatformRole not implemented")
+}
+func (UnimplementedIAMServiceServer) RemovePlatformRole(context.Context, *RemovePlatformRoleRequest) (*RemovePlatformRoleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemovePlatformRole not implemented")
+}
+func (UnimplementedIAMServiceServer) ListTenantMembers(context.Context, *ListTenantMembersRequest) (*ListTenantMembersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListTenantMembers not implemented")
+}
+func (UnimplementedIAMServiceServer) RemoveTenantMember(context.Context, *RemoveTenantMemberRequest) (*RemoveTenantMemberResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveTenantMember not implemented")
+}
+func (UnimplementedIAMServiceServer) mustEmbedUnimplementedIAMServiceServer() {}
+func (UnimplementedIAMServiceServer) testEmbeddedByValue()                    {}
+
+// UnsafeIAMServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to IAMServiceServer will
+// result in compilation errors.
+type UnsafeIAMServiceServer interface {
+	mustEmbedUnimplementedIAMServiceServer()
+}
+
+func RegisterIAMServiceServer(s grpc.ServiceRegistrar, srv IAMServiceServer) {
+	// If the following call pancis, it indicates UnimplementedIAMServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&IAMService_ServiceDesc, srv)
+}
+
+func _IAMService_CreateTenant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateTenantRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).CreateTenant(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_CreateTenant_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).CreateTenant(ctx, req.(*CreateTenantRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_AddTenantMember_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddTenantMemberRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).AddTenantMember(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_AddTenantMember_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).AddTenantMember(ctx, req.(*AddTenantMemberRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_GetTenantMembership_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTenantMembershipRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).GetTenantMembership(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_GetTenantMembership_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).GetTenantMembership(ctx, req.(*GetTenantMembershipRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_CheckPermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckPermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).CheckPermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_CheckPermission_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).CheckPermission(ctx, req.(*CheckPermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_CheckPlatformPermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckPlatformPermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).CheckPlatformPermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_CheckPlatformPermission_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).CheckPlatformPermission(ctx, req.(*CheckPlatformPermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_ListUserTenants_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListUserTenantsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).ListUserTenants(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_ListUserTenants_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).ListUserTenants(ctx, req.(*ListUserTenantsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_ListPlatformRoles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPlatformRolesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).ListPlatformRoles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_ListPlatformRoles_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).ListPlatformRoles(ctx, req.(*ListPlatformRolesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_AddPlatformRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddPlatformRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).AddPlatformRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_AddPlatformRole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).AddPlatformRole(ctx, req.(*AddPlatformRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_RemovePlatformRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemovePlatformRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).RemovePlatformRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_RemovePlatformRole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).RemovePlatformRole(ctx, req.(*RemovePlatformRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_ListTenantMembers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTenantMembersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).ListTenantMembers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_ListTenantMembers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).ListTenantMembers(ctx, req.(*ListTenantMembersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_RemoveTenantMember_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveTenantMemberRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).RemoveTenantMember(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_RemoveTenantMember_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).RemoveTenantMember(ctx, req.(*RemoveTenantMemberRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// IAMService_ServiceDesc is the grpc.ServiceDesc for IAMService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var IAMService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "auth.IAMService",
+	HandlerType: (*IAMServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreateTenant",
+			Handler:    _IAMService_CreateTenant_Handler,
+		},
+		{
+			MethodName: "AddTenantMember",
+			Handler:    _IAMService_AddTenantMember_Handler,
+		},
+		{
+			MethodName: "GetTenantMembership",
+			Handler:    _IAMService_GetTenantMembership_Handler,
+		},
+		{
+			MethodName: "CheckPermission",
+			Handler:    _IAMService_CheckPermission_Handler,
+		},
+		{
+			MethodName: "CheckPlatformPermission",
+			Handler:    _IAMService_CheckPlatformPermission_Handler,
+		},
+		{
 			MethodName: "ListUserTenants",
-			Handler:    _AuthService_ListUserTenants_Handler,
+			Handler:    _IAMService_ListUserTenants_Handler,
+		},
+		{
+			MethodName: "ListPlatformRoles",
+			Handler:    _IAMService_ListPlatformRoles_Handler,
+		},
+		{
+			MethodName: "AddPlatformRole",
+			Handler:    _IAMService_AddPlatformRole_Handler,
+		},
+		{
+			MethodName: "RemovePlatformRole",
+			Handler:    _IAMService_RemovePlatformRole_Handler,
 		},
 		{
 			MethodName: "ListTenantMembers",
-			Handler:    _AuthService_ListTenantMembers_Handler,
+			Handler:    _IAMService_ListTenantMembers_Handler,
 		},
 		{
 			MethodName: "RemoveTenantMember",
-			Handler:    _AuthService_RemoveTenantMember_Handler,
+			Handler:    _IAMService_RemoveTenantMember_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

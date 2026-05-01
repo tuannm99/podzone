@@ -1,0 +1,18 @@
+logger:
+  app_name: "podzone_admin_iam"
+  provider: "zap"
+  level: "debug"
+  env: "dev"
+
+sql:
+  auth:
+    uri: postgres://postgres:postgres@postgres:6432/auth?sslmode=disable
+    provider: postgres
+    should_run_migration: false
+
+grpc:
+  port: 50053
+
+pprof:
+  enable: false
+  addr: "127.0.0.1:6060"

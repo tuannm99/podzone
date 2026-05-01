@@ -35,7 +35,7 @@ func TestIdentityFromAuthorization_ReadsUserAndActiveTenant(t *testing.T) {
 	require.NoError(t, err)
 
 	m := NewTenantMiddleware(boconfig.Config{
-		Auth: boconfig.AuthConfig{
+		Auth: boconfig.RPCConfig{
 			JWTSecret: "secret",
 			JWTKey:    "app-key",
 		},

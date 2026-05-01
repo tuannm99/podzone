@@ -7,10 +7,11 @@ import (
 )
 
 type Config struct {
-	Auth AuthConfig `mapstructure:"auth"`
+	Auth RPCConfig `mapstructure:"auth"`
+	IAM  RPCConfig `mapstructure:"iam"`
 }
 
-type AuthConfig struct {
+type RPCConfig struct {
 	JWTSecret string `mapstructure:"jwt_secret"`
 	JWTKey    string `mapstructure:"jwt_key"`
 	GRPCHost  string `mapstructure:"grpc_host"`
@@ -33,6 +34,12 @@ func NewConfigFromKoanf(k *koanf.Koanf) (Config, error) {
 	}
 	if cfg.Auth.GRPCPort == "" {
 		cfg.Auth.GRPCPort = "50051"
+	}
+	if cfg.IAM.GRPCHost == "" {
+		cfg.IAM.GRPCHost = cfg.Auth.GRPCHost
+	}
+	if cfg.IAM.GRPCPort == "" {
+		cfg.IAM.GRPCPort = "50053"
 	}
 	return cfg, nil
 }

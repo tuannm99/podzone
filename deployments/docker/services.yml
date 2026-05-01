@@ -1,29 +1,32 @@
+x-go-dev-common: &go-dev-common
+  image: podzone-go-dev:latest
+  build:
+    context: ../..
+    dockerfile: deployments/docker/Dockerfile.go-dev
+  working_dir: /workspace
+  volumes:
+    - ../../:/workspace
+    - podzone_go_mod_cache:/go/pkg/mod
+    - podzone_go_build_cache:/root/.cache/go-build
+  environment:
+    GOMODCACHE: /go/pkg/mod
+    GOCACHE: /root/.cache/go-build
+
 services:
   auth-service:
-    build:
-      context: ../..
-      dockerfile: deployments/docker/Dockerfile.go-dev
+    <<: *go-dev-common
     container_name: podzone-auth-dev
-    working_dir: /workspace
-    command:
-      [
-        'air',
-        '--build.cmd',
-        'go build -o ./bin/auth ./cmd/auth/main.go',
-        '--build.bin',
-        './bin/auth',
-      ]
+    command: ['sh', 'deployments/docker/run-go-service.sh']
     environment:
+      GO_SERVICE: auth
+      GOMODCACHE: /go/pkg/mod
+      GOCACHE: /root/.cache/go-build
       CONFIG_PATH: deployments/docker/config/auth.yml
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       OAUTH_REDIRECT_URL: ${OAUTH_REDIRECT_URL:-}
       JWT_SECRET: ${JWT_SECRET:-dev-secret}
-      APP_REDIRECT_URL: ${APP_REDIRECT_URL:-http://localhost:3000}
-    volumes:
-      - ../../:/workspace
-      - podzone_go_mod_cache:/go/pkg/mod
-      - podzone_go_build_cache:/root/.cache/go-build
+      APP_REDIRECT_URL: ${APP_REDIRECT_URL:-http://localhost:3000/auth/google/callback}
     depends_on:
       redis:
         condition: service_healthy
@@ -32,26 +35,32 @@ services:
     ports:
       - '50051:50051'
 
-  catalog-service:
-    build:
-      context: ../..
-      dockerfile: deployments/docker/Dockerfile.go-dev
-    container_name: podzone-catalog-dev
-    working_dir: /workspace
-    command:
-      [
-        'air',
-        '--build.cmd',
-        'go build -o ./bin/catalog ./cmd/catalog/main.go',
-        '--build.bin',
-        './bin/catalog',
-      ]
+  iam-service:
+    <<: *go-dev-common
+    container_name: podzone-iam-dev
+    command: ['sh', 'deployments/docker/run-go-service.sh']
     environment:
+      GO_SERVICE: iam
+      GOMODCACHE: /go/pkg/mod
+      GOCACHE: /root/.cache/go-build
+      CONFIG_PATH: cmd/iam/config.yml
+      JWT_SECRET: ${JWT_SECRET:-dev-secret}
+      JWT_KEY: ${JWT_KEY:-}
+    depends_on:
+      pgbouncer:
+        condition: service_started
+    ports:
+      - '50053:50053'
+
+  catalog-service:
+    <<: *go-dev-common
+    container_name: podzone-catalog-dev
+    command: ['sh', 'deployments/docker/run-go-service.sh']
+    environment:
+      GO_SERVICE: catalog
+      GOMODCACHE: /go/pkg/mod
+      GOCACHE: /root/.cache/go-build
       CONFIG_PATH: cmd/catalog/config.yml
-    volumes:
-      - ../../:/workspace
-      - podzone_go_mod_cache:/go/pkg/mod
-      - podzone_go_build_cache:/root/.cache/go-build
     depends_on:
       redis:
         condition: service_healthy
@@ -61,33 +70,25 @@ services:
       - '50052:50051'
 
   grpc-gateway:
-    build:
-      context: ../..
-      dockerfile: deployments/docker/Dockerfile.go-dev
+    <<: *go-dev-common
     container_name: podzone-grpcgateway-dev
-    working_dir: /workspace
-    command:
-      [
-        'air',
-        '--build.cmd',
-        'go build -o ./bin/grpcgateway ./cmd/grpcgateway/main.go',
-        '--build.bin',
-        './bin/grpcgateway',
-      ]
+    command: ['sh', 'deployments/docker/run-go-service.sh']
     environment:
+      GO_SERVICE: grpcgateway
+      GOMODCACHE: /go/pkg/mod
+      GOCACHE: /root/.cache/go-build
       CONFIG_PATH: cmd/grpcgateway/config.yml
       GW_HTTP_PORT: '8080'
       AUTH_GRPC_ADDR: auth-service:50051
+      IAM_GRPC_ADDR: iam-service:50053
       CATALOG_GRPC_ADDR: catalog-service:50051
       ORDER_GRPC_ADDR: order-service:50051
       PAYMENT_GRPC_ADDR: payment-service:50051
       CART_GRPC_ADDR: cart-service:50051
-    volumes:
-      - ../../:/workspace
-      - podzone_go_mod_cache:/go/pkg/mod
-      - podzone_go_build_cache:/root/.cache/go-build
     depends_on:
       auth-service:
+        condition: service_started
+      iam-service:
         condition: service_started
       catalog-service:
         condition: service_started

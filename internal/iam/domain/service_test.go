@@ -58,6 +58,54 @@ type membershipRepoFake struct {
 	items map[string]Membership
 }
 
+type platformMembershipRepoFake struct {
+	roleIDs map[uint][]uint64
+}
+
+func (r *platformMembershipRepoFake) Upsert(ctx context.Context, userID uint, roleID uint64, status string) error {
+	if r.roleIDs == nil {
+		r.roleIDs = map[uint][]uint64{}
+	}
+	r.roleIDs[userID] = append(r.roleIDs[userID], roleID)
+	return nil
+}
+
+func (r *platformMembershipRepoFake) ListRoleIDsByUser(ctx context.Context, userID uint) ([]uint64, error) {
+	return r.roleIDs[userID], nil
+}
+
+func (r *platformMembershipRepoFake) ListByUser(ctx context.Context, userID uint) ([]PlatformMembership, error) {
+	roleIDs := r.roleIDs[userID]
+	out := make([]PlatformMembership, 0, len(roleIDs))
+	for _, roleID := range roleIDs {
+		out = append(out, PlatformMembership{
+			UserID:   userID,
+			RoleID:   roleID,
+			RoleName: fmt.Sprintf("role-%d", roleID),
+			Status:   MembershipStatusActive,
+		})
+	}
+	return out, nil
+}
+
+func (r *platformMembershipRepoFake) Delete(ctx context.Context, userID uint, roleID uint64) error {
+	roleIDs := r.roleIDs[userID]
+	next := make([]uint64, 0, len(roleIDs))
+	found := false
+	for _, id := range roleIDs {
+		if id == roleID {
+			found = true
+			continue
+		}
+		next = append(next, id)
+	}
+	if !found {
+		return ErrMembershipNotFound
+	}
+	r.roleIDs[userID] = next
+	return nil
+}
+
 func membershipKey(tenantID string, userID uint) string {
 	return fmt.Sprintf("%s:%d", tenantID, userID)
 }
@@ -115,8 +163,9 @@ func TestIAMService_CreateTenant_AssignsOwnerRole(t *testing.T) {
 			RoleTenantOwner: {ID: 1, Name: RoleTenantOwner},
 		},
 	}
+	platformRoles := &platformMembershipRepoFake{}
 	memberships := &membershipRepoFake{}
-	svc := NewIAMUsecase(tenants, roles, memberships)
+	svc := NewIAMUsecase(tenants, roles, platformRoles, memberships)
 
 	out, err := svc.CreateTenant(context.Background(), 42, CreateTenantCmd{Name: "Tenant One", Slug: "tenant-one"})
 	require.NoError(t, err)
@@ -137,6 +186,7 @@ func TestIAMService_RequirePermission(t *testing.T) {
 			2: {"store:update": true},
 		},
 	}
+	platformRoles := &platformMembershipRepoFake{}
 	memberships := &membershipRepoFake{
 		items: map[string]Membership{
 			membershipKey("t1", 9): {
@@ -148,8 +198,50 @@ func TestIAMService_RequirePermission(t *testing.T) {
 			},
 		},
 	}
-	svc := NewIAMUsecase(tenants, roles, memberships)
+	svc := NewIAMUsecase(tenants, roles, platformRoles, memberships)
 
 	require.NoError(t, svc.RequirePermission(context.Background(), "t1", 9, "store:update"))
 	require.ErrorIs(t, svc.RequirePermission(context.Background(), "t1", 9, "tenant:manage_members"), ErrPermissionDenied)
+}
+
+func TestIAMService_RequirePlatformPermission(t *testing.T) {
+	tenants := &tenantRepoFake{}
+	roles := &roleRepoFake{
+		permissions: map[uint64]map[string]bool{
+			7: {"tenant:create": true},
+		},
+	}
+	platformRoles := &platformMembershipRepoFake{
+		roleIDs: map[uint][]uint64{
+			11: {7},
+		},
+	}
+	memberships := &membershipRepoFake{}
+	svc := NewIAMUsecase(tenants, roles, platformRoles, memberships)
+
+	require.NoError(t, svc.RequirePlatformPermission(context.Background(), 11, "tenant:create"))
+	require.ErrorIs(t, svc.RequirePlatformPermission(context.Background(), 12, "tenant:create"), ErrPermissionDenied)
+}
+
+func TestIAMService_AddAndRemovePlatformRole(t *testing.T) {
+	tenants := &tenantRepoFake{}
+	roles := &roleRepoFake{
+		roles: map[string]Role{
+			RolePlatformAdmin: {ID: 8, Name: RolePlatformAdmin},
+		},
+	}
+	platformRoles := &platformMembershipRepoFake{}
+	memberships := &membershipRepoFake{}
+	svc := NewIAMUsecase(tenants, roles, platformRoles, memberships)
+
+	require.NoError(t, svc.AddPlatformRole(context.Background(), 21, RolePlatformAdmin))
+	items, err := svc.ListPlatformRoles(context.Background(), 21)
+	require.NoError(t, err)
+	require.Len(t, items, 1)
+	require.Equal(t, uint64(8), items[0].RoleID)
+
+	require.NoError(t, svc.RemovePlatformRole(context.Background(), 21, RolePlatformAdmin))
+	items, err = svc.ListPlatformRoles(context.Background(), 21)
+	require.NoError(t, err)
+	require.Len(t, items, 0)
 }

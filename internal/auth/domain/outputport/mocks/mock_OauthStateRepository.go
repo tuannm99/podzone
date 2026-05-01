@@ -204,3 +204,20 @@ func (_c *MockOauthStateRepository_Set_Call) RunAndReturn(run func(key string, d
 	_c.Call.Return(run)
 	return _c
 }
+
+// SetValue provides a mock function for the type MockOauthStateRepository
+func (_mock *MockOauthStateRepository) SetValue(key string, value string, duration time.Duration) error {
+	ret := _mock.Called(key, value, duration)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetValue")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(string, string, time.Duration) error); ok {
+		r0 = returnFunc(key, value, duration)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}

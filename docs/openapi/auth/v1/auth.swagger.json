@@ -7,6 +7,9 @@
   "tags": [
     {
       "name": "AuthService"
+    },
+    {
+      "name": "IAMService"
     }
   ],
   "consumes": [
@@ -16,6 +19,37 @@
     "application/json"
   ],
   "paths": {
+    "/auth/v1/audit-logs": {
+      "get": {
+        "operationId": "AuthService_ListAuditLogs",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authListAuditLogsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
     "/auth/v1/google/callback": {
       "get": {
         "operationId": "AuthService_GoogleCallback",
@@ -45,6 +79,38 @@
             "in": "query",
             "required": false,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/auth/v1/google/exchange": {
+      "post": {
+        "operationId": "AuthService_ExchangeGoogleLogin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authLoginResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authExchangeGoogleLoginRequest"
+            }
           }
         ],
         "tags": [
@@ -84,7 +150,7 @@
     },
     "/auth/v1/iam/permissions:check": {
       "post": {
-        "operationId": "AuthService_CheckPermission",
+        "operationId": "IAMService_CheckPermission",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -110,13 +176,164 @@
           }
         ],
         "tags": [
-          "AuthService"
+          "IAMService"
+        ]
+      }
+    },
+    "/auth/v1/iam/platform-permissions:check": {
+      "post": {
+        "operationId": "IAMService_CheckPlatformPermission",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authCheckPermissionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authCheckPlatformPermissionRequest"
+            }
+          }
+        ],
+        "tags": [
+          "IAMService"
+        ]
+      }
+    },
+    "/auth/v1/iam/platform-users/{targetUserId}/roles": {
+      "get": {
+        "operationId": "IAMService_ListPlatformRoles",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authListPlatformRolesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "targetUserId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "actorUserId",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "IAMService"
+        ]
+      },
+      "post": {
+        "operationId": "IAMService_AddPlatformRole",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authAddPlatformRoleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "targetUserId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/IAMServiceAddPlatformRoleBody"
+            }
+          }
+        ],
+        "tags": [
+          "IAMService"
+        ]
+      }
+    },
+    "/auth/v1/iam/platform-users/{targetUserId}/roles/{roleName}": {
+      "delete": {
+        "operationId": "IAMService_RemovePlatformRole",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authRemovePlatformRoleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "targetUserId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "roleName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "actorUserId",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "IAMService"
         ]
       }
     },
     "/auth/v1/iam/tenants": {
       "post": {
-        "operationId": "AuthService_CreateTenant",
+        "operationId": "IAMService_CreateTenant",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -142,13 +359,13 @@
           }
         ],
         "tags": [
-          "AuthService"
+          "IAMService"
         ]
       }
     },
     "/auth/v1/iam/tenants/{tenantId}/members": {
       "get": {
-        "operationId": "AuthService_ListTenantMembers",
+        "operationId": "IAMService_ListTenantMembers",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -172,11 +389,11 @@
           }
         ],
         "tags": [
-          "AuthService"
+          "IAMService"
         ]
       },
       "post": {
-        "operationId": "AuthService_AddTenantMember",
+        "operationId": "IAMService_AddTenantMember",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -203,18 +420,18 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/AuthServiceAddTenantMemberBody"
+              "$ref": "#/definitions/IAMServiceAddTenantMemberBody"
             }
           }
         ],
         "tags": [
-          "AuthService"
+          "IAMService"
         ]
       }
     },
     "/auth/v1/iam/tenants/{tenantId}/members/{userId}": {
       "get": {
-        "operationId": "AuthService_GetTenantMembership",
+        "operationId": "IAMService_GetTenantMembership",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -245,11 +462,11 @@
           }
         ],
         "tags": [
-          "AuthService"
+          "IAMService"
         ]
       },
       "delete": {
-        "operationId": "AuthService_RemoveTenantMember",
+        "operationId": "IAMService_RemoveTenantMember",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -280,7 +497,7 @@
           }
         ],
         "tags": [
-          "AuthService"
+          "IAMService"
         ]
       }
     },
@@ -318,7 +535,7 @@
     },
     "/auth/v1/iam/users/{userId}/tenants": {
       "get": {
-        "operationId": "AuthService_ListUserTenants",
+        "operationId": "IAMService_ListUserTenants",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -343,7 +560,7 @@
           }
         ],
         "tags": [
-          "AuthService"
+          "IAMService"
         ]
       }
     },
@@ -475,6 +692,28 @@
         ]
       }
     },
+    "/auth/v1/sessions": {
+      "get": {
+        "operationId": "AuthService_ListSessions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authListSessionsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
     "/auth/v1/sessions/{sessionId}": {
       "get": {
         "operationId": "AuthService_GetSession",
@@ -503,11 +742,51 @@
         "tags": [
           "AuthService"
         ]
+      },
+      "delete": {
+        "operationId": "AuthService_RevokeSession",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authRevokeSessionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
       }
     }
   },
   "definitions": {
-    "AuthServiceAddTenantMemberBody": {
+    "IAMServiceAddPlatformRoleBody": {
+      "type": "object",
+      "properties": {
+        "actorUserId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "roleName": {
+          "type": "string"
+        }
+      }
+    },
+    "IAMServiceAddTenantMemberBody": {
       "type": "object",
       "properties": {
         "userId": {
@@ -519,8 +798,44 @@
         }
       }
     },
+    "authAddPlatformRoleResponse": {
+      "type": "object"
+    },
     "authAddTenantMemberResponse": {
       "type": "object"
+    },
+    "authAuditLog": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "actorUserId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "action": {
+          "type": "string"
+        },
+        "resourceType": {
+          "type": "string"
+        },
+        "resourceId": {
+          "type": "string"
+        },
+        "tenantId": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "payloadJson": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      }
     },
     "authCheckPermissionRequest": {
       "type": "object",
@@ -542,6 +857,18 @@
       "properties": {
         "allowed": {
           "type": "boolean"
+        }
+      }
+    },
+    "authCheckPlatformPermissionRequest": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "permission": {
+          "type": "string"
         }
       }
     },
@@ -571,6 +898,14 @@
         }
       }
     },
+    "authExchangeGoogleLoginRequest": {
+      "type": "object",
+      "properties": {
+        "exchangeCode": {
+          "type": "string"
+        }
+      }
+    },
     "authGetSessionResponse": {
       "type": "object",
       "properties": {
@@ -590,7 +925,7 @@
     "authGoogleCallbackResponse": {
       "type": "object",
       "properties": {
-        "jwtToken": {
+        "exchangeCode": {
           "type": "string"
         },
         "redirectUrl": {
@@ -632,6 +967,42 @@
         },
         "emailVerified": {
           "type": "boolean"
+        }
+      }
+    },
+    "authListAuditLogsResponse": {
+      "type": "object",
+      "properties": {
+        "logs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/authAuditLog"
+          }
+        }
+      }
+    },
+    "authListPlatformRolesResponse": {
+      "type": "object",
+      "properties": {
+        "memberships": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/authPlatformRoleMembership"
+          }
+        }
+      }
+    },
+    "authListSessionsResponse": {
+      "type": "object",
+      "properties": {
+        "sessions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/authSession"
+          }
         }
       }
     },
@@ -703,6 +1074,31 @@
         }
       }
     },
+    "authPlatformRoleMembership": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "roleId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "roleName": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      }
+    },
     "authRefreshTokenRequest": {
       "type": "object",
       "properties": {
@@ -753,7 +1149,13 @@
         }
       }
     },
+    "authRemovePlatformRoleResponse": {
+      "type": "object"
+    },
     "authRemoveTenantMemberResponse": {
+      "type": "object"
+    },
+    "authRevokeSessionResponse": {
       "type": "object"
     },
     "authSession": {

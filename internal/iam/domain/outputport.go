@@ -12,6 +12,13 @@ type RoleRepository interface {
 	RoleHasPermission(ctx context.Context, roleID uint64, permission string) (bool, error)
 }
 
+type PlatformMembershipRepository interface {
+	Upsert(ctx context.Context, userID uint, roleID uint64, status string) error
+	ListByUser(ctx context.Context, userID uint) ([]PlatformMembership, error)
+	ListRoleIDsByUser(ctx context.Context, userID uint) ([]uint64, error)
+	Delete(ctx context.Context, userID uint, roleID uint64) error
+}
+
 type MembershipRepository interface {
 	Upsert(ctx context.Context, membership Membership) error
 	GetByTenantAndUser(ctx context.Context, tenantID string, userID uint) (*Membership, error)

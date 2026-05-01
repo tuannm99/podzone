@@ -89,6 +89,16 @@ func (r *sessionRepoFake) GetByID(ctx context.Context, id string) (*entity.Sessi
 	return &copyItem, nil
 }
 
+func (r *sessionRepoFake) ListByUser(ctx context.Context, userID uint) ([]entity.Session, error) {
+	out := make([]entity.Session, 0)
+	for _, item := range r.items {
+		if item.UserID == userID {
+			out = append(out, item)
+		}
+	}
+	return out, nil
+}
+
 func (r *sessionRepoFake) UpdateActiveTenant(ctx context.Context, id, tenantID string, updatedAt time.Time) error {
 	item, ok := r.items[id]
 	if !ok {
@@ -162,6 +172,10 @@ func (f *iamUsecaseFakeForAuthInteractor) CreateTenant(ctx context.Context, owne
 	return nil, nil
 }
 
+func (f *iamUsecaseFakeForAuthInteractor) AddPlatformRole(ctx context.Context, userID uint, roleName string) error {
+	return nil
+}
+
 func (f *iamUsecaseFakeForAuthInteractor) AddMember(ctx context.Context, tenantID string, userID uint, roleName string) error {
 	return nil
 }
@@ -174,6 +188,10 @@ func (f *iamUsecaseFakeForAuthInteractor) ListUserTenants(ctx context.Context, u
 	return nil, nil
 }
 
+func (f *iamUsecaseFakeForAuthInteractor) ListPlatformRoles(ctx context.Context, userID uint) ([]iamdomain.PlatformMembership, error) {
+	return nil, nil
+}
+
 func (f *iamUsecaseFakeForAuthInteractor) ListTenantMembers(ctx context.Context, tenantID string) ([]iamdomain.Membership, error) {
 	return nil, nil
 }
@@ -182,11 +200,23 @@ func (f *iamUsecaseFakeForAuthInteractor) RemoveMember(ctx context.Context, tena
 	return nil
 }
 
+func (f *iamUsecaseFakeForAuthInteractor) RemovePlatformRole(ctx context.Context, userID uint, roleName string) error {
+	return nil
+}
+
 func (f *iamUsecaseFakeForAuthInteractor) CheckPermission(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
 	return false, nil
 }
 
 func (f *iamUsecaseFakeForAuthInteractor) RequirePermission(ctx context.Context, tenantID string, userID uint, permission string) error {
+	return nil
+}
+
+func (f *iamUsecaseFakeForAuthInteractor) CheckPlatformPermission(ctx context.Context, userID uint, permission string) (bool, error) {
+	return false, nil
+}
+
+func (f *iamUsecaseFakeForAuthInteractor) RequirePlatformPermission(ctx context.Context, userID uint, permission string) error {
 	return nil
 }
 
@@ -357,8 +387,10 @@ func TestHandleOAuthCallback_HappyPath(t *testing.T) {
 		Return(&entity.User{Id: 7, Email: "jdoe@example.com"}, nil)
 
 	tuc.
-		On("CreateJwtToken",
+		On("CreateJwtTokenForSession",
 			mock.MatchedBy(func(e entity.User) bool { return e.Email == "jdoe@example.com" }),
+			"",
+			mock.AnythingOfType("string"),
 		).
 		Return("jwt-ok", nil)
 
@@ -366,15 +398,18 @@ func TestHandleOAuthCallback_HappyPath(t *testing.T) {
 	key := "oauth:google:" + state
 	sr.On("Get", key).Return("ok", nil)
 	sr.On("Del", key).Return(nil)
+	sr.On("SetValue", mock.MatchedBy(func(key string) bool {
+		return strings.HasPrefix(key, "oauth:google:exchange:")
+	}), mock.AnythingOfType("string"), 2*time.Minute).Return(nil)
 
 	uc := newUC(t, uuc, tuc, ext, ur, sr)
 
 	resp, err := uc.HandleOAuthCallback(context.Background(), "CODE", state)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
-	assert.Equal(t, "jwt-ok", resp.JwtToken)
+	assert.NotEmpty(t, resp.ExchangeCode)
 	assert.Equal(t, "jdoe@example.com", resp.UserInfo.Email)
-	assert.Contains(t, resp.RedirectUrl, "token=jwt-ok")
+	assert.Contains(t, resp.RedirectUrl, "exchange_code=")
 
 	ext.AssertExpectations(t)
 	uuc.AssertExpectations(t)
@@ -547,7 +582,7 @@ func TestHandleOAuthCallback_CreateUserError(t *testing.T) {
 	sr.AssertExpectations(t)
 }
 
-func TestHandleOAuthCallback_CreateJWTError(t *testing.T) {
+func TestHandleOAuthCallback_PersistExchangeError(t *testing.T) {
 	ts := makeTokenServerOK(t)
 	defer ts.Close()
 
@@ -565,19 +600,21 @@ func TestHandleOAuthCallback_CreateJWTError(t *testing.T) {
 		Return(&user, nil)
 
 	tuc.
-		On("CreateJwtToken", user).
-		Return("", fmt.Errorf("jwt fail"))
+		On("CreateJwtTokenForSession", user, "", mock.AnythingOfType("string")).
+		Return("jwt-ok", nil)
 
 	state := "ST"
 	key := "oauth:google:" + state
 	sr.On("Get", key).Return("ok", nil)
 	sr.On("Del", key).Return(nil)
+	sr.On("SetValue", mock.AnythingOfType("string"), mock.AnythingOfType("string"), 2*time.Minute).
+		Return(fmt.Errorf("redis fail"))
 
 	uc := newUC(t, uuc, tuc, ext, ur, sr)
 	resp, err := uc.HandleOAuthCallback(context.Background(), "CODE", state)
 	require.Error(t, err)
 	assert.Nil(t, resp)
-	assert.Contains(t, err.Error(), "failed to create JWT")
+	assert.Contains(t, err.Error(), "failed to persist exchange code")
 
 	ext.AssertExpectations(t)
 	tuc.AssertExpectations(t)
@@ -694,4 +731,19 @@ func TestRefreshAccessToken_Success(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, storedOld.RevokedAt)
 	userRepo.AssertExpectations(t)
+}
+
+func TestExchangeOAuthLogin_Success(t *testing.T) {
+	uuc, tuc, ext, ur, sr := initMock()
+	payload := `{"jwt_token":"jwt-oauth","refresh_token":"refresh-oauth","user_info":{"id":7,"email":"neo@mx.io","username":"neo"}}`
+	sr.On("Get", "oauth:google:exchange:code-1").Return(payload, nil)
+	sr.On("Del", "oauth:google:exchange:code-1").Return(nil)
+
+	uc := newUC(t, uuc, tuc, ext, ur, sr)
+	resp, err := uc.ExchangeOAuthLogin(context.Background(), "code-1")
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	assert.Equal(t, "jwt-oauth", resp.JwtToken)
+	assert.Equal(t, "refresh-oauth", resp.RefreshToken)
+	assert.Equal(t, uint(7), resp.UserInfo.Id)
 }

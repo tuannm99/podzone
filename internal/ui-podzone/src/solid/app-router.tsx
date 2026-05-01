@@ -57,6 +57,15 @@ const registerRoute = createRoute({
   component: lazyRouteComponent(() => import('./pages/podzone/RegisterPage')),
 });
 
+const googleCallbackRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/auth/google/callback',
+  beforeLoad: requireGuest,
+  component: lazyRouteComponent(
+    () => import('./pages/podzone/GoogleCallbackPage')
+  ),
+});
+
 const adminHomeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/admin',
@@ -93,6 +102,7 @@ const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
   registerRoute,
+  googleCallbackRoute,
   adminHomeRoute,
   adminSettingsRoute,
   tenantHomeRoute,

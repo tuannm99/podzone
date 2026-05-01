@@ -172,6 +172,34 @@ func (_c *MockAuthUsecase_HandleOAuthCallback_Call) RunAndReturn(run func(ctx co
 	return _c
 }
 
+// ExchangeOAuthLogin provides a mock function for the type MockAuthUsecase
+func (_mock *MockAuthUsecase) ExchangeOAuthLogin(ctx context.Context, exchangeCode string) (*inputport.AuthResult, error) {
+	ret := _mock.Called(ctx, exchangeCode)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ExchangeOAuthLogin")
+	}
+
+	var r0 *inputport.AuthResult
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*inputport.AuthResult, error)); ok {
+		return returnFunc(ctx, exchangeCode)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *inputport.AuthResult); ok {
+		r0 = returnFunc(ctx, exchangeCode)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*inputport.AuthResult)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, exchangeCode)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
 // Login provides a mock function for the type MockAuthUsecase
 func (_mock *MockAuthUsecase) Login(ctx context.Context, username string, password string) (*inputport.AuthResult, error) {
 	ret := _mock.Called(ctx, username, password)

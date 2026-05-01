@@ -29,7 +29,7 @@ export type TenantInfo = {
 };
 
 export type CreateTenantPayload = {
-  ownerUserId: number;
+  ownerUserId?: number;
   slug: string;
   name: string;
 };
@@ -39,10 +39,24 @@ export type CreateTenantResult = {
   ownerMembership?: TenantMembership;
 };
 
+export type PlatformRoleMembership = {
+  userId: number;
+  roleId?: number;
+  roleName: string;
+  status: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 export type CheckPermissionPayload = {
   tenantId: string;
   userId: number;
   permission: string;
+};
+
+export type UpsertPlatformRolePayload = {
+  targetUserId: number;
+  roleName: string;
 };
 
 function toFailure(error: unknown, fallback: string): IamResult<never> {
@@ -83,6 +97,19 @@ export async function createTenant(
   }
 }
 
+export async function listPlatformRoles(
+  targetUserId: number
+): Promise<IamResult<PlatformRoleMembership[]>> {
+  try {
+    const { data } = await http.get<{ memberships?: PlatformRoleMembership[] }>(
+      `/auth/v1/iam/platform-users/${targetUserId}/roles`
+    );
+    return { success: true, data: data.memberships || [] };
+  } catch (error) {
+    return toFailure(error as HttpError, 'Failed to load platform roles');
+  }
+}
+
 export async function listTenantMembers(
   tenantId: string
 ): Promise<IamResult<TenantMembership[]>> {
@@ -107,6 +134,46 @@ export async function checkPermission(
     return { success: true, data: Boolean(data.allowed) };
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to check permission');
+  }
+}
+
+export async function checkPlatformPermission(
+  permission: string
+): Promise<IamResult<boolean>> {
+  try {
+    const { data } = await http.post<{ allowed?: boolean }>(
+      '/auth/v1/iam/platform-permissions:check',
+      { permission }
+    );
+    return { success: true, data: Boolean(data.allowed) };
+  } catch (error) {
+    return toFailure(error as HttpError, 'Failed to check platform permission');
+  }
+}
+
+export async function upsertPlatformRole(
+  payload: UpsertPlatformRolePayload
+): Promise<IamResult<true>> {
+  try {
+    await http.post(
+      `/auth/v1/iam/platform-users/${payload.targetUserId}/roles`,
+      payload
+    );
+    return { success: true, data: true };
+  } catch (error) {
+    return toFailure(error as HttpError, 'Failed to save platform role');
+  }
+}
+
+export async function removePlatformRole(
+  targetUserId: number,
+  roleName: string
+): Promise<IamResult<true>> {
+  try {
+    await http.delete(`/auth/v1/iam/platform-users/${targetUserId}/roles/${roleName}`);
+    return { success: true, data: true };
+  } catch (error) {
+    return toFailure(error as HttpError, 'Failed to remove platform role');
   }
 }
 

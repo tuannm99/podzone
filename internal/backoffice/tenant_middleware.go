@@ -14,7 +14,7 @@ import (
 
 // TenantMiddleware is an app-level GraphQL extension.
 type TenantMiddleware struct {
-	authCfg    boconfig.AuthConfig
+	authCfg    boconfig.RPCConfig
 	authorizer TenantAuthorizer
 }
 

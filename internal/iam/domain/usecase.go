@@ -4,6 +4,11 @@ import "context"
 
 type IAMUsecase interface {
 	CreateTenant(ctx context.Context, ownerUserID uint, cmd CreateTenantCmd) (*Tenant, error)
+	CheckPlatformPermission(ctx context.Context, userID uint, permission string) (bool, error)
+	RequirePlatformPermission(ctx context.Context, userID uint, permission string) error
+	AddPlatformRole(ctx context.Context, userID uint, roleName string) error
+	ListPlatformRoles(ctx context.Context, userID uint) ([]PlatformMembership, error)
+	RemovePlatformRole(ctx context.Context, userID uint, roleName string) error
 	AddMember(ctx context.Context, tenantID string, userID uint, roleName string) error
 	GetMembership(ctx context.Context, tenantID string, userID uint) (*Membership, error)
 	ListUserTenants(ctx context.Context, userID uint) ([]Membership, error)

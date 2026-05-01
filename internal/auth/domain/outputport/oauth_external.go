@@ -28,5 +28,6 @@ type GoogleOauthExternal interface {
 type OauthStateRepository interface {
 	Get(key string) (string, error)
 	Set(key string, duration time.Duration) error
+	SetValue(key, value string, duration time.Duration) error
 	Del(key string) error
 }

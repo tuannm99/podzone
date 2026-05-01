@@ -28,3 +28,11 @@ type membershipModel struct {
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
+
+type platformMembershipModel struct {
+	UserID    uint      `db:"user_id"`
+	RoleID    uint64    `db:"role_id"`
+	Status    string    `db:"status"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}

@@ -9,9 +9,9 @@ func ToPBGoogleCallbackResponse(
 	out *inputport.GoogleCallbackResult,
 ) *pbauthv1.GoogleCallbackResponse {
 	return &pbauthv1.GoogleCallbackResponse{
-		JwtToken:    out.JwtToken,
-		RedirectUrl: out.RedirectUrl,
-		UserInfo:    ToPBGoogleUserInfo(&out.UserInfo),
+		ExchangeCode: out.ExchangeCode,
+		RedirectUrl:  out.RedirectUrl,
+		UserInfo:     ToPBGoogleUserInfo(&out.UserInfo),
 	}
 }
 

@@ -2,6 +2,7 @@ import { For, Show, createSignal, onMount } from 'solid-js';
 import { GW_API_URL, TENANT_GQL_URL } from '../../../services/baseurl';
 import { ensureActiveTenant } from '../../../services/auth';
 import {
+  checkPlatformPermission,
   createTenant,
   listUserTenants,
   type TenantMembership,
@@ -51,7 +52,9 @@ export default function AdminHomePage() {
   const [switchingTenant, setSwitchingTenant] = createSignal(false);
   const [creatingTenant, setCreatingTenant] = createSignal(false);
   const [loadingTenants, setLoadingTenants] = createSignal(false);
+  const [checkingPlatformAccess, setCheckingPlatformAccess] = createSignal(false);
   const [memberships, setMemberships] = createSignal<TenantMembership[]>([]);
+  const [canCreateTenant, setCanCreateTenant] = createSignal(false);
 
   const loadMemberships = async () => {
     if (!userID) return;
@@ -65,6 +68,25 @@ export default function AdminHomePage() {
       setMemberships(result.data);
     } finally {
       setLoadingTenants(false);
+    }
+  };
+
+  const loadPlatformAccess = async () => {
+    if (!userID) {
+      setCanCreateTenant(false);
+      return;
+    }
+    setCheckingPlatformAccess(true);
+    try {
+      const result = await checkPlatformPermission('tenant:create');
+      if (!result.success) {
+        setTenantError(result.message);
+        setCanCreateTenant(false);
+        return;
+      }
+      setCanCreateTenant(result.data);
+    } finally {
+      setCheckingPlatformAccess(false);
     }
   };
 
@@ -96,6 +118,10 @@ export default function AdminHomePage() {
       setTenantError('No authenticated user found.');
       return;
     }
+    if (!canCreateTenant()) {
+      setTenantError('You do not have platform permission to create tenants.');
+      return;
+    }
 
     const normalizedName = tenantName().trim();
     const normalizedSlug = slugify(tenantSlug() || normalizedName);
@@ -109,7 +135,6 @@ export default function AdminHomePage() {
     setTenantMessage('');
     try {
       const result = await createTenant({
-        ownerUserId: userID,
         name: normalizedName,
         slug: normalizedSlug,
       });
@@ -135,6 +160,7 @@ export default function AdminHomePage() {
   };
 
   onMount(() => {
+    void loadPlatformAccess();
     void loadMemberships();
   });
 
@@ -175,12 +201,23 @@ export default function AdminHomePage() {
         />
       </div>
 
+      <Show when={checkingPlatformAccess()}>
+        <LoadingInline label="Checking platform permissions..." />
+      </Show>
+
       <div class="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
         <Card class="space-y-4">
           <SectionTitle
             title="Create tenant"
             subtitle="Provision a new workspace and attach yourself as tenant owner."
           />
+          <Show when={!canCreateTenant() && !checkingPlatformAccess()}>
+            <InfoAlert>
+              Creating tenants requires the platform permission <code>tenant:create</code>.
+              The current IAM bootstrap grants this to the first platform owner unless
+              more platform roles are assigned.
+            </InfoAlert>
+          </Show>
           <form class="space-y-4" onSubmit={submitCreateTenant}>
             <InputField
               label="Tenant name"
@@ -204,7 +241,7 @@ export default function AdminHomePage() {
               <Button
                 type="submit"
                 loading={creatingTenant()}
-                disabled={!tenantName().trim()}
+                disabled={!tenantName().trim() || !canCreateTenant()}
               >
                 Create tenant
               </Button>

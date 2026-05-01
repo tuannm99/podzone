@@ -22,6 +22,29 @@ export type AuthResponseData = {
   [key: string]: unknown;
 };
 
+export type SessionInfo = {
+  id: string;
+  userId?: number;
+  activeTenantId?: string;
+  status?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  expiresAt?: string;
+  revokedAt?: string;
+};
+
+export type AuditLogInfo = {
+  id: string;
+  actorUserId?: number;
+  action?: string;
+  resourceType?: string;
+  resourceId?: string;
+  tenantId?: string;
+  status?: string;
+  payloadJson?: string;
+  createdAt?: string;
+};
+
 export type AuthResult =
   | { success: true; data: AuthResponseData }
   | { success: false; data: { message: string } };
@@ -54,6 +77,20 @@ function toFailure(error: unknown, fallback: string): AuthResult {
 
 export function loginGG(): string {
   return `${GW_API_URL}/auth/v1/google/login`;
+}
+
+export async function exchangeGoogleLogin(
+  exchangeCode: string
+): Promise<AuthResult> {
+  try {
+    const { data } = await http.post<AuthResponseData>('/auth/v1/google/exchange', {
+      exchangeCode,
+    });
+    persistAuth(data);
+    return { success: true, data };
+  } catch (error) {
+    return toFailure(error as HttpError, 'Google login exchange failed');
+  }
 }
 
 export async function login(payload: AuthPayload): Promise<AuthResult> {
@@ -179,5 +216,47 @@ export async function logout(): Promise<void> {
     tokenStorage.clearAll();
     tenantStorage.clearTenantID();
     window.location.href = '/auth/login';
+  }
+}
+
+export async function listSessions(): Promise<
+  | { success: true; data: SessionInfo[] }
+  | { success: false; data: { message: string } }
+> {
+  try {
+    const { data } = await http.get<{ sessions?: SessionInfo[] }>('/auth/v1/sessions');
+    return { success: true, data: data.sessions || [] };
+  } catch (error) {
+    return { success: false, data: { message: (error as HttpError).message || 'Failed to load sessions' } };
+  }
+}
+
+export async function revokeSession(sessionId: string): Promise<AuthResult> {
+  try {
+    await http.delete(`/auth/v1/sessions/${sessionId}`);
+    if (tokenStorage.getSessionID() === sessionId) {
+      tokenStorage.clearAll();
+      tenantStorage.clearTenantID();
+      window.location.href = '/auth/login';
+    }
+    return { success: true, data: {} };
+  } catch (error) {
+    return toFailure(error as HttpError, 'Failed to revoke session');
+  }
+}
+
+export async function listAuditLogs(
+  pageSize = 20
+): Promise<
+  | { success: true; data: AuditLogInfo[] }
+  | { success: false; data: { message: string } }
+> {
+  try {
+    const { data } = await http.get<{ logs?: AuditLogInfo[] }>('/auth/v1/audit-logs', {
+      params: { pageSize },
+    });
+    return { success: true, data: data.logs || [] };
+  } catch (error) {
+    return { success: false, data: { message: (error as HttpError).message || 'Failed to load audit logs' } };
   }
 }

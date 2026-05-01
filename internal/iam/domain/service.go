@@ -9,20 +9,23 @@ import (
 )
 
 type iamService struct {
-	tenants     TenantRepository
-	roles       RoleRepository
-	memberships MembershipRepository
+	tenants             TenantRepository
+	roles               RoleRepository
+	platformMemberships PlatformMembershipRepository
+	memberships         MembershipRepository
 }
 
 func NewIAMUsecase(
 	tenants TenantRepository,
 	roles RoleRepository,
+	platformMemberships PlatformMembershipRepository,
 	memberships MembershipRepository,
 ) IAMUsecase {
 	return &iamService{
-		tenants:     tenants,
-		roles:       roles,
-		memberships: memberships,
+		tenants:             tenants,
+		roles:               roles,
+		platformMemberships: platformMemberships,
+		memberships:         memberships,
 	}
 }
 
@@ -69,6 +72,74 @@ func (s *iamService) CreateTenant(ctx context.Context, ownerUserID uint, cmd Cre
 	}
 
 	return tenant, nil
+}
+
+func (s *iamService) CheckPlatformPermission(ctx context.Context, userID uint, permission string) (bool, error) {
+	if userID == 0 {
+		return false, ErrInvalidUserID
+	}
+	roleIDs, err := s.platformMemberships.ListRoleIDsByUser(ctx, userID)
+	if err != nil {
+		return false, err
+	}
+	for _, roleID := range roleIDs {
+		allowed, err := s.roles.RoleHasPermission(ctx, roleID, permission)
+		if err != nil {
+			return false, err
+		}
+		if allowed {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func (s *iamService) RequirePlatformPermission(ctx context.Context, userID uint, permission string) error {
+	allowed, err := s.CheckPlatformPermission(ctx, userID, permission)
+	if err != nil {
+		return err
+	}
+	if !allowed {
+		return ErrPermissionDenied
+	}
+	return nil
+}
+
+func (s *iamService) AddPlatformRole(ctx context.Context, userID uint, roleName string) error {
+	if userID == 0 {
+		return ErrInvalidUserID
+	}
+	roleName = strings.TrimSpace(roleName)
+	if roleName == "" {
+		return ErrInvalidRoleName
+	}
+	role, err := s.roles.GetByName(ctx, roleName)
+	if err != nil {
+		return err
+	}
+	return s.platformMemberships.Upsert(ctx, userID, role.ID, MembershipStatusActive)
+}
+
+func (s *iamService) ListPlatformRoles(ctx context.Context, userID uint) ([]PlatformMembership, error) {
+	if userID == 0 {
+		return nil, ErrInvalidUserID
+	}
+	return s.platformMemberships.ListByUser(ctx, userID)
+}
+
+func (s *iamService) RemovePlatformRole(ctx context.Context, userID uint, roleName string) error {
+	if userID == 0 {
+		return ErrInvalidUserID
+	}
+	roleName = strings.TrimSpace(roleName)
+	if roleName == "" {
+		return ErrInvalidRoleName
+	}
+	role, err := s.roles.GetByName(ctx, roleName)
+	if err != nil {
+		return err
+	}
+	return s.platformMemberships.Delete(ctx, userID, role.ID)
 }
 
 func (s *iamService) AddMember(ctx context.Context, tenantID string, userID uint, roleName string) error {

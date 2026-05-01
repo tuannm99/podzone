@@ -10,3 +10,8 @@ backoffice:
     jwt_key: "${JWT_KEY}"
     grpc_host: "${AUTH_GRPC_HOST}"
     grpc_port: "${AUTH_GRPC_PORT}"
+  iam:
+    jwt_secret: "${JWT_SECRET}"
+    jwt_key: "${JWT_KEY}"
+    grpc_host: "${IAM_GRPC_HOST}"
+    grpc_port: "${IAM_GRPC_PORT}"

@@ -54,7 +54,11 @@ func (o *OauthStateRepositoryImpl) Get(key string) (string, error) {
 }
 
 func (o *OauthStateRepositoryImpl) Set(key string, duration time.Duration) error {
-	if err := o.redisClient.Set(context.Background(), key, time.Now().String(), duration).Err(); err != nil {
+	return o.SetValue(key, time.Now().String(), duration)
+}
+
+func (o *OauthStateRepositoryImpl) SetValue(key, value string, duration time.Duration) error {
+	if err := o.redisClient.Set(context.Background(), key, value, duration).Err(); err != nil {
 		return fmt.Errorf("error storing state: %w", err)
 	}
 	return nil

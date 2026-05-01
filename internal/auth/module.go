@@ -17,7 +17,8 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
 	"github.com/tuannm99/podzone/internal/auth/infrastructure/repository"
 	"github.com/tuannm99/podzone/internal/auth/migrations"
-	"github.com/tuannm99/podzone/internal/iam"
+	iamdomain "github.com/tuannm99/podzone/internal/iam/domain"
+	iamrepo "github.com/tuannm99/podzone/internal/iam/infrastructure/repository"
 	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/pdsql"
@@ -32,6 +33,12 @@ var Module = fx.Options(
 		fx.Annotate(repository.NewUserRepositoryImpl, fx.As(new(outputport.UserRepository))),
 		fx.Annotate(repository.NewSessionRepositoryImpl, fx.As(new(outputport.SessionRepository))),
 		fx.Annotate(repository.NewRefreshTokenRepositoryImpl, fx.As(new(outputport.RefreshTokenRepository))),
+		fx.Annotate(repository.NewAuditLogRepositoryImpl, fx.As(new(outputport.AuditLogRepository))),
+		fx.Annotate(iamrepo.NewTenantRepository, fx.As(new(iamdomain.TenantRepository))),
+		fx.Annotate(iamrepo.NewRoleRepository, fx.As(new(iamdomain.RoleRepository))),
+		fx.Annotate(iamrepo.NewPlatformMembershipRepository, fx.As(new(iamdomain.PlatformMembershipRepository))),
+		fx.Annotate(iamrepo.NewMembershipRepository, fx.As(new(iamdomain.MembershipRepository))),
+		fx.Annotate(iamdomain.NewIAMUsecase, fx.As(new(iamdomain.IAMUsecase))),
 
 		fx.Annotate(domain.NewTokenUsecase, fx.As(new(inputport.TokenUsecase))),
 		fx.Annotate(domain.NewUserUsecase, fx.As(new(inputport.UserUsecase))),
@@ -43,7 +50,6 @@ var Module = fx.Options(
 		RegisterGRPCServer,
 		RegisterMigration,
 	),
-	iam.Module,
 )
 
 func RegisterGRPCServer(server *grpc.Server, authServer *grpchandler.AuthServer, logger pdlog.Logger) {
@@ -61,6 +67,10 @@ type MigrateParams struct {
 
 var applyMigration = func(ctx context.Context, db *sql.DB, dialect string) error {
 	return migrations.Apply(ctx, db, dialect)
+}
+
+func ApplyMigrationForIAM(ctx context.Context, db *sql.DB, dialect string) error {
+	return applyMigration(ctx, db, dialect)
 }
 
 func RegisterMigration(p MigrateParams) {
