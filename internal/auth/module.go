@@ -38,7 +38,9 @@ var Module = fx.Options(
 		fx.Annotate(iamrepo.NewRoleRepository, fx.As(new(iamdomain.RoleRepository))),
 		fx.Annotate(iamrepo.NewPlatformMembershipRepository, fx.As(new(iamdomain.PlatformMembershipRepository))),
 		fx.Annotate(iamrepo.NewMembershipRepository, fx.As(new(iamdomain.MembershipRepository))),
+		fx.Annotate(iamrepo.NewInviteRepository, fx.As(new(iamdomain.InviteRepository))),
 		fx.Annotate(iamdomain.NewIAMUsecase, fx.As(new(iamdomain.IAMUsecase))),
+		fx.Annotate(NewTenantAccessChecker, fx.As(new(domain.TenantAccessChecker))),
 
 		fx.Annotate(domain.NewTokenUsecase, fx.As(new(inputport.TokenUsecase))),
 		fx.Annotate(domain.NewUserUsecase, fx.As(new(inputport.UserUsecase))),

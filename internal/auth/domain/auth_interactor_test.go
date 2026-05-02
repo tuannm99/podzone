@@ -60,12 +60,12 @@ func newUC(
 		JWTKey:         "app-key",
 		AppRedirectURL: "https://app.example.com/after-auth",
 	}
-	iamUC := &iamUsecaseFakeForAuthInteractor{
-		getMembershipFunc: func(ctx context.Context, tenantID string, userID uint) (*iamdomain.Membership, error) {
-			return nil, iamdomain.ErrMembershipNotFound
+	tenantAccessChecker := &tenantAccessCheckerFake{
+		ensureActiveMembershipFunc: func(ctx context.Context, tenantID string, userID uint) error {
+			return iamdomain.ErrMembershipNotFound
 		},
 	}
-	return NewAuthUsecase(uuc, tuc, ext, sr, ur, &sessionRepoFake{}, &refreshTokenRepoFake{}, iamUC, cfg)
+	return NewAuthUsecase(uuc, tuc, ext, sr, ur, &sessionRepoFake{}, &refreshTokenRepoFake{}, tenantAccessChecker, cfg)
 }
 
 type sessionRepoFake struct {
@@ -142,7 +142,12 @@ func (r *refreshTokenRepoFake) GetByTokenHash(ctx context.Context, tokenHash str
 	return &copyItem, nil
 }
 
-func (r *refreshTokenRepoFake) Revoke(ctx context.Context, id string, revokedAt time.Time, replacedByTokenID *string) error {
+func (r *refreshTokenRepoFake) Revoke(
+	ctx context.Context,
+	id string,
+	revokedAt time.Time,
+	replacedByTokenID *string,
+) error {
 	for key, item := range r.items {
 		if item.ID == id {
 			item.RevokedAt = &revokedAt
@@ -164,60 +169,12 @@ func (r *refreshTokenRepoFake) RevokeBySession(ctx context.Context, sessionID st
 	return nil
 }
 
-type iamUsecaseFakeForAuthInteractor struct {
-	getMembershipFunc func(ctx context.Context, tenantID string, userID uint) (*iamdomain.Membership, error)
+type tenantAccessCheckerFake struct {
+	ensureActiveMembershipFunc func(ctx context.Context, tenantID string, userID uint) error
 }
 
-func (f *iamUsecaseFakeForAuthInteractor) CreateTenant(ctx context.Context, ownerUserID uint, cmd iamdomain.CreateTenantCmd) (*iamdomain.Tenant, error) {
-	return nil, nil
-}
-
-func (f *iamUsecaseFakeForAuthInteractor) AddPlatformRole(ctx context.Context, userID uint, roleName string) error {
-	return nil
-}
-
-func (f *iamUsecaseFakeForAuthInteractor) AddMember(ctx context.Context, tenantID string, userID uint, roleName string) error {
-	return nil
-}
-
-func (f *iamUsecaseFakeForAuthInteractor) GetMembership(ctx context.Context, tenantID string, userID uint) (*iamdomain.Membership, error) {
-	return f.getMembershipFunc(ctx, tenantID, userID)
-}
-
-func (f *iamUsecaseFakeForAuthInteractor) ListUserTenants(ctx context.Context, userID uint) ([]iamdomain.Membership, error) {
-	return nil, nil
-}
-
-func (f *iamUsecaseFakeForAuthInteractor) ListPlatformRoles(ctx context.Context, userID uint) ([]iamdomain.PlatformMembership, error) {
-	return nil, nil
-}
-
-func (f *iamUsecaseFakeForAuthInteractor) ListTenantMembers(ctx context.Context, tenantID string) ([]iamdomain.Membership, error) {
-	return nil, nil
-}
-
-func (f *iamUsecaseFakeForAuthInteractor) RemoveMember(ctx context.Context, tenantID string, userID uint) error {
-	return nil
-}
-
-func (f *iamUsecaseFakeForAuthInteractor) RemovePlatformRole(ctx context.Context, userID uint, roleName string) error {
-	return nil
-}
-
-func (f *iamUsecaseFakeForAuthInteractor) CheckPermission(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
-	return false, nil
-}
-
-func (f *iamUsecaseFakeForAuthInteractor) RequirePermission(ctx context.Context, tenantID string, userID uint, permission string) error {
-	return nil
-}
-
-func (f *iamUsecaseFakeForAuthInteractor) CheckPlatformPermission(ctx context.Context, userID uint, permission string) (bool, error) {
-	return false, nil
-}
-
-func (f *iamUsecaseFakeForAuthInteractor) RequirePlatformPermission(ctx context.Context, userID uint, permission string) error {
-	return nil
+func (f *tenantAccessCheckerFake) EnsureActiveMembership(ctx context.Context, tenantID string, userID uint) error {
+	return f.ensureActiveMembershipFunc(ctx, tenantID, userID)
 }
 
 func makeTokenServerOK(t *testing.T) *httptest.Server {
@@ -434,13 +391,9 @@ func TestHandleOAuthCallback_InvalidState(t *testing.T) {
 func TestSwitchActiveTenant_Success(t *testing.T) {
 	ctx := context.Background()
 	uuc, tuc, ext, ur, sr := initMock()
-	iamUC := &iamUsecaseFakeForAuthInteractor{
-		getMembershipFunc: func(ctx context.Context, tenantID string, userID uint) (*iamdomain.Membership, error) {
-			return &iamdomain.Membership{
-				TenantID: tenantID,
-				UserID:   userID,
-				Status:   iamdomain.MembershipStatusActive,
-			}, nil
+	tenantAccessChecker := &tenantAccessCheckerFake{
+		ensureActiveMembershipFunc: func(ctx context.Context, tenantID string, userID uint) error {
+			return nil
 		},
 	}
 
@@ -460,14 +413,18 @@ func TestSwitchActiveTenant_Success(t *testing.T) {
 		},
 	}
 	refreshRepo := &refreshTokenRepoFake{}
-	uc := NewAuthUsecase(uuc, tuc, ext, sr, ur, sessionRepo, refreshRepo, iamUC, cfg)
+	uc := NewAuthUsecase(uuc, tuc, ext, sr, ur, sessionRepo, refreshRepo, tenantAccessChecker, cfg)
 
 	user := &entity.User{Id: 5, Username: "neo", Email: "neo@mx.io"}
 	ur.On("GetByID", "5").Return(user, nil)
 	tuc.On("CreateJwtTokenForSession", *user, "tenant-1", "session-1").Return("jwt-tenant-1", nil)
 
 	tokenUC := NewTokenUsecase(cfg)
-	accessToken, err := tokenUC.CreateJwtTokenForSession(entity.User{Id: 5, Email: "neo@mx.io", Username: "neo"}, "", "session-1")
+	accessToken, err := tokenUC.CreateJwtTokenForSession(
+		entity.User{Id: 5, Email: "neo@mx.io", Username: "neo"},
+		"",
+		"session-1",
+	)
 	require.NoError(t, err)
 
 	resp, err := uc.SwitchActiveTenant(ctx, 5, "tenant-1", accessToken)
@@ -480,13 +437,9 @@ func TestSwitchActiveTenant_Success(t *testing.T) {
 func TestSwitchActiveTenant_InactiveMembership(t *testing.T) {
 	ctx := context.Background()
 	uuc, tuc, ext, ur, sr := initMock()
-	iamUC := &iamUsecaseFakeForAuthInteractor{
-		getMembershipFunc: func(ctx context.Context, tenantID string, userID uint) (*iamdomain.Membership, error) {
-			return &iamdomain.Membership{
-				TenantID: tenantID,
-				UserID:   userID,
-				Status:   "inactive",
-			}, nil
+	tenantAccessChecker := &tenantAccessCheckerFake{
+		ensureActiveMembershipFunc: func(ctx context.Context, tenantID string, userID uint) error {
+			return iamdomain.ErrInactiveMembership
 		},
 	}
 
@@ -495,7 +448,7 @@ func TestSwitchActiveTenant_InactiveMembership(t *testing.T) {
 		JWTKey:         "app-key",
 		AppRedirectURL: "https://app.example.com/after-auth",
 	}
-	uc := NewAuthUsecase(uuc, tuc, ext, sr, ur, &sessionRepoFake{}, &refreshTokenRepoFake{}, iamUC, cfg)
+	uc := NewAuthUsecase(uuc, tuc, ext, sr, ur, &sessionRepoFake{}, &refreshTokenRepoFake{}, tenantAccessChecker, cfg)
 
 	resp, err := uc.SwitchActiveTenant(ctx, 5, "tenant-1", "access-token")
 	require.ErrorIs(t, err, iamdomain.ErrInactiveMembership)
@@ -651,9 +604,11 @@ func TestLogout(t *testing.T) {
 		&outputmocks.MockUserRepository{},
 		sessionRepo,
 		refreshRepo,
-		&iamUsecaseFakeForAuthInteractor{getMembershipFunc: func(ctx context.Context, tenantID string, userID uint) (*iamdomain.Membership, error) {
-			return nil, nil
-		}},
+		&tenantAccessCheckerFake{
+			ensureActiveMembershipFunc: func(ctx context.Context, tenantID string, userID uint) error {
+				return nil
+			},
+		},
 		cfg,
 	)
 	tokenUC := NewTokenUsecase(cfg)
@@ -713,9 +668,11 @@ func TestRefreshAccessToken_Success(t *testing.T) {
 		userRepo,
 		sessionRepo,
 		refreshRepo,
-		&iamUsecaseFakeForAuthInteractor{getMembershipFunc: func(ctx context.Context, tenantID string, userID uint) (*iamdomain.Membership, error) {
-			return nil, nil
-		}},
+		&tenantAccessCheckerFake{
+			ensureActiveMembershipFunc: func(ctx context.Context, tenantID string, userID uint) error {
+				return nil
+			},
+		},
 		cfg,
 	)
 

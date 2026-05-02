@@ -15,12 +15,12 @@ export default function GoogleCallbackPage() {
     const exchangeCode =
       typeof rawExchangeCode === 'string' ? rawExchangeCode : '';
     if (!exchangeCode) {
-      setError('Missing Google login exchange code.');
+      setError('Missing Google sign-in exchange code.');
       return;
     }
     const result = await exchangeGoogleLogin(exchangeCode);
     if (!result.success) {
-      setError(result.data.message || 'Google login failed');
+      setError(result.data.message || 'Google sign-in failed');
       return;
     }
     void navigate({ to: '/admin', replace: true });
@@ -30,11 +30,11 @@ export default function GoogleCallbackPage() {
     <div class="mx-auto flex min-h-[calc(100vh-3rem)] max-w-3xl items-center px-4 py-10 sm:px-6 lg:px-8">
       <Card class="w-full space-y-5">
         <SectionLead
-          eyebrow="Google Login"
-          title="Completing secure sign-in."
-          copy="The browser now exchanges a one-time code for session credentials without receiving bearer tokens on the callback URL."
+          eyebrow="Google Sign-In"
+          title="Finishing secure sign-in."
+          copy="The browser is exchanging a one-time code for a secure session so you can enter the backoffice without exposing tokens in the callback URL."
         />
-        {error() ? <ErrorAlert>{error()}</ErrorAlert> : <LoadingBlock label="Finishing Google login..." />}
+        {error() ? <ErrorAlert>{error()}</ErrorAlert> : <LoadingBlock label="Finishing Google sign-in..." />}
       </Card>
     </div>
   );

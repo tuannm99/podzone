@@ -30,8 +30,8 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-      pgbouncer:
-        condition: service_started
+      postgres:
+        condition: service_healthy
     ports:
       - '50051:50051'
 
@@ -43,12 +43,12 @@ services:
       GO_SERVICE: iam
       GOMODCACHE: /go/pkg/mod
       GOCACHE: /root/.cache/go-build
-      CONFIG_PATH: cmd/iam/config.yml
+      CONFIG_PATH: deployments/docker/config/iam.yml
       JWT_SECRET: ${JWT_SECRET:-dev-secret}
       JWT_KEY: ${JWT_KEY:-}
     depends_on:
-      pgbouncer:
-        condition: service_started
+      postgres:
+        condition: service_healthy
     ports:
       - '50053:50053'
 
@@ -69,6 +69,27 @@ services:
     ports:
       - '50052:50051'
 
+  partner-service:
+    <<: *go-dev-common
+    container_name: podzone-partner-dev
+    command: ['sh', 'deployments/docker/run-go-service.sh']
+    environment:
+      GO_SERVICE: partner
+      GOMODCACHE: /go/pkg/mod
+      GOCACHE: /root/.cache/go-build
+      CONFIG_PATH: deployments/docker/config/partner.yml
+      JWT_SECRET: ${JWT_SECRET:-dev-secret}
+      JWT_KEY: ${JWT_KEY:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+      iam-service:
+        condition: service_started
+    ports:
+      - '50054:50054'
+
   grpc-gateway:
     <<: *go-dev-common
     container_name: podzone-grpcgateway-dev
@@ -82,6 +103,7 @@ services:
       AUTH_GRPC_ADDR: auth-service:50051
       IAM_GRPC_ADDR: iam-service:50053
       CATALOG_GRPC_ADDR: catalog-service:50051
+      PARTNER_GRPC_ADDR: partner-service:50054
       ORDER_GRPC_ADDR: order-service:50051
       PAYMENT_GRPC_ADDR: payment-service:50051
       CART_GRPC_ADDR: cart-service:50051
@@ -91,6 +113,8 @@ services:
       iam-service:
         condition: service_started
       catalog-service:
+        condition: service_started
+      partner-service:
         condition: service_started
       redis:
         condition: service_healthy

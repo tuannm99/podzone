@@ -10,6 +10,11 @@ type IAMUsecase interface {
 	ListPlatformRoles(ctx context.Context, userID uint) ([]PlatformMembership, error)
 	RemovePlatformRole(ctx context.Context, userID uint, roleName string) error
 	AddMember(ctx context.Context, tenantID string, userID uint, roleName string) error
+	CreateInvite(ctx context.Context, tenantID, email, roleName string, invitedByUserID uint) (*TenantInvite, string, error)
+	GetInvite(ctx context.Context, inviteID string) (*TenantInvite, error)
+	ListTenantInvites(ctx context.Context, tenantID string) ([]TenantInvite, error)
+	RevokeInvite(ctx context.Context, inviteID string) error
+	AcceptInvite(ctx context.Context, inviteToken string, userID uint, email string) (*Membership, error)
 	GetMembership(ctx context.Context, tenantID string, userID uint) (*Membership, error)
 	ListUserTenants(ctx context.Context, userID uint) ([]Membership, error)
 	ListTenantMembers(ctx context.Context, tenantID string) ([]Membership, error)

@@ -13,6 +13,7 @@ type iamService struct {
 	roles               RoleRepository
 	platformMemberships PlatformMembershipRepository
 	memberships         MembershipRepository
+	invites             InviteRepository
 }
 
 func NewIAMUsecase(
@@ -20,12 +21,14 @@ func NewIAMUsecase(
 	roles RoleRepository,
 	platformMemberships PlatformMembershipRepository,
 	memberships MembershipRepository,
+	invites InviteRepository,
 ) IAMUsecase {
 	return &iamService{
 		tenants:             tenants,
 		roles:               roles,
 		platformMemberships: platformMemberships,
 		memberships:         memberships,
+		invites:             invites,
 	}
 }
 
@@ -172,6 +175,128 @@ func (s *iamService) AddMember(ctx context.Context, tenantID string, userID uint
 		CreatedAt: now,
 		UpdatedAt: now,
 	})
+}
+
+func (s *iamService) CreateInvite(ctx context.Context, tenantID, email, roleName string, invitedByUserID uint) (*TenantInvite, string, error) {
+	if strings.TrimSpace(tenantID) == "" {
+		return nil, "", ErrTenantNotFound
+	}
+	if invitedByUserID == 0 {
+		return nil, "", ErrInvalidUserID
+	}
+	email = NormalizeInviteEmail(email)
+	if email == "" {
+		return nil, "", ErrInvalidInviteEmail
+	}
+	roleName = strings.TrimSpace(roleName)
+	if roleName == "" {
+		return nil, "", ErrInvalidRoleName
+	}
+	if _, err := s.tenants.GetByID(ctx, tenantID); err != nil {
+		return nil, "", err
+	}
+	role, err := s.roles.GetByName(ctx, roleName)
+	if err != nil {
+		return nil, "", err
+	}
+	rawToken, err := NewInviteToken()
+	if err != nil {
+		return nil, "", err
+	}
+	now := time.Now().UTC()
+	invite := TenantInvite{
+		ID:              uuid.NewString(),
+		TenantID:        tenantID,
+		Email:           email,
+		RoleID:          role.ID,
+		RoleName:        role.Name,
+		Status:          InviteStatusPending,
+		InvitedByUserID: invitedByUserID,
+		TokenHash:       HashInviteToken(rawToken),
+		CreatedAt:       now,
+		UpdatedAt:       now,
+		ExpiresAt:       now.Add(7 * 24 * time.Hour),
+	}
+	if err := s.invites.Create(ctx, invite); err != nil {
+		return nil, "", err
+	}
+	return &invite, rawToken, nil
+}
+
+func (s *iamService) ListTenantInvites(ctx context.Context, tenantID string) ([]TenantInvite, error) {
+	if strings.TrimSpace(tenantID) == "" {
+		return nil, ErrTenantNotFound
+	}
+	return s.invites.ListByTenant(ctx, tenantID)
+}
+
+func (s *iamService) GetInvite(ctx context.Context, inviteID string) (*TenantInvite, error) {
+	if strings.TrimSpace(inviteID) == "" {
+		return nil, ErrInviteNotFound
+	}
+	return s.invites.GetByID(ctx, inviteID)
+}
+
+func (s *iamService) RevokeInvite(ctx context.Context, inviteID string) error {
+	invite, err := s.invites.GetByID(ctx, inviteID)
+	if err != nil {
+		return err
+	}
+	if invite.Status == InviteStatusAccepted {
+		return ErrInviteAccepted
+	}
+	if invite.Status == InviteStatusRevoked {
+		return ErrInviteRevoked
+	}
+	return s.invites.MarkRevoked(ctx, inviteID, time.Now().UTC())
+}
+
+func (s *iamService) AcceptInvite(ctx context.Context, inviteToken string, userID uint, email string) (*Membership, error) {
+	if userID == 0 {
+		return nil, ErrInvalidUserID
+	}
+	email = NormalizeInviteEmail(email)
+	if email == "" {
+		return nil, ErrInvalidInviteEmail
+	}
+	tokenHash := HashInviteToken(inviteToken)
+	if tokenHash == "" {
+		return nil, ErrInvalidInviteToken
+	}
+	invite, err := s.invites.GetByTokenHash(ctx, tokenHash)
+	if err != nil {
+		return nil, err
+	}
+	if invite.Status == InviteStatusRevoked {
+		return nil, ErrInviteRevoked
+	}
+	if invite.Status == InviteStatusAccepted {
+		return nil, ErrInviteAccepted
+	}
+	now := time.Now().UTC()
+	if now.After(invite.ExpiresAt) {
+		return nil, ErrInviteExpired
+	}
+	if NormalizeInviteEmail(invite.Email) != email {
+		return nil, ErrInviteEmailMismatch
+	}
+
+	membership := Membership{
+		TenantID:  invite.TenantID,
+		UserID:    userID,
+		RoleID:    invite.RoleID,
+		RoleName:  invite.RoleName,
+		Status:    MembershipStatusActive,
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+	if err := s.memberships.Upsert(ctx, membership); err != nil {
+		return nil, err
+	}
+	if err := s.invites.MarkAccepted(ctx, invite.ID, userID, now); err != nil {
+		return nil, err
+	}
+	return &membership, nil
 }
 
 func (s *iamService) GetMembership(ctx context.Context, tenantID string, userID uint) (*Membership, error) {

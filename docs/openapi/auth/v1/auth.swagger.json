@@ -148,6 +148,68 @@
         ]
       }
     },
+    "/auth/v1/iam/invites/{inviteId}": {
+      "delete": {
+        "operationId": "IAMService_RevokeTenantInvite",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authRevokeTenantInviteResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "inviteId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "IAMService"
+        ]
+      }
+    },
+    "/auth/v1/iam/invites:accept": {
+      "post": {
+        "operationId": "IAMService_AcceptTenantInvite",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authAcceptTenantInviteResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authAcceptTenantInviteRequest"
+            }
+          }
+        ],
+        "tags": [
+          "IAMService"
+        ]
+      }
+    },
     "/auth/v1/iam/permissions:check": {
       "post": {
         "operationId": "IAMService_CheckPermission",
@@ -363,6 +425,72 @@
         ]
       }
     },
+    "/auth/v1/iam/tenants/{tenantId}/invites": {
+      "get": {
+        "operationId": "IAMService_ListTenantInvites",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authListTenantInvitesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "IAMService"
+        ]
+      },
+      "post": {
+        "operationId": "IAMService_CreateTenantInvite",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authCreateTenantInviteResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/IAMServiceCreateTenantInviteBody"
+            }
+          }
+        ],
+        "tags": [
+          "IAMService"
+        ]
+      }
+    },
     "/auth/v1/iam/tenants/{tenantId}/members": {
       "get": {
         "operationId": "IAMService_ListTenantMembers",
@@ -494,6 +622,44 @@
             "required": true,
             "type": "string",
             "format": "uint64"
+          }
+        ],
+        "tags": [
+          "IAMService"
+        ]
+      }
+    },
+    "/auth/v1/iam/tenants/{tenantId}/members:resolve": {
+      "post": {
+        "operationId": "IAMService_AddTenantMemberByIdentity",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authAddTenantMemberByIdentityResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/IAMServiceAddTenantMemberByIdentityBody"
+            }
           }
         ],
         "tags": [
@@ -798,8 +964,58 @@
         }
       }
     },
+    "IAMServiceAddTenantMemberByIdentityBody": {
+      "type": "object",
+      "properties": {
+        "identity": {
+          "type": "string"
+        },
+        "roleName": {
+          "type": "string"
+        }
+      }
+    },
+    "IAMServiceCreateTenantInviteBody": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "roleName": {
+          "type": "string"
+        }
+      }
+    },
+    "authAcceptTenantInviteRequest": {
+      "type": "object",
+      "properties": {
+        "inviteToken": {
+          "type": "string"
+        }
+      }
+    },
+    "authAcceptTenantInviteResponse": {
+      "type": "object",
+      "properties": {
+        "membership": {
+          "$ref": "#/definitions/authTenantMembership"
+        }
+      }
+    },
     "authAddPlatformRoleResponse": {
       "type": "object"
+    },
+    "authAddTenantMemberByIdentityResponse": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "createdUser": {
+          "type": "boolean"
+        }
+      }
     },
     "authAddTenantMemberResponse": {
       "type": "object"
@@ -868,6 +1084,20 @@
           "format": "uint64"
         },
         "permission": {
+          "type": "string"
+        }
+      }
+    },
+    "authCreateTenantInviteResponse": {
+      "type": "object",
+      "properties": {
+        "invite": {
+          "$ref": "#/definitions/authTenantInvite"
+        },
+        "inviteToken": {
+          "type": "string"
+        },
+        "acceptUrl": {
           "type": "string"
         }
       }
@@ -1002,6 +1232,18 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/authSession"
+          }
+        }
+      }
+    },
+    "authListTenantInvitesResponse": {
+      "type": "object",
+      "properties": {
+        "invites": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/authTenantInvite"
           }
         }
       }
@@ -1158,6 +1400,9 @@
     "authRevokeSessionResponse": {
       "type": "object"
     },
+    "authRevokeTenantInviteResponse": {
+      "type": "object"
+    },
     "authSession": {
       "type": "object",
       "properties": {
@@ -1233,6 +1478,53 @@
           "type": "string"
         },
         "updatedAt": {
+          "type": "string"
+        }
+      }
+    },
+    "authTenantInvite": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "tenantId": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "roleId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "roleName": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "invitedByUserId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "acceptedByUserId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        },
+        "expiresAt": {
+          "type": "string"
+        },
+        "acceptedAt": {
+          "type": "string"
+        },
+        "revokedAt": {
           "type": "string"
         }
       }

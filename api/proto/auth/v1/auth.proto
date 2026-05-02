@@ -7,6 +7,8 @@ option go_package = "github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1"
 
 import "google/api/annotations.proto";
 
+// AuthService owns authentication, session lifecycle, token refresh,
+// OAuth login exchange, and active-tenant switching for an authenticated session.
 service AuthService {
   rpc GoogleLogin(GoogleLoginRequest) returns (GoogleLoginResponse) {
     option (google.api.http) = {
@@ -88,6 +90,8 @@ service AuthService {
 
 }
 
+// IAMService owns tenant memberships, role bindings, and permission evaluation.
+// It is intentionally separate from AuthService so it can scale and deploy independently.
 service IAMService {
   rpc CreateTenant(CreateTenantRequest) returns (CreateTenantResponse) {
     option (google.api.http) = {
@@ -99,6 +103,39 @@ service IAMService {
   rpc AddTenantMember(AddTenantMemberRequest) returns (AddTenantMemberResponse) {
     option (google.api.http) = {
       post: "/auth/v1/iam/tenants/{tenant_id}/members"
+      body: "*"
+    };
+  }
+
+  rpc AddTenantMemberByIdentity(AddTenantMemberByIdentityRequest) returns (AddTenantMemberByIdentityResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/tenants/{tenant_id}/members:resolve"
+      body: "*"
+    };
+  }
+
+  rpc CreateTenantInvite(CreateTenantInviteRequest) returns (CreateTenantInviteResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/tenants/{tenant_id}/invites"
+      body: "*"
+    };
+  }
+
+  rpc ListTenantInvites(ListTenantInvitesRequest) returns (ListTenantInvitesResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/tenants/{tenant_id}/invites"
+    };
+  }
+
+  rpc RevokeTenantInvite(RevokeTenantInviteRequest) returns (RevokeTenantInviteResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/invites/{invite_id}"
+    };
+  }
+
+  rpc AcceptTenantInvite(AcceptTenantInviteRequest) returns (AcceptTenantInviteResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/invites:accept"
       body: "*"
     };
   }
@@ -267,6 +304,22 @@ message TenantMembership {
   string updated_at = 7;
 }
 
+message TenantInvite {
+  string id = 1;
+  string tenant_id = 2;
+  string email = 3;
+  uint64 role_id = 4;
+  string role_name = 5;
+  string status = 6;
+  uint64 invited_by_user_id = 7;
+  uint64 accepted_by_user_id = 8;
+  string created_at = 9;
+  string updated_at = 10;
+  string expires_at = 11;
+  string accepted_at = 12;
+  string revoked_at = 13;
+}
+
 message CreateTenantRequest {
   uint64 owner_user_id = 1;
   string slug = 2;
@@ -285,6 +338,51 @@ message AddTenantMemberRequest {
 }
 
 message AddTenantMemberResponse {}
+
+message AddTenantMemberByIdentityRequest {
+  string tenant_id = 1;
+  string identity = 2;
+  string role_name = 3;
+}
+
+message AddTenantMemberByIdentityResponse {
+  uint64 user_id = 1;
+  bool created_user = 2;
+}
+
+message CreateTenantInviteRequest {
+  string tenant_id = 1;
+  string email = 2;
+  string role_name = 3;
+}
+
+message CreateTenantInviteResponse {
+  TenantInvite invite = 1;
+  string invite_token = 2;
+  string accept_url = 3;
+}
+
+message ListTenantInvitesRequest {
+  string tenant_id = 1;
+}
+
+message ListTenantInvitesResponse {
+  repeated TenantInvite invites = 1;
+}
+
+message RevokeTenantInviteRequest {
+  string invite_id = 1;
+}
+
+message RevokeTenantInviteResponse {}
+
+message AcceptTenantInviteRequest {
+  string invite_token = 1;
+}
+
+message AcceptTenantInviteResponse {
+  TenantMembership membership = 1;
+}
 
 message ListUserTenantsRequest {
   uint64 user_id = 1;

@@ -14,7 +14,6 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
-	iamdomain "github.com/tuannm99/podzone/internal/iam/domain"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
@@ -28,7 +27,7 @@ func NewAuthUsecase(
 	userRepository outputport.UserRepository,
 	sessionRepository outputport.SessionRepository,
 	refreshTokenRepository outputport.RefreshTokenRepository,
-	iamUC iamdomain.IAMUsecase,
+	tenantAccessChecker TenantAccessChecker,
 	cfg config.AuthConfig,
 ) *authInteractorImpl {
 	return &authInteractorImpl{
@@ -42,7 +41,7 @@ func NewAuthUsecase(
 		userRepository:       userRepository,
 		sessionRepository:    sessionRepository,
 		refreshTokenRepo:     refreshTokenRepository,
-		iamUC:                iamUC,
+		tenantAccessChecker:  tenantAccessChecker,
 	}
 }
 
@@ -59,7 +58,7 @@ type authInteractorImpl struct {
 	userRepository       outputport.UserRepository
 	sessionRepository    outputport.SessionRepository
 	refreshTokenRepo     outputport.RefreshTokenRepository
-	iamUC                iamdomain.IAMUsecase
+	tenantAccessChecker  TenantAccessChecker
 }
 
 func (u *authInteractorImpl) Login(ctx context.Context, username, password string) (*inputport.AuthResult, error) {
@@ -96,17 +95,17 @@ func (u *authInteractorImpl) Register(ctx context.Context, req inputport.Registe
 	return u.newSessionAuthResult(ctx, user, "")
 }
 
-func (u *authInteractorImpl) SwitchActiveTenant(ctx context.Context, userID uint, tenantID, accessToken string) (*inputport.AuthResult, error) {
+func (u *authInteractorImpl) SwitchActiveTenant(
+	ctx context.Context,
+	userID uint,
+	tenantID, accessToken string,
+) (*inputport.AuthResult, error) {
 	if userID == 0 {
-		return nil, iamdomain.ErrInvalidUserID
+		return nil, entity.ErrInvalidUserID
 	}
 
-	membership, err := u.iamUC.GetMembership(ctx, tenantID, userID)
-	if err != nil {
+	if err := u.tenantAccessChecker.EnsureActiveMembership(ctx, tenantID, userID); err != nil {
 		return nil, err
-	}
-	if membership.Status != iamdomain.MembershipStatusActive {
-		return nil, iamdomain.ErrInactiveMembership
 	}
 
 	user, err := u.userRepository.GetByID(fmt.Sprintf("%d", userID))
@@ -140,7 +139,10 @@ func (u *authInteractorImpl) SwitchActiveTenant(ctx context.Context, userID uint
 	}, nil
 }
 
-func (u *authInteractorImpl) RefreshAccessToken(ctx context.Context, refreshToken string) (*inputport.AuthResult, error) {
+func (u *authInteractorImpl) RefreshAccessToken(
+	ctx context.Context,
+	refreshToken string,
+) (*inputport.AuthResult, error) {
 	hashed := entity.HashToken(refreshToken)
 	stored, err := u.refreshTokenRepo.GetByTokenHash(ctx, hashed)
 	if err != nil {
@@ -262,7 +264,10 @@ func (u *authInteractorImpl) HandleOAuthCallback(
 	}, nil
 }
 
-func (u *authInteractorImpl) ExchangeOAuthLogin(ctx context.Context, exchangeCode string) (*inputport.AuthResult, error) {
+func (u *authInteractorImpl) ExchangeOAuthLogin(
+	ctx context.Context,
+	exchangeCode string,
+) (*inputport.AuthResult, error) {
 	if exchangeCode == "" {
 		return nil, entity.ErrRefreshTokenInvalid
 	}
@@ -294,7 +299,11 @@ func (u *authInteractorImpl) Logout(ctx context.Context, accessToken string) (st
 	return "/", nil
 }
 
-func (u *authInteractorImpl) newSessionAuthResult(ctx context.Context, user *entity.User, tenantID string) (*inputport.AuthResult, error) {
+func (u *authInteractorImpl) newSessionAuthResult(
+	ctx context.Context,
+	user *entity.User,
+	tenantID string,
+) (*inputport.AuthResult, error) {
 	now := time.Now().UTC()
 	session := entity.Session{
 		ID:             uuid.NewString(),

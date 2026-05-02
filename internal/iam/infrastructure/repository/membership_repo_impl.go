@@ -36,7 +36,11 @@ func (r *MembershipRepositoryImpl) Upsert(ctx context.Context, membership iamdom
 	return err
 }
 
-func (r *MembershipRepositoryImpl) GetByTenantAndUser(ctx context.Context, tenantID string, userID uint) (*iamdomain.Membership, error) {
+func (r *MembershipRepositoryImpl) GetByTenantAndUser(
+	ctx context.Context,
+	tenantID string,
+	userID uint,
+) (*iamdomain.Membership, error) {
 	var out membershipModel
 	err := r.db.GetContext(
 		ctx,
@@ -124,7 +128,12 @@ func (r *MembershipRepositoryImpl) ListByUser(ctx context.Context, userID uint) 
 }
 
 func (r *MembershipRepositoryImpl) Delete(ctx context.Context, tenantID string, userID uint) error {
-	res, err := r.db.ExecContext(ctx, `DELETE FROM tenant_memberships WHERE tenant_id = $1 AND user_id = $2`, tenantID, userID)
+	res, err := r.db.ExecContext(
+		ctx,
+		`DELETE FROM tenant_memberships WHERE tenant_id = $1 AND user_id = $2`,
+		tenantID,
+		userID,
+	)
 	if err != nil {
 		return err
 	}

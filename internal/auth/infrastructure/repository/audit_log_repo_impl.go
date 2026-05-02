@@ -23,8 +23,10 @@ func NewAuditLogRepositoryImpl(p UserRepoParams) *AuditLogRepositoryImpl {
 func (r *AuditLogRepositoryImpl) Create(ctx context.Context, log entity.AuditLog) error {
 	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
 		Insert("auth_audit_logs").
-		Columns("id", "actor_user_id", "action", "resource_type", "resource_id", "tenant_id", "status", "payload_json", "created_at").
-		Values(log.ID, log.ActorUserID, log.Action, log.ResourceType, log.ResourceID, log.TenantID, log.Status, log.PayloadJSON, log.CreatedAt).
+		Columns("id", "actor_user_id", "action", "resource_type", "resource_id",
+			"tenant_id", "status", "payload_json", "created_at").
+		Values(log.ID, log.ActorUserID, log.Action, log.ResourceType, log.ResourceID,
+			log.TenantID, log.Status, log.PayloadJSON, log.CreatedAt).
 		ToSql()
 	if err != nil {
 		return err
@@ -33,9 +35,14 @@ func (r *AuditLogRepositoryImpl) Create(ctx context.Context, log entity.AuditLog
 	return err
 }
 
-func (r *AuditLogRepositoryImpl) ListByActor(ctx context.Context, actorUserID uint, limit int) ([]entity.AuditLog, error) {
+func (r *AuditLogRepositoryImpl) ListByActor(
+	ctx context.Context,
+	actorUserID uint,
+	limit int,
+) ([]entity.AuditLog, error) {
 	queryBuilder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
-		Select("id", "actor_user_id", "action", "resource_type", "resource_id", "tenant_id", "status", "payload_json", "created_at").
+		Select("id", "actor_user_id", "action", "resource_type", "resource_id",
+			"tenant_id", "status", "payload_json", "created_at").
 		From("auth_audit_logs").
 		Where(sq.Eq{"actor_user_id": actorUserID}).
 		OrderBy("created_at DESC")

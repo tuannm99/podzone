@@ -13,8 +13,10 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/infrastructure/model"
 )
 
-var _ outputport.SessionRepository = (*SessionRepositoryImpl)(nil)
-var _ outputport.RefreshTokenRepository = (*RefreshTokenRepositoryImpl)(nil)
+var (
+	_ outputport.SessionRepository      = (*SessionRepositoryImpl)(nil)
+	_ outputport.RefreshTokenRepository = (*RefreshTokenRepositoryImpl)(nil)
+)
 
 type SessionRepositoryImpl struct {
 	db *sqlx.DB
@@ -27,8 +29,10 @@ func NewSessionRepositoryImpl(p UserRepoParams) *SessionRepositoryImpl {
 func (r *SessionRepositoryImpl) Create(ctx context.Context, session entity.Session) error {
 	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
 		Insert("auth_sessions").
-		Columns("id", "user_id", "active_tenant_id", "status", "created_at", "updated_at", "expires_at", "revoked_at").
-		Values(session.ID, session.UserID, session.ActiveTenantID, session.Status, session.CreatedAt, session.UpdatedAt, session.ExpiresAt, session.RevokedAt).
+		Columns("id", "user_id", "active_tenant_id", "status", "created_at",
+			"updated_at", "expires_at", "revoked_at").
+		Values(session.ID, session.UserID, session.ActiveTenantID, session.Status, session.CreatedAt,
+			session.UpdatedAt, session.ExpiresAt, session.RevokedAt).
 		ToSql()
 	if err != nil {
 		return err
@@ -39,7 +43,8 @@ func (r *SessionRepositoryImpl) Create(ctx context.Context, session entity.Sessi
 
 func (r *SessionRepositoryImpl) GetByID(ctx context.Context, id string) (*entity.Session, error) {
 	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
-		Select("id", "user_id", "active_tenant_id", "status", "created_at", "updated_at", "expires_at", "revoked_at").
+		Select("id", "user_id", "active_tenant_id", "status", "created_at",
+			"updated_at", "expires_at", "revoked_at").
 		From("auth_sessions").
 		Where(sq.Eq{"id": id}).
 		Limit(1).
@@ -59,7 +64,8 @@ func (r *SessionRepositoryImpl) GetByID(ctx context.Context, id string) (*entity
 
 func (r *SessionRepositoryImpl) ListByUser(ctx context.Context, userID uint) ([]entity.Session, error) {
 	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
-		Select("id", "user_id", "active_tenant_id", "status", "created_at", "updated_at", "expires_at", "revoked_at").
+		Select("id", "user_id", "active_tenant_id", "status", "created_at",
+			"updated_at", "expires_at", "revoked_at").
 		From("auth_sessions").
 		Where(sq.Eq{"user_id": userID}).
 		OrderBy("created_at DESC").
@@ -80,7 +86,11 @@ func (r *SessionRepositoryImpl) ListByUser(ctx context.Context, userID uint) ([]
 	return out, nil
 }
 
-func (r *SessionRepositoryImpl) UpdateActiveTenant(ctx context.Context, id, tenantID string, updatedAt time.Time) error {
+func (r *SessionRepositoryImpl) UpdateActiveTenant(
+	ctx context.Context,
+	id, tenantID string,
+	updatedAt time.Time,
+) error {
 	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
 		Update("auth_sessions").
 		Set("active_tenant_id", tenantID).
@@ -120,8 +130,10 @@ func NewRefreshTokenRepositoryImpl(p UserRepoParams) *RefreshTokenRepositoryImpl
 func (r *RefreshTokenRepositoryImpl) Create(ctx context.Context, token entity.RefreshToken) error {
 	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
 		Insert("auth_refresh_tokens").
-		Columns("id", "session_id", "token_hash", "expires_at", "created_at", "updated_at", "revoked_at", "replaced_by_token_id").
-		Values(token.ID, token.SessionID, token.TokenHash, token.ExpiresAt, token.CreatedAt, token.UpdatedAt, token.RevokedAt, token.ReplacedByTokenID).
+		Columns("id", "session_id", "token_hash", "expires_at", "created_at",
+			"updated_at", "revoked_at", "replaced_by_token_id").
+		Values(token.ID, token.SessionID, token.TokenHash, token.ExpiresAt, token.CreatedAt,
+			token.UpdatedAt, token.RevokedAt, token.ReplacedByTokenID).
 		ToSql()
 	if err != nil {
 		return err
@@ -130,9 +142,13 @@ func (r *RefreshTokenRepositoryImpl) Create(ctx context.Context, token entity.Re
 	return err
 }
 
-func (r *RefreshTokenRepositoryImpl) GetByTokenHash(ctx context.Context, tokenHash string) (*entity.RefreshToken, error) {
+func (r *RefreshTokenRepositoryImpl) GetByTokenHash(
+	ctx context.Context,
+	tokenHash string,
+) (*entity.RefreshToken, error) {
 	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
-		Select("id", "session_id", "token_hash", "expires_at", "created_at", "updated_at", "revoked_at", "replaced_by_token_id").
+		Select("id", "session_id", "token_hash", "expires_at", "created_at",
+			"updated_at", "revoked_at", "replaced_by_token_id").
 		From("auth_refresh_tokens").
 		Where(sq.Eq{"token_hash": tokenHash}).
 		Limit(1).
@@ -150,7 +166,12 @@ func (r *RefreshTokenRepositoryImpl) GetByTokenHash(ctx context.Context, tokenHa
 	return out.ToEntity(), nil
 }
 
-func (r *RefreshTokenRepositoryImpl) Revoke(ctx context.Context, id string, revokedAt time.Time, replacedByTokenID *string) error {
+func (r *RefreshTokenRepositoryImpl) Revoke(
+	ctx context.Context,
+	id string,
+	revokedAt time.Time,
+	replacedByTokenID *string,
+) error {
 	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
 		Update("auth_refresh_tokens").
 		Set("revoked_at", revokedAt).

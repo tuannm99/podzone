@@ -22,6 +22,7 @@ var ServerModule = fx.Options(
 	fx.Provide(
 		authconfig.NewAuthConfig,
 		fx.Annotate(authrepo.NewAuditLogRepositoryImpl, fx.As(new(authoutputport.AuditLogRepository))),
+		fx.Annotate(authrepo.NewUserRepositoryImpl, fx.As(new(authoutputport.UserRepository))),
 		authgrpchandler.NewIAMServer,
 	),
 	fx.Invoke(

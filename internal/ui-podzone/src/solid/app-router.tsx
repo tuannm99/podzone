@@ -66,6 +66,14 @@ const googleCallbackRoute = createRoute({
   ),
 });
 
+const acceptInviteRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/auth/invite/accept',
+  component: lazyRouteComponent(
+    () => import('./pages/podzone/AcceptInvitePage')
+  ),
+});
+
 const adminHomeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/admin',
@@ -98,15 +106,36 @@ const tenantOrdersRoute = createRoute({
   ),
 });
 
+const tenantPartnersRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/t/$tenantId/partners',
+  beforeLoad: async ({ params }) => requireTenantAccess(params.tenantId),
+  component: lazyRouteComponent(
+    () => import('./pages/podzone/TenantPartnersPage')
+  ),
+});
+
+const tenantProductSetupRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/t/$tenantId/products/setup',
+  beforeLoad: async ({ params }) => requireTenantAccess(params.tenantId),
+  component: lazyRouteComponent(
+    () => import('./pages/podzone/TenantProductSetupPage')
+  ),
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   loginRoute,
   registerRoute,
   googleCallbackRoute,
+  acceptInviteRoute,
   adminHomeRoute,
   adminSettingsRoute,
   tenantHomeRoute,
   tenantOrdersRoute,
+  tenantPartnersRoute,
+  tenantProductSetupRoute,
 ]);
 
 export const router = createRouter({

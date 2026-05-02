@@ -1,0 +1,332 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "partner/v1/partner.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "PartnerService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/partner/v1/partners": {
+      "get": {
+        "operationId": "PartnerService_ListPartners",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/partnerListPartnersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "partnerType",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PartnerService"
+        ]
+      },
+      "post": {
+        "operationId": "PartnerService_CreatePartner",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/partnerPartner"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/partnerCreatePartnerRequest"
+            }
+          }
+        ],
+        "tags": [
+          "PartnerService"
+        ]
+      }
+    },
+    "/partner/v1/partners/{id}": {
+      "get": {
+        "operationId": "PartnerService_GetPartner",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/partnerPartner"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PartnerService"
+        ]
+      },
+      "put": {
+        "operationId": "PartnerService_UpdatePartner",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/partnerPartner"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PartnerServiceUpdatePartnerBody"
+            }
+          }
+        ],
+        "tags": [
+          "PartnerService"
+        ]
+      }
+    },
+    "/partner/v1/partners/{id}/status": {
+      "patch": {
+        "operationId": "PartnerService_UpdatePartnerStatus",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/partnerPartner"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PartnerServiceUpdatePartnerStatusBody"
+            }
+          }
+        ],
+        "tags": [
+          "PartnerService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "PartnerServiceUpdatePartnerBody": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "contactName": {
+          "type": "string"
+        },
+        "contactEmail": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "partnerType": {
+          "type": "string"
+        }
+      }
+    },
+    "PartnerServiceUpdatePartnerStatusBody": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "partnerCreatePartnerRequest": {
+      "type": "object",
+      "properties": {
+        "tenantId": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "contactName": {
+          "type": "string"
+        },
+        "contactEmail": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "partnerType": {
+          "type": "string"
+        }
+      }
+    },
+    "partnerListPartnersResponse": {
+      "type": "object",
+      "properties": {
+        "partners": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/partnerPartner"
+          }
+        }
+      }
+    },
+    "partnerPartner": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "tenantId": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "contactName": {
+          "type": "string"
+        },
+        "contactEmail": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "partnerType": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

@@ -16,7 +16,12 @@ func NewPlatformMembershipRepository(p repoParams) iamdomain.PlatformMembershipR
 	return &PlatformMembershipRepositoryImpl{db: p.DB}
 }
 
-func (r *PlatformMembershipRepositoryImpl) Upsert(ctx context.Context, userID uint, roleID uint64, status string) error {
+func (r *PlatformMembershipRepositoryImpl) Upsert(
+	ctx context.Context,
+	userID uint,
+	roleID uint64,
+	status string,
+) error {
 	_, err := r.db.ExecContext(
 		ctx,
 		`INSERT INTO user_platform_roles (user_id, role_id, status, created_at, updated_at)
@@ -51,7 +56,10 @@ func (r *PlatformMembershipRepositoryImpl) ListRoleIDsByUser(ctx context.Context
 	return out, nil
 }
 
-func (r *PlatformMembershipRepositoryImpl) ListByUser(ctx context.Context, userID uint) ([]iamdomain.PlatformMembership, error) {
+func (r *PlatformMembershipRepositoryImpl) ListByUser(
+	ctx context.Context,
+	userID uint,
+) ([]iamdomain.PlatformMembership, error) {
 	var rows []struct {
 		UserID    uint      `db:"user_id"`
 		RoleID    uint64    `db:"role_id"`
@@ -87,7 +95,12 @@ func (r *PlatformMembershipRepositoryImpl) ListByUser(ctx context.Context, userI
 }
 
 func (r *PlatformMembershipRepositoryImpl) Delete(ctx context.Context, userID uint, roleID uint64) error {
-	res, err := r.db.ExecContext(ctx, `DELETE FROM user_platform_roles WHERE user_id = $1 AND role_id = $2`, userID, roleID)
+	res, err := r.db.ExecContext(
+		ctx,
+		`DELETE FROM user_platform_roles WHERE user_id = $1 AND role_id = $2`,
+		userID,
+		roleID,
+	)
 	if err != nil {
 		return err
 	}

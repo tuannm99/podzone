@@ -33,7 +33,7 @@ export default function RegisterPage() {
       });
 
       if (!success) {
-        setError(data?.message || 'Register failed');
+        setError(data?.message || 'Account setup failed');
         return;
       }
 
@@ -48,13 +48,13 @@ export default function RegisterPage() {
       <div class="grid w-full gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <Card class="space-y-6 bg-[linear-gradient(145deg,_#ecfeff,_#ffffff_45%,_#eff6ff)]">
           <SectionLead
-            eyebrow="Workspace Setup"
-            title="Create a Podzone account with the new UI stack."
-            copy="Registration still calls the existing backend service, but the form and overall shell now mirror the reference application."
+            eyebrow="Store Setup"
+            title="Create your seller account."
+            copy="Start with one account, then create stores, invite teammates, and run day-to-day POD operations from the same backoffice."
           />
           <div class="rounded-2xl border border-cyan-100 bg-white/80 p-5 text-sm text-gray-600 shadow-sm">
-            Accounts created here immediately reuse the same token storage and
-            protected route flow as login.
+            New accounts go straight into the same secure sign-in flow used by
+            the rest of the backoffice.
           </div>
         </Card>
 
@@ -64,7 +64,7 @@ export default function RegisterPage() {
               Create account
             </h1>
             <p class="text-sm text-gray-500">
-              Register to access admin and tenant workspaces.
+              Set up your account to create stores and manage your team.
             </p>
           </div>
 
@@ -72,14 +72,14 @@ export default function RegisterPage() {
             <InputField
               label="Username"
               value={username()}
-              placeholder="podzone-admin"
+              placeholder="store_owner"
               onInput={(event) => setUsername(event.currentTarget.value)}
             />
             <InputField
               label="Email"
               type="email"
               value={email()}
-              placeholder="admin@podzone.dev"
+              placeholder="owner@store.com"
               onInput={(event) => setEmail(event.currentTarget.value)}
             />
             <InputField

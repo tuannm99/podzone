@@ -1,0 +1,30 @@
+logger:
+  app_name: "podzone_admin_partner"
+  provider: "zap"
+  level: "debug"
+  env: "dev"
+
+sql:
+  partner:
+    uri: postgres://postgres:postgres@postgres:5432/supplier?sslmode=disable
+    provider: postgres
+    should_run_migration: true
+
+partner:
+  auth:
+    jwt_secret: 'dev-secret'
+    jwt_key: ''
+    grpc_host: auth-service
+    grpc_port: '50051'
+  iam:
+    jwt_secret: 'dev-secret'
+    jwt_key: ''
+    grpc_host: iam-service
+    grpc_port: '50053'
+
+grpc:
+  port: 50054
+
+pprof:
+  enable: false
+  addr: "127.0.0.1:6060"

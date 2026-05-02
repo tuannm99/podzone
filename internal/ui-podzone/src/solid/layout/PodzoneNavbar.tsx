@@ -12,6 +12,8 @@ export function PodzoneNavbar(props: { currentPath: string }) {
     tokenStorage.getActiveTenantID() || tenantStorage.getTenantID()
   );
   const [switchingTenant, setSwitchingTenant] = createSignal(false);
+  const user = tokenStorage.getUser();
+  const hasTenant = () => tenantId().trim().length > 0;
 
   const links = [
     {
@@ -24,10 +26,31 @@ export function PodzoneNavbar(props: { currentPath: string }) {
       label: 'Settings',
       active: () => props.currentPath === '/admin/settings',
     },
+    ...(hasTenant()
+      ? [
+          {
+            href: `/t/${tenantId().trim()}`,
+            label: 'Store',
+            active: () => props.currentPath === `/t/${tenantId().trim()}`,
+          },
+          {
+            href: `/t/${tenantId().trim()}/partners`,
+            label: 'Print partners',
+            active: () => props.currentPath === `/t/${tenantId().trim()}/partners`,
+          },
+          {
+            href: `/t/${tenantId().trim()}/products/setup`,
+            label: 'Product setup',
+            active: () => props.currentPath === `/t/${tenantId().trim()}/products/setup`,
+          },
+          {
+            href: `/t/${tenantId().trim()}/orders`,
+            label: 'Orders',
+            active: () => props.currentPath === `/t/${tenantId().trim()}/orders`,
+          },
+        ]
+      : []),
   ];
-
-  const user = tokenStorage.getUser();
-  const hasTenant = () => tenantId().trim().length > 0;
 
   const goToTenant = async () => {
     const nextTenant = tenantId().trim();
@@ -52,10 +75,10 @@ export function PodzoneNavbar(props: { currentPath: string }) {
           </span>
           <div class="min-w-0">
             <div class="truncate text-sm font-semibold text-gray-900">
-              Podzone Console
+              Podzone Backoffice
             </div>
             <div class="hidden text-xs text-gray-500 sm:block">
-              Admin and tenant workspace
+              Admin and store workspace
             </div>
           </div>
         </Link>
@@ -81,7 +104,7 @@ export function PodzoneNavbar(props: { currentPath: string }) {
             <input
               class="w-32 border-0 bg-transparent px-2 text-sm text-gray-700 outline-none placeholder:text-gray-400"
               value={tenantId()}
-              placeholder="tenant id"
+              placeholder="store id"
               onInput={(event) => setTenantId(event.currentTarget.value)}
             />
             <Button
@@ -99,7 +122,7 @@ export function PodzoneNavbar(props: { currentPath: string }) {
           </div>
 
           <Show when={hasTenant()}>
-            <Badge content={`tenant ${tenantId().trim()}`} color="indigo" />
+            <Badge content={`store ${tenantId().trim()}`} color="indigo" />
           </Show>
 
           <Badge

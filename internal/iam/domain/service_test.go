@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -56,6 +57,11 @@ func (r *roleRepoFake) RoleHasPermission(ctx context.Context, roleID uint64, per
 
 type membershipRepoFake struct {
 	items map[string]Membership
+}
+
+type inviteRepoFake struct {
+	items      map[string]TenantInvite
+	tokenIndex map[string]string
 }
 
 type platformMembershipRepoFake struct {
@@ -156,6 +162,70 @@ func (r *membershipRepoFake) Delete(ctx context.Context, tenantID string, userID
 	return nil
 }
 
+func (r *inviteRepoFake) Create(ctx context.Context, invite TenantInvite) error {
+	if r.items == nil {
+		r.items = map[string]TenantInvite{}
+	}
+	if r.tokenIndex == nil {
+		r.tokenIndex = map[string]string{}
+	}
+	r.items[invite.ID] = invite
+	r.tokenIndex[invite.TokenHash] = invite.ID
+	return nil
+}
+
+func (r *inviteRepoFake) GetByID(ctx context.Context, inviteID string) (*TenantInvite, error) {
+	item, ok := r.items[inviteID]
+	if !ok {
+		return nil, ErrInviteNotFound
+	}
+	copyItem := item
+	return &copyItem, nil
+}
+
+func (r *inviteRepoFake) GetByTokenHash(ctx context.Context, tokenHash string) (*TenantInvite, error) {
+	inviteID, ok := r.tokenIndex[tokenHash]
+	if !ok {
+		return nil, ErrInviteNotFound
+	}
+	return r.GetByID(ctx, inviteID)
+}
+
+func (r *inviteRepoFake) ListByTenant(ctx context.Context, tenantID string) ([]TenantInvite, error) {
+	out := make([]TenantInvite, 0)
+	for _, item := range r.items {
+		if item.TenantID == tenantID {
+			out = append(out, item)
+		}
+	}
+	return out, nil
+}
+
+func (r *inviteRepoFake) MarkAccepted(ctx context.Context, inviteID string, acceptedByUserID uint, acceptedAt time.Time) error {
+	item, ok := r.items[inviteID]
+	if !ok {
+		return ErrInviteNotFound
+	}
+	item.Status = InviteStatusAccepted
+	item.AcceptedByUserID = &acceptedByUserID
+	item.AcceptedAt = &acceptedAt
+	item.UpdatedAt = acceptedAt
+	r.items[inviteID] = item
+	return nil
+}
+
+func (r *inviteRepoFake) MarkRevoked(ctx context.Context, inviteID string, revokedAt time.Time) error {
+	item, ok := r.items[inviteID]
+	if !ok {
+		return ErrInviteNotFound
+	}
+	item.Status = InviteStatusRevoked
+	item.RevokedAt = &revokedAt
+	item.UpdatedAt = revokedAt
+	r.items[inviteID] = item
+	return nil
+}
+
 func TestIAMService_CreateTenant_AssignsOwnerRole(t *testing.T) {
 	tenants := &tenantRepoFake{}
 	roles := &roleRepoFake{
@@ -165,7 +235,8 @@ func TestIAMService_CreateTenant_AssignsOwnerRole(t *testing.T) {
 	}
 	platformRoles := &platformMembershipRepoFake{}
 	memberships := &membershipRepoFake{}
-	svc := NewIAMUsecase(tenants, roles, platformRoles, memberships)
+	invites := &inviteRepoFake{}
+	svc := NewIAMUsecase(tenants, roles, platformRoles, memberships, invites)
 
 	out, err := svc.CreateTenant(context.Background(), 42, CreateTenantCmd{Name: "Tenant One", Slug: "tenant-one"})
 	require.NoError(t, err)
@@ -198,7 +269,8 @@ func TestIAMService_RequirePermission(t *testing.T) {
 			},
 		},
 	}
-	svc := NewIAMUsecase(tenants, roles, platformRoles, memberships)
+	invites := &inviteRepoFake{}
+	svc := NewIAMUsecase(tenants, roles, platformRoles, memberships, invites)
 
 	require.NoError(t, svc.RequirePermission(context.Background(), "t1", 9, "store:update"))
 	require.ErrorIs(t, svc.RequirePermission(context.Background(), "t1", 9, "tenant:manage_members"), ErrPermissionDenied)
@@ -217,7 +289,8 @@ func TestIAMService_RequirePlatformPermission(t *testing.T) {
 		},
 	}
 	memberships := &membershipRepoFake{}
-	svc := NewIAMUsecase(tenants, roles, platformRoles, memberships)
+	invites := &inviteRepoFake{}
+	svc := NewIAMUsecase(tenants, roles, platformRoles, memberships, invites)
 
 	require.NoError(t, svc.RequirePlatformPermission(context.Background(), 11, "tenant:create"))
 	require.ErrorIs(t, svc.RequirePlatformPermission(context.Background(), 12, "tenant:create"), ErrPermissionDenied)
@@ -232,7 +305,8 @@ func TestIAMService_AddAndRemovePlatformRole(t *testing.T) {
 	}
 	platformRoles := &platformMembershipRepoFake{}
 	memberships := &membershipRepoFake{}
-	svc := NewIAMUsecase(tenants, roles, platformRoles, memberships)
+	invites := &inviteRepoFake{}
+	svc := NewIAMUsecase(tenants, roles, platformRoles, memberships, invites)
 
 	require.NoError(t, svc.AddPlatformRole(context.Background(), 21, RolePlatformAdmin))
 	items, err := svc.ListPlatformRoles(context.Background(), 21)
@@ -244,4 +318,80 @@ func TestIAMService_AddAndRemovePlatformRole(t *testing.T) {
 	items, err = svc.ListPlatformRoles(context.Background(), 21)
 	require.NoError(t, err)
 	require.Len(t, items, 0)
+}
+
+func TestIAMService_CreateAndAcceptInvite(t *testing.T) {
+	tenant := Tenant{ID: "tenant-1", Name: "Tenant One", Slug: "tenant-one"}
+	tenants := &tenantRepoFake{tenants: map[string]Tenant{tenant.ID: tenant}}
+	roles := &roleRepoFake{
+		roles: map[string]Role{
+			RoleTenantViewer: {ID: 3, Name: RoleTenantViewer},
+		},
+	}
+	platformRoles := &platformMembershipRepoFake{}
+	memberships := &membershipRepoFake{}
+	invites := &inviteRepoFake{}
+	svc := NewIAMUsecase(tenants, roles, platformRoles, memberships, invites)
+
+	invite, rawToken, err := svc.CreateInvite(context.Background(), tenant.ID, "neo@mx.io", RoleTenantViewer, 7)
+	require.NoError(t, err)
+	require.NotEmpty(t, rawToken)
+	require.Equal(t, InviteStatusPending, invite.Status)
+	require.NotEmpty(t, invite.TokenHash)
+
+	membership, err := svc.AcceptInvite(context.Background(), rawToken, 11, "neo@mx.io")
+	require.NoError(t, err)
+	require.Equal(t, tenant.ID, membership.TenantID)
+	require.Equal(t, uint(11), membership.UserID)
+	require.Equal(t, RoleTenantViewer, membership.RoleName)
+
+	storedInvite, err := invites.GetByID(context.Background(), invite.ID)
+	require.NoError(t, err)
+	require.Equal(t, InviteStatusAccepted, storedInvite.Status)
+	require.NotNil(t, storedInvite.AcceptedByUserID)
+	require.Equal(t, uint(11), *storedInvite.AcceptedByUserID)
+}
+
+func TestIAMService_AcceptInvite_EmailMismatch(t *testing.T) {
+	tenant := Tenant{ID: "tenant-1", Name: "Tenant One", Slug: "tenant-one"}
+	tenants := &tenantRepoFake{tenants: map[string]Tenant{tenant.ID: tenant}}
+	roles := &roleRepoFake{
+		roles: map[string]Role{
+			RoleTenantViewer: {ID: 3, Name: RoleTenantViewer},
+		},
+	}
+	platformRoles := &platformMembershipRepoFake{}
+	memberships := &membershipRepoFake{}
+	invites := &inviteRepoFake{}
+	svc := NewIAMUsecase(tenants, roles, platformRoles, memberships, invites)
+
+	_, rawToken, err := svc.CreateInvite(context.Background(), tenant.ID, "neo@mx.io", RoleTenantViewer, 7)
+	require.NoError(t, err)
+
+	_, err = svc.AcceptInvite(context.Background(), rawToken, 11, "trinity@mx.io")
+	require.ErrorIs(t, err, ErrInviteEmailMismatch)
+}
+
+func TestIAMService_RevokeInvite(t *testing.T) {
+	tenant := Tenant{ID: "tenant-1", Name: "Tenant One", Slug: "tenant-one"}
+	tenants := &tenantRepoFake{tenants: map[string]Tenant{tenant.ID: tenant}}
+	roles := &roleRepoFake{
+		roles: map[string]Role{
+			RoleTenantViewer: {ID: 3, Name: RoleTenantViewer},
+		},
+	}
+	platformRoles := &platformMembershipRepoFake{}
+	memberships := &membershipRepoFake{}
+	invites := &inviteRepoFake{}
+	svc := NewIAMUsecase(tenants, roles, platformRoles, memberships, invites)
+
+	invite, _, err := svc.CreateInvite(context.Background(), tenant.ID, "neo@mx.io", RoleTenantViewer, 7)
+	require.NoError(t, err)
+
+	require.NoError(t, svc.RevokeInvite(context.Background(), invite.ID))
+
+	storedInvite, err := invites.GetByID(context.Background(), invite.ID)
+	require.NoError(t, err)
+	require.Equal(t, InviteStatusRevoked, storedInvite.Status)
+	require.NotNil(t, storedInvite.RevokedAt)
 }

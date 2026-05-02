@@ -27,30 +27,47 @@ import (
 type AuthServer struct {
 	pbauthv1.UnimplementedAuthServiceServer
 	pbauthv1.UnimplementedIAMServiceServer
-	authUC     inputport.AuthUsecase
-	iamUC      iamdomain.IAMUsecase
-	sessionRep outputport.SessionRepository
-	auditRep   outputport.AuditLogRepository
-	jwtSecret  string
-	jwtKey     string
+	authUC         inputport.AuthUsecase
+	iamUC          iamdomain.IAMUsecase
+	sessionRep     outputport.SessionRepository
+	auditRep       outputport.AuditLogRepository
+	userRepo       outputport.UserRepository
+	jwtSecret      string
+	jwtKey         string
+	appRedirectURL string
 }
 
-func NewAuthServer(authUC inputport.AuthUsecase, sessionRep outputport.SessionRepository, auditRep outputport.AuditLogRepository, cfg config.AuthConfig) *AuthServer {
+func NewAuthServer(
+	authUC inputport.AuthUsecase,
+	sessionRep outputport.SessionRepository,
+	auditRep outputport.AuditLogRepository,
+	userRepo outputport.UserRepository,
+	cfg config.AuthConfig,
+) *AuthServer {
 	return &AuthServer{
-		authUC:     authUC,
-		sessionRep: sessionRep,
-		auditRep:   auditRep,
-		jwtSecret:  cfg.JWTSecret,
-		jwtKey:     cfg.JWTKey,
+		authUC:         authUC,
+		sessionRep:     sessionRep,
+		auditRep:       auditRep,
+		userRepo:       userRepo,
+		jwtSecret:      cfg.JWTSecret,
+		jwtKey:         cfg.JWTKey,
+		appRedirectURL: cfg.AppRedirectURL,
 	}
 }
 
-func NewIAMServer(iamUC iamdomain.IAMUsecase, auditRep outputport.AuditLogRepository, cfg config.AuthConfig) *AuthServer {
+func NewIAMServer(
+	iamUC iamdomain.IAMUsecase,
+	auditRep outputport.AuditLogRepository,
+	userRepo outputport.UserRepository,
+	cfg config.AuthConfig,
+) *AuthServer {
 	return &AuthServer{
-		iamUC:     iamUC,
-		auditRep:  auditRep,
-		jwtSecret: cfg.JWTSecret,
-		jwtKey:    cfg.JWTKey,
+		iamUC:          iamUC,
+		auditRep:       auditRep,
+		userRepo:       userRepo,
+		jwtSecret:      cfg.JWTSecret,
+		jwtKey:         cfg.JWTKey,
+		appRedirectURL: cfg.AppRedirectURL,
 	}
 }
 
@@ -193,11 +210,196 @@ func (s *AuthServer) AddTenantMember(
 	if err := s.iamUC.AddMember(ctx, req.TenantId, userID, req.RoleName); err != nil {
 		return nil, iamStatusError(err)
 	}
-	s.recordAudit(ctx, actorUserID, "tenant.member.added", "tenant_member", fmt.Sprintf("%s:%d", req.TenantId, req.UserId), req.TenantId, map[string]any{
-		"user_id":   userID,
-		"role_name": req.RoleName,
-	})
+	s.recordAudit(
+		ctx,
+		actorUserID,
+		"tenant.member.added",
+		"tenant_member",
+		fmt.Sprintf("%s:%d", req.TenantId, req.UserId),
+		req.TenantId,
+		map[string]any{
+			"user_id":   userID,
+			"role_name": req.RoleName,
+		},
+	)
 	return &pbauthv1.AddTenantMemberResponse{}, nil
+}
+
+func (s *AuthServer) AddTenantMemberByIdentity(
+	ctx context.Context,
+	req *pbauthv1.AddTenantMemberByIdentityRequest,
+) (*pbauthv1.AddTenantMemberByIdentityResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePermission(ctx, req.TenantId, actorUserID, "tenant:manage_members"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	identity := strings.TrimSpace(req.Identity)
+	if identity == "" {
+		return nil, status.Error(codes.InvalidArgument, "identity is required")
+	}
+	if s.userRepo == nil {
+		return nil, status.Error(codes.Internal, "user repository is not configured")
+	}
+
+	createdUser := false
+	user, err := s.userRepo.GetByUsernameOrEmail(identity)
+	if err != nil {
+		if strings.Contains(identity, "@") && errors.Is(err, entity.ErrUserNotFound) {
+			user, err = s.userRepo.CreateByEmailIfNotExisted(identity)
+			if err != nil {
+				return nil, status.Error(codes.Internal, err.Error())
+			}
+			createdUser = true
+		} else if errors.Is(err, entity.ErrUserNotFound) {
+			return nil, status.Error(codes.NotFound, err.Error())
+		} else {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+	}
+	if user == nil || user.Id == 0 {
+		return nil, status.Error(codes.NotFound, "user not found")
+	}
+
+	if err := s.iamUC.AddMember(ctx, req.TenantId, user.Id, req.RoleName); err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(
+		ctx,
+		actorUserID,
+		"tenant.member.identity_added",
+		"tenant_member",
+		fmt.Sprintf("%s:%d", req.TenantId, user.Id),
+		req.TenantId,
+		map[string]any{
+			"user_id":      user.Id,
+			"identity":     identity,
+			"role_name":    req.RoleName,
+			"created_user": createdUser,
+		},
+	)
+	return &pbauthv1.AddTenantMemberByIdentityResponse{
+		UserId:      uint64(user.Id),
+		CreatedUser: createdUser,
+	}, nil
+}
+
+func (s *AuthServer) CreateTenantInvite(
+	ctx context.Context,
+	req *pbauthv1.CreateTenantInviteRequest,
+) (*pbauthv1.CreateTenantInviteResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePermission(ctx, req.TenantId, actorUserID, "tenant:manage_members"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	invite, rawToken, err := s.iamUC.CreateInvite(ctx, req.TenantId, req.Email, req.RoleName, actorUserID)
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	acceptURL := fmt.Sprintf("%s/auth/invite/accept?token=%s", inviteAcceptBaseURL(s.appRedirectURL), rawToken)
+	s.recordAudit(ctx, actorUserID, "tenant.invite.created", "tenant_invite", invite.ID, req.TenantId, map[string]any{
+		"email":     invite.Email,
+		"role_name": invite.RoleName,
+	})
+	return &pbauthv1.CreateTenantInviteResponse{
+		Invite:      toProtoInvite(invite),
+		InviteToken: rawToken,
+		AcceptUrl:   acceptURL,
+	}, nil
+}
+
+func (s *AuthServer) ListTenantInvites(
+	ctx context.Context,
+	req *pbauthv1.ListTenantInvitesRequest,
+) (*pbauthv1.ListTenantInvitesResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePermission(ctx, req.TenantId, actorUserID, "tenant:manage_members"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	items, err := s.iamUC.ListTenantInvites(ctx, req.TenantId)
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	out := make([]*pbauthv1.TenantInvite, 0, len(items))
+	for i := range items {
+		out = append(out, toProtoInvite(&items[i]))
+	}
+	return &pbauthv1.ListTenantInvitesResponse{Invites: out}, nil
+}
+
+func (s *AuthServer) RevokeTenantInvite(
+	ctx context.Context,
+	req *pbauthv1.RevokeTenantInviteRequest,
+) (*pbauthv1.RevokeTenantInviteResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	invite, err := s.iamUC.GetInvite(ctx, req.InviteId)
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	if err := s.iamUC.RequirePermission(ctx, invite.TenantID, actorUserID, "tenant:manage_members"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	if err := s.iamUC.RevokeInvite(ctx, req.InviteId); err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(
+		ctx,
+		actorUserID,
+		"tenant.invite.revoked",
+		"tenant_invite",
+		req.InviteId,
+		invite.TenantID,
+		map[string]any{
+			"email": invite.Email,
+		},
+	)
+	return &pbauthv1.RevokeTenantInviteResponse{}, nil
+}
+
+func (s *AuthServer) AcceptTenantInvite(
+	ctx context.Context,
+	req *pbauthv1.AcceptTenantInviteRequest,
+) (*pbauthv1.AcceptTenantInviteResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if s.userRepo == nil {
+		return nil, status.Error(codes.Internal, "user repository is not configured")
+	}
+	user, err := s.userRepo.GetByID(fmt.Sprintf("%d", actorUserID))
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	membership, err := s.iamUC.AcceptInvite(ctx, req.InviteToken, actorUserID, user.Email)
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(
+		ctx,
+		actorUserID,
+		"tenant.invite.accepted",
+		"tenant_invite",
+		membership.TenantID,
+		membership.TenantID,
+		map[string]any{
+			"role_name": membership.RoleName,
+		},
+	)
+	return &pbauthv1.AcceptTenantInviteResponse{
+		Membership: toProtoMembership(membership),
+	}, nil
 }
 
 func (s *AuthServer) GetTenantMembership(
@@ -287,7 +489,10 @@ func (s *AuthServer) SwitchActiveTenant(
 	return resp, nil
 }
 
-func (s *AuthServer) GetSession(ctx context.Context, req *pbauthv1.GetSessionRequest) (*pbauthv1.GetSessionResponse, error) {
+func (s *AuthServer) GetSession(
+	ctx context.Context,
+	req *pbauthv1.GetSessionRequest,
+) (*pbauthv1.GetSessionResponse, error) {
 	session, err := s.sessionRep.GetByID(ctx, req.SessionId)
 	if err != nil {
 		return nil, authStatusError(err)
@@ -295,7 +500,10 @@ func (s *AuthServer) GetSession(ctx context.Context, req *pbauthv1.GetSessionReq
 	return &pbauthv1.GetSessionResponse{Session: toProtoSession(session)}, nil
 }
 
-func (s *AuthServer) ListSessions(ctx context.Context, req *pbauthv1.ListSessionsRequest) (*pbauthv1.ListSessionsResponse, error) {
+func (s *AuthServer) ListSessions(
+	ctx context.Context,
+	req *pbauthv1.ListSessionsRequest,
+) (*pbauthv1.ListSessionsResponse, error) {
 	actorUserID, err := s.actorUserIDFromContext(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
@@ -312,7 +520,10 @@ func (s *AuthServer) ListSessions(ctx context.Context, req *pbauthv1.ListSession
 	return &pbauthv1.ListSessionsResponse{Sessions: out}, nil
 }
 
-func (s *AuthServer) RevokeSession(ctx context.Context, req *pbauthv1.RevokeSessionRequest) (*pbauthv1.RevokeSessionResponse, error) {
+func (s *AuthServer) RevokeSession(
+	ctx context.Context,
+	req *pbauthv1.RevokeSessionRequest,
+) (*pbauthv1.RevokeSessionResponse, error) {
 	actorUserID, err := s.actorUserIDFromContext(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
@@ -336,7 +547,10 @@ func (s *AuthServer) RevokeSession(ctx context.Context, req *pbauthv1.RevokeSess
 	return &pbauthv1.RevokeSessionResponse{}, nil
 }
 
-func (s *AuthServer) ListAuditLogs(ctx context.Context, req *pbauthv1.ListAuditLogsRequest) (*pbauthv1.ListAuditLogsResponse, error) {
+func (s *AuthServer) ListAuditLogs(
+	ctx context.Context,
+	req *pbauthv1.ListAuditLogsRequest,
+) (*pbauthv1.ListAuditLogsResponse, error) {
 	actorUserID, err := s.actorUserIDFromContext(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
@@ -360,7 +574,10 @@ func (s *AuthServer) ListAuditLogs(ctx context.Context, req *pbauthv1.ListAuditL
 	return &pbauthv1.ListAuditLogsResponse{Logs: out}, nil
 }
 
-func (s *AuthServer) RefreshToken(ctx context.Context, req *pbauthv1.RefreshTokenRequest) (*pbauthv1.RefreshTokenResponse, error) {
+func (s *AuthServer) RefreshToken(
+	ctx context.Context,
+	req *pbauthv1.RefreshTokenRequest,
+) (*pbauthv1.RefreshTokenResponse, error) {
 	authResp, err := s.authUC.RefreshAccessToken(ctx, req.RefreshToken)
 	if err != nil {
 		return nil, authStatusError(err)
@@ -372,7 +589,10 @@ func (s *AuthServer) RefreshToken(ctx context.Context, req *pbauthv1.RefreshToke
 	return resp, nil
 }
 
-func (s *AuthServer) ListUserTenants(ctx context.Context, req *pbauthv1.ListUserTenantsRequest) (*pbauthv1.ListUserTenantsResponse, error) {
+func (s *AuthServer) ListUserTenants(
+	ctx context.Context,
+	req *pbauthv1.ListUserTenantsRequest,
+) (*pbauthv1.ListUserTenantsResponse, error) {
 	actorUserID, err := s.actorUserIDFromContext(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
@@ -396,7 +616,10 @@ func (s *AuthServer) ListUserTenants(ctx context.Context, req *pbauthv1.ListUser
 	return &pbauthv1.ListUserTenantsResponse{Memberships: out}, nil
 }
 
-func (s *AuthServer) ListPlatformRoles(ctx context.Context, req *pbauthv1.ListPlatformRolesRequest) (*pbauthv1.ListPlatformRolesResponse, error) {
+func (s *AuthServer) ListPlatformRoles(
+	ctx context.Context,
+	req *pbauthv1.ListPlatformRolesRequest,
+) (*pbauthv1.ListPlatformRolesResponse, error) {
 	actorUserID, err := s.actorUserIDFromContext(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
@@ -420,7 +643,10 @@ func (s *AuthServer) ListPlatformRoles(ctx context.Context, req *pbauthv1.ListPl
 	return &pbauthv1.ListPlatformRolesResponse{Memberships: out}, nil
 }
 
-func (s *AuthServer) AddPlatformRole(ctx context.Context, req *pbauthv1.AddPlatformRoleRequest) (*pbauthv1.AddPlatformRoleResponse, error) {
+func (s *AuthServer) AddPlatformRole(
+	ctx context.Context,
+	req *pbauthv1.AddPlatformRoleRequest,
+) (*pbauthv1.AddPlatformRoleResponse, error) {
 	actorUserID, err := s.actorUserIDFromContext(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
@@ -435,14 +661,25 @@ func (s *AuthServer) AddPlatformRole(ctx context.Context, req *pbauthv1.AddPlatf
 	if err := s.iamUC.AddPlatformRole(ctx, targetUserID, req.RoleName); err != nil {
 		return nil, iamStatusError(err)
 	}
-	s.recordAudit(ctx, actorUserID, "platform.role.added", "platform_role_membership", fmt.Sprintf("%s:%d", req.RoleName, req.TargetUserId), "", map[string]any{
-		"target_user_id": targetUserID,
-		"role_name":      req.RoleName,
-	})
+	s.recordAudit(
+		ctx,
+		actorUserID,
+		"platform.role.added",
+		"platform_role_membership",
+		fmt.Sprintf("%s:%d", req.RoleName, req.TargetUserId),
+		"",
+		map[string]any{
+			"target_user_id": targetUserID,
+			"role_name":      req.RoleName,
+		},
+	)
 	return &pbauthv1.AddPlatformRoleResponse{}, nil
 }
 
-func (s *AuthServer) RemovePlatformRole(ctx context.Context, req *pbauthv1.RemovePlatformRoleRequest) (*pbauthv1.RemovePlatformRoleResponse, error) {
+func (s *AuthServer) RemovePlatformRole(
+	ctx context.Context,
+	req *pbauthv1.RemovePlatformRoleRequest,
+) (*pbauthv1.RemovePlatformRoleResponse, error) {
 	actorUserID, err := s.actorUserIDFromContext(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
@@ -457,14 +694,25 @@ func (s *AuthServer) RemovePlatformRole(ctx context.Context, req *pbauthv1.Remov
 	if err := s.iamUC.RemovePlatformRole(ctx, targetUserID, req.RoleName); err != nil {
 		return nil, iamStatusError(err)
 	}
-	s.recordAudit(ctx, actorUserID, "platform.role.removed", "platform_role_membership", fmt.Sprintf("%s:%d", req.RoleName, req.TargetUserId), "", map[string]any{
-		"target_user_id": targetUserID,
-		"role_name":      req.RoleName,
-	})
+	s.recordAudit(
+		ctx,
+		actorUserID,
+		"platform.role.removed",
+		"platform_role_membership",
+		fmt.Sprintf("%s:%d", req.RoleName, req.TargetUserId),
+		"",
+		map[string]any{
+			"target_user_id": targetUserID,
+			"role_name":      req.RoleName,
+		},
+	)
 	return &pbauthv1.RemovePlatformRoleResponse{}, nil
 }
 
-func (s *AuthServer) ListTenantMembers(ctx context.Context, req *pbauthv1.ListTenantMembersRequest) (*pbauthv1.ListTenantMembersResponse, error) {
+func (s *AuthServer) ListTenantMembers(
+	ctx context.Context,
+	req *pbauthv1.ListTenantMembersRequest,
+) (*pbauthv1.ListTenantMembersResponse, error) {
 	actorUserID, err := s.actorUserIDFromContext(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
@@ -484,7 +732,10 @@ func (s *AuthServer) ListTenantMembers(ctx context.Context, req *pbauthv1.ListTe
 	return &pbauthv1.ListTenantMembersResponse{Memberships: out}, nil
 }
 
-func (s *AuthServer) RemoveTenantMember(ctx context.Context, req *pbauthv1.RemoveTenantMemberRequest) (*pbauthv1.RemoveTenantMemberResponse, error) {
+func (s *AuthServer) RemoveTenantMember(
+	ctx context.Context,
+	req *pbauthv1.RemoveTenantMemberRequest,
+) (*pbauthv1.RemoveTenantMemberResponse, error) {
 	actorUserID, err := s.actorUserIDFromContext(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
@@ -499,9 +750,17 @@ func (s *AuthServer) RemoveTenantMember(ctx context.Context, req *pbauthv1.Remov
 	if err := s.iamUC.RemoveMember(ctx, req.TenantId, userID); err != nil {
 		return nil, iamStatusError(err)
 	}
-	s.recordAudit(ctx, actorUserID, "tenant.member.removed", "tenant_member", fmt.Sprintf("%s:%d", req.TenantId, req.UserId), req.TenantId, map[string]any{
-		"user_id": userID,
-	})
+	s.recordAudit(
+		ctx,
+		actorUserID,
+		"tenant.member.removed",
+		"tenant_member",
+		fmt.Sprintf("%s:%d", req.TenantId, req.UserId),
+		req.TenantId,
+		map[string]any{
+			"user_id": userID,
+		},
+	)
 	return &pbauthv1.RemoveTenantMemberResponse{}, nil
 }
 
@@ -556,6 +815,44 @@ func toProtoPlatformMembership(m *iamdomain.PlatformMembership) *pbauthv1.Platfo
 		CreatedAt: m.CreatedAt.Format(time.RFC3339),
 		UpdatedAt: m.UpdatedAt.Format(time.RFC3339),
 	}
+}
+
+func inviteAcceptBaseURL(appRedirectURL string) string {
+	base := strings.TrimSpace(appRedirectURL)
+	if base == "" {
+		return ""
+	}
+	base = strings.TrimRight(base, "/")
+	base = strings.TrimSuffix(base, "/auth/google/callback")
+	return base
+}
+
+func toProtoInvite(invite *iamdomain.TenantInvite) *pbauthv1.TenantInvite {
+	if invite == nil {
+		return nil
+	}
+	resp := &pbauthv1.TenantInvite{
+		Id:              invite.ID,
+		TenantId:        invite.TenantID,
+		Email:           invite.Email,
+		RoleId:          invite.RoleID,
+		RoleName:        invite.RoleName,
+		Status:          invite.Status,
+		InvitedByUserId: uint64(invite.InvitedByUserID),
+		CreatedAt:       invite.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:       invite.UpdatedAt.Format(time.RFC3339),
+		ExpiresAt:       invite.ExpiresAt.Format(time.RFC3339),
+	}
+	if invite.AcceptedByUserID != nil {
+		resp.AcceptedByUserId = uint64(*invite.AcceptedByUserID)
+	}
+	if invite.AcceptedAt != nil {
+		resp.AcceptedAt = invite.AcceptedAt.Format(time.RFC3339)
+	}
+	if invite.RevokedAt != nil {
+		resp.RevokedAt = invite.RevokedAt.Format(time.RFC3339)
+	}
+	return resp
 }
 
 func toProtoSession(s *entity.Session) *pbauthv1.Session {
@@ -625,6 +922,8 @@ func (s *AuthServer) recordAudit(
 
 func authStatusError(err error) error {
 	switch {
+	case errors.Is(err, entity.ErrInvalidUserID):
+		return status.Error(codes.InvalidArgument, err.Error())
 	case errors.Is(err, entity.ErrSessionNotFound),
 		errors.Is(err, entity.ErrRefreshTokenInvalid):
 		return status.Error(codes.NotFound, err.Error())

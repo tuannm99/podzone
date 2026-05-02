@@ -16,7 +16,12 @@ import {
   LoadingInline,
 } from '../../components/common/Feedback';
 import { PageShell } from '../../components/common/PageShell';
-import { Badge, Button, Card, InputField } from '../../components/common/Primitives';
+import {
+  Badge,
+  Button,
+  Card,
+  InputField,
+} from '../../components/common/Primitives';
 import { SectionLead } from '../../components/common/SectionLead';
 import { SectionTitle } from '../../components/common/SectionTitle';
 import { StatCard } from '../../components/dashboard/StatCard';
@@ -38,6 +43,10 @@ function slugify(value: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+function membershipStatusColor(status: string) {
+  return status === 'active' ? 'green' : 'dark';
+}
+
 export default function AdminHomePage() {
   const user = tokenStorage.getUser();
   const userID = parseUserID(user?.id);
@@ -52,9 +61,12 @@ export default function AdminHomePage() {
   const [switchingTenant, setSwitchingTenant] = createSignal(false);
   const [creatingTenant, setCreatingTenant] = createSignal(false);
   const [loadingTenants, setLoadingTenants] = createSignal(false);
-  const [checkingPlatformAccess, setCheckingPlatformAccess] = createSignal(false);
+  const [checkingPlatformAccess, setCheckingPlatformAccess] =
+    createSignal(false);
   const [memberships, setMemberships] = createSignal<TenantMembership[]>([]);
   const [canCreateTenant, setCanCreateTenant] = createSignal(false);
+  const activeMemberships = () =>
+    memberships().filter((membership) => membership.status === 'active');
 
   const loadMemberships = async () => {
     if (!userID) return;
@@ -99,7 +111,7 @@ export default function AdminHomePage() {
     try {
       const { success, data } = await ensureActiveTenant(nextTenantID);
       if (!success) {
-        setTenantError(data.message || 'Failed to switch tenant');
+      setTenantError(data.message || 'Failed to open store');
         return;
       }
 
@@ -115,18 +127,18 @@ export default function AdminHomePage() {
     event.preventDefault();
 
     if (!userID) {
-      setTenantError('No authenticated user found.');
+      setTenantError('No signed-in account found.');
       return;
     }
     if (!canCreateTenant()) {
-      setTenantError('You do not have platform permission to create tenants.');
+      setTenantError('Your account cannot create stores yet.');
       return;
     }
 
     const normalizedName = tenantName().trim();
     const normalizedSlug = slugify(tenantSlug() || normalizedName);
     if (!normalizedName || !normalizedSlug) {
-      setTenantError('Tenant name and slug are required.');
+      setTenantError('Store name and store slug are required.');
       return;
     }
 
@@ -150,8 +162,8 @@ export default function AdminHomePage() {
       setTenantId(createdTenantID);
       setTenantMessage(
         createdTenantID
-          ? `Created tenant ${createdSlug} (${createdTenantID}).`
-          : `Created tenant ${createdSlug}.`
+          ? `Created store ${createdSlug} (${createdTenantID}).`
+          : `Created store ${createdSlug}.`
       );
       await loadMemberships();
     } finally {
@@ -168,9 +180,9 @@ export default function AdminHomePage() {
     <PageShell>
       <Card class="space-y-4">
         <SectionLead
-          eyebrow="Control Room"
-          title="Admin now manages tenants instead of guessing them."
-          copy="Create a workspace, inspect your memberships, and jump into the active tenant session without typing raw tenant ids every time."
+          eyebrow="Seller Backoffice"
+          title="Manage your stores from one control room."
+          copy="Create a new store, review where your team has access, and open the right workspace without relying on technical IDs."
         />
       </Card>
 
@@ -192,37 +204,36 @@ export default function AdminHomePage() {
           value={user?.username || user?.email || 'Unknown'}
         />
         <StatCard
-          label="My tenants"
-          value={String(memberships().length)}
+          label="My stores"
+          value={`${activeMemberships().length}/${memberships().length}`}
         />
         <StatCard
-          label="Active tenant"
-          value={tokenStorage.getActiveTenantID() || 'Unset'}
+          label="Current store"
+          value={tokenStorage.getActiveTenantID() || 'Not selected'}
         />
       </div>
 
       <Show when={checkingPlatformAccess()}>
-        <LoadingInline label="Checking platform permissions..." />
+        <LoadingInline label="Checking store creation access..." />
       </Show>
 
       <div class="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
         <Card class="space-y-4">
           <SectionTitle
-            title="Create tenant"
-            subtitle="Provision a new workspace and attach yourself as tenant owner."
+            title="Create store"
+            subtitle="Open a new store workspace and make yourself the store owner."
           />
           <Show when={!canCreateTenant() && !checkingPlatformAccess()}>
             <InfoAlert>
-              Creating tenants requires the platform permission <code>tenant:create</code>.
-              The current IAM bootstrap grants this to the first platform owner unless
-              more platform roles are assigned.
+              Creating stores requires platform approval. The first platform
+              owner can grant this access to additional operators.
             </InfoAlert>
           </Show>
           <form class="space-y-4" onSubmit={submitCreateTenant}>
             <InputField
-              label="Tenant name"
+              label="Store name"
               value={tenantName()}
-              placeholder="Seller Alpha"
+              placeholder="Urban Finds"
               onInput={(event) => {
                 const value = event.currentTarget.value;
                 setTenantName(value);
@@ -232,10 +243,12 @@ export default function AdminHomePage() {
               }}
             />
             <InputField
-              label="Tenant slug"
+              label="Store slug"
               value={tenantSlug()}
-              placeholder="seller-alpha"
-              onInput={(event) => setTenantSlug(slugify(event.currentTarget.value))}
+              placeholder="urban-finds"
+              onInput={(event) =>
+                setTenantSlug(slugify(event.currentTarget.value))
+              }
             />
             <div class="flex flex-wrap gap-3">
               <Button
@@ -243,10 +256,14 @@ export default function AdminHomePage() {
                 loading={creatingTenant()}
                 disabled={!tenantName().trim() || !canCreateTenant()}
               >
-                Create tenant
+                Create store
               </Button>
               <Badge
-                content={tenantSlug().trim() ? `slug ${tenantSlug().trim()}` : 'slug pending'}
+                content={
+                  tenantSlug().trim()
+                    ? `slug ${tenantSlug().trim()}`
+                    : 'slug pending'
+                }
                 color={tenantSlug().trim() ? 'indigo' : 'dark'}
               />
             </div>
@@ -255,14 +272,14 @@ export default function AdminHomePage() {
 
         <Card class="space-y-4">
           <SectionTitle
-            title="Direct jump"
-            subtitle="Keep the raw tenant jump for debugging or quick access."
+            title="Quick store jump"
+            subtitle="Keep direct store opening for debugging, but prefer opening from your assigned stores below."
           />
           <div class="flex flex-col gap-3 sm:flex-row">
             <input
               class="block w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
               value={tenantId()}
-              placeholder="tenant id"
+              placeholder="store id"
               onInput={(event) => setTenantId(event.currentTarget.value)}
             />
             <Button
@@ -272,13 +289,13 @@ export default function AdminHomePage() {
                 void openTenant();
               }}
             >
-              Open tenant
+              Open store
             </Button>
           </div>
           {!tenantId().trim() ? (
             <EmptyBlock
-              title="No tenant selected"
-              copy="Create a tenant below or pick one from your memberships to switch the active tenant."
+              title="No store selected"
+              copy="Create a store or pick one from your assigned stores to open the right workspace."
             />
           ) : null}
         </Card>
@@ -287,18 +304,18 @@ export default function AdminHomePage() {
       <div class="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
         <Card class="space-y-4">
           <SectionTitle
-            title="My tenants"
-            subtitle="IAM memberships for the current authenticated user."
+            title="My stores"
+            subtitle="Stores your account can access right now."
           />
           <Show when={loadingTenants()}>
-            <LoadingInline label="Loading tenants..." />
+            <LoadingInline label="Loading stores..." />
           </Show>
           <Show
             when={!loadingTenants() && memberships().length > 0}
             fallback={
               <EmptyBlock
-                title="No tenants yet"
-                copy="Create your first tenant to start using the multi-tenant workspace flow."
+                title="No stores yet"
+                copy="Create your first store to start managing catalog, team access, and future POD operations."
               />
             }
           >
@@ -308,16 +325,24 @@ export default function AdminHomePage() {
                   <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
                     <div class="flex flex-wrap items-center gap-2">
                       <Badge content={membership.roleName} color="blue" />
-                      <Badge content={membership.status} color="green" />
-                      <Show when={membership.tenantId === tokenStorage.getActiveTenantID()}>
-                        <Badge content="active" color="yellow" />
+                      <Badge
+                        content={membership.status}
+                        color={membershipStatusColor(membership.status)}
+                      />
+                      <Show
+                        when={
+                          membership.tenantId ===
+                          tokenStorage.getActiveTenantID()
+                        }
+                      >
+                        <Badge content="current" color="yellow" />
                       </Show>
                     </div>
                     <p class="mt-3 font-semibold text-gray-900">
                       {membership.tenantId}
                     </p>
                     <p class="mt-1 text-sm text-gray-500">
-                      user {membership.userId}
+                      access role for user {membership.userId}
                     </p>
                     <div class="mt-3 flex flex-wrap gap-3">
                       <Button
@@ -326,14 +351,19 @@ export default function AdminHomePage() {
                           void openTenant(membership.tenantId);
                         }}
                       >
-                        Open workspace
+                        Open store
                       </Button>
                       <Button
                         size="sm"
                         color="alternative"
-                        onClick={() => setTenantId(membership.tenantId)}
+                        onClick={() => {
+                          setTenantId(membership.tenantId);
+                          setTenantMessage(
+                            `Prepared store ${membership.tenantId} as the next quick-jump target.`
+                          );
+                        }}
                       >
-                        Use as jump target
+                        Use for quick jump
                       </Button>
                     </div>
                   </div>
@@ -345,8 +375,8 @@ export default function AdminHomePage() {
 
         <Card class="space-y-4">
           <SectionTitle
-            title="Platform endpoints"
-            subtitle="Current admin and tenant entrypoints."
+            title="Runtime endpoints"
+            subtitle="Current application entrypoints used by the backoffice."
           />
           <div class="space-y-3 text-sm text-gray-600">
             <div class="rounded-2xl bg-gray-50 p-4">
@@ -354,13 +384,14 @@ export default function AdminHomePage() {
               <p class="mt-1 break-all">{GW_API_URL}</p>
             </div>
             <div class="rounded-2xl bg-gray-50 p-4">
-              <p class="font-semibold text-gray-900">Tenant GraphQL</p>
+              <p class="font-semibold text-gray-900">Store GraphQL</p>
               <p class="mt-1 break-all">{TENANT_GQL_URL}</p>
             </div>
             <div class="rounded-2xl bg-gray-50 p-4">
               <p class="font-semibold text-gray-900">Next step</p>
               <p class="mt-1">
-                Use the settings page to manage tenant members and role bindings.
+                Use the settings page to manage team access, store invites,
+                sessions, and platform administration.
               </p>
             </div>
           </div>

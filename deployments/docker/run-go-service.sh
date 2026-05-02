@@ -21,6 +21,10 @@ case "$service" in
     build_cmd='go build -o ./bin/catalog ./cmd/catalog/main.go'
     build_bin='./bin/catalog'
     ;;
+  partner)
+    build_cmd='go build -o ./bin/partner ./cmd/partner/main.go'
+    build_bin='./bin/partner'
+    ;;
   grpcgateway)
     build_cmd='go build -o ./bin/grpcgateway ./cmd/grpcgateway/main.go'
     build_bin='./bin/grpcgateway'

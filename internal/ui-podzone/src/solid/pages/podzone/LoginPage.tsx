@@ -24,7 +24,7 @@ export default function LoginPage() {
       });
 
       if (!success) {
-        setError(data?.message || 'Login failed');
+        setError(data?.message || 'Sign-in failed');
         return;
       }
 
@@ -40,8 +40,8 @@ export default function LoginPage() {
         <Card class="space-y-6 bg-[linear-gradient(135deg,_#dbeafe,_#ffffff_45%,_#eff6ff)]">
           <SectionLead
             eyebrow="PODZONE"
-            title="Control the platform from a cleaner surface."
-            copy="This frontend now uses the Judge Loop component system and keeps the existing Podzone authentication flow."
+            title="Run your POD stores from one backoffice."
+            copy="Sign in once to manage stores, team access, invites, and the operational side of your POD business."
           />
 
           <div class="grid gap-3 sm:grid-cols-3">
@@ -50,7 +50,7 @@ export default function LoginPage() {
                 01
               </p>
               <p class="mt-2 text-sm text-gray-600">
-                REST admin entrypoint stays intact.
+                One sign-in unlocks your store operations workspace.
               </p>
             </div>
             <div class="rounded-2xl bg-white/80 p-4 shadow-sm">
@@ -58,7 +58,7 @@ export default function LoginPage() {
                 02
               </p>
               <p class="mt-2 text-sm text-gray-600">
-                Tenant routes still resolve by tenant id.
+                Store switching keeps each session scoped to the right shop.
               </p>
             </div>
             <div class="rounded-2xl bg-white/80 p-4 shadow-sm">
@@ -66,7 +66,7 @@ export default function LoginPage() {
                 03
               </p>
               <p class="mt-2 text-sm text-gray-600">
-                UI primitives now match the reference repo.
+                Team access and invites stay tied to the correct store.
               </p>
             </div>
           </div>
@@ -78,7 +78,7 @@ export default function LoginPage() {
               Sign in
             </h1>
             <p class="text-sm text-gray-500">
-              Use your Podzone credentials to enter the console.
+              Use your account to open the seller backoffice.
             </p>
           </div>
 
@@ -86,7 +86,7 @@ export default function LoginPage() {
             <InputField
               label="Username or email"
               value={username()}
-              placeholder="admin@podzone.dev"
+              placeholder="owner@store.com"
               onInput={(event) => setUsername(event.currentTarget.value)}
             />
             <InputField
@@ -108,7 +108,7 @@ export default function LoginPage() {
                 Continue
               </Button>
               <Button href={loginGG()} color="alternative">
-                Continue with Google
+                Sign in with Google
               </Button>
             </div>
           </form>

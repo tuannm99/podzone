@@ -36,6 +36,9 @@ const (
 // AuthServiceClient is the client API for AuthService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// AuthService owns authentication, session lifecycle, token refresh,
+// OAuth login exchange, and active-tenant switching for an authenticated session.
 type AuthServiceClient interface {
 	GoogleLogin(ctx context.Context, in *GoogleLoginRequest, opts ...grpc.CallOption) (*GoogleLoginResponse, error)
 	GoogleCallback(ctx context.Context, in *GoogleCallbackRequest, opts ...grpc.CallOption) (*GoogleCallbackResponse, error)
@@ -182,6 +185,9 @@ func (c *authServiceClient) ListAuditLogs(ctx context.Context, in *ListAuditLogs
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
+//
+// AuthService owns authentication, session lifecycle, token refresh,
+// OAuth login exchange, and active-tenant switching for an authenticated session.
 type AuthServiceServer interface {
 	GoogleLogin(context.Context, *GoogleLoginRequest) (*GoogleLoginResponse, error)
 	GoogleCallback(context.Context, *GoogleCallbackRequest) (*GoogleCallbackResponse, error)
@@ -539,25 +545,38 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	IAMService_CreateTenant_FullMethodName            = "/auth.IAMService/CreateTenant"
-	IAMService_AddTenantMember_FullMethodName         = "/auth.IAMService/AddTenantMember"
-	IAMService_GetTenantMembership_FullMethodName     = "/auth.IAMService/GetTenantMembership"
-	IAMService_CheckPermission_FullMethodName         = "/auth.IAMService/CheckPermission"
-	IAMService_CheckPlatformPermission_FullMethodName = "/auth.IAMService/CheckPlatformPermission"
-	IAMService_ListUserTenants_FullMethodName         = "/auth.IAMService/ListUserTenants"
-	IAMService_ListPlatformRoles_FullMethodName       = "/auth.IAMService/ListPlatformRoles"
-	IAMService_AddPlatformRole_FullMethodName         = "/auth.IAMService/AddPlatformRole"
-	IAMService_RemovePlatformRole_FullMethodName      = "/auth.IAMService/RemovePlatformRole"
-	IAMService_ListTenantMembers_FullMethodName       = "/auth.IAMService/ListTenantMembers"
-	IAMService_RemoveTenantMember_FullMethodName      = "/auth.IAMService/RemoveTenantMember"
+	IAMService_CreateTenant_FullMethodName              = "/auth.IAMService/CreateTenant"
+	IAMService_AddTenantMember_FullMethodName           = "/auth.IAMService/AddTenantMember"
+	IAMService_AddTenantMemberByIdentity_FullMethodName = "/auth.IAMService/AddTenantMemberByIdentity"
+	IAMService_CreateTenantInvite_FullMethodName        = "/auth.IAMService/CreateTenantInvite"
+	IAMService_ListTenantInvites_FullMethodName         = "/auth.IAMService/ListTenantInvites"
+	IAMService_RevokeTenantInvite_FullMethodName        = "/auth.IAMService/RevokeTenantInvite"
+	IAMService_AcceptTenantInvite_FullMethodName        = "/auth.IAMService/AcceptTenantInvite"
+	IAMService_GetTenantMembership_FullMethodName       = "/auth.IAMService/GetTenantMembership"
+	IAMService_CheckPermission_FullMethodName           = "/auth.IAMService/CheckPermission"
+	IAMService_CheckPlatformPermission_FullMethodName   = "/auth.IAMService/CheckPlatformPermission"
+	IAMService_ListUserTenants_FullMethodName           = "/auth.IAMService/ListUserTenants"
+	IAMService_ListPlatformRoles_FullMethodName         = "/auth.IAMService/ListPlatformRoles"
+	IAMService_AddPlatformRole_FullMethodName           = "/auth.IAMService/AddPlatformRole"
+	IAMService_RemovePlatformRole_FullMethodName        = "/auth.IAMService/RemovePlatformRole"
+	IAMService_ListTenantMembers_FullMethodName         = "/auth.IAMService/ListTenantMembers"
+	IAMService_RemoveTenantMember_FullMethodName        = "/auth.IAMService/RemoveTenantMember"
 )
 
 // IAMServiceClient is the client API for IAMService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// IAMService owns tenant memberships, role bindings, and permission evaluation.
+// It is intentionally separate from AuthService so it can scale and deploy independently.
 type IAMServiceClient interface {
 	CreateTenant(ctx context.Context, in *CreateTenantRequest, opts ...grpc.CallOption) (*CreateTenantResponse, error)
 	AddTenantMember(ctx context.Context, in *AddTenantMemberRequest, opts ...grpc.CallOption) (*AddTenantMemberResponse, error)
+	AddTenantMemberByIdentity(ctx context.Context, in *AddTenantMemberByIdentityRequest, opts ...grpc.CallOption) (*AddTenantMemberByIdentityResponse, error)
+	CreateTenantInvite(ctx context.Context, in *CreateTenantInviteRequest, opts ...grpc.CallOption) (*CreateTenantInviteResponse, error)
+	ListTenantInvites(ctx context.Context, in *ListTenantInvitesRequest, opts ...grpc.CallOption) (*ListTenantInvitesResponse, error)
+	RevokeTenantInvite(ctx context.Context, in *RevokeTenantInviteRequest, opts ...grpc.CallOption) (*RevokeTenantInviteResponse, error)
+	AcceptTenantInvite(ctx context.Context, in *AcceptTenantInviteRequest, opts ...grpc.CallOption) (*AcceptTenantInviteResponse, error)
 	GetTenantMembership(ctx context.Context, in *GetTenantMembershipRequest, opts ...grpc.CallOption) (*GetTenantMembershipResponse, error)
 	CheckPermission(ctx context.Context, in *CheckPermissionRequest, opts ...grpc.CallOption) (*CheckPermissionResponse, error)
 	CheckPlatformPermission(ctx context.Context, in *CheckPlatformPermissionRequest, opts ...grpc.CallOption) (*CheckPermissionResponse, error)
@@ -591,6 +610,56 @@ func (c *iAMServiceClient) AddTenantMember(ctx context.Context, in *AddTenantMem
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AddTenantMemberResponse)
 	err := c.cc.Invoke(ctx, IAMService_AddTenantMember_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) AddTenantMemberByIdentity(ctx context.Context, in *AddTenantMemberByIdentityRequest, opts ...grpc.CallOption) (*AddTenantMemberByIdentityResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AddTenantMemberByIdentityResponse)
+	err := c.cc.Invoke(ctx, IAMService_AddTenantMemberByIdentity_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) CreateTenantInvite(ctx context.Context, in *CreateTenantInviteRequest, opts ...grpc.CallOption) (*CreateTenantInviteResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateTenantInviteResponse)
+	err := c.cc.Invoke(ctx, IAMService_CreateTenantInvite_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) ListTenantInvites(ctx context.Context, in *ListTenantInvitesRequest, opts ...grpc.CallOption) (*ListTenantInvitesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListTenantInvitesResponse)
+	err := c.cc.Invoke(ctx, IAMService_ListTenantInvites_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) RevokeTenantInvite(ctx context.Context, in *RevokeTenantInviteRequest, opts ...grpc.CallOption) (*RevokeTenantInviteResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RevokeTenantInviteResponse)
+	err := c.cc.Invoke(ctx, IAMService_RevokeTenantInvite_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) AcceptTenantInvite(ctx context.Context, in *AcceptTenantInviteRequest, opts ...grpc.CallOption) (*AcceptTenantInviteResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AcceptTenantInviteResponse)
+	err := c.cc.Invoke(ctx, IAMService_AcceptTenantInvite_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -690,9 +759,17 @@ func (c *iAMServiceClient) RemoveTenantMember(ctx context.Context, in *RemoveTen
 // IAMServiceServer is the server API for IAMService service.
 // All implementations must embed UnimplementedIAMServiceServer
 // for forward compatibility.
+//
+// IAMService owns tenant memberships, role bindings, and permission evaluation.
+// It is intentionally separate from AuthService so it can scale and deploy independently.
 type IAMServiceServer interface {
 	CreateTenant(context.Context, *CreateTenantRequest) (*CreateTenantResponse, error)
 	AddTenantMember(context.Context, *AddTenantMemberRequest) (*AddTenantMemberResponse, error)
+	AddTenantMemberByIdentity(context.Context, *AddTenantMemberByIdentityRequest) (*AddTenantMemberByIdentityResponse, error)
+	CreateTenantInvite(context.Context, *CreateTenantInviteRequest) (*CreateTenantInviteResponse, error)
+	ListTenantInvites(context.Context, *ListTenantInvitesRequest) (*ListTenantInvitesResponse, error)
+	RevokeTenantInvite(context.Context, *RevokeTenantInviteRequest) (*RevokeTenantInviteResponse, error)
+	AcceptTenantInvite(context.Context, *AcceptTenantInviteRequest) (*AcceptTenantInviteResponse, error)
 	GetTenantMembership(context.Context, *GetTenantMembershipRequest) (*GetTenantMembershipResponse, error)
 	CheckPermission(context.Context, *CheckPermissionRequest) (*CheckPermissionResponse, error)
 	CheckPlatformPermission(context.Context, *CheckPlatformPermissionRequest) (*CheckPermissionResponse, error)
@@ -717,6 +794,21 @@ func (UnimplementedIAMServiceServer) CreateTenant(context.Context, *CreateTenant
 }
 func (UnimplementedIAMServiceServer) AddTenantMember(context.Context, *AddTenantMemberRequest) (*AddTenantMemberResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddTenantMember not implemented")
+}
+func (UnimplementedIAMServiceServer) AddTenantMemberByIdentity(context.Context, *AddTenantMemberByIdentityRequest) (*AddTenantMemberByIdentityResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddTenantMemberByIdentity not implemented")
+}
+func (UnimplementedIAMServiceServer) CreateTenantInvite(context.Context, *CreateTenantInviteRequest) (*CreateTenantInviteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateTenantInvite not implemented")
+}
+func (UnimplementedIAMServiceServer) ListTenantInvites(context.Context, *ListTenantInvitesRequest) (*ListTenantInvitesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListTenantInvites not implemented")
+}
+func (UnimplementedIAMServiceServer) RevokeTenantInvite(context.Context, *RevokeTenantInviteRequest) (*RevokeTenantInviteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RevokeTenantInvite not implemented")
+}
+func (UnimplementedIAMServiceServer) AcceptTenantInvite(context.Context, *AcceptTenantInviteRequest) (*AcceptTenantInviteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AcceptTenantInvite not implemented")
 }
 func (UnimplementedIAMServiceServer) GetTenantMembership(context.Context, *GetTenantMembershipRequest) (*GetTenantMembershipResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTenantMembership not implemented")
@@ -798,6 +890,96 @@ func _IAMService_AddTenantMember_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(IAMServiceServer).AddTenantMember(ctx, req.(*AddTenantMemberRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_AddTenantMemberByIdentity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddTenantMemberByIdentityRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).AddTenantMemberByIdentity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_AddTenantMemberByIdentity_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).AddTenantMemberByIdentity(ctx, req.(*AddTenantMemberByIdentityRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_CreateTenantInvite_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateTenantInviteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).CreateTenantInvite(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_CreateTenantInvite_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).CreateTenantInvite(ctx, req.(*CreateTenantInviteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_ListTenantInvites_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTenantInvitesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).ListTenantInvites(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_ListTenantInvites_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).ListTenantInvites(ctx, req.(*ListTenantInvitesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_RevokeTenantInvite_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokeTenantInviteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).RevokeTenantInvite(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_RevokeTenantInvite_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).RevokeTenantInvite(ctx, req.(*RevokeTenantInviteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_AcceptTenantInvite_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AcceptTenantInviteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).AcceptTenantInvite(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_AcceptTenantInvite_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).AcceptTenantInvite(ctx, req.(*AcceptTenantInviteRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -978,6 +1160,26 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddTenantMember",
 			Handler:    _IAMService_AddTenantMember_Handler,
+		},
+		{
+			MethodName: "AddTenantMemberByIdentity",
+			Handler:    _IAMService_AddTenantMemberByIdentity_Handler,
+		},
+		{
+			MethodName: "CreateTenantInvite",
+			Handler:    _IAMService_CreateTenantInvite_Handler,
+		},
+		{
+			MethodName: "ListTenantInvites",
+			Handler:    _IAMService_ListTenantInvites_Handler,
+		},
+		{
+			MethodName: "RevokeTenantInvite",
+			Handler:    _IAMService_RevokeTenantInvite_Handler,
+		},
+		{
+			MethodName: "AcceptTenantInvite",
+			Handler:    _IAMService_AcceptTenantInvite_Handler,
 		},
 		{
 			MethodName: "GetTenantMembership",

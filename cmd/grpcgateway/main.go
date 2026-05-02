@@ -64,6 +64,16 @@ func newAppContainer() *fx.App {
 				fx.ResultTags(`group:"gateway-registrars"`),
 			),
 		),
+		fx.Provide(
+			fx.Annotate(
+				func() grpcgateway.GatewayRegistrar {
+					return &grpcgateway.PartnerRegistrar{
+						AddrVal: toolkit.GetEnv("PARTNER_GRPC_ADDR", "localhost:50054"),
+					}
+				},
+				fx.ResultTags(`group:"gateway-registrars"`),
+			),
+		),
 
 		fx.Provide(
 			fx.Annotate(

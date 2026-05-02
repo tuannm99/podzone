@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package partner;
+
+option go_package = "github.com/tuannm99/podzone/pkg/api/proto/partner/v1;pbpartnerv1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+service PartnerService {
+  rpc CreatePartner(CreatePartnerRequest) returns (Partner) {
+    option (google.api.http) = {
+      post: "/partner/v1/partners"
+      body: "*"
+    };
+  }
+
+  rpc GetPartner(GetPartnerRequest) returns (Partner) {
+    option (google.api.http) = {
+      get: "/partner/v1/partners/{id}"
+    };
+  }
+
+  rpc ListPartners(ListPartnersRequest) returns (ListPartnersResponse) {
+    option (google.api.http) = {
+      get: "/partner/v1/partners"
+    };
+  }
+
+  rpc UpdatePartner(UpdatePartnerRequest) returns (Partner) {
+    option (google.api.http) = {
+      put: "/partner/v1/partners/{id}"
+      body: "*"
+    };
+  }
+
+  rpc UpdatePartnerStatus(UpdatePartnerStatusRequest) returns (Partner) {
+    option (google.api.http) = {
+      patch: "/partner/v1/partners/{id}/status"
+      body: "*"
+    };
+  }
+}
+
+message Partner {
+  string id = 1;
+  string tenant_id = 2;
+  string code = 3;
+  string name = 4;
+  string contact_name = 5;
+  string contact_email = 6;
+  string notes = 7;
+  string partner_type = 8;
+  string status = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message CreatePartnerRequest {
+  string tenant_id = 1;
+  string code = 2;
+  string name = 3;
+  string contact_name = 4;
+  string contact_email = 5;
+  string notes = 6;
+  string partner_type = 7;
+}
+
+message GetPartnerRequest {
+  string id = 1;
+}
+
+message ListPartnersRequest {
+  string tenant_id = 1;
+  string status = 2;
+  string partner_type = 3;
+}
+
+message ListPartnersResponse {
+  repeated Partner partners = 1;
+}
+
+message UpdatePartnerRequest {
+  string id = 1;
+  string name = 2;
+  string contact_name = 3;
+  string contact_email = 4;
+  string notes = 5;
+  string partner_type = 6;
+}
+
+message UpdatePartnerStatusRequest {
+  string id = 1;
+  string status = 2;
+}
