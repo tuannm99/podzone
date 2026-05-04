@@ -8,15 +8,15 @@ import (
 	"github.com/google/uuid"
 )
 
-type supplierService struct {
-	repo SupplierRepository
+type partnerService struct {
+	repo PartnerRepository
 }
 
-func NewSupplierUsecase(repo SupplierRepository) SupplierUsecase {
-	return &supplierService{repo: repo}
+func NewPartnerUsecase(repo PartnerRepository) PartnerUsecase {
+	return &partnerService{repo: repo}
 }
 
-func (s *supplierService) CreateSupplier(ctx context.Context, cmd CreateSupplierCmd) (*Supplier, error) {
+func (s *partnerService) CreatePartner(ctx context.Context, cmd CreatePartnerCmd) (*Partner, error) {
 	tenantID := strings.TrimSpace(cmd.TenantID)
 	if tenantID == "" {
 		return nil, ErrInvalidTenantID
@@ -24,15 +24,15 @@ func (s *supplierService) CreateSupplier(ctx context.Context, cmd CreateSupplier
 
 	name := strings.TrimSpace(cmd.Name)
 	if name == "" {
-		return nil, ErrInvalidSupplierName
+		return nil, ErrInvalidPartnerName
 	}
 
-	code := normalizeSupplierCode(cmd.Code)
+	code := normalizePartnerCode(cmd.Code)
 	if code == "" {
-		code = normalizeSupplierCode(name)
+		code = normalizePartnerCode(name)
 	}
 	if code == "" {
-		return nil, ErrInvalidSupplierCode
+		return nil, ErrInvalidPartnerCode
 	}
 	partnerType := NormalizePartnerType(cmd.PartnerType)
 	if partnerType == "" {
@@ -40,7 +40,7 @@ func (s *supplierService) CreateSupplier(ctx context.Context, cmd CreateSupplier
 	}
 
 	now := time.Now().UTC()
-	return s.repo.Create(ctx, Supplier{
+	return s.repo.Create(ctx, Partner{
 		ID:           uuid.NewString(),
 		TenantID:     tenantID,
 		Code:         code,
@@ -49,29 +49,29 @@ func (s *supplierService) CreateSupplier(ctx context.Context, cmd CreateSupplier
 		ContactEmail: strings.TrimSpace(strings.ToLower(cmd.ContactEmail)),
 		Notes:        strings.TrimSpace(cmd.Notes),
 		PartnerType:  partnerType,
-		Status:       SupplierStatusActive,
+		Status:       PartnerStatusActive,
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	})
 }
 
-func (s *supplierService) GetSupplier(ctx context.Context, id string) (*Supplier, error) {
+func (s *partnerService) GetPartner(ctx context.Context, id string) (*Partner, error) {
 	id = strings.TrimSpace(id)
 	if id == "" {
-		return nil, ErrInvalidSupplierID
+		return nil, ErrInvalidPartnerID
 	}
 	return s.repo.GetByID(ctx, id)
 }
 
-func (s *supplierService) ListSuppliers(ctx context.Context, query ListSuppliersQuery) ([]Supplier, error) {
+func (s *partnerService) ListPartners(ctx context.Context, query ListPartnersQuery) ([]Partner, error) {
 	query.TenantID = strings.TrimSpace(query.TenantID)
 	if query.TenantID == "" {
 		return nil, ErrInvalidTenantID
 	}
 	if query.Status != "" {
-		query.Status = NormalizeSupplierStatus(query.Status)
+		query.Status = NormalizePartnerStatus(query.Status)
 		if query.Status == "" {
-			return nil, ErrInvalidSupplierStatus
+			return nil, ErrInvalidPartnerStatus
 		}
 	}
 	if query.PartnerType != "" {
@@ -83,14 +83,14 @@ func (s *supplierService) ListSuppliers(ctx context.Context, query ListSuppliers
 	return s.repo.List(ctx, query)
 }
 
-func (s *supplierService) UpdateSupplier(ctx context.Context, cmd UpdateSupplierCmd) (*Supplier, error) {
+func (s *partnerService) UpdatePartner(ctx context.Context, cmd UpdatePartnerCmd) (*Partner, error) {
 	id := strings.TrimSpace(cmd.ID)
 	if id == "" {
-		return nil, ErrInvalidSupplierID
+		return nil, ErrInvalidPartnerID
 	}
 	name := strings.TrimSpace(cmd.Name)
 	if name == "" {
-		return nil, ErrInvalidSupplierName
+		return nil, ErrInvalidPartnerName
 	}
 	current, err := s.repo.GetByID(ctx, id)
 	if err != nil {
@@ -111,19 +111,19 @@ func (s *supplierService) UpdateSupplier(ctx context.Context, cmd UpdateSupplier
 	return s.repo.Update(ctx, *current)
 }
 
-func (s *supplierService) UpdateSupplierStatus(ctx context.Context, id, status string) (*Supplier, error) {
+func (s *partnerService) UpdatePartnerStatus(ctx context.Context, id, status string) (*Partner, error) {
 	id = strings.TrimSpace(id)
 	if id == "" {
-		return nil, ErrInvalidSupplierID
+		return nil, ErrInvalidPartnerID
 	}
-	status = NormalizeSupplierStatus(status)
+	status = NormalizePartnerStatus(status)
 	if status == "" {
-		return nil, ErrInvalidSupplierStatus
+		return nil, ErrInvalidPartnerStatus
 	}
 	return s.repo.UpdateStatus(ctx, id, status)
 }
 
-func normalizeSupplierCode(raw string) string {
+func normalizePartnerCode(raw string) string {
 	raw = strings.TrimSpace(strings.ToLower(raw))
 	if raw == "" {
 		return ""

@@ -26,8 +26,8 @@ The goal is not to restate implementation details. The goal is to clarify:
   Product backlog starter for the POD-first context, grouped by epic.
 - [06-ux-copy-guideline.md](./06-ux-copy-guideline.md)
   User-facing language guide for rewriting the product from technical admin wording to POD operations wording.
-- [07-supplier-mvp.md](./07-supplier-mvp.md)
-  Interpretation of the current supplier implementation inside a POD-first partner model.
+- [07-partner-mvp.md](./07-partner-mvp.md)
+  Interpretation of the current partner implementation inside a POD-first partner model.
 - [08-partner-refactor-plan.md](./08-partner-refactor-plan.md)
   Migration plan for evolving the current supplier implementation into a broader partner model.
 

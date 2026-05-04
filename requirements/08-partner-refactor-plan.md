@@ -13,7 +13,7 @@ That creates two problems:
 1. the product language now says `print partner` or `partner`
 2. the implementation language still says `supplier`
 
-That gap has now been removed at the runtime and product API layers.
+That gap has now been removed at the product API layer and the active runtime boundary. Remaining `supplier` references are historical, such as migration names or backward-looking documentation.
 
 ## Target model
 
@@ -74,6 +74,7 @@ Status:
 - completed
 - UI now calls `/partner/v1/partners`
 - runtime now serves `PartnerService` as the primary product-facing API
+- active runtime source now reads as `partner` end-to-end for the current service boundary
 
 ### Phase 4. Rename storage and module boundaries
 
@@ -83,7 +84,7 @@ Status:
 - dev entrypoint has moved to `cmd/partner`
 - table rename migration is now in place
 - `partners` is now the target storage name for the active runtime
-- legacy supplier runtime files and docker wiring have been removed
+- historical migration assets still use `supplier` naming where they describe the old state being migrated from
 
 ## Implementation recommendation
 
@@ -102,4 +103,4 @@ The correct move was:
 - `type-aware partner model next`
 - `full supplier -> partner rename before deeper product workflows`
 
-That rename is now complete enough for current experimental use.
+That rename is complete for current experimental use at both the product-facing API layer and the active runtime source.

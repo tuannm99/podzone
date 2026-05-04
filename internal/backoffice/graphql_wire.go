@@ -22,7 +22,7 @@ func provideCORSMiddleware() pdhttp.Middleware {
 	return func(r *gin.Engine) {
 		r.Use(cors.New(cors.Config{
 			AllowOrigins:     []string{"*"},
-			AllowMethods:     []string{"POST", "GET", "OPTIONS"},
+			AllowMethods:     []string{"POST", "GET", "PATCH", "OPTIONS"},
 			AllowHeaders:     []string{"Content-Type", "Authorization"},
 			ExposeHeaders:    []string{"Content-Length"},
 			AllowCredentials: true,

@@ -13,11 +13,11 @@ import (
 
 type PartnerServer struct {
 	pbpartnerv1.UnimplementedPartnerServiceServer
-	uc         partnerdomain.SupplierUsecase
+	uc         partnerdomain.PartnerUsecase
 	authorizer TenantAuthorizer
 }
 
-func NewPartnerServer(uc partnerdomain.SupplierUsecase, authorizer TenantAuthorizer) *PartnerServer {
+func NewPartnerServer(uc partnerdomain.PartnerUsecase, authorizer TenantAuthorizer) *PartnerServer {
 	return &PartnerServer{uc: uc, authorizer: authorizer}
 }
 
@@ -28,7 +28,7 @@ func (s *PartnerServer) CreatePartner(
 	if _, err := s.authorizer.AuthorizeTenant(ctx, req.TenantId, "partner:manage"); err != nil {
 		return nil, status.Error(codes.PermissionDenied, err.Error())
 	}
-	out, err := s.uc.CreateSupplier(ctx, partnerdomain.CreateSupplierCmd{
+	out, err := s.uc.CreatePartner(ctx, partnerdomain.CreatePartnerCmd{
 		TenantID:     req.TenantId,
 		Code:         req.Code,
 		Name:         req.Name,
@@ -47,7 +47,7 @@ func (s *PartnerServer) GetPartner(
 	ctx context.Context,
 	req *pbpartnerv1.GetPartnerRequest,
 ) (*pbpartnerv1.Partner, error) {
-	out, err := s.uc.GetSupplier(ctx, req.Id)
+	out, err := s.uc.GetPartner(ctx, req.Id)
 	if err != nil {
 		return nil, partnerStatusError(err)
 	}
@@ -64,7 +64,7 @@ func (s *PartnerServer) ListPartners(
 	if _, err := s.authorizer.AuthorizeTenant(ctx, req.TenantId, "partner:read"); err != nil {
 		return nil, status.Error(codes.PermissionDenied, err.Error())
 	}
-	items, err := s.uc.ListSuppliers(ctx, partnerdomain.ListSuppliersQuery{
+	items, err := s.uc.ListPartners(ctx, partnerdomain.ListPartnersQuery{
 		TenantID:    req.TenantId,
 		Status:      req.Status,
 		PartnerType: req.PartnerType,
@@ -87,14 +87,14 @@ func (s *PartnerServer) UpdatePartner(
 	ctx context.Context,
 	req *pbpartnerv1.UpdatePartnerRequest,
 ) (*pbpartnerv1.Partner, error) {
-	current, err := s.uc.GetSupplier(ctx, req.Id)
+	current, err := s.uc.GetPartner(ctx, req.Id)
 	if err != nil {
 		return nil, partnerStatusError(err)
 	}
 	if _, err := s.authorizer.AuthorizeTenant(ctx, current.TenantID, "partner:manage"); err != nil {
 		return nil, status.Error(codes.PermissionDenied, err.Error())
 	}
-	out, err := s.uc.UpdateSupplier(ctx, partnerdomain.UpdateSupplierCmd{
+	out, err := s.uc.UpdatePartner(ctx, partnerdomain.UpdatePartnerCmd{
 		ID:           req.Id,
 		Name:         req.Name,
 		ContactName:  req.ContactName,
@@ -112,14 +112,14 @@ func (s *PartnerServer) UpdatePartnerStatus(
 	ctx context.Context,
 	req *pbpartnerv1.UpdatePartnerStatusRequest,
 ) (*pbpartnerv1.Partner, error) {
-	current, err := s.uc.GetSupplier(ctx, req.Id)
+	current, err := s.uc.GetPartner(ctx, req.Id)
 	if err != nil {
 		return nil, partnerStatusError(err)
 	}
 	if _, err := s.authorizer.AuthorizeTenant(ctx, current.TenantID, "partner:manage"); err != nil {
 		return nil, status.Error(codes.PermissionDenied, err.Error())
 	}
-	out, err := s.uc.UpdateSupplierStatus(ctx, req.Id, req.Status)
+	out, err := s.uc.UpdatePartnerStatus(ctx, req.Id, req.Status)
 	if err != nil {
 		return nil, partnerStatusError(err)
 	}
@@ -128,24 +128,24 @@ func (s *PartnerServer) UpdatePartnerStatus(
 
 func partnerStatusError(err error) error {
 	switch {
-	case errors.Is(err, partnerdomain.ErrSupplierNotFound):
+	case errors.Is(err, partnerdomain.ErrPartnerNotFound):
 		return status.Error(codes.NotFound, err.Error())
-	case errors.Is(err, partnerdomain.ErrSupplierCodeTaken):
+	case errors.Is(err, partnerdomain.ErrPartnerCodeTaken):
 		return status.Error(codes.AlreadyExists, err.Error())
-	case errors.Is(err, partnerdomain.ErrInvalidSupplierID),
-		errors.Is(err, partnerdomain.ErrInvalidSupplierCode),
-		errors.Is(err, partnerdomain.ErrInvalidSupplierName),
+	case errors.Is(err, partnerdomain.ErrInvalidPartnerID),
+		errors.Is(err, partnerdomain.ErrInvalidPartnerCode),
+		errors.Is(err, partnerdomain.ErrInvalidPartnerName),
 		errors.Is(err, partnerdomain.ErrInvalidTenantID),
 		errors.Is(err, partnerdomain.ErrInvalidPartnerType),
-		errors.Is(err, partnerdomain.ErrInvalidSupplierStatus):
+		errors.Is(err, partnerdomain.ErrInvalidPartnerStatus):
 		return status.Error(codes.InvalidArgument, err.Error())
 	default:
 		return status.Error(codes.Internal, err.Error())
 	}
 }
 
-func toProtoPartner(in *partnerdomain.Supplier) (*pbpartnerv1.Partner, error) {
-	out, err := toolkit.MapStruct[partnerdomain.Supplier, pbpartnerv1.Partner](*in)
+func toProtoPartner(in *partnerdomain.Partner) (*pbpartnerv1.Partner, error) {
+	out, err := toolkit.MapStruct[partnerdomain.Partner, pbpartnerv1.Partner](*in)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

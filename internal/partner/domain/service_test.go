@@ -7,44 +7,44 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type supplierRepoFake struct {
-	createFunc       func(ctx context.Context, supplier Supplier) (*Supplier, error)
-	getByIDFunc      func(ctx context.Context, id string) (*Supplier, error)
-	listFunc         func(ctx context.Context, query ListSuppliersQuery) ([]Supplier, error)
-	updateFunc       func(ctx context.Context, supplier Supplier) (*Supplier, error)
-	updateStatusFunc func(ctx context.Context, id, status string) (*Supplier, error)
+type partnerRepoFake struct {
+	createFunc       func(ctx context.Context, partner Partner) (*Partner, error)
+	getByIDFunc      func(ctx context.Context, id string) (*Partner, error)
+	listFunc         func(ctx context.Context, query ListPartnersQuery) ([]Partner, error)
+	updateFunc       func(ctx context.Context, partner Partner) (*Partner, error)
+	updateStatusFunc func(ctx context.Context, id, status string) (*Partner, error)
 }
 
-func (f *supplierRepoFake) Create(ctx context.Context, supplier Supplier) (*Supplier, error) {
-	return f.createFunc(ctx, supplier)
+func (f *partnerRepoFake) Create(ctx context.Context, partner Partner) (*Partner, error) {
+	return f.createFunc(ctx, partner)
 }
 
-func (f *supplierRepoFake) GetByID(ctx context.Context, id string) (*Supplier, error) {
+func (f *partnerRepoFake) GetByID(ctx context.Context, id string) (*Partner, error) {
 	return f.getByIDFunc(ctx, id)
 }
 
-func (f *supplierRepoFake) List(ctx context.Context, query ListSuppliersQuery) ([]Supplier, error) {
+func (f *partnerRepoFake) List(ctx context.Context, query ListPartnersQuery) ([]Partner, error) {
 	return f.listFunc(ctx, query)
 }
 
-func (f *supplierRepoFake) Update(ctx context.Context, supplier Supplier) (*Supplier, error) {
-	return f.updateFunc(ctx, supplier)
+func (f *partnerRepoFake) Update(ctx context.Context, partner Partner) (*Partner, error) {
+	return f.updateFunc(ctx, partner)
 }
 
-func (f *supplierRepoFake) UpdateStatus(ctx context.Context, id, status string) (*Supplier, error) {
+func (f *partnerRepoFake) UpdateStatus(ctx context.Context, id, status string) (*Partner, error) {
 	return f.updateStatusFunc(ctx, id, status)
 }
 
-func TestCreateSupplier_NormalizesCodeFromName(t *testing.T) {
+func TestCreatePartner_NormalizesCodeFromName(t *testing.T) {
 	t.Parallel()
 
-	uc := NewSupplierUsecase(&supplierRepoFake{
-		createFunc: func(ctx context.Context, supplier Supplier) (*Supplier, error) {
-			return &supplier, nil
+	uc := NewPartnerUsecase(&partnerRepoFake{
+		createFunc: func(ctx context.Context, partner Partner) (*Partner, error) {
+			return &partner, nil
 		},
 	})
 
-	out, err := uc.CreateSupplier(context.Background(), CreateSupplierCmd{
+	out, err := uc.CreatePartner(context.Background(), CreatePartnerCmd{
 		TenantID:    "tenant-1",
 		Name:        "Acme Supply Co",
 		PartnerType: PartnerTypePrintOnDemand,
@@ -52,23 +52,23 @@ func TestCreateSupplier_NormalizesCodeFromName(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "acme-supply-co", out.Code)
 	require.Equal(t, PartnerTypePrintOnDemand, out.PartnerType)
-	require.Equal(t, SupplierStatusActive, out.Status)
+	require.Equal(t, PartnerStatusActive, out.Status)
 }
 
-func TestUpdateSupplierStatus_RejectsUnknownStatus(t *testing.T) {
+func TestUpdatePartnerStatus_RejectsUnknownStatus(t *testing.T) {
 	t.Parallel()
 
-	uc := NewSupplierUsecase(&supplierRepoFake{})
-	out, err := uc.UpdateSupplierStatus(context.Background(), "sup-1", "paused")
+	uc := NewPartnerUsecase(&partnerRepoFake{})
+	out, err := uc.UpdatePartnerStatus(context.Background(), "prt-1", "paused")
 	require.Nil(t, out)
-	require.ErrorIs(t, err, ErrInvalidSupplierStatus)
+	require.ErrorIs(t, err, ErrInvalidPartnerStatus)
 }
 
-func TestCreateSupplier_RejectsUnknownPartnerType(t *testing.T) {
+func TestCreatePartner_RejectsUnknownPartnerType(t *testing.T) {
 	t.Parallel()
 
-	uc := NewSupplierUsecase(&supplierRepoFake{})
-	out, err := uc.CreateSupplier(context.Background(), CreateSupplierCmd{
+	uc := NewPartnerUsecase(&partnerRepoFake{})
+	out, err := uc.CreatePartner(context.Background(), CreatePartnerCmd{
 		TenantID:    "tenant-1",
 		Name:        "Acme",
 		PartnerType: "supplier",

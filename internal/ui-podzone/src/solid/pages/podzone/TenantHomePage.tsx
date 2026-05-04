@@ -3,28 +3,18 @@ import { createEffect, createSignal } from 'solid-js';
 import { TENANT_GQL_URL } from '../../../services/baseurl';
 import {
   ordersStorageKey,
-  productSetupStorageKey,
   resetDemoStoreState,
   seedDemoStoreState,
 } from '../../../services/demoStore';
+import { getProductSetupSnapshot } from '../../../services/productSetup';
 import { tenantStorage } from '../../../services/tenantStorage';
 import { tokenStorage } from '../../../services/tokenStorage';
 import { PageShell } from '../../components/common/PageShell';
-import { EmptyBlock, InfoAlert } from '../../components/common/Feedback';
+import { EmptyBlock, ErrorAlert, InfoAlert } from '../../components/common/Feedback';
 import { Badge, Button, Card } from '../../components/common/Primitives';
 import { SectionLead } from '../../components/common/SectionLead';
 import { SectionTitle } from '../../components/common/SectionTitle';
 import { StatCard } from '../../components/dashboard/StatCard';
-
-type ProductSetupState = {
-  drafts?: Array<{ id: string }>;
-  candidates?: Array<{
-    id: string;
-    status: string;
-    partner: string;
-    estimatedMargin: string;
-  }>;
-};
 
 type MockOrder = {
   id: string;
@@ -58,31 +48,27 @@ export default function TenantHomePage() {
   const [topPartnerLoad, setTopPartnerLoad] = createSignal('No partner load yet');
   const [issueRate, setIssueRate] = createSignal('0%');
   const [message, setMessage] = createSignal('');
+  const [error, setError] = createSignal('');
 
-  const loadOpsSnapshot = () => {
-    const productRaw = localStorage.getItem(productSetupStorageKey(params().tenantId));
-    if (productRaw) {
-      try {
-        const parsed = JSON.parse(productRaw) as ProductSetupState;
-        setDraftCount((parsed.drafts || []).length);
-        const publishedCandidates = (parsed.candidates || []).filter(
+  const loadOpsSnapshot = async () => {
+    setError('');
+    const productResult = await getProductSetupSnapshot();
+    if (productResult.success) {
+      setDraftCount(productResult.data.drafts.length);
+      const publishedCandidates = productResult.data.candidates.filter(
           (candidate) => candidate.status === 'published_mock'
-        );
-        setPublishedCandidateCount(publishedCandidates.length);
-        setEstimatedMarginTotal(
-          formatMoney(
-            publishedCandidates.reduce(
-              (sum, candidate) => sum + parseMoney(candidate.estimatedMargin),
-              0
-            )
+      );
+      setPublishedCandidateCount(publishedCandidates.length);
+      setEstimatedMarginTotal(
+        formatMoney(
+          publishedCandidates.reduce(
+            (sum, candidate) => sum + parseMoney(candidate.estimatedMargin),
+            0
           )
-        );
-      } catch {
-        setDraftCount(0);
-        setPublishedCandidateCount(0);
-        setEstimatedMarginTotal('$0.00');
-      }
+        )
+      );
     } else {
+      setError(productResult.message);
       setDraftCount(0);
       setPublishedCandidateCount(0);
       setEstimatedMarginTotal('$0.00');
@@ -142,7 +128,7 @@ export default function TenantHomePage() {
   createEffect(() => {
     tenantStorage.setTenantID(params().tenantId);
     setTenantReady(tokenStorage.getActiveTenantID() === params().tenantId);
-    loadOpsSnapshot();
+    void loadOpsSnapshot();
   });
 
   const seedDemo = () => {
@@ -161,13 +147,15 @@ export default function TenantHomePage() {
     <PageShell>
       <Card class="space-y-4">
         <SectionLead
-          eyebrow="Store Workspace"
+          eyebrow="Store Workspace Prototype"
           title={`Store ${params().tenantId}`}
-          copy="This workspace stays scoped to the active store in the signed-in session and doubles as an experimental POD sandbox for product, order, and operations flow testing."
+          copy="This store workspace stays scoped to the active session. Product setup is now backend-backed for the store, while order flow and some dashboard metrics still run as prototype data."
         />
       </Card>
 
       {message() ? <InfoAlert>{message()}</InfoAlert> : null}
+
+      {error() ? <ErrorAlert>{error()}</ErrorAlert> : null}
 
       <div class="grid gap-4 md:grid-cols-3">
         <StatCard label="Store id" value={params().tenantId} />
@@ -203,19 +191,19 @@ export default function TenantHomePage() {
 
       <Card class="space-y-4">
         <SectionTitle
-          title="Demo controls"
-          subtitle="Use seeded local data to demo the POD workflow quickly without depending on external systems or deeper cloud setup."
+          title="Prototype controls"
+          subtitle="Seed local-only sample orders to exercise the POD workflow concept without depending on backend order or fulfillment services yet."
         />
         <div class="flex flex-wrap gap-3">
           <Button color="green" onClick={seedDemo}>
-            Seed demo store
+            Seed prototype data
           </Button>
           <Button color="light" onClick={resetDemo}>
-            Reset demo store
+            Reset prototype data
           </Button>
         </div>
         <p class="text-sm text-gray-600">
-          Seed and reset only affect local-first product and order mock data. Print partners continue to live in the backend service.
+          These actions now affect browser-local order prototype data only. Product setup drafts and candidates remain persisted in the backend.
         </p>
       </Card>
 
@@ -245,8 +233,8 @@ export default function TenantHomePage() {
 
       <Card class="space-y-4">
         <SectionTitle
-          title="Operations pulse"
-          subtitle="A lightweight summary of the experimental POD workflow for this store."
+          title="Prototype operations pulse"
+          subtitle="Product setup metrics come from the backend. Order and exception metrics still come from local prototype data."
         />
         <div class="flex flex-wrap gap-2">
           <Badge
@@ -273,7 +261,7 @@ export default function TenantHomePage() {
         {!publishedCandidateCount() ? (
           <EmptyBlock
             title="No published products yet"
-            copy="Start in Product setup, promote a candidate, and mock publish it before testing the rest of the POD flow."
+            copy="Start in Product setup, promote a candidate, and prototype publish it before testing the rest of this local workflow."
           />
         ) : null}
       </Card>
@@ -281,7 +269,7 @@ export default function TenantHomePage() {
       <Card class="space-y-4">
         <SectionTitle
           title="Start here"
-          subtitle="A simple guided flow so the workspace feels like a product, not a loose collection of screens."
+          subtitle="A simple guided prototype flow that separates the real partner record layer from local-only product and order experiments."
         />
         <div class="grid gap-4 md:grid-cols-3">
           <div class="rounded-2xl border border-gray-200 p-4">
@@ -308,7 +296,7 @@ export default function TenantHomePage() {
               Build candidates for the store catalog
             </p>
             <p class="mt-1 text-sm text-gray-600">
-              Create drafts, verify artwork readiness, and mock publish what is ready to route.
+              Create backend-backed drafts, verify artwork readiness, and mock publish what is ready to route.
             </p>
             <div class="mt-4">
               <Button href={`/t/${params().tenantId}/products/setup`} color="green">
@@ -349,7 +337,7 @@ export default function TenantHomePage() {
               {estimatedMarginTotal()}
             </p>
             <p class="mt-1 text-sm text-gray-600">
-              Based on the sum of estimated margin from published mock products.
+              Based on the sum of estimated margin from backend-backed published mock products.
             </p>
           </div>
           <div class="rounded-2xl border border-gray-200 p-4">

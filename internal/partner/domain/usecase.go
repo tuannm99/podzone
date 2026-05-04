@@ -2,10 +2,10 @@ package domain
 
 import "context"
 
-type SupplierUsecase interface {
-	CreateSupplier(ctx context.Context, cmd CreateSupplierCmd) (*Supplier, error)
-	GetSupplier(ctx context.Context, id string) (*Supplier, error)
-	ListSuppliers(ctx context.Context, query ListSuppliersQuery) ([]Supplier, error)
-	UpdateSupplier(ctx context.Context, cmd UpdateSupplierCmd) (*Supplier, error)
-	UpdateSupplierStatus(ctx context.Context, id, status string) (*Supplier, error)
+type PartnerUsecase interface {
+	CreatePartner(ctx context.Context, cmd CreatePartnerCmd) (*Partner, error)
+	GetPartner(ctx context.Context, id string) (*Partner, error)
+	ListPartners(ctx context.Context, query ListPartnersQuery) ([]Partner, error)
+	UpdatePartner(ctx context.Context, cmd UpdatePartnerCmd) (*Partner, error)
+	UpdatePartnerStatus(ctx context.Context, id, status string) (*Partner, error)
 }

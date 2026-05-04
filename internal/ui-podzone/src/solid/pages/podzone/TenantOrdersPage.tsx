@@ -1,7 +1,11 @@
 import { useParams } from '@tanstack/solid-router';
 import { For, Show, createEffect, createSignal } from 'solid-js';
+import {
+  getProductSetupSnapshot,
+  type CatalogCandidate,
+} from '../../../services/productSetup';
 import { tenantStorage } from '../../../services/tenantStorage';
-import { EmptyBlock, InfoAlert } from '../../components/common/Feedback';
+import { EmptyBlock, ErrorAlert, InfoAlert } from '../../components/common/Feedback';
 import { PageShell } from '../../components/common/PageShell';
 import {
   Badge,
@@ -12,14 +16,6 @@ import {
 } from '../../components/common/Primitives';
 import { SectionLead } from '../../components/common/SectionLead';
 import { SectionTitle } from '../../components/common/SectionTitle';
-
-type CatalogCandidate = {
-  id: string;
-  title: string;
-  partner: string;
-  retailPrice: string;
-  status: string;
-};
 
 type MockOrder = {
   id: string;
@@ -47,10 +43,6 @@ const exceptionOptions = [
   { name: 'Address hold', value: 'address_hold' },
   { name: 'Reprint request', value: 'reprint_request' },
 ];
-
-function productSetupStorageKey(tenantId: string) {
-  return `podzone:product-setup:${tenantId}`;
-}
 
 function ordersStorageKey(tenantId: string) {
   return `podzone:mock-orders:${tenantId}`;
@@ -120,6 +112,7 @@ export default function TenantOrdersPage() {
   const [selectedExceptionType, setSelectedExceptionType] =
     createSignal('artwork_issue');
   const [message, setMessage] = createSignal('');
+  const [error, setError] = createSignal('');
 
   const persistOrders = (nextOrders: MockOrder[]) => {
     localStorage.setItem(
@@ -128,26 +121,19 @@ export default function TenantOrdersPage() {
     );
   };
 
-  const loadCandidates = () => {
-    const raw = localStorage.getItem(productSetupStorageKey(params().tenantId));
-    if (!raw) {
+  const loadCandidates = async () => {
+    const result = await getProductSetupSnapshot();
+    if (!result.success) {
+      setError(result.message);
       setAvailableCandidates([]);
       return;
     }
-
-    try {
-      const parsed = JSON.parse(raw) as {
-        candidates?: CatalogCandidate[];
-      };
-      const published = (parsed.candidates || []).filter(
-        (candidate) => candidate.status === 'published_mock'
-      );
-      setAvailableCandidates(published);
-      if (!selectedCandidateId() && published.length > 0) {
-        setSelectedCandidateId(published[0].id);
-      }
-    } catch {
-      setAvailableCandidates([]);
+    const published = result.data.candidates.filter(
+      (candidate) => candidate.status === 'published_mock'
+    );
+    setAvailableCandidates(published);
+    if (!selectedCandidateId() && published.length > 0) {
+      setSelectedCandidateId(published[0].id);
     }
   };
 
@@ -258,7 +244,7 @@ export default function TenantOrdersPage() {
 
   createEffect(() => {
     tenantStorage.setTenantID(params().tenantId);
-    loadCandidates();
+    void loadCandidates();
     loadOrders();
   });
 
@@ -266,9 +252,9 @@ export default function TenantOrdersPage() {
     <PageShell>
       <Card class="space-y-4">
         <SectionLead
-          eyebrow="Orders"
+          eyebrow="Order Routing Prototype"
           title={`Mock order routing for store ${params().tenantId}`}
-          copy="This is a local-first routing workspace for POD operations. It uses published mock products and moves them through the early fulfillment states without relying on external systems."
+          copy="This is a browser-local routing workspace for POD operations. It uses published prototype products and moves them through early fulfillment states without relying on external systems."
         />
       </Card>
 
@@ -276,15 +262,19 @@ export default function TenantOrdersPage() {
         <InfoAlert>{message()}</InfoAlert>
       </Show>
 
+      <Show when={error()}>
+        <ErrorAlert>{error()}</ErrorAlert>
+      </Show>
+
       <InfoAlert>
-        Best demo path: use Product setup to mock publish at least one product first, then create routed orders here and test exception handling.
+        This screen stores prototype orders in the browser only. It now reads published product candidates from the backend-backed Product setup workflow.
       </InfoAlert>
 
       <div class="grid gap-6 lg:grid-cols-[0.96fr_1.04fr]">
         <Card class="space-y-4">
           <SectionTitle
-            title="Create mock routed order"
-            subtitle="Use a published mock product candidate as the source, then send the order into the local routing flow."
+            title="Create prototype routed order"
+            subtitle="Use a published prototype product candidate as the source, then send the order into the local routing flow."
           />
 
           <Show
@@ -292,7 +282,7 @@ export default function TenantOrdersPage() {
             fallback={
               <EmptyBlock
                 title="No published mock products yet"
-                copy="Go to Product setup, promote a draft, and mock publish it before testing order routing."
+                copy="Go to Product setup, promote a draft, and mock publish it from the backend-backed setup workflow before testing order routing."
               />
             }
           >

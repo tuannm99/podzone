@@ -1,6 +1,6 @@
-# Supplier Domain MVP
+# Partner Domain MVP
 
-This document explains how the current `supplier` implementation should be interpreted in a `POD-first` product strategy.
+This document explains how the current `partner` implementation should be interpreted in a `POD-first` product strategy.
 
 ## Product framing
 
@@ -10,9 +10,9 @@ At the requirements level, Podzone should speak about:
 - `production partner`
 - `fulfillment partner`
 
-The current `supplier` domain in code should be treated as a technical placeholder for a broader future `partner` model.
+The old `supplier` domain should be treated as historical implementation language for the broader `partner` model now used by the active runtime.
 
-The implementation has now taken the first step in that direction by introducing `partner_type` in the current supplier model.
+The current implementation already exposes `partner_type` in the active partner model.
 
 ## Objective
 
@@ -40,7 +40,9 @@ The first release should support:
 
 ## BA note
 
-The code currently uses `supplier` naming. That is acceptable temporarily for implementation momentum, but the product language should remain `partner` or `print partner` until the strategic direction broadens again.
+The product language should remain `partner` or `print partner`.
+
+Historical `supplier` wording may still appear in older migrations, backlog notes, or earlier requirement drafts, but it should not be treated as the preferred current terminology for the active runtime.
 
 Current implementation note:
 

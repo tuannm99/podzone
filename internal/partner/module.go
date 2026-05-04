@@ -22,8 +22,8 @@ import (
 var Module = fx.Options(
 	fx.Provide(
 		partnerconfig.NewConfigFromKoanf,
-		fx.Annotate(repository.NewSupplierRepository, fx.As(new(partnerdomain.SupplierRepository))),
-		fx.Annotate(partnerdomain.NewSupplierUsecase, fx.As(new(partnerdomain.SupplierUsecase))),
+		fx.Annotate(repository.NewPartnerRepository, fx.As(new(partnerdomain.PartnerRepository))),
+		fx.Annotate(partnerdomain.NewPartnerUsecase, fx.As(new(partnerdomain.PartnerUsecase))),
 		fx.Annotate(grpchandler.NewTenantAuthorizer, fx.As(new(grpchandler.TenantAuthorizer))),
 		grpchandler.NewPartnerServer,
 	),
@@ -49,12 +49,12 @@ func RegisterGRPCServer(
 type MigrateParams struct {
 	fx.In
 	Logger           pdlog.Logger
-	SupplierDBConfig *pdsql.Config `name:"sql-partner-config"`
-	SupplierDB       *sqlx.DB      `name:"sql-partner"`
+	PartnerDBConfig *pdsql.Config `name:"sql-partner-config"`
+	PartnerDB       *sqlx.DB      `name:"sql-partner"`
 }
 
 func RegisterMigration(p MigrateParams) {
-	if !p.SupplierDBConfig.ShouldRunMigration {
+	if !p.PartnerDBConfig.ShouldRunMigration {
 		p.Logger.Info("Disabled migration ...")
 		return
 	}
@@ -63,7 +63,7 @@ func RegisterMigration(p MigrateParams) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	if err := migrations.Apply(ctx, p.SupplierDB.DB, "postgres"); err != nil {
+	if err := migrations.Apply(ctx, p.PartnerDB.DB, "postgres"); err != nil {
 		p.Logger.Error("Migration failed", "err", err)
 		return
 	}

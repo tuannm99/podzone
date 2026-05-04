@@ -22,7 +22,7 @@ type TenantAuthorizer interface {
 	AuthorizeTenant(ctx context.Context, tenantID, permission string) (string, error)
 }
 
-type supplierJWTClaims struct {
+type partnerJWTClaims struct {
 	UserID         uint   `json:"user_id"`
 	ActiveTenantID string `json:"active_tenant_id"`
 	SessionID      string `json:"session_id"`
@@ -161,7 +161,7 @@ func (a *authTenantAuthorizer) identityFromContext(ctx context.Context) (string,
 		return "", "", "", fmt.Errorf("missing authorization bearer token")
 	}
 
-	claims := &supplierJWTClaims{}
+	claims := &partnerJWTClaims{}
 	token, err := jwt.ParseWithClaims(tokenStr, claims, func(tok *jwt.Token) (interface{}, error) {
 		if tok.Method != jwt.SigningMethodHS256 {
 			return nil, fmt.Errorf("unexpected signing method")

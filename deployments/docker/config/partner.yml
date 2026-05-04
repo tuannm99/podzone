@@ -6,7 +6,7 @@ logger:
 
 sql:
   partner:
-    uri: postgres://postgres:postgres@postgres:5432/supplier?sslmode=disable
+    uri: postgres://postgres:postgres@postgres:5432/partner?sslmode=disable
     provider: postgres
     should_run_migration: true
 

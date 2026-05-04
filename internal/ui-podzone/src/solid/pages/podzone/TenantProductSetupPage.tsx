@@ -1,53 +1,20 @@
 import { useParams } from '@tanstack/solid-router';
-import { For, createEffect, createSignal } from 'solid-js';
+import { For, Show, createEffect, createSignal, onMount } from 'solid-js';
+import {
+  createProductSetupDraft,
+  getProductSetupSnapshot,
+  promoteProductSetupCandidate,
+  updateProductSetupCandidateStatus,
+  type ArtworkChecklist,
+  type CatalogCandidate,
+  type SetupDraft,
+} from '../../../services/productSetup';
 import { tenantStorage } from '../../../services/tenantStorage';
 import { PageShell } from '../../components/common/PageShell';
 import { Badge, Button, Card, InputField, SelectField, TextareaField } from '../../components/common/Primitives';
 import { SectionLead } from '../../components/common/SectionLead';
 import { SectionTitle } from '../../components/common/SectionTitle';
-import { EmptyBlock, InfoAlert } from '../../components/common/Feedback';
-
-type SetupDraft = {
-  id: string;
-  name: string;
-  partner: string;
-  baseCost: string;
-  retailPrice: string;
-  status: string;
-  notes: string;
-};
-
-type CandidateVariant = {
-  id: string;
-  label: string;
-  color: string;
-  size: string;
-  status: string;
-};
-
-type ArtworkChecklist = {
-  frontArtwork: boolean;
-  backArtwork: boolean;
-  mockupReady: boolean;
-  printSpecChecked: boolean;
-};
-
-type CatalogCandidate = {
-  id: string;
-  draftId: string;
-  title: string;
-  sku: string;
-  partner: string;
-  baseCost: string;
-  retailPrice: string;
-  estimatedMargin: string;
-  status: string;
-  channel: string;
-  updatedAt: string;
-  variants: CandidateVariant[];
-  artworkChecklist: ArtworkChecklist;
-  merchandisingNotes: string;
-};
+import { EmptyBlock, ErrorAlert, InfoAlert, LoadingInline } from '../../components/common/Feedback';
 
 const statusOptions = [
   { name: 'Draft', value: 'draft' },
@@ -60,50 +27,6 @@ const channelOptions = [
   { name: 'Marketplace mock', value: 'marketplace_mock' },
   { name: 'Wholesale mock', value: 'wholesale_mock' },
 ];
-
-function productSetupStorageKey(tenantId: string) {
-  return `podzone:product-setup:${tenantId}`;
-}
-
-function seedDrafts(): SetupDraft[] {
-  return [
-    {
-      id: 'draft-tee-001',
-      name: 'Signature Tee',
-      partner: 'Acme Print Lab',
-      baseCost: '$8.20',
-      retailPrice: '$24.00',
-      status: 'ready_for_review',
-      notes: 'Front print approved. Need final mockup export.',
-    },
-    {
-      id: 'draft-mug-002',
-      name: 'Ceramic Mug',
-      partner: 'North Fulfillment',
-      baseCost: '$5.10',
-      retailPrice: '$18.00',
-      status: 'draft',
-      notes: 'Handle packaging variant before publish.',
-    },
-  ];
-}
-
-function parseMoney(value: string) {
-  const cleaned = value.replace(/[^0-9.]/g, '');
-  const parsed = Number.parseFloat(cleaned);
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-function formatMoney(value: number) {
-  return `$${value.toFixed(2)}`;
-}
-
-function estimateMargin(baseCost: string, retailPrice: string) {
-  const base = parseMoney(baseCost);
-  const retail = parseMoney(retailPrice);
-  if (base === null || retail === null) return 'TBD';
-  return formatMoney(retail - base);
-}
 
 function statusBadgeColor(status: string) {
   switch (status) {
@@ -156,6 +79,10 @@ export default function TenantProductSetupPage() {
   const [mockupReady, setMockupReady] = createSignal(false);
   const [printSpecChecked, setPrintSpecChecked] = createSignal(false);
   const [message, setMessage] = createSignal('');
+  const [error, setError] = createSignal('');
+  const [loading, setLoading] = createSignal(false);
+  const [savingDraft, setSavingDraft] = createSignal(false);
+  const [promotingDraftID, setPromotingDraftID] = createSignal('');
   const [drafts, setDrafts] = createSignal<SetupDraft[]>([]);
   const [candidates, setCandidates] = createSignal<CatalogCandidate[]>([]);
 
@@ -175,144 +102,122 @@ export default function TenantProductSetupPage() {
     setPrintSpecChecked(false);
   };
 
-  const persistState = (nextDrafts: SetupDraft[], nextCandidates: CatalogCandidate[]) => {
-    localStorage.setItem(
-      productSetupStorageKey(params().tenantId),
-      JSON.stringify({
-        drafts: nextDrafts,
-        candidates: nextCandidates,
-      })
-    );
+  const loadState = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const result = await getProductSetupSnapshot();
+      if (!result.success) {
+        setError(result.message);
+        setDrafts([]);
+        setCandidates([]);
+        return;
+      }
+      setDrafts(result.data.drafts);
+      setCandidates(result.data.candidates);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const loadState = () => {
-    const raw = localStorage.getItem(productSetupStorageKey(params().tenantId));
-    if (!raw) {
-      const seededDrafts = seedDrafts();
-      setDrafts(seededDrafts);
-      setCandidates([]);
-      persistState(seededDrafts, []);
+  const addDraft = async (event: SubmitEvent) => {
+    event.preventDefault();
+    if (!name().trim()) {
+      setError('Product name is required.');
       return;
     }
-
-    try {
-      const parsed = JSON.parse(raw) as {
-        drafts?: SetupDraft[];
-        candidates?: CatalogCandidate[];
-      };
-      setDrafts(parsed.drafts || seedDrafts());
-      setCandidates(parsed.candidates || []);
-    } catch {
-      const seededDrafts = seedDrafts();
-      setDrafts(seededDrafts);
-      setCandidates([]);
-      persistState(seededDrafts, []);
-    }
-  };
-
-  const addDraft = (event: SubmitEvent) => {
-    event.preventDefault();
-    if (!name().trim()) return;
-    const nextDraft: SetupDraft = {
-      id: `draft-${Date.now()}`,
+    setSavingDraft(true);
+    setError('');
+    setMessage('');
+    const result = await createProductSetupDraft({
       name: name().trim(),
-      partner: partner().trim() || 'Unassigned',
-      baseCost: baseCost().trim() || 'TBD',
-      retailPrice: retailPrice().trim() || 'TBD',
+      partner: partner().trim(),
+      baseCost: baseCost().trim(),
+      retailPrice: retailPrice().trim(),
       status: status(),
       notes: notes().trim(),
-    };
-    const nextDrafts = [nextDraft, ...drafts()];
-    setDrafts(nextDrafts);
-    persistState(nextDrafts, candidates());
-    setMessage(`Saved experimental product setup draft for ${nextDraft.name}.`);
-    resetForm();
-  };
-
-  const promoteToCandidate = (draft: SetupDraft) => {
-    const existing = candidates().find((candidate) => candidate.draftId === draft.id);
-    if (existing) {
-      setMessage(`Catalog candidate for ${draft.name} already exists.`);
+    });
+    setSavingDraft(false);
+    if (!result.success) {
+      setError(result.message);
       return;
     }
+    setMessage(`Saved backend product setup draft for ${result.data.name}.`);
+    resetForm();
+    await loadState();
+  };
 
-    const nextCandidate: CatalogCandidate = {
-      id: `candidate-${Date.now()}`,
+  const promoteToCandidate = async (draft: SetupDraft) => {
+    setPromotingDraftID(draft.id);
+    setError('');
+    setMessage('');
+    const result = await promoteProductSetupCandidate({
       draftId: draft.id,
-      title: draft.name,
-      sku: `${draft.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'product'}-${Date.now().toString().slice(-4)}`,
-      partner: draft.partner,
-      baseCost: draft.baseCost,
-      retailPrice: draft.retailPrice,
-      estimatedMargin: estimateMargin(draft.baseCost, draft.retailPrice),
-      status: 'ready',
       channel: channel(),
-      updatedAt: new Date().toISOString(),
-      variants: [
-        {
-          id: `variant-${Date.now()}`,
-          label: `${variantColor()} / ${variantSize()}`,
-          color: variantColor(),
-          size: variantSize(),
-          status: 'ready',
-        },
-      ],
+      variantColor: variantColor(),
+      variantSize: variantSize(),
       artworkChecklist: {
         frontArtwork: hasFrontArtwork(),
         backArtwork: hasBackArtwork(),
         mockupReady: mockupReady(),
         printSpecChecked: printSpecChecked(),
       },
-      merchandisingNotes: draft.notes || 'No extra merchandising notes yet.',
-    };
-
-    const nextCandidates = [nextCandidate, ...candidates()];
-    setCandidates(nextCandidates);
-    persistState(drafts(), nextCandidates);
-    setMessage(`Promoted ${draft.name} into a catalog candidate.`);
+      merchandisingNotes: notes().trim(),
+    });
+    setPromotingDraftID('');
+    if (!result.success) {
+      setError(result.message);
+      return;
+    }
+    setMessage(`Promoted ${draft.name} into a backend catalog candidate.`);
+    await loadState();
   };
 
-  const updateCandidateStatus = (candidateId: string, nextStatus: string) => {
-    const nextCandidates = candidates().map((candidate) =>
-      candidate.id === candidateId
-        ? {
-            ...candidate,
-            status: nextStatus,
-            updatedAt: new Date().toISOString(),
-          }
-        : candidate
-    );
-    setCandidates(nextCandidates);
-    persistState(drafts(), nextCandidates);
+  const updateCandidateStatus = async (candidateId: string, nextStatus: string) => {
+    setError('');
+    const result = await updateProductSetupCandidateStatus(candidateId, nextStatus);
+    if (!result.success) {
+      setError(result.message);
+      return;
+    }
+    await loadState();
   };
 
   createEffect(() => {
     tenantStorage.setTenantID(params().tenantId);
   });
 
-  createEffect(() => {
-    loadState();
+  onMount(() => {
+    void loadState();
   });
 
   return (
     <PageShell>
       <Card class="space-y-4">
         <SectionLead
-          eyebrow="Product Setup"
+          eyebrow="Product Setup Prototype"
           title={`POD product setup for store ${params().tenantId}`}
-          copy="This is an experimental workspace for shaping products before they become real catalog records. It stays intentionally lightweight while the architecture is still evolving."
+          copy="This workspace now persists store-scoped product setup drafts and candidates in the backend, while still using lightweight POD-first language for early operational shaping."
         />
       </Card>
 
       <InfoAlert>
-        This screen is intentionally local-first. It does not depend on external partner, catalog, or cloud integrations yet.
+        Product setup drafts and candidates on this page are now backend-backed per store. Order routing remains a separate prototype flow.
       </InfoAlert>
 
       <InfoAlert>
-        Typical demo flow: seed a store from the workspace home, refine one draft here, promote it to a candidate, then mock publish before testing order routing.
+        Suggested flow: create a draft, promote it into a candidate, then mock publish it before using that candidate in the local order-routing prototype.
       </InfoAlert>
 
+      <Show when={error()}>
+        <ErrorAlert>{error()}</ErrorAlert>
+      </Show>
+
       {message() ? <InfoAlert>{message()}</InfoAlert> : null}
+
+      <Show when={loading()}>
+        <LoadingInline label="Loading product setup..." />
+      </Show>
 
       <div class="grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
         <Card class="space-y-4">
@@ -417,7 +322,9 @@ export default function TenantProductSetupPage() {
               onInput={(event) => setNotes(event.currentTarget.value)}
             />
             <div class="flex flex-wrap gap-3">
-              <Button type="submit">Save setup draft</Button>
+              <Button type="submit" loading={savingDraft()}>
+                Save setup draft
+              </Button>
               <Button type="button" color="alternative" onClick={resetForm}>
                 Clear form
               </Button>
@@ -453,8 +360,9 @@ export default function TenantProductSetupPage() {
                           type="button"
                           size="xs"
                           color="blue"
+                          loading={promotingDraftID() === draft.id}
                           onClick={() => {
-                            promoteToCandidate(draft);
+                            void promoteToCandidate(draft);
                           }}
                         >
                           Promote to candidate
@@ -475,7 +383,7 @@ export default function TenantProductSetupPage() {
       <Card class="mt-6 space-y-4">
         <SectionTitle
           title="Catalog candidates"
-          subtitle="A mock publishing layer that lets the team test product readiness before any real channel integration exists."
+          subtitle="A prototype publishing layer that lets the team test product readiness before any real channel integration exists."
         />
         {candidates().length === 0 ? (
           <EmptyBlock
@@ -509,7 +417,7 @@ export default function TenantProductSetupPage() {
                             !candidate.artworkChecklist.printSpecChecked
                           }
                           onClick={() => {
-                            updateCandidateStatus(candidate.id, 'published_mock');
+                            void updateCandidateStatus(candidate.id, 'published_mock');
                             setMessage(`Mock published ${candidate.title}.`);
                           }}
                         >
@@ -521,7 +429,7 @@ export default function TenantProductSetupPage() {
                         color="light"
                         disabled={candidate.status === 'archived'}
                         onClick={() => {
-                          updateCandidateStatus(candidate.id, 'archived');
+                          void updateCandidateStatus(candidate.id, 'archived');
                           setMessage(`Archived candidate ${candidate.title}.`);
                         }}
                       >

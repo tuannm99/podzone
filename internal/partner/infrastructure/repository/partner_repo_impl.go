@@ -10,7 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/fx"
 
-	supplierdomain "github.com/tuannm99/podzone/internal/partner/domain"
+	partnerdomain "github.com/tuannm99/podzone/internal/partner/domain"
 )
 
 type repoParams struct {
@@ -18,32 +18,32 @@ type repoParams struct {
 	DB *sqlx.DB `name:"sql-partner"`
 }
 
-type SupplierRepositoryImpl struct {
+type PartnerRepositoryImpl struct {
 	db *sqlx.DB
 }
 
-func NewSupplierRepository(p repoParams) supplierdomain.SupplierRepository {
-	return &SupplierRepositoryImpl{db: p.DB}
+func NewPartnerRepository(p repoParams) partnerdomain.PartnerRepository {
+	return &PartnerRepositoryImpl{db: p.DB}
 }
 
-func (r *SupplierRepositoryImpl) Create(
+func (r *PartnerRepositoryImpl) Create(
 	ctx context.Context,
-	supplier supplierdomain.Supplier,
-) (*supplierdomain.Supplier, error) {
+	partner partnerdomain.Partner,
+) (*partnerdomain.Partner, error) {
 	query, args, err := sq.Insert("partners").
 		Columns("id", "tenant_id", "code", "name", "contact_name", "contact_email", "notes", "partner_type", "status", "created_at", "updated_at").
 		Values(
-			supplier.ID,
-			supplier.TenantID,
-			supplier.Code,
-			supplier.Name,
-			supplier.ContactName,
-			supplier.ContactEmail,
-			supplier.Notes,
-			supplier.PartnerType,
-			supplier.Status,
-			supplier.CreatedAt,
-			supplier.UpdatedAt,
+			partner.ID,
+			partner.TenantID,
+			partner.Code,
+			partner.Name,
+			partner.ContactName,
+			partner.ContactEmail,
+			partner.Notes,
+			partner.PartnerType,
+			partner.Status,
+			partner.CreatedAt,
+			partner.UpdatedAt,
 		).
 		Suffix("RETURNING id, tenant_id, code, name, contact_name, contact_email, notes, partner_type, status, created_at, updated_at").
 		PlaceholderFormat(sq.Dollar).
@@ -52,17 +52,17 @@ func (r *SupplierRepositoryImpl) Create(
 		return nil, err
 	}
 
-	var out supplierModel
+	var out partnerModel
 	if err := r.db.GetContext(ctx, &out, query, args...); err != nil {
 		if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "unique constraint") {
-			return nil, supplierdomain.ErrSupplierCodeTaken
+			return nil, partnerdomain.ErrPartnerCodeTaken
 		}
 		return nil, err
 	}
 	return out.toEntity(), nil
 }
 
-func (r *SupplierRepositoryImpl) GetByID(ctx context.Context, id string) (*supplierdomain.Supplier, error) {
+func (r *PartnerRepositoryImpl) GetByID(ctx context.Context, id string) (*partnerdomain.Partner, error) {
 	query, args, err := sq.Select(
 		"id",
 		"tenant_id",
@@ -80,20 +80,20 @@ func (r *SupplierRepositoryImpl) GetByID(ctx context.Context, id string) (*suppl
 		return nil, err
 	}
 
-	var out supplierModel
+	var out partnerModel
 	if err := r.db.GetContext(ctx, &out, query, args...); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, supplierdomain.ErrSupplierNotFound
+			return nil, partnerdomain.ErrPartnerNotFound
 		}
 		return nil, err
 	}
 	return out.toEntity(), nil
 }
 
-func (r *SupplierRepositoryImpl) List(
+func (r *PartnerRepositoryImpl) List(
 	ctx context.Context,
-	queryArg supplierdomain.ListSuppliersQuery,
-) ([]supplierdomain.Supplier, error) {
+	queryArg partnerdomain.ListPartnersQuery,
+) ([]partnerdomain.Partner, error) {
 	builder := sq.Select(
 		"id",
 		"tenant_id",
@@ -118,30 +118,30 @@ func (r *SupplierRepositoryImpl) List(
 		return nil, err
 	}
 
-	var rows []supplierModel
+	var rows []partnerModel
 	if err := r.db.SelectContext(ctx, &rows, query, args...); err != nil {
 		return nil, err
 	}
 
-	out := make([]supplierdomain.Supplier, 0, len(rows))
+	out := make([]partnerdomain.Partner, 0, len(rows))
 	for _, row := range rows {
 		out = append(out, *row.toEntity())
 	}
 	return out, nil
 }
 
-func (r *SupplierRepositoryImpl) Update(
+func (r *PartnerRepositoryImpl) Update(
 	ctx context.Context,
-	supplier supplierdomain.Supplier,
-) (*supplierdomain.Supplier, error) {
+	partner partnerdomain.Partner,
+) (*partnerdomain.Partner, error) {
 	query, args, err := sq.Update("partners").
-		Set("name", supplier.Name).
-		Set("contact_name", supplier.ContactName).
-		Set("contact_email", supplier.ContactEmail).
-		Set("notes", supplier.Notes).
-		Set("partner_type", supplier.PartnerType).
-		Set("updated_at", supplier.UpdatedAt).
-		Where(sq.Eq{"id": supplier.ID}).
+		Set("name", partner.Name).
+		Set("contact_name", partner.ContactName).
+		Set("contact_email", partner.ContactEmail).
+		Set("notes", partner.Notes).
+		Set("partner_type", partner.PartnerType).
+		Set("updated_at", partner.UpdatedAt).
+		Where(sq.Eq{"id": partner.ID}).
 		Suffix("RETURNING id, tenant_id, code, name, contact_name, contact_email, notes, partner_type, status, created_at, updated_at").
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
@@ -149,20 +149,20 @@ func (r *SupplierRepositoryImpl) Update(
 		return nil, err
 	}
 
-	var out supplierModel
+	var out partnerModel
 	if err := r.db.GetContext(ctx, &out, query, args...); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, supplierdomain.ErrSupplierNotFound
+			return nil, partnerdomain.ErrPartnerNotFound
 		}
 		return nil, err
 	}
 	return out.toEntity(), nil
 }
 
-func (r *SupplierRepositoryImpl) UpdateStatus(
+func (r *PartnerRepositoryImpl) UpdateStatus(
 	ctx context.Context,
 	id, status string,
-) (*supplierdomain.Supplier, error) {
+) (*partnerdomain.Partner, error) {
 	query, args, err := sq.Update("partners").
 		Set("status", status).
 		Set("updated_at", sq.Expr("NOW() AT TIME ZONE 'UTC'")).
@@ -174,10 +174,10 @@ func (r *SupplierRepositoryImpl) UpdateStatus(
 		return nil, err
 	}
 
-	var out supplierModel
+	var out partnerModel
 	if err := r.db.GetContext(ctx, &out, query, args...); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, supplierdomain.ErrSupplierNotFound
+			return nil, partnerdomain.ErrPartnerNotFound
 		}
 		return nil, err
 	}

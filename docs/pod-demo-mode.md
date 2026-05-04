@@ -91,7 +91,7 @@ That means:
 
 Only after the team is comfortable with the current demo flow should the project move to deeper backendization, for example:
 
-- complete the internal `supplier` toward `partner` rename
+- backendize product setup on top of the now-renamed `partner` domain
 - persist product setup server-side
 - persist routed mock orders server-side
 - add real analytics or finance summaries

@@ -3,10 +3,10 @@ package repository
 import (
 	"time"
 
-	supplierdomain "github.com/tuannm99/podzone/internal/partner/domain"
+	partnerdomain "github.com/tuannm99/podzone/internal/partner/domain"
 )
 
-type supplierModel struct {
+type partnerModel struct {
 	ID           string    `db:"id"`
 	TenantID     string    `db:"tenant_id"`
 	Code         string    `db:"code"`
@@ -20,8 +20,8 @@ type supplierModel struct {
 	UpdatedAt    time.Time `db:"updated_at"`
 }
 
-func (m supplierModel) toEntity() *supplierdomain.Supplier {
-	return &supplierdomain.Supplier{
+func (m partnerModel) toEntity() *partnerdomain.Partner {
+	return &partnerdomain.Partner{
 		ID:           m.ID,
 		TenantID:     m.TenantID,
 		Code:         m.Code,

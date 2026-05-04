@@ -180,7 +180,7 @@ export default function TenantPartnersPage() {
         <SectionLead
           eyebrow="Print Partners"
           title={`Execution partners for store ${params().tenantId}`}
-          copy="Manage the partners that help produce or fulfill orders for this store. This is the first operational layer behind a POD-first workflow."
+          copy="Manage the real backend-backed partner records that this store can use later for production and fulfillment workflows."
         />
       </Card>
 
@@ -356,6 +356,13 @@ export default function TenantPartnersPage() {
                       </div>
                       <div class="flex flex-wrap items-center gap-2">
                         <Badge content={partner.status} color={badgeColorForStatus(partner.status)} />
+                        <Button
+                          size="xs"
+                          color="alternative"
+                          href={`/t/${params().tenantId}/partners/${partner.id}`}
+                        >
+                          View
+                        </Button>
                         <Button
                           size="xs"
                           color="light"

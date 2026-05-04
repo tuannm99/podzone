@@ -114,8 +114,8 @@ Represent print, production, or fulfillment partners used by the store.
 
 ### Current status
 
-- only an early implementation slice exists in code through the `supplier` abstraction
-- product language should still prefer `partner` or `print partner`
+- an early but active implementation slice now exists in code through the `partner` abstraction
+- product language should continue to prefer `partner` or `print partner`
 
 ### Future requirements
 

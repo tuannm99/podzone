@@ -70,6 +70,17 @@ export async function listPartners(
   }
 }
 
+export async function getPartner(
+  id: string
+): Promise<PartnerResult<PartnerInfo>> {
+  try {
+    const { data } = await http.get<PartnerInfo>(`/partner/v1/partners/${id}`);
+    return { success: true, data };
+  } catch (error) {
+    return toFailure(error as HttpError, 'Failed to load partner');
+  }
+}
+
 export async function createPartner(
   payload: CreatePartnerPayload
 ): Promise<PartnerResult<PartnerInfo>> {

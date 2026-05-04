@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	SupplierStatusActive   = "active"
-	SupplierStatusInactive = "inactive"
+	PartnerStatusActive   = "active"
+	PartnerStatusInactive = "inactive"
 
 	PartnerTypePrintOnDemand = "print_on_demand"
 	PartnerTypeFulfillment   = "fulfillment"
@@ -16,17 +16,17 @@ const (
 )
 
 var (
-	ErrSupplierNotFound      = errors.New("supplier not found")
-	ErrSupplierCodeTaken     = errors.New("supplier code already exists in store")
-	ErrInvalidSupplierID     = errors.New("invalid supplier id")
-	ErrInvalidSupplierCode   = errors.New("invalid supplier code")
-	ErrInvalidSupplierName   = errors.New("invalid supplier name")
+	ErrPartnerNotFound       = errors.New("partner not found")
+	ErrPartnerCodeTaken      = errors.New("partner code already exists in store")
+	ErrInvalidPartnerID      = errors.New("invalid partner id")
+	ErrInvalidPartnerCode    = errors.New("invalid partner code")
+	ErrInvalidPartnerName    = errors.New("invalid partner name")
 	ErrInvalidTenantID       = errors.New("invalid tenant id")
 	ErrInvalidPartnerType    = errors.New("invalid partner type")
-	ErrInvalidSupplierStatus = errors.New("invalid supplier status")
+	ErrInvalidPartnerStatus  = errors.New("invalid partner status")
 )
 
-type Supplier struct {
+type Partner struct {
 	ID           string
 	TenantID     string
 	Code         string
@@ -40,7 +40,7 @@ type Supplier struct {
 	UpdatedAt    time.Time
 }
 
-type CreateSupplierCmd struct {
+type CreatePartnerCmd struct {
 	TenantID     string
 	Code         string
 	Name         string
@@ -50,7 +50,7 @@ type CreateSupplierCmd struct {
 	PartnerType  string
 }
 
-type UpdateSupplierCmd struct {
+type UpdatePartnerCmd struct {
 	ID           string
 	Name         string
 	ContactName  string
@@ -59,18 +59,18 @@ type UpdateSupplierCmd struct {
 	PartnerType  string
 }
 
-type ListSuppliersQuery struct {
+type ListPartnersQuery struct {
 	TenantID    string
 	Status      string
 	PartnerType string
 }
 
-func NormalizeSupplierStatus(raw string) string {
+func NormalizePartnerStatus(raw string) string {
 	switch strings.ToLower(strings.TrimSpace(raw)) {
-	case "", SupplierStatusActive:
-		return SupplierStatusActive
-	case SupplierStatusInactive:
-		return SupplierStatusInactive
+	case "", PartnerStatusActive:
+		return PartnerStatusActive
+	case PartnerStatusInactive:
+		return PartnerStatusInactive
 	default:
 		return ""
 	}

@@ -115,6 +115,15 @@ const tenantPartnersRoute = createRoute({
   ),
 });
 
+const tenantPartnerDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/t/$tenantId/partners/$partnerId',
+  beforeLoad: async ({ params }) => requireTenantAccess(params.tenantId),
+  component: lazyRouteComponent(
+    () => import('./pages/podzone/TenantPartnerDetailPage')
+  ),
+});
+
 const tenantProductSetupRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/t/$tenantId/products/setup',
@@ -135,6 +144,7 @@ const routeTree = rootRoute.addChildren([
   tenantHomeRoute,
   tenantOrdersRoute,
   tenantPartnersRoute,
+  tenantPartnerDetailRoute,
   tenantProductSetupRoute,
 ]);
 

@@ -2,10 +2,10 @@ package domain
 
 import "context"
 
-type SupplierRepository interface {
-	Create(ctx context.Context, supplier Supplier) (*Supplier, error)
-	GetByID(ctx context.Context, id string) (*Supplier, error)
-	List(ctx context.Context, query ListSuppliersQuery) ([]Supplier, error)
-	Update(ctx context.Context, supplier Supplier) (*Supplier, error)
-	UpdateStatus(ctx context.Context, id, status string) (*Supplier, error)
+type PartnerRepository interface {
+	Create(ctx context.Context, partner Partner) (*Partner, error)
+	GetByID(ctx context.Context, id string) (*Partner, error)
+	List(ctx context.Context, query ListPartnersQuery) ([]Partner, error)
+	Update(ctx context.Context, partner Partner) (*Partner, error)
+	UpdateStatus(ctx context.Context, id, status string) (*Partner, error)
 }
