@@ -22,14 +22,15 @@ var Module = fx.Options(
 		// --- Infrastructure layer ---
 		fx.Annotate(repository.NewStoreRepository, fx.As(new(outputport.StoreRepository))),
 		fx.Annotate(repository.NewProductSetupRepository, fx.As(new(outputport.ProductSetupRepository))),
+		fx.Annotate(repository.NewOrderRoutingRepository, fx.As(new(outputport.OrderRoutingRepository))),
 
 		// --- Domain layer ---
 		fx.Annotate(interactor.NewStoreInteractor, fx.As(new(inputport.StoreUsecase))),
 		fx.Annotate(interactor.NewProductSetupInteractor, fx.As(new(inputport.ProductSetupUsecase))),
+		fx.Annotate(interactor.NewOrderRoutingInteractor, fx.As(new(inputport.OrderRoutingUsecase))),
 
 		// --- GraphQL resolver root ---
 		resolver.NewResolver,
-		fx.Annotate(NewProductSetupRoutes, fx.ResultTags(`group:"gin-routes"`)),
 	),
 
 	pdtenantdb.Module,

@@ -7,9 +7,19 @@ import "github.com/tuannm99/podzone/internal/backoffice/domain/inputport"
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	StoreUsecase inputport.StoreUsecase
+	StoreUsecase        inputport.StoreUsecase
+	ProductSetupUsecase inputport.ProductSetupUsecase
+	OrderRoutingUsecase inputport.OrderRoutingUsecase
 }
 
-func NewResolver(storeUC inputport.StoreUsecase) *Resolver {
-	return &Resolver{StoreUsecase: storeUC}
+func NewResolver(
+	storeUC inputport.StoreUsecase,
+	productSetupUC inputport.ProductSetupUsecase,
+	orderRoutingUC inputport.OrderRoutingUsecase,
+) *Resolver {
+	return &Resolver{
+		StoreUsecase:        storeUC,
+		ProductSetupUsecase: productSetupUC,
+		OrderRoutingUsecase: orderRoutingUC,
+	}
 }

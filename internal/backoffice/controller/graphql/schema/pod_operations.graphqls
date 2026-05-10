@@ -1,0 +1,163 @@
+type ProductSetupDraft {
+  id: ID!
+  name: String!
+  partner: String!
+  baseCost: String!
+  retailPrice: String!
+  status: String!
+  notes: String!
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type ProductSetupVariant {
+  id: ID!
+  label: String!
+  color: String!
+  size: String!
+  status: String!
+}
+
+type ProductSetupArtworkChecklist {
+  frontArtwork: Boolean!
+  backArtwork: Boolean!
+  mockupReady: Boolean!
+  printSpecChecked: Boolean!
+}
+
+type ProductSetupCandidate {
+  id: ID!
+  draftId: ID!
+  title: String!
+  sku: String!
+  partner: String!
+  baseCost: String!
+  retailPrice: String!
+  estimatedMargin: String!
+  status: String!
+  channel: String!
+  updatedAt: Time!
+  variants: [ProductSetupVariant!]!
+  artworkChecklist: ProductSetupArtworkChecklist!
+  merchandisingNotes: String!
+}
+
+type ProductSetupSnapshot {
+  drafts: [ProductSetupDraft!]!
+  candidates: [ProductSetupCandidate!]!
+}
+
+type RoutedOrder {
+  id: ID!
+  candidateId: ID!
+  productTitle: String!
+  partner: String!
+  quantity: Int!
+  total: String!
+  customerName: String!
+  status: String!
+  timeline: [String!]!
+  exceptionType: String!
+  exceptionStatus: String!
+  shipmentStatus: String!
+  shipmentCarrier: String!
+  shipmentTrackingNumber: String!
+  shipmentTrackingUrl: String!
+  shipmentNotes: String!
+  baseCostSnapshot: String!
+  fulfillmentCost: String!
+  shippingCost: String!
+  issueCost: String!
+  issueResolution: String!
+  issueNotes: String!
+  realizedMargin: String!
+  settlementStatus: String!
+  settlementNotes: String!
+  shippedAt: Time
+  deliveredAt: Time
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+input CreateProductSetupDraftInput {
+  name: String!
+  partner: String!
+  baseCost: String!
+  retailPrice: String!
+  status: String!
+  notes: String!
+}
+
+input ProductSetupArtworkChecklistInput {
+  frontArtwork: Boolean!
+  backArtwork: Boolean!
+  mockupReady: Boolean!
+  printSpecChecked: Boolean!
+}
+
+input PromoteProductSetupCandidateInput {
+  draftId: ID!
+  channel: String!
+  variantColor: String!
+  variantSize: String!
+  artworkChecklist: ProductSetupArtworkChecklistInput!
+  merchandisingNotes: String!
+}
+
+input CreateRoutedOrderInput {
+  candidateId: ID!
+  customerName: String!
+  quantity: Int!
+}
+
+input OpenOrderExceptionInput {
+  orderId: ID!
+  exceptionType: String!
+}
+
+input UpdateOrderExceptionStatusInput {
+  orderId: ID!
+  status: String!
+}
+
+input UpdateOrderShipmentInput {
+  orderId: ID!
+  shipmentStatus: String!
+  carrier: String!
+  trackingNumber: String!
+  trackingUrl: String!
+  notes: String!
+}
+
+input UpdateOrderSettlementInput {
+  orderId: ID!
+  fulfillmentCost: String!
+  shippingCost: String!
+  settlementStatus: String!
+  notes: String!
+}
+
+input UpdateOrderIssueHandlingInput {
+  orderId: ID!
+  issueCost: String!
+  issueResolution: String!
+  notes: String!
+}
+
+extend type Query {
+  productSetupSnapshot: ProductSetupSnapshot!
+  routedOrders: [RoutedOrder!]!
+}
+
+extend type Mutation {
+  createProductSetupDraft(input: CreateProductSetupDraftInput!): ProductSetupDraft!
+  promoteProductSetupCandidate(input: PromoteProductSetupCandidateInput!): ProductSetupCandidate!
+  updateProductSetupCandidateStatus(id: ID!, status: String!): ProductSetupCandidate!
+  createRoutedOrder(input: CreateRoutedOrderInput!): RoutedOrder!
+  advanceRoutedOrder(id: ID!): RoutedOrder!
+  openOrderException(input: OpenOrderExceptionInput!): RoutedOrder!
+  updateOrderExceptionStatus(input: UpdateOrderExceptionStatusInput!): RoutedOrder!
+  updateOrderShipment(input: UpdateOrderShipmentInput!): RoutedOrder!
+  updateOrderSettlement(input: UpdateOrderSettlementInput!): RoutedOrder!
+  updateOrderIssueHandling(input: UpdateOrderIssueHandlingInput!): RoutedOrder!
+}

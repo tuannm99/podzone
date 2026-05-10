@@ -7,7 +7,6 @@ package resolver
 import (
 	"context"
 
-	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/generated"
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/generated/model"
 	"github.com/tuannm99/podzone/internal/backoffice/domain/entity"
 	"github.com/tuannm99/podzone/pkg/toolkit"
@@ -84,14 +83,3 @@ func (r *queryResolver) Store(ctx context.Context, id string) (*model.Store, err
 	}
 	return resp, nil
 }
-
-// Mutation returns generated.MutationResolver implementation.
-func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
-
-// Query returns generated.QueryResolver implementation.
-func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
-
-type (
-	mutationResolver struct{ *Resolver }
-	queryResolver    struct{ *Resolver }
-)

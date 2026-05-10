@@ -6,12 +6,9 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/generated/model"
 )
-
-var errStoreConfigNotImplemented = fmt.Errorf("store config queries are not implemented yet")
 
 // StoreConfigs is the resolver for the storeConfigs field.
 func (r *queryResolver) StoreConfigs(ctx context.Context) ([]*model.StoreConfig, error) {

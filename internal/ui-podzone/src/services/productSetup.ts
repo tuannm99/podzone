@@ -1,5 +1,4 @@
-import { BACKOFFICE_API_URL } from './baseurl';
-import { http, type HttpError } from './http';
+import { postBackofficeGraphQL } from './backofficeGraphql';
 
 export type SetupDraft = {
   id: string;
@@ -72,82 +71,179 @@ type PromoteCandidatePayload = {
   merchandisingNotes: string;
 };
 
-function toFailure(error: unknown, fallback: string): ProductSetupResult<never> {
-  const message =
-    typeof error === 'object' &&
-    error &&
-    'message' in error &&
-    typeof error.message === 'string'
-      ? error.message
-      : fallback;
-  return { success: false, message };
-}
-
 export async function getProductSetupSnapshot(): Promise<
   ProductSetupResult<ProductSetupSnapshot>
 > {
-  try {
-    const { data } = await http.get<ProductSetupSnapshot>(
-      '/backoffice/v1/product-setup',
-      { baseURL: BACKOFFICE_API_URL }
-    );
-    return {
-      success: true,
-      data: {
-        drafts: data.drafts || [],
-        candidates: data.candidates || [],
-      },
-    };
-  } catch (error) {
-    return toFailure(error as HttpError, 'Failed to load product setup');
+  const result = await postBackofficeGraphQL<{
+    productSetupSnapshot: ProductSetupSnapshot;
+  }>(`
+    query ProductSetupSnapshot {
+      productSetupSnapshot {
+        drafts {
+          id
+          name
+          partner
+          baseCost
+          retailPrice
+          status
+          notes
+          createdAt
+          updatedAt
+        }
+        candidates {
+          id
+          draftId
+          title
+          sku
+          partner
+          baseCost
+          retailPrice
+          estimatedMargin
+          status
+          channel
+          updatedAt
+          merchandisingNotes
+          variants {
+            id
+            label
+            color
+            size
+            status
+          }
+          artworkChecklist {
+            frontArtwork
+            backArtwork
+            mockupReady
+            printSpecChecked
+          }
+        }
+      }
+    }
+  `);
+  if (!result.success) {
+    return { success: false, message: result.message };
   }
+  return { success: true, data: result.data.productSetupSnapshot };
 }
 
 export async function createProductSetupDraft(
   payload: CreateDraftPayload
 ): Promise<ProductSetupResult<SetupDraft>> {
-  try {
-    const { data } = await http.post<SetupDraft>(
-      '/backoffice/v1/product-setup/drafts',
-      payload,
-      { baseURL: BACKOFFICE_API_URL }
-    );
-    return { success: true, data };
-  } catch (error) {
-    return toFailure(error as HttpError, 'Failed to create setup draft');
+  const result = await postBackofficeGraphQL<{
+    createProductSetupDraft: SetupDraft;
+  }>(
+    `
+      mutation CreateProductSetupDraft($input: CreateProductSetupDraftInput!) {
+        createProductSetupDraft(input: $input) {
+          id
+          name
+          partner
+          baseCost
+          retailPrice
+          status
+          notes
+          createdAt
+          updatedAt
+        }
+      }
+    `,
+    { input: payload }
+  );
+  if (!result.success) {
+    return { success: false, message: result.message };
   }
+  return { success: true, data: result.data.createProductSetupDraft };
 }
 
 export async function promoteProductSetupCandidate(
   payload: PromoteCandidatePayload
 ): Promise<ProductSetupResult<CatalogCandidate>> {
-  try {
-    const { data } = await http.post<CatalogCandidate>(
-      '/backoffice/v1/product-setup/candidates/promote',
-      payload,
-      { baseURL: BACKOFFICE_API_URL }
-    );
-    return { success: true, data };
-  } catch (error) {
-    return toFailure(error as HttpError, 'Failed to promote setup candidate');
+  const result = await postBackofficeGraphQL<{
+    promoteProductSetupCandidate: CatalogCandidate;
+  }>(
+    `
+      mutation PromoteProductSetupCandidate(
+        $input: PromoteProductSetupCandidateInput!
+      ) {
+        promoteProductSetupCandidate(input: $input) {
+          id
+          draftId
+          title
+          sku
+          partner
+          baseCost
+          retailPrice
+          estimatedMargin
+          status
+          channel
+          updatedAt
+          merchandisingNotes
+          variants {
+            id
+            label
+            color
+            size
+            status
+          }
+          artworkChecklist {
+            frontArtwork
+            backArtwork
+            mockupReady
+            printSpecChecked
+          }
+        }
+      }
+    `,
+    { input: payload }
+  );
+  if (!result.success) {
+    return { success: false, message: result.message };
   }
+  return { success: true, data: result.data.promoteProductSetupCandidate };
 }
 
 export async function updateProductSetupCandidateStatus(
   id: string,
   status: string
 ): Promise<ProductSetupResult<CatalogCandidate>> {
-  try {
-    const { data } = await http.patch<CatalogCandidate>(
-      `/backoffice/v1/product-setup/candidates/${id}/status`,
-      { status },
-      { baseURL: BACKOFFICE_API_URL }
-    );
-    return { success: true, data };
-  } catch (error) {
-    return toFailure(
-      error as HttpError,
-      'Failed to update setup candidate status'
-    );
+  const result = await postBackofficeGraphQL<{
+    updateProductSetupCandidateStatus: CatalogCandidate;
+  }>(
+    `
+      mutation UpdateProductSetupCandidateStatus($id: ID!, $status: String!) {
+        updateProductSetupCandidateStatus(id: $id, status: $status) {
+          id
+          draftId
+          title
+          sku
+          partner
+          baseCost
+          retailPrice
+          estimatedMargin
+          status
+          channel
+          updatedAt
+          merchandisingNotes
+          variants {
+            id
+            label
+            color
+            size
+            status
+          }
+          artworkChecklist {
+            frontArtwork
+            backArtwork
+            mockupReady
+            printSpecChecked
+          }
+        }
+      }
+    `,
+    { id, status }
+  );
+  if (!result.success) {
+    return { success: false, message: result.message };
   }
+  return { success: true, data: result.data.updateProductSetupCandidateStatus };
 }

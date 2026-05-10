@@ -36,7 +36,10 @@ func (m *TenantMiddleware) InterceptResponse(ctx context.Context, next graphql.R
 	return next(ctx)
 }
 
-func (m *TenantMiddleware) InterceptOperation(ctx context.Context, next graphql.OperationHandler) graphql.ResponseHandler {
+func (m *TenantMiddleware) InterceptOperation(
+	ctx context.Context,
+	next graphql.OperationHandler,
+) graphql.ResponseHandler {
 	op := graphql.GetOperationContext(ctx)
 	if op == nil {
 		return next(ctx)
@@ -144,6 +147,10 @@ func permissionForField(objectName, fieldName string) (string, bool) {
 			return "store:read", true
 		case "storeConfigs", "storeConfig":
 			return "store_config:read", true
+		case "productSetupSnapshot":
+			return "store_config:read", true
+		case "routedOrders":
+			return "store:read", true
 		}
 	case "Mutation":
 		switch fieldName {
@@ -153,6 +160,16 @@ func permissionForField(objectName, fieldName string) (string, bool) {
 			return "store:activate", true
 		case "deactivateStore":
 			return "store:deactivate", true
+		case "createProductSetupDraft", "promoteProductSetupCandidate", "updateProductSetupCandidateStatus":
+			return "store_config:update", true
+		case "createRoutedOrder",
+			"advanceRoutedOrder",
+			"openOrderException",
+			"updateOrderExceptionStatus",
+			"updateOrderShipment",
+			"updateOrderSettlement",
+			"updateOrderIssueHandling":
+			return "store:update", true
 		}
 	}
 	return "", false

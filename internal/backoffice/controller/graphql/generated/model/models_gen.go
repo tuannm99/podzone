@@ -6,6 +6,21 @@ import (
 	"time"
 )
 
+type CreateProductSetupDraftInput struct {
+	Name        string `json:"name"`
+	Partner     string `json:"partner"`
+	BaseCost    string `json:"baseCost"`
+	RetailPrice string `json:"retailPrice"`
+	Status      string `json:"status"`
+	Notes       string `json:"notes"`
+}
+
+type CreateRoutedOrderInput struct {
+	CandidateID  string `json:"candidateId"`
+	CustomerName string `json:"customerName"`
+	Quantity     int    `json:"quantity"`
+}
+
 type CreateStoreInput struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
@@ -14,7 +29,109 @@ type CreateStoreInput struct {
 type Mutation struct {
 }
 
+type OpenOrderExceptionInput struct {
+	OrderID       string `json:"orderId"`
+	ExceptionType string `json:"exceptionType"`
+}
+
+type ProductSetupArtworkChecklist struct {
+	FrontArtwork     bool `json:"frontArtwork"`
+	BackArtwork      bool `json:"backArtwork"`
+	MockupReady      bool `json:"mockupReady"`
+	PrintSpecChecked bool `json:"printSpecChecked"`
+}
+
+type ProductSetupArtworkChecklistInput struct {
+	FrontArtwork     bool `json:"frontArtwork"`
+	BackArtwork      bool `json:"backArtwork"`
+	MockupReady      bool `json:"mockupReady"`
+	PrintSpecChecked bool `json:"printSpecChecked"`
+}
+
+type ProductSetupCandidate struct {
+	ID                 string                        `json:"id"`
+	DraftID            string                        `json:"draftId"`
+	Title              string                        `json:"title"`
+	Sku                string                        `json:"sku"`
+	Partner            string                        `json:"partner"`
+	BaseCost           string                        `json:"baseCost"`
+	RetailPrice        string                        `json:"retailPrice"`
+	EstimatedMargin    string                        `json:"estimatedMargin"`
+	Status             string                        `json:"status"`
+	Channel            string                        `json:"channel"`
+	UpdatedAt          time.Time                     `json:"updatedAt"`
+	Variants           []*ProductSetupVariant        `json:"variants"`
+	ArtworkChecklist   *ProductSetupArtworkChecklist `json:"artworkChecklist"`
+	MerchandisingNotes string                        `json:"merchandisingNotes"`
+}
+
+type ProductSetupDraft struct {
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Partner     string    `json:"partner"`
+	BaseCost    string    `json:"baseCost"`
+	RetailPrice string    `json:"retailPrice"`
+	Status      string    `json:"status"`
+	Notes       string    `json:"notes"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+}
+
+type ProductSetupSnapshot struct {
+	Drafts     []*ProductSetupDraft     `json:"drafts"`
+	Candidates []*ProductSetupCandidate `json:"candidates"`
+}
+
+type ProductSetupVariant struct {
+	ID     string `json:"id"`
+	Label  string `json:"label"`
+	Color  string `json:"color"`
+	Size   string `json:"size"`
+	Status string `json:"status"`
+}
+
+type PromoteProductSetupCandidateInput struct {
+	DraftID            string                             `json:"draftId"`
+	Channel            string                             `json:"channel"`
+	VariantColor       string                             `json:"variantColor"`
+	VariantSize        string                             `json:"variantSize"`
+	ArtworkChecklist   *ProductSetupArtworkChecklistInput `json:"artworkChecklist"`
+	MerchandisingNotes string                             `json:"merchandisingNotes"`
+}
+
 type Query struct {
+}
+
+type RoutedOrder struct {
+	ID                     string     `json:"id"`
+	CandidateID            string     `json:"candidateId"`
+	ProductTitle           string     `json:"productTitle"`
+	Partner                string     `json:"partner"`
+	Quantity               int        `json:"quantity"`
+	Total                  string     `json:"total"`
+	CustomerName           string     `json:"customerName"`
+	Status                 string     `json:"status"`
+	Timeline               []string   `json:"timeline"`
+	ExceptionType          string     `json:"exceptionType"`
+	ExceptionStatus        string     `json:"exceptionStatus"`
+	ShipmentStatus         string     `json:"shipmentStatus"`
+	ShipmentCarrier        string     `json:"shipmentCarrier"`
+	ShipmentTrackingNumber string     `json:"shipmentTrackingNumber"`
+	ShipmentTrackingURL    string     `json:"shipmentTrackingUrl"`
+	ShipmentNotes          string     `json:"shipmentNotes"`
+	BaseCostSnapshot       string     `json:"baseCostSnapshot"`
+	FulfillmentCost        string     `json:"fulfillmentCost"`
+	ShippingCost           string     `json:"shippingCost"`
+	IssueCost              string     `json:"issueCost"`
+	IssueResolution        string     `json:"issueResolution"`
+	IssueNotes             string     `json:"issueNotes"`
+	RealizedMargin         string     `json:"realizedMargin"`
+	SettlementStatus       string     `json:"settlementStatus"`
+	SettlementNotes        string     `json:"settlementNotes"`
+	ShippedAt              *time.Time `json:"shippedAt,omitempty"`
+	DeliveredAt            *time.Time `json:"deliveredAt,omitempty"`
+	CreatedAt              time.Time  `json:"createdAt"`
+	UpdatedAt              time.Time  `json:"updatedAt"`
 }
 
 type Store struct {
@@ -34,4 +151,33 @@ type StoreConfig struct {
 	StoreID   string    `json:"store_id"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type UpdateOrderExceptionStatusInput struct {
+	OrderID string `json:"orderId"`
+	Status  string `json:"status"`
+}
+
+type UpdateOrderIssueHandlingInput struct {
+	OrderID         string `json:"orderId"`
+	IssueCost       string `json:"issueCost"`
+	IssueResolution string `json:"issueResolution"`
+	Notes           string `json:"notes"`
+}
+
+type UpdateOrderSettlementInput struct {
+	OrderID          string `json:"orderId"`
+	FulfillmentCost  string `json:"fulfillmentCost"`
+	ShippingCost     string `json:"shippingCost"`
+	SettlementStatus string `json:"settlementStatus"`
+	Notes            string `json:"notes"`
+}
+
+type UpdateOrderShipmentInput struct {
+	OrderID        string `json:"orderId"`
+	ShipmentStatus string `json:"shipmentStatus"`
+	Carrier        string `json:"carrier"`
+	TrackingNumber string `json:"trackingNumber"`
+	TrackingURL    string `json:"trackingUrl"`
+	Notes          string `json:"notes"`
 }

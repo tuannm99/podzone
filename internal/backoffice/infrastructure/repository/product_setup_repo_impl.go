@@ -13,6 +13,7 @@ import (
 
 	"github.com/tuannm99/podzone/internal/backoffice/domain/entity"
 	"github.com/tuannm99/podzone/internal/backoffice/domain/outputport"
+	"github.com/tuannm99/podzone/internal/backoffice/migrations"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
@@ -24,37 +25,6 @@ type ProductSetupRepositoryImpl struct {
 func NewProductSetupRepository(mgr pdtenantdb.Manager) outputport.ProductSetupRepository {
 	return &ProductSetupRepositoryImpl{mgr: mgr}
 }
-
-const ensureProductSetupDraftsSQL = `
-CREATE TABLE IF NOT EXISTS product_setup_drafts (
-	id TEXT PRIMARY KEY,
-	name TEXT NOT NULL,
-	partner TEXT NOT NULL,
-	base_cost TEXT NOT NULL,
-	retail_price TEXT NOT NULL,
-	status TEXT NOT NULL,
-	notes TEXT NOT NULL DEFAULT '',
-	created_at TIMESTAMPTZ NOT NULL,
-	updated_at TIMESTAMPTZ NOT NULL
-)`
-
-const ensureProductSetupCandidatesSQL = `
-CREATE TABLE IF NOT EXISTS product_setup_candidates (
-	id TEXT PRIMARY KEY,
-	draft_id TEXT NOT NULL UNIQUE,
-	title TEXT NOT NULL,
-	sku TEXT NOT NULL,
-	partner TEXT NOT NULL,
-	base_cost TEXT NOT NULL,
-	retail_price TEXT NOT NULL,
-	estimated_margin TEXT NOT NULL,
-	status TEXT NOT NULL,
-	channel TEXT NOT NULL,
-	variants_json TEXT NOT NULL,
-	artwork_checklist_json TEXT NOT NULL,
-	merchandising_notes TEXT NOT NULL DEFAULT '',
-	updated_at TIMESTAMPTZ NOT NULL
-)`
 
 type productSetupDraftRow struct {
 	ID          string    `db:"id"`
@@ -195,6 +165,41 @@ func (r *ProductSetupRepositoryImpl) ListCandidates(ctx context.Context) ([]enti
 	return out, nil
 }
 
+func (r *ProductSetupRepositoryImpl) GetCandidateByID(ctx context.Context, id string) (*entity.ProductSetupCandidate, error) {
+	query, args, err := psql.
+		Select("id", "draft_id", "title", "sku", "partner", "base_cost", "retail_price", "estimated_margin", "status", "channel", "variants_json", "artwork_checklist_json", "merchandising_notes", "updated_at").
+		From("product_setup_candidates").
+		Where(sq.Eq{"id": id}).
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	var row productSetupCandidateRow
+	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
+		if err := ensureProductSetupTables(ctx, tx); err != nil {
+			return err
+		}
+		if err := tx.GetContext(ctx, &row, query, args...); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return nil
+			}
+			return err
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	if row.ID == "" {
+		return nil, nil
+	}
+	mapped, err := mapCandidateRow(row)
+	if err != nil {
+		return nil, err
+	}
+	return &mapped, nil
+}
+
 func (r *ProductSetupRepositoryImpl) GetCandidateByDraftID(ctx context.Context, draftID string) (*entity.ProductSetupCandidate, error) {
 	query, args, err := psql.
 		Select("id", "draft_id", "title", "sku", "partner", "base_cost", "retail_price", "estimated_margin", "status", "channel", "variants_json", "artwork_checklist_json", "merchandising_notes", "updated_at").
@@ -311,11 +316,7 @@ func (r *ProductSetupRepositoryImpl) withTenantTx(ctx context.Context, fn func(t
 }
 
 func ensureProductSetupTables(ctx context.Context, tx *sqlx.Tx) error {
-	if _, err := tx.ExecContext(ctx, ensureProductSetupDraftsSQL); err != nil {
-		return err
-	}
-	_, err := tx.ExecContext(ctx, ensureProductSetupCandidatesSQL)
-	return err
+	return migrations.ApplyTx(ctx, tx)
 }
 
 func mapCandidateRow(row productSetupCandidateRow) (entity.ProductSetupCandidate, error) {

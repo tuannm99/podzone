@@ -1,28 +1,16 @@
 import { useParams } from '@tanstack/solid-router';
 import { createEffect, createSignal } from 'solid-js';
 import { TENANT_GQL_URL } from '../../../services/baseurl';
-import {
-  ordersStorageKey,
-  resetDemoStoreState,
-  seedDemoStoreState,
-} from '../../../services/demoStore';
+import { getRoutedOrders } from '../../../services/orders';
 import { getProductSetupSnapshot } from '../../../services/productSetup';
 import { tenantStorage } from '../../../services/tenantStorage';
 import { tokenStorage } from '../../../services/tokenStorage';
 import { PageShell } from '../../components/common/PageShell';
-import { EmptyBlock, ErrorAlert, InfoAlert } from '../../components/common/Feedback';
+import { EmptyBlock, ErrorAlert } from '../../components/common/Feedback';
 import { Badge, Button, Card } from '../../components/common/Primitives';
 import { SectionLead } from '../../components/common/SectionLead';
 import { SectionTitle } from '../../components/common/SectionTitle';
 import { StatCard } from '../../components/dashboard/StatCard';
-
-type MockOrder = {
-  id: string;
-  status: string;
-  exceptionStatus: string;
-  total: string;
-  partner: string;
-};
 
 function parseMoney(value: string) {
   const cleaned = value.replace(/[^0-9.]/g, '');
@@ -44,82 +32,97 @@ export default function TenantHomePage() {
   const [inProductionCount, setInProductionCount] = createSignal(0);
   const [openExceptionCount, setOpenExceptionCount] = createSignal(0);
   const [mockRevenue, setMockRevenue] = createSignal('$0.00');
-  const [estimatedMarginTotal, setEstimatedMarginTotal] = createSignal('$0.00');
+  const [realizedMarginTotal, setRealizedMarginTotal] = createSignal('$0.00');
+  const [pendingSettlementCount, setPendingSettlementCount] = createSignal(0);
+  const [disputedSettlementCount, setDisputedSettlementCount] = createSignal(0);
+  const [issueCostExposure, setIssueCostExposure] = createSignal('$0.00');
   const [topPartnerLoad, setTopPartnerLoad] = createSignal('No partner load yet');
   const [issueRate, setIssueRate] = createSignal('0%');
-  const [message, setMessage] = createSignal('');
   const [error, setError] = createSignal('');
 
   const loadOpsSnapshot = async () => {
     setError('');
+
     const productResult = await getProductSetupSnapshot();
     if (productResult.success) {
       setDraftCount(productResult.data.drafts.length);
-      const publishedCandidates = productResult.data.candidates.filter(
+      setPublishedCandidateCount(
+        productResult.data.candidates.filter(
           (candidate) => candidate.status === 'published_mock'
-      );
-      setPublishedCandidateCount(publishedCandidates.length);
-      setEstimatedMarginTotal(
-        formatMoney(
-          publishedCandidates.reduce(
-            (sum, candidate) => sum + parseMoney(candidate.estimatedMargin),
-            0
-          )
-        )
+        ).length
       );
     } else {
       setError(productResult.message);
       setDraftCount(0);
       setPublishedCandidateCount(0);
-      setEstimatedMarginTotal('$0.00');
     }
 
-    const ordersRaw = localStorage.getItem(ordersStorageKey(params().tenantId));
-    if (ordersRaw) {
-      try {
-        const parsed = JSON.parse(ordersRaw) as MockOrder[];
-        setInProductionCount(
-          parsed.filter((order) => order.status === 'in_production').length
-        );
-        setOpenExceptionCount(
-          parsed.filter(
-            (order) =>
-              order.exceptionStatus === 'open' ||
-              order.exceptionStatus === 'escalated'
-          ).length
-        );
-        setMockRevenue(
-          formatMoney(
-            parsed.reduce((sum, order) => sum + parseMoney(order.total), 0)
-          )
-        );
-        const loadByPartner = parsed.reduce<Record<string, number>>((acc, order) => {
-          acc[order.partner] = (acc[order.partner] || 0) + 1;
-          return acc;
-        }, {});
-        const topPartner = Object.entries(loadByPartner).sort((a, b) => b[1] - a[1])[0];
-        setTopPartnerLoad(
-          topPartner ? `${topPartner[0]} · ${topPartner[1]} orders` : 'No partner load yet'
-        );
-        const activeIssues = parsed.filter(
+    const orderResult = await getRoutedOrders();
+    if (orderResult.success) {
+      const parsed = orderResult.data.orders;
+      setInProductionCount(
+        parsed.filter((order) => order.status === 'in_production').length
+      );
+      setOpenExceptionCount(
+        parsed.filter(
           (order) =>
             order.exceptionStatus === 'open' ||
             order.exceptionStatus === 'escalated'
-        ).length;
-        setIssueRate(
-          parsed.length > 0 ? `${Math.round((activeIssues / parsed.length) * 100)}%` : '0%'
-        );
-      } catch {
-        setInProductionCount(0);
-        setOpenExceptionCount(0);
-        setMockRevenue('$0.00');
-        setTopPartnerLoad('No partner load yet');
-        setIssueRate('0%');
-      }
+        ).length
+      );
+      setMockRevenue(
+        formatMoney(
+          parsed.reduce((sum, order) => sum + parseMoney(order.total), 0)
+        )
+      );
+      setRealizedMarginTotal(
+        formatMoney(
+          parsed.reduce(
+            (sum, order) => sum + parseMoney(order.realizedMargin),
+            0
+          )
+        )
+      );
+      setPendingSettlementCount(
+        parsed.filter((order) => order.settlementStatus === 'pending').length
+      );
+      setDisputedSettlementCount(
+        parsed.filter((order) => order.settlementStatus === 'disputed').length
+      );
+      setIssueCostExposure(
+        formatMoney(
+          parsed.reduce((sum, order) => sum + parseMoney(order.issueCost), 0)
+        )
+      );
+      const loadByPartner = parsed.reduce<Record<string, number>>((acc, order) => {
+        acc[order.partner] = (acc[order.partner] || 0) + 1;
+        return acc;
+      }, {});
+      const topPartner = Object.entries(loadByPartner).sort(
+        (a, b) => b[1] - a[1]
+      )[0];
+      setTopPartnerLoad(
+        topPartner ? `${topPartner[0]} · ${topPartner[1]} orders` : 'No partner load yet'
+      );
+      const activeIssues = parsed.filter(
+        (order) =>
+          order.exceptionStatus === 'open' ||
+          order.exceptionStatus === 'escalated'
+      ).length;
+      setIssueRate(
+        parsed.length > 0
+          ? `${Math.round((activeIssues / parsed.length) * 100)}%`
+          : '0%'
+      );
     } else {
+      setError((current) => current || orderResult.message);
       setInProductionCount(0);
       setOpenExceptionCount(0);
       setMockRevenue('$0.00');
+      setRealizedMarginTotal('$0.00');
+      setPendingSettlementCount(0);
+      setDisputedSettlementCount(0);
+      setIssueCostExposure('$0.00');
       setTopPartnerLoad('No partner load yet');
       setIssueRate('0%');
     }
@@ -131,29 +134,15 @@ export default function TenantHomePage() {
     void loadOpsSnapshot();
   });
 
-  const seedDemo = () => {
-    seedDemoStoreState(params().tenantId);
-    loadOpsSnapshot();
-    setMessage('Seeded local demo data for this store. Print partners remain managed separately in the partner service.');
-  };
-
-  const resetDemo = () => {
-    resetDemoStoreState(params().tenantId);
-    loadOpsSnapshot();
-    setMessage('Cleared local demo data for this store. Partner records in the backend were left untouched.');
-  };
-
   return (
     <PageShell>
       <Card class="space-y-4">
         <SectionLead
-          eyebrow="Store Workspace Prototype"
+          eyebrow="Store Workspace"
           title={`Store ${params().tenantId}`}
-          copy="This store workspace stays scoped to the active session. Product setup is now backend-backed for the store, while order flow and some dashboard metrics still run as prototype data."
+          copy="This store workspace stays scoped to the active session. Product setup, order routing, shipment control, and settlement readiness now come from backend store data."
         />
       </Card>
-
-      {message() ? <InfoAlert>{message()}</InfoAlert> : null}
 
       {error() ? <ErrorAlert>{error()}</ErrorAlert> : null}
 
@@ -184,28 +173,14 @@ export default function TenantHomePage() {
 
       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Mock revenue" value={mockRevenue()} />
-        <StatCard label="Estimated margin pool" value={estimatedMarginTotal()} />
-        <StatCard label="Top partner load" value={topPartnerLoad()} />
-        <StatCard label="Issue rate" value={issueRate()} />
-      </div>
-
-      <Card class="space-y-4">
-        <SectionTitle
-          title="Prototype controls"
-          subtitle="Seed local-only sample orders to exercise the POD workflow concept without depending on backend order or fulfillment services yet."
+        <StatCard label="Realized margin" value={realizedMarginTotal()} />
+        <StatCard
+          label="Pending settlements"
+          value={String(pendingSettlementCount())}
         />
-        <div class="flex flex-wrap gap-3">
-          <Button color="green" onClick={seedDemo}>
-            Seed prototype data
-          </Button>
-          <Button color="light" onClick={resetDemo}>
-            Reset prototype data
-          </Button>
-        </div>
-        <p class="text-sm text-gray-600">
-          These actions now affect browser-local order prototype data only. Product setup drafts and candidates remain persisted in the backend.
-        </p>
-      </Card>
+        <StatCard label="Issue cost" value={issueCostExposure()} />
+        <StatCard label="Top partner load" value={topPartnerLoad()} />
+      </div>
 
       <Card class="space-y-4">
         <SectionTitle
@@ -233,8 +208,8 @@ export default function TenantHomePage() {
 
       <Card class="space-y-4">
         <SectionTitle
-          title="Prototype operations pulse"
-          subtitle="Product setup metrics come from the backend. Order and exception metrics still come from local prototype data."
+          title="POD operations pulse"
+          subtitle="Product setup, order routing, shipment control, and settlement metrics now come from backend store data."
         />
         <div class="flex flex-wrap gap-2">
           <Badge
@@ -249,9 +224,12 @@ export default function TenantHomePage() {
             content={`${openExceptionCount()} active issues`}
             color={openExceptionCount() > 0 ? 'yellow' : 'green'}
           />
+          <Badge content={`revenue ${mockRevenue()}`} color="indigo" />
+          <Badge content={`margin ${realizedMarginTotal()}`} color="blue" />
+          <Badge content={`issue cost ${issueCostExposure()}`} color="red" />
           <Badge
-            content={`revenue ${mockRevenue()}`}
-            color="indigo"
+            content={`${pendingSettlementCount()} pending settlements`}
+            color={pendingSettlementCount() > 0 ? 'yellow' : 'green'}
           />
           <Badge
             content={`issue rate ${issueRate()}`}
@@ -261,7 +239,7 @@ export default function TenantHomePage() {
         {!publishedCandidateCount() ? (
           <EmptyBlock
             title="No published products yet"
-            copy="Start in Product setup, promote a candidate, and prototype publish it before testing the rest of this local workflow."
+            copy="Start in Product setup, promote a candidate, and mock publish it before testing the rest of this POD workflow."
           />
         ) : null}
       </Card>
@@ -269,7 +247,7 @@ export default function TenantHomePage() {
       <Card class="space-y-4">
         <SectionTitle
           title="Start here"
-          subtitle="A simple guided prototype flow that separates the real partner record layer from local-only product and order experiments."
+          subtitle="A simple guided POD flow that separates the partner record layer from store-side catalog and routing operations."
         />
         <div class="grid gap-4 md:grid-cols-3">
           <div class="rounded-2xl border border-gray-200 p-4">
@@ -309,10 +287,10 @@ export default function TenantHomePage() {
               3. Order operations
             </p>
             <p class="mt-2 text-base font-semibold text-gray-900">
-              Route, monitor, and resolve
+              Route, ship, and settle
             </p>
             <p class="mt-1 text-sm text-gray-600">
-              Use mock orders to test production flow, shipping status, and exception handling.
+              Route backend-backed store orders through production flow, manual shipment status, and settlement readiness.
             </p>
             <div class="mt-4">
               <Button href={`/t/${params().tenantId}/orders`} color="alternative">
@@ -326,29 +304,40 @@ export default function TenantHomePage() {
       <Card class="space-y-4">
         <SectionTitle
           title="Commercial snapshot"
-          subtitle="A lightweight view of how this experimental POD store is performing before any real finance or analytics stack exists."
+          subtitle="A lightweight operational finance view from backend-backed routed orders before any separate analytics stack exists."
         />
-        <div class="grid gap-4 md:grid-cols-2">
+        <div class="grid gap-4 md:grid-cols-3">
           <div class="rounded-2xl border border-gray-200 p-4">
             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
-              Margin outlook
+              Realized margin
             </p>
             <p class="mt-2 text-lg font-semibold text-gray-900">
-              {estimatedMarginTotal()}
+              {realizedMarginTotal()}
             </p>
             <p class="mt-1 text-sm text-gray-600">
-              Based on the sum of estimated margin from backend-backed published mock products.
+              Calculated from routed order revenue minus fulfillment and shipping costs captured in the store workflow.
             </p>
           </div>
           <div class="rounded-2xl border border-gray-200 p-4">
             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
-              Partner pressure
+              Settlement pressure
             </p>
             <p class="mt-2 text-lg font-semibold text-gray-900">
-              {topPartnerLoad()}
+              {pendingSettlementCount()} pending · {disputedSettlementCount()} disputed
             </p>
             <p class="mt-1 text-sm text-gray-600">
-              Highlights which print partner is carrying most of the current mock routing load.
+              Highlights which routed orders still need reconciliation or manual finance follow-up.
+            </p>
+          </div>
+          <div class="rounded-2xl border border-gray-200 p-4">
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
+              Issue cost exposure
+            </p>
+            <p class="mt-2 text-lg font-semibold text-gray-900">
+              {issueCostExposure()}
+            </p>
+            <p class="mt-1 text-sm text-gray-600">
+              Captures reprint, delivery issue, and other exception costs now reducing realized margin.
             </p>
           </div>
         </div>
@@ -357,7 +346,7 @@ export default function TenantHomePage() {
       <Card class="space-y-4">
         <SectionTitle
           title="Action shortcuts"
-          subtitle="Jump straight to the next likely action based on the current experimental state."
+          subtitle="Jump straight to the next likely action based on the current operational state."
         />
         <div class="flex flex-wrap gap-3">
           <Button href={`/t/${params().tenantId}/products/setup`} color="green">
@@ -367,7 +356,7 @@ export default function TenantHomePage() {
             {openExceptionCount() > 0 ? 'Review active issues' : 'Review routing board'}
           </Button>
           <Button href={`/t/${params().tenantId}/orders`} color="alternative">
-            {inProductionCount() > 0 ? 'Track orders in production' : 'Create first routed order'}
+            {pendingSettlementCount() > 0 ? 'Review settlement queue' : 'Create first routed order'}
           </Button>
           <Button href={`/t/${params().tenantId}/partners`} color="light">
             {topPartnerLoad() === 'No partner load yet' ? 'Set up print partners' : 'Review partner load'}

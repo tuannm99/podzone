@@ -12,6 +12,7 @@ import (
 	"github.com/tuannm99/podzone/internal/backoffice/domain/entity"
 	"github.com/tuannm99/podzone/internal/backoffice/domain/outputport"
 	"github.com/tuannm99/podzone/internal/backoffice/infrastructure/model"
+	"github.com/tuannm99/podzone/internal/backoffice/migrations"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
@@ -25,17 +26,6 @@ type StoreRepositoryImpl struct {
 func NewStoreRepository(mgr pdtenantdb.Manager) outputport.StoreRepository {
 	return &StoreRepositoryImpl{mgr: mgr}
 }
-
-const ensureStoresTableSQL = `
-CREATE TABLE IF NOT EXISTS stores (
-	id TEXT PRIMARY KEY,
-	name TEXT NOT NULL,
-	description TEXT NOT NULL DEFAULT '',
-	owner_id TEXT NOT NULL,
-	status TEXT NOT NULL,
-	created_at TIMESTAMPTZ NOT NULL,
-	updated_at TIMESTAMPTZ NOT NULL
-)`
 
 func (r *StoreRepositoryImpl) FindAll(ctx context.Context) ([]entity.Store, error) {
 	ownerID, err := toolkit.GetUserID(ctx)
@@ -165,8 +155,7 @@ func (r *StoreRepositoryImpl) withTenantTx(ctx context.Context, fn func(tx *sqlx
 }
 
 func ensureStoreTables(ctx context.Context, tx *sqlx.Tx) error {
-	_, err := tx.ExecContext(ctx, ensureStoresTableSQL)
-	return err
+	return migrations.ApplyTx(ctx, tx)
 }
 
 func toEntity(s model.Store) entity.Store {
