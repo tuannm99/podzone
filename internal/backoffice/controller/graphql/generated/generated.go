@@ -50,6 +50,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		ActivateStore                     func(childComplexity int, id string) int
 		AdvanceRoutedOrder                func(childComplexity int, id string) int
+		BulkUpdateRoutedOrders            func(childComplexity int, input model.BulkUpdateRoutedOrdersInput) int
 		CreateProductSetupDraft           func(childComplexity int, input model.CreateProductSetupDraftInput) int
 		CreateRoutedOrder                 func(childComplexity int, input model.CreateRoutedOrderInput) int
 		CreateStore                       func(childComplexity int, input model.CreateStoreInput) int
@@ -58,6 +59,7 @@ type ComplexityRoot struct {
 		PromoteProductSetupCandidate      func(childComplexity int, input model.PromoteProductSetupCandidateInput) int
 		UpdateOrderExceptionStatus        func(childComplexity int, input model.UpdateOrderExceptionStatusInput) int
 		UpdateOrderIssueHandling          func(childComplexity int, input model.UpdateOrderIssueHandlingInput) int
+		UpdateOrderQueueControl           func(childComplexity int, input model.UpdateOrderQueueControlInput) int
 		UpdateOrderSettlement             func(childComplexity int, input model.UpdateOrderSettlementInput) int
 		UpdateOrderShipment               func(childComplexity int, input model.UpdateOrderShipmentInput) int
 		UpdateProductSetupCandidateStatus func(childComplexity int, id string, status string) int
@@ -134,6 +136,8 @@ type ComplexityRoot struct {
 		IssueCost              func(childComplexity int) int
 		IssueNotes             func(childComplexity int) int
 		IssueResolution        func(childComplexity int) int
+		IssueSLADueAt          func(childComplexity int) int
+		OperatorAssignee       func(childComplexity int) int
 		Partner                func(childComplexity int) int
 		ProductTitle           func(childComplexity int) int
 		Quantity               func(childComplexity int) int
@@ -142,6 +146,7 @@ type ComplexityRoot struct {
 		SettlementStatus       func(childComplexity int) int
 		ShipmentCarrier        func(childComplexity int) int
 		ShipmentNotes          func(childComplexity int) int
+		ShipmentSLADueAt       func(childComplexity int) int
 		ShipmentStatus         func(childComplexity int) int
 		ShipmentTrackingNumber func(childComplexity int) int
 		ShipmentTrackingURL    func(childComplexity int) int
@@ -184,6 +189,8 @@ type MutationResolver interface {
 	UpdateOrderShipment(ctx context.Context, input model.UpdateOrderShipmentInput) (*model.RoutedOrder, error)
 	UpdateOrderSettlement(ctx context.Context, input model.UpdateOrderSettlementInput) (*model.RoutedOrder, error)
 	UpdateOrderIssueHandling(ctx context.Context, input model.UpdateOrderIssueHandlingInput) (*model.RoutedOrder, error)
+	UpdateOrderQueueControl(ctx context.Context, input model.UpdateOrderQueueControlInput) (*model.RoutedOrder, error)
+	BulkUpdateRoutedOrders(ctx context.Context, input model.BulkUpdateRoutedOrdersInput) ([]*model.RoutedOrder, error)
 	CreateStore(ctx context.Context, input model.CreateStoreInput) (*model.Store, error)
 	ActivateStore(ctx context.Context, id string) (*model.Store, error)
 	DeactivateStore(ctx context.Context, id string) (*model.Store, error)
@@ -238,6 +245,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.AdvanceRoutedOrder(childComplexity, args["id"].(string)), true
+	case "Mutation.bulkUpdateRoutedOrders":
+		if e.complexity.Mutation.BulkUpdateRoutedOrders == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_bulkUpdateRoutedOrders_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.BulkUpdateRoutedOrders(childComplexity, args["input"].(model.BulkUpdateRoutedOrdersInput)), true
 	case "Mutation.createProductSetupDraft":
 		if e.complexity.Mutation.CreateProductSetupDraft == nil {
 			break
@@ -326,6 +344,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.UpdateOrderIssueHandling(childComplexity, args["input"].(model.UpdateOrderIssueHandlingInput)), true
+	case "Mutation.updateOrderQueueControl":
+		if e.complexity.Mutation.UpdateOrderQueueControl == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateOrderQueueControl_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateOrderQueueControl(childComplexity, args["input"].(model.UpdateOrderQueueControlInput)), true
 	case "Mutation.updateOrderSettlement":
 		if e.complexity.Mutation.UpdateOrderSettlement == nil {
 			break
@@ -688,6 +717,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.RoutedOrder.IssueResolution(childComplexity), true
+	case "RoutedOrder.issueSlaDueAt":
+		if e.complexity.RoutedOrder.IssueSLADueAt == nil {
+			break
+		}
+
+		return e.complexity.RoutedOrder.IssueSLADueAt(childComplexity), true
+	case "RoutedOrder.operatorAssignee":
+		if e.complexity.RoutedOrder.OperatorAssignee == nil {
+			break
+		}
+
+		return e.complexity.RoutedOrder.OperatorAssignee(childComplexity), true
 	case "RoutedOrder.partner":
 		if e.complexity.RoutedOrder.Partner == nil {
 			break
@@ -736,6 +777,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.RoutedOrder.ShipmentNotes(childComplexity), true
+	case "RoutedOrder.shipmentSlaDueAt":
+		if e.complexity.RoutedOrder.ShipmentSLADueAt == nil {
+			break
+		}
+
+		return e.complexity.RoutedOrder.ShipmentSLADueAt(childComplexity), true
 	case "RoutedOrder.shipmentStatus":
 		if e.complexity.RoutedOrder.ShipmentStatus == nil {
 			break
@@ -879,6 +926,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	opCtx := graphql.GetOperationContext(ctx)
 	ec := executionContext{opCtx, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputBulkUpdateRoutedOrdersInput,
 		ec.unmarshalInputCreateProductSetupDraftInput,
 		ec.unmarshalInputCreateRoutedOrderInput,
 		ec.unmarshalInputCreateStoreInput,
@@ -887,6 +935,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputPromoteProductSetupCandidateInput,
 		ec.unmarshalInputUpdateOrderExceptionStatusInput,
 		ec.unmarshalInputUpdateOrderIssueHandlingInput,
+		ec.unmarshalInputUpdateOrderQueueControlInput,
 		ec.unmarshalInputUpdateOrderSettlementInput,
 		ec.unmarshalInputUpdateOrderShipmentInput,
 	)
@@ -1054,6 +1103,9 @@ type RoutedOrder {
   shipmentTrackingNumber: String!
   shipmentTrackingUrl: String!
   shipmentNotes: String!
+  operatorAssignee: String!
+  shipmentSlaDueAt: Time
+  issueSlaDueAt: Time
   baseCostSnapshot: String!
   fulfillmentCost: String!
   shippingCost: String!
@@ -1134,6 +1186,20 @@ input UpdateOrderIssueHandlingInput {
   notes: String!
 }
 
+input UpdateOrderQueueControlInput {
+  orderId: ID!
+  operatorAssignee: String!
+  shipmentSlaDueAt: Time
+  issueSlaDueAt: Time
+}
+
+input BulkUpdateRoutedOrdersInput {
+  orderIds: [ID!]!
+  operatorAssignee: String
+  shipmentSlaDueAt: Time
+  settlementStatus: String
+}
+
 extend type Query {
   productSetupSnapshot: ProductSetupSnapshot!
   routedOrders: [RoutedOrder!]!
@@ -1150,6 +1216,8 @@ extend type Mutation {
   updateOrderShipment(input: UpdateOrderShipmentInput!): RoutedOrder!
   updateOrderSettlement(input: UpdateOrderSettlementInput!): RoutedOrder!
   updateOrderIssueHandling(input: UpdateOrderIssueHandlingInput!): RoutedOrder!
+  updateOrderQueueControl(input: UpdateOrderQueueControlInput!): RoutedOrder!
+  bulkUpdateRoutedOrders(input: BulkUpdateRoutedOrdersInput!): [RoutedOrder!]!
 }
 `, BuiltIn: false},
 	{Name: "../schema/store.graphqls", Input: `type Store {
@@ -1218,6 +1286,17 @@ func (ec *executionContext) field_Mutation_advanceRoutedOrder_args(ctx context.C
 		return nil, err
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_bulkUpdateRoutedOrders_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNBulkUpdateRoutedOrdersInput2githubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐBulkUpdateRoutedOrdersInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -1302,6 +1381,17 @@ func (ec *executionContext) field_Mutation_updateOrderIssueHandling_args(ctx con
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateOrderIssueHandlingInput2githubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐUpdateOrderIssueHandlingInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateOrderQueueControl_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateOrderQueueControlInput2githubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐUpdateOrderQueueControlInput)
 	if err != nil {
 		return nil, err
 	}
@@ -1692,6 +1782,12 @@ func (ec *executionContext) fieldContext_Mutation_createRoutedOrder(ctx context.
 				return ec.fieldContext_RoutedOrder_shipmentTrackingUrl(ctx, field)
 			case "shipmentNotes":
 				return ec.fieldContext_RoutedOrder_shipmentNotes(ctx, field)
+			case "operatorAssignee":
+				return ec.fieldContext_RoutedOrder_operatorAssignee(ctx, field)
+			case "shipmentSlaDueAt":
+				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
+			case "issueSlaDueAt":
+				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
 			case "baseCostSnapshot":
 				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
 			case "fulfillmentCost":
@@ -1793,6 +1889,12 @@ func (ec *executionContext) fieldContext_Mutation_advanceRoutedOrder(ctx context
 				return ec.fieldContext_RoutedOrder_shipmentTrackingUrl(ctx, field)
 			case "shipmentNotes":
 				return ec.fieldContext_RoutedOrder_shipmentNotes(ctx, field)
+			case "operatorAssignee":
+				return ec.fieldContext_RoutedOrder_operatorAssignee(ctx, field)
+			case "shipmentSlaDueAt":
+				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
+			case "issueSlaDueAt":
+				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
 			case "baseCostSnapshot":
 				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
 			case "fulfillmentCost":
@@ -1894,6 +1996,12 @@ func (ec *executionContext) fieldContext_Mutation_openOrderException(ctx context
 				return ec.fieldContext_RoutedOrder_shipmentTrackingUrl(ctx, field)
 			case "shipmentNotes":
 				return ec.fieldContext_RoutedOrder_shipmentNotes(ctx, field)
+			case "operatorAssignee":
+				return ec.fieldContext_RoutedOrder_operatorAssignee(ctx, field)
+			case "shipmentSlaDueAt":
+				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
+			case "issueSlaDueAt":
+				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
 			case "baseCostSnapshot":
 				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
 			case "fulfillmentCost":
@@ -1995,6 +2103,12 @@ func (ec *executionContext) fieldContext_Mutation_updateOrderExceptionStatus(ctx
 				return ec.fieldContext_RoutedOrder_shipmentTrackingUrl(ctx, field)
 			case "shipmentNotes":
 				return ec.fieldContext_RoutedOrder_shipmentNotes(ctx, field)
+			case "operatorAssignee":
+				return ec.fieldContext_RoutedOrder_operatorAssignee(ctx, field)
+			case "shipmentSlaDueAt":
+				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
+			case "issueSlaDueAt":
+				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
 			case "baseCostSnapshot":
 				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
 			case "fulfillmentCost":
@@ -2096,6 +2210,12 @@ func (ec *executionContext) fieldContext_Mutation_updateOrderShipment(ctx contex
 				return ec.fieldContext_RoutedOrder_shipmentTrackingUrl(ctx, field)
 			case "shipmentNotes":
 				return ec.fieldContext_RoutedOrder_shipmentNotes(ctx, field)
+			case "operatorAssignee":
+				return ec.fieldContext_RoutedOrder_operatorAssignee(ctx, field)
+			case "shipmentSlaDueAt":
+				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
+			case "issueSlaDueAt":
+				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
 			case "baseCostSnapshot":
 				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
 			case "fulfillmentCost":
@@ -2197,6 +2317,12 @@ func (ec *executionContext) fieldContext_Mutation_updateOrderSettlement(ctx cont
 				return ec.fieldContext_RoutedOrder_shipmentTrackingUrl(ctx, field)
 			case "shipmentNotes":
 				return ec.fieldContext_RoutedOrder_shipmentNotes(ctx, field)
+			case "operatorAssignee":
+				return ec.fieldContext_RoutedOrder_operatorAssignee(ctx, field)
+			case "shipmentSlaDueAt":
+				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
+			case "issueSlaDueAt":
+				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
 			case "baseCostSnapshot":
 				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
 			case "fulfillmentCost":
@@ -2298,6 +2424,12 @@ func (ec *executionContext) fieldContext_Mutation_updateOrderIssueHandling(ctx c
 				return ec.fieldContext_RoutedOrder_shipmentTrackingUrl(ctx, field)
 			case "shipmentNotes":
 				return ec.fieldContext_RoutedOrder_shipmentNotes(ctx, field)
+			case "operatorAssignee":
+				return ec.fieldContext_RoutedOrder_operatorAssignee(ctx, field)
+			case "shipmentSlaDueAt":
+				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
+			case "issueSlaDueAt":
+				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
 			case "baseCostSnapshot":
 				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
 			case "fulfillmentCost":
@@ -2336,6 +2468,220 @@ func (ec *executionContext) fieldContext_Mutation_updateOrderIssueHandling(ctx c
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_updateOrderIssueHandling_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateOrderQueueControl(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_updateOrderQueueControl,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().UpdateOrderQueueControl(ctx, fc.Args["input"].(model.UpdateOrderQueueControlInput))
+		},
+		nil,
+		ec.marshalNRoutedOrder2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐRoutedOrder,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateOrderQueueControl(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_RoutedOrder_id(ctx, field)
+			case "candidateId":
+				return ec.fieldContext_RoutedOrder_candidateId(ctx, field)
+			case "productTitle":
+				return ec.fieldContext_RoutedOrder_productTitle(ctx, field)
+			case "partner":
+				return ec.fieldContext_RoutedOrder_partner(ctx, field)
+			case "quantity":
+				return ec.fieldContext_RoutedOrder_quantity(ctx, field)
+			case "total":
+				return ec.fieldContext_RoutedOrder_total(ctx, field)
+			case "customerName":
+				return ec.fieldContext_RoutedOrder_customerName(ctx, field)
+			case "status":
+				return ec.fieldContext_RoutedOrder_status(ctx, field)
+			case "timeline":
+				return ec.fieldContext_RoutedOrder_timeline(ctx, field)
+			case "exceptionType":
+				return ec.fieldContext_RoutedOrder_exceptionType(ctx, field)
+			case "exceptionStatus":
+				return ec.fieldContext_RoutedOrder_exceptionStatus(ctx, field)
+			case "shipmentStatus":
+				return ec.fieldContext_RoutedOrder_shipmentStatus(ctx, field)
+			case "shipmentCarrier":
+				return ec.fieldContext_RoutedOrder_shipmentCarrier(ctx, field)
+			case "shipmentTrackingNumber":
+				return ec.fieldContext_RoutedOrder_shipmentTrackingNumber(ctx, field)
+			case "shipmentTrackingUrl":
+				return ec.fieldContext_RoutedOrder_shipmentTrackingUrl(ctx, field)
+			case "shipmentNotes":
+				return ec.fieldContext_RoutedOrder_shipmentNotes(ctx, field)
+			case "operatorAssignee":
+				return ec.fieldContext_RoutedOrder_operatorAssignee(ctx, field)
+			case "shipmentSlaDueAt":
+				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
+			case "issueSlaDueAt":
+				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
+			case "baseCostSnapshot":
+				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
+			case "fulfillmentCost":
+				return ec.fieldContext_RoutedOrder_fulfillmentCost(ctx, field)
+			case "shippingCost":
+				return ec.fieldContext_RoutedOrder_shippingCost(ctx, field)
+			case "issueCost":
+				return ec.fieldContext_RoutedOrder_issueCost(ctx, field)
+			case "issueResolution":
+				return ec.fieldContext_RoutedOrder_issueResolution(ctx, field)
+			case "issueNotes":
+				return ec.fieldContext_RoutedOrder_issueNotes(ctx, field)
+			case "realizedMargin":
+				return ec.fieldContext_RoutedOrder_realizedMargin(ctx, field)
+			case "settlementStatus":
+				return ec.fieldContext_RoutedOrder_settlementStatus(ctx, field)
+			case "settlementNotes":
+				return ec.fieldContext_RoutedOrder_settlementNotes(ctx, field)
+			case "shippedAt":
+				return ec.fieldContext_RoutedOrder_shippedAt(ctx, field)
+			case "deliveredAt":
+				return ec.fieldContext_RoutedOrder_deliveredAt(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_RoutedOrder_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_RoutedOrder_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RoutedOrder", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateOrderQueueControl_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_bulkUpdateRoutedOrders(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_bulkUpdateRoutedOrders,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().BulkUpdateRoutedOrders(ctx, fc.Args["input"].(model.BulkUpdateRoutedOrdersInput))
+		},
+		nil,
+		ec.marshalNRoutedOrder2ᚕᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐRoutedOrderᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_bulkUpdateRoutedOrders(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_RoutedOrder_id(ctx, field)
+			case "candidateId":
+				return ec.fieldContext_RoutedOrder_candidateId(ctx, field)
+			case "productTitle":
+				return ec.fieldContext_RoutedOrder_productTitle(ctx, field)
+			case "partner":
+				return ec.fieldContext_RoutedOrder_partner(ctx, field)
+			case "quantity":
+				return ec.fieldContext_RoutedOrder_quantity(ctx, field)
+			case "total":
+				return ec.fieldContext_RoutedOrder_total(ctx, field)
+			case "customerName":
+				return ec.fieldContext_RoutedOrder_customerName(ctx, field)
+			case "status":
+				return ec.fieldContext_RoutedOrder_status(ctx, field)
+			case "timeline":
+				return ec.fieldContext_RoutedOrder_timeline(ctx, field)
+			case "exceptionType":
+				return ec.fieldContext_RoutedOrder_exceptionType(ctx, field)
+			case "exceptionStatus":
+				return ec.fieldContext_RoutedOrder_exceptionStatus(ctx, field)
+			case "shipmentStatus":
+				return ec.fieldContext_RoutedOrder_shipmentStatus(ctx, field)
+			case "shipmentCarrier":
+				return ec.fieldContext_RoutedOrder_shipmentCarrier(ctx, field)
+			case "shipmentTrackingNumber":
+				return ec.fieldContext_RoutedOrder_shipmentTrackingNumber(ctx, field)
+			case "shipmentTrackingUrl":
+				return ec.fieldContext_RoutedOrder_shipmentTrackingUrl(ctx, field)
+			case "shipmentNotes":
+				return ec.fieldContext_RoutedOrder_shipmentNotes(ctx, field)
+			case "operatorAssignee":
+				return ec.fieldContext_RoutedOrder_operatorAssignee(ctx, field)
+			case "shipmentSlaDueAt":
+				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
+			case "issueSlaDueAt":
+				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
+			case "baseCostSnapshot":
+				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
+			case "fulfillmentCost":
+				return ec.fieldContext_RoutedOrder_fulfillmentCost(ctx, field)
+			case "shippingCost":
+				return ec.fieldContext_RoutedOrder_shippingCost(ctx, field)
+			case "issueCost":
+				return ec.fieldContext_RoutedOrder_issueCost(ctx, field)
+			case "issueResolution":
+				return ec.fieldContext_RoutedOrder_issueResolution(ctx, field)
+			case "issueNotes":
+				return ec.fieldContext_RoutedOrder_issueNotes(ctx, field)
+			case "realizedMargin":
+				return ec.fieldContext_RoutedOrder_realizedMargin(ctx, field)
+			case "settlementStatus":
+				return ec.fieldContext_RoutedOrder_settlementStatus(ctx, field)
+			case "settlementNotes":
+				return ec.fieldContext_RoutedOrder_settlementNotes(ctx, field)
+			case "shippedAt":
+				return ec.fieldContext_RoutedOrder_shippedAt(ctx, field)
+			case "deliveredAt":
+				return ec.fieldContext_RoutedOrder_deliveredAt(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_RoutedOrder_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_RoutedOrder_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RoutedOrder", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_bulkUpdateRoutedOrders_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -3668,6 +4014,12 @@ func (ec *executionContext) fieldContext_Query_routedOrders(_ context.Context, f
 				return ec.fieldContext_RoutedOrder_shipmentTrackingUrl(ctx, field)
 			case "shipmentNotes":
 				return ec.fieldContext_RoutedOrder_shipmentNotes(ctx, field)
+			case "operatorAssignee":
+				return ec.fieldContext_RoutedOrder_operatorAssignee(ctx, field)
+			case "shipmentSlaDueAt":
+				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
+			case "issueSlaDueAt":
+				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
 			case "baseCostSnapshot":
 				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
 			case "fulfillmentCost":
@@ -4468,6 +4820,93 @@ func (ec *executionContext) fieldContext_RoutedOrder_shipmentNotes(_ context.Con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutedOrder_operatorAssignee(ctx context.Context, field graphql.CollectedField, obj *model.RoutedOrder) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutedOrder_operatorAssignee,
+		func(ctx context.Context) (any, error) {
+			return obj.OperatorAssignee, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutedOrder_operatorAssignee(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutedOrder",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutedOrder_shipmentSlaDueAt(ctx context.Context, field graphql.CollectedField, obj *model.RoutedOrder) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutedOrder_shipmentSlaDueAt,
+		func(ctx context.Context) (any, error) {
+			return obj.ShipmentSLADueAt, nil
+		},
+		nil,
+		ec.marshalOTime2ᚖtimeᚐTime,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutedOrder_shipmentSlaDueAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutedOrder",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutedOrder_issueSlaDueAt(ctx context.Context, field graphql.CollectedField, obj *model.RoutedOrder) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutedOrder_issueSlaDueAt,
+		func(ctx context.Context) (any, error) {
+			return obj.IssueSLADueAt, nil
+		},
+		nil,
+		ec.marshalOTime2ᚖtimeᚐTime,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutedOrder_issueSlaDueAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutedOrder",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
@@ -6673,6 +7112,54 @@ func (ec *executionContext) fieldContext___Type_isOneOf(_ context.Context, field
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputBulkUpdateRoutedOrdersInput(ctx context.Context, obj any) (model.BulkUpdateRoutedOrdersInput, error) {
+	var it model.BulkUpdateRoutedOrdersInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"orderIds", "operatorAssignee", "shipmentSlaDueAt", "settlementStatus"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "orderIds":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderIds"))
+			data, err := ec.unmarshalNID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OrderIds = data
+		case "operatorAssignee":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("operatorAssignee"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OperatorAssignee = data
+		case "shipmentSlaDueAt":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shipmentSlaDueAt"))
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ShipmentSLADueAt = data
+		case "settlementStatus":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("settlementStatus"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SettlementStatus = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateProductSetupDraftInput(ctx context.Context, obj any) (model.CreateProductSetupDraftInput, error) {
 	var it model.CreateProductSetupDraftInput
 	asMap := map[string]any{}
@@ -7036,6 +7523,54 @@ func (ec *executionContext) unmarshalInputUpdateOrderIssueHandlingInput(ctx cont
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateOrderQueueControlInput(ctx context.Context, obj any) (model.UpdateOrderQueueControlInput, error) {
+	var it model.UpdateOrderQueueControlInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"orderId", "operatorAssignee", "shipmentSlaDueAt", "issueSlaDueAt"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "orderId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderId"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OrderID = data
+		case "operatorAssignee":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("operatorAssignee"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OperatorAssignee = data
+		case "shipmentSlaDueAt":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shipmentSlaDueAt"))
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ShipmentSLADueAt = data
+		case "issueSlaDueAt":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("issueSlaDueAt"))
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IssueSLADueAt = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateOrderSettlementInput(ctx context.Context, obj any) (model.UpdateOrderSettlementInput, error) {
 	var it model.UpdateOrderSettlementInput
 	asMap := map[string]any{}
@@ -7246,6 +7781,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "updateOrderIssueHandling":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateOrderIssueHandling(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateOrderQueueControl":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateOrderQueueControl(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "bulkUpdateRoutedOrders":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_bulkUpdateRoutedOrders(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -7904,6 +8453,15 @@ func (ec *executionContext) _RoutedOrder(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "operatorAssignee":
+			out.Values[i] = ec._RoutedOrder_operatorAssignee(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "shipmentSlaDueAt":
+			out.Values[i] = ec._RoutedOrder_shipmentSlaDueAt(ctx, field, obj)
+		case "issueSlaDueAt":
+			out.Values[i] = ec._RoutedOrder_issueSlaDueAt(ctx, field, obj)
 		case "baseCostSnapshot":
 			out.Values[i] = ec._RoutedOrder_baseCostSnapshot(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -8470,6 +9028,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNBulkUpdateRoutedOrdersInput2githubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐBulkUpdateRoutedOrdersInput(ctx context.Context, v any) (model.BulkUpdateRoutedOrdersInput, error) {
+	res, err := ec.unmarshalInputBulkUpdateRoutedOrdersInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCreateProductSetupDraftInput2githubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐCreateProductSetupDraftInput(ctx context.Context, v any) (model.CreateProductSetupDraftInput, error) {
 	res, err := ec.unmarshalInputCreateProductSetupDraftInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -8499,6 +9062,36 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNID2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNID2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNID2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v any) (int, error) {
@@ -8969,6 +9562,11 @@ func (ec *executionContext) unmarshalNUpdateOrderExceptionStatusInput2githubᚗc
 
 func (ec *executionContext) unmarshalNUpdateOrderIssueHandlingInput2githubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐUpdateOrderIssueHandlingInput(ctx context.Context, v any) (model.UpdateOrderIssueHandlingInput, error) {
 	res, err := ec.unmarshalInputUpdateOrderIssueHandlingInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateOrderQueueControlInput2githubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐUpdateOrderQueueControlInput(ctx context.Context, v any) (model.UpdateOrderQueueControlInput, error) {
+	res, err := ec.unmarshalInputUpdateOrderQueueControlInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 

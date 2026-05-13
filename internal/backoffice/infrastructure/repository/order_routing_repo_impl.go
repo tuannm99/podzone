@@ -43,6 +43,9 @@ type routedOrderRow struct {
 	ShipmentTrackingNumber string       `db:"shipment_tracking_number"`
 	ShipmentTrackingURL    string       `db:"shipment_tracking_url"`
 	ShipmentNotes          string       `db:"shipment_notes"`
+	OperatorAssignee       string       `db:"operator_assignee"`
+	ShipmentSlaDueAt       sql.NullTime `db:"shipment_sla_due_at"`
+	IssueSlaDueAt          sql.NullTime `db:"issue_sla_due_at"`
 	BaseCostSnapshot       string       `db:"base_cost_snapshot"`
 	FulfillmentCost        string       `db:"fulfillment_cost"`
 	ShippingCost           string       `db:"shipping_cost"`
@@ -60,7 +63,7 @@ type routedOrderRow struct {
 
 func (r *OrderRoutingRepositoryImpl) List(ctx context.Context) ([]entity.RoutedOrder, error) {
 	query, args, err := psql.
-		Select("id", "candidate_id", "product_title", "partner", "quantity", "total", "customer_name", "status", "timeline_json", "exception_type", "exception_status", "shipment_status", "shipment_carrier", "shipment_tracking_number", "shipment_tracking_url", "shipment_notes", "base_cost_snapshot", "fulfillment_cost", "shipping_cost", "issue_cost", "issue_resolution", "issue_notes", "realized_margin", "settlement_status", "settlement_notes", "shipped_at", "delivered_at", "created_at", "updated_at").
+		Select("id", "candidate_id", "product_title", "partner", "quantity", "total", "customer_name", "status", "timeline_json", "exception_type", "exception_status", "shipment_status", "shipment_carrier", "shipment_tracking_number", "shipment_tracking_url", "shipment_notes", "operator_assignee", "shipment_sla_due_at", "issue_sla_due_at", "base_cost_snapshot", "fulfillment_cost", "shipping_cost", "issue_cost", "issue_resolution", "issue_notes", "realized_margin", "settlement_status", "settlement_notes", "shipped_at", "delivered_at", "created_at", "updated_at").
 		From("routed_orders").
 		OrderBy("created_at DESC").
 		ToSql()
@@ -91,7 +94,7 @@ func (r *OrderRoutingRepositoryImpl) List(ctx context.Context) ([]entity.RoutedO
 
 func (r *OrderRoutingRepositoryImpl) GetByID(ctx context.Context, id string) (*entity.RoutedOrder, error) {
 	query, args, err := psql.
-		Select("id", "candidate_id", "product_title", "partner", "quantity", "total", "customer_name", "status", "timeline_json", "exception_type", "exception_status", "shipment_status", "shipment_carrier", "shipment_tracking_number", "shipment_tracking_url", "shipment_notes", "base_cost_snapshot", "fulfillment_cost", "shipping_cost", "issue_cost", "issue_resolution", "issue_notes", "realized_margin", "settlement_status", "settlement_notes", "shipped_at", "delivered_at", "created_at", "updated_at").
+		Select("id", "candidate_id", "product_title", "partner", "quantity", "total", "customer_name", "status", "timeline_json", "exception_type", "exception_status", "shipment_status", "shipment_carrier", "shipment_tracking_number", "shipment_tracking_url", "shipment_notes", "operator_assignee", "shipment_sla_due_at", "issue_sla_due_at", "base_cost_snapshot", "fulfillment_cost", "shipping_cost", "issue_cost", "issue_resolution", "issue_notes", "realized_margin", "settlement_status", "settlement_notes", "shipped_at", "delivered_at", "created_at", "updated_at").
 		From("routed_orders").
 		Where(sq.Eq{"id": id}).
 		ToSql()
@@ -129,8 +132,8 @@ func (r *OrderRoutingRepositoryImpl) Create(ctx context.Context, order entity.Ro
 	}
 	query, args, err := psql.
 		Insert("routed_orders").
-		Columns("id", "candidate_id", "product_title", "partner", "quantity", "total", "customer_name", "status", "timeline_json", "exception_type", "exception_status", "shipment_status", "shipment_carrier", "shipment_tracking_number", "shipment_tracking_url", "shipment_notes", "base_cost_snapshot", "fulfillment_cost", "shipping_cost", "issue_cost", "issue_resolution", "issue_notes", "realized_margin", "settlement_status", "settlement_notes", "shipped_at", "delivered_at", "created_at", "updated_at").
-		Values(order.ID, order.CandidateID, order.ProductTitle, order.Partner, order.Quantity, order.Total, order.CustomerName, order.Status, string(timelineJSON), order.ExceptionType, order.ExceptionStatus, order.ShipmentStatus, order.ShipmentCarrier, order.ShipmentTrackingNumber, order.ShipmentTrackingURL, order.ShipmentNotes, order.BaseCostSnapshot, order.FulfillmentCost, order.ShippingCost, order.IssueCost, order.IssueResolution, order.IssueNotes, order.RealizedMargin, order.SettlementStatus, order.SettlementNotes, order.ShippedAt, order.DeliveredAt, order.CreatedAt, order.UpdatedAt).
+		Columns("id", "candidate_id", "product_title", "partner", "quantity", "total", "customer_name", "status", "timeline_json", "exception_type", "exception_status", "shipment_status", "shipment_carrier", "shipment_tracking_number", "shipment_tracking_url", "shipment_notes", "operator_assignee", "shipment_sla_due_at", "issue_sla_due_at", "base_cost_snapshot", "fulfillment_cost", "shipping_cost", "issue_cost", "issue_resolution", "issue_notes", "realized_margin", "settlement_status", "settlement_notes", "shipped_at", "delivered_at", "created_at", "updated_at").
+		Values(order.ID, order.CandidateID, order.ProductTitle, order.Partner, order.Quantity, order.Total, order.CustomerName, order.Status, string(timelineJSON), order.ExceptionType, order.ExceptionStatus, order.ShipmentStatus, order.ShipmentCarrier, order.ShipmentTrackingNumber, order.ShipmentTrackingURL, order.ShipmentNotes, order.OperatorAssignee, order.ShipmentSlaDueAt, order.IssueSlaDueAt, order.BaseCostSnapshot, order.FulfillmentCost, order.ShippingCost, order.IssueCost, order.IssueResolution, order.IssueNotes, order.RealizedMargin, order.SettlementStatus, order.SettlementNotes, order.ShippedAt, order.DeliveredAt, order.CreatedAt, order.UpdatedAt).
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -169,6 +172,9 @@ func (r *OrderRoutingRepositoryImpl) Update(ctx context.Context, order entity.Ro
 		Set("shipment_tracking_number", order.ShipmentTrackingNumber).
 		Set("shipment_tracking_url", order.ShipmentTrackingURL).
 		Set("shipment_notes", order.ShipmentNotes).
+		Set("operator_assignee", order.OperatorAssignee).
+		Set("shipment_sla_due_at", order.ShipmentSlaDueAt).
+		Set("issue_sla_due_at", order.IssueSlaDueAt).
 		Set("base_cost_snapshot", order.BaseCostSnapshot).
 		Set("fulfillment_cost", order.FulfillmentCost).
 		Set("shipping_cost", order.ShippingCost).
@@ -230,6 +236,14 @@ func mapRoutedOrderRow(row routedOrderRow) (entity.RoutedOrder, error) {
 	if row.DeliveredAt.Valid {
 		deliveredAt = &row.DeliveredAt.Time
 	}
+	var shipmentSlaDueAt *time.Time
+	if row.ShipmentSlaDueAt.Valid {
+		shipmentSlaDueAt = &row.ShipmentSlaDueAt.Time
+	}
+	var issueSlaDueAt *time.Time
+	if row.IssueSlaDueAt.Valid {
+		issueSlaDueAt = &row.IssueSlaDueAt.Time
+	}
 	return entity.RoutedOrder{
 		ID:                     row.ID,
 		CandidateID:            row.CandidateID,
@@ -247,6 +261,9 @@ func mapRoutedOrderRow(row routedOrderRow) (entity.RoutedOrder, error) {
 		ShipmentTrackingNumber: row.ShipmentTrackingNumber,
 		ShipmentTrackingURL:    row.ShipmentTrackingURL,
 		ShipmentNotes:          row.ShipmentNotes,
+		OperatorAssignee:       row.OperatorAssignee,
+		ShipmentSlaDueAt:       shipmentSlaDueAt,
+		IssueSlaDueAt:          issueSlaDueAt,
 		BaseCostSnapshot:       row.BaseCostSnapshot,
 		FulfillmentCost:        row.FulfillmentCost,
 		ShippingCost:           row.ShippingCost,

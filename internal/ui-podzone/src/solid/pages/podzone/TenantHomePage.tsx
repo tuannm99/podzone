@@ -22,6 +22,29 @@ function formatMoney(value: number) {
   return `$${value.toFixed(2)}`;
 }
 
+function isOverdue(value?: string) {
+  if (!value) {
+    return false;
+  }
+  return new Date(value).getTime() < Date.now();
+}
+
+function buildOrdersHref(
+  tenantID: string,
+  queueView: string,
+  queueSort: string = 'priority',
+  operatorLens?: string
+) {
+  const params = new URLSearchParams({
+    queueView,
+    queueSort,
+  });
+  if (operatorLens) {
+    params.set('operatorLens', operatorLens);
+  }
+  return `/t/${tenantID}/orders?${params.toString()}`;
+}
+
 export default function TenantHomePage() {
   const params = useParams({ from: '/t/$tenantId' });
   const [tenantReady, setTenantReady] = createSignal(
@@ -36,6 +59,8 @@ export default function TenantHomePage() {
   const [pendingSettlementCount, setPendingSettlementCount] = createSignal(0);
   const [disputedSettlementCount, setDisputedSettlementCount] = createSignal(0);
   const [issueCostExposure, setIssueCostExposure] = createSignal('$0.00');
+  const [shipmentSlaOverdueCount, setShipmentSlaOverdueCount] = createSignal(0);
+  const [issueSlaOverdueCount, setIssueSlaOverdueCount] = createSignal(0);
   const [topPartnerLoad, setTopPartnerLoad] = createSignal('No partner load yet');
   const [issueRate, setIssueRate] = createSignal('0%');
   const [error, setError] = createSignal('');
@@ -94,6 +119,24 @@ export default function TenantHomePage() {
           parsed.reduce((sum, order) => sum + parseMoney(order.issueCost), 0)
         )
       );
+      setShipmentSlaOverdueCount(
+        parsed.filter(
+          (order) =>
+            !!order.shipmentSlaDueAt &&
+            isOverdue(order.shipmentSlaDueAt) &&
+            order.shipmentStatus !== 'delivered'
+        ).length
+      );
+      setIssueSlaOverdueCount(
+        parsed.filter(
+          (order) =>
+            !!order.issueSlaDueAt &&
+            isOverdue(order.issueSlaDueAt) &&
+            (order.exceptionStatus === 'open' ||
+              order.exceptionStatus === 'escalated' ||
+              order.shipmentStatus === 'delivery_issue')
+        ).length
+      );
       const loadByPartner = parsed.reduce<Record<string, number>>((acc, order) => {
         acc[order.partner] = (acc[order.partner] || 0) + 1;
         return acc;
@@ -123,6 +166,8 @@ export default function TenantHomePage() {
       setPendingSettlementCount(0);
       setDisputedSettlementCount(0);
       setIssueCostExposure('$0.00');
+      setShipmentSlaOverdueCount(0);
+      setIssueSlaOverdueCount(0);
       setTopPartnerLoad('No partner load yet');
       setIssueRate('0%');
     }
@@ -179,6 +224,10 @@ export default function TenantHomePage() {
           value={String(pendingSettlementCount())}
         />
         <StatCard label="Issue cost" value={issueCostExposure()} />
+        <StatCard
+          label="Shipment SLA overdue"
+          value={String(shipmentSlaOverdueCount())}
+        />
         <StatCard label="Top partner load" value={topPartnerLoad()} />
       </div>
 
@@ -228,6 +277,14 @@ export default function TenantHomePage() {
           <Badge content={`margin ${realizedMarginTotal()}`} color="blue" />
           <Badge content={`issue cost ${issueCostExposure()}`} color="red" />
           <Badge
+            content={`${shipmentSlaOverdueCount()} shipment SLA overdue`}
+            color={shipmentSlaOverdueCount() > 0 ? 'red' : 'green'}
+          />
+          <Badge
+            content={`${issueSlaOverdueCount()} issue SLA overdue`}
+            color={issueSlaOverdueCount() > 0 ? 'red' : 'green'}
+          />
+          <Badge
             content={`${pendingSettlementCount()} pending settlements`}
             color={pendingSettlementCount() > 0 ? 'yellow' : 'green'}
           />
@@ -249,7 +306,7 @@ export default function TenantHomePage() {
           title="Start here"
           subtitle="A simple guided POD flow that separates the partner record layer from store-side catalog and routing operations."
         />
-        <div class="grid gap-4 md:grid-cols-3">
+        <div class="grid gap-4 md:grid-cols-4">
           <div class="rounded-2xl border border-gray-200 p-4">
             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
               1. Partner setup
@@ -340,6 +397,17 @@ export default function TenantHomePage() {
               Captures reprint, delivery issue, and other exception costs now reducing realized margin.
             </p>
           </div>
+          <div class="rounded-2xl border border-gray-200 p-4">
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
+              Queue pressure
+            </p>
+            <p class="mt-2 text-lg font-semibold text-gray-900">
+              {shipmentSlaOverdueCount()} shipment · {issueSlaOverdueCount()} issue
+            </p>
+            <p class="mt-1 text-sm text-gray-600">
+              Tracks overdue shipment and issue follow-up deadlines on the operator queue.
+            </p>
+          </div>
         </div>
       </Card>
 
@@ -360,6 +428,43 @@ export default function TenantHomePage() {
           </Button>
           <Button href={`/t/${params().tenantId}/partners`} color="light">
             {topPartnerLoad() === 'No partner load yet' ? 'Set up print partners' : 'Review partner load'}
+          </Button>
+        </div>
+      </Card>
+
+      <Card class="space-y-4">
+        <SectionTitle
+          title="Queue Shortcuts"
+          subtitle="Open the orders board already focused on the slice that needs attention."
+        />
+        <div class="flex flex-wrap gap-3">
+          <Button
+            href={buildOrdersHref(params().tenantId, 'overdue')}
+            color={
+              shipmentSlaOverdueCount() > 0 || issueSlaOverdueCount() > 0
+                ? 'red'
+                : 'alternative'
+            }
+          >
+            Overdue queue
+          </Button>
+          <Button
+            href={buildOrdersHref(params().tenantId, 'delivery_issues')}
+            color={openExceptionCount() > 0 ? 'dark' : 'alternative'}
+          >
+            Issue queue
+          </Button>
+          <Button
+            href={buildOrdersHref(params().tenantId, 'settlement_pending')}
+            color={pendingSettlementCount() > 0 ? 'green' : 'alternative'}
+          >
+            Settlement follow-up
+          </Button>
+          <Button
+            href={buildOrdersHref(params().tenantId, 'all', 'priority')}
+            color="blue"
+          >
+            Priority queue
           </Button>
         </div>
       </Card>

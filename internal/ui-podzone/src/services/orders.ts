@@ -17,6 +17,9 @@ export type RoutedOrder = {
   shipmentTrackingNumber: string;
   shipmentTrackingUrl: string;
   shipmentNotes: string;
+  operatorAssignee: string;
+  shipmentSlaDueAt?: string;
+  issueSlaDueAt?: string;
   baseCostSnapshot: string;
   fulfillmentCost: string;
   shippingCost: string;
@@ -63,6 +66,19 @@ type UpdateRoutedOrderIssueHandlingPayload = {
   notes: string;
 };
 
+type UpdateRoutedOrderQueueControlPayload = {
+  operatorAssignee: string;
+  shipmentSlaDueAt?: string;
+  issueSlaDueAt?: string;
+};
+
+type BulkUpdateRoutedOrdersPayload = {
+  orderIds: string[];
+  operatorAssignee?: string;
+  shipmentSlaDueAt?: string;
+  settlementStatus?: string;
+};
+
 const routedOrderFields = `
   id
   candidateId
@@ -80,6 +96,9 @@ const routedOrderFields = `
   shipmentTrackingNumber
   shipmentTrackingUrl
   shipmentNotes
+  operatorAssignee
+  shipmentSlaDueAt
+  issueSlaDueAt
   baseCostSnapshot
   fulfillmentCost
   shippingCost
@@ -281,4 +300,67 @@ ${routedOrderFields}
     return { success: false, message: result.message };
   }
   return { success: true, data: result.data.updateOrderIssueHandling };
+}
+
+export async function updateRoutedOrderQueueControl(
+  id: string,
+  payload: UpdateRoutedOrderQueueControlPayload
+): Promise<OrdersResult<RoutedOrder>> {
+  const result = await postBackofficeGraphQL<{
+    updateOrderQueueControl: RoutedOrder;
+  }>(
+    `
+      mutation UpdateOrderQueueControl($input: UpdateOrderQueueControlInput!) {
+        updateOrderQueueControl(input: $input) {
+${routedOrderFields}
+        }
+      }
+    `,
+    {
+      input: {
+        orderId: id,
+        operatorAssignee: payload.operatorAssignee,
+        shipmentSlaDueAt: payload.shipmentSlaDueAt || null,
+        issueSlaDueAt: payload.issueSlaDueAt || null,
+      },
+    }
+  );
+  if (!result.success) {
+    return { success: false, message: result.message };
+  }
+  return { success: true, data: result.data.updateOrderQueueControl };
+}
+
+export async function bulkUpdateRoutedOrders(
+  payload: BulkUpdateRoutedOrdersPayload
+): Promise<OrdersResult<RoutedOrder[]>> {
+  const result = await postBackofficeGraphQL<{
+    bulkUpdateRoutedOrders: RoutedOrder[];
+  }>(
+    `
+      mutation BulkUpdateRoutedOrders($input: BulkUpdateRoutedOrdersInput!) {
+        bulkUpdateRoutedOrders(input: $input) {
+${routedOrderFields}
+        }
+      }
+    `,
+    {
+      input: {
+        orderIds: payload.orderIds,
+        operatorAssignee:
+          payload.operatorAssignee && payload.operatorAssignee.trim()
+            ? payload.operatorAssignee
+            : null,
+        shipmentSlaDueAt: payload.shipmentSlaDueAt || null,
+        settlementStatus:
+          payload.settlementStatus && payload.settlementStatus.trim()
+            ? payload.settlementStatus
+            : null,
+      },
+    }
+  );
+  if (!result.success) {
+    return { success: false, message: result.message };
+  }
+  return { success: true, data: result.data.bulkUpdateRoutedOrders || [] };
 }

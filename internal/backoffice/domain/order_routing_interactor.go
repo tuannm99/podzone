@@ -63,6 +63,7 @@ func (i *OrderRoutingInteractor) CreateRoutedOrder(
 		CustomerName:     customerName,
 		Status:           entity.RoutedOrderStatusQueued,
 		ShipmentStatus:   entity.RoutedOrderShipmentStatusAwaitingLabel,
+		OperatorAssignee: "unassigned",
 		BaseCostSnapshot: multiplyMoney(candidate.BaseCost, qty),
 		FulfillmentCost:  multiplyMoney(candidate.BaseCost, qty),
 		ShippingCost:     "$0.00",
@@ -218,6 +219,88 @@ func (i *OrderRoutingInteractor) UpdateOrderShipment(
 	order.Timeline = append(order.Timeline, shipmentTimelineEntry(order))
 	order.UpdatedAt = now
 	return i.orders.Update(ctx, *order)
+}
+
+func (i *OrderRoutingInteractor) UpdateOrderQueueControl(
+	ctx context.Context,
+	cmd inputport.UpdateOrderQueueControlCmd,
+) (*entity.RoutedOrder, error) {
+	order, err := i.orders.GetByID(ctx, strings.TrimSpace(cmd.OrderID))
+	if err != nil {
+		return nil, err
+	}
+	if order == nil {
+		return nil, fmt.Errorf("routed order not found")
+	}
+
+	assignee := strings.TrimSpace(cmd.OperatorAssignee)
+	if assignee == "" {
+		assignee = "unassigned"
+	}
+	order.OperatorAssignee = assignee
+	order.ShipmentSlaDueAt = cmd.ShipmentSlaDueAt
+	order.IssueSlaDueAt = cmd.IssueSlaDueAt
+	order.Timeline = append(order.Timeline, queueControlTimelineEntry(order))
+	order.UpdatedAt = time.Now().UTC()
+	return i.orders.Update(ctx, *order)
+}
+
+func (i *OrderRoutingInteractor) BulkUpdateRoutedOrders(
+	ctx context.Context,
+	cmd inputport.BulkUpdateRoutedOrdersCmd,
+) ([]entity.RoutedOrder, error) {
+	if len(cmd.OrderIDs) == 0 {
+		return nil, fmt.Errorf("at least one routed order id is required")
+	}
+	if cmd.OperatorAssignee == nil && cmd.ShipmentSlaDueAt == nil && cmd.SettlementStatus == nil {
+		return nil, fmt.Errorf("at least one bulk update field is required")
+	}
+
+	var normalizedSettlementStatus string
+	if cmd.SettlementStatus != nil {
+		normalizedSettlementStatus = normalizeSettlementStatus(strings.TrimSpace(*cmd.SettlementStatus))
+		if normalizedSettlementStatus == "" {
+			return nil, fmt.Errorf("invalid settlement status")
+		}
+	}
+
+	updated := make([]entity.RoutedOrder, 0, len(cmd.OrderIDs))
+	for _, rawID := range cmd.OrderIDs {
+		orderID := strings.TrimSpace(rawID)
+		if orderID == "" {
+			continue
+		}
+		order, err := i.orders.GetByID(ctx, orderID)
+		if err != nil {
+			return nil, err
+		}
+		if order == nil {
+			return nil, fmt.Errorf("routed order not found")
+		}
+
+		if cmd.OperatorAssignee != nil {
+			assignee := strings.TrimSpace(*cmd.OperatorAssignee)
+			if assignee == "" {
+				assignee = "unassigned"
+			}
+			order.OperatorAssignee = assignee
+		}
+		if cmd.ShipmentSlaDueAt != nil {
+			order.ShipmentSlaDueAt = cmd.ShipmentSlaDueAt
+		}
+		if cmd.SettlementStatus != nil {
+			order.SettlementStatus = normalizedSettlementStatus
+		}
+
+		order.Timeline = append(order.Timeline, bulkUpdateTimelineEntry(order, cmd))
+		order.UpdatedAt = time.Now().UTC()
+		saved, err := i.orders.Update(ctx, *order)
+		if err != nil {
+			return nil, err
+		}
+		updated = append(updated, *saved)
+	}
+	return updated, nil
 }
 
 func (i *OrderRoutingInteractor) UpdateOrderSettlement(
@@ -395,6 +478,37 @@ func issueHandlingTimelineEntry(order *entity.RoutedOrder) string {
 		strings.ReplaceAll(order.IssueResolution, "_", " "),
 		order.IssueCost,
 	)
+}
+
+func queueControlTimelineEntry(order *entity.RoutedOrder) string {
+	shipmentDue := "none"
+	if order.ShipmentSlaDueAt != nil {
+		shipmentDue = order.ShipmentSlaDueAt.UTC().Format(time.RFC3339)
+	}
+	issueDue := "none"
+	if order.IssueSlaDueAt != nil {
+		issueDue = order.IssueSlaDueAt.UTC().Format(time.RFC3339)
+	}
+	return fmt.Sprintf(
+		"Queue ownership updated: %s · shipment SLA %s · issue SLA %s",
+		order.OperatorAssignee,
+		shipmentDue,
+		issueDue,
+	)
+}
+
+func bulkUpdateTimelineEntry(order *entity.RoutedOrder, cmd inputport.BulkUpdateRoutedOrdersCmd) string {
+	parts := make([]string, 0, 3)
+	if cmd.OperatorAssignee != nil {
+		parts = append(parts, fmt.Sprintf("owner %s", order.OperatorAssignee))
+	}
+	if cmd.ShipmentSlaDueAt != nil {
+		parts = append(parts, fmt.Sprintf("shipment SLA %s", order.ShipmentSlaDueAt.UTC().Format(time.RFC3339)))
+	}
+	if cmd.SettlementStatus != nil {
+		parts = append(parts, fmt.Sprintf("settlement %s", order.SettlementStatus))
+	}
+	return fmt.Sprintf("Bulk queue update applied: %s", strings.Join(parts, " · "))
 }
 
 func fallbackShipmentCarrier(carrier string) string {

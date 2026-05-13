@@ -144,6 +144,38 @@ func (r *mutationResolver) UpdateOrderIssueHandling(ctx context.Context, input m
 	return toGraphQLRoutedOrder(*order), nil
 }
 
+// UpdateOrderQueueControl is the resolver for the updateOrderQueueControl field.
+func (r *mutationResolver) UpdateOrderQueueControl(ctx context.Context, input model.UpdateOrderQueueControlInput) (*model.RoutedOrder, error) {
+	order, err := r.OrderRoutingUsecase.UpdateOrderQueueControl(ctx, inputport.UpdateOrderQueueControlCmd{
+		OrderID:          input.OrderID,
+		OperatorAssignee: input.OperatorAssignee,
+		ShipmentSlaDueAt: input.ShipmentSLADueAt,
+		IssueSlaDueAt:    input.IssueSLADueAt,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return toGraphQLRoutedOrder(*order), nil
+}
+
+// BulkUpdateRoutedOrders is the resolver for the bulkUpdateRoutedOrders field.
+func (r *mutationResolver) BulkUpdateRoutedOrders(ctx context.Context, input model.BulkUpdateRoutedOrdersInput) ([]*model.RoutedOrder, error) {
+	orders, err := r.OrderRoutingUsecase.BulkUpdateRoutedOrders(ctx, inputport.BulkUpdateRoutedOrdersCmd{
+		OrderIDs:         input.OrderIds,
+		OperatorAssignee: input.OperatorAssignee,
+		ShipmentSlaDueAt: input.ShipmentSLADueAt,
+		SettlementStatus: input.SettlementStatus,
+	})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*model.RoutedOrder, 0, len(orders))
+	for _, order := range orders {
+		out = append(out, toGraphQLRoutedOrder(order))
+	}
+	return out, nil
+}
+
 // ProductSetupSnapshot is the resolver for the productSetupSnapshot field.
 func (r *queryResolver) ProductSetupSnapshot(ctx context.Context) (*model.ProductSetupSnapshot, error) {
 	snapshot, err := r.ProductSetupUsecase.GetSnapshot(ctx)

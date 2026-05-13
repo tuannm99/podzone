@@ -1,13 +1,15 @@
-import { useParams } from '@tanstack/solid-router';
+import { useParams, useSearch } from '@tanstack/solid-router';
 import { For, Show, createEffect, createSignal } from 'solid-js';
 import {
   advanceRoutedOrder,
+  bulkUpdateRoutedOrders,
   createRoutedOrder,
   getRoutedOrders,
   openRoutedOrderException,
   type RoutedOrder,
   updateRoutedOrderExceptionStatus,
   updateRoutedOrderIssueHandling,
+  updateRoutedOrderQueueControl,
   updateRoutedOrderSettlement,
   updateRoutedOrderShipment,
 } from '../../../services/orders';
@@ -90,6 +92,44 @@ type IssueDraft = {
   issueNotes: string;
 };
 
+type QueueDraft = {
+  operatorAssignee: string;
+  shipmentSlaDueAt: string;
+  issueSlaDueAt: string;
+};
+
+type QueueView =
+  | 'all'
+  | 'my_queue'
+  | 'overdue'
+  | 'delivery_issues'
+  | 'settlement_pending';
+
+type QueueSort = 'priority' | 'newest';
+
+type ShipmentSlaMode = '' | 'plus_2h' | 'plus_4h' | 'end_of_day';
+
+type BulkDraft = {
+  operatorAssignee: string;
+  shipmentSlaDueAt: string;
+  shipmentSlaMode: ShipmentSlaMode;
+  settlementStatus: string;
+};
+
+type SavedQueuePreset = {
+  name: string;
+  queueView: QueueView;
+  queueSort: QueueSort;
+  operatorLens: string;
+};
+
+type SavedBulkTemplate = {
+  name: string;
+  operatorAssignee: string;
+  shipmentSlaMode: ShipmentSlaMode;
+  settlementStatus: string;
+};
+
 function statusColor(status: string) {
   switch (status) {
     case 'shipped':
@@ -142,8 +182,70 @@ function settlementColor(status: string) {
   }
 }
 
+function toLocalDateTimeValue(value?: string) {
+  if (!value) {
+    return '';
+  }
+  const date = new Date(value);
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+}
+
+function toIsoDateTime(value: string) {
+  if (!value.trim()) {
+    return '';
+  }
+  return new Date(value).toISOString();
+}
+
+function isOverdue(value?: string) {
+  if (!value) {
+    return false;
+  }
+  return new Date(value).getTime() < Date.now();
+}
+
+function isQueueView(value: string): value is QueueView {
+  return (
+    value === 'all' ||
+    value === 'my_queue' ||
+    value === 'overdue' ||
+    value === 'delivery_issues' ||
+    value === 'settlement_pending'
+  );
+}
+
+function isQueueSort(value: string): value is QueueSort {
+  return value === 'priority' || value === 'newest';
+}
+
+function queuePresetStorageKey(tenantID: string) {
+  return `podzone:orders:queue-presets:${tenantID}`;
+}
+
+function bulkTemplateStorageKey(tenantID: string) {
+  return `podzone:orders:bulk-templates:${tenantID}`;
+}
+
+function resolveShipmentSla(mode: ShipmentSlaMode) {
+  if (!mode) {
+    return '';
+  }
+  const now = new Date();
+  if (mode === 'plus_2h') {
+    return new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString();
+  }
+  if (mode === 'plus_4h') {
+    return new Date(now.getTime() + 4 * 60 * 60 * 1000).toISOString();
+  }
+  const endOfDay = new Date(now);
+  endOfDay.setHours(23, 59, 0, 0);
+  return endOfDay.toISOString();
+}
+
 export default function TenantOrdersPage() {
   const params = useParams({ from: '/t/$tenantId/orders' });
+  const search = useSearch({ strict: false }) as () => Record<string, unknown>;
 
   const [availableCandidates, setAvailableCandidates] = createSignal<
     CatalogCandidate[]
@@ -154,6 +256,22 @@ export default function TenantOrdersPage() {
   const [quantity, setQuantity] = createSignal('1');
   const [selectedExceptionType, setSelectedExceptionType] =
     createSignal('artwork_issue');
+  const [activeQueueView, setActiveQueueView] = createSignal<QueueView>('all');
+  const [activeQueueSort, setActiveQueueSort] = createSignal<QueueSort>('priority');
+  const [operatorLens, setOperatorLens] = createSignal('');
+  const [savedPresets, setSavedPresets] = createSignal<SavedQueuePreset[]>([]);
+  const [presetName, setPresetName] = createSignal('');
+  const [savedBulkTemplates, setSavedBulkTemplates] = createSignal<
+    SavedBulkTemplate[]
+  >([]);
+  const [bulkTemplateName, setBulkTemplateName] = createSignal('');
+  const [selectedOrderIDs, setSelectedOrderIDs] = createSignal<string[]>([]);
+  const [bulkDraft, setBulkDraft] = createSignal<BulkDraft>({
+    operatorAssignee: '',
+    shipmentSlaDueAt: '',
+    shipmentSlaMode: '',
+    settlementStatus: '',
+  });
   const [shipmentDrafts, setShipmentDrafts] = createSignal<
     Record<string, ShipmentDraft>
   >({});
@@ -161,6 +279,9 @@ export default function TenantOrdersPage() {
     Record<string, SettlementDraft>
   >({});
   const [issueDrafts, setIssueDrafts] = createSignal<Record<string, IssueDraft>>(
+    {}
+  );
+  const [queueDrafts, setQueueDrafts] = createSignal<Record<string, QueueDraft>>(
     {}
   );
   const [message, setMessage] = createSignal('');
@@ -188,6 +309,13 @@ export default function TenantOrdersPage() {
       issueCost: order.issueCost || '$0.00',
       issueResolution: order.issueResolution || 'monitor',
       issueNotes: order.issueNotes || '',
+    };
+
+  const queueDraftFor = (order: RoutedOrder): QueueDraft =>
+    queueDrafts()[order.id] || {
+      operatorAssignee: order.operatorAssignee || 'unassigned',
+      shipmentSlaDueAt: toLocalDateTimeValue(order.shipmentSlaDueAt),
+      issueSlaDueAt: toLocalDateTimeValue(order.issueSlaDueAt),
     };
 
   const patchShipmentDraft = (orderId: string, patch: Partial<ShipmentDraft>) => {
@@ -238,6 +366,20 @@ export default function TenantOrdersPage() {
     }));
   };
 
+  const patchQueueDraft = (orderId: string, patch: Partial<QueueDraft>) => {
+    setQueueDrafts((current) => ({
+      ...current,
+      [orderId]: {
+        ...(current[orderId] || {
+          operatorAssignee: 'unassigned',
+          shipmentSlaDueAt: '',
+          issueSlaDueAt: '',
+        }),
+        ...patch,
+      },
+    }));
+  };
+
   const loadCandidates = async () => {
     const result = await getProductSetupSnapshot();
     if (!result.success) {
@@ -262,7 +404,243 @@ export default function TenantOrdersPage() {
       return;
     }
     setOrders(result.data.orders);
+    if (!operatorLens().trim()) {
+      const firstAssigned = result.data.orders.find(
+        (order) =>
+          order.operatorAssignee &&
+          order.operatorAssignee !== 'unassigned'
+      );
+      if (firstAssigned) {
+        setOperatorLens(firstAssigned.operatorAssignee);
+      }
+    }
   };
+
+  const matchesQueueView = (order: RoutedOrder, view: QueueView) => {
+    switch (view) {
+      case 'my_queue':
+        return (
+          !!operatorLens().trim() &&
+          order.operatorAssignee.toLowerCase() ===
+            operatorLens().trim().toLowerCase()
+        );
+      case 'overdue':
+        return (
+          (order.shipmentSlaDueAt &&
+            isOverdue(order.shipmentSlaDueAt) &&
+            order.shipmentStatus !== 'delivered') ||
+          (order.issueSlaDueAt &&
+            isOverdue(order.issueSlaDueAt) &&
+            (order.exceptionStatus === 'open' ||
+              order.exceptionStatus === 'escalated' ||
+              order.shipmentStatus === 'delivery_issue'))
+        );
+      case 'delivery_issues':
+        return (
+          order.shipmentStatus === 'delivery_issue' ||
+          order.issueResolution === 'carrier_claim'
+        );
+      case 'settlement_pending':
+        return (
+          order.settlementStatus === 'pending' ||
+          order.settlementStatus === 'disputed'
+        );
+      default:
+        return true;
+    }
+  };
+
+  const filteredOrders = () =>
+    orders().filter((order) => matchesQueueView(order, activeQueueView()));
+
+  const priorityScoreFor = (order: RoutedOrder) => {
+    const shipmentOverdue =
+      !!order.shipmentSlaDueAt &&
+      isOverdue(order.shipmentSlaDueAt) &&
+      order.shipmentStatus !== 'delivered';
+    const issueOverdue =
+      !!order.issueSlaDueAt &&
+      isOverdue(order.issueSlaDueAt) &&
+      (order.exceptionStatus === 'open' ||
+        order.exceptionStatus === 'escalated' ||
+        order.shipmentStatus === 'delivery_issue');
+
+    if (shipmentOverdue || issueOverdue) {
+      return 0;
+    }
+    if (order.shipmentStatus === 'delivery_issue') {
+      return 1;
+    }
+    if (order.settlementStatus === 'disputed') {
+      return 2;
+    }
+    if (
+      order.exceptionStatus === 'open' ||
+      order.exceptionStatus === 'escalated'
+    ) {
+      return 3;
+    }
+    if (order.status === 'in_production') {
+      return 4;
+    }
+    if (order.settlementStatus === 'pending') {
+      return 5;
+    }
+    return 6;
+  };
+
+  const sortedOrders = () => {
+    const ranked = [...filteredOrders()];
+    if (activeQueueSort() === 'newest') {
+      return ranked.sort(
+        (a, b) =>
+          new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+      );
+    }
+    return ranked.sort((a, b) => {
+      const priorityDelta = priorityScoreFor(a) - priorityScoreFor(b);
+      if (priorityDelta !== 0) {
+        return priorityDelta;
+      }
+      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    });
+  };
+
+  const queueViewCount = (view: QueueView) =>
+    orders().filter((order) => matchesQueueView(order, view)).length;
+
+  const loadSavedPresets = () => {
+    const raw = window.localStorage.getItem(queuePresetStorageKey(params().tenantId));
+    if (!raw) {
+      setSavedPresets([]);
+      return;
+    }
+    try {
+      const parsed = JSON.parse(raw) as SavedQueuePreset[];
+      setSavedPresets(Array.isArray(parsed) ? parsed : []);
+    } catch {
+      setSavedPresets([]);
+    }
+  };
+
+  const persistSavedPresets = (next: SavedQueuePreset[]) => {
+    window.localStorage.setItem(
+      queuePresetStorageKey(params().tenantId),
+      JSON.stringify(next)
+    );
+    setSavedPresets(next);
+  };
+
+  const loadSavedBulkTemplates = () => {
+    const raw = window.localStorage.getItem(
+      bulkTemplateStorageKey(params().tenantId)
+    );
+    if (!raw) {
+      setSavedBulkTemplates([]);
+      return;
+    }
+    try {
+      const parsed = JSON.parse(raw) as SavedBulkTemplate[];
+      setSavedBulkTemplates(Array.isArray(parsed) ? parsed : []);
+    } catch {
+      setSavedBulkTemplates([]);
+    }
+  };
+
+  const persistSavedBulkTemplates = (next: SavedBulkTemplate[]) => {
+    window.localStorage.setItem(
+      bulkTemplateStorageKey(params().tenantId),
+      JSON.stringify(next)
+    );
+    setSavedBulkTemplates(next);
+  };
+
+  const saveQueuePreset = () => {
+    const name = presetName().trim();
+    if (!name) {
+      setMessage('Enter a preset name first.');
+      return;
+    }
+    const nextPreset: SavedQueuePreset = {
+      name,
+      queueView: activeQueueView(),
+      queueSort: activeQueueSort(),
+      operatorLens: operatorLens().trim(),
+    };
+    const deduped = savedPresets().filter((preset) => preset.name !== name);
+    persistSavedPresets([nextPreset, ...deduped]);
+    setPresetName('');
+    setMessage(`Saved queue preset ${name}.`);
+  };
+
+  const applyQueuePreset = (preset: SavedQueuePreset) => {
+    setActiveQueueView(preset.queueView);
+    setActiveQueueSort(preset.queueSort);
+    setOperatorLens(preset.operatorLens);
+    setMessage(`Applied queue preset ${preset.name}.`);
+  };
+
+  const deleteQueuePreset = (name: string) => {
+    persistSavedPresets(savedPresets().filter((preset) => preset.name !== name));
+    setMessage(`Deleted queue preset ${name}.`);
+  };
+
+  const saveBulkTemplate = () => {
+    const name = bulkTemplateName().trim();
+    if (!name) {
+      setMessage('Enter a bulk template name first.');
+      return;
+    }
+    const draft = bulkDraft();
+    const nextTemplate: SavedBulkTemplate = {
+      name,
+      operatorAssignee: draft.operatorAssignee.trim(),
+      shipmentSlaMode: draft.shipmentSlaMode,
+      settlementStatus: draft.settlementStatus.trim(),
+    };
+    const deduped = savedBulkTemplates().filter((item) => item.name !== name);
+    persistSavedBulkTemplates([nextTemplate, ...deduped]);
+    setBulkTemplateName('');
+    setMessage(`Saved bulk template ${name}.`);
+  };
+
+  const applyBulkTemplate = (template: SavedBulkTemplate) => {
+    setBulkDraft({
+      operatorAssignee: template.operatorAssignee,
+      shipmentSlaMode: template.shipmentSlaMode,
+      shipmentSlaDueAt: template.shipmentSlaMode
+        ? toLocalDateTimeValue(resolveShipmentSla(template.shipmentSlaMode))
+        : '',
+      settlementStatus: template.settlementStatus,
+    });
+    setMessage(`Loaded bulk template ${template.name}.`);
+  };
+
+  const deleteBulkTemplate = (name: string) => {
+    persistSavedBulkTemplates(
+      savedBulkTemplates().filter((template) => template.name !== name)
+    );
+    setMessage(`Deleted bulk template ${name}.`);
+  };
+
+  const toggleOrderSelection = (orderID: string, checked: boolean) => {
+    setSelectedOrderIDs((current) => {
+      if (checked) {
+        return current.includes(orderID) ? current : [...current, orderID];
+      }
+      return current.filter((id) => id !== orderID);
+    });
+  };
+
+  const selectVisibleOrders = () => {
+    setSelectedOrderIDs(sortedOrders().map((order) => order.id));
+  };
+
+  const clearSelectedOrders = () => {
+    setSelectedOrderIDs([]);
+  };
+
+  const isSelected = (orderID: string) => selectedOrderIDs().includes(orderID);
 
   const createMockOrder = async (event: SubmitEvent) => {
     event.preventDefault();
@@ -416,10 +794,98 @@ export default function TenantOrdersPage() {
     setMessage(`Updated issue cost handling on ${order.id}.`);
   };
 
+  const saveQueueControl = async (order: RoutedOrder) => {
+    setError('');
+    const draft = queueDraftFor(order);
+    const result = await updateRoutedOrderQueueControl(order.id, {
+      operatorAssignee: draft.operatorAssignee.trim() || 'unassigned',
+      shipmentSlaDueAt: toIsoDateTime(draft.shipmentSlaDueAt),
+      issueSlaDueAt: toIsoDateTime(draft.issueSlaDueAt),
+    });
+    if (!result.success) {
+      setError(result.message);
+      return;
+    }
+    setOrders((current) =>
+      current.map((item) => (item.id === order.id ? result.data : item))
+    );
+    setQueueDrafts((current) => ({
+      ...current,
+      [order.id]: {
+        operatorAssignee: result.data.operatorAssignee,
+        shipmentSlaDueAt: toLocalDateTimeValue(result.data.shipmentSlaDueAt),
+        issueSlaDueAt: toLocalDateTimeValue(result.data.issueSlaDueAt),
+      },
+    }));
+    setMessage(`Updated queue ownership on ${order.id}.`);
+  };
+
+  const applyBulkUpdate = async () => {
+    setError('');
+    if (selectedOrderIDs().length === 0) {
+      setMessage('Select at least one routed order first.');
+      return;
+    }
+    const draft = bulkDraft();
+    if (
+      !draft.operatorAssignee.trim() &&
+      !draft.shipmentSlaDueAt.trim() &&
+      !draft.settlementStatus.trim()
+    ) {
+      setMessage('Choose at least one bulk field before applying.');
+      return;
+    }
+
+    const result = await bulkUpdateRoutedOrders({
+      orderIds: selectedOrderIDs(),
+      operatorAssignee: draft.operatorAssignee.trim(),
+      shipmentSlaDueAt:
+        resolveShipmentSla(draft.shipmentSlaMode) ||
+        toIsoDateTime(draft.shipmentSlaDueAt),
+      settlementStatus: draft.settlementStatus.trim(),
+    });
+    if (!result.success) {
+      setError(result.message);
+      return;
+    }
+
+    const byID = new Map(result.data.map((order) => [order.id, order]));
+    setOrders((current) =>
+      current.map((order) => byID.get(order.id) || order)
+    );
+    setMessage(`Applied bulk update to ${result.data.length} routed orders.`);
+    setSelectedOrderIDs([]);
+    setBulkDraft({
+      operatorAssignee: '',
+      shipmentSlaDueAt: '',
+      shipmentSlaMode: '',
+      settlementStatus: '',
+    });
+  };
+
   createEffect(() => {
     tenantStorage.setTenantID(params().tenantId);
+    loadSavedPresets();
+    loadSavedBulkTemplates();
     void loadCandidates();
     void loadOrders();
+  });
+
+  createEffect(() => {
+    const current = search();
+    const queueView = String(current.queueView || '');
+    const queueSort = String(current.queueSort || '');
+    const lens = String(current.operatorLens || '');
+
+    if (isQueueView(queueView)) {
+      setActiveQueueView(queueView);
+    }
+    if (isQueueSort(queueSort)) {
+      setActiveQueueSort(queueSort);
+    }
+    if (lens) {
+      setOperatorLens(lens);
+    }
   });
 
   return (
@@ -507,21 +973,339 @@ export default function TenantOrdersPage() {
             subtitle="Watch each order move from intake to production, then manage shipment and settlement state directly inside the store-scoped POD workflow."
           />
 
+          <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+            <div class="grid gap-4 md:grid-cols-[0.7fr_1.3fr]">
+              <InputField
+                label="Operator lens"
+                value={operatorLens()}
+                placeholder="linh.nguyen"
+                onInput={(event) => setOperatorLens(event.currentTarget.value)}
+              />
+              <div class="space-y-2">
+                <p class="text-sm font-medium text-gray-700">Queue views</p>
+                <div class="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    size="xs"
+                    color={activeQueueView() === 'all' ? 'blue' : 'alternative'}
+                    onClick={() => setActiveQueueView('all')}
+                  >
+                    All · {queueViewCount('all')}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="xs"
+                    color={activeQueueView() === 'my_queue' ? 'blue' : 'alternative'}
+                    onClick={() => setActiveQueueView('my_queue')}
+                  >
+                    My queue · {queueViewCount('my_queue')}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="xs"
+                    color={activeQueueView() === 'overdue' ? 'red' : 'alternative'}
+                    onClick={() => setActiveQueueView('overdue')}
+                  >
+                    Overdue · {queueViewCount('overdue')}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="xs"
+                    color={
+                      activeQueueView() === 'delivery_issues'
+                        ? 'red'
+                        : 'alternative'
+                    }
+                    onClick={() => setActiveQueueView('delivery_issues')}
+                  >
+                    Delivery issues · {queueViewCount('delivery_issues')}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="xs"
+                    color={
+                      activeQueueView() === 'settlement_pending'
+                        ? 'green'
+                        : 'alternative'
+                    }
+                    onClick={() => setActiveQueueView('settlement_pending')}
+                  >
+                    Settlement pending · {queueViewCount('settlement_pending')}
+                  </Button>
+                </div>
+              </div>
+            </div>
+            <div class="mt-4 flex flex-wrap items-center gap-2">
+              <span class="text-sm font-medium text-gray-700">Sort</span>
+              <Button
+                type="button"
+                size="xs"
+                color={activeQueueSort() === 'priority' ? 'dark' : 'alternative'}
+                onClick={() => setActiveQueueSort('priority')}
+              >
+                Priority first
+              </Button>
+              <Button
+                type="button"
+                size="xs"
+                color={activeQueueSort() === 'newest' ? 'dark' : 'alternative'}
+                onClick={() => setActiveQueueSort('newest')}
+              >
+                Newest
+              </Button>
+            </div>
+            <div class="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
+              <div class="grid gap-4 md:grid-cols-[0.8fr_1.2fr]">
+                <InputField
+                  label="Save queue preset"
+                  value={presetName()}
+                  placeholder="Linh overdue"
+                  onInput={(event) => setPresetName(event.currentTarget.value)}
+                />
+                <div class="space-y-2">
+                  <p class="text-sm font-medium text-gray-700">Saved presets</p>
+                  <div class="flex flex-wrap gap-2">
+                    <Show
+                      when={savedPresets().length > 0}
+                      fallback={
+                        <p class="text-sm text-gray-500">
+                          No saved presets for this store yet.
+                        </p>
+                      }
+                    >
+                      <For each={savedPresets()}>
+                        {(preset) => (
+                          <div class="flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-2 py-1">
+                            <button
+                              type="button"
+                              class="text-sm font-medium text-gray-700"
+                              onClick={() => applyQueuePreset(preset)}
+                            >
+                              {preset.name}
+                            </button>
+                            <button
+                              type="button"
+                              class="text-xs font-semibold text-red-600"
+                              onClick={() => deleteQueuePreset(preset.name)}
+                            >
+                              remove
+                            </button>
+                          </div>
+                        )}
+                      </For>
+                    </Show>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-4">
+                <Button
+                  type="button"
+                  size="sm"
+                  color="green"
+                  onClick={saveQueuePreset}
+                >
+                  Save current queue view
+                </Button>
+              </div>
+            </div>
+            <div class="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p class="text-sm font-semibold text-gray-900">
+                    Bulk ops
+                  </p>
+                  <p class="text-sm text-gray-500">
+                    Selected {selectedOrderIDs().length} order(s) in the current queue workflow.
+                  </p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    size="xs"
+                    color="alternative"
+                    onClick={selectVisibleOrders}
+                  >
+                    Select visible
+                  </Button>
+                  <Button
+                    type="button"
+                    size="xs"
+                    color="light"
+                    onClick={clearSelectedOrders}
+                  >
+                    Clear
+                  </Button>
+                </div>
+              </div>
+              <div class="mt-4 grid gap-4 md:grid-cols-3">
+                <InputField
+                  label="Bulk owner"
+                  value={bulkDraft().operatorAssignee}
+                  placeholder="linh.nguyen"
+                  onInput={(event) =>
+                    setBulkDraft((current) => ({
+                      ...current,
+                      operatorAssignee: event.currentTarget.value,
+                    }))
+                  }
+                />
+                <InputField
+                  label="Bulk shipment SLA"
+                  type="datetime-local"
+                  value={bulkDraft().shipmentSlaDueAt}
+                  onInput={(event) =>
+                    setBulkDraft((current) => ({
+                      ...current,
+                      shipmentSlaDueAt: event.currentTarget.value,
+                      shipmentSlaMode: '',
+                    }))
+                  }
+                />
+                <SelectField
+                  label="Relative SLA"
+                  value={bulkDraft().shipmentSlaMode}
+                  options={[
+                    { name: 'No preset', value: '' },
+                    { name: '+2h', value: 'plus_2h' },
+                    { name: '+4h', value: 'plus_4h' },
+                    { name: 'End of day', value: 'end_of_day' },
+                  ]}
+                  onChange={(event) =>
+                    setBulkDraft((current) => ({
+                      ...current,
+                      shipmentSlaMode: event.currentTarget.value as ShipmentSlaMode,
+                      shipmentSlaDueAt: event.currentTarget.value
+                        ? toLocalDateTimeValue(
+                            resolveShipmentSla(
+                              event.currentTarget.value as ShipmentSlaMode
+                            )
+                          )
+                        : current.shipmentSlaDueAt,
+                    }))
+                  }
+                />
+                <SelectField
+                  label="Bulk settlement status"
+                  value={bulkDraft().settlementStatus}
+                  options={[
+                    { name: 'No change', value: '' },
+                    ...settlementOptions,
+                  ]}
+                  onChange={(event) =>
+                    setBulkDraft((current) => ({
+                      ...current,
+                      settlementStatus: event.currentTarget.value,
+                    }))
+                  }
+                />
+              </div>
+              <div class="mt-4 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                <div class="grid gap-4 md:grid-cols-[0.8fr_1.2fr]">
+                  <InputField
+                    label="Save bulk template"
+                    value={bulkTemplateName()}
+                    placeholder="Carrier claim follow-up"
+                    onInput={(event) =>
+                      setBulkTemplateName(event.currentTarget.value)
+                    }
+                  />
+                  <div class="space-y-2">
+                    <p class="text-sm font-medium text-gray-700">
+                      Saved bulk templates
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                      <Show
+                        when={savedBulkTemplates().length > 0}
+                        fallback={
+                          <p class="text-sm text-gray-500">
+                            No saved bulk templates for this store yet.
+                          </p>
+                        }
+                      >
+                        <For each={savedBulkTemplates()}>
+                          {(template) => (
+                            <div class="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-2 py-1">
+                              <button
+                                type="button"
+                                class="text-sm font-medium text-gray-700"
+                                onClick={() => applyBulkTemplate(template)}
+                              >
+                                {template.name}
+                              </button>
+                              <button
+                                type="button"
+                                class="text-xs font-semibold text-red-600"
+                                onClick={() => deleteBulkTemplate(template.name)}
+                              >
+                                remove
+                              </button>
+                            </div>
+                          )}
+                        </For>
+                      </Show>
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-4">
+                  <Button
+                    type="button"
+                    size="xs"
+                    color="green"
+                    onClick={saveBulkTemplate}
+                  >
+                    Save current bulk template
+                  </Button>
+                </div>
+              </div>
+              <div class="mt-4">
+                <Button
+                  type="button"
+                  size="sm"
+                  color="dark"
+                  onClick={applyBulkUpdate}
+                >
+                  Apply bulk update
+                </Button>
+              </div>
+            </div>
+          </div>
+
           <Show
-            when={orders().length > 0}
+            when={sortedOrders().length > 0}
             fallback={
               <EmptyBlock
-                title="No routed orders yet"
-                copy="Create a routed order on the left to test store-side routing, manual shipment control, and settlement readiness."
+                title={
+                  orders().length > 0
+                    ? 'No orders in this queue view'
+                    : 'No routed orders yet'
+                }
+                copy={
+                  orders().length > 0
+                    ? 'Adjust the queue view or operator lens to inspect a different operational slice.'
+                    : 'Create a routed order on the left to test store-side routing, manual shipment control, and settlement readiness.'
+                }
               />
             }
           >
             <div class="space-y-3">
-              <For each={orders()}>
+              <For each={sortedOrders()}>
                 {(order) => (
                   <div class="rounded-2xl border border-gray-200 bg-white p-4">
                     <div class="flex flex-wrap items-center justify-between gap-3">
-                      <div>
+                      <div class="flex items-start gap-3">
+                        <label class="mt-1">
+                          <input
+                            type="checkbox"
+                            checked={isSelected(order.id)}
+                            onChange={(event) =>
+                              toggleOrderSelection(
+                                order.id,
+                                event.currentTarget.checked
+                              )
+                            }
+                          />
+                        </label>
+                        <div>
                         <p class="text-base font-semibold text-gray-900">
                           {order.id}
                         </p>
@@ -531,8 +1315,18 @@ export default function TenantOrdersPage() {
                         <p class="mt-1 text-sm text-gray-500">
                           customer {order.customerName} · qty {order.quantity} · total {order.total}
                         </p>
+                        <p class="mt-1 text-sm text-gray-500">
+                          owner {order.operatorAssignee || 'unassigned'}
+                        </p>
+                        </div>
                       </div>
                       <div class="flex flex-wrap items-center gap-2">
+                        <Show when={activeQueueSort() === 'priority'}>
+                          <Badge
+                            content={`priority ${priorityScoreFor(order) + 1}`}
+                            color={priorityScoreFor(order) < 3 ? 'red' : 'dark'}
+                          />
+                        </Show>
                         <Badge
                           content={order.status.replaceAll('_', ' ')}
                           color={statusColor(order.status)}
@@ -616,6 +1410,72 @@ export default function TenantOrdersPage() {
                         </p>
                       </div>
                     </Show>
+
+                    <div class="mt-3 rounded-xl border border-sky-200 bg-sky-50 p-3">
+                      <p class="text-xs font-semibold uppercase tracking-[0.16em] text-sky-700">
+                        Queue ownership
+                      </p>
+                      <div class="mt-3 grid gap-4 md:grid-cols-2">
+                        <InputField
+                          label="Operator assignee"
+                          value={queueDraftFor(order).operatorAssignee}
+                          placeholder="linh.nguyen"
+                          onInput={(event) =>
+                            patchQueueDraft(order.id, {
+                              operatorAssignee: event.currentTarget.value,
+                            })
+                          }
+                        />
+                        <InputField
+                          label="Shipment SLA due"
+                          type="datetime-local"
+                          value={queueDraftFor(order).shipmentSlaDueAt}
+                          onInput={(event) =>
+                            patchQueueDraft(order.id, {
+                              shipmentSlaDueAt: event.currentTarget.value,
+                            })
+                          }
+                        />
+                        <InputField
+                          label="Issue SLA due"
+                          type="datetime-local"
+                          value={queueDraftFor(order).issueSlaDueAt}
+                          onInput={(event) =>
+                            patchQueueDraft(order.id, {
+                              issueSlaDueAt: event.currentTarget.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div class="mt-3 flex flex-wrap items-center gap-2">
+                        <Button
+                          type="button"
+                          size="xs"
+                          color="blue"
+                          onClick={() => {
+                            saveQueueControl(order);
+                          }}
+                        >
+                          Save queue control
+                        </Button>
+                        <Badge
+                          content={`owner ${order.operatorAssignee || 'unassigned'}`}
+                          color="indigo"
+                        />
+                        <Show when={order.shipmentSlaDueAt}>
+                          <Badge
+                            content={`shipment SLA ${isOverdue(order.shipmentSlaDueAt) ? 'overdue' : 'set'}`}
+                            color={isOverdue(order.shipmentSlaDueAt) ? 'red' : 'blue'}
+                          />
+                        </Show>
+                        <Show when={order.issueSlaDueAt}>
+                          <Badge
+                            content={`issue SLA ${isOverdue(order.issueSlaDueAt) ? 'overdue' : 'set'}`}
+                            color={isOverdue(order.issueSlaDueAt) ? 'red' : 'blue'}
+                          />
+                        </Show>
+                      </div>
+                    </div>
 
                     <Show
                       when={
@@ -871,7 +1731,7 @@ export default function TenantOrdersPage() {
       <Card class="mt-6 space-y-4">
         <SectionTitle
           title="Routing, shipment, and settlement stages"
-          subtitle="Production routing, shipment control, and settlement updates are all managed inside the workspace, so operators can run POD execution manually without relying on external fulfillment callbacks."
+          subtitle="Production routing, queue ownership, shipment control, and settlement updates are all managed inside the workspace, so operators can run POD execution manually without relying on external fulfillment callbacks."
         />
         <div class="flex flex-wrap gap-2">
           <For each={routeStatuses}>

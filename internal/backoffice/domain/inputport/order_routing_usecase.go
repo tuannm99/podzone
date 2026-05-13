@@ -2,6 +2,7 @@ package inputport
 
 import (
 	"context"
+	"time"
 
 	"github.com/tuannm99/podzone/internal/backoffice/domain/entity"
 )
@@ -46,6 +47,20 @@ type UpdateOrderIssueHandlingCmd struct {
 	Notes           string
 }
 
+type UpdateOrderQueueControlCmd struct {
+	OrderID          string
+	OperatorAssignee string
+	ShipmentSlaDueAt *time.Time
+	IssueSlaDueAt    *time.Time
+}
+
+type BulkUpdateRoutedOrdersCmd struct {
+	OrderIDs          []string
+	OperatorAssignee  *string
+	ShipmentSlaDueAt  *time.Time
+	SettlementStatus  *string
+}
+
 type OrderRoutingUsecase interface {
 	ListRoutedOrders(ctx context.Context) ([]entity.RoutedOrder, error)
 	CreateRoutedOrder(ctx context.Context, cmd CreateRoutedOrderCmd) (*entity.RoutedOrder, error)
@@ -55,4 +70,6 @@ type OrderRoutingUsecase interface {
 	UpdateOrderShipment(ctx context.Context, cmd UpdateOrderShipmentCmd) (*entity.RoutedOrder, error)
 	UpdateOrderSettlement(ctx context.Context, cmd UpdateOrderSettlementCmd) (*entity.RoutedOrder, error)
 	UpdateOrderIssueHandling(ctx context.Context, cmd UpdateOrderIssueHandlingCmd) (*entity.RoutedOrder, error)
+	UpdateOrderQueueControl(ctx context.Context, cmd UpdateOrderQueueControlCmd) (*entity.RoutedOrder, error)
+	BulkUpdateRoutedOrders(ctx context.Context, cmd BulkUpdateRoutedOrdersCmd) ([]entity.RoutedOrder, error)
 }

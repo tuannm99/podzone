@@ -6,6 +6,13 @@ import (
 	"time"
 )
 
+type BulkUpdateRoutedOrdersInput struct {
+	OrderIds         []string   `json:"orderIds"`
+	OperatorAssignee *string    `json:"operatorAssignee,omitempty"`
+	ShipmentSLADueAt *time.Time `json:"shipmentSlaDueAt,omitempty"`
+	SettlementStatus *string    `json:"settlementStatus,omitempty"`
+}
+
 type CreateProductSetupDraftInput struct {
 	Name        string `json:"name"`
 	Partner     string `json:"partner"`
@@ -119,6 +126,9 @@ type RoutedOrder struct {
 	ShipmentTrackingNumber string     `json:"shipmentTrackingNumber"`
 	ShipmentTrackingURL    string     `json:"shipmentTrackingUrl"`
 	ShipmentNotes          string     `json:"shipmentNotes"`
+	OperatorAssignee       string     `json:"operatorAssignee"`
+	ShipmentSLADueAt       *time.Time `json:"shipmentSlaDueAt,omitempty"`
+	IssueSLADueAt          *time.Time `json:"issueSlaDueAt,omitempty"`
 	BaseCostSnapshot       string     `json:"baseCostSnapshot"`
 	FulfillmentCost        string     `json:"fulfillmentCost"`
 	ShippingCost           string     `json:"shippingCost"`
@@ -163,6 +173,13 @@ type UpdateOrderIssueHandlingInput struct {
 	IssueCost       string `json:"issueCost"`
 	IssueResolution string `json:"issueResolution"`
 	Notes           string `json:"notes"`
+}
+
+type UpdateOrderQueueControlInput struct {
+	OrderID          string     `json:"orderId"`
+	OperatorAssignee string     `json:"operatorAssignee"`
+	ShipmentSLADueAt *time.Time `json:"shipmentSlaDueAt,omitempty"`
+	IssueSLADueAt    *time.Time `json:"issueSlaDueAt,omitempty"`
 }
 
 type UpdateOrderSettlementInput struct {

@@ -64,6 +64,9 @@ type RoutedOrder {
   shipmentTrackingNumber: String!
   shipmentTrackingUrl: String!
   shipmentNotes: String!
+  operatorAssignee: String!
+  shipmentSlaDueAt: Time
+  issueSlaDueAt: Time
   baseCostSnapshot: String!
   fulfillmentCost: String!
   shippingCost: String!
@@ -144,6 +147,20 @@ input UpdateOrderIssueHandlingInput {
   notes: String!
 }
 
+input UpdateOrderQueueControlInput {
+  orderId: ID!
+  operatorAssignee: String!
+  shipmentSlaDueAt: Time
+  issueSlaDueAt: Time
+}
+
+input BulkUpdateRoutedOrdersInput {
+  orderIds: [ID!]!
+  operatorAssignee: String
+  shipmentSlaDueAt: Time
+  settlementStatus: String
+}
+
 extend type Query {
   productSetupSnapshot: ProductSetupSnapshot!
   routedOrders: [RoutedOrder!]!
@@ -160,4 +177,6 @@ extend type Mutation {
   updateOrderShipment(input: UpdateOrderShipmentInput!): RoutedOrder!
   updateOrderSettlement(input: UpdateOrderSettlementInput!): RoutedOrder!
   updateOrderIssueHandling(input: UpdateOrderIssueHandlingInput!): RoutedOrder!
+  updateOrderQueueControl(input: UpdateOrderQueueControlInput!): RoutedOrder!
+  bulkUpdateRoutedOrders(input: BulkUpdateRoutedOrdersInput!): [RoutedOrder!]!
 }

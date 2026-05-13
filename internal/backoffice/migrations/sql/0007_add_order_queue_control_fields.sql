@@ -1,0 +1,4 @@
+ALTER TABLE routed_orders
+	ADD COLUMN IF NOT EXISTS operator_assignee TEXT NOT NULL DEFAULT 'unassigned',
+	ADD COLUMN IF NOT EXISTS shipment_sla_due_at TIMESTAMPTZ NULL,
+	ADD COLUMN IF NOT EXISTS issue_sla_due_at TIMESTAMPTZ NULL;

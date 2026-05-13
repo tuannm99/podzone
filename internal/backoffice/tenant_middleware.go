@@ -168,7 +168,9 @@ func permissionForField(objectName, fieldName string) (string, bool) {
 			"updateOrderExceptionStatus",
 			"updateOrderShipment",
 			"updateOrderSettlement",
-			"updateOrderIssueHandling":
+			"updateOrderIssueHandling",
+			"updateOrderQueueControl",
+			"bulkUpdateRoutedOrders":
 			return "store:update", true
 		}
 	}

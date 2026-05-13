@@ -46,6 +46,9 @@ type RoutedOrder struct {
 	ShipmentTrackingNumber string     `json:"shipmentTrackingNumber"`
 	ShipmentTrackingURL    string     `json:"shipmentTrackingUrl"`
 	ShipmentNotes          string     `json:"shipmentNotes"`
+	OperatorAssignee       string     `json:"operatorAssignee"`
+	ShipmentSlaDueAt       *time.Time `json:"shipmentSlaDueAt,omitempty"`
+	IssueSlaDueAt          *time.Time `json:"issueSlaDueAt,omitempty"`
 	BaseCostSnapshot       string     `json:"baseCostSnapshot"`
 	FulfillmentCost        string     `json:"fulfillmentCost"`
 	ShippingCost           string     `json:"shippingCost"`

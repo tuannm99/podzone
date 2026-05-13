@@ -25,6 +25,7 @@ These parts are backed by real services and persistence:
 - manual shipment control via `backoffice`
 - settlement readiness and realized margin fields via `backoffice`
 - issue cost handling for reprint and delivery exceptions via `backoffice`
+- queue ownership and shipment/issue SLA fields via `backoffice`
 
 In practice, the core POD-facing workspace now runs through real backend paths for partners, product setup, and routed orders.
 
@@ -35,6 +36,7 @@ These parts are still intentionally sandboxed even though they now persist serve
 - publish state remains a mock catalog operation, not a channel integration
 - routed orders remain POD sandbox orders, not marketplace or carrier orders
 - shipment state is manually managed by store operators, not synced from third-party fulfillment
+- queue ownership and SLA dates are manually managed by store operators, not synced from any ticketing or workforce tool
 - settlement status is manually managed by store operators, not synced from finance or fulfillment partners
 - issue handling and issue cost updates remain operator workflow only, without downstream automations
 - store dashboard analytics are lightweight summaries derived from sandbox data
@@ -53,7 +55,7 @@ Recommended demo sequence for one store:
 6. Open `Orders`.
 7. Create a routed order.
 8. Advance routing and test issue handling.
-9. Update shipment, issue cost, and settlement state on the orders board.
+9. Update queue ownership, shipment, issue cost, and settlement state on the orders board.
 10. Return to store home to review the dashboard.
 
 ## Why This Split Exists

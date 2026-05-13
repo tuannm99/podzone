@@ -7,6 +7,7 @@ import {
   listUserTenants,
   type TenantMembership,
 } from '../../../services/iam';
+import { getRoutedOrders } from '../../../services/orders';
 import { tenantStorage } from '../../../services/tenantStorage';
 import { tokenStorage } from '../../../services/tokenStorage';
 import {
@@ -47,6 +48,28 @@ function membershipStatusColor(status: string) {
   return status === 'active' ? 'green' : 'dark';
 }
 
+function isOverdue(value?: string) {
+  if (!value) {
+    return false;
+  }
+  return new Date(value).getTime() < Date.now();
+}
+
+function buildOrdersHref(tenantID: string, queueView: string) {
+  const params = new URLSearchParams({
+    queueView,
+    queueSort: 'priority',
+  });
+  return `/t/${tenantID}/orders?${params.toString()}`;
+}
+
+type StoreAttention = {
+  tenantId: string;
+  overdueCount: number;
+  disputedCount: number;
+  unassignedCount: number;
+};
+
 export default function AdminHomePage() {
   const user = tokenStorage.getUser();
   const userID = parseUserID(user?.id);
@@ -61,12 +84,69 @@ export default function AdminHomePage() {
   const [switchingTenant, setSwitchingTenant] = createSignal(false);
   const [creatingTenant, setCreatingTenant] = createSignal(false);
   const [loadingTenants, setLoadingTenants] = createSignal(false);
+  const [loadingAttention, setLoadingAttention] = createSignal(false);
   const [checkingPlatformAccess, setCheckingPlatformAccess] =
     createSignal(false);
   const [memberships, setMemberships] = createSignal<TenantMembership[]>([]);
+  const [storeAttention, setStoreAttention] = createSignal<StoreAttention[]>([]);
   const [canCreateTenant, setCanCreateTenant] = createSignal(false);
   const activeMemberships = () =>
     memberships().filter((membership) => membership.status === 'active');
+
+  const loadStoreAttention = async (membershipsToInspect: TenantMembership[]) => {
+    const activeStores = membershipsToInspect.filter(
+      (membership) => membership.status === 'active'
+    );
+    if (activeStores.length === 0) {
+      setStoreAttention([]);
+      return;
+    }
+
+    setLoadingAttention(true);
+    const originalTenantID = tokenStorage.getActiveTenantID();
+    const snapshot: StoreAttention[] = [];
+    try {
+      for (const membership of activeStores) {
+        const switched = await ensureActiveTenant(membership.tenantId);
+        if (!switched.success) {
+          continue;
+        }
+        const ordersResult = await getRoutedOrders();
+        if (!ordersResult.success) {
+          continue;
+        }
+        const orders = ordersResult.data.orders;
+        snapshot.push({
+          tenantId: membership.tenantId,
+          overdueCount: orders.filter(
+            (order) =>
+              (!!order.shipmentSlaDueAt &&
+                isOverdue(order.shipmentSlaDueAt) &&
+                order.shipmentStatus !== 'delivered') ||
+              (!!order.issueSlaDueAt &&
+                isOverdue(order.issueSlaDueAt) &&
+                (order.exceptionStatus === 'open' ||
+                  order.exceptionStatus === 'escalated' ||
+                  order.shipmentStatus === 'delivery_issue'))
+          ).length,
+          disputedCount: orders.filter(
+            (order) => order.settlementStatus === 'disputed'
+          ).length,
+          unassignedCount: orders.filter(
+            (order) =>
+              !order.operatorAssignee || order.operatorAssignee === 'unassigned'
+          ).length,
+        });
+      }
+    } finally {
+      if (originalTenantID) {
+        await ensureActiveTenant(originalTenantID);
+        tenantStorage.setTenantID(originalTenantID);
+      }
+      setLoadingAttention(false);
+    }
+    setStoreAttention(snapshot);
+  };
 
   const loadMemberships = async () => {
     if (!userID) return;
@@ -78,6 +158,7 @@ export default function AdminHomePage() {
         return;
       }
       setMemberships(result.data);
+      await loadStoreAttention(result.data);
     } finally {
       setLoadingTenants(false);
     }
@@ -210,6 +291,17 @@ export default function AdminHomePage() {
         <StatCard
           label="Current store"
           value={tokenStorage.getActiveTenantID() || 'Not selected'}
+        />
+        <StatCard
+          label="Stores with attention"
+          value={String(
+            storeAttention().filter(
+              (store) =>
+                store.overdueCount > 0 ||
+                store.disputedCount > 0 ||
+                store.unassignedCount > 0
+            ).length
+          )}
         />
       </div>
 
@@ -364,6 +456,72 @@ export default function AdminHomePage() {
                         }}
                       >
                         Use for quick jump
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </For>
+            </div>
+          </Show>
+        </Card>
+
+        <Card class="space-y-4">
+          <SectionTitle
+            title="Attention view"
+            subtitle="Cross-store queue pressure based on overdue orders, disputed settlements, and unassigned ownership."
+          />
+          <Show when={loadingAttention()}>
+            <LoadingInline label="Scanning store attention..." />
+          </Show>
+          <Show
+            when={!loadingAttention() && storeAttention().length > 0}
+            fallback={
+              <EmptyBlock
+                title="No store attention data"
+                copy="Create or open stores first, then this panel will surface where the queue needs follow-up."
+              />
+            }
+          >
+            <div class="space-y-3">
+              <For each={storeAttention()}>
+                {(store) => (
+                  <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <Badge content={store.tenantId} color="indigo" />
+                      <Badge
+                        content={`${store.overdueCount} overdue`}
+                        color={store.overdueCount > 0 ? 'red' : 'green'}
+                      />
+                      <Badge
+                        content={`${store.disputedCount} disputed`}
+                        color={store.disputedCount > 0 ? 'red' : 'green'}
+                      />
+                      <Badge
+                        content={`${store.unassignedCount} unassigned`}
+                        color={store.unassignedCount > 0 ? 'yellow' : 'green'}
+                      />
+                    </div>
+                    <div class="mt-3 flex flex-wrap gap-3">
+                      <Button
+                        size="sm"
+                        color="alternative"
+                        href={buildOrdersHref(store.tenantId, 'overdue')}
+                      >
+                        Open overdue
+                      </Button>
+                      <Button
+                        size="sm"
+                        color="alternative"
+                        href={buildOrdersHref(store.tenantId, 'settlement_pending')}
+                      >
+                        Open settlement follow-up
+                      </Button>
+                      <Button
+                        size="sm"
+                        color="alternative"
+                        href={buildOrdersHref(store.tenantId, 'all')}
+                      >
+                        Open priority queue
                       </Button>
                     </div>
                   </div>
