@@ -47,6 +47,32 @@ type ProductSetupSnapshot {
   candidates: [ProductSetupCandidate!]!
 }
 
+type RoutedOrderActivity {
+  type: String!
+  actor: String!
+  message: String!
+  details: [RoutedOrderActivityDetail!]!
+  createdAt: Time!
+}
+
+type RoutedOrderActivityDetail {
+  key: String!
+  value: String!
+}
+
+type RoutedOrderActivityFeedEntry {
+  orderId: ID!
+  productTitle: String!
+  operatorAssignee: String!
+  activity: RoutedOrderActivity!
+}
+
+type RoutedOrderActivityFeedPage {
+  entries: [RoutedOrderActivityFeedEntry!]!
+  total: Int!
+  nextCursor: String
+}
+
 type RoutedOrder {
   id: ID!
   candidateId: ID!
@@ -57,6 +83,7 @@ type RoutedOrder {
   customerName: String!
   status: String!
   timeline: [String!]!
+  activityLog: [RoutedOrderActivity!]!
   exceptionType: String!
   exceptionStatus: String!
   shipmentStatus: String!
@@ -161,9 +188,19 @@ input BulkUpdateRoutedOrdersInput {
   settlementStatus: String
 }
 
+input RoutedOrderActivityFeedInput {
+  activityType: String
+  actorContains: String
+  since: Time
+  limit: Int
+  after: String
+  includeSystem: Boolean
+}
+
 extend type Query {
   productSetupSnapshot: ProductSetupSnapshot!
   routedOrders: [RoutedOrder!]!
+  routedOrderActivities(input: RoutedOrderActivityFeedInput): RoutedOrderActivityFeedPage!
 }
 
 extend type Mutation {

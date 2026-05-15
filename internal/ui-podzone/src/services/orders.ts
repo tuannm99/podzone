@@ -10,6 +10,16 @@ export type RoutedOrder = {
   customerName: string;
   status: string;
   timeline: string[];
+  activityLog: {
+    type: string;
+    actor: string;
+    message: string;
+    details: {
+      key: string;
+      value: string;
+    }[];
+    createdAt: string;
+  }[];
   exceptionType: string;
   exceptionStatus: string;
   shipmentStatus: string;
@@ -33,6 +43,19 @@ export type RoutedOrder = {
   deliveredAt?: string;
   createdAt?: string;
   updatedAt?: string;
+};
+
+export type RoutedOrderActivityFeedEntry = {
+  orderId: string;
+  productTitle: string;
+  operatorAssignee: string;
+  activity: RoutedOrder['activityLog'][number];
+};
+
+export type RoutedOrderActivityFeedPage = {
+  entries: RoutedOrderActivityFeedEntry[];
+  total: number;
+  nextCursor?: string;
 };
 
 type OrdersResult<T> =
@@ -79,6 +102,15 @@ type BulkUpdateRoutedOrdersPayload = {
   settlementStatus?: string;
 };
 
+type RoutedOrderActivityFeedQuery = {
+  activityType?: string;
+  actorContains?: string;
+  since?: string;
+  limit?: number;
+  after?: string;
+  includeSystem?: boolean;
+};
+
 const routedOrderFields = `
   id
   candidateId
@@ -89,6 +121,16 @@ const routedOrderFields = `
   customerName
   status
   timeline
+  activityLog {
+    type
+    actor
+    message
+    details {
+      key
+      value
+    }
+    createdAt
+  }
   exceptionType
   exceptionStatus
   shipmentStatus
@@ -128,6 +170,43 @@ ${routedOrderFields}
     return { success: false, message: result.message };
   }
   return { success: true, data: { orders: result.data.routedOrders || [] } };
+}
+
+export async function getRoutedOrderActivities(
+  input: RoutedOrderActivityFeedQuery
+) : Promise<OrdersResult<RoutedOrderActivityFeedPage>> {
+  const result = await postBackofficeGraphQL<{
+    routedOrderActivities: RoutedOrderActivityFeedPage;
+  }>(
+    `
+      query RoutedOrderActivities($input: RoutedOrderActivityFeedInput) {
+        routedOrderActivities(input: $input) {
+          entries {
+            orderId
+            productTitle
+            operatorAssignee
+            activity {
+              type
+              actor
+              message
+              details {
+                key
+                value
+              }
+              createdAt
+            }
+          }
+          total
+          nextCursor
+        }
+      }
+    `,
+    { input }
+  );
+  if (!result.success) {
+    return { success: false, message: result.message };
+  }
+  return { success: true, data: result.data.routedOrderActivities };
 }
 
 export async function createRoutedOrder(

@@ -71,6 +71,15 @@ const issueResolutionOptions = [
   { name: 'Address retry', value: 'address_retry' },
 ];
 
+const activityFilterOptions = [
+  { name: 'All', value: 'all' },
+  { name: 'Notes only', value: 'notes' },
+  { name: 'System', value: 'system' },
+  { name: 'Shipment', value: 'shipment_note' },
+  { name: 'Settlement', value: 'settlement_note' },
+  { name: 'Issue', value: 'issue_note' },
+] as const;
+
 type ShipmentDraft = {
   shipmentStatus: string;
   shipmentCarrier: string;
@@ -106,6 +115,7 @@ type QueueView =
   | 'settlement_pending';
 
 type QueueSort = 'priority' | 'newest';
+type ActivityFilter = (typeof activityFilterOptions)[number]['value'];
 
 type ShipmentSlaMode = '' | 'plus_2h' | 'plus_4h' | 'end_of_day';
 
@@ -180,6 +190,93 @@ function settlementColor(status: string) {
     default:
       return 'yellow';
   }
+}
+
+function activityColor(type: string) {
+  switch (type) {
+    case 'shipment_note':
+      return 'indigo';
+    case 'settlement_note':
+      return 'green';
+    case 'issue_note':
+      return 'red';
+    default:
+      return 'dark';
+  }
+}
+
+function formatActivityTime(value: string) {
+  return new Date(value).toLocaleString();
+}
+
+function formatActivityActor(actor: string) {
+  const normalized = actor.trim();
+  if (!normalized) {
+    return 'system';
+  }
+  return normalized;
+}
+
+function formatActivitySummary(order: RoutedOrder, activities: RoutedOrder['activityLog']) {
+  const header = [
+    `Order ${order.id}`,
+    `Product: ${order.productTitle}`,
+    `Operator: ${order.operatorAssignee || 'unassigned'}`,
+    `Route status: ${order.status}`,
+    `Shipment: ${order.shipmentStatus}`,
+    `Settlement: ${order.settlementStatus}`,
+  ];
+
+  const activityLines = activities.map((activity) => {
+    const details = activity.details
+      .map((detail) => `${detail.key}=${detail.value}`)
+      .join(', ');
+    return [
+      `[${formatActivityTime(activity.createdAt)}]`,
+      activity.type,
+      `by ${formatActivityActor(activity.actor)}`,
+      activity.message,
+      details ? `(${details})` : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+  });
+
+  return [...header, '', 'Recent activity:', ...activityLines].join('\n');
+}
+
+function formatStoreActivitySummary(
+  tenantId: string,
+  entries: {
+    orderId: string;
+    productTitle: string;
+    operatorAssignee: string;
+    activity: RoutedOrder['activityLog'][number];
+  }[]
+) {
+  const lines = entries.map((entry) => {
+    const details = entry.activity.details
+      .map((detail) => `${detail.key}=${detail.value}`)
+      .join(', ');
+    return [
+      `[${formatActivityTime(entry.activity.createdAt)}]`,
+      entry.orderId,
+      `(${entry.productTitle})`,
+      `owner ${entry.operatorAssignee || 'unassigned'}`,
+      entry.activity.type,
+      `by ${formatActivityActor(entry.activity.actor)}`,
+      entry.activity.message,
+      details ? `(${details})` : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+  });
+
+  return [
+    `Store activity feed for ${tenantId}`,
+    '',
+    ...lines,
+  ].join('\n');
 }
 
 function toLocalDateTimeValue(value?: string) {
@@ -258,6 +355,9 @@ export default function TenantOrdersPage() {
     createSignal('artwork_issue');
   const [activeQueueView, setActiveQueueView] = createSignal<QueueView>('all');
   const [activeQueueSort, setActiveQueueSort] = createSignal<QueueSort>('priority');
+  const [activityFilter, setActivityFilter] =
+    createSignal<ActivityFilter>('notes');
+  const [hideSystemActivity, setHideSystemActivity] = createSignal(true);
   const [operatorLens, setOperatorLens] = createSignal('');
   const [savedPresets, setSavedPresets] = createSignal<SavedQueuePreset[]>([]);
   const [presetName, setPresetName] = createSignal('');
@@ -508,6 +608,79 @@ export default function TenantOrdersPage() {
 
   const queueViewCount = (view: QueueView) =>
     orders().filter((order) => matchesQueueView(order, view)).length;
+
+  const matchesActivityFilter = (activity: RoutedOrder['activityLog'][number]) => {
+    const selectedFilter = activityFilter();
+    if (selectedFilter === 'notes') {
+      return activity.type !== 'system';
+    }
+    if (selectedFilter !== 'all' && activity.type !== selectedFilter) {
+      return false;
+    }
+    if (
+      hideSystemActivity() &&
+      selectedFilter === 'all' &&
+      activity.type === 'system'
+    ) {
+      return false;
+    }
+    return true;
+  };
+
+  const filteredActivityLogFor = (order: RoutedOrder) => {
+    return order.activityLog
+      .filter(matchesActivityFilter)
+      .slice()
+      .reverse()
+      .slice(0, 8);
+  };
+
+  const hiddenSystemActivityCountFor = (order: RoutedOrder) => {
+    if (activityFilter() !== 'all' || !hideSystemActivity()) {
+      return 0;
+    }
+    return order.activityLog.filter((activity) => activity.type === 'system')
+      .length;
+  };
+
+  const storeActivityFeed = () =>
+    sortedOrders()
+      .flatMap((order) =>
+        order.activityLog
+          .filter(matchesActivityFilter)
+          .map((activity) => ({
+            orderId: order.id,
+            productTitle: order.productTitle,
+            operatorAssignee: order.operatorAssignee,
+            activity,
+          }))
+      )
+      .sort(
+        (a, b) =>
+          new Date(b.activity.createdAt).getTime() -
+          new Date(a.activity.createdAt).getTime()
+      )
+      .slice(0, 14);
+
+  const copyActivitySummary = async (order: RoutedOrder) => {
+    const summary = formatActivitySummary(order, filteredActivityLogFor(order));
+    try {
+      await navigator.clipboard.writeText(summary);
+      setMessage(`Copied activity summary for ${order.id}.`);
+    } catch {
+      setError('Could not copy activity summary to clipboard.');
+    }
+  };
+
+  const copyStoreActivityFeed = async () => {
+    const summary = formatStoreActivitySummary(params().tenantId, storeActivityFeed());
+    try {
+      await navigator.clipboard.writeText(summary);
+      setMessage(`Copied store activity feed for ${params().tenantId}.`);
+    } catch {
+      setError('Could not copy store activity feed to clipboard.');
+    }
+  };
 
   const loadSavedPresets = () => {
     const raw = window.localStorage.getItem(queuePresetStorageKey(params().tenantId));
@@ -1288,6 +1461,88 @@ export default function TenantOrdersPage() {
             }
           >
             <div class="space-y-3">
+              <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p class="text-sm font-semibold text-slate-900">
+                      Store activity feed
+                    </p>
+                    <p class="text-sm text-slate-500">
+                      Latest activity across the current queue slice for store {params().tenantId}.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    size="xs"
+                    color="light"
+                    onClick={() => {
+                      void copyStoreActivityFeed();
+                    }}
+                  >
+                    Copy feed
+                  </Button>
+                  <Button
+                    type="button"
+                    size="xs"
+                    color="alternative"
+                    href={`/t/${params().tenantId}/orders/audit`}
+                  >
+                    Open full audit
+                  </Button>
+                </div>
+                <div class="mt-4 space-y-3">
+                  <Show
+                    when={storeActivityFeed().length > 0}
+                    fallback={
+                      <div class="rounded-xl border border-dashed border-slate-200 bg-white p-3 text-sm text-slate-500">
+                        No store activity matches the current queue and activity filters.
+                      </div>
+                    }
+                  >
+                    <For each={storeActivityFeed()}>
+                      {(entry) => (
+                        <div class="rounded-xl border border-slate-200 bg-white p-3">
+                          <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="flex flex-wrap items-center gap-2">
+                              <Badge
+                                content={entry.activity.type.replaceAll('_', ' ')}
+                                color={activityColor(entry.activity.type)}
+                              />
+                              <p class="text-xs font-semibold text-slate-700">
+                                {entry.orderId}
+                              </p>
+                              <p class="text-xs text-slate-500">
+                                {entry.productTitle}
+                              </p>
+                            </div>
+                            <p class="text-xs text-slate-500">
+                              {formatActivityTime(entry.activity.createdAt)}
+                            </p>
+                          </div>
+                          <div class="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                            <span>{formatActivityActor(entry.activity.actor)}</span>
+                            <span>owner {entry.operatorAssignee || 'unassigned'}</span>
+                          </div>
+                          <p class="mt-2 text-sm text-slate-700">
+                            {entry.activity.message}
+                          </p>
+                          <Show when={entry.activity.details.length}>
+                            <div class="mt-2 flex flex-wrap gap-2">
+                              <For each={entry.activity.details}>
+                                {(detail) => (
+                                  <span class="rounded-full bg-slate-50 px-2 py-1 text-[11px] font-medium text-slate-600 ring-1 ring-slate-200">
+                                    {detail.key.replaceAll('_', ' ')}: {detail.value}
+                                  </span>
+                                )}
+                              </For>
+                            </div>
+                          </Show>
+                        </div>
+                      )}
+                    </For>
+                  </Show>
+                </div>
+              </div>
               <For each={sortedOrders()}>
                 {(order) => (
                   <div class="rounded-2xl border border-gray-200 bg-white p-4">
@@ -1718,6 +1973,103 @@ export default function TenantOrdersPage() {
                         <For each={order.timeline}>
                           {(entry) => <p>{entry}</p>}
                         </For>
+                      </div>
+                    </div>
+
+                    <div class="mt-3 rounded-xl border border-slate-200 bg-white p-3">
+                      <div class="flex flex-wrap items-center justify-between gap-3">
+                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-600">
+                          Activity log
+                        </p>
+                        <div class="flex flex-wrap items-center gap-2">
+                          <div class="min-w-[11rem]">
+                            <SelectField
+                              label=""
+                              value={activityFilter()}
+                              options={activityFilterOptions.map((option) => ({
+                                name: option.name,
+                                value: option.value,
+                              }))}
+                              onChange={(event) =>
+                                setActivityFilter(event.currentTarget.value as ActivityFilter)
+                              }
+                            />
+                          </div>
+                          <Show when={activityFilter() === 'all'}>
+                            <Button
+                              type="button"
+                              size="xs"
+                              color={hideSystemActivity() ? 'dark' : 'light'}
+                              onClick={() =>
+                                setHideSystemActivity((current) => !current)
+                              }
+                            >
+                              {hideSystemActivity()
+                                ? 'Show system'
+                                : 'Hide system'}
+                            </Button>
+                          </Show>
+                          <Button
+                            type="button"
+                            size="xs"
+                            color="light"
+                            onClick={() => {
+                              void copyActivitySummary(order);
+                            }}
+                          >
+                            Copy summary
+                          </Button>
+                        </div>
+                      </div>
+                      <div class="mt-3 space-y-3">
+                        <Show
+                          when={filteredActivityLogFor(order).length > 0}
+                          fallback={
+                            <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-3 text-sm text-slate-500">
+                              <Show
+                                when={hiddenSystemActivityCountFor(order) > 0}
+                                fallback={'No activity matches the current filter.'}
+                              >
+                                {hiddenSystemActivityCountFor(order)} system updates are hidden.
+                              </Show>
+                            </div>
+                          }
+                        >
+                        <For each={filteredActivityLogFor(order)}>
+                          {(activity) => (
+                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                              <div class="flex flex-wrap items-center justify-between gap-2">
+                                <div class="flex flex-wrap items-center gap-2">
+                                  <Badge
+                                    content={activity.type.replaceAll('_', ' ')}
+                                    color={activityColor(activity.type)}
+                                  />
+                                  <p class="text-xs font-medium text-slate-500">
+                                    {formatActivityActor(activity.actor)}
+                                  </p>
+                                </div>
+                                <p class="text-xs text-slate-500">
+                                  {formatActivityTime(activity.createdAt)}
+                                </p>
+                              </div>
+                              <p class="mt-2 text-sm text-slate-700">
+                                {activity.message}
+                              </p>
+                              <Show when={activity.details.length}>
+                                <div class="mt-2 flex flex-wrap gap-2">
+                                  <For each={activity.details}>
+                                    {(detail) => (
+                                      <span class="rounded-full bg-white px-2 py-1 text-[11px] font-medium text-slate-600 ring-1 ring-slate-200">
+                                        {detail.key.replaceAll('_', ' ')}: {detail.value}
+                                      </span>
+                                    )}
+                                  </For>
+                                </div>
+                              </Show>
+                            </div>
+                          )}
+                        </For>
+                        </Show>
                       </div>
                     </div>
                   </div>

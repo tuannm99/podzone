@@ -3,6 +3,7 @@ package interactor
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -65,6 +66,15 @@ func TestCreateRoutedOrderSnapshotsCostsAndMargin(t *testing.T) {
 	if len(order.Timeline) < 2 {
 		t.Fatalf("Timeline length = %d, want at least 2", len(order.Timeline))
 	}
+	if len(order.ActivityLog) < 2 {
+		t.Fatalf("ActivityLog length = %d, want at least 2", len(order.ActivityLog))
+	}
+	if order.ActivityLog[0].Actor != "system" {
+		t.Fatalf("ActivityLog[0].Actor = %q, want system", order.ActivityLog[0].Actor)
+	}
+	if len(order.ActivityLog[0].Details) == 0 {
+		t.Fatal("ActivityLog[0].Details is empty, want structured details")
+	}
 }
 
 func TestUpdateOrderSettlementRecalculatesMarginIncludingIssueCost(t *testing.T) {
@@ -110,6 +120,12 @@ func TestUpdateOrderSettlementRecalculatesMarginIncludingIssueCost(t *testing.T)
 	}
 	if !strings.Contains(order.Timeline[len(order.Timeline)-1], "Settlement") {
 		t.Fatalf("Timeline tail = %q, want settlement entry", order.Timeline[len(order.Timeline)-1])
+	}
+	if got := order.ActivityLog[len(order.ActivityLog)-1]; got.Type != entity.RoutedOrderActivityTypeSettlementNote || got.Message != "Supplier invoice matched" || got.Actor != "system" {
+		t.Fatalf("ActivityLog tail = %#v, want settlement note entry", got)
+	}
+	if got := order.ActivityLog[len(order.ActivityLog)-1]; !hasActivityDetail(got.Details, "settlement_status", entity.RoutedOrderSettlementStatusReconciled) {
+		t.Fatalf("ActivityLog details = %#v, want settlement_status detail", got.Details)
 	}
 }
 
@@ -178,6 +194,12 @@ func TestUpdateOrderIssueHandlingRecalculatesMargin(t *testing.T) {
 	}
 	if !strings.Contains(order.Timeline[len(order.Timeline)-1], "Issue handling") {
 		t.Fatalf("Timeline tail = %q, want issue handling entry", order.Timeline[len(order.Timeline)-1])
+	}
+	if got := order.ActivityLog[len(order.ActivityLog)-1]; got.Type != entity.RoutedOrderActivityTypeIssueNote || got.Message != "Reprint approved" || got.Actor != "system" {
+		t.Fatalf("ActivityLog tail = %#v, want issue note entry", got)
+	}
+	if got := order.ActivityLog[len(order.ActivityLog)-1]; !hasActivityDetail(got.Details, "issue_resolution", entity.RoutedOrderIssueResolutionReprint) {
+		t.Fatalf("ActivityLog details = %#v, want issue_resolution detail", got.Details)
 	}
 }
 
@@ -264,6 +286,90 @@ func TestBulkUpdateRoutedOrdersUpdatesSelectedOrders(t *testing.T) {
 		if !strings.Contains(order.Timeline[len(order.Timeline)-1], "Bulk queue update applied") {
 			t.Fatalf("Timeline tail = %q, want bulk queue update entry", order.Timeline[len(order.Timeline)-1])
 		}
+	}
+}
+
+func TestListRoutedOrderActivitiesFiltersAndSorts(t *testing.T) {
+	t.Parallel()
+
+	now := time.Date(2026, 5, 15, 12, 0, 0, 0, time.UTC)
+	orders := newFakeOrderRoutingRepository()
+	orders.mustSeed(entity.RoutedOrder{
+		ID:               "ord-1",
+		ProductTitle:     "Vintage Tee",
+		OperatorAssignee: "ops.lead",
+		ActivityLog: []entity.RoutedOrderActivity{
+			{
+				Type:      entity.RoutedOrderActivityTypeSystem,
+				Actor:     "system",
+				Message:   "Queued",
+				CreatedAt: now.Add(-2 * time.Hour),
+			},
+			{
+				Type:      entity.RoutedOrderActivityTypeShipmentNote,
+				Actor:     "user:12",
+				Message:   "Carrier assigned",
+				CreatedAt: now.Add(-1 * time.Hour),
+			},
+		},
+	})
+	orders.mustSeed(entity.RoutedOrder{
+		ID:               "ord-2",
+		ProductTitle:     "Poster",
+		OperatorAssignee: "ops.a",
+		ActivityLog: []entity.RoutedOrderActivity{
+			{
+				Type:      entity.RoutedOrderActivityTypeShipmentNote,
+				Actor:     "user:15",
+				Message:   "Packed",
+				CreatedAt: now.Add(-30 * time.Minute),
+			},
+		},
+	})
+	interactor := &OrderRoutingInteractor{orders: orders, products: &fakeProductSetupRepository{}}
+
+	firstPage, err := interactor.ListRoutedOrderActivities(context.Background(), inputport.ListRoutedOrderActivitiesQuery{
+		ActivityType:  entity.RoutedOrderActivityTypeShipmentNote,
+		ActorContains: "user:",
+		Since:         ptrTime(now.Add(-90 * time.Minute)),
+		Limit:         1,
+		IncludeSystem: false,
+	})
+	if err != nil {
+		t.Fatalf("ListRoutedOrderActivities() error = %v", err)
+	}
+	if firstPage.Total != 2 {
+		t.Fatalf("firstPage.Total = %d, want 2", firstPage.Total)
+	}
+	if len(firstPage.Entries) != 1 {
+		t.Fatalf("entries length = %d, want 1", len(firstPage.Entries))
+	}
+	if firstPage.Entries[0].OrderID != "ord-2" {
+		t.Fatalf("entries[0].OrderID = %q, want ord-2", firstPage.Entries[0].OrderID)
+	}
+	if firstPage.NextCursor == nil || *firstPage.NextCursor == "" {
+		t.Fatalf("firstPage.NextCursor = %v, want populated cursor", firstPage.NextCursor)
+	}
+
+	secondPage, err := interactor.ListRoutedOrderActivities(context.Background(), inputport.ListRoutedOrderActivitiesQuery{
+		ActivityType:  entity.RoutedOrderActivityTypeShipmentNote,
+		ActorContains: "user:",
+		Since:         ptrTime(now.Add(-90 * time.Minute)),
+		Limit:         1,
+		After:         *firstPage.NextCursor,
+		IncludeSystem: false,
+	})
+	if err != nil {
+		t.Fatalf("ListRoutedOrderActivities() second page error = %v", err)
+	}
+	if len(secondPage.Entries) != 1 {
+		t.Fatalf("secondPage entries length = %d, want 1", len(secondPage.Entries))
+	}
+	if secondPage.Entries[0].OrderID != "ord-1" {
+		t.Fatalf("secondPage.entries[0].OrderID = %q, want ord-1", secondPage.Entries[0].OrderID)
+	}
+	if secondPage.NextCursor != nil {
+		t.Fatalf("secondPage.NextCursor = %v, want nil on last page", secondPage.NextCursor)
 	}
 }
 
@@ -390,6 +496,12 @@ func TestUpdateOrderShipmentMarksInTransitAndAppendsTracking(t *testing.T) {
 	if !strings.Contains(order.Timeline[len(order.Timeline)-1], "in transit via DHL") {
 		t.Fatalf("Timeline tail = %q, want in-transit tracking entry", order.Timeline[len(order.Timeline)-1])
 	}
+	if got := order.ActivityLog[len(order.ActivityLog)-1]; got.Type != entity.RoutedOrderActivityTypeShipmentNote || got.Message != "Handed off to carrier" || got.Actor != "system" {
+		t.Fatalf("ActivityLog tail = %#v, want shipment note entry", got)
+	}
+	if got := order.ActivityLog[len(order.ActivityLog)-1]; !hasActivityDetail(got.Details, "shipment_status", entity.RoutedOrderShipmentStatusInTransit) {
+		t.Fatalf("ActivityLog details = %#v, want shipment_status detail", got.Details)
+	}
 }
 
 func TestUpdateOrderShipmentMarksDelivered(t *testing.T) {
@@ -443,6 +555,67 @@ func (r *fakeOrderRoutingRepository) List(_ context.Context) ([]entity.RoutedOrd
 		orders = append(orders, cloneOrder(order))
 	}
 	return orders, nil
+}
+
+func (r *fakeOrderRoutingRepository) ListActivityFeed(_ context.Context, query inputport.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error) {
+	entries := make([]entity.RoutedOrderActivityFeedEntry, 0)
+	for _, order := range r.orders {
+		for _, activity := range order.ActivityLog {
+			if query.ActivityType == "notes" && activity.Type == entity.RoutedOrderActivityTypeSystem {
+				continue
+			}
+			if query.ActivityType != "" && query.ActivityType != "all" && query.ActivityType != "notes" && activity.Type != query.ActivityType {
+				continue
+			}
+			if !query.IncludeSystem && query.ActivityType != "system" && query.ActivityType != "notes" && activity.Type == entity.RoutedOrderActivityTypeSystem {
+				continue
+			}
+			if query.Since != nil && activity.CreatedAt.Before(query.Since.UTC()) {
+				continue
+			}
+			if query.ActorContains != "" && !strings.Contains(strings.ToLower(activity.Actor), strings.ToLower(query.ActorContains)) {
+				continue
+			}
+			entries = append(entries, entity.RoutedOrderActivityFeedEntry{
+				OrderID:          order.ID,
+				ProductTitle:     order.ProductTitle,
+				OperatorAssignee: order.OperatorAssignee,
+				Activity:         activity,
+			})
+		}
+	}
+	sort.Slice(entries, func(i, j int) bool {
+		return entries[i].Activity.CreatedAt.After(entries[j].Activity.CreatedAt)
+	})
+	total := len(entries)
+	start := 0
+	if query.After != "" {
+		for idx, entry := range entries {
+			if encodeTestActivityCursor(entry) == query.After {
+				start = idx + 1
+				break
+			}
+		}
+	}
+	limit := query.Limit
+	if limit <= 0 {
+		limit = 50
+	}
+	end := start + limit
+	if end > total {
+		end = total
+	}
+	pageEntries := entries[start:end]
+	var nextCursor *string
+	if end < total && len(pageEntries) > 0 {
+		value := encodeTestActivityCursor(pageEntries[len(pageEntries)-1])
+		nextCursor = &value
+	}
+	return &entity.RoutedOrderActivityFeedPage{
+		Entries:    pageEntries,
+		Total:      total,
+		NextCursor: nextCursor,
+	}, nil
 }
 
 func (r *fakeOrderRoutingRepository) GetByID(_ context.Context, id string) (*entity.RoutedOrder, error) {
@@ -523,6 +696,7 @@ func (r *fakeProductSetupRepository) UpdateCandidateStatus(context.Context, stri
 func cloneOrder(order entity.RoutedOrder) entity.RoutedOrder {
 	cloned := order
 	cloned.Timeline = append([]string(nil), order.Timeline...)
+	cloned.ActivityLog = append([]entity.RoutedOrderActivity(nil), order.ActivityLog...)
 	if order.ShipmentSlaDueAt != nil {
 		value := *order.ShipmentSlaDueAt
 		cloned.ShipmentSlaDueAt = &value
@@ -540,4 +714,27 @@ func cloneOrder(order entity.RoutedOrder) entity.RoutedOrder {
 		cloned.DeliveredAt = &value
 	}
 	return cloned
+}
+
+func hasActivityDetail(details []entity.RoutedOrderActivityDetail, key, value string) bool {
+	for _, detail := range details {
+		if detail.Key == key && detail.Value == value {
+			return true
+		}
+	}
+	return false
+}
+
+func ptrTime(value time.Time) *time.Time {
+	return &value
+}
+
+func encodeTestActivityCursor(entry entity.RoutedOrderActivityFeedEntry) string {
+	return strings.Join([]string{
+		entry.OrderID,
+		entry.Activity.Actor,
+		entry.Activity.Type,
+		entry.Activity.Message,
+		entry.Activity.CreatedAt.UTC().Format(time.RFC3339Nano),
+	}, "|")
 }

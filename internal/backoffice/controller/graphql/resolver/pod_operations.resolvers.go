@@ -198,6 +198,38 @@ func (r *queryResolver) RoutedOrders(ctx context.Context) ([]*model.RoutedOrder,
 	return out, nil
 }
 
+// RoutedOrderActivities is the resolver for the routedOrderActivities field.
+func (r *queryResolver) RoutedOrderActivities(ctx context.Context, input *model.RoutedOrderActivityFeedInput) (*model.RoutedOrderActivityFeedPage, error) {
+	query := inputport.ListRoutedOrderActivitiesQuery{
+		IncludeSystem: false,
+		Limit:         50,
+	}
+	if input != nil {
+		if input.ActivityType != nil {
+			query.ActivityType = *input.ActivityType
+		}
+		if input.ActorContains != nil {
+			query.ActorContains = *input.ActorContains
+		}
+		query.Since = input.Since
+		if input.Limit != nil {
+			query.Limit = *input.Limit
+		}
+		if input.After != nil {
+			query.After = *input.After
+		}
+		if input.IncludeSystem != nil {
+			query.IncludeSystem = *input.IncludeSystem
+		}
+	}
+
+	page, err := r.OrderRoutingUsecase.ListRoutedOrderActivities(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	return toGraphQLRoutedOrderActivityFeedPage(*page), nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

@@ -10,6 +10,7 @@ import (
 	"github.com/tuannm99/podzone/internal/backoffice/domain/entity"
 	"github.com/tuannm99/podzone/internal/backoffice/domain/inputport"
 	"github.com/tuannm99/podzone/internal/backoffice/domain/outputport"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 type OrderRoutingInteractor struct {
@@ -26,6 +27,13 @@ func NewOrderRoutingInteractor(
 
 func (i *OrderRoutingInteractor) ListRoutedOrders(ctx context.Context) ([]entity.RoutedOrder, error) {
 	return i.orders.List(ctx)
+}
+
+func (i *OrderRoutingInteractor) ListRoutedOrderActivities(
+	ctx context.Context,
+	query inputport.ListRoutedOrderActivitiesQuery,
+) (*entity.RoutedOrderActivityFeedPage, error) {
+	return i.orders.ListActivityFeed(ctx, query)
 }
 
 func (i *OrderRoutingInteractor) CreateRoutedOrder(
@@ -53,6 +61,7 @@ func (i *OrderRoutingInteractor) CreateRoutedOrder(
 		customerName = "Sample customer"
 	}
 	now := time.Now().UTC()
+	actor := activityActorFromContext(ctx)
 	order := entity.RoutedOrder{
 		ID:               fmt.Sprintf("ORD-%s", strings.ToUpper(uuid.NewString()[:8])),
 		CandidateID:      candidate.ID,
@@ -73,6 +82,26 @@ func (i *OrderRoutingInteractor) CreateRoutedOrder(
 		Timeline: []string{
 			fmt.Sprintf("Order created for %s", candidate.Title),
 			routingTimelineEntry(entity.RoutedOrderStatusQueued, candidate.Partner),
+		},
+		ActivityLog: []entity.RoutedOrderActivity{
+			newActivity(
+				entity.RoutedOrderActivityTypeSystem,
+				actor,
+				fmt.Sprintf("Order created for %s", candidate.Title),
+				now,
+				activityDetails(
+					"candidate_id", candidate.ID,
+					"quantity", fmt.Sprintf("%d", qty),
+					"status", entity.RoutedOrderStatusQueued,
+				),
+			),
+			newActivity(
+				entity.RoutedOrderActivityTypeSystem,
+				actor,
+				routingTimelineEntry(entity.RoutedOrderStatusQueued, candidate.Partner),
+				now,
+				activityDetails("status", entity.RoutedOrderStatusQueued, "partner", candidate.Partner),
+			),
 		},
 		CreatedAt: now,
 		UpdatedAt: now,
@@ -110,8 +139,17 @@ func (i *OrderRoutingInteractor) AdvanceRoutedOrder(ctx context.Context, orderID
 	}
 
 	order.Status = nextStatus
-	order.Timeline = append(order.Timeline, routingTimelineEntry(nextStatus, order.Partner))
-	order.UpdatedAt = time.Now().UTC()
+	entry := routingTimelineEntry(nextStatus, order.Partner)
+	now := time.Now().UTC()
+	order.Timeline = append(order.Timeline, entry)
+	order.ActivityLog = append(order.ActivityLog, newActivity(
+		entity.RoutedOrderActivityTypeSystem,
+		activityActorFromContext(ctx),
+		entry,
+		now,
+		activityDetails("status", nextStatus, "partner", order.Partner),
+	))
+	order.UpdatedAt = now
 	return i.orders.Update(ctx, *order)
 }
 
@@ -136,8 +174,17 @@ func (i *OrderRoutingInteractor) OpenOrderException(
 
 	order.ExceptionType = exceptionType
 	order.ExceptionStatus = entity.RoutedOrderExceptionStatusOpen
-	order.Timeline = append(order.Timeline, fmt.Sprintf("Exception opened: %s", strings.ReplaceAll(exceptionType, "_", " ")))
-	order.UpdatedAt = time.Now().UTC()
+	entry := fmt.Sprintf("Exception opened: %s", strings.ReplaceAll(exceptionType, "_", " "))
+	now := time.Now().UTC()
+	order.Timeline = append(order.Timeline, entry)
+	order.ActivityLog = append(order.ActivityLog, newActivity(
+		entity.RoutedOrderActivityTypeSystem,
+		activityActorFromContext(ctx),
+		entry,
+		now,
+		activityDetails("exception_type", exceptionType, "exception_status", entity.RoutedOrderExceptionStatusOpen),
+	))
+	order.UpdatedAt = now
 	return i.orders.Update(ctx, *order)
 }
 
@@ -161,8 +208,17 @@ func (i *OrderRoutingInteractor) UpdateOrderExceptionStatus(
 		return nil, fmt.Errorf("invalid exception status")
 	}
 	order.ExceptionStatus = status
-	order.Timeline = append(order.Timeline, fmt.Sprintf("Exception %s: %s", status, strings.ReplaceAll(order.ExceptionType, "_", " ")))
-	order.UpdatedAt = time.Now().UTC()
+	entry := fmt.Sprintf("Exception %s: %s", status, strings.ReplaceAll(order.ExceptionType, "_", " "))
+	now := time.Now().UTC()
+	order.Timeline = append(order.Timeline, entry)
+	order.ActivityLog = append(order.ActivityLog, newActivity(
+		entity.RoutedOrderActivityTypeSystem,
+		activityActorFromContext(ctx),
+		entry,
+		now,
+		activityDetails("exception_type", order.ExceptionType, "exception_status", status),
+	))
+	order.UpdatedAt = now
 	return i.orders.Update(ctx, *order)
 }
 
@@ -184,6 +240,7 @@ func (i *OrderRoutingInteractor) UpdateOrderShipment(
 	}
 
 	now := time.Now().UTC()
+	actor := activityActorFromContext(ctx)
 	order.ShipmentStatus = shipmentStatus
 	order.ShipmentCarrier = strings.TrimSpace(cmd.Carrier)
 	order.ShipmentTrackingNumber = strings.TrimSpace(cmd.TrackingNumber)
@@ -193,7 +250,15 @@ func (i *OrderRoutingInteractor) UpdateOrderShipment(
 	case entity.RoutedOrderShipmentStatusInTransit:
 		if order.Status != entity.RoutedOrderStatusShipped {
 			order.Status = entity.RoutedOrderStatusShipped
-			order.Timeline = append(order.Timeline, routingTimelineEntry(entity.RoutedOrderStatusShipped, order.Partner))
+			entry := routingTimelineEntry(entity.RoutedOrderStatusShipped, order.Partner)
+			order.Timeline = append(order.Timeline, entry)
+			order.ActivityLog = append(order.ActivityLog, newActivity(
+				entity.RoutedOrderActivityTypeSystem,
+				actor,
+				entry,
+				now,
+				activityDetails("status", entity.RoutedOrderStatusShipped, "partner", order.Partner),
+			))
 		}
 		if order.ShippedAt == nil {
 			order.ShippedAt = &now
@@ -202,7 +267,15 @@ func (i *OrderRoutingInteractor) UpdateOrderShipment(
 	case entity.RoutedOrderShipmentStatusDelivered:
 		if order.Status != entity.RoutedOrderStatusShipped {
 			order.Status = entity.RoutedOrderStatusShipped
-			order.Timeline = append(order.Timeline, routingTimelineEntry(entity.RoutedOrderStatusShipped, order.Partner))
+			entry := routingTimelineEntry(entity.RoutedOrderStatusShipped, order.Partner)
+			order.Timeline = append(order.Timeline, entry)
+			order.ActivityLog = append(order.ActivityLog, newActivity(
+				entity.RoutedOrderActivityTypeSystem,
+				actor,
+				entry,
+				now,
+				activityDetails("status", entity.RoutedOrderStatusShipped, "partner", order.Partner),
+			))
 		}
 		if order.ShippedAt == nil {
 			order.ShippedAt = &now
@@ -216,7 +289,31 @@ func (i *OrderRoutingInteractor) UpdateOrderShipment(
 		}
 	}
 
-	order.Timeline = append(order.Timeline, shipmentTimelineEntry(order))
+	shipmentEntry := shipmentTimelineEntry(order)
+	order.Timeline = append(order.Timeline, shipmentEntry)
+	order.ActivityLog = append(order.ActivityLog, newActivity(
+		entity.RoutedOrderActivityTypeSystem,
+		actor,
+		shipmentEntry,
+		now,
+		activityDetails(
+			"shipment_status", order.ShipmentStatus,
+			"carrier", fallbackShipmentCarrier(order.ShipmentCarrier),
+			"tracking_number", order.ShipmentTrackingNumber,
+		),
+	))
+	if order.ShipmentNotes != "" {
+		order.ActivityLog = append(order.ActivityLog, newActivity(
+			entity.RoutedOrderActivityTypeShipmentNote,
+			actor,
+			order.ShipmentNotes,
+			now,
+			activityDetails(
+				"shipment_status", order.ShipmentStatus,
+				"carrier", fallbackShipmentCarrier(order.ShipmentCarrier),
+			),
+		))
+	}
 	order.UpdatedAt = now
 	return i.orders.Update(ctx, *order)
 }
@@ -240,8 +337,21 @@ func (i *OrderRoutingInteractor) UpdateOrderQueueControl(
 	order.OperatorAssignee = assignee
 	order.ShipmentSlaDueAt = cmd.ShipmentSlaDueAt
 	order.IssueSlaDueAt = cmd.IssueSlaDueAt
-	order.Timeline = append(order.Timeline, queueControlTimelineEntry(order))
-	order.UpdatedAt = time.Now().UTC()
+	entry := queueControlTimelineEntry(order)
+	now := time.Now().UTC()
+	order.Timeline = append(order.Timeline, entry)
+	order.ActivityLog = append(order.ActivityLog, newActivity(
+		entity.RoutedOrderActivityTypeSystem,
+		activityActorFromContext(ctx),
+		entry,
+		now,
+		activityDetails(
+			"operator_assignee", order.OperatorAssignee,
+			"shipment_sla_due_at", formatOptionalTime(order.ShipmentSlaDueAt),
+			"issue_sla_due_at", formatOptionalTime(order.IssueSlaDueAt),
+		),
+	))
+	order.UpdatedAt = now
 	return i.orders.Update(ctx, *order)
 }
 
@@ -292,8 +402,21 @@ func (i *OrderRoutingInteractor) BulkUpdateRoutedOrders(
 			order.SettlementStatus = normalizedSettlementStatus
 		}
 
-		order.Timeline = append(order.Timeline, bulkUpdateTimelineEntry(order, cmd))
-		order.UpdatedAt = time.Now().UTC()
+		entry := bulkUpdateTimelineEntry(order, cmd)
+		now := time.Now().UTC()
+		order.Timeline = append(order.Timeline, entry)
+		order.ActivityLog = append(order.ActivityLog, newActivity(
+			entity.RoutedOrderActivityTypeSystem,
+			activityActorFromContext(ctx),
+			entry,
+			now,
+			activityDetails(
+				"operator_assignee", order.OperatorAssignee,
+				"shipment_sla_due_at", formatOptionalTime(order.ShipmentSlaDueAt),
+				"settlement_status", order.SettlementStatus,
+			),
+		))
+		order.UpdatedAt = now
 		saved, err := i.orders.Update(ctx, *order)
 		if err != nil {
 			return nil, err
@@ -333,8 +456,32 @@ func (i *OrderRoutingInteractor) UpdateOrderSettlement(
 	order.RealizedMargin = calculateMargin(order.Total, fulfillmentCost, shippingCost, order.IssueCost)
 	order.SettlementStatus = settlementStatus
 	order.SettlementNotes = strings.TrimSpace(cmd.Notes)
-	order.Timeline = append(order.Timeline, settlementTimelineEntry(order))
-	order.UpdatedAt = time.Now().UTC()
+	entry := settlementTimelineEntry(order)
+	now := time.Now().UTC()
+	actor := activityActorFromContext(ctx)
+	order.Timeline = append(order.Timeline, entry)
+	order.ActivityLog = append(order.ActivityLog, newActivity(
+		entity.RoutedOrderActivityTypeSystem,
+		actor,
+		entry,
+		now,
+		activityDetails(
+			"settlement_status", order.SettlementStatus,
+			"fulfillment_cost", order.FulfillmentCost,
+			"shipping_cost", order.ShippingCost,
+			"realized_margin", order.RealizedMargin,
+		),
+	))
+	if order.SettlementNotes != "" {
+		order.ActivityLog = append(order.ActivityLog, newActivity(
+			entity.RoutedOrderActivityTypeSettlementNote,
+			actor,
+			order.SettlementNotes,
+			now,
+			activityDetails("settlement_status", order.SettlementStatus, "realized_margin", order.RealizedMargin),
+		))
+	}
+	order.UpdatedAt = now
 	return i.orders.Update(ctx, *order)
 }
 
@@ -366,9 +513,83 @@ func (i *OrderRoutingInteractor) UpdateOrderIssueHandling(
 	order.IssueResolution = issueResolution
 	order.IssueNotes = strings.TrimSpace(cmd.Notes)
 	order.RealizedMargin = calculateMargin(order.Total, order.FulfillmentCost, order.ShippingCost, order.IssueCost)
-	order.Timeline = append(order.Timeline, issueHandlingTimelineEntry(order))
-	order.UpdatedAt = time.Now().UTC()
+	entry := issueHandlingTimelineEntry(order)
+	now := time.Now().UTC()
+	actor := activityActorFromContext(ctx)
+	order.Timeline = append(order.Timeline, entry)
+	order.ActivityLog = append(order.ActivityLog, newActivity(
+		entity.RoutedOrderActivityTypeSystem,
+		actor,
+		entry,
+		now,
+		activityDetails(
+			"issue_resolution", order.IssueResolution,
+			"issue_cost", order.IssueCost,
+			"realized_margin", order.RealizedMargin,
+		),
+	))
+	if order.IssueNotes != "" {
+		order.ActivityLog = append(order.ActivityLog, newActivity(
+			entity.RoutedOrderActivityTypeIssueNote,
+			actor,
+			order.IssueNotes,
+			now,
+			activityDetails("issue_resolution", order.IssueResolution, "issue_cost", order.IssueCost),
+		))
+	}
+	order.UpdatedAt = now
 	return i.orders.Update(ctx, *order)
+}
+
+func newActivity(
+	activityType,
+	actor,
+	message string,
+	createdAt time.Time,
+	details []entity.RoutedOrderActivityDetail,
+) entity.RoutedOrderActivity {
+	return entity.RoutedOrderActivity{
+		Type:      activityType,
+		Actor:     strings.TrimSpace(actor),
+		Message:   strings.TrimSpace(message),
+		Details:   details,
+		CreatedAt: createdAt,
+	}
+}
+
+func activityActorFromContext(ctx context.Context) string {
+	userID, err := toolkit.GetUserID(ctx)
+	if err != nil {
+		return "system"
+	}
+	userID = strings.TrimSpace(userID)
+	if userID == "" {
+		return "system"
+	}
+	return "user:" + userID
+}
+
+func activityDetails(pairs ...string) []entity.RoutedOrderActivityDetail {
+	details := make([]entity.RoutedOrderActivityDetail, 0, len(pairs)/2)
+	for i := 0; i+1 < len(pairs); i += 2 {
+		key := strings.TrimSpace(pairs[i])
+		value := strings.TrimSpace(pairs[i+1])
+		if key == "" || value == "" {
+			continue
+		}
+		details = append(details, entity.RoutedOrderActivityDetail{
+			Key:   key,
+			Value: value,
+		})
+	}
+	return details
+}
+
+func formatOptionalTime(value *time.Time) string {
+	if value == nil {
+		return ""
+	}
+	return value.UTC().Format(time.RFC3339)
 }
 
 func routingTimelineEntry(status, partner string) string {

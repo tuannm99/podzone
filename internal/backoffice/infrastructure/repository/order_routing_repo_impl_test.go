@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tuannm99/podzone/internal/backoffice/domain/entity"
+	"github.com/tuannm99/podzone/internal/backoffice/domain/inputport"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 	"github.com/tuannm99/podzone/pkg/testkit"
 	"github.com/tuannm99/podzone/pkg/toolkit"
@@ -47,15 +48,31 @@ func TestOrderRoutingRepositoryPersistsTenantScopedOrders(t *testing.T) {
 	updatedAt := createdAt.Add(2 * time.Hour)
 
 	order := entity.RoutedOrder{
-		ID:                     "ord-repo-1",
-		CandidateID:            "cand-1",
-		ProductTitle:           "Vintage Tee",
-		Partner:                "Print Partner A",
-		Quantity:               2,
-		Total:                  "$40.00",
-		CustomerName:           "Alex POD",
-		Status:                 entity.RoutedOrderStatusShipped,
-		Timeline:               []string{"created", "shipment delivered"},
+		ID:           "ord-repo-1",
+		CandidateID:  "cand-1",
+		ProductTitle: "Vintage Tee",
+		Partner:      "Print Partner A",
+		Quantity:     2,
+		Total:        "$40.00",
+		CustomerName: "Alex POD",
+		Status:       entity.RoutedOrderStatusShipped,
+		Timeline:     []string{"created", "shipment delivered"},
+		ActivityLog: []entity.RoutedOrderActivity{
+			{
+				Type:      entity.RoutedOrderActivityTypeSystem,
+				Actor:     "system",
+				Message:   "created",
+				Details:   []entity.RoutedOrderActivityDetail{{Key: "status", Value: entity.RoutedOrderStatusQueued}},
+				CreatedAt: createdAt,
+			},
+			{
+				Type:      entity.RoutedOrderActivityTypeShipmentNote,
+				Actor:     "user:12",
+				Message:   "Delivered cleanly",
+				Details:   []entity.RoutedOrderActivityDetail{{Key: "shipment_status", Value: entity.RoutedOrderShipmentStatusDelivered}},
+				CreatedAt: updatedAt,
+			},
+		},
 		ExceptionType:          "reprint_request",
 		ExceptionStatus:        entity.RoutedOrderExceptionStatusResolved,
 		ShipmentStatus:         entity.RoutedOrderShipmentStatusDelivered,
@@ -99,6 +116,13 @@ func TestOrderRoutingRepositoryPersistsTenantScopedOrders(t *testing.T) {
 	require.NotNil(t, got.DeliveredAt)
 	require.True(t, got.DeliveredAt.Equal(deliveredAt))
 	require.Equal(t, []string{"created", "shipment delivered"}, got.Timeline)
+	require.Len(t, got.ActivityLog, 2)
+	require.Equal(t, entity.RoutedOrderActivityTypeShipmentNote, got.ActivityLog[1].Type)
+	require.Equal(t, "user:12", got.ActivityLog[1].Actor)
+	require.Equal(t, "Delivered cleanly", got.ActivityLog[1].Message)
+	require.Len(t, got.ActivityLog[1].Details, 1)
+	require.Equal(t, "shipment_status", got.ActivityLog[1].Details[0].Key)
+	require.Equal(t, entity.RoutedOrderShipmentStatusDelivered, got.ActivityLog[1].Details[0].Value)
 	require.Equal(t, entity.RoutedOrderSettlementStatusPaid, got.SettlementStatus)
 	require.Equal(t, entity.RoutedOrderIssueResolutionReprint, got.IssueResolution)
 
@@ -106,6 +130,16 @@ func TestOrderRoutingRepositoryPersistsTenantScopedOrders(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, list, 1)
 	require.Equal(t, "ord-repo-1", list[0].ID)
+
+	feedPage, err := repo.ListActivityFeed(ctxA, inputport.ListRoutedOrderActivitiesQuery{
+		ActivityType:  "all",
+		Limit:         10,
+		IncludeSystem: true,
+	})
+	require.NoError(t, err)
+	require.Equal(t, 2, feedPage.Total)
+	require.Len(t, feedPage.Entries, 2)
+	require.Equal(t, "ord-repo-1", feedPage.Entries[0].OrderID)
 
 	ctxB := toolkit.WithTenantID(context.Background(), "tenant-orders-b")
 	_, err = repo.GetByID(ctxB, "ord-repo-1")
@@ -120,8 +154,8 @@ func TestOrderRoutingRepositoryPersistsTenantScopedOrders(t *testing.T) {
 		if len(versions) == 0 {
 			return fmt.Errorf("missing migrations")
 		}
-		if !strings.Contains(strings.Join(versions, ","), "0007_add_order_queue_control_fields") {
-			return fmt.Errorf("missing routed order queue control migration")
+		if !strings.Contains(strings.Join(versions, ","), "0009_create_routed_order_activities") {
+			return fmt.Errorf("missing routed order activities migration")
 		}
 		return nil
 	})

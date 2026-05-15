@@ -110,38 +110,74 @@ type Query struct {
 }
 
 type RoutedOrder struct {
-	ID                     string     `json:"id"`
-	CandidateID            string     `json:"candidateId"`
-	ProductTitle           string     `json:"productTitle"`
-	Partner                string     `json:"partner"`
-	Quantity               int        `json:"quantity"`
-	Total                  string     `json:"total"`
-	CustomerName           string     `json:"customerName"`
-	Status                 string     `json:"status"`
-	Timeline               []string   `json:"timeline"`
-	ExceptionType          string     `json:"exceptionType"`
-	ExceptionStatus        string     `json:"exceptionStatus"`
-	ShipmentStatus         string     `json:"shipmentStatus"`
-	ShipmentCarrier        string     `json:"shipmentCarrier"`
-	ShipmentTrackingNumber string     `json:"shipmentTrackingNumber"`
-	ShipmentTrackingURL    string     `json:"shipmentTrackingUrl"`
-	ShipmentNotes          string     `json:"shipmentNotes"`
-	OperatorAssignee       string     `json:"operatorAssignee"`
-	ShipmentSLADueAt       *time.Time `json:"shipmentSlaDueAt,omitempty"`
-	IssueSLADueAt          *time.Time `json:"issueSlaDueAt,omitempty"`
-	BaseCostSnapshot       string     `json:"baseCostSnapshot"`
-	FulfillmentCost        string     `json:"fulfillmentCost"`
-	ShippingCost           string     `json:"shippingCost"`
-	IssueCost              string     `json:"issueCost"`
-	IssueResolution        string     `json:"issueResolution"`
-	IssueNotes             string     `json:"issueNotes"`
-	RealizedMargin         string     `json:"realizedMargin"`
-	SettlementStatus       string     `json:"settlementStatus"`
-	SettlementNotes        string     `json:"settlementNotes"`
-	ShippedAt              *time.Time `json:"shippedAt,omitempty"`
-	DeliveredAt            *time.Time `json:"deliveredAt,omitempty"`
-	CreatedAt              time.Time  `json:"createdAt"`
-	UpdatedAt              time.Time  `json:"updatedAt"`
+	ID                     string                 `json:"id"`
+	CandidateID            string                 `json:"candidateId"`
+	ProductTitle           string                 `json:"productTitle"`
+	Partner                string                 `json:"partner"`
+	Quantity               int                    `json:"quantity"`
+	Total                  string                 `json:"total"`
+	CustomerName           string                 `json:"customerName"`
+	Status                 string                 `json:"status"`
+	Timeline               []string               `json:"timeline"`
+	ActivityLog            []*RoutedOrderActivity `json:"activityLog"`
+	ExceptionType          string                 `json:"exceptionType"`
+	ExceptionStatus        string                 `json:"exceptionStatus"`
+	ShipmentStatus         string                 `json:"shipmentStatus"`
+	ShipmentCarrier        string                 `json:"shipmentCarrier"`
+	ShipmentTrackingNumber string                 `json:"shipmentTrackingNumber"`
+	ShipmentTrackingURL    string                 `json:"shipmentTrackingUrl"`
+	ShipmentNotes          string                 `json:"shipmentNotes"`
+	OperatorAssignee       string                 `json:"operatorAssignee"`
+	ShipmentSLADueAt       *time.Time             `json:"shipmentSlaDueAt,omitempty"`
+	IssueSLADueAt          *time.Time             `json:"issueSlaDueAt,omitempty"`
+	BaseCostSnapshot       string                 `json:"baseCostSnapshot"`
+	FulfillmentCost        string                 `json:"fulfillmentCost"`
+	ShippingCost           string                 `json:"shippingCost"`
+	IssueCost              string                 `json:"issueCost"`
+	IssueResolution        string                 `json:"issueResolution"`
+	IssueNotes             string                 `json:"issueNotes"`
+	RealizedMargin         string                 `json:"realizedMargin"`
+	SettlementStatus       string                 `json:"settlementStatus"`
+	SettlementNotes        string                 `json:"settlementNotes"`
+	ShippedAt              *time.Time             `json:"shippedAt,omitempty"`
+	DeliveredAt            *time.Time             `json:"deliveredAt,omitempty"`
+	CreatedAt              time.Time              `json:"createdAt"`
+	UpdatedAt              time.Time              `json:"updatedAt"`
+}
+
+type RoutedOrderActivity struct {
+	Type      string                       `json:"type"`
+	Actor     string                       `json:"actor"`
+	Message   string                       `json:"message"`
+	Details   []*RoutedOrderActivityDetail `json:"details"`
+	CreatedAt time.Time                    `json:"createdAt"`
+}
+
+type RoutedOrderActivityDetail struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+type RoutedOrderActivityFeedEntry struct {
+	OrderID          string               `json:"orderId"`
+	ProductTitle     string               `json:"productTitle"`
+	OperatorAssignee string               `json:"operatorAssignee"`
+	Activity         *RoutedOrderActivity `json:"activity"`
+}
+
+type RoutedOrderActivityFeedInput struct {
+	ActivityType  *string    `json:"activityType,omitempty"`
+	ActorContains *string    `json:"actorContains,omitempty"`
+	Since         *time.Time `json:"since,omitempty"`
+	Limit         *int       `json:"limit,omitempty"`
+	After         *string    `json:"after,omitempty"`
+	IncludeSystem *bool      `json:"includeSystem,omitempty"`
+}
+
+type RoutedOrderActivityFeedPage struct {
+	Entries    []*RoutedOrderActivityFeedEntry `json:"entries"`
+	Total      int                             `json:"total"`
+	NextCursor *string                         `json:"nextCursor,omitempty"`
 }
 
 type Store struct {

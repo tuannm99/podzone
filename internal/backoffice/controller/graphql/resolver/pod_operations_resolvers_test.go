@@ -203,10 +203,67 @@ func TestUpdateOrderShipmentPropagatesUsecaseErrors(t *testing.T) {
 	require.Nil(t, got)
 }
 
+func TestRoutedOrderActivitiesMapsQueryAndResponse(t *testing.T) {
+	t.Parallel()
+
+	since := time.Date(2026, 5, 15, 0, 0, 0, 0, time.UTC)
+	orderUC := &fakeOrderRoutingUsecase{
+		listRoutedOrderActivitiesFn: func(_ context.Context, query inputport.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error) {
+			require.Equal(t, "shipment_note", query.ActivityType)
+			require.Equal(t, "user:12", query.ActorContains)
+			require.NotNil(t, query.Since)
+			require.True(t, query.Since.Equal(since))
+			require.Equal(t, 25, query.Limit)
+			require.Equal(t, "cursor-1", query.After)
+			require.True(t, query.IncludeSystem)
+			nextCursor := "cursor-2"
+			return &entity.RoutedOrderActivityFeedPage{
+				Entries: []entity.RoutedOrderActivityFeedEntry{
+					{
+						OrderID:          "ord-1",
+						ProductTitle:     "Vintage Tee",
+						OperatorAssignee: "ops.lead",
+						Activity: entity.RoutedOrderActivity{
+							Type:      entity.RoutedOrderActivityTypeShipmentNote,
+							Actor:     "user:12",
+							Message:   "Handed off to carrier",
+							Details:   []entity.RoutedOrderActivityDetail{{Key: "carrier", Value: "DHL"}},
+							CreatedAt: since,
+						},
+					},
+				},
+				Total:      80,
+				NextCursor: &nextCursor,
+			}, nil
+		},
+	}
+
+	resolver := &queryResolver{&Resolver{
+		ProductSetupUsecase: &fakeProductSetupUsecase{},
+		OrderRoutingUsecase: orderUC,
+	}}
+
+	got, err := resolver.RoutedOrderActivities(context.Background(), &model.RoutedOrderActivityFeedInput{
+		ActivityType:  ptrString("shipment_note"),
+		ActorContains: ptrString("user:12"),
+		Since:         &since,
+		Limit:         ptrInt(25),
+		After:         ptrString("cursor-1"),
+		IncludeSystem: ptrBool(true),
+	})
+	require.NoError(t, err)
+	require.Len(t, got.Entries, 1)
+	require.Equal(t, "ord-1", got.Entries[0].OrderID)
+	require.Equal(t, "DHL", got.Entries[0].Activity.Details[0].Value)
+	require.Equal(t, 80, got.Total)
+	require.NotNil(t, got.NextCursor)
+	require.Equal(t, "cursor-2", *got.NextCursor)
+}
+
 type fakeProductSetupUsecase struct {
-	getSnapshotFn          func(ctx context.Context) (*entity.ProductSetupSnapshot, error)
-	createDraftFn          func(ctx context.Context, cmd inputport.CreateProductSetupDraftCmd) (*entity.ProductSetupDraft, error)
-	promoteCandidateFn     func(ctx context.Context, cmd inputport.PromoteProductSetupCandidateCmd) (*entity.ProductSetupCandidate, error)
+	getSnapshotFn           func(ctx context.Context) (*entity.ProductSetupSnapshot, error)
+	createDraftFn           func(ctx context.Context, cmd inputport.CreateProductSetupDraftCmd) (*entity.ProductSetupDraft, error)
+	promoteCandidateFn      func(ctx context.Context, cmd inputport.PromoteProductSetupCandidateCmd) (*entity.ProductSetupCandidate, error)
 	updateCandidateStatusFn func(ctx context.Context, id, status string) (*entity.ProductSetupCandidate, error)
 }
 
@@ -239,16 +296,17 @@ func (f *fakeProductSetupUsecase) UpdateCandidateStatus(ctx context.Context, id,
 }
 
 type fakeOrderRoutingUsecase struct {
-	listRoutedOrdersFn         func(ctx context.Context) ([]entity.RoutedOrder, error)
-	createRoutedOrderFn        func(ctx context.Context, cmd inputport.CreateRoutedOrderCmd) (*entity.RoutedOrder, error)
-	advanceRoutedOrderFn       func(ctx context.Context, orderID string) (*entity.RoutedOrder, error)
-	openOrderExceptionFn       func(ctx context.Context, cmd inputport.OpenOrderExceptionCmd) (*entity.RoutedOrder, error)
-	updateExceptionStatusFn    func(ctx context.Context, cmd inputport.UpdateOrderExceptionStatusCmd) (*entity.RoutedOrder, error)
-	updateOrderShipmentFn      func(ctx context.Context, cmd inputport.UpdateOrderShipmentCmd) (*entity.RoutedOrder, error)
-	updateOrderSettlementFn    func(ctx context.Context, cmd inputport.UpdateOrderSettlementCmd) (*entity.RoutedOrder, error)
-	updateOrderIssueHandlingFn func(ctx context.Context, cmd inputport.UpdateOrderIssueHandlingCmd) (*entity.RoutedOrder, error)
-	updateOrderQueueControlFn  func(ctx context.Context, cmd inputport.UpdateOrderQueueControlCmd) (*entity.RoutedOrder, error)
-	bulkUpdateRoutedOrdersFn   func(ctx context.Context, cmd inputport.BulkUpdateRoutedOrdersCmd) ([]entity.RoutedOrder, error)
+	listRoutedOrdersFn          func(ctx context.Context) ([]entity.RoutedOrder, error)
+	listRoutedOrderActivitiesFn func(ctx context.Context, query inputport.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error)
+	createRoutedOrderFn         func(ctx context.Context, cmd inputport.CreateRoutedOrderCmd) (*entity.RoutedOrder, error)
+	advanceRoutedOrderFn        func(ctx context.Context, orderID string) (*entity.RoutedOrder, error)
+	openOrderExceptionFn        func(ctx context.Context, cmd inputport.OpenOrderExceptionCmd) (*entity.RoutedOrder, error)
+	updateExceptionStatusFn     func(ctx context.Context, cmd inputport.UpdateOrderExceptionStatusCmd) (*entity.RoutedOrder, error)
+	updateOrderShipmentFn       func(ctx context.Context, cmd inputport.UpdateOrderShipmentCmd) (*entity.RoutedOrder, error)
+	updateOrderSettlementFn     func(ctx context.Context, cmd inputport.UpdateOrderSettlementCmd) (*entity.RoutedOrder, error)
+	updateOrderIssueHandlingFn  func(ctx context.Context, cmd inputport.UpdateOrderIssueHandlingCmd) (*entity.RoutedOrder, error)
+	updateOrderQueueControlFn   func(ctx context.Context, cmd inputport.UpdateOrderQueueControlCmd) (*entity.RoutedOrder, error)
+	bulkUpdateRoutedOrdersFn    func(ctx context.Context, cmd inputport.BulkUpdateRoutedOrdersCmd) ([]entity.RoutedOrder, error)
 }
 
 func (f *fakeOrderRoutingUsecase) ListRoutedOrders(ctx context.Context) ([]entity.RoutedOrder, error) {
@@ -256,6 +314,13 @@ func (f *fakeOrderRoutingUsecase) ListRoutedOrders(ctx context.Context) ([]entit
 		return f.listRoutedOrdersFn(ctx)
 	}
 	return nil, nil
+}
+
+func (f *fakeOrderRoutingUsecase) ListRoutedOrderActivities(ctx context.Context, query inputport.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error) {
+	if f.listRoutedOrderActivitiesFn != nil {
+		return f.listRoutedOrderActivitiesFn(ctx, query)
+	}
+	return nil, errors.New("unexpected ListRoutedOrderActivities call")
 }
 
 func (f *fakeOrderRoutingUsecase) CreateRoutedOrder(ctx context.Context, cmd inputport.CreateRoutedOrderCmd) (*entity.RoutedOrder, error) {
@@ -319,4 +384,16 @@ func (f *fakeOrderRoutingUsecase) BulkUpdateRoutedOrders(ctx context.Context, cm
 		return f.bulkUpdateRoutedOrdersFn(ctx, cmd)
 	}
 	return nil, errors.New("unexpected BulkUpdateRoutedOrders call")
+}
+
+func ptrString(value string) *string {
+	return &value
+}
+
+func ptrInt(value int) *int {
+	return &value
+}
+
+func ptrBool(value bool) *bool {
+	return &value
 }

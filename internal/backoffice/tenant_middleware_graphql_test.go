@@ -239,6 +239,10 @@ func (f *graphqlOrderRoutingUsecase) ListRoutedOrders(ctx context.Context) ([]en
 	return nil, nil
 }
 
+func (graphqlOrderRoutingUsecase) ListRoutedOrderActivities(context.Context, inputport.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error) {
+	return nil, errors.New("unexpected ListRoutedOrderActivities call")
+}
+
 func (graphqlOrderRoutingUsecase) CreateRoutedOrder(context.Context, inputport.CreateRoutedOrderCmd) (*entity.RoutedOrder, error) {
 	return nil, errors.New("unexpected CreateRoutedOrder call")
 }

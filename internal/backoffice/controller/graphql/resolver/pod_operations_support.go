@@ -81,6 +81,23 @@ func toGraphQLProductSetupCandidate(candidate entity.ProductSetupCandidate) *mod
 }
 
 func toGraphQLRoutedOrder(order entity.RoutedOrder) *model.RoutedOrder {
+	activities := make([]*model.RoutedOrderActivity, 0, len(order.ActivityLog))
+	for _, activity := range order.ActivityLog {
+		details := make([]*model.RoutedOrderActivityDetail, 0, len(activity.Details))
+		for _, detail := range activity.Details {
+			details = append(details, &model.RoutedOrderActivityDetail{
+				Key:   detail.Key,
+				Value: detail.Value,
+			})
+		}
+		activities = append(activities, &model.RoutedOrderActivity{
+			Type:      activity.Type,
+			Actor:     activity.Actor,
+			Message:   activity.Message,
+			Details:   details,
+			CreatedAt: activity.CreatedAt,
+		})
+	}
 	return &model.RoutedOrder{
 		ID:                     order.ID,
 		CandidateID:            order.CandidateID,
@@ -91,6 +108,7 @@ func toGraphQLRoutedOrder(order entity.RoutedOrder) *model.RoutedOrder {
 		CustomerName:           order.CustomerName,
 		Status:                 order.Status,
 		Timeline:               order.Timeline,
+		ActivityLog:            activities,
 		ExceptionType:          order.ExceptionType,
 		ExceptionStatus:        order.ExceptionStatus,
 		ShipmentStatus:         order.ShipmentStatus,
@@ -114,5 +132,43 @@ func toGraphQLRoutedOrder(order entity.RoutedOrder) *model.RoutedOrder {
 		DeliveredAt:            order.DeliveredAt,
 		CreatedAt:              order.CreatedAt,
 		UpdatedAt:              order.UpdatedAt,
+	}
+}
+
+func toGraphQLRoutedOrderActivity(activity entity.RoutedOrderActivity) *model.RoutedOrderActivity {
+	details := make([]*model.RoutedOrderActivityDetail, 0, len(activity.Details))
+	for _, detail := range activity.Details {
+		details = append(details, &model.RoutedOrderActivityDetail{
+			Key:   detail.Key,
+			Value: detail.Value,
+		})
+	}
+	return &model.RoutedOrderActivity{
+		Type:      activity.Type,
+		Actor:     activity.Actor,
+		Message:   activity.Message,
+		Details:   details,
+		CreatedAt: activity.CreatedAt,
+	}
+}
+
+func toGraphQLRoutedOrderActivityFeedEntry(entry entity.RoutedOrderActivityFeedEntry) *model.RoutedOrderActivityFeedEntry {
+	return &model.RoutedOrderActivityFeedEntry{
+		OrderID:          entry.OrderID,
+		ProductTitle:     entry.ProductTitle,
+		OperatorAssignee: entry.OperatorAssignee,
+		Activity:         toGraphQLRoutedOrderActivity(entry.Activity),
+	}
+}
+
+func toGraphQLRoutedOrderActivityFeedPage(page entity.RoutedOrderActivityFeedPage) *model.RoutedOrderActivityFeedPage {
+	entries := make([]*model.RoutedOrderActivityFeedEntry, 0, len(page.Entries))
+	for _, entry := range page.Entries {
+		entries = append(entries, toGraphQLRoutedOrderActivityFeedEntry(entry))
+	}
+	return &model.RoutedOrderActivityFeedPage{
+		Entries:    entries,
+		Total:      page.Total,
+		NextCursor: page.NextCursor,
 	}
 }

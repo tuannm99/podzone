@@ -48,6 +48,12 @@ export function PodzoneNavbar(props: { currentPath: string }) {
             label: 'Orders',
             active: () => props.currentPath === `/t/${tenantId().trim()}/orders`,
           },
+          {
+            href: `/t/${tenantId().trim()}/orders/audit`,
+            label: 'Order audit',
+            active: () =>
+              props.currentPath === `/t/${tenantId().trim()}/orders/audit`,
+          },
         ]
       : []),
   ];

@@ -55,14 +55,24 @@ type UpdateOrderQueueControlCmd struct {
 }
 
 type BulkUpdateRoutedOrdersCmd struct {
-	OrderIDs          []string
-	OperatorAssignee  *string
-	ShipmentSlaDueAt  *time.Time
-	SettlementStatus  *string
+	OrderIDs         []string
+	OperatorAssignee *string
+	ShipmentSlaDueAt *time.Time
+	SettlementStatus *string
+}
+
+type ListRoutedOrderActivitiesQuery struct {
+	ActivityType  string
+	ActorContains string
+	Since         *time.Time
+	Limit         int
+	After         string
+	IncludeSystem bool
 }
 
 type OrderRoutingUsecase interface {
 	ListRoutedOrders(ctx context.Context) ([]entity.RoutedOrder, error)
+	ListRoutedOrderActivities(ctx context.Context, query ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error)
 	CreateRoutedOrder(ctx context.Context, cmd CreateRoutedOrderCmd) (*entity.RoutedOrder, error)
 	AdvanceRoutedOrder(ctx context.Context, orderID string) (*entity.RoutedOrder, error)
 	OpenOrderException(ctx context.Context, cmd OpenOrderExceptionCmd) (*entity.RoutedOrder, error)
