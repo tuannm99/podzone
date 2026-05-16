@@ -4,8 +4,10 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"hash/fnv"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -18,7 +20,29 @@ type migration struct {
 	path    string
 }
 
+var appliedScopes sync.Map
+
 func ApplyTx(ctx context.Context, tx *sqlx.Tx) error {
+	scopeKey, err := migrationScopeKey(ctx, tx)
+	if err != nil {
+		return fmt.Errorf("resolve migration scope: %w", err)
+	}
+	if scopeKey != "" {
+		if _, ok := appliedScopes.Load(scopeKey); ok {
+			return nil
+		}
+		if _, err := tx.ExecContext(
+			ctx,
+			`SELECT pg_advisory_xact_lock($1)`,
+			migrationLockKey(scopeKey),
+		); err != nil {
+			return fmt.Errorf("acquire migration lock: %w", err)
+		}
+		if _, ok := appliedScopes.Load(scopeKey); ok {
+			return nil
+		}
+	}
+
 	if _, err := tx.ExecContext(ctx, `
 CREATE TABLE IF NOT EXISTS backoffice_schema_migrations (
 	version TEXT PRIMARY KEY,
@@ -78,5 +102,32 @@ CREATE TABLE IF NOT EXISTS backoffice_schema_migrations (
 		}
 	}
 
+	if scopeKey != "" {
+		appliedScopes.Store(scopeKey, struct{}{})
+	}
 	return nil
+}
+
+func migrationScopeKey(ctx context.Context, tx *sqlx.Tx) (string, error) {
+	var scope struct {
+		Database string `db:"database_name"`
+		Schema   string `db:"schema_name"`
+	}
+	if err := tx.GetContext(ctx, &scope, `
+SELECT current_database() AS database_name, current_schema() AS schema_name
+`); err != nil {
+		return "", err
+	}
+	scope.Database = strings.TrimSpace(scope.Database)
+	scope.Schema = strings.TrimSpace(scope.Schema)
+	if scope.Database == "" {
+		return "", nil
+	}
+	return scope.Database + "|" + scope.Schema, nil
+}
+
+func migrationLockKey(scopeKey string) int64 {
+	hasher := fnv.New64a()
+	_, _ = hasher.Write([]byte(scopeKey))
+	return int64(hasher.Sum64())
 }

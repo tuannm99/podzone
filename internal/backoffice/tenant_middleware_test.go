@@ -1,7 +1,6 @@
 package backoffice
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,17 +9,8 @@ import (
 	authdomain "github.com/tuannm99/podzone/internal/auth/domain"
 	authentity "github.com/tuannm99/podzone/internal/auth/domain/entity"
 	boconfig "github.com/tuannm99/podzone/internal/backoffice/config"
+	backofficemocks "github.com/tuannm99/podzone/internal/backoffice/mocks"
 )
-
-type authorizerFake struct{}
-
-func (authorizerFake) AuthorizeTenant(ctx context.Context, sessionID, userID, tenantID string) error {
-	return nil
-}
-
-func (authorizerFake) RequirePermission(ctx context.Context, userID, tenantID, permission string) error {
-	return nil
-}
 
 func TestIdentityFromAuthorization_ReadsUserAndActiveTenant(t *testing.T) {
 	tokenUC := authdomain.NewTokenUsecase(authconfig.AuthConfig{
@@ -34,12 +24,14 @@ func TestIdentityFromAuthorization_ReadsUserAndActiveTenant(t *testing.T) {
 	}, "tenant-1", "session-1")
 	require.NoError(t, err)
 
+	authz := backofficemocks.NewMockTenantAuthorizer(t)
+	bootstrapper := backofficemocks.NewMockTenantBootstrapper(t)
 	m := NewTenantMiddleware(boconfig.Config{
 		Auth: boconfig.RPCConfig{
 			JWTSecret: "secret",
 			JWTKey:    "app-key",
 		},
-	}, authorizerFake{})
+	}, authz, bootstrapper)
 
 	userID, tenantID, sessionID, err := m.identityFromAuthorization("Bearer " + token)
 	require.NoError(t, err)

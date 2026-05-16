@@ -5,16 +5,17 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/tuannm99/podzone/internal/backoffice/domain/entity"
 	"github.com/tuannm99/podzone/internal/backoffice/domain/inputport"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
+	pdtenantdbmocks "github.com/tuannm99/podzone/pkg/pdtenantdb/mocks"
 	"github.com/tuannm99/podzone/pkg/testkit"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
@@ -154,35 +155,199 @@ func TestOrderRoutingRepositoryPersistsTenantScopedOrders(t *testing.T) {
 		if len(versions) == 0 {
 			return fmt.Errorf("missing migrations")
 		}
-		if !strings.Contains(strings.Join(versions, ","), "0009_create_routed_order_activities") {
-			return fmt.Errorf("missing routed order activities migration")
+		if !strings.Contains(strings.Join(versions, ","), "0010_drop_routed_order_activity_log_cache") {
+			return fmt.Errorf("missing legacy activity log cleanup migration")
 		}
 		return nil
 	})
 	require.NoError(t, err)
 }
 
-type repositoryTestResolver struct {
-	mu         sync.Mutex
-	placements map[string]pdtenantdb.Placement
-}
+func TestOrderRoutingRepositoryBackfillsLegacyActivityLogOnLegacyMigration(t *testing.T) {
+	info := testkit.PostgresInfo(t)
+	manager := newRepositoryTestManager(t, info, map[string]pdtenantdb.Placement{
+		"tenant-orders-legacy": {
+			TenantID:    "tenant-orders-legacy",
+			ClusterName: "pg-01",
+			Mode:        pdtenantdb.ModeSchema,
+			DBName:      info.DBName,
+			SchemaName:  "t_tenant_orders_legacy",
+		},
+	})
+	t.Cleanup(func() { _ = manager.CloseAll() })
 
-func (r *repositoryTestResolver) Resolve(_ context.Context, tenantID string) (pdtenantdb.Placement, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	pl, ok := r.placements[tenantID]
-	if !ok {
-		return pdtenantdb.Placement{}, fmt.Errorf("missing placement for %s", tenantID)
-	}
-	return pl, nil
-}
+	ctx := toolkit.WithTenantID(context.Background(), "tenant-orders-legacy")
+	err := manager.WithTenantTx(ctx, "tenant-orders-legacy", &sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		statements := []string{
+			`CREATE TABLE IF NOT EXISTS backoffice_schema_migrations (
+				version TEXT PRIMARY KEY,
+				applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+			)`,
+			`CREATE TABLE IF NOT EXISTS routed_orders (
+				id TEXT PRIMARY KEY,
+				candidate_id TEXT NOT NULL,
+				product_title TEXT NOT NULL,
+				partner TEXT NOT NULL,
+				quantity INTEGER NOT NULL,
+				total TEXT NOT NULL,
+				customer_name TEXT NOT NULL,
+				status TEXT NOT NULL,
+				timeline_json TEXT NOT NULL,
+				exception_type TEXT NOT NULL DEFAULT '',
+				exception_status TEXT NOT NULL DEFAULT '',
+				created_at TIMESTAMPTZ NOT NULL,
+				updated_at TIMESTAMPTZ NOT NULL
+			)`,
+			`ALTER TABLE routed_orders
+				ADD COLUMN IF NOT EXISTS shipment_status TEXT NOT NULL DEFAULT 'awaiting_label',
+				ADD COLUMN IF NOT EXISTS shipment_carrier TEXT NOT NULL DEFAULT '',
+				ADD COLUMN IF NOT EXISTS shipment_tracking_number TEXT NOT NULL DEFAULT '',
+				ADD COLUMN IF NOT EXISTS shipment_tracking_url TEXT NOT NULL DEFAULT '',
+				ADD COLUMN IF NOT EXISTS shipment_notes TEXT NOT NULL DEFAULT '',
+				ADD COLUMN IF NOT EXISTS shipped_at TIMESTAMPTZ NULL,
+				ADD COLUMN IF NOT EXISTS delivered_at TIMESTAMPTZ NULL`,
+			`ALTER TABLE routed_orders
+				ADD COLUMN IF NOT EXISTS base_cost_snapshot TEXT NOT NULL DEFAULT '$0.00',
+				ADD COLUMN IF NOT EXISTS fulfillment_cost TEXT NOT NULL DEFAULT '$0.00',
+				ADD COLUMN IF NOT EXISTS shipping_cost TEXT NOT NULL DEFAULT '$0.00',
+				ADD COLUMN IF NOT EXISTS realized_margin TEXT NOT NULL DEFAULT '$0.00',
+				ADD COLUMN IF NOT EXISTS settlement_status TEXT NOT NULL DEFAULT 'pending',
+				ADD COLUMN IF NOT EXISTS settlement_notes TEXT NOT NULL DEFAULT ''`,
+			`ALTER TABLE routed_orders
+				ADD COLUMN IF NOT EXISTS issue_cost TEXT NOT NULL DEFAULT '$0.00',
+				ADD COLUMN IF NOT EXISTS issue_resolution TEXT NOT NULL DEFAULT 'monitor',
+				ADD COLUMN IF NOT EXISTS issue_notes TEXT NOT NULL DEFAULT ''`,
+			`ALTER TABLE routed_orders
+				ADD COLUMN IF NOT EXISTS operator_assignee TEXT NOT NULL DEFAULT 'unassigned',
+				ADD COLUMN IF NOT EXISTS shipment_sla_due_at TIMESTAMPTZ NULL,
+				ADD COLUMN IF NOT EXISTS issue_sla_due_at TIMESTAMPTZ NULL`,
+			`ALTER TABLE routed_orders
+				ADD COLUMN IF NOT EXISTS activity_log_json TEXT NOT NULL DEFAULT '[]'`,
+		}
+		for _, stmt := range statements {
+			if _, err := tx.ExecContext(ctx, stmt); err != nil {
+				return err
+			}
+		}
 
-type repositoryTestRegistry struct {
-	cfg pdtenantdb.ClusterConfig
-}
+		versions := []string{
+			"0001_create_stores",
+			"0002_create_product_setup",
+			"0003_create_routed_orders",
+			"0004_add_manual_shipment_fields",
+			"0005_add_order_settlement_fields",
+			"0006_add_order_issue_cost_fields",
+			"0007_add_order_queue_control_fields",
+			"0008_add_order_activity_log",
+		}
+		for _, version := range versions {
+			if _, err := tx.ExecContext(ctx, `INSERT INTO backoffice_schema_migrations (version) VALUES ($1)`, version); err != nil {
+				return err
+			}
+		}
 
-func (r *repositoryTestRegistry) GetCluster(context.Context, string) (pdtenantdb.ClusterConfig, error) {
-	return r.cfg, nil
+		activityLogJSON := `[{"type":"system","actor":"system","message":"Order created for Legacy Tee","details":[{"key":"status","value":"queued"}],"createdAt":"2026-05-14T07:00:00Z"},{"type":"shipment_note","actor":"user:88","message":"Label printed","details":[{"key":"shipment_status","value":"label_ready"}],"createdAt":"2026-05-14T08:00:00Z"}]`
+		_, err := tx.ExecContext(ctx, `
+			INSERT INTO routed_orders (
+				id, candidate_id, product_title, partner, quantity, total, customer_name, status,
+				timeline_json, activity_log_json, exception_type, exception_status, shipment_status,
+				shipment_carrier, shipment_tracking_number, shipment_tracking_url, shipment_notes,
+				operator_assignee, shipment_sla_due_at, issue_sla_due_at, base_cost_snapshot,
+				fulfillment_cost, shipping_cost, issue_cost, issue_resolution, issue_notes,
+				realized_margin, settlement_status, settlement_notes, shipped_at, delivered_at,
+				created_at, updated_at
+			) VALUES (
+				$1, $2, $3, $4, $5, $6, $7, $8,
+				$9, $10, $11, $12, $13,
+				$14, $15, $16, $17,
+				$18, $19, $20, $21,
+				$22, $23, $24, $25, $26,
+				$27, $28, $29, $30, $31,
+				$32, $33
+			)
+		`,
+			"ord-legacy-1",
+			"cand-legacy-1",
+			"Legacy Tee",
+			"Print Partner Legacy",
+			1,
+			"$24.00",
+			"Legacy Customer",
+			entity.RoutedOrderStatusQueued,
+			`["created"]`,
+			activityLogJSON,
+			"",
+			"",
+			entity.RoutedOrderShipmentStatusLabelReady,
+			"",
+			"",
+			"",
+			"Label printed",
+			"ops.legacy",
+			nil,
+			nil,
+			"$10.00",
+			"$10.00",
+			"$0.00",
+			"$0.00",
+			entity.RoutedOrderIssueResolutionMonitor,
+			"",
+			"$14.00",
+			entity.RoutedOrderSettlementStatusPending,
+			"",
+			nil,
+			nil,
+			time.Date(2026, 5, 14, 7, 0, 0, 0, time.UTC),
+			time.Date(2026, 5, 14, 8, 0, 0, 0, time.UTC),
+		)
+		return err
+	})
+	require.NoError(t, err)
+
+	repo := NewOrderRoutingRepository(manager)
+	feedPage, err := repo.ListActivityFeed(ctx, inputport.ListRoutedOrderActivitiesQuery{
+		ActivityType:  "all",
+		Limit:         10,
+		IncludeSystem: true,
+	})
+	require.NoError(t, err)
+	require.Equal(t, 2, feedPage.Total)
+	require.Len(t, feedPage.Entries, 2)
+	require.Equal(t, "ord-legacy-1", feedPage.Entries[0].OrderID)
+	require.Equal(t, entity.RoutedOrderActivityTypeShipmentNote, feedPage.Entries[0].Activity.Type)
+	require.Equal(t, "user:88", feedPage.Entries[0].Activity.Actor)
+	require.Equal(t, "ops.legacy", feedPage.Entries[0].OperatorAssignee)
+
+	err = manager.WithTenantTx(ctx, "tenant-orders-legacy", &sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		var versions []string
+		if err := tx.SelectContext(ctx, &versions, `SELECT version FROM backoffice_schema_migrations ORDER BY version`); err != nil {
+			return err
+		}
+		require.Contains(t, versions, "0009_create_routed_order_activities")
+		require.Contains(t, versions, "0010_drop_routed_order_activity_log_cache")
+
+		var count int
+		if err := tx.GetContext(ctx, &count, `SELECT COUNT(*) FROM routed_order_activities WHERE order_id = $1`, "ord-legacy-1"); err != nil {
+			return err
+		}
+		require.Equal(t, 2, count)
+
+		var hasLegacyColumn bool
+		if err := tx.GetContext(ctx, &hasLegacyColumn, `
+			SELECT EXISTS (
+				SELECT 1
+				FROM information_schema.columns
+				WHERE table_schema = current_schema()
+				  AND table_name = 'routed_orders'
+				  AND column_name = 'activity_log_json'
+			)
+		`); err != nil {
+			return err
+		}
+		require.False(t, hasLegacyColumn)
+		return nil
+	})
+	require.NoError(t, err)
 }
 
 func newRepositoryTestManager(
@@ -192,14 +357,22 @@ func newRepositoryTestManager(
 ) pdtenantdb.Manager {
 	t.Helper()
 
-	registry := &repositoryTestRegistry{cfg: pdtenantdb.ClusterConfig{
+	registry := pdtenantdbmocks.NewMockClusterRegistry(t)
+	registry.EXPECT().GetCluster(mock.Anything, "pg-01").Return(pdtenantdb.ClusterConfig{
 		Host:     info.Host,
 		Port:     info.Port,
 		User:     info.User,
 		Password: info.Password,
 		SSLMode:  "disable",
-	}}
-	resolver := &repositoryTestResolver{placements: placements}
+	}, nil).Maybe()
+	resolver := pdtenantdbmocks.NewMockPlacementResolver(t)
+	resolver.EXPECT().Resolve(mock.Anything, mock.Anything).RunAndReturn(func(_ context.Context, tenantID string) (pdtenantdb.Placement, error) {
+		pl, ok := placements[tenantID]
+		if !ok {
+			return pdtenantdb.Placement{}, fmt.Errorf("missing placement for %s", tenantID)
+		}
+		return pl, nil
+	}).Maybe()
 	return pdtenantdb.NewManager(&pdtenantdb.Config{
 		SharedDB: info.DBName,
 	}, resolver, registry)

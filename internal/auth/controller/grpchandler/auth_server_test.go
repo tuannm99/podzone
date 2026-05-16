@@ -10,8 +10,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tuannm99/podzone/internal/auth/config"
-	authdomain "github.com/tuannm99/podzone/internal/auth/domain"
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
 	inputmocks "github.com/tuannm99/podzone/internal/auth/domain/inputport/mocks"
@@ -19,218 +17,11 @@ import (
 	iamdomain "github.com/tuannm99/podzone/internal/iam/domain"
 	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
-var testAuthCfg = config.AuthConfig{
-	JWTSecret:      "secret",
-	JWTKey:         "app-key",
-	AppRedirectURL: "https://app.example.com/auth/google/callback",
-}
-
-type iamUsecaseFake struct {
-	createTenantFunc       func(ctx context.Context, ownerUserID uint, cmd iamdomain.CreateTenantCmd) (*iamdomain.Tenant, error)
-	addPlatformRoleFunc    func(ctx context.Context, userID uint, roleName string) error
-	addMemberFunc          func(ctx context.Context, tenantID string, userID uint, roleName string) error
-	createInviteFunc       func(ctx context.Context, tenantID, email, roleName string, invitedByUserID uint) (*iamdomain.TenantInvite, string, error)
-	getInviteFunc          func(ctx context.Context, inviteID string) (*iamdomain.TenantInvite, error)
-	listInvitesFunc        func(ctx context.Context, tenantID string) ([]iamdomain.TenantInvite, error)
-	revokeInviteFunc       func(ctx context.Context, inviteID string) error
-	acceptInviteFunc       func(ctx context.Context, inviteToken string, userID uint, email string) (*iamdomain.Membership, error)
-	getMembershipFunc      func(ctx context.Context, tenantID string, userID uint) (*iamdomain.Membership, error)
-	listPlatformFunc       func(ctx context.Context, userID uint) ([]iamdomain.PlatformMembership, error)
-	listUserTenantsFunc    func(ctx context.Context, userID uint) ([]iamdomain.Membership, error)
-	listTenantFunc         func(ctx context.Context, tenantID string) ([]iamdomain.Membership, error)
-	removePlatformRoleFunc func(ctx context.Context, userID uint, roleName string) error
-	removeMemberFunc       func(ctx context.Context, tenantID string, userID uint) error
-	checkPermissionFunc    func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error)
-}
-
-func (f *iamUsecaseFake) CreateTenant(
-	ctx context.Context,
-	ownerUserID uint,
-	cmd iamdomain.CreateTenantCmd,
-) (*iamdomain.Tenant, error) {
-	return f.createTenantFunc(ctx, ownerUserID, cmd)
-}
-
-func (f *iamUsecaseFake) AddPlatformRole(ctx context.Context, userID uint, roleName string) error {
-	return f.addPlatformRoleFunc(ctx, userID, roleName)
-}
-
-func (f *iamUsecaseFake) AddMember(ctx context.Context, tenantID string, userID uint, roleName string) error {
-	return f.addMemberFunc(ctx, tenantID, userID, roleName)
-}
-
-func (f *iamUsecaseFake) CreateInvite(
-	ctx context.Context,
-	tenantID, email, roleName string,
-	invitedByUserID uint,
-) (*iamdomain.TenantInvite, string, error) {
-	return f.createInviteFunc(ctx, tenantID, email, roleName, invitedByUserID)
-}
-
-func (f *iamUsecaseFake) GetInvite(ctx context.Context, inviteID string) (*iamdomain.TenantInvite, error) {
-	return f.getInviteFunc(ctx, inviteID)
-}
-
-func (f *iamUsecaseFake) ListTenantInvites(ctx context.Context, tenantID string) ([]iamdomain.TenantInvite, error) {
-	return f.listInvitesFunc(ctx, tenantID)
-}
-
-func (f *iamUsecaseFake) RevokeInvite(ctx context.Context, inviteID string) error {
-	return f.revokeInviteFunc(ctx, inviteID)
-}
-
-func (f *iamUsecaseFake) AcceptInvite(
-	ctx context.Context,
-	inviteToken string,
-	userID uint,
-	email string,
-) (*iamdomain.Membership, error) {
-	return f.acceptInviteFunc(ctx, inviteToken, userID, email)
-}
-
-func (f *iamUsecaseFake) GetMembership(
-	ctx context.Context,
-	tenantID string,
-	userID uint,
-) (*iamdomain.Membership, error) {
-	return f.getMembershipFunc(ctx, tenantID, userID)
-}
-
-func (f *iamUsecaseFake) CheckPermission(
-	ctx context.Context,
-	tenantID string,
-	userID uint,
-	permission string,
-) (bool, error) {
-	return f.checkPermissionFunc(ctx, tenantID, userID, permission)
-}
-
-func (f *iamUsecaseFake) CheckPlatformPermission(ctx context.Context, userID uint, permission string) (bool, error) {
-	return f.checkPermissionFunc(ctx, "", userID, permission)
-}
-
-func (f *iamUsecaseFake) ListUserTenants(ctx context.Context, userID uint) ([]iamdomain.Membership, error) {
-	return f.listUserTenantsFunc(ctx, userID)
-}
-
-func (f *iamUsecaseFake) ListPlatformRoles(ctx context.Context, userID uint) ([]iamdomain.PlatformMembership, error) {
-	return f.listPlatformFunc(ctx, userID)
-}
-
-func (f *iamUsecaseFake) ListTenantMembers(ctx context.Context, tenantID string) ([]iamdomain.Membership, error) {
-	return f.listTenantFunc(ctx, tenantID)
-}
-
-func (f *iamUsecaseFake) RemoveMember(ctx context.Context, tenantID string, userID uint) error {
-	return f.removeMemberFunc(ctx, tenantID, userID)
-}
-
-func (f *iamUsecaseFake) RemovePlatformRole(ctx context.Context, userID uint, roleName string) error {
-	return f.removePlatformRoleFunc(ctx, userID, roleName)
-}
-
-func (f *iamUsecaseFake) RequirePermission(ctx context.Context, tenantID string, userID uint, permission string) error {
-	ok, err := f.checkPermissionFunc(ctx, tenantID, userID, permission)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return iamdomain.ErrPermissionDenied
-	}
-	return nil
-}
-
-func (f *iamUsecaseFake) RequirePlatformPermission(ctx context.Context, userID uint, permission string) error {
-	ok, err := f.checkPermissionFunc(ctx, "", userID, permission)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return iamdomain.ErrPermissionDenied
-	}
-	return nil
-}
-
-type sessionRepoFake struct {
-	getByIDFunc    func(ctx context.Context, id string) (*entity.Session, error)
-	listByUserFunc func(ctx context.Context, userID uint) ([]entity.Session, error)
-	revokeFunc     func(ctx context.Context, id string, revokedAt time.Time) error
-}
-
-func (f *sessionRepoFake) Create(ctx context.Context, session entity.Session) error { return nil }
-func (f *sessionRepoFake) ListByUser(ctx context.Context, userID uint) ([]entity.Session, error) {
-	if f.listByUserFunc != nil {
-		return f.listByUserFunc(ctx, userID)
-	}
-	return nil, nil
-}
-
-func (f *sessionRepoFake) UpdateActiveTenant(ctx context.Context, id, tenantID string, updatedAt time.Time) error {
-	return nil
-}
-
-func (f *sessionRepoFake) Revoke(ctx context.Context, id string, revokedAt time.Time) error {
-	if f.revokeFunc != nil {
-		return f.revokeFunc(ctx, id, revokedAt)
-	}
-	return nil
-}
-
-func (f *sessionRepoFake) GetByID(ctx context.Context, id string) (*entity.Session, error) {
-	return f.getByIDFunc(ctx, id)
-}
-
-type auditRepoFake struct {
-	createFunc      func(ctx context.Context, log entity.AuditLog) error
-	listByActorFunc func(ctx context.Context, actorUserID uint, limit int) ([]entity.AuditLog, error)
-}
-
-func (f *auditRepoFake) Create(ctx context.Context, log entity.AuditLog) error {
-	if f.createFunc != nil {
-		return f.createFunc(ctx, log)
-	}
-	return nil
-}
-
-func (f *auditRepoFake) ListByActor(ctx context.Context, actorUserID uint, limit int) ([]entity.AuditLog, error) {
-	if f.listByActorFunc != nil {
-		return f.listByActorFunc(ctx, actorUserID, limit)
-	}
-	return nil, nil
-}
-
-func newServerWithMock() (*AuthServer, *inputmocks.MockAuthUsecase) {
-	authUC := &inputmocks.MockAuthUsecase{}
-	srv := NewAuthServer(
-		authUC,
-		&sessionRepoFake{getByIDFunc: func(ctx context.Context, id string) (*entity.Session, error) {
-			return nil, entity.ErrSessionNotFound
-		}},
-		&auditRepoFake{},
-		&outputmocks.MockUserRepository{},
-		testAuthCfg,
-	)
-	return srv, authUC
-}
-
-func newServerWithIAM(iamUC iamdomain.IAMUsecase) *AuthServer {
-	return NewIAMServer(iamUC, &auditRepoFake{}, &outputmocks.MockUserRepository{}, testAuthCfg)
-}
-
-func authContextForUser(t *testing.T, userID uint) context.Context {
-	t.Helper()
-	token, err := authdomain.NewTokenUsecase(testAuthCfg).
-		CreateJwtTokenForSession(entity.User{Id: userID}, "", "session-test")
-	require.NoError(t, err)
-	return metadata.NewIncomingContext(context.Background(), metadata.Pairs("authorization", "Bearer "+token))
-}
-
 func TestGoogleLogin_OK(t *testing.T) {
-	srv, uc := newServerWithMock()
+	srv, uc := newServerWithMock(t)
 	ctx := context.Background()
 
 	uc.On("GenerateOAuthURL", mock.Anything).
@@ -245,7 +36,7 @@ func TestGoogleLogin_OK(t *testing.T) {
 }
 
 func TestGoogleLogin_Err(t *testing.T) {
-	srv, uc := newServerWithMock()
+	srv, uc := newServerWithMock(t)
 	ctx := context.Background()
 
 	uc.On("GenerateOAuthURL", mock.Anything).
@@ -259,7 +50,7 @@ func TestGoogleLogin_Err(t *testing.T) {
 }
 
 func TestGoogleCallback_OK(t *testing.T) {
-	srv, uc := newServerWithMock()
+	srv, uc := newServerWithMock(t)
 	ctx := context.Background()
 
 	cb := &inputport.GoogleCallbackResult{
@@ -289,7 +80,7 @@ func TestGoogleCallback_OK(t *testing.T) {
 }
 
 func TestExchangeGoogleLogin_OK(t *testing.T) {
-	srv, uc := newServerWithMock()
+	srv, uc := newServerWithMock(t)
 	ctx := context.Background()
 
 	uc.On("ExchangeOAuthLogin", mock.Anything, "oauth-code-1").
@@ -314,7 +105,7 @@ func TestExchangeGoogleLogin_OK(t *testing.T) {
 }
 
 func TestGoogleCallback_Err(t *testing.T) {
-	srv, uc := newServerWithMock()
+	srv, uc := newServerWithMock(t)
 	ctx := context.Background()
 
 	uc.On("HandleOAuthCallback", mock.Anything, "BAD", "STATE").
@@ -331,7 +122,7 @@ func TestGoogleCallback_Err(t *testing.T) {
 }
 
 func TestLogout_OK(t *testing.T) {
-	srv, uc := newServerWithMock()
+	srv, uc := newServerWithMock(t)
 	ctx := context.Background()
 
 	uc.On("Logout", mock.Anything).
@@ -353,7 +144,7 @@ func TestListSessions_OK(t *testing.T) {
 	now := time.Date(2026, 5, 1, 15, 0, 0, 0, time.UTC)
 	srv := NewAuthServer(
 		&inputmocks.MockAuthUsecase{},
-		&sessionRepoFake{
+		newSessionRepoMock(t, sessionRepoMockConfig{
 			getByIDFunc: func(ctx context.Context, id string) (*entity.Session, error) { return nil, entity.ErrSessionNotFound },
 			listByUserFunc: func(ctx context.Context, userID uint) ([]entity.Session, error) {
 				require.Equal(t, uint(7), userID)
@@ -367,8 +158,8 @@ func TestListSessions_OK(t *testing.T) {
 					ExpiresAt:      now.Add(time.Hour),
 				}}, nil
 			},
-		},
-		&auditRepoFake{},
+		}),
+		newAuditRepoMock(t, auditRepoMockConfig{}),
 		&outputmocks.MockUserRepository{},
 		testAuthCfg,
 	)
@@ -383,10 +174,10 @@ func TestListAuditLogs_OK(t *testing.T) {
 	now := time.Date(2026, 5, 1, 16, 0, 0, 0, time.UTC)
 	srv := NewAuthServer(
 		&inputmocks.MockAuthUsecase{},
-		&sessionRepoFake{getByIDFunc: func(ctx context.Context, id string) (*entity.Session, error) {
+		newSessionRepoMock(t, sessionRepoMockConfig{getByIDFunc: func(ctx context.Context, id string) (*entity.Session, error) {
 			return nil, entity.ErrSessionNotFound
-		}},
-		&auditRepoFake{
+		}}),
+		newAuditRepoMock(t, auditRepoMockConfig{
 			listByActorFunc: func(ctx context.Context, actorUserID uint, limit int) ([]entity.AuditLog, error) {
 				require.Equal(t, uint(7), actorUserID)
 				require.Equal(t, 25, limit)
@@ -402,7 +193,7 @@ func TestListAuditLogs_OK(t *testing.T) {
 					CreatedAt:    now,
 				}}, nil
 			},
-		},
+		}),
 		&outputmocks.MockUserRepository{},
 		testAuthCfg,
 	)
@@ -416,7 +207,7 @@ func TestListAuditLogs_OK(t *testing.T) {
 }
 
 func TestLogin_OK(t *testing.T) {
-	srv, uc := newServerWithMock()
+	srv, uc := newServerWithMock(t)
 	ctx := context.Background()
 
 	user := entity.User{
@@ -444,7 +235,7 @@ func TestLogin_OK(t *testing.T) {
 }
 
 func TestLogin_Err(t *testing.T) {
-	srv, uc := newServerWithMock()
+	srv, uc := newServerWithMock(t)
 	ctx := context.Background()
 
 	uc.On("Login", mock.Anything, "jdoe", "bad").
@@ -461,7 +252,7 @@ func TestLogin_Err(t *testing.T) {
 }
 
 func TestRegister_OK(t *testing.T) {
-	srv, uc := newServerWithMock()
+	srv, uc := newServerWithMock(t)
 	ctx := context.Background()
 
 	inReq := &pbauthv1.RegisterRequest{
@@ -494,7 +285,7 @@ func TestRegister_OK(t *testing.T) {
 }
 
 func TestRegister_Err(t *testing.T) {
-	srv, uc := newServerWithMock()
+	srv, uc := newServerWithMock(t)
 	ctx := context.Background()
 
 	inReq := &pbauthv1.RegisterRequest{
@@ -515,7 +306,7 @@ func TestRegister_Err(t *testing.T) {
 func TestCreateTenant_OK(t *testing.T) {
 	now := time.Date(2026, 4, 30, 12, 0, 0, 0, time.UTC)
 	var createdAudit entity.AuditLog
-	srv := NewIAMServer(&iamUsecaseFake{
+	srv := NewIAMServer(newIAMUsecaseMock(t, iamUsecaseMockConfig{
 		createTenantFunc: func(ctx context.Context, ownerUserID uint, cmd iamdomain.CreateTenantCmd) (*iamdomain.Tenant, error) {
 			require.Equal(t, uint(7), ownerUserID)
 			require.Equal(t, "seller-one", cmd.Slug)
@@ -550,10 +341,10 @@ func TestCreateTenant_OK(t *testing.T) {
 			}
 			return false, nil
 		},
-	}, &auditRepoFake{createFunc: func(ctx context.Context, log entity.AuditLog) error {
+	}), newAuditRepoMock(t, auditRepoMockConfig{createFunc: func(ctx context.Context, log entity.AuditLog) error {
 		createdAudit = log
 		return nil
-	}}, &outputmocks.MockUserRepository{}, testAuthCfg)
+	}}), &outputmocks.MockUserRepository{}, testAuthCfg)
 
 	res, err := srv.CreateTenant(authContextForUser(t, 7), &pbauthv1.CreateTenantRequest{
 		OwnerUserId: 7,
@@ -571,7 +362,7 @@ func TestCreateTenant_OK(t *testing.T) {
 }
 
 func TestCreateTenant_PermissionDenied(t *testing.T) {
-	srv := newServerWithIAM(&iamUsecaseFake{
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
 		createTenantFunc: func(ctx context.Context, ownerUserID uint, cmd iamdomain.CreateTenantCmd) (*iamdomain.Tenant, error) {
 			return nil, errors.New("unexpected CreateTenant call")
 		},
@@ -593,7 +384,7 @@ func TestCreateTenant_PermissionDenied(t *testing.T) {
 		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
 			return false, nil
 		},
-	})
+	}))
 
 	res, err := srv.CreateTenant(authContextForUser(t, 7), &pbauthv1.CreateTenantRequest{
 		OwnerUserId: 7,
@@ -606,7 +397,7 @@ func TestCreateTenant_PermissionDenied(t *testing.T) {
 }
 
 func TestAddTenantMember_NotFound(t *testing.T) {
-	srv := newServerWithIAM(&iamUsecaseFake{
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
 		createTenantFunc: func(ctx context.Context, ownerUserID uint, cmd iamdomain.CreateTenantCmd) (*iamdomain.Tenant, error) {
 			return nil, nil
 		},
@@ -622,7 +413,7 @@ func TestAddTenantMember_NotFound(t *testing.T) {
 			require.Equal(t, "tenant:manage_members", permission)
 			return true, nil
 		},
-	})
+	}))
 
 	res, err := srv.AddTenantMember(authContextForUser(t, 9), &pbauthv1.AddTenantMemberRequest{
 		TenantId: "missing",
@@ -643,7 +434,7 @@ func TestAddTenantMemberByIdentity_CreatesEmailUser(t *testing.T) {
 	}, nil)
 
 	called := false
-	srv := NewIAMServer(&iamUsecaseFake{
+	srv := NewIAMServer(newIAMUsecaseMock(t, iamUsecaseMockConfig{
 		createTenantFunc: func(ctx context.Context, ownerUserID uint, cmd iamdomain.CreateTenantCmd) (*iamdomain.Tenant, error) {
 			return nil, nil
 		},
@@ -670,7 +461,7 @@ func TestAddTenantMemberByIdentity_CreatesEmailUser(t *testing.T) {
 			require.Equal(t, "tenant:manage_members", permission)
 			return true, nil
 		},
-	}, &auditRepoFake{}, userRepo, testAuthCfg)
+	}), newAuditRepoMock(t, auditRepoMockConfig{}), userRepo, testAuthCfg)
 
 	res, err := srv.AddTenantMemberByIdentity(authContextForUser(t, 7), &pbauthv1.AddTenantMemberByIdentityRequest{
 		TenantId: "tenant-9",
@@ -687,7 +478,7 @@ func TestAddTenantMemberByIdentity_CreatesEmailUser(t *testing.T) {
 
 func TestCreateTenantInvite_OK(t *testing.T) {
 	now := time.Date(2026, 5, 1, 10, 0, 0, 0, time.UTC)
-	srv := newServerWithIAM(&iamUsecaseFake{
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
 		createInviteFunc: func(ctx context.Context, tenantID, email, roleName string, invitedByUserID uint) (*iamdomain.TenantInvite, string, error) {
 			require.Equal(t, "tenant-9", tenantID)
 			require.Equal(t, "owner@shop.com", email)
@@ -712,7 +503,7 @@ func TestCreateTenantInvite_OK(t *testing.T) {
 			require.Equal(t, "tenant:manage_members", permission)
 			return true, nil
 		},
-	})
+	}))
 
 	res, err := srv.CreateTenantInvite(authContextForUser(t, 7), &pbauthv1.CreateTenantInviteRequest{
 		TenantId: "tenant-9",
@@ -733,7 +524,7 @@ func TestAcceptTenantInvite_OK(t *testing.T) {
 		Email: "owner@shop.com",
 	}, nil)
 
-	srv := NewIAMServer(&iamUsecaseFake{
+	srv := NewIAMServer(newIAMUsecaseMock(t, iamUsecaseMockConfig{
 		acceptInviteFunc: func(ctx context.Context, inviteToken string, userID uint, email string) (*iamdomain.Membership, error) {
 			require.Equal(t, "raw-token-1", inviteToken)
 			require.Equal(t, uint(7), userID)
@@ -748,7 +539,7 @@ func TestAcceptTenantInvite_OK(t *testing.T) {
 				UpdatedAt: time.Date(2026, 5, 1, 11, 0, 0, 0, time.UTC),
 			}, nil
 		},
-	}, &auditRepoFake{}, userRepo, testAuthCfg)
+	}), newAuditRepoMock(t, auditRepoMockConfig{}), userRepo, testAuthCfg)
 
 	res, err := srv.AcceptTenantInvite(authContextForUser(t, 7), &pbauthv1.AcceptTenantInviteRequest{
 		InviteToken: "raw-token-1",
@@ -762,7 +553,7 @@ func TestAcceptTenantInvite_OK(t *testing.T) {
 
 func TestGetTenantMembership_OK(t *testing.T) {
 	now := time.Date(2026, 4, 30, 13, 0, 0, 0, time.UTC)
-	srv := newServerWithIAM(&iamUsecaseFake{
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
 		createTenantFunc: func(ctx context.Context, ownerUserID uint, cmd iamdomain.CreateTenantCmd) (*iamdomain.Tenant, error) {
 			return nil, nil
 		},
@@ -783,7 +574,7 @@ func TestGetTenantMembership_OK(t *testing.T) {
 		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
 			return false, nil
 		},
-	})
+	}))
 
 	res, err := srv.GetTenantMembership(context.Background(), &pbauthv1.GetTenantMembershipRequest{
 		TenantId: "tenant-2",
@@ -797,7 +588,7 @@ func TestGetTenantMembership_OK(t *testing.T) {
 }
 
 func TestAddTenantMember_RequiresTenantManagePermission(t *testing.T) {
-	srv := newServerWithIAM(&iamUsecaseFake{
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
 		createTenantFunc: func(ctx context.Context, ownerUserID uint, cmd iamdomain.CreateTenantCmd) (*iamdomain.Tenant, error) {
 			return nil, nil
 		},
@@ -819,7 +610,7 @@ func TestAddTenantMember_RequiresTenantManagePermission(t *testing.T) {
 			require.Equal(t, "tenant:manage_members", permission)
 			return false, nil
 		},
-	})
+	}))
 
 	res, err := srv.AddTenantMember(authContextForUser(t, 7), &pbauthv1.AddTenantMemberRequest{
 		TenantId: "tenant-1",
@@ -832,7 +623,7 @@ func TestAddTenantMember_RequiresTenantManagePermission(t *testing.T) {
 }
 
 func TestCheckPermission_InactiveMembershipReturnsNotAllowed(t *testing.T) {
-	srv := newServerWithIAM(&iamUsecaseFake{
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
 		createTenantFunc: func(ctx context.Context, ownerUserID uint, cmd iamdomain.CreateTenantCmd) (*iamdomain.Tenant, error) {
 			return nil, nil
 		},
@@ -845,7 +636,7 @@ func TestCheckPermission_InactiveMembershipReturnsNotAllowed(t *testing.T) {
 		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
 			return false, iamdomain.ErrInactiveMembership
 		},
-	})
+	}))
 
 	res, err := srv.CheckPermission(context.Background(), &pbauthv1.CheckPermissionRequest{
 		TenantId:   "tenant-3",
@@ -858,7 +649,7 @@ func TestCheckPermission_InactiveMembershipReturnsNotAllowed(t *testing.T) {
 }
 
 func TestCheckPlatformPermission_OK(t *testing.T) {
-	srv := newServerWithIAM(&iamUsecaseFake{
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
 		createTenantFunc: func(ctx context.Context, ownerUserID uint, cmd iamdomain.CreateTenantCmd) (*iamdomain.Tenant, error) {
 			return nil, nil
 		},
@@ -883,7 +674,7 @@ func TestCheckPlatformPermission_OK(t *testing.T) {
 			require.Equal(t, "tenant:create", permission)
 			return true, nil
 		},
-	})
+	}))
 
 	res, err := srv.CheckPlatformPermission(authContextForUser(t, 7), &pbauthv1.CheckPlatformPermissionRequest{
 		Permission: "tenant:create",
@@ -895,7 +686,7 @@ func TestCheckPlatformPermission_OK(t *testing.T) {
 
 func TestListPlatformRoles_OK(t *testing.T) {
 	now := time.Date(2026, 5, 1, 13, 0, 0, 0, time.UTC)
-	srv := newServerWithIAM(&iamUsecaseFake{
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
 		createTenantFunc: func(ctx context.Context, ownerUserID uint, cmd iamdomain.CreateTenantCmd) (*iamdomain.Tenant, error) {
 			return nil, nil
 		},
@@ -937,7 +728,7 @@ func TestListPlatformRoles_OK(t *testing.T) {
 			}
 			return false, nil
 		},
-	})
+	}))
 
 	res, err := srv.ListPlatformRoles(authContextForUser(t, 7), &pbauthv1.ListPlatformRolesRequest{
 		TargetUserId: 9,
@@ -949,7 +740,7 @@ func TestListPlatformRoles_OK(t *testing.T) {
 
 func TestAddPlatformRole_OK(t *testing.T) {
 	called := false
-	srv := newServerWithIAM(&iamUsecaseFake{
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
 		createTenantFunc: func(ctx context.Context, ownerUserID uint, cmd iamdomain.CreateTenantCmd) (*iamdomain.Tenant, error) {
 			return nil, nil
 		},
@@ -986,7 +777,7 @@ func TestAddPlatformRole_OK(t *testing.T) {
 			}
 			return false, nil
 		},
-	})
+	}))
 
 	res, err := srv.AddPlatformRole(authContextForUser(t, 7), &pbauthv1.AddPlatformRoleRequest{
 		TargetUserId: 15,
@@ -999,7 +790,7 @@ func TestAddPlatformRole_OK(t *testing.T) {
 
 func TestRemovePlatformRole_OK(t *testing.T) {
 	called := false
-	srv := newServerWithIAM(&iamUsecaseFake{
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
 		createTenantFunc: func(ctx context.Context, ownerUserID uint, cmd iamdomain.CreateTenantCmd) (*iamdomain.Tenant, error) {
 			return nil, nil
 		},
@@ -1036,7 +827,7 @@ func TestRemovePlatformRole_OK(t *testing.T) {
 			}
 			return false, nil
 		},
-	})
+	}))
 
 	res, err := srv.RemovePlatformRole(authContextForUser(t, 7), &pbauthv1.RemovePlatformRoleRequest{
 		TargetUserId: 15,
@@ -1048,7 +839,7 @@ func TestRemovePlatformRole_OK(t *testing.T) {
 }
 
 func TestSwitchActiveTenant_OK(t *testing.T) {
-	srv, uc := newServerWithMock()
+	srv, uc := newServerWithMock(t)
 	ctx := authContextForUser(t, 7)
 
 	uc.On("SwitchActiveTenant", mock.Anything, uint(7), "tenant-9", "access-token").
@@ -1073,7 +864,7 @@ func TestSwitchActiveTenant_OK(t *testing.T) {
 }
 
 func TestRefreshToken_OK(t *testing.T) {
-	srv, uc := newServerWithMock()
+	srv, uc := newServerWithMock(t)
 	ctx := context.Background()
 
 	uc.On("RefreshAccessToken", mock.Anything, "refresh-token").
@@ -1099,7 +890,7 @@ func TestGetSession_OK(t *testing.T) {
 	sessionNow := time.Date(2026, 5, 1, 10, 0, 0, 0, time.UTC)
 	srv := NewAuthServer(
 		&inputmocks.MockAuthUsecase{},
-		&sessionRepoFake{getByIDFunc: func(ctx context.Context, id string) (*entity.Session, error) {
+		newSessionRepoMock(t, sessionRepoMockConfig{getByIDFunc: func(ctx context.Context, id string) (*entity.Session, error) {
 			return &entity.Session{
 				ID:             id,
 				UserID:         21,
@@ -1109,8 +900,8 @@ func TestGetSession_OK(t *testing.T) {
 				UpdatedAt:      sessionNow,
 				ExpiresAt:      sessionNow.Add(time.Hour),
 			}, nil
-		}},
-		&auditRepoFake{},
+		}}),
+		newAuditRepoMock(t, auditRepoMockConfig{}),
 		&outputmocks.MockUserRepository{},
 		testAuthCfg,
 	)
@@ -1125,7 +916,7 @@ func TestGetSession_OK(t *testing.T) {
 
 func TestListUserTenants_OK(t *testing.T) {
 	now := time.Date(2026, 5, 1, 11, 0, 0, 0, time.UTC)
-	srv := newServerWithIAM(&iamUsecaseFake{
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
 		createTenantFunc: func(ctx context.Context, ownerUserID uint, cmd iamdomain.CreateTenantCmd) (*iamdomain.Tenant, error) {
 			return nil, nil
 		},
@@ -1156,7 +947,7 @@ func TestListUserTenants_OK(t *testing.T) {
 		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
 			return false, nil
 		},
-	})
+	}))
 
 	res, err := srv.ListUserTenants(authContextForUser(t, 7), &pbauthv1.ListUserTenantsRequest{UserId: 7})
 	require.NoError(t, err)
@@ -1167,7 +958,7 @@ func TestListUserTenants_OK(t *testing.T) {
 
 func TestListTenantMembers_OK(t *testing.T) {
 	now := time.Date(2026, 5, 1, 12, 0, 0, 0, time.UTC)
-	srv := newServerWithIAM(&iamUsecaseFake{
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
 		createTenantFunc: func(ctx context.Context, ownerUserID uint, cmd iamdomain.CreateTenantCmd) (*iamdomain.Tenant, error) {
 			return nil, nil
 		},
@@ -1201,7 +992,7 @@ func TestListTenantMembers_OK(t *testing.T) {
 			require.Equal(t, "tenant:manage_members", permission)
 			return true, nil
 		},
-	})
+	}))
 
 	res, err := srv.ListTenantMembers(
 		authContextForUser(t, 7),
@@ -1215,7 +1006,7 @@ func TestListTenantMembers_OK(t *testing.T) {
 
 func TestRemoveTenantMember_OK(t *testing.T) {
 	called := false
-	srv := newServerWithIAM(&iamUsecaseFake{
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
 		createTenantFunc: func(ctx context.Context, ownerUserID uint, cmd iamdomain.CreateTenantCmd) (*iamdomain.Tenant, error) {
 			return nil, nil
 		},
@@ -1243,7 +1034,7 @@ func TestRemoveTenantMember_OK(t *testing.T) {
 			require.Equal(t, "tenant:manage_members", permission)
 			return true, nil
 		},
-	})
+	}))
 
 	res, err := srv.RemoveTenantMember(authContextForUser(t, 7), &pbauthv1.RemoveTenantMemberRequest{
 		TenantId: "tenant-5",

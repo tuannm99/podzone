@@ -40,7 +40,6 @@ type routedOrderRow struct {
 	CustomerName           string       `db:"customer_name"`
 	Status                 string       `db:"status"`
 	TimelineJSON           string       `db:"timeline_json"`
-	ActivityLogJSON        string       `db:"activity_log_json"`
 	ExceptionType          string       `db:"exception_type"`
 	ExceptionStatus        string       `db:"exception_status"`
 	ShipmentStatus         string       `db:"shipment_status"`
@@ -80,7 +79,7 @@ type routedOrderActivityRow struct {
 
 func (r *OrderRoutingRepositoryImpl) List(ctx context.Context) ([]entity.RoutedOrder, error) {
 	query, args, err := psql.
-		Select("id", "candidate_id", "product_title", "partner", "quantity", "total", "customer_name", "status", "timeline_json", "activity_log_json", "exception_type", "exception_status", "shipment_status", "shipment_carrier", "shipment_tracking_number", "shipment_tracking_url", "shipment_notes", "operator_assignee", "shipment_sla_due_at", "issue_sla_due_at", "base_cost_snapshot", "fulfillment_cost", "shipping_cost", "issue_cost", "issue_resolution", "issue_notes", "realized_margin", "settlement_status", "settlement_notes", "shipped_at", "delivered_at", "created_at", "updated_at").
+		Select("id", "candidate_id", "product_title", "partner", "quantity", "total", "customer_name", "status", "timeline_json", "exception_type", "exception_status", "shipment_status", "shipment_carrier", "shipment_tracking_number", "shipment_tracking_url", "shipment_notes", "operator_assignee", "shipment_sla_due_at", "issue_sla_due_at", "base_cost_snapshot", "fulfillment_cost", "shipping_cost", "issue_cost", "issue_resolution", "issue_notes", "realized_margin", "settlement_status", "settlement_notes", "shipped_at", "delivered_at", "created_at", "updated_at").
 		From("routed_orders").
 		OrderBy("created_at DESC").
 		ToSql()
@@ -89,18 +88,24 @@ func (r *OrderRoutingRepositoryImpl) List(ctx context.Context) ([]entity.RoutedO
 	}
 
 	var rows []routedOrderRow
+	var activitiesByOrderID map[string][]entity.RoutedOrderActivity
 	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
 		if err := ensureRoutedOrderTables(ctx, tx); err != nil {
 			return err
 		}
-		return tx.SelectContext(ctx, &rows, query, args...)
+		if err := tx.SelectContext(ctx, &rows, query, args...); err != nil {
+			return err
+		}
+		var loadErr error
+		activitiesByOrderID, loadErr = loadOrderActivitiesByOrderIDs(ctx, tx, collectOrderIDs(rows))
+		return loadErr
 	}); err != nil {
 		return nil, err
 	}
 
 	out := make([]entity.RoutedOrder, 0, len(rows))
 	for _, row := range rows {
-		order, err := mapRoutedOrderRow(row)
+		order, err := mapRoutedOrderRow(row, activitiesByOrderID[row.ID])
 		if err != nil {
 			return nil, err
 		}
@@ -111,7 +116,7 @@ func (r *OrderRoutingRepositoryImpl) List(ctx context.Context) ([]entity.RoutedO
 
 func (r *OrderRoutingRepositoryImpl) GetByID(ctx context.Context, id string) (*entity.RoutedOrder, error) {
 	query, args, err := psql.
-		Select("id", "candidate_id", "product_title", "partner", "quantity", "total", "customer_name", "status", "timeline_json", "activity_log_json", "exception_type", "exception_status", "shipment_status", "shipment_carrier", "shipment_tracking_number", "shipment_tracking_url", "shipment_notes", "operator_assignee", "shipment_sla_due_at", "issue_sla_due_at", "base_cost_snapshot", "fulfillment_cost", "shipping_cost", "issue_cost", "issue_resolution", "issue_notes", "realized_margin", "settlement_status", "settlement_notes", "shipped_at", "delivered_at", "created_at", "updated_at").
+		Select("id", "candidate_id", "product_title", "partner", "quantity", "total", "customer_name", "status", "timeline_json", "exception_type", "exception_status", "shipment_status", "shipment_carrier", "shipment_tracking_number", "shipment_tracking_url", "shipment_notes", "operator_assignee", "shipment_sla_due_at", "issue_sla_due_at", "base_cost_snapshot", "fulfillment_cost", "shipping_cost", "issue_cost", "issue_resolution", "issue_notes", "realized_margin", "settlement_status", "settlement_notes", "shipped_at", "delivered_at", "created_at", "updated_at").
 		From("routed_orders").
 		Where(sq.Eq{"id": id}).
 		ToSql()
@@ -120,6 +125,7 @@ func (r *OrderRoutingRepositoryImpl) GetByID(ctx context.Context, id string) (*e
 	}
 
 	var row routedOrderRow
+	var activitiesByOrderID map[string][]entity.RoutedOrderActivity
 	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
 		if err := ensureRoutedOrderTables(ctx, tx); err != nil {
 			return err
@@ -130,12 +136,17 @@ func (r *OrderRoutingRepositoryImpl) GetByID(ctx context.Context, id string) (*e
 			}
 			return err
 		}
+		var loadErr error
+		activitiesByOrderID, loadErr = loadOrderActivitiesByOrderIDs(ctx, tx, []string{id})
+		if loadErr != nil {
+			return loadErr
+		}
 		return nil
 	}); err != nil {
 		return nil, err
 	}
 
-	order, err := mapRoutedOrderRow(row)
+	order, err := mapRoutedOrderRow(row, activitiesByOrderID[id])
 	if err != nil {
 		return nil, err
 	}
@@ -234,14 +245,10 @@ func (r *OrderRoutingRepositoryImpl) Create(ctx context.Context, order entity.Ro
 	if err != nil {
 		return nil, err
 	}
-	activityLogJSON, err := json.Marshal(order.ActivityLog)
-	if err != nil {
-		return nil, err
-	}
 	query, args, err := psql.
 		Insert("routed_orders").
-		Columns("id", "candidate_id", "product_title", "partner", "quantity", "total", "customer_name", "status", "timeline_json", "activity_log_json", "exception_type", "exception_status", "shipment_status", "shipment_carrier", "shipment_tracking_number", "shipment_tracking_url", "shipment_notes", "operator_assignee", "shipment_sla_due_at", "issue_sla_due_at", "base_cost_snapshot", "fulfillment_cost", "shipping_cost", "issue_cost", "issue_resolution", "issue_notes", "realized_margin", "settlement_status", "settlement_notes", "shipped_at", "delivered_at", "created_at", "updated_at").
-		Values(order.ID, order.CandidateID, order.ProductTitle, order.Partner, order.Quantity, order.Total, order.CustomerName, order.Status, string(timelineJSON), string(activityLogJSON), order.ExceptionType, order.ExceptionStatus, order.ShipmentStatus, order.ShipmentCarrier, order.ShipmentTrackingNumber, order.ShipmentTrackingURL, order.ShipmentNotes, order.OperatorAssignee, order.ShipmentSlaDueAt, order.IssueSlaDueAt, order.BaseCostSnapshot, order.FulfillmentCost, order.ShippingCost, order.IssueCost, order.IssueResolution, order.IssueNotes, order.RealizedMargin, order.SettlementStatus, order.SettlementNotes, order.ShippedAt, order.DeliveredAt, order.CreatedAt, order.UpdatedAt).
+		Columns("id", "candidate_id", "product_title", "partner", "quantity", "total", "customer_name", "status", "timeline_json", "exception_type", "exception_status", "shipment_status", "shipment_carrier", "shipment_tracking_number", "shipment_tracking_url", "shipment_notes", "operator_assignee", "shipment_sla_due_at", "issue_sla_due_at", "base_cost_snapshot", "fulfillment_cost", "shipping_cost", "issue_cost", "issue_resolution", "issue_notes", "realized_margin", "settlement_status", "settlement_notes", "shipped_at", "delivered_at", "created_at", "updated_at").
+		Values(order.ID, order.CandidateID, order.ProductTitle, order.Partner, order.Quantity, order.Total, order.CustomerName, order.Status, string(timelineJSON), order.ExceptionType, order.ExceptionStatus, order.ShipmentStatus, order.ShipmentCarrier, order.ShipmentTrackingNumber, order.ShipmentTrackingURL, order.ShipmentNotes, order.OperatorAssignee, order.ShipmentSlaDueAt, order.IssueSlaDueAt, order.BaseCostSnapshot, order.FulfillmentCost, order.ShippingCost, order.IssueCost, order.IssueResolution, order.IssueNotes, order.RealizedMargin, order.SettlementStatus, order.SettlementNotes, order.ShippedAt, order.DeliveredAt, order.CreatedAt, order.UpdatedAt).
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -265,10 +272,6 @@ func (r *OrderRoutingRepositoryImpl) Update(ctx context.Context, order entity.Ro
 	if err != nil {
 		return nil, err
 	}
-	activityLogJSON, err := json.Marshal(order.ActivityLog)
-	if err != nil {
-		return nil, err
-	}
 	query, args, err := psql.
 		Update("routed_orders").
 		Set("candidate_id", order.CandidateID).
@@ -279,7 +282,6 @@ func (r *OrderRoutingRepositoryImpl) Update(ctx context.Context, order entity.Ro
 		Set("customer_name", order.CustomerName).
 		Set("status", order.Status).
 		Set("timeline_json", string(timelineJSON)).
-		Set("activity_log_json", string(activityLogJSON)).
 		Set("exception_type", order.ExceptionType).
 		Set("exception_status", order.ExceptionStatus).
 		Set("shipment_status", order.ShipmentStatus).
@@ -311,18 +313,12 @@ func (r *OrderRoutingRepositoryImpl) Update(ctx context.Context, order entity.Ro
 		if err := ensureRoutedOrderTables(ctx, tx); err != nil {
 			return err
 		}
-		var existingLogJSON string
-		if err := tx.GetContext(ctx, &existingLogJSON, `SELECT activity_log_json FROM routed_orders WHERE id = $1`, order.ID); err != nil {
+		var existingActivityCount int
+		if err := tx.GetContext(ctx, &existingActivityCount, `SELECT COUNT(*) FROM routed_order_activities WHERE order_id = $1`, order.ID); err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return fmt.Errorf("routed order not found")
 			}
 			return err
-		}
-		var existingLog []entity.RoutedOrderActivity
-		if existingLogJSON != "" {
-			if err := json.Unmarshal([]byte(existingLogJSON), &existingLog); err != nil {
-				return err
-			}
 		}
 		res, err := tx.ExecContext(ctx, query, args...)
 		if err != nil {
@@ -332,8 +328,8 @@ func (r *OrderRoutingRepositoryImpl) Update(ctx context.Context, order entity.Ro
 		if rows == 0 {
 			return fmt.Errorf("routed order not found")
 		}
-		if len(order.ActivityLog) > len(existingLog) {
-			return insertOrderActivities(ctx, tx, order.ID, order.ProductTitle, order.OperatorAssignee, order.ActivityLog[len(existingLog):])
+		if len(order.ActivityLog) > existingActivityCount {
+			return insertOrderActivities(ctx, tx, order.ID, order.ProductTitle, order.OperatorAssignee, order.ActivityLog[existingActivityCount:])
 		}
 		return nil
 	}); err != nil {
@@ -354,16 +350,9 @@ func ensureRoutedOrderTables(ctx context.Context, tx *sqlx.Tx) error {
 	return migrations.ApplyTx(ctx, tx)
 }
 
-func mapRoutedOrderRow(row routedOrderRow) (entity.RoutedOrder, error) {
+func mapRoutedOrderRow(row routedOrderRow, activities []entity.RoutedOrderActivity) (entity.RoutedOrder, error) {
 	var timeline []string
 	if err := json.Unmarshal([]byte(row.TimelineJSON), &timeline); err != nil {
-		return entity.RoutedOrder{}, err
-	}
-	var activityLog []entity.RoutedOrderActivity
-	if row.ActivityLogJSON == "" {
-		row.ActivityLogJSON = "[]"
-	}
-	if err := json.Unmarshal([]byte(row.ActivityLogJSON), &activityLog); err != nil {
 		return entity.RoutedOrder{}, err
 	}
 	var shippedAt *time.Time
@@ -392,7 +381,7 @@ func mapRoutedOrderRow(row routedOrderRow) (entity.RoutedOrder, error) {
 		CustomerName:           row.CustomerName,
 		Status:                 row.Status,
 		Timeline:               timeline,
-		ActivityLog:            activityLog,
+		ActivityLog:            activities,
 		ExceptionType:          row.ExceptionType,
 		ExceptionStatus:        row.ExceptionStatus,
 		ShipmentStatus:         row.ShipmentStatus,
@@ -464,6 +453,42 @@ func insertOrderActivities(ctx context.Context, tx *sqlx.Tx, orderID, productTit
 		}
 	}
 	return nil
+}
+
+func collectOrderIDs(rows []routedOrderRow) []string {
+	ids := make([]string, 0, len(rows))
+	for _, row := range rows {
+		ids = append(ids, row.ID)
+	}
+	return ids
+}
+
+func loadOrderActivitiesByOrderIDs(ctx context.Context, tx *sqlx.Tx, orderIDs []string) (map[string][]entity.RoutedOrderActivity, error) {
+	activitiesByOrderID := make(map[string][]entity.RoutedOrderActivity, len(orderIDs))
+	if len(orderIDs) == 0 {
+		return activitiesByOrderID, nil
+	}
+	query, args, err := psql.
+		Select("id", "order_id", "product_title", "operator_assignee", "activity_type", "actor", "message", "details_json", "created_at").
+		From("routed_order_activities").
+		Where(sq.Eq{"order_id": orderIDs}).
+		OrderBy("created_at ASC", "id ASC").
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+	var rows []routedOrderActivityRow
+	if err := tx.SelectContext(ctx, &rows, query, args...); err != nil {
+		return nil, err
+	}
+	for _, row := range rows {
+		entry, err := mapRoutedOrderActivityRow(row)
+		if err != nil {
+			return nil, err
+		}
+		activitiesByOrderID[row.OrderID] = append(activitiesByOrderID[row.OrderID], entry.Activity)
+	}
+	return activitiesByOrderID, nil
 }
 
 func encodeActivityCursor(id int64, createdAt time.Time) string {

@@ -18,6 +18,7 @@ var Module = fx.Options(
 		func() *pdtenantdb.Config { return &pdtenantdb.Config{} },
 		boconfig.NewConfigFromKoanf,
 		fx.Annotate(NewTenantAuthorizer, fx.As(new(TenantAuthorizer))),
+		fx.Annotate(NewTenantBootstrapper, fx.As(new(TenantBootstrapper))),
 
 		// --- Infrastructure layer ---
 		fx.Annotate(repository.NewStoreRepository, fx.As(new(outputport.StoreRepository))),

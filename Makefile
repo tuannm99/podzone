@@ -1,4 +1,4 @@
-.PHONY: all proto swagger build test lint dev down clean help docker-dev docker-dev-infra docker-dev-down
+.PHONY: all proto swagger build test lint dev down clean help docker-dev docker-dev-infra docker-dev-down mocks
 
 GO := go
 
@@ -11,6 +11,7 @@ SVC ?= none
 .PHONY: svc help
 
 BUF ?= buf
+MOCKERY ?= mockery
 
 proto:
 	@echo "Generating protobuf via buf..."
@@ -47,6 +48,10 @@ docker-dev-down:
 
 gql-backoffice:
 	go run github.com/99designs/gqlgen generate
+
+mocks:
+	@echo "$(COLOR_GREEN)Generating mocks via mockery...$(COLOR_RESET)"
+	@$(MOCKERY)
 
 dev:
 	@echo "🔁 Starting services in parallel..."
@@ -150,4 +155,3 @@ help:
 	@echo "  make gql-backoffice                   - Generate backoffice graphql"
 	@echo "  make k8s ENV=${env} SVC=${service}    - Deploy service to k8s dev EG: make k8s ENV="staging" SVC="grpcgateway catalog auth storefront backoffice""
 	@echo "  make k8s-ui ENV=${env} SVC=${service} - Deploy service to k8s dev EG: make k8s-ui ENV="staging" SVC="ui-podzone""
-

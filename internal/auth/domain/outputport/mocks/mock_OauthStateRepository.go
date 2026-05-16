@@ -221,3 +221,49 @@ func (_mock *MockOauthStateRepository) SetValue(key string, value string, durati
 	}
 	return r0
 }
+
+// MockOauthStateRepository_SetValue_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetValue'
+type MockOauthStateRepository_SetValue_Call struct {
+	*mock.Call
+}
+
+// SetValue is a helper method to define mock.On call
+//   - key string
+//   - value string
+//   - duration time.Duration
+func (_e *MockOauthStateRepository_Expecter) SetValue(key interface{}, value interface{}, duration interface{}) *MockOauthStateRepository_SetValue_Call {
+	return &MockOauthStateRepository_SetValue_Call{Call: _e.mock.On("SetValue", key, value, duration)}
+}
+
+func (_c *MockOauthStateRepository_SetValue_Call) Run(run func(key string, value string, duration time.Duration)) *MockOauthStateRepository_SetValue_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 time.Duration
+		if args[2] != nil {
+			arg2 = args[2].(time.Duration)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockOauthStateRepository_SetValue_Call) Return(err error) *MockOauthStateRepository_SetValue_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockOauthStateRepository_SetValue_Call) RunAndReturn(run func(key string, value string, duration time.Duration) error) *MockOauthStateRepository_SetValue_Call {
+	_c.Call.Return(run)
+	return _c
+}

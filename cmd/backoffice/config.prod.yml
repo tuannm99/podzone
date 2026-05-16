@@ -4,14 +4,35 @@ logger:
   level: 'debug'
   env: 'dev'
 
+consul_kv:
+  address: '${CONSUL_URL}'
+  token: '${CONSUL_TOKEN}'
+  tls:
+    insecure_skip_verify: true
+
+http:
+  address: ':8000'
+  trusted_proxies: []
+
+  graphql:
+    enabled: true
+    query_path: '/query'
+    playground:
+      enabled: true
+      path: '/'
+
+pprof:
+  enable: false
+  addr: '127.0.0.1:6060'
+
 backoffice:
   auth:
-    jwt_secret: "${JWT_SECRET}"
-    jwt_key: "${JWT_KEY}"
-    grpc_host: "${AUTH_GRPC_HOST}"
-    grpc_port: "${AUTH_GRPC_PORT}"
+    jwt_secret: '${JWT_SECRET}'
+    jwt_key: '${JWT_KEY}'
+    grpc_host: '${AUTH_GRPC_HOST}'
+    grpc_port: '${AUTH_GRPC_PORT}'
   iam:
-    jwt_secret: "${JWT_SECRET}"
-    jwt_key: "${JWT_KEY}"
-    grpc_host: "${IAM_GRPC_HOST}"
-    grpc_port: "${IAM_GRPC_PORT}"
+    jwt_secret: '${JWT_SECRET}'
+    jwt_key: '${JWT_KEY}'
+    grpc_host: '${IAM_GRPC_HOST}'
+    grpc_port: '${IAM_GRPC_PORT}'

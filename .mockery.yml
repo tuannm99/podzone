@@ -1,7 +1,7 @@
 all: false
 pkgname: mocks
 template: testify
-filename: "mock_{{.InterfaceName}}.go"
+filename: 'mock_{{.InterfaceName}}.go'
 formatter: goimports
 force-file-write: true
 
@@ -41,3 +41,59 @@ packages:
       GoogleOauthExternal:
       OauthStateRepository:
       UserRepository:
+      SessionRepository:
+      RefreshTokenRepository:
+      AuditLogRepository:
+
+  github.com/tuannm99/podzone/internal/auth/domain:
+    config:
+      dir: internal/auth/domain/mocks
+    interfaces:
+      TenantAccessChecker:
+
+  github.com/tuannm99/podzone/internal/backoffice:
+    config:
+      dir: internal/backoffice/mocks
+    interfaces:
+      TenantAuthorizer:
+      TenantBootstrapper:
+
+  github.com/tuannm99/podzone/internal/backoffice/domain/inputport:
+    config:
+      dir: internal/backoffice/domain/inputport/mocks
+    interfaces:
+      StoreUsecase:
+      ProductSetupUsecase:
+      OrderRoutingUsecase:
+
+  github.com/tuannm99/podzone/internal/backoffice/domain/outputport:
+    config:
+      dir: internal/backoffice/domain/outputport/mocks
+    interfaces:
+      StoreRepository:
+      ProductSetupRepository:
+      OrderRoutingRepository:
+
+  github.com/tuannm99/podzone/internal/iam/domain:
+    config:
+      dir: internal/iam/domain/mocks
+    interfaces:
+      TenantRepository:
+      RoleRepository:
+      PlatformMembershipRepository:
+      MembershipRepository:
+      InviteRepository:
+      IAMUsecase:
+
+  github.com/tuannm99/podzone/internal/partner/domain:
+    config:
+      dir: internal/partner/domain/mocks
+    interfaces:
+      PartnerRepository:
+      PartnerUsecase:
+
+  github.com/tuannm99/podzone/internal/onboarding/infrasmanager/core:
+    config:
+      dir: internal/onboarding/infrasmanager/core/mocks
+    interfaces:
+      ConnectionStore:

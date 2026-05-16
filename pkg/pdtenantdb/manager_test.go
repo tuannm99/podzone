@@ -5,51 +5,40 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
+	pdtenantdbmocks "github.com/tuannm99/podzone/pkg/pdtenantdb/mocks"
 	"github.com/tuannm99/podzone/pkg/testkit"
 )
-
-type staticResolver struct {
-	mu         sync.Mutex
-	placements map[string]pdtenantdb.Placement
-}
-
-func (r *staticResolver) Resolve(ctx context.Context, tenantID string) (pdtenantdb.Placement, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	pl, ok := r.placements[tenantID]
-	if !ok {
-		return pdtenantdb.Placement{}, fmt.Errorf("missing placement for %s", tenantID)
-	}
-	return pl, nil
-}
-
-type staticRegistry struct {
-	cfg pdtenantdb.ClusterConfig
-}
-
-func (r *staticRegistry) GetCluster(ctx context.Context, clusterName string) (pdtenantdb.ClusterConfig, error) {
-	return r.cfg, nil
-}
 
 func setupManager(t *testing.T, cfg *pdtenantdb.Config, placements map[string]pdtenantdb.Placement) pdtenantdb.Manager {
 	t.Helper()
 	info := testkit.PostgresInfo(t)
-	reg := &staticRegistry{cfg: pdtenantdb.ClusterConfig{
+	reg := pdtenantdbmocks.NewMockClusterRegistry(t)
+	reg.EXPECT().GetCluster(mock.Anything, "pg-01").Return(pdtenantdb.ClusterConfig{
 		Host:     info.Host,
 		Port:     info.Port,
 		User:     info.User,
 		Password: info.Password,
 		SSLMode:  "disable",
-	}}
-	res := &staticResolver{placements: placements}
+	}, nil).Maybe()
+	res := pdtenantdbmocks.NewMockPlacementResolver(t)
+	res.EXPECT().
+		Resolve(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, tenantID string) (pdtenantdb.Placement, error) {
+			pl, ok := placements[tenantID]
+			if !ok {
+				return pdtenantdb.Placement{}, fmt.Errorf("missing placement for %s", tenantID)
+			}
+			return pl, nil
+		}).
+		Maybe()
 	return pdtenantdb.NewManager(cfg, res, reg)
 }
 

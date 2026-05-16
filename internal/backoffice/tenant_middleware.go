@@ -14,8 +14,9 @@ import (
 
 // TenantMiddleware is an app-level GraphQL extension.
 type TenantMiddleware struct {
-	authCfg    boconfig.RPCConfig
-	authorizer TenantAuthorizer
+	authCfg      boconfig.RPCConfig
+	authorizer   TenantAuthorizer
+	bootstrapper TenantBootstrapper
 }
 
 type backofficeJWTClaims struct {
@@ -26,8 +27,12 @@ type backofficeJWTClaims struct {
 	jwt.StandardClaims
 }
 
-func NewTenantMiddleware(cfg boconfig.Config, authorizer TenantAuthorizer) *TenantMiddleware {
-	return &TenantMiddleware{authCfg: cfg.Auth, authorizer: authorizer}
+func NewTenantMiddleware(
+	cfg boconfig.Config,
+	authorizer TenantAuthorizer,
+	bootstrapper TenantBootstrapper,
+) *TenantMiddleware {
+	return &TenantMiddleware{authCfg: cfg.Auth, authorizer: authorizer, bootstrapper: bootstrapper}
 }
 
 func (m *TenantMiddleware) ExtensionName() string                          { return "TenantMiddleware" }
@@ -60,6 +65,11 @@ func (m *TenantMiddleware) InterceptOperation(
 	}
 
 	if err := m.authorizer.AuthorizeTenant(ctx, sessionID, userID, tenantID); err != nil {
+		return func(ctx context.Context) *graphql.Response {
+			return graphql.ErrorResponse(ctx, "%s", err.Error())
+		}
+	}
+	if err := m.bootstrapper.EnsureReady(ctx, tenantID); err != nil {
 		return func(ctx context.Context) *graphql.Response {
 			return graphql.ErrorResponse(ctx, "%s", err.Error())
 		}

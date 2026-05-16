@@ -1,78 +1,56 @@
-package domain
+package domain_test
 
 import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
+	domain "github.com/tuannm99/podzone/internal/partner/domain"
+	domainmocks "github.com/tuannm99/podzone/internal/partner/domain/mocks"
 )
-
-type partnerRepoFake struct {
-	createFunc       func(ctx context.Context, partner Partner) (*Partner, error)
-	getByIDFunc      func(ctx context.Context, id string) (*Partner, error)
-	listFunc         func(ctx context.Context, query ListPartnersQuery) ([]Partner, error)
-	updateFunc       func(ctx context.Context, partner Partner) (*Partner, error)
-	updateStatusFunc func(ctx context.Context, id, status string) (*Partner, error)
-}
-
-func (f *partnerRepoFake) Create(ctx context.Context, partner Partner) (*Partner, error) {
-	return f.createFunc(ctx, partner)
-}
-
-func (f *partnerRepoFake) GetByID(ctx context.Context, id string) (*Partner, error) {
-	return f.getByIDFunc(ctx, id)
-}
-
-func (f *partnerRepoFake) List(ctx context.Context, query ListPartnersQuery) ([]Partner, error) {
-	return f.listFunc(ctx, query)
-}
-
-func (f *partnerRepoFake) Update(ctx context.Context, partner Partner) (*Partner, error) {
-	return f.updateFunc(ctx, partner)
-}
-
-func (f *partnerRepoFake) UpdateStatus(ctx context.Context, id, status string) (*Partner, error) {
-	return f.updateStatusFunc(ctx, id, status)
-}
 
 func TestCreatePartner_NormalizesCodeFromName(t *testing.T) {
 	t.Parallel()
 
-	uc := NewPartnerUsecase(&partnerRepoFake{
-		createFunc: func(ctx context.Context, partner Partner) (*Partner, error) {
-			return &partner, nil
-		},
-	})
+	repo := domainmocks.NewMockPartnerRepository(t)
+	repo.EXPECT().Create(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, partner domain.Partner) (*domain.Partner, error) {
+		return &partner, nil
+	}).Once()
 
-	out, err := uc.CreatePartner(context.Background(), CreatePartnerCmd{
+	uc := domain.NewPartnerUsecase(repo)
+	out, err := uc.CreatePartner(context.Background(), domain.CreatePartnerCmd{
 		TenantID:    "tenant-1",
 		Name:        "Acme Supply Co",
-		PartnerType: PartnerTypePrintOnDemand,
+		PartnerType: domain.PartnerTypePrintOnDemand,
 	})
 	require.NoError(t, err)
 	require.Equal(t, "acme-supply-co", out.Code)
-	require.Equal(t, PartnerTypePrintOnDemand, out.PartnerType)
-	require.Equal(t, PartnerStatusActive, out.Status)
+	require.Equal(t, domain.PartnerTypePrintOnDemand, out.PartnerType)
+	require.Equal(t, domain.PartnerStatusActive, out.Status)
 }
 
 func TestUpdatePartnerStatus_RejectsUnknownStatus(t *testing.T) {
 	t.Parallel()
 
-	uc := NewPartnerUsecase(&partnerRepoFake{})
+	repo := domainmocks.NewMockPartnerRepository(t)
+	uc := domain.NewPartnerUsecase(repo)
 	out, err := uc.UpdatePartnerStatus(context.Background(), "prt-1", "paused")
 	require.Nil(t, out)
-	require.ErrorIs(t, err, ErrInvalidPartnerStatus)
+	require.ErrorIs(t, err, domain.ErrInvalidPartnerStatus)
 }
 
 func TestCreatePartner_RejectsUnknownPartnerType(t *testing.T) {
 	t.Parallel()
 
-	uc := NewPartnerUsecase(&partnerRepoFake{})
-	out, err := uc.CreatePartner(context.Background(), CreatePartnerCmd{
+	repo := domainmocks.NewMockPartnerRepository(t)
+	uc := domain.NewPartnerUsecase(repo)
+	out, err := uc.CreatePartner(context.Background(), domain.CreatePartnerCmd{
 		TenantID:    "tenant-1",
 		Name:        "Acme",
 		PartnerType: "supplier",
 	})
 	require.Nil(t, out)
-	require.ErrorIs(t, err, ErrInvalidPartnerType)
+	require.ErrorIs(t, err, domain.ErrInvalidPartnerType)
 }

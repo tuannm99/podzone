@@ -18,6 +18,7 @@ import (
 
 	// mocks
 	inputmocks "github.com/tuannm99/podzone/internal/auth/domain/inputport/mocks"
+	authmocks "github.com/tuannm99/podzone/internal/auth/domain/mocks"
 	outputmocks "github.com/tuannm99/podzone/internal/auth/domain/outputport/mocks"
 
 	// domain
@@ -60,121 +61,115 @@ func newUC(
 		JWTKey:         "app-key",
 		AppRedirectURL: "https://app.example.com/after-auth",
 	}
-	tenantAccessChecker := &tenantAccessCheckerFake{
-		ensureActiveMembershipFunc: func(ctx context.Context, tenantID string, userID uint) error {
-			return iamdomain.ErrMembershipNotFound
-		},
+	uc, _, _, _ := newStatefulAuthUC(t, cfg, uuc, tuc, ext, sr, ur, func(ctx context.Context, tenantID string, userID uint) error {
+		return iamdomain.ErrMembershipNotFound
+	})
+	return uc
+}
+
+type authRepoState struct {
+	sessions      map[string]entity.Session
+	refreshTokens map[string]entity.RefreshToken
+}
+
+func newStatefulAuthUC(
+	t *testing.T,
+	cfg config.AuthConfig,
+	uuc *inputmocks.MockUserUsecase,
+	tuc inputport.TokenUsecase,
+	ext *outputmocks.MockGoogleOauthExternal,
+	sr outputport.OauthStateRepository,
+	ur *outputmocks.MockUserRepository,
+	tenantAccessFn func(ctx context.Context, tenantID string, userID uint) error,
+) (*authInteractorImpl, *authRepoState, *outputmocks.MockSessionRepository, *outputmocks.MockRefreshTokenRepository) {
+	t.Helper()
+
+	state := &authRepoState{
+		sessions:      map[string]entity.Session{},
+		refreshTokens: map[string]entity.RefreshToken{},
 	}
-	return NewAuthUsecase(uuc, tuc, ext, sr, ur, &sessionRepoFake{}, &refreshTokenRepoFake{}, tenantAccessChecker, cfg)
-}
+	sessionRepo := outputmocks.NewMockSessionRepository(t)
+	refreshRepo := outputmocks.NewMockRefreshTokenRepository(t)
+	tenantAccessChecker := authmocks.NewMockTenantAccessChecker(t)
 
-type sessionRepoFake struct {
-	items map[string]entity.Session
-}
-
-func (r *sessionRepoFake) Create(ctx context.Context, session entity.Session) error {
-	if r.items == nil {
-		r.items = map[string]entity.Session{}
-	}
-	r.items[session.ID] = session
-	return nil
-}
-
-func (r *sessionRepoFake) GetByID(ctx context.Context, id string) (*entity.Session, error) {
-	item, ok := r.items[id]
-	if !ok {
-		return nil, entity.ErrSessionNotFound
-	}
-	copyItem := item
-	return &copyItem, nil
-}
-
-func (r *sessionRepoFake) ListByUser(ctx context.Context, userID uint) ([]entity.Session, error) {
-	out := make([]entity.Session, 0)
-	for _, item := range r.items {
-		if item.UserID == userID {
-			out = append(out, item)
+	sessionRepo.EXPECT().Create(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, session entity.Session) error {
+		state.sessions[session.ID] = session
+		return nil
+	}).Maybe()
+	sessionRepo.EXPECT().GetByID(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, id string) (*entity.Session, error) {
+		item, ok := state.sessions[id]
+		if !ok {
+			return nil, entity.ErrSessionNotFound
 		}
-	}
-	return out, nil
-}
-
-func (r *sessionRepoFake) UpdateActiveTenant(ctx context.Context, id, tenantID string, updatedAt time.Time) error {
-	item, ok := r.items[id]
-	if !ok {
-		return entity.ErrSessionNotFound
-	}
-	item.ActiveTenantID = tenantID
-	item.UpdatedAt = updatedAt
-	r.items[id] = item
-	return nil
-}
-
-func (r *sessionRepoFake) Revoke(ctx context.Context, id string, revokedAt time.Time) error {
-	item, ok := r.items[id]
-	if !ok {
-		return entity.ErrSessionNotFound
-	}
-	item.Status = entity.SessionStatusRevoked
-	item.RevokedAt = &revokedAt
-	r.items[id] = item
-	return nil
-}
-
-type refreshTokenRepoFake struct {
-	items map[string]entity.RefreshToken
-}
-
-func (r *refreshTokenRepoFake) Create(ctx context.Context, token entity.RefreshToken) error {
-	if r.items == nil {
-		r.items = map[string]entity.RefreshToken{}
-	}
-	r.items[token.TokenHash] = token
-	return nil
-}
-
-func (r *refreshTokenRepoFake) GetByTokenHash(ctx context.Context, tokenHash string) (*entity.RefreshToken, error) {
-	item, ok := r.items[tokenHash]
-	if !ok {
-		return nil, entity.ErrRefreshTokenInvalid
-	}
-	copyItem := item
-	return &copyItem, nil
-}
-
-func (r *refreshTokenRepoFake) Revoke(
-	ctx context.Context,
-	id string,
-	revokedAt time.Time,
-	replacedByTokenID *string,
-) error {
-	for key, item := range r.items {
-		if item.ID == id {
-			item.RevokedAt = &revokedAt
-			item.ReplacedByTokenID = replacedByTokenID
-			r.items[key] = item
-			return nil
+		copyItem := item
+		return &copyItem, nil
+	}).Maybe()
+	sessionRepo.EXPECT().ListByUser(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, userID uint) ([]entity.Session, error) {
+		out := make([]entity.Session, 0)
+		for _, item := range state.sessions {
+			if item.UserID == userID {
+				out = append(out, item)
+			}
 		}
-	}
-	return entity.ErrRefreshTokenInvalid
-}
-
-func (r *refreshTokenRepoFake) RevokeBySession(ctx context.Context, sessionID string, revokedAt time.Time) error {
-	for key, item := range r.items {
-		if item.SessionID == sessionID {
-			item.RevokedAt = &revokedAt
-			r.items[key] = item
+		return out, nil
+	}).Maybe()
+	sessionRepo.EXPECT().UpdateActiveTenant(mock.Anything, mock.Anything, mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, id, tenantID string, updatedAt time.Time) error {
+		item, ok := state.sessions[id]
+		if !ok {
+			return entity.ErrSessionNotFound
 		}
-	}
-	return nil
-}
+		item.ActiveTenantID = tenantID
+		item.UpdatedAt = updatedAt
+		state.sessions[id] = item
+		return nil
+	}).Maybe()
+	sessionRepo.EXPECT().Revoke(mock.Anything, mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, id string, revokedAt time.Time) error {
+		item, ok := state.sessions[id]
+		if !ok {
+			return entity.ErrSessionNotFound
+		}
+		item.Status = entity.SessionStatusRevoked
+		item.RevokedAt = &revokedAt
+		state.sessions[id] = item
+		return nil
+	}).Maybe()
 
-type tenantAccessCheckerFake struct {
-	ensureActiveMembershipFunc func(ctx context.Context, tenantID string, userID uint) error
-}
+	refreshRepo.EXPECT().Create(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, token entity.RefreshToken) error {
+		state.refreshTokens[token.TokenHash] = token
+		return nil
+	}).Maybe()
+	refreshRepo.EXPECT().GetByTokenHash(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, tokenHash string) (*entity.RefreshToken, error) {
+		item, ok := state.refreshTokens[tokenHash]
+		if !ok {
+			return nil, entity.ErrRefreshTokenInvalid
+		}
+		copyItem := item
+		return &copyItem, nil
+	}).Maybe()
+	refreshRepo.EXPECT().Revoke(mock.Anything, mock.Anything, mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, id string, revokedAt time.Time, replacedByTokenID *string) error {
+		for key, item := range state.refreshTokens {
+			if item.ID == id {
+				item.RevokedAt = &revokedAt
+				item.ReplacedByTokenID = replacedByTokenID
+				state.refreshTokens[key] = item
+				return nil
+			}
+		}
+		return entity.ErrRefreshTokenInvalid
+	}).Maybe()
+	refreshRepo.EXPECT().RevokeBySession(mock.Anything, mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, sessionID string, revokedAt time.Time) error {
+		for key, item := range state.refreshTokens {
+			if item.SessionID == sessionID {
+				item.RevokedAt = &revokedAt
+				state.refreshTokens[key] = item
+			}
+		}
+		return nil
+	}).Maybe()
 
-func (f *tenantAccessCheckerFake) EnsureActiveMembership(ctx context.Context, tenantID string, userID uint) error {
-	return f.ensureActiveMembershipFunc(ctx, tenantID, userID)
+	tenantAccessChecker.EXPECT().EnsureActiveMembership(mock.Anything, mock.Anything, mock.Anything).RunAndReturn(tenantAccessFn).Maybe()
+
+	return NewAuthUsecase(uuc, tuc, ext, sr, ur, sessionRepo, refreshRepo, tenantAccessChecker, cfg), state, sessionRepo, refreshRepo
 }
 
 func makeTokenServerOK(t *testing.T) *httptest.Server {
@@ -391,29 +386,21 @@ func TestHandleOAuthCallback_InvalidState(t *testing.T) {
 func TestSwitchActiveTenant_Success(t *testing.T) {
 	ctx := context.Background()
 	uuc, tuc, ext, ur, sr := initMock()
-	tenantAccessChecker := &tenantAccessCheckerFake{
-		ensureActiveMembershipFunc: func(ctx context.Context, tenantID string, userID uint) error {
-			return nil
-		},
-	}
 
 	cfg := config.AuthConfig{
 		JWTSecret:      "secret",
 		JWTKey:         "app-key",
 		AppRedirectURL: "https://app.example.com/after-auth",
 	}
-	sessionRepo := &sessionRepoFake{
-		items: map[string]entity.Session{
-			"session-1": {
-				ID:        "session-1",
-				UserID:    5,
-				Status:    entity.SessionStatusActive,
-				ExpiresAt: time.Now().Add(time.Hour),
-			},
-		},
+	uc, state, _, _ := newStatefulAuthUC(t, cfg, uuc, tuc, ext, sr, ur, func(ctx context.Context, tenantID string, userID uint) error {
+		return nil
+	})
+	state.sessions["session-1"] = entity.Session{
+		ID:        "session-1",
+		UserID:    5,
+		Status:    entity.SessionStatusActive,
+		ExpiresAt: time.Now().Add(time.Hour),
 	}
-	refreshRepo := &refreshTokenRepoFake{}
-	uc := NewAuthUsecase(uuc, tuc, ext, sr, ur, sessionRepo, refreshRepo, tenantAccessChecker, cfg)
 
 	user := &entity.User{Id: 5, Username: "neo", Email: "neo@mx.io"}
 	ur.On("GetByID", "5").Return(user, nil)
@@ -437,18 +424,15 @@ func TestSwitchActiveTenant_Success(t *testing.T) {
 func TestSwitchActiveTenant_InactiveMembership(t *testing.T) {
 	ctx := context.Background()
 	uuc, tuc, ext, ur, sr := initMock()
-	tenantAccessChecker := &tenantAccessCheckerFake{
-		ensureActiveMembershipFunc: func(ctx context.Context, tenantID string, userID uint) error {
-			return iamdomain.ErrInactiveMembership
-		},
-	}
 
 	cfg := config.AuthConfig{
 		JWTSecret:      "secret",
 		JWTKey:         "app-key",
 		AppRedirectURL: "https://app.example.com/after-auth",
 	}
-	uc := NewAuthUsecase(uuc, tuc, ext, sr, ur, &sessionRepoFake{}, &refreshTokenRepoFake{}, tenantAccessChecker, cfg)
+	uc, _, _, _ := newStatefulAuthUC(t, cfg, uuc, tuc, ext, sr, ur, func(ctx context.Context, tenantID string, userID uint) error {
+		return iamdomain.ErrInactiveMembership
+	})
 
 	resp, err := uc.SwitchActiveTenant(ctx, 5, "tenant-1", "access-token")
 	require.ErrorIs(t, err, iamdomain.ErrInactiveMembership)
@@ -581,36 +565,23 @@ func TestLogout(t *testing.T) {
 		JWTKey:         "app-key",
 		AppRedirectURL: "https://app.example.com/after-auth",
 	}
-	sessionRepo := &sessionRepoFake{
-		items: map[string]entity.Session{
-			"session-1": {
-				ID:        "session-1",
-				UserID:    9,
-				Status:    entity.SessionStatusActive,
-				ExpiresAt: time.Now().Add(time.Hour),
-			},
-		},
-	}
-	refreshRepo := &refreshTokenRepoFake{
-		items: map[string]entity.RefreshToken{
-			"h1": {ID: "refresh-1", SessionID: "session-1"},
-		},
-	}
-	uc := NewAuthUsecase(
+	uc, state, _, _ := newStatefulAuthUC(
+		t,
+		cfg,
 		&inputmocks.MockUserUsecase{},
 		&inputmocks.MockTokenUsecase{},
 		&outputmocks.MockGoogleOauthExternal{},
 		&outputmocks.MockOauthStateRepository{},
 		&outputmocks.MockUserRepository{},
-		sessionRepo,
-		refreshRepo,
-		&tenantAccessCheckerFake{
-			ensureActiveMembershipFunc: func(ctx context.Context, tenantID string, userID uint) error {
-				return nil
-			},
-		},
-		cfg,
+		func(ctx context.Context, tenantID string, userID uint) error { return nil },
 	)
+	state.sessions["session-1"] = entity.Session{
+		ID:        "session-1",
+		UserID:    9,
+		Status:    entity.SessionStatusActive,
+		ExpiresAt: time.Now().Add(time.Hour),
+	}
+	state.refreshTokens["h1"] = entity.RefreshToken{ID: "refresh-1", SessionID: "session-1"}
 	tokenUC := NewTokenUsecase(cfg)
 	accessToken, err := tokenUC.CreateJwtTokenForSession(entity.User{Id: 9}, "", "session-1")
 	require.NoError(t, err)
@@ -618,7 +589,7 @@ func TestLogout(t *testing.T) {
 	loc, err := uc.Logout(context.Background(), accessToken)
 	require.NoError(t, err)
 	assert.Equal(t, "/", loc)
-	assert.Equal(t, entity.SessionStatusRevoked, sessionRepo.items["session-1"].Status)
+	assert.Equal(t, entity.SessionStatusRevoked, state.sessions["session-1"].Status)
 }
 
 func TestRefreshAccessToken_Success(t *testing.T) {
@@ -628,53 +599,40 @@ func TestRefreshAccessToken_Success(t *testing.T) {
 		AppRedirectURL: "https://app.example.com/after-auth",
 	}
 	now := time.Now().UTC()
-	sessionRepo := &sessionRepoFake{
-		items: map[string]entity.Session{
-			"session-1": {
-				ID:             "session-1",
-				UserID:         9,
-				ActiveTenantID: "tenant-1",
-				Status:         entity.SessionStatusActive,
-				CreatedAt:      now,
-				UpdatedAt:      now,
-				ExpiresAt:      now.Add(time.Hour),
-			},
-		},
-	}
 	rawRefresh := "refresh-raw-token"
-	refreshRepo := &refreshTokenRepoFake{
-		items: map[string]entity.RefreshToken{
-			entity.HashToken(rawRefresh): {
-				ID:        "refresh-1",
-				SessionID: "session-1",
-				TokenHash: entity.HashToken(rawRefresh),
-				ExpiresAt: now.Add(time.Hour),
-				CreatedAt: now,
-				UpdatedAt: now,
-			},
-		},
-	}
 	userRepo := &outputmocks.MockUserRepository{}
 	userRepo.On("GetByID", "9").Return(&entity.User{
 		Id:       9,
 		Email:    "neo@mx.io",
 		Username: "neo",
 	}, nil)
-	uc := NewAuthUsecase(
+	uc, state, _, _ := newStatefulAuthUC(
+		t,
+		cfg,
 		&inputmocks.MockUserUsecase{},
 		NewTokenUsecase(cfg),
 		&outputmocks.MockGoogleOauthExternal{},
 		&outputmocks.MockOauthStateRepository{},
 		userRepo,
-		sessionRepo,
-		refreshRepo,
-		&tenantAccessCheckerFake{
-			ensureActiveMembershipFunc: func(ctx context.Context, tenantID string, userID uint) error {
-				return nil
-			},
-		},
-		cfg,
+		func(ctx context.Context, tenantID string, userID uint) error { return nil },
 	)
+	state.sessions["session-1"] = entity.Session{
+		ID:             "session-1",
+		UserID:         9,
+		ActiveTenantID: "tenant-1",
+		Status:         entity.SessionStatusActive,
+		CreatedAt:      now,
+		UpdatedAt:      now,
+		ExpiresAt:      now.Add(time.Hour),
+	}
+	state.refreshTokens[entity.HashToken(rawRefresh)] = entity.RefreshToken{
+		ID:        "refresh-1",
+		SessionID: "session-1",
+		TokenHash: entity.HashToken(rawRefresh),
+		ExpiresAt: now.Add(time.Hour),
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
 
 	resp, err := uc.RefreshAccessToken(context.Background(), rawRefresh)
 	require.NoError(t, err)
@@ -684,8 +642,7 @@ func TestRefreshAccessToken_Success(t *testing.T) {
 	assert.NotEqual(t, rawRefresh, resp.RefreshToken)
 	assert.Equal(t, uint(9), resp.UserInfo.Id)
 
-	storedOld, err := refreshRepo.GetByTokenHash(context.Background(), entity.HashToken(rawRefresh))
-	require.NoError(t, err)
+	storedOld := state.refreshTokens[entity.HashToken(rawRefresh)]
 	assert.NotNil(t, storedOld.RevokedAt)
 	userRepo.AssertExpectations(t)
 }

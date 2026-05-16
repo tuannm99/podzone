@@ -32,10 +32,11 @@ func provideCORSMiddleware() pdhttp.Middleware {
 
 type gqlRegistrarParams struct {
 	fx.In
-	Cfg      pdgraphql.Config
-	BOCfg    boconfig.Config
-	Authz    TenantAuthorizer
-	Resolver *resolver.Resolver
+	Cfg          pdgraphql.Config
+	BOCfg        boconfig.Config
+	Authz        TenantAuthorizer
+	Bootstrapper TenantBootstrapper
+	Resolver     *resolver.Resolver
 }
 
 func graphQLRegistrar(p gqlRegistrarParams) pdhttp.RouteRegistrar {
@@ -58,7 +59,7 @@ func graphQLRegistrar(p gqlRegistrarParams) pdhttp.RouteRegistrar {
 		srv.Use(extension.AutomaticPersistedQuery{Cache: lru.New[string](100)})
 
 		// app-specific extension
-		srv.Use(NewTenantMiddleware(p.BOCfg, p.Authz))
+		srv.Use(NewTenantMiddleware(p.BOCfg, p.Authz, p.Bootstrapper))
 
 		r.POST(p.Cfg.QueryPath, gin.HandlerFunc(func(c *gin.Context) {
 			srv.ServeHTTP(c.Writer, c.Request)
