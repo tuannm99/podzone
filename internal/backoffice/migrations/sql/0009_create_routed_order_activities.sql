@@ -15,3 +15,35 @@ CREATE INDEX IF NOT EXISTS idx_routed_order_activities_created_at
 
 CREATE INDEX IF NOT EXISTS idx_routed_order_activities_order_id
 	ON routed_order_activities (order_id);
+
+INSERT INTO routed_order_activities (
+	order_id,
+	product_title,
+	operator_assignee,
+	activity_type,
+	actor,
+	message,
+	details_json,
+	created_at
+)
+SELECT
+	ro.id,
+	ro.product_title,
+	ro.operator_assignee,
+	COALESCE(activity.item->>'type', 'system'),
+	COALESCE(NULLIF(activity.item->>'actor', ''), 'system'),
+	COALESCE(activity.item->>'message', ''),
+	COALESCE(activity.item->'details', '[]'::jsonb)::text,
+	COALESCE(
+		NULLIF(activity.item->>'createdAt', '')::timestamptz,
+		ro.updated_at,
+		ro.created_at,
+		NOW()
+	)
+FROM routed_orders ro
+CROSS JOIN LATERAL jsonb_array_elements(COALESCE(ro.activity_log_json, '[]')::jsonb) AS activity(item)
+WHERE NOT EXISTS (
+	SELECT 1
+	FROM routed_order_activities existing
+	WHERE existing.order_id = ro.id
+);
