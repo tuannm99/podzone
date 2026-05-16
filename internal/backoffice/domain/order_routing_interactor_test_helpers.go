@@ -49,6 +49,15 @@ func newOrderRoutingTestInteractor(t *testing.T, candidates map[string]entity.Pr
 	ordersMock.EXPECT().ListActivityFeed(mock.Anything, mock.Anything).RunAndReturn(func(_ context.Context, query inputport.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error) {
 		entries := make([]entity.RoutedOrderActivityFeedEntry, 0)
 		for _, order := range orderState.orders {
+			if query.OrderID != "" && order.ID != strings.TrimSpace(query.OrderID) {
+				continue
+			}
+			if query.Partner != "" && !strings.Contains(strings.ToLower(order.Partner), strings.ToLower(query.Partner)) {
+				continue
+			}
+			if query.Assignee != "" && !strings.Contains(strings.ToLower(order.OperatorAssignee), strings.ToLower(query.Assignee)) {
+				continue
+			}
 			for _, activity := range order.ActivityLog {
 				if query.ActivityType == "notes" && activity.Type == entity.RoutedOrderActivityTypeSystem {
 					continue
@@ -68,6 +77,7 @@ func newOrderRoutingTestInteractor(t *testing.T, candidates map[string]entity.Pr
 				entries = append(entries, entity.RoutedOrderActivityFeedEntry{
 					OrderID:          order.ID,
 					ProductTitle:     order.ProductTitle,
+					Partner:          order.Partner,
 					OperatorAssignee: order.OperatorAssignee,
 					Activity:         activity,
 				})

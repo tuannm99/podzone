@@ -63,6 +63,7 @@ type RoutedOrderActivityDetail {
 type RoutedOrderActivityFeedEntry {
   orderId: ID!
   productTitle: String!
+  partner: String!
   operatorAssignee: String!
   activity: RoutedOrderActivity!
 }
@@ -191,6 +192,9 @@ input BulkUpdateRoutedOrdersInput {
 input RoutedOrderActivityFeedInput {
   activityType: String
   actorContains: String
+  orderId: ID
+  partner: String
+  assignee: String
   since: Time
   limit: Int
   after: String

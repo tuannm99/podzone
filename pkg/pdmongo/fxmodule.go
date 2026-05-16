@@ -2,6 +2,7 @@ package pdmongo
 
 import (
 	"context"
+	"time"
 
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -64,7 +65,13 @@ func ModuleFor(name string) fx.Option {
 func registerLifecycle(lc fx.Lifecycle, client MongoClient, log pdlog.Logger, cfg *Config) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			err := client.Ping(ctx)
+			pingTimeout := cfg.PingTimeout
+			if pingTimeout <= 0 {
+				pingTimeout = 5 * time.Second
+			}
+			pingCtx, cancel := context.WithTimeout(ctx, pingTimeout)
+			defer cancel()
+			err := client.Ping(pingCtx)
 			if err != nil {
 				log.Error("Mongo ping failed", "error", err, "uri", cfg.URI)
 				return err

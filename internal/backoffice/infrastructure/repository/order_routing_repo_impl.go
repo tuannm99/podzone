@@ -69,6 +69,7 @@ type routedOrderActivityRow struct {
 	ID               int64     `db:"id"`
 	OrderID          string    `db:"order_id"`
 	ProductTitle     string    `db:"product_title"`
+	Partner          string    `db:"partner"`
 	OperatorAssignee string    `db:"operator_assignee"`
 	ActivityType     string    `db:"activity_type"`
 	Actor            string    `db:"actor"`
@@ -160,7 +161,7 @@ func (r *OrderRoutingRepositoryImpl) ListActivityFeed(ctx context.Context, query
 	}
 
 	builder := psql.
-		Select("id", "order_id", "product_title", "operator_assignee", "activity_type", "actor", "message", "details_json", "created_at").
+		Select("id", "order_id", "product_title", "partner", "operator_assignee", "activity_type", "actor", "message", "details_json", "created_at").
 		From("routed_order_activities")
 	countBuilder := psql.Select("COUNT(*)").From("routed_order_activities")
 	applyFilters := func(b sq.SelectBuilder) sq.SelectBuilder {
@@ -177,6 +178,15 @@ func (r *OrderRoutingRepositoryImpl) ListActivityFeed(ctx context.Context, query
 		}
 		if actor := strings.ToLower(strings.TrimSpace(query.ActorContains)); actor != "" {
 			b = b.Where("LOWER(actor) LIKE ?", "%"+actor+"%")
+		}
+		if orderID := strings.TrimSpace(query.OrderID); orderID != "" {
+			b = b.Where(sq.Eq{"order_id": orderID})
+		}
+		if partner := strings.ToLower(strings.TrimSpace(query.Partner)); partner != "" {
+			b = b.Where("LOWER(partner) LIKE ?", "%"+partner+"%")
+		}
+		if assignee := strings.ToLower(strings.TrimSpace(query.Assignee)); assignee != "" {
+			b = b.Where("LOWER(operator_assignee) LIKE ?", "%"+assignee+"%")
 		}
 		return b
 	}
@@ -260,7 +270,7 @@ func (r *OrderRoutingRepositoryImpl) Create(ctx context.Context, order entity.Ro
 		if _, err = tx.ExecContext(ctx, query, args...); err != nil {
 			return err
 		}
-		return insertOrderActivities(ctx, tx, order.ID, order.ProductTitle, order.OperatorAssignee, order.ActivityLog)
+		return insertOrderActivities(ctx, tx, order.ID, order.ProductTitle, order.Partner, order.OperatorAssignee, order.ActivityLog)
 	}); err != nil {
 		return nil, err
 	}
@@ -329,7 +339,7 @@ func (r *OrderRoutingRepositoryImpl) Update(ctx context.Context, order entity.Ro
 			return fmt.Errorf("routed order not found")
 		}
 		if len(order.ActivityLog) > existingActivityCount {
-			return insertOrderActivities(ctx, tx, order.ID, order.ProductTitle, order.OperatorAssignee, order.ActivityLog[existingActivityCount:])
+			return insertOrderActivities(ctx, tx, order.ID, order.ProductTitle, order.Partner, order.OperatorAssignee, order.ActivityLog[existingActivityCount:])
 		}
 		return nil
 	}); err != nil {
@@ -419,6 +429,7 @@ func mapRoutedOrderActivityRow(row routedOrderActivityRow) (entity.RoutedOrderAc
 	return entity.RoutedOrderActivityFeedEntry{
 		OrderID:          row.OrderID,
 		ProductTitle:     row.ProductTitle,
+		Partner:          row.Partner,
 		OperatorAssignee: row.OperatorAssignee,
 		Activity: entity.RoutedOrderActivity{
 			Type:      row.ActivityType,
@@ -430,7 +441,7 @@ func mapRoutedOrderActivityRow(row routedOrderActivityRow) (entity.RoutedOrderAc
 	}, nil
 }
 
-func insertOrderActivities(ctx context.Context, tx *sqlx.Tx, orderID, productTitle, operatorAssignee string, activities []entity.RoutedOrderActivity) error {
+func insertOrderActivities(ctx context.Context, tx *sqlx.Tx, orderID, productTitle, partner, operatorAssignee string, activities []entity.RoutedOrderActivity) error {
 	for _, activity := range activities {
 		detailsJSON, err := json.Marshal(activity.Details)
 		if err != nil {
@@ -438,10 +449,11 @@ func insertOrderActivities(ctx context.Context, tx *sqlx.Tx, orderID, productTit
 		}
 		if _, err := tx.ExecContext(
 			ctx,
-			`INSERT INTO routed_order_activities (order_id, product_title, operator_assignee, activity_type, actor, message, details_json, created_at)
-			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+			`INSERT INTO routed_order_activities (order_id, product_title, partner, operator_assignee, activity_type, actor, message, details_json, created_at)
+			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
 			orderID,
 			productTitle,
+			partner,
 			operatorAssignee,
 			activity.Type,
 			activity.Actor,
@@ -469,7 +481,7 @@ func loadOrderActivitiesByOrderIDs(ctx context.Context, tx *sqlx.Tx, orderIDs []
 		return activitiesByOrderID, nil
 	}
 	query, args, err := psql.
-		Select("id", "order_id", "product_title", "operator_assignee", "activity_type", "actor", "message", "details_json", "created_at").
+		Select("id", "order_id", "product_title", "partner", "operator_assignee", "activity_type", "actor", "message", "details_json", "created_at").
 		From("routed_order_activities").
 		Where(sq.Eq{"order_id": orderIDs}).
 		OrderBy("created_at ASC", "id ASC").

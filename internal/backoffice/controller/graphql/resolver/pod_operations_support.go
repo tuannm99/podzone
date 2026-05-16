@@ -156,6 +156,7 @@ func toGraphQLRoutedOrderActivityFeedEntry(entry entity.RoutedOrderActivityFeedE
 	return &model.RoutedOrderActivityFeedEntry{
 		OrderID:          entry.OrderID,
 		ProductTitle:     entry.ProductTitle,
+		Partner:          entry.Partner,
 		OperatorAssignee: entry.OperatorAssignee,
 		Activity:         toGraphQLRoutedOrderActivity(entry.Activity),
 	}

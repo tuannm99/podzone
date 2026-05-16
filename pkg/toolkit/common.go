@@ -32,6 +32,8 @@ func GetEnv[T any](envName string, fallback T) T {
 	return fallback
 }
 
+// MapStruct maps via JSON marshal/unmarshal.
+// Deprecated: this is lossy and allocation-heavy; prefer explicit mapping or boundary-specific helpers.
 func MapStruct[S any, T any](source S) (*T, error) {
 	var target T
 

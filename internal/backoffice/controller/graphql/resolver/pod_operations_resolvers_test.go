@@ -212,6 +212,9 @@ func TestRoutedOrderActivitiesMapsQueryAndResponse(t *testing.T) {
 	orderUC.EXPECT().ListRoutedOrderActivities(mock.Anything, mock.Anything).RunAndReturn(func(_ context.Context, query inputport.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error) {
 		require.Equal(t, "shipment_note", query.ActivityType)
 		require.Equal(t, "user:12", query.ActorContains)
+		require.Equal(t, "ord-1", query.OrderID)
+		require.Equal(t, "print partner a", query.Partner)
+		require.Equal(t, "ops.lead", query.Assignee)
 		require.NotNil(t, query.Since)
 		require.True(t, query.Since.Equal(since))
 		require.Equal(t, 25, query.Limit)
@@ -223,6 +226,7 @@ func TestRoutedOrderActivitiesMapsQueryAndResponse(t *testing.T) {
 				{
 					OrderID:          "ord-1",
 					ProductTitle:     "Vintage Tee",
+					Partner:          "Print Partner A",
 					OperatorAssignee: "ops.lead",
 					Activity: entity.RoutedOrderActivity{
 						Type:      entity.RoutedOrderActivityTypeShipmentNote,
@@ -246,6 +250,9 @@ func TestRoutedOrderActivitiesMapsQueryAndResponse(t *testing.T) {
 	got, err := resolver.RoutedOrderActivities(context.Background(), &model.RoutedOrderActivityFeedInput{
 		ActivityType:  ptrString("shipment_note"),
 		ActorContains: ptrString("user:12"),
+		OrderID:       ptrString("ord-1"),
+		Partner:       ptrString("print partner a"),
+		Assignee:      ptrString("ops.lead"),
 		Since:         &since,
 		Limit:         ptrInt(25),
 		After:         ptrString("cursor-1"),
@@ -254,6 +261,7 @@ func TestRoutedOrderActivitiesMapsQueryAndResponse(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, got.Entries, 1)
 	require.Equal(t, "ord-1", got.Entries[0].OrderID)
+	require.Equal(t, "Print Partner A", got.Entries[0].Partner)
 	require.Equal(t, "DHL", got.Entries[0].Activity.Details[0].Value)
 	require.Equal(t, 80, got.Total)
 	require.NotNil(t, got.NextCursor)

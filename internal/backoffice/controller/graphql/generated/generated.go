@@ -177,6 +177,7 @@ type ComplexityRoot struct {
 		Activity         func(childComplexity int) int
 		OperatorAssignee func(childComplexity int) int
 		OrderID          func(childComplexity int) int
+		Partner          func(childComplexity int) int
 		ProductTitle     func(childComplexity int) int
 	}
 
@@ -946,6 +947,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.RoutedOrderActivityFeedEntry.OrderID(childComplexity), true
+	case "RoutedOrderActivityFeedEntry.partner":
+		if e.complexity.RoutedOrderActivityFeedEntry.Partner == nil {
+			break
+		}
+
+		return e.complexity.RoutedOrderActivityFeedEntry.Partner(childComplexity), true
 	case "RoutedOrderActivityFeedEntry.productTitle":
 		if e.complexity.RoutedOrderActivityFeedEntry.ProductTitle == nil {
 			break
@@ -1237,6 +1244,7 @@ type RoutedOrderActivityDetail {
 type RoutedOrderActivityFeedEntry {
   orderId: ID!
   productTitle: String!
+  partner: String!
   operatorAssignee: String!
   activity: RoutedOrderActivity!
 }
@@ -1365,6 +1373,9 @@ input BulkUpdateRoutedOrdersInput {
 input RoutedOrderActivityFeedInput {
   activityType: String
   actorContains: String
+  orderId: ID
+  partner: String
+  assignee: String
   since: Time
   limit: Int
   after: String
@@ -5849,6 +5860,35 @@ func (ec *executionContext) fieldContext_RoutedOrderActivityFeedEntry_productTit
 	return fc, nil
 }
 
+func (ec *executionContext) _RoutedOrderActivityFeedEntry_partner(ctx context.Context, field graphql.CollectedField, obj *model.RoutedOrderActivityFeedEntry) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutedOrderActivityFeedEntry_partner,
+		func(ctx context.Context) (any, error) {
+			return obj.Partner, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutedOrderActivityFeedEntry_partner(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutedOrderActivityFeedEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _RoutedOrderActivityFeedEntry_operatorAssignee(ctx context.Context, field graphql.CollectedField, obj *model.RoutedOrderActivityFeedEntry) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -5947,6 +5987,8 @@ func (ec *executionContext) fieldContext_RoutedOrderActivityFeedPage_entries(_ c
 				return ec.fieldContext_RoutedOrderActivityFeedEntry_orderId(ctx, field)
 			case "productTitle":
 				return ec.fieldContext_RoutedOrderActivityFeedEntry_productTitle(ctx, field)
+			case "partner":
+				return ec.fieldContext_RoutedOrderActivityFeedEntry_partner(ctx, field)
 			case "operatorAssignee":
 				return ec.fieldContext_RoutedOrderActivityFeedEntry_operatorAssignee(ctx, field)
 			case "activity":
@@ -8175,7 +8217,7 @@ func (ec *executionContext) unmarshalInputRoutedOrderActivityFeedInput(ctx conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"activityType", "actorContains", "since", "limit", "after", "includeSystem"}
+	fieldsInOrder := [...]string{"activityType", "actorContains", "orderId", "partner", "assignee", "since", "limit", "after", "includeSystem"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -8196,6 +8238,27 @@ func (ec *executionContext) unmarshalInputRoutedOrderActivityFeedInput(ctx conte
 				return it, err
 			}
 			it.ActorContains = data
+		case "orderId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderId"))
+			data, err := ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OrderID = data
+		case "partner":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("partner"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Partner = data
+		case "assignee":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("assignee"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Assignee = data
 		case "since":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("since"))
 			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
@@ -9481,6 +9544,11 @@ func (ec *executionContext) _RoutedOrderActivityFeedEntry(ctx context.Context, s
 			}
 		case "productTitle":
 			out.Values[i] = ec._RoutedOrderActivityFeedEntry_productTitle(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "partner":
+			out.Values[i] = ec._RoutedOrderActivityFeedEntry_partner(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -11055,6 +11123,24 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	_ = sel
 	_ = ctx
 	res := graphql.MarshalBoolean(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v any) (*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalID(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	_ = sel
+	_ = ctx
+	res := graphql.MarshalID(*v)
 	return res
 }
 

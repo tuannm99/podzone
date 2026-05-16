@@ -1,6 +1,6 @@
 package config
 
-import "os"
+import "github.com/tuannm99/podzone/pkg/toolkit"
 
 type AuthConfig struct {
 	JWTSecret      string
@@ -10,8 +10,8 @@ type AuthConfig struct {
 
 func NewAuthConfig() AuthConfig {
 	return AuthConfig{
-		JWTSecret:      os.Getenv("JWT_SECRET"),
-		JWTKey:         os.Getenv("JWT_KEY"),
-		AppRedirectURL: os.Getenv("APP_REDIRECT_URL"),
+		JWTSecret:      toolkit.GetEnv("JWT_SECRET", ""),
+		JWTKey:         toolkit.GetEnv("JWT_KEY", ""),
+		AppRedirectURL: toolkit.GetEnv("APP_REDIRECT_URL", ""),
 	}
 }

@@ -48,6 +48,7 @@ export type RoutedOrder = {
 export type RoutedOrderActivityFeedEntry = {
   orderId: string;
   productTitle: string;
+  partner: string;
   operatorAssignee: string;
   activity: RoutedOrder['activityLog'][number];
 };
@@ -105,6 +106,9 @@ type BulkUpdateRoutedOrdersPayload = {
 type RoutedOrderActivityFeedQuery = {
   activityType?: string;
   actorContains?: string;
+  orderId?: string;
+  partner?: string;
+  assignee?: string;
   since?: string;
   limit?: number;
   after?: string;
@@ -184,6 +188,7 @@ export async function getRoutedOrderActivities(
           entries {
             orderId
             productTitle
+            partner
             operatorAssignee
             activity {
               type

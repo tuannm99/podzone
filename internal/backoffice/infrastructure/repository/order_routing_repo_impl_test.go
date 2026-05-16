@@ -141,6 +141,20 @@ func TestOrderRoutingRepositoryPersistsTenantScopedOrders(t *testing.T) {
 	require.Equal(t, 2, feedPage.Total)
 	require.Len(t, feedPage.Entries, 2)
 	require.Equal(t, "ord-repo-1", feedPage.Entries[0].OrderID)
+	require.Equal(t, "Print Partner A", feedPage.Entries[0].Partner)
+
+	filteredFeed, err := repo.ListActivityFeed(ctxA, inputport.ListRoutedOrderActivitiesQuery{
+		OrderID:       "ord-repo-1",
+		Partner:       "partner a",
+		Assignee:      "ops.lead",
+		ActivityType:  entity.RoutedOrderActivityTypeShipmentNote,
+		Limit:         10,
+		IncludeSystem: true,
+	})
+	require.NoError(t, err)
+	require.Equal(t, 1, filteredFeed.Total)
+	require.Len(t, filteredFeed.Entries, 1)
+	require.Equal(t, entity.RoutedOrderActivityTypeShipmentNote, filteredFeed.Entries[0].Activity.Type)
 
 	ctxB := toolkit.WithTenantID(context.Background(), "tenant-orders-b")
 	_, err = repo.GetByID(ctxB, "ord-repo-1")
@@ -314,6 +328,7 @@ func TestOrderRoutingRepositoryBackfillsLegacyActivityLogOnLegacyMigration(t *te
 	require.Equal(t, 2, feedPage.Total)
 	require.Len(t, feedPage.Entries, 2)
 	require.Equal(t, "ord-legacy-1", feedPage.Entries[0].OrderID)
+	require.Equal(t, "Print Partner Legacy", feedPage.Entries[0].Partner)
 	require.Equal(t, entity.RoutedOrderActivityTypeShipmentNote, feedPage.Entries[0].Activity.Type)
 	require.Equal(t, "user:88", feedPage.Entries[0].Activity.Actor)
 	require.Equal(t, "ops.legacy", feedPage.Entries[0].OperatorAssignee)

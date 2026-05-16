@@ -50,6 +50,7 @@ type RoutedOrderActivityDetail struct {
 type RoutedOrderActivityFeedEntry struct {
 	OrderID          string              `json:"orderId"`
 	ProductTitle     string              `json:"productTitle"`
+	Partner          string              `json:"partner"`
 	OperatorAssignee string              `json:"operatorAssignee"`
 	Activity         RoutedOrderActivity `json:"activity"`
 }

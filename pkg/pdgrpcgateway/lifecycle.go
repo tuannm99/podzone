@@ -2,12 +2,12 @@ package pdgrpcgateway
 
 import (
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/rs/cors"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/pdserver"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 	"go.uber.org/fx"
 )
 
@@ -20,10 +20,7 @@ type Params struct {
 }
 
 func startHTTPGateway(p Params) {
-	httpPort := os.Getenv("GW_HTTP_PORT")
-	if httpPort == "" {
-		httpPort = "8088"
-	}
+	httpPort := toolkit.GetEnv("GW_HTTP_PORT", "8088")
 
 	c := cors.New(cors.Options{
 		AllowOriginFunc: func(origin string) bool {

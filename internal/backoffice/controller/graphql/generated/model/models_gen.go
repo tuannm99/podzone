@@ -161,6 +161,7 @@ type RoutedOrderActivityDetail struct {
 type RoutedOrderActivityFeedEntry struct {
 	OrderID          string               `json:"orderId"`
 	ProductTitle     string               `json:"productTitle"`
+	Partner          string               `json:"partner"`
 	OperatorAssignee string               `json:"operatorAssignee"`
 	Activity         *RoutedOrderActivity `json:"activity"`
 }
@@ -168,6 +169,9 @@ type RoutedOrderActivityFeedEntry struct {
 type RoutedOrderActivityFeedInput struct {
 	ActivityType  *string    `json:"activityType,omitempty"`
 	ActorContains *string    `json:"actorContains,omitempty"`
+	OrderID       *string    `json:"orderId,omitempty"`
+	Partner       *string    `json:"partner,omitempty"`
+	Assignee      *string    `json:"assignee,omitempty"`
 	Since         *time.Time `json:"since,omitempty"`
 	Limit         *int       `json:"limit,omitempty"`
 	After         *string    `json:"after,omitempty"`

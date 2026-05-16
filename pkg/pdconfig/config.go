@@ -9,13 +9,14 @@ import (
 	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/rawbytes"
 	"github.com/knadh/koanf/v2"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 func NewAppConfig() (*koanf.Koanf, error) {
 	k := koanf.New(".")
 
 	// 1) YAML
-	path := os.Getenv("CONFIG_PATH")
+	path := toolkit.GetEnv("CONFIG_PATH", "")
 	if path == "" {
 		fmt.Println("CONFIG_PATH is empty: running ENV-only mode")
 	} else {
@@ -32,7 +33,7 @@ func NewAppConfig() (*koanf.Koanf, error) {
 	}
 
 	// 2) ENV override
-	prefix := strings.ToUpper(strings.TrimSpace(os.Getenv("ENV_PREFIX")))
+	prefix := strings.ToUpper(strings.TrimSpace(toolkit.GetEnv("ENV_PREFIX", "")))
 	if prefix != "" && !strings.HasSuffix(prefix, "_") {
 		prefix += "_"
 	}

@@ -211,6 +211,15 @@ func (r *queryResolver) RoutedOrderActivities(ctx context.Context, input *model.
 		if input.ActorContains != nil {
 			query.ActorContains = *input.ActorContains
 		}
+		if input.OrderID != nil {
+			query.OrderID = *input.OrderID
+		}
+		if input.Partner != nil {
+			query.Partner = *input.Partner
+		}
+		if input.Assignee != nil {
+			query.Assignee = *input.Assignee
+		}
 		query.Since = input.Since
 		if input.Limit != nil {
 			query.Limit = *input.Limit

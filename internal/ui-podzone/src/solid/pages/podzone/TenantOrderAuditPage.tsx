@@ -91,6 +91,7 @@ function formatFeedSummary(
         `[${formatActivityTime(entry.activity.createdAt)}]`,
         entry.orderId,
         `(${entry.productTitle})`,
+        `[${entry.partner}]`,
         `owner ${entry.operatorAssignee || 'unassigned'}`,
         entry.activity.type,
         `by ${formatActivityActor(entry.activity.actor)}`,
@@ -114,6 +115,9 @@ export default function TenantOrderAuditPage() {
   const [hideSystemActivity, setHideSystemActivity] = createSignal(true);
   const [timeWindow, setTimeWindow] = createSignal<TimeWindow>('7d');
   const [actorFilter, setActorFilter] = createSignal('');
+  const [orderFilter, setOrderFilter] = createSignal('');
+  const [partnerFilter, setPartnerFilter] = createSignal('');
+  const [assigneeFilter, setAssigneeFilter] = createSignal('');
   const [message, setMessage] = createSignal('');
   const [error, setError] = createSignal('');
 
@@ -121,6 +125,9 @@ export default function TenantOrderAuditPage() {
     const result = await getRoutedOrderActivities({
       activityType: activityFilter(),
       actorContains: actorFilter().trim(),
+      orderId: orderFilter().trim(),
+      partner: partnerFilter().trim(),
+      assignee: assigneeFilter().trim(),
       since: resolveSinceIso(timeWindow()),
       limit: 50,
       after,
@@ -173,6 +180,9 @@ export default function TenantOrderAuditPage() {
     activityFilter();
     hideSystemActivity();
     actorFilter();
+    orderFilter();
+    partnerFilter();
+    assigneeFilter();
     timeWindow();
     void loadEntries(undefined, false);
   });
@@ -198,7 +208,7 @@ export default function TenantOrderAuditPage() {
       <Card class="space-y-4">
         <SectionTitle
           title="Audit filters"
-          subtitle="Focus the store-wide activity feed by activity type, actor, and recent time window."
+          subtitle="Focus the store-wide activity feed by type, actor, order, partner, assignee, and recent time window."
         />
         <div class="grid gap-4 md:grid-cols-3">
           <SelectField
@@ -228,6 +238,24 @@ export default function TenantOrderAuditPage() {
             value={actorFilter()}
             placeholder="user:12"
             onInput={(event) => setActorFilter(event.currentTarget.value)}
+          />
+          <InputField
+            label="Order filter"
+            value={orderFilter()}
+            placeholder="ORD-1234ABCD"
+            onInput={(event) => setOrderFilter(event.currentTarget.value)}
+          />
+          <InputField
+            label="Partner filter"
+            value={partnerFilter()}
+            placeholder="Print Partner A"
+            onInput={(event) => setPartnerFilter(event.currentTarget.value)}
+          />
+          <InputField
+            label="Assignee filter"
+            value={assigneeFilter()}
+            placeholder="ops.lead"
+            onInput={(event) => setAssigneeFilter(event.currentTarget.value)}
           />
         </div>
         <div class="flex flex-wrap items-center gap-2">
@@ -307,6 +335,7 @@ export default function TenantOrderAuditPage() {
                         {entry.orderId}
                       </p>
                       <p class="text-sm text-slate-500">{entry.productTitle}</p>
+                      <p class="text-sm text-slate-500">{entry.partner}</p>
                     </div>
                     <p class="text-xs text-slate-500">
                       {formatActivityTime(entry.activity.createdAt)}

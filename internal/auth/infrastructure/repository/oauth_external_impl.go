@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 var _ outputport.GoogleOauthExternal = (*googleOauthImpl)(nil)
@@ -23,9 +23,9 @@ type googleOauthImpl struct {
 
 func NewGoogleOauthImpl() *googleOauthImpl {
 	config := &oauth2.Config{
-		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
-		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
-		RedirectURL:  os.Getenv("OAUTH_REDIRECT_URL"),
+		ClientID:     toolkit.GetEnv("GOOGLE_CLIENT_ID", ""),
+		ClientSecret: toolkit.GetEnv("GOOGLE_CLIENT_SECRET", ""),
+		RedirectURL:  toolkit.GetEnv("OAUTH_REDIRECT_URL", ""),
 		Scopes: []string{
 			"https://www.googleapis.com/auth/userinfo.email",
 			"https://www.googleapis.com/auth/userinfo.profile",
