@@ -1,0 +1,11 @@
+ALTER TABLE auth_sessions
+ADD COLUMN IF NOT EXISTS assumed_role_id BIGINT NOT NULL DEFAULT 0;
+
+ALTER TABLE auth_sessions
+ADD COLUMN IF NOT EXISTS assumed_role_scope TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE auth_sessions
+ADD COLUMN IF NOT EXISTS assumed_role_name TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE auth_sessions
+ADD COLUMN IF NOT EXISTS assumed_role_tenant_id TEXT NOT NULL DEFAULT '';

@@ -16,11 +16,22 @@ type tenantModel struct {
 
 type roleModel struct {
 	ID          uint64    `db:"id"`
+	Scope       string    `db:"scope"`
 	Name        string    `db:"name"`
 	Description string    `db:"description"`
 	IsSystem    bool      `db:"is_system"`
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at"`
+}
+
+type roleTrustStatementModel struct {
+	ID               uint64    `db:"id"`
+	RoleID           uint64    `db:"role_id"`
+	Effect           string    `db:"effect"`
+	PrincipalType    string    `db:"principal_type"`
+	PrincipalPattern string    `db:"principal_pattern"`
+	TenantPattern    string    `db:"tenant_pattern"`
+	CreatedAt        time.Time `db:"created_at"`
 }
 
 type policyModel struct {
@@ -44,6 +55,24 @@ type groupModel struct {
 	UpdatedAt   time.Time `db:"updated_at"`
 }
 
+type groupInlinePolicyModel struct {
+	GroupID     uint64    `db:"group_id"`
+	Name        string    `db:"name"`
+	Description string    `db:"description"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
+}
+
+type userInlinePolicyModel struct {
+	Scope       string    `db:"scope"`
+	TenantID    string    `db:"tenant_id"`
+	UserID      uint      `db:"user_id"`
+	Name        string    `db:"name"`
+	Description string    `db:"description"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
+}
+
 type policyStatementModel struct {
 	ID              uint64    `db:"id"`
 	PolicyID        uint64    `db:"policy_id"`
@@ -52,6 +81,18 @@ type policyStatementModel struct {
 	ActionPattern   string    `db:"action_pattern"`
 	ResourcePattern string    `db:"resource_pattern"`
 	CreatedAt       time.Time `db:"created_at"`
+}
+
+type policyAttachmentModel struct {
+	AttachmentType string    `db:"attachment_type"`
+	Scope          string    `db:"scope"`
+	TenantID       string    `db:"tenant_id"`
+	RoleID         uint64    `db:"role_id"`
+	RoleName       string    `db:"role_name"`
+	UserID         uint      `db:"user_id"`
+	GroupID        uint64    `db:"group_id"`
+	GroupName      string    `db:"group_name"`
+	CreatedAt      time.Time `db:"created_at"`
 }
 
 type membershipModel struct {
@@ -120,6 +161,20 @@ func (m policyStatementModel) toEntity() iamdomain.PolicyStatement {
 	}
 }
 
+func (m policyAttachmentModel) toEntity() iamdomain.PolicyAttachment {
+	return iamdomain.PolicyAttachment{
+		AttachmentType: m.AttachmentType,
+		Scope:          m.Scope,
+		TenantID:       m.TenantID,
+		RoleID:         m.RoleID,
+		RoleName:       m.RoleName,
+		UserID:         m.UserID,
+		GroupID:        m.GroupID,
+		GroupName:      m.GroupName,
+		CreatedAt:      m.CreatedAt,
+	}
+}
+
 func (m policyModel) toEntity() iamdomain.Policy {
 	return iamdomain.Policy{
 		ID:          m.ID,
@@ -142,5 +197,41 @@ func (m groupModel) toEntity() iamdomain.Group {
 		IsSystem:    m.IsSystem,
 		CreatedAt:   m.CreatedAt,
 		UpdatedAt:   m.UpdatedAt,
+	}
+}
+
+func (m groupInlinePolicyModel) toEntity(statements []iamdomain.PolicyStatement) iamdomain.GroupInlinePolicy {
+	return iamdomain.GroupInlinePolicy{
+		GroupID:     m.GroupID,
+		Name:        m.Name,
+		Description: m.Description,
+		Statements:  statements,
+		CreatedAt:   m.CreatedAt,
+		UpdatedAt:   m.UpdatedAt,
+	}
+}
+
+func (m userInlinePolicyModel) toEntity(statements []iamdomain.PolicyStatement) iamdomain.UserInlinePolicy {
+	return iamdomain.UserInlinePolicy{
+		Scope:       m.Scope,
+		TenantID:    m.TenantID,
+		UserID:      m.UserID,
+		Name:        m.Name,
+		Description: m.Description,
+		Statements:  statements,
+		CreatedAt:   m.CreatedAt,
+		UpdatedAt:   m.UpdatedAt,
+	}
+}
+
+func (m roleTrustStatementModel) toEntity() iamdomain.RoleTrustStatement {
+	return iamdomain.RoleTrustStatement{
+		ID:               m.ID,
+		RoleID:           m.RoleID,
+		Effect:           m.Effect,
+		PrincipalType:    m.PrincipalType,
+		PrincipalPattern: m.PrincipalPattern,
+		TenantPattern:    m.TenantPattern,
+		CreatedAt:        m.CreatedAt,
 	}
 }

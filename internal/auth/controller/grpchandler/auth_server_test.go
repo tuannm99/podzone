@@ -39,8 +39,7 @@ func TestGoogleLogin_Err(t *testing.T) {
 	srv, uc := newServerWithMock(t)
 	ctx := context.Background()
 
-	uc.On("GenerateOAuthURL", mock.Anything).
-		Return("", assert.AnError)
+	uc.On("GenerateOAuthURL", mock.Anything).Return("", assert.AnError)
 
 	res, err := srv.GoogleLogin(ctx, &pbauthv1.GoogleLoginRequest{})
 	require.Error(t, err)
@@ -174,9 +173,12 @@ func TestListAuditLogs_OK(t *testing.T) {
 	now := time.Date(2026, 5, 1, 16, 0, 0, 0, time.UTC)
 	srv := NewAuthServer(
 		&inputmocks.MockAuthUsecase{},
-		newSessionRepoMock(t, sessionRepoMockConfig{getByIDFunc: func(ctx context.Context, id string) (*entity.Session, error) {
-			return nil, entity.ErrSessionNotFound
-		}}),
+		newSessionRepoMock(
+			t,
+			sessionRepoMockConfig{getByIDFunc: func(ctx context.Context, id string) (*entity.Session, error) {
+				return nil, entity.ErrSessionNotFound
+			}},
+		),
 		newAuditRepoMock(t, auditRepoMockConfig{
 			listByActorFunc: func(ctx context.Context, actorUserID uint, limit int) ([]entity.AuditLog, error) {
 				require.Equal(t, uint(7), actorUserID)
@@ -302,6 +304,43 @@ func TestGetPolicy_OK(t *testing.T) {
 	require.Len(t, res.Statements, 1)
 }
 
+func TestListPolicyAttachments_OK(t *testing.T) {
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
+			return permission == "platform:manage_roles", nil
+		},
+		listPolicyAttachmentsFunc: func(ctx context.Context, name string) ([]iamdomain.PolicyAttachment, error) {
+			require.Equal(t, "tenant/orders_editor", name)
+			return []iamdomain.PolicyAttachment{
+				{
+					AttachmentType: "role",
+					RoleID:         2,
+					RoleName:       "tenant_editor",
+					CreatedAt:      time.Now().UTC(),
+				},
+				{
+					AttachmentType: "group",
+					Scope:          iamdomain.PolicyScopeTenant,
+					TenantID:       "t1",
+					GroupID:        12,
+					GroupName:      "ops-team",
+					CreatedAt:      time.Now().UTC(),
+				},
+			}, nil
+		},
+	}))
+
+	res, err := srv.ListPolicyAttachments(
+		authContextForUser(t, 7),
+		&pbauthv1.ListPolicyAttachmentsRequest{Name: "tenant/orders_editor"},
+	)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Len(t, res.Attachments, 2)
+	assert.Equal(t, "role", res.Attachments[0].AttachmentType)
+	assert.Equal(t, uint64(12), res.Attachments[1].GroupId)
+}
+
 func TestDeletePolicy_OK(t *testing.T) {
 	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
 		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
@@ -394,6 +433,320 @@ func TestDetachGroupPolicy_OK(t *testing.T) {
 		GroupId:    12,
 		PolicyName: "tenant/orders_editor",
 	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+}
+
+func TestPutGroupInlinePolicy_OK(t *testing.T) {
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
+			return permission == "platform:manage_roles", nil
+		},
+		putGroupInlinePolicyFunc: func(ctx context.Context, input iamdomain.PutGroupInlinePolicyInput) error {
+			require.Equal(t, uint64(12), input.GroupID)
+			require.Equal(t, "inline-ops", input.Name)
+			require.Len(t, input.Statements, 1)
+			require.Equal(t, "order:update", input.Statements[0].ActionPattern)
+			return nil
+		},
+	}))
+
+	res, err := srv.PutGroupInlinePolicy(authContextForUser(t, 7), &pbauthv1.PutGroupInlinePolicyRequest{
+		GroupId:     12,
+		Name:        "inline-ops",
+		Description: "Inline order ops access",
+		Statements: []*pbauthv1.PolicyStatement{{
+			Effect:          iamdomain.PolicyEffectAllow,
+			ActionPattern:   "order:update",
+			ResourcePattern: "*",
+		}},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+}
+
+func TestGetGroupInlinePolicy_OK(t *testing.T) {
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
+			return permission == "platform:manage_roles", nil
+		},
+		getGroupInlinePolicyFunc: func(ctx context.Context, groupID uint64, name string) (*iamdomain.GroupInlinePolicy, error) {
+			require.Equal(t, uint64(12), groupID)
+			require.Equal(t, "inline-ops", name)
+			return &iamdomain.GroupInlinePolicy{
+				GroupID:     groupID,
+				Name:        name,
+				Description: "Inline order ops access",
+				Statements: []iamdomain.PolicyStatement{{
+					Effect:          iamdomain.PolicyEffectAllow,
+					ActionPattern:   "order:update",
+					ResourcePattern: "*",
+					CreatedAt:       time.Now().UTC(),
+				}},
+				CreatedAt: time.Now().UTC(),
+				UpdatedAt: time.Now().UTC(),
+			}, nil
+		},
+	}))
+
+	res, err := srv.GetGroupInlinePolicy(authContextForUser(t, 7), &pbauthv1.GetGroupInlinePolicyRequest{
+		GroupId: 12,
+		Name:    "inline-ops",
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	assert.Equal(t, "inline-ops", res.Policy.Name)
+	require.Len(t, res.Policy.Statements, 1)
+}
+
+func TestPutPlatformUserInlinePolicy_OK(t *testing.T) {
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
+			return permission == "platform:manage_roles", nil
+		},
+		putPlatformUserInlinePolicyFunc: func(ctx context.Context, input iamdomain.PutPlatformUserInlinePolicyInput) error {
+			require.Equal(t, uint(21), input.UserID)
+			require.Equal(t, "inline-platform", input.Name)
+			require.Len(t, input.Statements, 1)
+			return nil
+		},
+	}))
+
+	res, err := srv.PutPlatformUserInlinePolicy(authContextForUser(t, 7), &pbauthv1.PutPlatformUserInlinePolicyRequest{
+		TargetUserId: 21,
+		Name:         "inline-platform",
+		Description:  "Platform inline access",
+		Statements: []*pbauthv1.PolicyStatement{{
+			Effect:          iamdomain.PolicyEffectAllow,
+			ActionPattern:   "tenant:create",
+			ResourcePattern: "*",
+		}},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+}
+
+func TestGetPlatformUserInlinePolicy_OK(t *testing.T) {
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
+			return permission == "platform:manage_roles", nil
+		},
+		getPlatformUserInlinePolicyFunc: func(ctx context.Context, userID uint, name string) (*iamdomain.UserInlinePolicy, error) {
+			require.Equal(t, uint(21), userID)
+			require.Equal(t, "inline-platform", name)
+			return &iamdomain.UserInlinePolicy{
+				Scope:       iamdomain.PolicyScopePlatform,
+				UserID:      userID,
+				Name:        name,
+				Description: "Platform inline access",
+				Statements: []iamdomain.PolicyStatement{{
+					Effect:          iamdomain.PolicyEffectAllow,
+					ActionPattern:   "tenant:create",
+					ResourcePattern: "*",
+					CreatedAt:       time.Now().UTC(),
+				}},
+				CreatedAt: time.Now().UTC(),
+				UpdatedAt: time.Now().UTC(),
+			}, nil
+		},
+	}))
+
+	res, err := srv.GetPlatformUserInlinePolicy(authContextForUser(t, 7), &pbauthv1.GetPlatformUserInlinePolicyRequest{
+		TargetUserId: 21,
+		Name:         "inline-platform",
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	assert.Equal(t, "inline-platform", res.Policy.Name)
+	require.Len(t, res.Policy.Statements, 1)
+}
+
+func TestListPlatformUserInlinePolicies_OK(t *testing.T) {
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
+			return permission == "platform:manage_roles", nil
+		},
+		listPlatformUserInlinePoliciesFunc: func(ctx context.Context, userID uint) ([]iamdomain.UserInlinePolicy, error) {
+			require.Equal(t, uint(21), userID)
+			return []iamdomain.UserInlinePolicy{{
+				Scope:       iamdomain.PolicyScopePlatform,
+				UserID:      userID,
+				Name:        "inline-platform",
+				Description: "Platform inline access",
+				Statements: []iamdomain.PolicyStatement{{
+					Effect:          iamdomain.PolicyEffectAllow,
+					ActionPattern:   "tenant:create",
+					ResourcePattern: "*",
+					CreatedAt:       time.Now().UTC(),
+				}},
+				CreatedAt: time.Now().UTC(),
+				UpdatedAt: time.Now().UTC(),
+			}}, nil
+		},
+	}))
+
+	res, err := srv.ListPlatformUserInlinePolicies(
+		authContextForUser(t, 7),
+		&pbauthv1.ListPlatformUserInlinePoliciesRequest{
+			TargetUserId: 21,
+		},
+	)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Len(t, res.Policies, 1)
+	assert.Equal(t, "inline-platform", res.Policies[0].Name)
+}
+
+func TestDeletePlatformUserInlinePolicy_OK(t *testing.T) {
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
+			return permission == "platform:manage_roles", nil
+		},
+		deletePlatformUserInlinePolicyFunc: func(ctx context.Context, userID uint, name string) error {
+			require.Equal(t, uint(21), userID)
+			require.Equal(t, "inline-platform", name)
+			return nil
+		},
+	}))
+
+	res, err := srv.DeletePlatformUserInlinePolicy(
+		authContextForUser(t, 7),
+		&pbauthv1.DeletePlatformUserInlinePolicyRequest{
+			TargetUserId: 21,
+			Name:         "inline-platform",
+		},
+	)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+}
+
+func TestPutTenantUserInlinePolicy_OK(t *testing.T) {
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
+			return tenantID == "t1" && permission == "tenant:manage_members", nil
+		},
+		putTenantUserInlinePolicyFunc: func(ctx context.Context, input iamdomain.PutTenantUserInlinePolicyInput) error {
+			require.Equal(t, "t1", input.TenantID)
+			require.Equal(t, uint(9), input.UserID)
+			require.Equal(t, "inline-tenant", input.Name)
+			require.Len(t, input.Statements, 1)
+			return nil
+		},
+	}))
+
+	res, err := srv.PutTenantUserInlinePolicy(authContextForUser(t, 7), &pbauthv1.PutTenantUserInlinePolicyRequest{
+		TenantId:    "t1",
+		UserId:      9,
+		Name:        "inline-tenant",
+		Description: "Tenant inline access",
+		Statements: []*pbauthv1.PolicyStatement{{
+			Effect:          iamdomain.PolicyEffectAllow,
+			ActionPattern:   "order:update",
+			ResourcePattern: "*",
+		}},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+}
+
+func TestGetTenantUserInlinePolicy_OK(t *testing.T) {
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
+			return tenantID == "t1" && permission == "tenant:manage_members", nil
+		},
+		getTenantUserInlinePolicyFunc: func(ctx context.Context, tenantID string, userID uint, name string) (*iamdomain.UserInlinePolicy, error) {
+			require.Equal(t, "t1", tenantID)
+			require.Equal(t, uint(9), userID)
+			require.Equal(t, "inline-tenant", name)
+			return &iamdomain.UserInlinePolicy{
+				Scope:       iamdomain.PolicyScopeTenant,
+				TenantID:    tenantID,
+				UserID:      userID,
+				Name:        name,
+				Description: "Tenant inline access",
+				Statements: []iamdomain.PolicyStatement{{
+					Effect:          iamdomain.PolicyEffectAllow,
+					ActionPattern:   "order:update",
+					ResourcePattern: "*",
+					CreatedAt:       time.Now().UTC(),
+				}},
+				CreatedAt: time.Now().UTC(),
+				UpdatedAt: time.Now().UTC(),
+			}, nil
+		},
+	}))
+
+	res, err := srv.GetTenantUserInlinePolicy(authContextForUser(t, 7), &pbauthv1.GetTenantUserInlinePolicyRequest{
+		TenantId: "t1",
+		UserId:   9,
+		Name:     "inline-tenant",
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	assert.Equal(t, "inline-tenant", res.Policy.Name)
+	require.Len(t, res.Policy.Statements, 1)
+}
+
+func TestListTenantUserInlinePolicies_OK(t *testing.T) {
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
+			return tenantID == "t1" && permission == "tenant:manage_members", nil
+		},
+		listTenantUserInlinePoliciesFunc: func(ctx context.Context, tenantID string, userID uint) ([]iamdomain.UserInlinePolicy, error) {
+			require.Equal(t, "t1", tenantID)
+			require.Equal(t, uint(9), userID)
+			return []iamdomain.UserInlinePolicy{{
+				Scope:       iamdomain.PolicyScopeTenant,
+				TenantID:    tenantID,
+				UserID:      userID,
+				Name:        "inline-tenant",
+				Description: "Tenant inline access",
+				Statements: []iamdomain.PolicyStatement{{
+					Effect:          iamdomain.PolicyEffectAllow,
+					ActionPattern:   "order:update",
+					ResourcePattern: "*",
+					CreatedAt:       time.Now().UTC(),
+				}},
+				CreatedAt: time.Now().UTC(),
+				UpdatedAt: time.Now().UTC(),
+			}}, nil
+		},
+	}))
+
+	res, err := srv.ListTenantUserInlinePolicies(
+		authContextForUser(t, 7),
+		&pbauthv1.ListTenantUserInlinePoliciesRequest{
+			TenantId: "t1",
+			UserId:   9,
+		},
+	)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Len(t, res.Policies, 1)
+	assert.Equal(t, "inline-tenant", res.Policies[0].Name)
+}
+
+func TestDeleteTenantUserInlinePolicy_OK(t *testing.T) {
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
+			return tenantID == "t1" && permission == "tenant:manage_members", nil
+		},
+		deleteTenantUserInlinePolicyFunc: func(ctx context.Context, tenantID string, userID uint, name string) error {
+			require.Equal(t, "t1", tenantID)
+			require.Equal(t, uint(9), userID)
+			require.Equal(t, "inline-tenant", name)
+			return nil
+		},
+	}))
+
+	res, err := srv.DeleteTenantUserInlinePolicy(
+		authContextForUser(t, 7),
+		&pbauthv1.DeleteTenantUserInlinePolicyRequest{
+			TenantId: "t1",
+			UserId:   9,
+			Name:     "inline-tenant",
+		},
+	)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 }
@@ -1055,6 +1408,184 @@ func TestSwitchActiveTenant_OK(t *testing.T) {
 	assert.Equal(t, "neo", res.UserInfo.Username)
 }
 
+func TestAssumeSessionPolicy_OK(t *testing.T) {
+	accessToken := accessTokenForSession(
+		t,
+		entity.User{Id: 7, Email: "neo@mx.io", Username: "neo"},
+		"tenant-9",
+		"session-test",
+	)
+	srv := NewAuthServer(
+		&inputmocks.MockAuthUsecase{},
+		newSessionRepoMock(t, sessionRepoMockConfig{
+			getByIDFunc: func(ctx context.Context, id string) (*entity.Session, error) {
+				require.Equal(t, "session-test", id)
+				return &entity.Session{
+					ID:             id,
+					UserID:         7,
+					ActiveTenantID: "tenant-9",
+					SessionPolicy: []entity.SessionPolicyStatement{{
+						Effect:          iamdomain.PolicyEffectAllow,
+						ActionPattern:   "order:read",
+						ResourcePattern: "*",
+					}},
+					Status:    entity.SessionStatusActive,
+					CreatedAt: time.Now().UTC(),
+					UpdatedAt: time.Now().UTC(),
+					ExpiresAt: time.Now().Add(time.Hour),
+				}, nil
+			},
+		}),
+		newAuditRepoMock(t, auditRepoMockConfig{}),
+		&outputmocks.MockUserRepository{},
+		testAuthCfg,
+	)
+	authUC := srv.authUC.(*inputmocks.MockAuthUsecase)
+	authUC.On("AssumeSessionPolicy", mock.Anything, uint(7), accessToken, mock.MatchedBy(func(items []entity.SessionPolicyStatement) bool {
+		return len(items) == 1 && items[0].ActionPattern == "order:read"
+	})).Return(&inputport.AuthResult{
+		JwtToken: "jwt-scoped",
+		UserInfo: entity.User{Id: 7, Username: "neo"},
+	}, nil)
+
+	res, err := srv.AssumeSessionPolicy(authContextForUser(t, 7), &pbauthv1.AssumeSessionPolicyRequest{
+		AccessToken: accessToken,
+		Statements: []*pbauthv1.PolicyStatement{{
+			Effect:          iamdomain.PolicyEffectAllow,
+			ActionPattern:   "order:read",
+			ResourcePattern: "*",
+		}},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	assert.Equal(t, "jwt-scoped", res.JwtToken)
+	require.Len(t, res.Session.SessionPolicy, 1)
+	assert.Equal(t, "order:read", res.Session.SessionPolicy[0].ActionPattern)
+}
+
+func TestClearSessionPolicy_OK(t *testing.T) {
+	accessToken := accessTokenForSession(
+		t,
+		entity.User{Id: 7, Email: "neo@mx.io", Username: "neo"},
+		"tenant-9",
+		"session-test",
+	)
+	srv := NewAuthServer(
+		&inputmocks.MockAuthUsecase{},
+		newSessionRepoMock(t, sessionRepoMockConfig{
+			getByIDFunc: func(ctx context.Context, id string) (*entity.Session, error) {
+				require.Equal(t, "session-test", id)
+				return &entity.Session{
+					ID:             id,
+					UserID:         7,
+					ActiveTenantID: "tenant-9",
+					Status:         entity.SessionStatusActive,
+					CreatedAt:      time.Now().UTC(),
+					UpdatedAt:      time.Now().UTC(),
+					ExpiresAt:      time.Now().Add(time.Hour),
+				}, nil
+			},
+		}),
+		newAuditRepoMock(t, auditRepoMockConfig{}),
+		&outputmocks.MockUserRepository{},
+		testAuthCfg,
+	)
+	authUC := srv.authUC.(*inputmocks.MockAuthUsecase)
+	authUC.On("ClearSessionPolicy", mock.Anything, uint(7), accessToken).Return(&inputport.AuthResult{
+		JwtToken: "jwt-cleared",
+		UserInfo: entity.User{Id: 7, Username: "neo"},
+	}, nil)
+
+	res, err := srv.ClearSessionPolicy(authContextForUser(t, 7), &pbauthv1.ClearSessionPolicyRequest{
+		AccessToken: accessToken,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	assert.Equal(t, "jwt-cleared", res.JwtToken)
+	assert.Empty(t, res.Session.SessionPolicy)
+}
+
+func TestAssumeRole_OK(t *testing.T) {
+	accessToken := accessTokenForSession(
+		t,
+		entity.User{Id: 7, Email: "neo@mx.io", Username: "neo"},
+		"",
+		"session-test",
+	)
+	srv := NewAuthServer(
+		&inputmocks.MockAuthUsecase{},
+		newSessionRepoMock(t, sessionRepoMockConfig{
+			getByIDFunc: func(ctx context.Context, id string) (*entity.Session, error) {
+				return &entity.Session{
+					ID:                  id,
+					UserID:              7,
+					ActiveTenantID:      "tenant-9",
+					AssumedRoleID:       2,
+					AssumedRoleScope:    iamdomain.PolicyScopeTenant,
+					AssumedRoleName:     iamdomain.RoleTenantAdmin,
+					AssumedRoleTenantID: "tenant-9",
+					Status:              entity.SessionStatusActive,
+					CreatedAt:           time.Now().UTC(),
+					UpdatedAt:           time.Now().UTC(),
+					ExpiresAt:           time.Now().Add(time.Hour),
+				}, nil
+			},
+		}),
+		newAuditRepoMock(t, auditRepoMockConfig{}),
+		&outputmocks.MockUserRepository{},
+		testAuthCfg,
+	)
+	authUC := srv.authUC.(*inputmocks.MockAuthUsecase)
+	authUC.On("AssumeRole", mock.Anything, uint(7), accessToken, iamdomain.RoleTenantAdmin, "tenant-9", mock.MatchedBy(func(items []entity.SessionPolicyStatement) bool {
+		return len(items) == 1 && items[0].ActionPattern == "order:read"
+	})).Return(&inputport.AuthResult{
+		JwtToken: "jwt-assumed",
+		UserInfo: entity.User{Id: 7, Username: "neo"},
+	}, nil)
+
+	res, err := srv.AssumeRole(authContextForUser(t, 7), &pbauthv1.AssumeRoleRequest{
+		AccessToken: accessToken,
+		RoleName:    iamdomain.RoleTenantAdmin,
+		TenantId:    "tenant-9",
+		SessionPolicy: []*pbauthv1.PolicyStatement{{
+			Effect:          iamdomain.PolicyEffectAllow,
+			ActionPattern:   "order:read",
+			ResourcePattern: "*",
+		}},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	assert.Equal(t, "jwt-assumed", res.JwtToken)
+	assert.Equal(t, iamdomain.RoleTenantAdmin, res.Session.AssumedRoleName)
+}
+
+func TestGetRoleTrustPolicy_OK(t *testing.T) {
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
+			return permission == "platform:manage_roles", nil
+		},
+		getRoleTrustPolicyFunc: func(ctx context.Context, roleName string) ([]iamdomain.RoleTrustStatement, error) {
+			require.Equal(t, iamdomain.RoleTenantAdmin, roleName)
+			return []iamdomain.RoleTrustStatement{{
+				RoleID:           2,
+				Effect:           iamdomain.PolicyEffectAllow,
+				PrincipalType:    iamdomain.TrustPrincipalTenantRole,
+				PrincipalPattern: iamdomain.RoleTenantOwner,
+				TenantPattern:    "*",
+				CreatedAt:        time.Now().UTC(),
+			}}, nil
+		},
+	}))
+
+	res, err := srv.GetRoleTrustPolicy(authContextForUser(t, 7), &pbauthv1.GetRoleTrustPolicyRequest{
+		RoleName: iamdomain.RoleTenantAdmin,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Len(t, res.Statements, 1)
+	assert.Equal(t, iamdomain.TrustPrincipalTenantRole, res.Statements[0].PrincipalType)
+}
+
 func TestRefreshToken_OK(t *testing.T) {
 	srv, uc := newServerWithMock(t)
 	ctx := context.Background()
@@ -1082,17 +1613,20 @@ func TestGetSession_OK(t *testing.T) {
 	sessionNow := time.Date(2026, 5, 1, 10, 0, 0, 0, time.UTC)
 	srv := NewAuthServer(
 		&inputmocks.MockAuthUsecase{},
-		newSessionRepoMock(t, sessionRepoMockConfig{getByIDFunc: func(ctx context.Context, id string) (*entity.Session, error) {
-			return &entity.Session{
-				ID:             id,
-				UserID:         21,
-				ActiveTenantID: "tenant-7",
-				Status:         entity.SessionStatusActive,
-				CreatedAt:      sessionNow,
-				UpdatedAt:      sessionNow,
-				ExpiresAt:      sessionNow.Add(time.Hour),
-			}, nil
-		}}),
+		newSessionRepoMock(
+			t,
+			sessionRepoMockConfig{getByIDFunc: func(ctx context.Context, id string) (*entity.Session, error) {
+				return &entity.Session{
+					ID:             id,
+					UserID:         21,
+					ActiveTenantID: "tenant-7",
+					Status:         entity.SessionStatusActive,
+					CreatedAt:      sessionNow,
+					UpdatedAt:      sessionNow,
+					ExpiresAt:      sessionNow.Add(time.Hour),
+				}, nil
+			}},
+		),
 		newAuditRepoMock(t, auditRepoMockConfig{}),
 		&outputmocks.MockUserRepository{},
 		testAuthCfg,

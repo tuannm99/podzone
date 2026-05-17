@@ -13,6 +13,9 @@ type TenantRepository interface {
 type RoleRepository interface {
 	GetByName(ctx context.Context, name string) (*Role, error)
 	RoleHasPermission(ctx context.Context, roleID uint64, permission string) (bool, error)
+	PutTrustPolicy(ctx context.Context, roleID uint64, statements []RoleTrustStatement) error
+	GetTrustPolicy(ctx context.Context, roleID uint64) ([]RoleTrustStatement, error)
+	DeleteTrustPolicy(ctx context.Context, roleID uint64) error
 }
 
 type PolicyRepository interface {
@@ -20,6 +23,7 @@ type PolicyRepository interface {
 	GetPolicyByName(ctx context.Context, name string) (*Policy, error)
 	GetPolicyStatements(ctx context.Context, policyID uint64) ([]PolicyStatement, error)
 	ListPolicies(ctx context.Context, scope string) ([]Policy, error)
+	ListPolicyAttachments(ctx context.Context, policyID uint64) ([]PolicyAttachment, error)
 	DeletePolicy(ctx context.Context, policyID uint64) error
 	ListRoleStatements(ctx context.Context, roleID uint64) ([]PolicyStatement, error)
 	ListPlatformUserStatements(ctx context.Context, userID uint) ([]PolicyStatement, error)
@@ -29,15 +33,27 @@ type PolicyRepository interface {
 	AttachPlatformUserPolicy(ctx context.Context, userID uint, policyID uint64) error
 	DetachPlatformUserPolicy(ctx context.Context, userID uint, policyID uint64) error
 	ListPlatformUserPolicies(ctx context.Context, userID uint) ([]Policy, error)
+	PutPlatformUserInlinePolicy(ctx context.Context, input PutPlatformUserInlinePolicyInput) error
+	GetPlatformUserInlinePolicy(ctx context.Context, userID uint, name string) (*UserInlinePolicy, error)
+	ListPlatformUserInlinePolicies(ctx context.Context, userID uint) ([]UserInlinePolicy, error)
+	DeletePlatformUserInlinePolicy(ctx context.Context, userID uint, name string) error
 	AttachTenantUserPolicy(ctx context.Context, tenantID string, userID uint, policyID uint64) error
 	DetachTenantUserPolicy(ctx context.Context, tenantID string, userID uint, policyID uint64) error
 	ListTenantUserPolicies(ctx context.Context, tenantID string, userID uint) ([]Policy, error)
+	PutTenantUserInlinePolicy(ctx context.Context, input PutTenantUserInlinePolicyInput) error
+	GetTenantUserInlinePolicy(ctx context.Context, tenantID string, userID uint, name string) (*UserInlinePolicy, error)
+	ListTenantUserInlinePolicies(ctx context.Context, tenantID string, userID uint) ([]UserInlinePolicy, error)
+	DeleteTenantUserInlinePolicy(ctx context.Context, tenantID string, userID uint, name string) error
 }
 
 type GroupRepository interface {
 	CreateGroup(ctx context.Context, group Group) (*Group, error)
 	ListGroups(ctx context.Context, scope string, tenantID string) ([]Group, error)
 	DeleteGroup(ctx context.Context, groupID uint64) error
+	PutInlinePolicy(ctx context.Context, input PutGroupInlinePolicyInput) error
+	GetInlinePolicy(ctx context.Context, groupID uint64, name string) (*GroupInlinePolicy, error)
+	ListInlinePolicies(ctx context.Context, groupID uint64) ([]GroupInlinePolicy, error)
+	DeleteInlinePolicy(ctx context.Context, groupID uint64, name string) error
 	AddMember(ctx context.Context, groupID uint64, userID uint) error
 	RemoveMember(ctx context.Context, groupID uint64, userID uint) error
 	ListMembers(ctx context.Context, groupID uint64) ([]uint, error)

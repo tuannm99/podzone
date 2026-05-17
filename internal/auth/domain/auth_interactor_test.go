@@ -27,6 +27,7 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
 	iamdomain "github.com/tuannm99/podzone/internal/iam/domain"
+	iammocks "github.com/tuannm99/podzone/internal/iam/domain/mocks"
 )
 
 //
@@ -91,6 +92,7 @@ func newStatefulAuthUC(
 	sessionRepo := outputmocks.NewMockSessionRepository(t)
 	refreshRepo := outputmocks.NewMockRefreshTokenRepository(t)
 	tenantAccessChecker := authmocks.NewMockTenantAccessChecker(t)
+	iamUC := iammocks.NewMockIAMUsecase(t)
 
 	sessionRepo.EXPECT().Create(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, session entity.Session) error {
 		state.sessions[session.ID] = session
@@ -119,6 +121,16 @@ func newStatefulAuthUC(
 			return entity.ErrSessionNotFound
 		}
 		item.ActiveTenantID = tenantID
+		item.UpdatedAt = updatedAt
+		state.sessions[id] = item
+		return nil
+	}).Maybe()
+	sessionRepo.EXPECT().UpdateSessionPolicy(mock.Anything, mock.Anything, mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, id string, statements []entity.SessionPolicyStatement, updatedAt time.Time) error {
+		item, ok := state.sessions[id]
+		if !ok {
+			return entity.ErrSessionNotFound
+		}
+		item.SessionPolicy = append([]entity.SessionPolicyStatement(nil), statements...)
 		item.UpdatedAt = updatedAt
 		state.sessions[id] = item
 		return nil
@@ -169,7 +181,7 @@ func newStatefulAuthUC(
 
 	tenantAccessChecker.EXPECT().EnsureActiveMembership(mock.Anything, mock.Anything, mock.Anything).RunAndReturn(tenantAccessFn).Maybe()
 
-	return NewAuthUsecase(uuc, tuc, ext, sr, ur, sessionRepo, refreshRepo, tenantAccessChecker, cfg), state, sessionRepo, refreshRepo
+	return NewAuthUsecase(uuc, tuc, ext, sr, ur, sessionRepo, refreshRepo, tenantAccessChecker, iamUC, cfg), state, sessionRepo, refreshRepo
 }
 
 func makeTokenServerOK(t *testing.T) *httptest.Server {
@@ -645,6 +657,187 @@ func TestRefreshAccessToken_Success(t *testing.T) {
 	storedOld := state.refreshTokens[entity.HashToken(rawRefresh)]
 	assert.NotNil(t, storedOld.RevokedAt)
 	userRepo.AssertExpectations(t)
+}
+
+func TestAssumeSessionPolicy_Success(t *testing.T) {
+	cfg := config.AuthConfig{
+		JWTSecret:      "secret",
+		JWTKey:         "app-key",
+		AppRedirectURL: "https://app.example.com/after-auth",
+	}
+	user := &entity.User{Id: 9, Email: "neo@mx.io", Username: "neo"}
+	userRepo := &outputmocks.MockUserRepository{}
+	userRepo.On("GetByID", "9").Return(user, nil)
+	tokenUC := &inputmocks.MockTokenUsecase{}
+	tokenUC.On("CreateJwtTokenForScopedSession", *user, "tenant-1", "session-1", []entity.SessionPolicyStatement{{
+		Effect:          iamdomain.PolicyEffectAllow,
+		ActionPattern:   "order:read",
+		ResourcePattern: "*",
+	}}).Return("jwt-scoped", nil)
+	uc, state, _, _ := newStatefulAuthUC(
+		t,
+		cfg,
+		&inputmocks.MockUserUsecase{},
+		tokenUC,
+		&outputmocks.MockGoogleOauthExternal{},
+		&outputmocks.MockOauthStateRepository{},
+		userRepo,
+		func(ctx context.Context, tenantID string, userID uint) error { return nil },
+	)
+	state.sessions["session-1"] = entity.Session{
+		ID:             "session-1",
+		UserID:         9,
+		ActiveTenantID: "tenant-1",
+		Status:         entity.SessionStatusActive,
+		ExpiresAt:      time.Now().Add(time.Hour),
+	}
+	accessToken, err := NewTokenUsecase(cfg).CreateJwtTokenForSession(entity.User{Id: 9, Email: "neo@mx.io", Username: "neo"}, "tenant-1", "session-1")
+	require.NoError(t, err)
+
+	resp, err := uc.AssumeSessionPolicy(context.Background(), 9, accessToken, []entity.SessionPolicyStatement{{
+		Effect:          iamdomain.PolicyEffectAllow,
+		ActionPattern:   "order:read",
+		ResourcePattern: "*",
+	}})
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	assert.Equal(t, "jwt-scoped", resp.JwtToken)
+	require.Len(t, state.sessions["session-1"].SessionPolicy, 1)
+	assert.Equal(t, "order:read", state.sessions["session-1"].SessionPolicy[0].ActionPattern)
+}
+
+func TestClearSessionPolicy_Success(t *testing.T) {
+	cfg := config.AuthConfig{
+		JWTSecret:      "secret",
+		JWTKey:         "app-key",
+		AppRedirectURL: "https://app.example.com/after-auth",
+	}
+	user := &entity.User{Id: 9, Email: "neo@mx.io", Username: "neo"}
+	userRepo := &outputmocks.MockUserRepository{}
+	userRepo.On("GetByID", "9").Return(user, nil)
+	tokenUC := &inputmocks.MockTokenUsecase{}
+	tokenUC.On("CreateJwtTokenForSession", *user, "tenant-1", "session-1").Return("jwt-cleared", nil)
+	uc, state, _, _ := newStatefulAuthUC(
+		t,
+		cfg,
+		&inputmocks.MockUserUsecase{},
+		tokenUC,
+		&outputmocks.MockGoogleOauthExternal{},
+		&outputmocks.MockOauthStateRepository{},
+		userRepo,
+		func(ctx context.Context, tenantID string, userID uint) error { return nil },
+	)
+	state.sessions["session-1"] = entity.Session{
+		ID:             "session-1",
+		UserID:         9,
+		ActiveTenantID: "tenant-1",
+		SessionPolicy: []entity.SessionPolicyStatement{{
+			Effect:          iamdomain.PolicyEffectAllow,
+			ActionPattern:   "order:read",
+			ResourcePattern: "*",
+		}},
+		Status:    entity.SessionStatusActive,
+		ExpiresAt: time.Now().Add(time.Hour),
+	}
+	accessToken, err := NewTokenUsecase(cfg).CreateJwtTokenForScopedSession(entity.User{Id: 9, Email: "neo@mx.io", Username: "neo"}, "tenant-1", "session-1", state.sessions["session-1"].SessionPolicy)
+	require.NoError(t, err)
+
+	resp, err := uc.ClearSessionPolicy(context.Background(), 9, accessToken)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	assert.Equal(t, "jwt-cleared", resp.JwtToken)
+	assert.Empty(t, state.sessions["session-1"].SessionPolicy)
+}
+
+func TestAssumeRole_Success(t *testing.T) {
+	cfg := config.AuthConfig{
+		JWTSecret:      "secret",
+		JWTKey:         "app-key",
+		AppRedirectURL: "https://app.example.com/after-auth",
+	}
+	user := &entity.User{Id: 9, Email: "neo@mx.io", Username: "neo"}
+	userRepo := &outputmocks.MockUserRepository{}
+	userRepo.On("GetByID", "9").Return(user, nil)
+	tokenUC := &inputmocks.MockTokenUsecase{}
+	tokenUC.On("CreateJwtTokenForSessionState", *user, mock.MatchedBy(func(session entity.Session) bool {
+		return session.AssumedRoleName == iamdomain.RoleTenantAdmin &&
+			session.AssumedRoleScope == iamdomain.PolicyScopeTenant &&
+			session.AssumedRoleTenantID == "tenant-1" &&
+			len(session.SessionPolicy) == 1 &&
+			session.SessionPolicy[0].ActionPattern == "order:read"
+	})).Return("jwt-assumed", nil)
+	sessionRepo := outputmocks.NewMockSessionRepository(t)
+	refreshRepo := outputmocks.NewMockRefreshTokenRepository(t)
+	tenantAccessChecker := authmocks.NewMockTenantAccessChecker(t)
+	iamUC := iammocks.NewMockIAMUsecase(t)
+	state := &authRepoState{sessions: map[string]entity.Session{}, refreshTokens: map[string]entity.RefreshToken{}}
+	sessionRepo.EXPECT().GetByID(mock.Anything, "session-1").RunAndReturn(func(ctx context.Context, id string) (*entity.Session, error) {
+		item := state.sessions[id]
+		copyItem := item
+		return &copyItem, nil
+	}).Maybe()
+	sessionRepo.EXPECT().UpdateSessionPolicy(mock.Anything, "session-1", mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, id string, statements []entity.SessionPolicyStatement, updatedAt time.Time) error {
+		item := state.sessions[id]
+		item.SessionPolicy = append([]entity.SessionPolicyStatement(nil), statements...)
+		item.UpdatedAt = updatedAt
+		state.sessions[id] = item
+		return nil
+	}).Maybe()
+	sessionRepo.EXPECT().UpdateAssumedRole(mock.Anything, mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, session entity.Session, updatedAt time.Time) error {
+		item := state.sessions[session.ID]
+		item.AssumedRoleID = session.AssumedRoleID
+		item.AssumedRoleScope = session.AssumedRoleScope
+		item.AssumedRoleName = session.AssumedRoleName
+		item.AssumedRoleTenantID = session.AssumedRoleTenantID
+		item.ActiveTenantID = session.ActiveTenantID
+		item.UpdatedAt = updatedAt
+		state.sessions[session.ID] = item
+		return nil
+	}).Maybe()
+	tenantAccessChecker.EXPECT().EnsureActiveMembership(mock.Anything, mock.Anything, mock.Anything).Maybe().Return(nil)
+	iamUC.EXPECT().AssumeRole(mock.Anything, iamdomain.AssumeRoleInput{
+		UserID:   9,
+		RoleName: iamdomain.RoleTenantAdmin,
+		TenantID: "tenant-1",
+	}).Return(&iamdomain.AssumedRole{
+		RoleID:    2,
+		RoleScope: iamdomain.PolicyScopeTenant,
+		RoleName:  iamdomain.RoleTenantAdmin,
+		TenantID:  "tenant-1",
+	}, nil)
+
+	uc := NewAuthUsecase(
+		&inputmocks.MockUserUsecase{},
+		tokenUC,
+		&outputmocks.MockGoogleOauthExternal{},
+		&outputmocks.MockOauthStateRepository{},
+		userRepo,
+		sessionRepo,
+		refreshRepo,
+		tenantAccessChecker,
+		iamUC,
+		cfg,
+	)
+	state.sessions["session-1"] = entity.Session{
+		ID:             "session-1",
+		UserID:         9,
+		ActiveTenantID: "",
+		Status:         entity.SessionStatusActive,
+		ExpiresAt:      time.Now().Add(time.Hour),
+	}
+	accessToken, err := NewTokenUsecase(cfg).CreateJwtTokenForSession(entity.User{Id: 9, Email: "neo@mx.io", Username: "neo"}, "", "session-1")
+	require.NoError(t, err)
+
+	resp, err := uc.AssumeRole(context.Background(), 9, accessToken, iamdomain.RoleTenantAdmin, "tenant-1", []entity.SessionPolicyStatement{{
+		Effect:          iamdomain.PolicyEffectAllow,
+		ActionPattern:   "order:read",
+		ResourcePattern: "*",
+	}})
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	assert.Equal(t, "jwt-assumed", resp.JwtToken)
+	assert.Equal(t, iamdomain.RoleTenantAdmin, state.sessions["session-1"].AssumedRoleName)
+	assert.Equal(t, "tenant-1", state.sessions["session-1"].ActiveTenantID)
 }
 
 func TestExchangeOAuthLogin_Success(t *testing.T) {

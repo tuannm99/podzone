@@ -27,6 +27,10 @@ const (
 	AuthService_RefreshToken_FullMethodName        = "/auth.AuthService/RefreshToken"
 	AuthService_Logout_FullMethodName              = "/auth.AuthService/Logout"
 	AuthService_SwitchActiveTenant_FullMethodName  = "/auth.AuthService/SwitchActiveTenant"
+	AuthService_AssumeSessionPolicy_FullMethodName = "/auth.AuthService/AssumeSessionPolicy"
+	AuthService_ClearSessionPolicy_FullMethodName  = "/auth.AuthService/ClearSessionPolicy"
+	AuthService_AssumeRole_FullMethodName          = "/auth.AuthService/AssumeRole"
+	AuthService_ClearAssumedRole_FullMethodName    = "/auth.AuthService/ClearAssumedRole"
 	AuthService_GetSession_FullMethodName          = "/auth.AuthService/GetSession"
 	AuthService_ListSessions_FullMethodName        = "/auth.AuthService/ListSessions"
 	AuthService_RevokeSession_FullMethodName       = "/auth.AuthService/RevokeSession"
@@ -48,6 +52,10 @@ type AuthServiceClient interface {
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
 	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*LogoutResponse, error)
 	SwitchActiveTenant(ctx context.Context, in *SwitchActiveTenantRequest, opts ...grpc.CallOption) (*SwitchActiveTenantResponse, error)
+	AssumeSessionPolicy(ctx context.Context, in *AssumeSessionPolicyRequest, opts ...grpc.CallOption) (*AssumeSessionPolicyResponse, error)
+	ClearSessionPolicy(ctx context.Context, in *ClearSessionPolicyRequest, opts ...grpc.CallOption) (*ClearSessionPolicyResponse, error)
+	AssumeRole(ctx context.Context, in *AssumeRoleRequest, opts ...grpc.CallOption) (*AssumeRoleResponse, error)
+	ClearAssumedRole(ctx context.Context, in *ClearAssumedRoleRequest, opts ...grpc.CallOption) (*ClearAssumedRoleResponse, error)
 	GetSession(ctx context.Context, in *GetSessionRequest, opts ...grpc.CallOption) (*GetSessionResponse, error)
 	ListSessions(ctx context.Context, in *ListSessionsRequest, opts ...grpc.CallOption) (*ListSessionsResponse, error)
 	RevokeSession(ctx context.Context, in *RevokeSessionRequest, opts ...grpc.CallOption) (*RevokeSessionResponse, error)
@@ -142,6 +150,46 @@ func (c *authServiceClient) SwitchActiveTenant(ctx context.Context, in *SwitchAc
 	return out, nil
 }
 
+func (c *authServiceClient) AssumeSessionPolicy(ctx context.Context, in *AssumeSessionPolicyRequest, opts ...grpc.CallOption) (*AssumeSessionPolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AssumeSessionPolicyResponse)
+	err := c.cc.Invoke(ctx, AuthService_AssumeSessionPolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) ClearSessionPolicy(ctx context.Context, in *ClearSessionPolicyRequest, opts ...grpc.CallOption) (*ClearSessionPolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ClearSessionPolicyResponse)
+	err := c.cc.Invoke(ctx, AuthService_ClearSessionPolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) AssumeRole(ctx context.Context, in *AssumeRoleRequest, opts ...grpc.CallOption) (*AssumeRoleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AssumeRoleResponse)
+	err := c.cc.Invoke(ctx, AuthService_AssumeRole_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) ClearAssumedRole(ctx context.Context, in *ClearAssumedRoleRequest, opts ...grpc.CallOption) (*ClearAssumedRoleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ClearAssumedRoleResponse)
+	err := c.cc.Invoke(ctx, AuthService_ClearAssumedRole_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *authServiceClient) GetSession(ctx context.Context, in *GetSessionRequest, opts ...grpc.CallOption) (*GetSessionResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetSessionResponse)
@@ -197,6 +245,10 @@ type AuthServiceServer interface {
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
 	SwitchActiveTenant(context.Context, *SwitchActiveTenantRequest) (*SwitchActiveTenantResponse, error)
+	AssumeSessionPolicy(context.Context, *AssumeSessionPolicyRequest) (*AssumeSessionPolicyResponse, error)
+	ClearSessionPolicy(context.Context, *ClearSessionPolicyRequest) (*ClearSessionPolicyResponse, error)
+	AssumeRole(context.Context, *AssumeRoleRequest) (*AssumeRoleResponse, error)
+	ClearAssumedRole(context.Context, *ClearAssumedRoleRequest) (*ClearAssumedRoleResponse, error)
 	GetSession(context.Context, *GetSessionRequest) (*GetSessionResponse, error)
 	ListSessions(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error)
 	RevokeSession(context.Context, *RevokeSessionRequest) (*RevokeSessionResponse, error)
@@ -234,6 +286,18 @@ func (UnimplementedAuthServiceServer) Logout(context.Context, *LogoutRequest) (*
 }
 func (UnimplementedAuthServiceServer) SwitchActiveTenant(context.Context, *SwitchActiveTenantRequest) (*SwitchActiveTenantResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SwitchActiveTenant not implemented")
+}
+func (UnimplementedAuthServiceServer) AssumeSessionPolicy(context.Context, *AssumeSessionPolicyRequest) (*AssumeSessionPolicyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AssumeSessionPolicy not implemented")
+}
+func (UnimplementedAuthServiceServer) ClearSessionPolicy(context.Context, *ClearSessionPolicyRequest) (*ClearSessionPolicyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClearSessionPolicy not implemented")
+}
+func (UnimplementedAuthServiceServer) AssumeRole(context.Context, *AssumeRoleRequest) (*AssumeRoleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AssumeRole not implemented")
+}
+func (UnimplementedAuthServiceServer) ClearAssumedRole(context.Context, *ClearAssumedRoleRequest) (*ClearAssumedRoleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClearAssumedRole not implemented")
 }
 func (UnimplementedAuthServiceServer) GetSession(context.Context, *GetSessionRequest) (*GetSessionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSession not implemented")
@@ -412,6 +476,78 @@ func _AuthService_SwitchActiveTenant_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_AssumeSessionPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssumeSessionPolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).AssumeSessionPolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_AssumeSessionPolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).AssumeSessionPolicy(ctx, req.(*AssumeSessionPolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_ClearSessionPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClearSessionPolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ClearSessionPolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ClearSessionPolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ClearSessionPolicy(ctx, req.(*ClearSessionPolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_AssumeRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssumeRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).AssumeRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_AssumeRole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).AssumeRole(ctx, req.(*AssumeRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_ClearAssumedRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClearAssumedRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ClearAssumedRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ClearAssumedRole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ClearAssumedRole(ctx, req.(*ClearAssumedRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AuthService_GetSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetSessionRequest)
 	if err := dec(in); err != nil {
@@ -524,6 +660,22 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AuthService_SwitchActiveTenant_Handler,
 		},
 		{
+			MethodName: "AssumeSessionPolicy",
+			Handler:    _AuthService_AssumeSessionPolicy_Handler,
+		},
+		{
+			MethodName: "ClearSessionPolicy",
+			Handler:    _AuthService_ClearSessionPolicy_Handler,
+		},
+		{
+			MethodName: "AssumeRole",
+			Handler:    _AuthService_AssumeRole_Handler,
+		},
+		{
+			MethodName: "ClearAssumedRole",
+			Handler:    _AuthService_ClearAssumedRole_Handler,
+		},
+		{
 			MethodName: "GetSession",
 			Handler:    _AuthService_GetSession_Handler,
 		},
@@ -545,41 +697,57 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	IAMService_CreateTenant_FullMethodName              = "/auth.IAMService/CreateTenant"
-	IAMService_AddTenantMember_FullMethodName           = "/auth.IAMService/AddTenantMember"
-	IAMService_AddTenantMemberByIdentity_FullMethodName = "/auth.IAMService/AddTenantMemberByIdentity"
-	IAMService_CreateTenantInvite_FullMethodName        = "/auth.IAMService/CreateTenantInvite"
-	IAMService_ListTenantInvites_FullMethodName         = "/auth.IAMService/ListTenantInvites"
-	IAMService_RevokeTenantInvite_FullMethodName        = "/auth.IAMService/RevokeTenantInvite"
-	IAMService_AcceptTenantInvite_FullMethodName        = "/auth.IAMService/AcceptTenantInvite"
-	IAMService_GetTenantMembership_FullMethodName       = "/auth.IAMService/GetTenantMembership"
-	IAMService_CheckPermission_FullMethodName           = "/auth.IAMService/CheckPermission"
-	IAMService_CheckPlatformPermission_FullMethodName   = "/auth.IAMService/CheckPlatformPermission"
-	IAMService_ListUserTenants_FullMethodName           = "/auth.IAMService/ListUserTenants"
-	IAMService_ListPlatformRoles_FullMethodName         = "/auth.IAMService/ListPlatformRoles"
-	IAMService_AddPlatformRole_FullMethodName           = "/auth.IAMService/AddPlatformRole"
-	IAMService_CreatePolicy_FullMethodName              = "/auth.IAMService/CreatePolicy"
-	IAMService_GetPolicy_FullMethodName                 = "/auth.IAMService/GetPolicy"
-	IAMService_ListPolicies_FullMethodName              = "/auth.IAMService/ListPolicies"
-	IAMService_DeletePolicy_FullMethodName              = "/auth.IAMService/DeletePolicy"
-	IAMService_CreateGroup_FullMethodName               = "/auth.IAMService/CreateGroup"
-	IAMService_ListGroups_FullMethodName                = "/auth.IAMService/ListGroups"
-	IAMService_DeleteGroup_FullMethodName               = "/auth.IAMService/DeleteGroup"
-	IAMService_AddGroupMember_FullMethodName            = "/auth.IAMService/AddGroupMember"
-	IAMService_ListGroupMembers_FullMethodName          = "/auth.IAMService/ListGroupMembers"
-	IAMService_RemoveGroupMember_FullMethodName         = "/auth.IAMService/RemoveGroupMember"
-	IAMService_AttachGroupPolicy_FullMethodName         = "/auth.IAMService/AttachGroupPolicy"
-	IAMService_ListGroupPolicies_FullMethodName         = "/auth.IAMService/ListGroupPolicies"
-	IAMService_DetachGroupPolicy_FullMethodName         = "/auth.IAMService/DetachGroupPolicy"
-	IAMService_ListPlatformUserPolicies_FullMethodName  = "/auth.IAMService/ListPlatformUserPolicies"
-	IAMService_AttachPlatformUserPolicy_FullMethodName  = "/auth.IAMService/AttachPlatformUserPolicy"
-	IAMService_DetachPlatformUserPolicy_FullMethodName  = "/auth.IAMService/DetachPlatformUserPolicy"
-	IAMService_RemovePlatformRole_FullMethodName        = "/auth.IAMService/RemovePlatformRole"
-	IAMService_ListTenantMembers_FullMethodName         = "/auth.IAMService/ListTenantMembers"
-	IAMService_RemoveTenantMember_FullMethodName        = "/auth.IAMService/RemoveTenantMember"
-	IAMService_ListTenantUserPolicies_FullMethodName    = "/auth.IAMService/ListTenantUserPolicies"
-	IAMService_AttachTenantUserPolicy_FullMethodName    = "/auth.IAMService/AttachTenantUserPolicy"
-	IAMService_DetachTenantUserPolicy_FullMethodName    = "/auth.IAMService/DetachTenantUserPolicy"
+	IAMService_CreateTenant_FullMethodName                   = "/auth.IAMService/CreateTenant"
+	IAMService_AddTenantMember_FullMethodName                = "/auth.IAMService/AddTenantMember"
+	IAMService_AddTenantMemberByIdentity_FullMethodName      = "/auth.IAMService/AddTenantMemberByIdentity"
+	IAMService_CreateTenantInvite_FullMethodName             = "/auth.IAMService/CreateTenantInvite"
+	IAMService_ListTenantInvites_FullMethodName              = "/auth.IAMService/ListTenantInvites"
+	IAMService_RevokeTenantInvite_FullMethodName             = "/auth.IAMService/RevokeTenantInvite"
+	IAMService_AcceptTenantInvite_FullMethodName             = "/auth.IAMService/AcceptTenantInvite"
+	IAMService_GetTenantMembership_FullMethodName            = "/auth.IAMService/GetTenantMembership"
+	IAMService_CheckPermission_FullMethodName                = "/auth.IAMService/CheckPermission"
+	IAMService_CheckPlatformPermission_FullMethodName        = "/auth.IAMService/CheckPlatformPermission"
+	IAMService_ListUserTenants_FullMethodName                = "/auth.IAMService/ListUserTenants"
+	IAMService_ListPlatformRoles_FullMethodName              = "/auth.IAMService/ListPlatformRoles"
+	IAMService_AddPlatformRole_FullMethodName                = "/auth.IAMService/AddPlatformRole"
+	IAMService_CreatePolicy_FullMethodName                   = "/auth.IAMService/CreatePolicy"
+	IAMService_GetPolicy_FullMethodName                      = "/auth.IAMService/GetPolicy"
+	IAMService_ListPolicies_FullMethodName                   = "/auth.IAMService/ListPolicies"
+	IAMService_ListPolicyAttachments_FullMethodName          = "/auth.IAMService/ListPolicyAttachments"
+	IAMService_DeletePolicy_FullMethodName                   = "/auth.IAMService/DeletePolicy"
+	IAMService_CreateGroup_FullMethodName                    = "/auth.IAMService/CreateGroup"
+	IAMService_ListGroups_FullMethodName                     = "/auth.IAMService/ListGroups"
+	IAMService_DeleteGroup_FullMethodName                    = "/auth.IAMService/DeleteGroup"
+	IAMService_AddGroupMember_FullMethodName                 = "/auth.IAMService/AddGroupMember"
+	IAMService_ListGroupMembers_FullMethodName               = "/auth.IAMService/ListGroupMembers"
+	IAMService_RemoveGroupMember_FullMethodName              = "/auth.IAMService/RemoveGroupMember"
+	IAMService_AttachGroupPolicy_FullMethodName              = "/auth.IAMService/AttachGroupPolicy"
+	IAMService_ListGroupPolicies_FullMethodName              = "/auth.IAMService/ListGroupPolicies"
+	IAMService_DetachGroupPolicy_FullMethodName              = "/auth.IAMService/DetachGroupPolicy"
+	IAMService_PutGroupInlinePolicy_FullMethodName           = "/auth.IAMService/PutGroupInlinePolicy"
+	IAMService_GetGroupInlinePolicy_FullMethodName           = "/auth.IAMService/GetGroupInlinePolicy"
+	IAMService_ListGroupInlinePolicies_FullMethodName        = "/auth.IAMService/ListGroupInlinePolicies"
+	IAMService_DeleteGroupInlinePolicy_FullMethodName        = "/auth.IAMService/DeleteGroupInlinePolicy"
+	IAMService_PutPlatformUserInlinePolicy_FullMethodName    = "/auth.IAMService/PutPlatformUserInlinePolicy"
+	IAMService_GetPlatformUserInlinePolicy_FullMethodName    = "/auth.IAMService/GetPlatformUserInlinePolicy"
+	IAMService_ListPlatformUserInlinePolicies_FullMethodName = "/auth.IAMService/ListPlatformUserInlinePolicies"
+	IAMService_DeletePlatformUserInlinePolicy_FullMethodName = "/auth.IAMService/DeletePlatformUserInlinePolicy"
+	IAMService_ListPlatformUserPolicies_FullMethodName       = "/auth.IAMService/ListPlatformUserPolicies"
+	IAMService_AttachPlatformUserPolicy_FullMethodName       = "/auth.IAMService/AttachPlatformUserPolicy"
+	IAMService_DetachPlatformUserPolicy_FullMethodName       = "/auth.IAMService/DetachPlatformUserPolicy"
+	IAMService_RemovePlatformRole_FullMethodName             = "/auth.IAMService/RemovePlatformRole"
+	IAMService_ListTenantMembers_FullMethodName              = "/auth.IAMService/ListTenantMembers"
+	IAMService_RemoveTenantMember_FullMethodName             = "/auth.IAMService/RemoveTenantMember"
+	IAMService_PutTenantUserInlinePolicy_FullMethodName      = "/auth.IAMService/PutTenantUserInlinePolicy"
+	IAMService_GetTenantUserInlinePolicy_FullMethodName      = "/auth.IAMService/GetTenantUserInlinePolicy"
+	IAMService_ListTenantUserInlinePolicies_FullMethodName   = "/auth.IAMService/ListTenantUserInlinePolicies"
+	IAMService_DeleteTenantUserInlinePolicy_FullMethodName   = "/auth.IAMService/DeleteTenantUserInlinePolicy"
+	IAMService_ListTenantUserPolicies_FullMethodName         = "/auth.IAMService/ListTenantUserPolicies"
+	IAMService_AttachTenantUserPolicy_FullMethodName         = "/auth.IAMService/AttachTenantUserPolicy"
+	IAMService_DetachTenantUserPolicy_FullMethodName         = "/auth.IAMService/DetachTenantUserPolicy"
+	IAMService_PutRoleTrustPolicy_FullMethodName             = "/auth.IAMService/PutRoleTrustPolicy"
+	IAMService_GetRoleTrustPolicy_FullMethodName             = "/auth.IAMService/GetRoleTrustPolicy"
+	IAMService_DeleteRoleTrustPolicy_FullMethodName          = "/auth.IAMService/DeleteRoleTrustPolicy"
 )
 
 // IAMServiceClient is the client API for IAMService service.
@@ -605,6 +773,7 @@ type IAMServiceClient interface {
 	CreatePolicy(ctx context.Context, in *CreatePolicyRequest, opts ...grpc.CallOption) (*CreatePolicyResponse, error)
 	GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error)
 	ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error)
+	ListPolicyAttachments(ctx context.Context, in *ListPolicyAttachmentsRequest, opts ...grpc.CallOption) (*ListPolicyAttachmentsResponse, error)
 	DeletePolicy(ctx context.Context, in *DeletePolicyRequest, opts ...grpc.CallOption) (*DeletePolicyResponse, error)
 	CreateGroup(ctx context.Context, in *CreateGroupRequest, opts ...grpc.CallOption) (*CreateGroupResponse, error)
 	ListGroups(ctx context.Context, in *ListGroupsRequest, opts ...grpc.CallOption) (*ListGroupsResponse, error)
@@ -615,15 +784,30 @@ type IAMServiceClient interface {
 	AttachGroupPolicy(ctx context.Context, in *AttachGroupPolicyRequest, opts ...grpc.CallOption) (*AttachGroupPolicyResponse, error)
 	ListGroupPolicies(ctx context.Context, in *ListGroupPoliciesRequest, opts ...grpc.CallOption) (*ListGroupPoliciesResponse, error)
 	DetachGroupPolicy(ctx context.Context, in *DetachGroupPolicyRequest, opts ...grpc.CallOption) (*DetachGroupPolicyResponse, error)
+	PutGroupInlinePolicy(ctx context.Context, in *PutGroupInlinePolicyRequest, opts ...grpc.CallOption) (*PutGroupInlinePolicyResponse, error)
+	GetGroupInlinePolicy(ctx context.Context, in *GetGroupInlinePolicyRequest, opts ...grpc.CallOption) (*GetGroupInlinePolicyResponse, error)
+	ListGroupInlinePolicies(ctx context.Context, in *ListGroupInlinePoliciesRequest, opts ...grpc.CallOption) (*ListGroupInlinePoliciesResponse, error)
+	DeleteGroupInlinePolicy(ctx context.Context, in *DeleteGroupInlinePolicyRequest, opts ...grpc.CallOption) (*DeleteGroupInlinePolicyResponse, error)
+	PutPlatformUserInlinePolicy(ctx context.Context, in *PutPlatformUserInlinePolicyRequest, opts ...grpc.CallOption) (*PutPlatformUserInlinePolicyResponse, error)
+	GetPlatformUserInlinePolicy(ctx context.Context, in *GetPlatformUserInlinePolicyRequest, opts ...grpc.CallOption) (*GetPlatformUserInlinePolicyResponse, error)
+	ListPlatformUserInlinePolicies(ctx context.Context, in *ListPlatformUserInlinePoliciesRequest, opts ...grpc.CallOption) (*ListPlatformUserInlinePoliciesResponse, error)
+	DeletePlatformUserInlinePolicy(ctx context.Context, in *DeletePlatformUserInlinePolicyRequest, opts ...grpc.CallOption) (*DeletePlatformUserInlinePolicyResponse, error)
 	ListPlatformUserPolicies(ctx context.Context, in *ListPlatformUserPoliciesRequest, opts ...grpc.CallOption) (*ListPlatformUserPoliciesResponse, error)
 	AttachPlatformUserPolicy(ctx context.Context, in *AttachPlatformUserPolicyRequest, opts ...grpc.CallOption) (*AttachPlatformUserPolicyResponse, error)
 	DetachPlatformUserPolicy(ctx context.Context, in *DetachPlatformUserPolicyRequest, opts ...grpc.CallOption) (*DetachPlatformUserPolicyResponse, error)
 	RemovePlatformRole(ctx context.Context, in *RemovePlatformRoleRequest, opts ...grpc.CallOption) (*RemovePlatformRoleResponse, error)
 	ListTenantMembers(ctx context.Context, in *ListTenantMembersRequest, opts ...grpc.CallOption) (*ListTenantMembersResponse, error)
 	RemoveTenantMember(ctx context.Context, in *RemoveTenantMemberRequest, opts ...grpc.CallOption) (*RemoveTenantMemberResponse, error)
+	PutTenantUserInlinePolicy(ctx context.Context, in *PutTenantUserInlinePolicyRequest, opts ...grpc.CallOption) (*PutTenantUserInlinePolicyResponse, error)
+	GetTenantUserInlinePolicy(ctx context.Context, in *GetTenantUserInlinePolicyRequest, opts ...grpc.CallOption) (*GetTenantUserInlinePolicyResponse, error)
+	ListTenantUserInlinePolicies(ctx context.Context, in *ListTenantUserInlinePoliciesRequest, opts ...grpc.CallOption) (*ListTenantUserInlinePoliciesResponse, error)
+	DeleteTenantUserInlinePolicy(ctx context.Context, in *DeleteTenantUserInlinePolicyRequest, opts ...grpc.CallOption) (*DeleteTenantUserInlinePolicyResponse, error)
 	ListTenantUserPolicies(ctx context.Context, in *ListTenantUserPoliciesRequest, opts ...grpc.CallOption) (*ListTenantUserPoliciesResponse, error)
 	AttachTenantUserPolicy(ctx context.Context, in *AttachTenantUserPolicyRequest, opts ...grpc.CallOption) (*AttachTenantUserPolicyResponse, error)
 	DetachTenantUserPolicy(ctx context.Context, in *DetachTenantUserPolicyRequest, opts ...grpc.CallOption) (*DetachTenantUserPolicyResponse, error)
+	PutRoleTrustPolicy(ctx context.Context, in *PutRoleTrustPolicyRequest, opts ...grpc.CallOption) (*PutRoleTrustPolicyResponse, error)
+	GetRoleTrustPolicy(ctx context.Context, in *GetRoleTrustPolicyRequest, opts ...grpc.CallOption) (*GetRoleTrustPolicyResponse, error)
+	DeleteRoleTrustPolicy(ctx context.Context, in *DeleteRoleTrustPolicyRequest, opts ...grpc.CallOption) (*DeleteRoleTrustPolicyResponse, error)
 }
 
 type iAMServiceClient struct {
@@ -794,6 +978,16 @@ func (c *iAMServiceClient) ListPolicies(ctx context.Context, in *ListPoliciesReq
 	return out, nil
 }
 
+func (c *iAMServiceClient) ListPolicyAttachments(ctx context.Context, in *ListPolicyAttachmentsRequest, opts ...grpc.CallOption) (*ListPolicyAttachmentsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPolicyAttachmentsResponse)
+	err := c.cc.Invoke(ctx, IAMService_ListPolicyAttachments_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *iAMServiceClient) DeletePolicy(ctx context.Context, in *DeletePolicyRequest, opts ...grpc.CallOption) (*DeletePolicyResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeletePolicyResponse)
@@ -894,6 +1088,86 @@ func (c *iAMServiceClient) DetachGroupPolicy(ctx context.Context, in *DetachGrou
 	return out, nil
 }
 
+func (c *iAMServiceClient) PutGroupInlinePolicy(ctx context.Context, in *PutGroupInlinePolicyRequest, opts ...grpc.CallOption) (*PutGroupInlinePolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PutGroupInlinePolicyResponse)
+	err := c.cc.Invoke(ctx, IAMService_PutGroupInlinePolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) GetGroupInlinePolicy(ctx context.Context, in *GetGroupInlinePolicyRequest, opts ...grpc.CallOption) (*GetGroupInlinePolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetGroupInlinePolicyResponse)
+	err := c.cc.Invoke(ctx, IAMService_GetGroupInlinePolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) ListGroupInlinePolicies(ctx context.Context, in *ListGroupInlinePoliciesRequest, opts ...grpc.CallOption) (*ListGroupInlinePoliciesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListGroupInlinePoliciesResponse)
+	err := c.cc.Invoke(ctx, IAMService_ListGroupInlinePolicies_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) DeleteGroupInlinePolicy(ctx context.Context, in *DeleteGroupInlinePolicyRequest, opts ...grpc.CallOption) (*DeleteGroupInlinePolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteGroupInlinePolicyResponse)
+	err := c.cc.Invoke(ctx, IAMService_DeleteGroupInlinePolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) PutPlatformUserInlinePolicy(ctx context.Context, in *PutPlatformUserInlinePolicyRequest, opts ...grpc.CallOption) (*PutPlatformUserInlinePolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PutPlatformUserInlinePolicyResponse)
+	err := c.cc.Invoke(ctx, IAMService_PutPlatformUserInlinePolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) GetPlatformUserInlinePolicy(ctx context.Context, in *GetPlatformUserInlinePolicyRequest, opts ...grpc.CallOption) (*GetPlatformUserInlinePolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPlatformUserInlinePolicyResponse)
+	err := c.cc.Invoke(ctx, IAMService_GetPlatformUserInlinePolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) ListPlatformUserInlinePolicies(ctx context.Context, in *ListPlatformUserInlinePoliciesRequest, opts ...grpc.CallOption) (*ListPlatformUserInlinePoliciesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPlatformUserInlinePoliciesResponse)
+	err := c.cc.Invoke(ctx, IAMService_ListPlatformUserInlinePolicies_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) DeletePlatformUserInlinePolicy(ctx context.Context, in *DeletePlatformUserInlinePolicyRequest, opts ...grpc.CallOption) (*DeletePlatformUserInlinePolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletePlatformUserInlinePolicyResponse)
+	err := c.cc.Invoke(ctx, IAMService_DeletePlatformUserInlinePolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *iAMServiceClient) ListPlatformUserPolicies(ctx context.Context, in *ListPlatformUserPoliciesRequest, opts ...grpc.CallOption) (*ListPlatformUserPoliciesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListPlatformUserPoliciesResponse)
@@ -954,6 +1228,46 @@ func (c *iAMServiceClient) RemoveTenantMember(ctx context.Context, in *RemoveTen
 	return out, nil
 }
 
+func (c *iAMServiceClient) PutTenantUserInlinePolicy(ctx context.Context, in *PutTenantUserInlinePolicyRequest, opts ...grpc.CallOption) (*PutTenantUserInlinePolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PutTenantUserInlinePolicyResponse)
+	err := c.cc.Invoke(ctx, IAMService_PutTenantUserInlinePolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) GetTenantUserInlinePolicy(ctx context.Context, in *GetTenantUserInlinePolicyRequest, opts ...grpc.CallOption) (*GetTenantUserInlinePolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetTenantUserInlinePolicyResponse)
+	err := c.cc.Invoke(ctx, IAMService_GetTenantUserInlinePolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) ListTenantUserInlinePolicies(ctx context.Context, in *ListTenantUserInlinePoliciesRequest, opts ...grpc.CallOption) (*ListTenantUserInlinePoliciesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListTenantUserInlinePoliciesResponse)
+	err := c.cc.Invoke(ctx, IAMService_ListTenantUserInlinePolicies_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) DeleteTenantUserInlinePolicy(ctx context.Context, in *DeleteTenantUserInlinePolicyRequest, opts ...grpc.CallOption) (*DeleteTenantUserInlinePolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteTenantUserInlinePolicyResponse)
+	err := c.cc.Invoke(ctx, IAMService_DeleteTenantUserInlinePolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *iAMServiceClient) ListTenantUserPolicies(ctx context.Context, in *ListTenantUserPoliciesRequest, opts ...grpc.CallOption) (*ListTenantUserPoliciesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListTenantUserPoliciesResponse)
@@ -984,6 +1298,36 @@ func (c *iAMServiceClient) DetachTenantUserPolicy(ctx context.Context, in *Detac
 	return out, nil
 }
 
+func (c *iAMServiceClient) PutRoleTrustPolicy(ctx context.Context, in *PutRoleTrustPolicyRequest, opts ...grpc.CallOption) (*PutRoleTrustPolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PutRoleTrustPolicyResponse)
+	err := c.cc.Invoke(ctx, IAMService_PutRoleTrustPolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) GetRoleTrustPolicy(ctx context.Context, in *GetRoleTrustPolicyRequest, opts ...grpc.CallOption) (*GetRoleTrustPolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRoleTrustPolicyResponse)
+	err := c.cc.Invoke(ctx, IAMService_GetRoleTrustPolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) DeleteRoleTrustPolicy(ctx context.Context, in *DeleteRoleTrustPolicyRequest, opts ...grpc.CallOption) (*DeleteRoleTrustPolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteRoleTrustPolicyResponse)
+	err := c.cc.Invoke(ctx, IAMService_DeleteRoleTrustPolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // IAMServiceServer is the server API for IAMService service.
 // All implementations must embed UnimplementedIAMServiceServer
 // for forward compatibility.
@@ -1007,6 +1351,7 @@ type IAMServiceServer interface {
 	CreatePolicy(context.Context, *CreatePolicyRequest) (*CreatePolicyResponse, error)
 	GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error)
 	ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error)
+	ListPolicyAttachments(context.Context, *ListPolicyAttachmentsRequest) (*ListPolicyAttachmentsResponse, error)
 	DeletePolicy(context.Context, *DeletePolicyRequest) (*DeletePolicyResponse, error)
 	CreateGroup(context.Context, *CreateGroupRequest) (*CreateGroupResponse, error)
 	ListGroups(context.Context, *ListGroupsRequest) (*ListGroupsResponse, error)
@@ -1017,15 +1362,30 @@ type IAMServiceServer interface {
 	AttachGroupPolicy(context.Context, *AttachGroupPolicyRequest) (*AttachGroupPolicyResponse, error)
 	ListGroupPolicies(context.Context, *ListGroupPoliciesRequest) (*ListGroupPoliciesResponse, error)
 	DetachGroupPolicy(context.Context, *DetachGroupPolicyRequest) (*DetachGroupPolicyResponse, error)
+	PutGroupInlinePolicy(context.Context, *PutGroupInlinePolicyRequest) (*PutGroupInlinePolicyResponse, error)
+	GetGroupInlinePolicy(context.Context, *GetGroupInlinePolicyRequest) (*GetGroupInlinePolicyResponse, error)
+	ListGroupInlinePolicies(context.Context, *ListGroupInlinePoliciesRequest) (*ListGroupInlinePoliciesResponse, error)
+	DeleteGroupInlinePolicy(context.Context, *DeleteGroupInlinePolicyRequest) (*DeleteGroupInlinePolicyResponse, error)
+	PutPlatformUserInlinePolicy(context.Context, *PutPlatformUserInlinePolicyRequest) (*PutPlatformUserInlinePolicyResponse, error)
+	GetPlatformUserInlinePolicy(context.Context, *GetPlatformUserInlinePolicyRequest) (*GetPlatformUserInlinePolicyResponse, error)
+	ListPlatformUserInlinePolicies(context.Context, *ListPlatformUserInlinePoliciesRequest) (*ListPlatformUserInlinePoliciesResponse, error)
+	DeletePlatformUserInlinePolicy(context.Context, *DeletePlatformUserInlinePolicyRequest) (*DeletePlatformUserInlinePolicyResponse, error)
 	ListPlatformUserPolicies(context.Context, *ListPlatformUserPoliciesRequest) (*ListPlatformUserPoliciesResponse, error)
 	AttachPlatformUserPolicy(context.Context, *AttachPlatformUserPolicyRequest) (*AttachPlatformUserPolicyResponse, error)
 	DetachPlatformUserPolicy(context.Context, *DetachPlatformUserPolicyRequest) (*DetachPlatformUserPolicyResponse, error)
 	RemovePlatformRole(context.Context, *RemovePlatformRoleRequest) (*RemovePlatformRoleResponse, error)
 	ListTenantMembers(context.Context, *ListTenantMembersRequest) (*ListTenantMembersResponse, error)
 	RemoveTenantMember(context.Context, *RemoveTenantMemberRequest) (*RemoveTenantMemberResponse, error)
+	PutTenantUserInlinePolicy(context.Context, *PutTenantUserInlinePolicyRequest) (*PutTenantUserInlinePolicyResponse, error)
+	GetTenantUserInlinePolicy(context.Context, *GetTenantUserInlinePolicyRequest) (*GetTenantUserInlinePolicyResponse, error)
+	ListTenantUserInlinePolicies(context.Context, *ListTenantUserInlinePoliciesRequest) (*ListTenantUserInlinePoliciesResponse, error)
+	DeleteTenantUserInlinePolicy(context.Context, *DeleteTenantUserInlinePolicyRequest) (*DeleteTenantUserInlinePolicyResponse, error)
 	ListTenantUserPolicies(context.Context, *ListTenantUserPoliciesRequest) (*ListTenantUserPoliciesResponse, error)
 	AttachTenantUserPolicy(context.Context, *AttachTenantUserPolicyRequest) (*AttachTenantUserPolicyResponse, error)
 	DetachTenantUserPolicy(context.Context, *DetachTenantUserPolicyRequest) (*DetachTenantUserPolicyResponse, error)
+	PutRoleTrustPolicy(context.Context, *PutRoleTrustPolicyRequest) (*PutRoleTrustPolicyResponse, error)
+	GetRoleTrustPolicy(context.Context, *GetRoleTrustPolicyRequest) (*GetRoleTrustPolicyResponse, error)
+	DeleteRoleTrustPolicy(context.Context, *DeleteRoleTrustPolicyRequest) (*DeleteRoleTrustPolicyResponse, error)
 	mustEmbedUnimplementedIAMServiceServer()
 }
 
@@ -1084,6 +1444,9 @@ func (UnimplementedIAMServiceServer) GetPolicy(context.Context, *GetPolicyReques
 func (UnimplementedIAMServiceServer) ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListPolicies not implemented")
 }
+func (UnimplementedIAMServiceServer) ListPolicyAttachments(context.Context, *ListPolicyAttachmentsRequest) (*ListPolicyAttachmentsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPolicyAttachments not implemented")
+}
 func (UnimplementedIAMServiceServer) DeletePolicy(context.Context, *DeletePolicyRequest) (*DeletePolicyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeletePolicy not implemented")
 }
@@ -1114,6 +1477,30 @@ func (UnimplementedIAMServiceServer) ListGroupPolicies(context.Context, *ListGro
 func (UnimplementedIAMServiceServer) DetachGroupPolicy(context.Context, *DetachGroupPolicyRequest) (*DetachGroupPolicyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DetachGroupPolicy not implemented")
 }
+func (UnimplementedIAMServiceServer) PutGroupInlinePolicy(context.Context, *PutGroupInlinePolicyRequest) (*PutGroupInlinePolicyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PutGroupInlinePolicy not implemented")
+}
+func (UnimplementedIAMServiceServer) GetGroupInlinePolicy(context.Context, *GetGroupInlinePolicyRequest) (*GetGroupInlinePolicyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGroupInlinePolicy not implemented")
+}
+func (UnimplementedIAMServiceServer) ListGroupInlinePolicies(context.Context, *ListGroupInlinePoliciesRequest) (*ListGroupInlinePoliciesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListGroupInlinePolicies not implemented")
+}
+func (UnimplementedIAMServiceServer) DeleteGroupInlinePolicy(context.Context, *DeleteGroupInlinePolicyRequest) (*DeleteGroupInlinePolicyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteGroupInlinePolicy not implemented")
+}
+func (UnimplementedIAMServiceServer) PutPlatformUserInlinePolicy(context.Context, *PutPlatformUserInlinePolicyRequest) (*PutPlatformUserInlinePolicyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PutPlatformUserInlinePolicy not implemented")
+}
+func (UnimplementedIAMServiceServer) GetPlatformUserInlinePolicy(context.Context, *GetPlatformUserInlinePolicyRequest) (*GetPlatformUserInlinePolicyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPlatformUserInlinePolicy not implemented")
+}
+func (UnimplementedIAMServiceServer) ListPlatformUserInlinePolicies(context.Context, *ListPlatformUserInlinePoliciesRequest) (*ListPlatformUserInlinePoliciesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPlatformUserInlinePolicies not implemented")
+}
+func (UnimplementedIAMServiceServer) DeletePlatformUserInlinePolicy(context.Context, *DeletePlatformUserInlinePolicyRequest) (*DeletePlatformUserInlinePolicyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePlatformUserInlinePolicy not implemented")
+}
 func (UnimplementedIAMServiceServer) ListPlatformUserPolicies(context.Context, *ListPlatformUserPoliciesRequest) (*ListPlatformUserPoliciesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListPlatformUserPolicies not implemented")
 }
@@ -1132,6 +1519,18 @@ func (UnimplementedIAMServiceServer) ListTenantMembers(context.Context, *ListTen
 func (UnimplementedIAMServiceServer) RemoveTenantMember(context.Context, *RemoveTenantMemberRequest) (*RemoveTenantMemberResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveTenantMember not implemented")
 }
+func (UnimplementedIAMServiceServer) PutTenantUserInlinePolicy(context.Context, *PutTenantUserInlinePolicyRequest) (*PutTenantUserInlinePolicyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PutTenantUserInlinePolicy not implemented")
+}
+func (UnimplementedIAMServiceServer) GetTenantUserInlinePolicy(context.Context, *GetTenantUserInlinePolicyRequest) (*GetTenantUserInlinePolicyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTenantUserInlinePolicy not implemented")
+}
+func (UnimplementedIAMServiceServer) ListTenantUserInlinePolicies(context.Context, *ListTenantUserInlinePoliciesRequest) (*ListTenantUserInlinePoliciesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListTenantUserInlinePolicies not implemented")
+}
+func (UnimplementedIAMServiceServer) DeleteTenantUserInlinePolicy(context.Context, *DeleteTenantUserInlinePolicyRequest) (*DeleteTenantUserInlinePolicyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteTenantUserInlinePolicy not implemented")
+}
 func (UnimplementedIAMServiceServer) ListTenantUserPolicies(context.Context, *ListTenantUserPoliciesRequest) (*ListTenantUserPoliciesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListTenantUserPolicies not implemented")
 }
@@ -1140,6 +1539,15 @@ func (UnimplementedIAMServiceServer) AttachTenantUserPolicy(context.Context, *At
 }
 func (UnimplementedIAMServiceServer) DetachTenantUserPolicy(context.Context, *DetachTenantUserPolicyRequest) (*DetachTenantUserPolicyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DetachTenantUserPolicy not implemented")
+}
+func (UnimplementedIAMServiceServer) PutRoleTrustPolicy(context.Context, *PutRoleTrustPolicyRequest) (*PutRoleTrustPolicyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PutRoleTrustPolicy not implemented")
+}
+func (UnimplementedIAMServiceServer) GetRoleTrustPolicy(context.Context, *GetRoleTrustPolicyRequest) (*GetRoleTrustPolicyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRoleTrustPolicy not implemented")
+}
+func (UnimplementedIAMServiceServer) DeleteRoleTrustPolicy(context.Context, *DeleteRoleTrustPolicyRequest) (*DeleteRoleTrustPolicyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteRoleTrustPolicy not implemented")
 }
 func (UnimplementedIAMServiceServer) mustEmbedUnimplementedIAMServiceServer() {}
 func (UnimplementedIAMServiceServer) testEmbeddedByValue()                    {}
@@ -1450,6 +1858,24 @@ func _IAMService_ListPolicies_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IAMService_ListPolicyAttachments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPolicyAttachmentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).ListPolicyAttachments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_ListPolicyAttachments_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).ListPolicyAttachments(ctx, req.(*ListPolicyAttachmentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _IAMService_DeletePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeletePolicyRequest)
 	if err := dec(in); err != nil {
@@ -1630,6 +2056,150 @@ func _IAMService_DetachGroupPolicy_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IAMService_PutGroupInlinePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PutGroupInlinePolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).PutGroupInlinePolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_PutGroupInlinePolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).PutGroupInlinePolicy(ctx, req.(*PutGroupInlinePolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_GetGroupInlinePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGroupInlinePolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).GetGroupInlinePolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_GetGroupInlinePolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).GetGroupInlinePolicy(ctx, req.(*GetGroupInlinePolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_ListGroupInlinePolicies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListGroupInlinePoliciesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).ListGroupInlinePolicies(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_ListGroupInlinePolicies_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).ListGroupInlinePolicies(ctx, req.(*ListGroupInlinePoliciesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_DeleteGroupInlinePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteGroupInlinePolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).DeleteGroupInlinePolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_DeleteGroupInlinePolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).DeleteGroupInlinePolicy(ctx, req.(*DeleteGroupInlinePolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_PutPlatformUserInlinePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PutPlatformUserInlinePolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).PutPlatformUserInlinePolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_PutPlatformUserInlinePolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).PutPlatformUserInlinePolicy(ctx, req.(*PutPlatformUserInlinePolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_GetPlatformUserInlinePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPlatformUserInlinePolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).GetPlatformUserInlinePolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_GetPlatformUserInlinePolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).GetPlatformUserInlinePolicy(ctx, req.(*GetPlatformUserInlinePolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_ListPlatformUserInlinePolicies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPlatformUserInlinePoliciesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).ListPlatformUserInlinePolicies(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_ListPlatformUserInlinePolicies_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).ListPlatformUserInlinePolicies(ctx, req.(*ListPlatformUserInlinePoliciesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_DeletePlatformUserInlinePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePlatformUserInlinePolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).DeletePlatformUserInlinePolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_DeletePlatformUserInlinePolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).DeletePlatformUserInlinePolicy(ctx, req.(*DeletePlatformUserInlinePolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _IAMService_ListPlatformUserPolicies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListPlatformUserPoliciesRequest)
 	if err := dec(in); err != nil {
@@ -1738,6 +2308,78 @@ func _IAMService_RemoveTenantMember_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IAMService_PutTenantUserInlinePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PutTenantUserInlinePolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).PutTenantUserInlinePolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_PutTenantUserInlinePolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).PutTenantUserInlinePolicy(ctx, req.(*PutTenantUserInlinePolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_GetTenantUserInlinePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTenantUserInlinePolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).GetTenantUserInlinePolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_GetTenantUserInlinePolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).GetTenantUserInlinePolicy(ctx, req.(*GetTenantUserInlinePolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_ListTenantUserInlinePolicies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTenantUserInlinePoliciesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).ListTenantUserInlinePolicies(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_ListTenantUserInlinePolicies_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).ListTenantUserInlinePolicies(ctx, req.(*ListTenantUserInlinePoliciesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_DeleteTenantUserInlinePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteTenantUserInlinePolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).DeleteTenantUserInlinePolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_DeleteTenantUserInlinePolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).DeleteTenantUserInlinePolicy(ctx, req.(*DeleteTenantUserInlinePolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _IAMService_ListTenantUserPolicies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListTenantUserPoliciesRequest)
 	if err := dec(in); err != nil {
@@ -1788,6 +2430,60 @@ func _IAMService_DetachTenantUserPolicy_Handler(srv interface{}, ctx context.Con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(IAMServiceServer).DetachTenantUserPolicy(ctx, req.(*DetachTenantUserPolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_PutRoleTrustPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PutRoleTrustPolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).PutRoleTrustPolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_PutRoleTrustPolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).PutRoleTrustPolicy(ctx, req.(*PutRoleTrustPolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_GetRoleTrustPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRoleTrustPolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).GetRoleTrustPolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_GetRoleTrustPolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).GetRoleTrustPolicy(ctx, req.(*GetRoleTrustPolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_DeleteRoleTrustPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRoleTrustPolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).DeleteRoleTrustPolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_DeleteRoleTrustPolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).DeleteRoleTrustPolicy(ctx, req.(*DeleteRoleTrustPolicyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1864,6 +2560,10 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _IAMService_ListPolicies_Handler,
 		},
 		{
+			MethodName: "ListPolicyAttachments",
+			Handler:    _IAMService_ListPolicyAttachments_Handler,
+		},
+		{
 			MethodName: "DeletePolicy",
 			Handler:    _IAMService_DeletePolicy_Handler,
 		},
@@ -1904,6 +2604,38 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _IAMService_DetachGroupPolicy_Handler,
 		},
 		{
+			MethodName: "PutGroupInlinePolicy",
+			Handler:    _IAMService_PutGroupInlinePolicy_Handler,
+		},
+		{
+			MethodName: "GetGroupInlinePolicy",
+			Handler:    _IAMService_GetGroupInlinePolicy_Handler,
+		},
+		{
+			MethodName: "ListGroupInlinePolicies",
+			Handler:    _IAMService_ListGroupInlinePolicies_Handler,
+		},
+		{
+			MethodName: "DeleteGroupInlinePolicy",
+			Handler:    _IAMService_DeleteGroupInlinePolicy_Handler,
+		},
+		{
+			MethodName: "PutPlatformUserInlinePolicy",
+			Handler:    _IAMService_PutPlatformUserInlinePolicy_Handler,
+		},
+		{
+			MethodName: "GetPlatformUserInlinePolicy",
+			Handler:    _IAMService_GetPlatformUserInlinePolicy_Handler,
+		},
+		{
+			MethodName: "ListPlatformUserInlinePolicies",
+			Handler:    _IAMService_ListPlatformUserInlinePolicies_Handler,
+		},
+		{
+			MethodName: "DeletePlatformUserInlinePolicy",
+			Handler:    _IAMService_DeletePlatformUserInlinePolicy_Handler,
+		},
+		{
 			MethodName: "ListPlatformUserPolicies",
 			Handler:    _IAMService_ListPlatformUserPolicies_Handler,
 		},
@@ -1928,6 +2660,22 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _IAMService_RemoveTenantMember_Handler,
 		},
 		{
+			MethodName: "PutTenantUserInlinePolicy",
+			Handler:    _IAMService_PutTenantUserInlinePolicy_Handler,
+		},
+		{
+			MethodName: "GetTenantUserInlinePolicy",
+			Handler:    _IAMService_GetTenantUserInlinePolicy_Handler,
+		},
+		{
+			MethodName: "ListTenantUserInlinePolicies",
+			Handler:    _IAMService_ListTenantUserInlinePolicies_Handler,
+		},
+		{
+			MethodName: "DeleteTenantUserInlinePolicy",
+			Handler:    _IAMService_DeleteTenantUserInlinePolicy_Handler,
+		},
+		{
 			MethodName: "ListTenantUserPolicies",
 			Handler:    _IAMService_ListTenantUserPolicies_Handler,
 		},
@@ -1938,6 +2686,18 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DetachTenantUserPolicy",
 			Handler:    _IAMService_DetachTenantUserPolicy_Handler,
+		},
+		{
+			MethodName: "PutRoleTrustPolicy",
+			Handler:    _IAMService_PutRoleTrustPolicy_Handler,
+		},
+		{
+			MethodName: "GetRoleTrustPolicy",
+			Handler:    _IAMService_GetRoleTrustPolicy_Handler,
+		},
+		{
+			MethodName: "DeleteRoleTrustPolicy",
+			Handler:    _IAMService_DeleteRoleTrustPolicy_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

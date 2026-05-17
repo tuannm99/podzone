@@ -252,6 +252,69 @@ func (_c *MockPolicyRepository_CreatePolicy_Call) RunAndReturn(run func(ctx cont
 	return _c
 }
 
+// DeletePlatformUserInlinePolicy provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) DeletePlatformUserInlinePolicy(ctx context.Context, userID uint, name string) error {
+	ret := _mock.Called(ctx, userID, name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeletePlatformUserInlinePolicy")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string) error); ok {
+		r0 = returnFunc(ctx, userID, name)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockPolicyRepository_DeletePlatformUserInlinePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeletePlatformUserInlinePolicy'
+type MockPolicyRepository_DeletePlatformUserInlinePolicy_Call struct {
+	*mock.Call
+}
+
+// DeletePlatformUserInlinePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uint
+//   - name string
+func (_e *MockPolicyRepository_Expecter) DeletePlatformUserInlinePolicy(ctx interface{}, userID interface{}, name interface{}) *MockPolicyRepository_DeletePlatformUserInlinePolicy_Call {
+	return &MockPolicyRepository_DeletePlatformUserInlinePolicy_Call{Call: _e.mock.On("DeletePlatformUserInlinePolicy", ctx, userID, name)}
+}
+
+func (_c *MockPolicyRepository_DeletePlatformUserInlinePolicy_Call) Run(run func(ctx context.Context, userID uint, name string)) *MockPolicyRepository_DeletePlatformUserInlinePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPolicyRepository_DeletePlatformUserInlinePolicy_Call) Return(err error) *MockPolicyRepository_DeletePlatformUserInlinePolicy_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockPolicyRepository_DeletePlatformUserInlinePolicy_Call) RunAndReturn(run func(ctx context.Context, userID uint, name string) error) *MockPolicyRepository_DeletePlatformUserInlinePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeletePolicy provides a mock function for the type MockPolicyRepository
 func (_mock *MockPolicyRepository) DeletePolicy(ctx context.Context, policyID uint64) error {
 	ret := _mock.Called(ctx, policyID)
@@ -305,6 +368,75 @@ func (_c *MockPolicyRepository_DeletePolicy_Call) Return(err error) *MockPolicyR
 }
 
 func (_c *MockPolicyRepository_DeletePolicy_Call) RunAndReturn(run func(ctx context.Context, policyID uint64) error) *MockPolicyRepository_DeletePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteTenantUserInlinePolicy provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) DeleteTenantUserInlinePolicy(ctx context.Context, tenantID string, userID uint, name string) error {
+	ret := _mock.Called(ctx, tenantID, userID, name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteTenantUserInlinePolicy")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint, string) error); ok {
+		r0 = returnFunc(ctx, tenantID, userID, name)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockPolicyRepository_DeleteTenantUserInlinePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteTenantUserInlinePolicy'
+type MockPolicyRepository_DeleteTenantUserInlinePolicy_Call struct {
+	*mock.Call
+}
+
+// DeleteTenantUserInlinePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - userID uint
+//   - name string
+func (_e *MockPolicyRepository_Expecter) DeleteTenantUserInlinePolicy(ctx interface{}, tenantID interface{}, userID interface{}, name interface{}) *MockPolicyRepository_DeleteTenantUserInlinePolicy_Call {
+	return &MockPolicyRepository_DeleteTenantUserInlinePolicy_Call{Call: _e.mock.On("DeleteTenantUserInlinePolicy", ctx, tenantID, userID, name)}
+}
+
+func (_c *MockPolicyRepository_DeleteTenantUserInlinePolicy_Call) Run(run func(ctx context.Context, tenantID string, userID uint, name string)) *MockPolicyRepository_DeleteTenantUserInlinePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPolicyRepository_DeleteTenantUserInlinePolicy_Call) Return(err error) *MockPolicyRepository_DeleteTenantUserInlinePolicy_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockPolicyRepository_DeleteTenantUserInlinePolicy_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint, name string) error) *MockPolicyRepository_DeleteTenantUserInlinePolicy_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -437,6 +569,80 @@ func (_c *MockPolicyRepository_DetachTenantUserPolicy_Call) Return(err error) *M
 }
 
 func (_c *MockPolicyRepository_DetachTenantUserPolicy_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint, policyID uint64) error) *MockPolicyRepository_DetachTenantUserPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetPlatformUserInlinePolicy provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) GetPlatformUserInlinePolicy(ctx context.Context, userID uint, name string) (*domain.UserInlinePolicy, error) {
+	ret := _mock.Called(ctx, userID, name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPlatformUserInlinePolicy")
+	}
+
+	var r0 *domain.UserInlinePolicy
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string) (*domain.UserInlinePolicy, error)); ok {
+		return returnFunc(ctx, userID, name)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string) *domain.UserInlinePolicy); ok {
+		r0 = returnFunc(ctx, userID, name)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.UserInlinePolicy)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint, string) error); ok {
+		r1 = returnFunc(ctx, userID, name)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockPolicyRepository_GetPlatformUserInlinePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPlatformUserInlinePolicy'
+type MockPolicyRepository_GetPlatformUserInlinePolicy_Call struct {
+	*mock.Call
+}
+
+// GetPlatformUserInlinePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uint
+//   - name string
+func (_e *MockPolicyRepository_Expecter) GetPlatformUserInlinePolicy(ctx interface{}, userID interface{}, name interface{}) *MockPolicyRepository_GetPlatformUserInlinePolicy_Call {
+	return &MockPolicyRepository_GetPlatformUserInlinePolicy_Call{Call: _e.mock.On("GetPlatformUserInlinePolicy", ctx, userID, name)}
+}
+
+func (_c *MockPolicyRepository_GetPlatformUserInlinePolicy_Call) Run(run func(ctx context.Context, userID uint, name string)) *MockPolicyRepository_GetPlatformUserInlinePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPolicyRepository_GetPlatformUserInlinePolicy_Call) Return(userInlinePolicy *domain.UserInlinePolicy, err error) *MockPolicyRepository_GetPlatformUserInlinePolicy_Call {
+	_c.Call.Return(userInlinePolicy, err)
+	return _c
+}
+
+func (_c *MockPolicyRepository_GetPlatformUserInlinePolicy_Call) RunAndReturn(run func(ctx context.Context, userID uint, name string) (*domain.UserInlinePolicy, error)) *MockPolicyRepository_GetPlatformUserInlinePolicy_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -577,6 +783,86 @@ func (_c *MockPolicyRepository_GetPolicyStatements_Call) RunAndReturn(run func(c
 	return _c
 }
 
+// GetTenantUserInlinePolicy provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) GetTenantUserInlinePolicy(ctx context.Context, tenantID string, userID uint, name string) (*domain.UserInlinePolicy, error) {
+	ret := _mock.Called(ctx, tenantID, userID, name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTenantUserInlinePolicy")
+	}
+
+	var r0 *domain.UserInlinePolicy
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint, string) (*domain.UserInlinePolicy, error)); ok {
+		return returnFunc(ctx, tenantID, userID, name)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint, string) *domain.UserInlinePolicy); ok {
+		r0 = returnFunc(ctx, tenantID, userID, name)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.UserInlinePolicy)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint, string) error); ok {
+		r1 = returnFunc(ctx, tenantID, userID, name)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockPolicyRepository_GetTenantUserInlinePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTenantUserInlinePolicy'
+type MockPolicyRepository_GetTenantUserInlinePolicy_Call struct {
+	*mock.Call
+}
+
+// GetTenantUserInlinePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - userID uint
+//   - name string
+func (_e *MockPolicyRepository_Expecter) GetTenantUserInlinePolicy(ctx interface{}, tenantID interface{}, userID interface{}, name interface{}) *MockPolicyRepository_GetTenantUserInlinePolicy_Call {
+	return &MockPolicyRepository_GetTenantUserInlinePolicy_Call{Call: _e.mock.On("GetTenantUserInlinePolicy", ctx, tenantID, userID, name)}
+}
+
+func (_c *MockPolicyRepository_GetTenantUserInlinePolicy_Call) Run(run func(ctx context.Context, tenantID string, userID uint, name string)) *MockPolicyRepository_GetTenantUserInlinePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPolicyRepository_GetTenantUserInlinePolicy_Call) Return(userInlinePolicy *domain.UserInlinePolicy, err error) *MockPolicyRepository_GetTenantUserInlinePolicy_Call {
+	_c.Call.Return(userInlinePolicy, err)
+	return _c
+}
+
+func (_c *MockPolicyRepository_GetTenantUserInlinePolicy_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint, name string) (*domain.UserInlinePolicy, error)) *MockPolicyRepository_GetTenantUserInlinePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListPlatformGroupStatements provides a mock function for the type MockPolicyRepository
 func (_mock *MockPolicyRepository) ListPlatformGroupStatements(ctx context.Context, userID uint) ([]domain.PolicyStatement, error) {
 	ret := _mock.Called(ctx, userID)
@@ -641,6 +927,74 @@ func (_c *MockPolicyRepository_ListPlatformGroupStatements_Call) Return(policySt
 }
 
 func (_c *MockPolicyRepository_ListPlatformGroupStatements_Call) RunAndReturn(run func(ctx context.Context, userID uint) ([]domain.PolicyStatement, error)) *MockPolicyRepository_ListPlatformGroupStatements_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListPlatformUserInlinePolicies provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) ListPlatformUserInlinePolicies(ctx context.Context, userID uint) ([]domain.UserInlinePolicy, error) {
+	ret := _mock.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListPlatformUserInlinePolicies")
+	}
+
+	var r0 []domain.UserInlinePolicy
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) ([]domain.UserInlinePolicy, error)); ok {
+		return returnFunc(ctx, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) []domain.UserInlinePolicy); ok {
+		r0 = returnFunc(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]domain.UserInlinePolicy)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint) error); ok {
+		r1 = returnFunc(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockPolicyRepository_ListPlatformUserInlinePolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPlatformUserInlinePolicies'
+type MockPolicyRepository_ListPlatformUserInlinePolicies_Call struct {
+	*mock.Call
+}
+
+// ListPlatformUserInlinePolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uint
+func (_e *MockPolicyRepository_Expecter) ListPlatformUserInlinePolicies(ctx interface{}, userID interface{}) *MockPolicyRepository_ListPlatformUserInlinePolicies_Call {
+	return &MockPolicyRepository_ListPlatformUserInlinePolicies_Call{Call: _e.mock.On("ListPlatformUserInlinePolicies", ctx, userID)}
+}
+
+func (_c *MockPolicyRepository_ListPlatformUserInlinePolicies_Call) Run(run func(ctx context.Context, userID uint)) *MockPolicyRepository_ListPlatformUserInlinePolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPolicyRepository_ListPlatformUserInlinePolicies_Call) Return(userInlinePolicys []domain.UserInlinePolicy, err error) *MockPolicyRepository_ListPlatformUserInlinePolicies_Call {
+	_c.Call.Return(userInlinePolicys, err)
+	return _c
+}
+
+func (_c *MockPolicyRepository_ListPlatformUserInlinePolicies_Call) RunAndReturn(run func(ctx context.Context, userID uint) ([]domain.UserInlinePolicy, error)) *MockPolicyRepository_ListPlatformUserInlinePolicies_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -849,6 +1203,74 @@ func (_c *MockPolicyRepository_ListPolicies_Call) RunAndReturn(run func(ctx cont
 	return _c
 }
 
+// ListPolicyAttachments provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) ListPolicyAttachments(ctx context.Context, policyID uint64) ([]domain.PolicyAttachment, error) {
+	ret := _mock.Called(ctx, policyID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListPolicyAttachments")
+	}
+
+	var r0 []domain.PolicyAttachment
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) ([]domain.PolicyAttachment, error)); ok {
+		return returnFunc(ctx, policyID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) []domain.PolicyAttachment); ok {
+		r0 = returnFunc(ctx, policyID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]domain.PolicyAttachment)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
+		r1 = returnFunc(ctx, policyID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockPolicyRepository_ListPolicyAttachments_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPolicyAttachments'
+type MockPolicyRepository_ListPolicyAttachments_Call struct {
+	*mock.Call
+}
+
+// ListPolicyAttachments is a helper method to define mock.On call
+//   - ctx context.Context
+//   - policyID uint64
+func (_e *MockPolicyRepository_Expecter) ListPolicyAttachments(ctx interface{}, policyID interface{}) *MockPolicyRepository_ListPolicyAttachments_Call {
+	return &MockPolicyRepository_ListPolicyAttachments_Call{Call: _e.mock.On("ListPolicyAttachments", ctx, policyID)}
+}
+
+func (_c *MockPolicyRepository_ListPolicyAttachments_Call) Run(run func(ctx context.Context, policyID uint64)) *MockPolicyRepository_ListPolicyAttachments_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPolicyRepository_ListPolicyAttachments_Call) Return(policyAttachments []domain.PolicyAttachment, err error) *MockPolicyRepository_ListPolicyAttachments_Call {
+	_c.Call.Return(policyAttachments, err)
+	return _c
+}
+
+func (_c *MockPolicyRepository_ListPolicyAttachments_Call) RunAndReturn(run func(ctx context.Context, policyID uint64) ([]domain.PolicyAttachment, error)) *MockPolicyRepository_ListPolicyAttachments_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListRoleStatements provides a mock function for the type MockPolicyRepository
 func (_mock *MockPolicyRepository) ListRoleStatements(ctx context.Context, roleID uint64) ([]domain.PolicyStatement, error) {
 	ret := _mock.Called(ctx, roleID)
@@ -987,6 +1409,80 @@ func (_c *MockPolicyRepository_ListTenantGroupStatements_Call) Return(policyStat
 }
 
 func (_c *MockPolicyRepository_ListTenantGroupStatements_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint) ([]domain.PolicyStatement, error)) *MockPolicyRepository_ListTenantGroupStatements_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListTenantUserInlinePolicies provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) ListTenantUserInlinePolicies(ctx context.Context, tenantID string, userID uint) ([]domain.UserInlinePolicy, error) {
+	ret := _mock.Called(ctx, tenantID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListTenantUserInlinePolicies")
+	}
+
+	var r0 []domain.UserInlinePolicy
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) ([]domain.UserInlinePolicy, error)); ok {
+		return returnFunc(ctx, tenantID, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) []domain.UserInlinePolicy); ok {
+		r0 = returnFunc(ctx, tenantID, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]domain.UserInlinePolicy)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint) error); ok {
+		r1 = returnFunc(ctx, tenantID, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockPolicyRepository_ListTenantUserInlinePolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListTenantUserInlinePolicies'
+type MockPolicyRepository_ListTenantUserInlinePolicies_Call struct {
+	*mock.Call
+}
+
+// ListTenantUserInlinePolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - userID uint
+func (_e *MockPolicyRepository_Expecter) ListTenantUserInlinePolicies(ctx interface{}, tenantID interface{}, userID interface{}) *MockPolicyRepository_ListTenantUserInlinePolicies_Call {
+	return &MockPolicyRepository_ListTenantUserInlinePolicies_Call{Call: _e.mock.On("ListTenantUserInlinePolicies", ctx, tenantID, userID)}
+}
+
+func (_c *MockPolicyRepository_ListTenantUserInlinePolicies_Call) Run(run func(ctx context.Context, tenantID string, userID uint)) *MockPolicyRepository_ListTenantUserInlinePolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPolicyRepository_ListTenantUserInlinePolicies_Call) Return(userInlinePolicys []domain.UserInlinePolicy, err error) *MockPolicyRepository_ListTenantUserInlinePolicies_Call {
+	_c.Call.Return(userInlinePolicys, err)
+	return _c
+}
+
+func (_c *MockPolicyRepository_ListTenantUserInlinePolicies_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint) ([]domain.UserInlinePolicy, error)) *MockPolicyRepository_ListTenantUserInlinePolicies_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1135,6 +1631,120 @@ func (_c *MockPolicyRepository_ListTenantUserStatements_Call) Return(policyState
 }
 
 func (_c *MockPolicyRepository_ListTenantUserStatements_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint) ([]domain.PolicyStatement, error)) *MockPolicyRepository_ListTenantUserStatements_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// PutPlatformUserInlinePolicy provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) PutPlatformUserInlinePolicy(ctx context.Context, input domain.PutPlatformUserInlinePolicyInput) error {
+	ret := _mock.Called(ctx, input)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PutPlatformUserInlinePolicy")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.PutPlatformUserInlinePolicyInput) error); ok {
+		r0 = returnFunc(ctx, input)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockPolicyRepository_PutPlatformUserInlinePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutPlatformUserInlinePolicy'
+type MockPolicyRepository_PutPlatformUserInlinePolicy_Call struct {
+	*mock.Call
+}
+
+// PutPlatformUserInlinePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input domain.PutPlatformUserInlinePolicyInput
+func (_e *MockPolicyRepository_Expecter) PutPlatformUserInlinePolicy(ctx interface{}, input interface{}) *MockPolicyRepository_PutPlatformUserInlinePolicy_Call {
+	return &MockPolicyRepository_PutPlatformUserInlinePolicy_Call{Call: _e.mock.On("PutPlatformUserInlinePolicy", ctx, input)}
+}
+
+func (_c *MockPolicyRepository_PutPlatformUserInlinePolicy_Call) Run(run func(ctx context.Context, input domain.PutPlatformUserInlinePolicyInput)) *MockPolicyRepository_PutPlatformUserInlinePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 domain.PutPlatformUserInlinePolicyInput
+		if args[1] != nil {
+			arg1 = args[1].(domain.PutPlatformUserInlinePolicyInput)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPolicyRepository_PutPlatformUserInlinePolicy_Call) Return(err error) *MockPolicyRepository_PutPlatformUserInlinePolicy_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockPolicyRepository_PutPlatformUserInlinePolicy_Call) RunAndReturn(run func(ctx context.Context, input domain.PutPlatformUserInlinePolicyInput) error) *MockPolicyRepository_PutPlatformUserInlinePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// PutTenantUserInlinePolicy provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) PutTenantUserInlinePolicy(ctx context.Context, input domain.PutTenantUserInlinePolicyInput) error {
+	ret := _mock.Called(ctx, input)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PutTenantUserInlinePolicy")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.PutTenantUserInlinePolicyInput) error); ok {
+		r0 = returnFunc(ctx, input)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockPolicyRepository_PutTenantUserInlinePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutTenantUserInlinePolicy'
+type MockPolicyRepository_PutTenantUserInlinePolicy_Call struct {
+	*mock.Call
+}
+
+// PutTenantUserInlinePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input domain.PutTenantUserInlinePolicyInput
+func (_e *MockPolicyRepository_Expecter) PutTenantUserInlinePolicy(ctx interface{}, input interface{}) *MockPolicyRepository_PutTenantUserInlinePolicy_Call {
+	return &MockPolicyRepository_PutTenantUserInlinePolicy_Call{Call: _e.mock.On("PutTenantUserInlinePolicy", ctx, input)}
+}
+
+func (_c *MockPolicyRepository_PutTenantUserInlinePolicy_Call) Run(run func(ctx context.Context, input domain.PutTenantUserInlinePolicyInput)) *MockPolicyRepository_PutTenantUserInlinePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 domain.PutTenantUserInlinePolicyInput
+		if args[1] != nil {
+			arg1 = args[1].(domain.PutTenantUserInlinePolicyInput)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPolicyRepository_PutTenantUserInlinePolicy_Call) Return(err error) *MockPolicyRepository_PutTenantUserInlinePolicy_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockPolicyRepository_PutTenantUserInlinePolicy_Call) RunAndReturn(run func(ctx context.Context, input domain.PutTenantUserInlinePolicyInput) error) *MockPolicyRepository_PutTenantUserInlinePolicy_Call {
 	_c.Call.Return(run)
 	return _c
 }

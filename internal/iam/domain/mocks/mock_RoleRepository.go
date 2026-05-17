@@ -38,6 +38,63 @@ func (_m *MockRoleRepository) EXPECT() *MockRoleRepository_Expecter {
 	return &MockRoleRepository_Expecter{mock: &_m.Mock}
 }
 
+// DeleteTrustPolicy provides a mock function for the type MockRoleRepository
+func (_mock *MockRoleRepository) DeleteTrustPolicy(ctx context.Context, roleID uint64) error {
+	ret := _mock.Called(ctx, roleID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteTrustPolicy")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) error); ok {
+		r0 = returnFunc(ctx, roleID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockRoleRepository_DeleteTrustPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteTrustPolicy'
+type MockRoleRepository_DeleteTrustPolicy_Call struct {
+	*mock.Call
+}
+
+// DeleteTrustPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - roleID uint64
+func (_e *MockRoleRepository_Expecter) DeleteTrustPolicy(ctx interface{}, roleID interface{}) *MockRoleRepository_DeleteTrustPolicy_Call {
+	return &MockRoleRepository_DeleteTrustPolicy_Call{Call: _e.mock.On("DeleteTrustPolicy", ctx, roleID)}
+}
+
+func (_c *MockRoleRepository_DeleteTrustPolicy_Call) Run(run func(ctx context.Context, roleID uint64)) *MockRoleRepository_DeleteTrustPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRoleRepository_DeleteTrustPolicy_Call) Return(err error) *MockRoleRepository_DeleteTrustPolicy_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockRoleRepository_DeleteTrustPolicy_Call) RunAndReturn(run func(ctx context.Context, roleID uint64) error) *MockRoleRepository_DeleteTrustPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetByName provides a mock function for the type MockRoleRepository
 func (_mock *MockRoleRepository) GetByName(ctx context.Context, name string) (*domain.Role, error) {
 	ret := _mock.Called(ctx, name)
@@ -102,6 +159,137 @@ func (_c *MockRoleRepository_GetByName_Call) Return(role *domain.Role, err error
 }
 
 func (_c *MockRoleRepository_GetByName_Call) RunAndReturn(run func(ctx context.Context, name string) (*domain.Role, error)) *MockRoleRepository_GetByName_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetTrustPolicy provides a mock function for the type MockRoleRepository
+func (_mock *MockRoleRepository) GetTrustPolicy(ctx context.Context, roleID uint64) ([]domain.RoleTrustStatement, error) {
+	ret := _mock.Called(ctx, roleID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTrustPolicy")
+	}
+
+	var r0 []domain.RoleTrustStatement
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) ([]domain.RoleTrustStatement, error)); ok {
+		return returnFunc(ctx, roleID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) []domain.RoleTrustStatement); ok {
+		r0 = returnFunc(ctx, roleID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]domain.RoleTrustStatement)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
+		r1 = returnFunc(ctx, roleID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRoleRepository_GetTrustPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTrustPolicy'
+type MockRoleRepository_GetTrustPolicy_Call struct {
+	*mock.Call
+}
+
+// GetTrustPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - roleID uint64
+func (_e *MockRoleRepository_Expecter) GetTrustPolicy(ctx interface{}, roleID interface{}) *MockRoleRepository_GetTrustPolicy_Call {
+	return &MockRoleRepository_GetTrustPolicy_Call{Call: _e.mock.On("GetTrustPolicy", ctx, roleID)}
+}
+
+func (_c *MockRoleRepository_GetTrustPolicy_Call) Run(run func(ctx context.Context, roleID uint64)) *MockRoleRepository_GetTrustPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRoleRepository_GetTrustPolicy_Call) Return(roleTrustStatements []domain.RoleTrustStatement, err error) *MockRoleRepository_GetTrustPolicy_Call {
+	_c.Call.Return(roleTrustStatements, err)
+	return _c
+}
+
+func (_c *MockRoleRepository_GetTrustPolicy_Call) RunAndReturn(run func(ctx context.Context, roleID uint64) ([]domain.RoleTrustStatement, error)) *MockRoleRepository_GetTrustPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// PutTrustPolicy provides a mock function for the type MockRoleRepository
+func (_mock *MockRoleRepository) PutTrustPolicy(ctx context.Context, roleID uint64, statements []domain.RoleTrustStatement) error {
+	ret := _mock.Called(ctx, roleID, statements)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PutTrustPolicy")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, []domain.RoleTrustStatement) error); ok {
+		r0 = returnFunc(ctx, roleID, statements)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockRoleRepository_PutTrustPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutTrustPolicy'
+type MockRoleRepository_PutTrustPolicy_Call struct {
+	*mock.Call
+}
+
+// PutTrustPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - roleID uint64
+//   - statements []domain.RoleTrustStatement
+func (_e *MockRoleRepository_Expecter) PutTrustPolicy(ctx interface{}, roleID interface{}, statements interface{}) *MockRoleRepository_PutTrustPolicy_Call {
+	return &MockRoleRepository_PutTrustPolicy_Call{Call: _e.mock.On("PutTrustPolicy", ctx, roleID, statements)}
+}
+
+func (_c *MockRoleRepository_PutTrustPolicy_Call) Run(run func(ctx context.Context, roleID uint64, statements []domain.RoleTrustStatement)) *MockRoleRepository_PutTrustPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		var arg2 []domain.RoleTrustStatement
+		if args[2] != nil {
+			arg2 = args[2].([]domain.RoleTrustStatement)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRoleRepository_PutTrustPolicy_Call) Return(err error) *MockRoleRepository_PutTrustPolicy_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockRoleRepository_PutTrustPolicy_Call) RunAndReturn(run func(ctx context.Context, roleID uint64, statements []domain.RoleTrustStatement) error) *MockRoleRepository_PutTrustPolicy_Call {
 	_c.Call.Return(run)
 	return _c
 }

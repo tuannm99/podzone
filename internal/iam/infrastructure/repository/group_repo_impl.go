@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	iamdomain "github.com/tuannm99/podzone/internal/iam/domain"
@@ -86,6 +87,114 @@ func (r *GroupRepositoryImpl) DeleteGroup(ctx context.Context, groupID uint64) e
 	return err
 }
 
+func (r *GroupRepositoryImpl) PutInlinePolicy(ctx context.Context, input iamdomain.PutGroupInlinePolicyInput) error {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	if _, err := tx.ExecContext(
+		ctx,
+		`INSERT INTO iam_group_inline_policies (group_id, name, description, created_at, updated_at)
+		 VALUES ($1, $2, $3, now(), now())
+		 ON CONFLICT (group_id, name)
+		 DO UPDATE SET description = EXCLUDED.description, updated_at = now()`,
+		input.GroupID,
+		input.Name,
+		input.Description,
+	); err != nil {
+		return err
+	}
+
+	if _, err := tx.ExecContext(
+		ctx,
+		`DELETE FROM iam_group_inline_policy_statements WHERE group_id = $1 AND policy_name = $2`,
+		input.GroupID,
+		input.Name,
+	); err != nil {
+		return err
+	}
+
+	for i, statement := range input.Statements {
+		if _, err := tx.ExecContext(
+			ctx,
+			`INSERT INTO iam_group_inline_policy_statements
+			  (group_id, policy_name, statement_index, effect, action_pattern, resource_pattern, created_at)
+			 VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+			input.GroupID,
+			input.Name,
+			i,
+			statement.Effect,
+			statement.ActionPattern,
+			coalescePattern(statement.ResourcePattern),
+			statement.CreatedAt,
+		); err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
+}
+
+func (r *GroupRepositoryImpl) GetInlinePolicy(ctx context.Context, groupID uint64, name string) (*iamdomain.GroupInlinePolicy, error) {
+	var policy groupInlinePolicyModel
+	if err := r.db.GetContext(
+		ctx,
+		&policy,
+		`SELECT group_id, name, description, created_at, updated_at
+		 FROM iam_group_inline_policies
+		 WHERE group_id = $1 AND name = $2`,
+		groupID,
+		name,
+	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, iamdomain.ErrPolicyNotFound
+		}
+		return nil, err
+	}
+	statements, err := r.listInlinePolicyStatements(ctx, groupID, name)
+	if err != nil {
+		return nil, err
+	}
+	entity := policy.toEntity(statements)
+	return &entity, nil
+}
+
+func (r *GroupRepositoryImpl) ListInlinePolicies(ctx context.Context, groupID uint64) ([]iamdomain.GroupInlinePolicy, error) {
+	var policies []groupInlinePolicyModel
+	if err := r.db.SelectContext(
+		ctx,
+		&policies,
+		`SELECT group_id, name, description, created_at, updated_at
+		 FROM iam_group_inline_policies
+		 WHERE group_id = $1
+		 ORDER BY name ASC`,
+		groupID,
+	); err != nil {
+		return nil, err
+	}
+	out := make([]iamdomain.GroupInlinePolicy, 0, len(policies))
+	for _, policy := range policies {
+		statements, err := r.listInlinePolicyStatements(ctx, groupID, policy.Name)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, policy.toEntity(statements))
+	}
+	return out, nil
+}
+
+func (r *GroupRepositoryImpl) DeleteInlinePolicy(ctx context.Context, groupID uint64, name string) error {
+	_, err := r.db.ExecContext(
+		ctx,
+		`DELETE FROM iam_group_inline_policies WHERE group_id = $1 AND name = $2`,
+		groupID,
+		name,
+	)
+	return err
+}
+
 func (r *GroupRepositoryImpl) AddMember(ctx context.Context, groupID uint64, userID uint) error {
 	_, err := r.db.ExecContext(
 		ctx,
@@ -158,4 +267,36 @@ func (r *GroupRepositoryImpl) ListPolicies(ctx context.Context, groupID uint64) 
 		return nil, err
 	}
 	return toPolicies(rows), nil
+}
+
+func (r *GroupRepositoryImpl) listInlinePolicyStatements(ctx context.Context, groupID uint64, name string) ([]iamdomain.PolicyStatement, error) {
+	var rows []struct {
+		Effect          string    `db:"effect"`
+		ActionPattern   string    `db:"action_pattern"`
+		ResourcePattern string    `db:"resource_pattern"`
+		CreatedAt       time.Time `db:"created_at"`
+	}
+	if err := r.db.SelectContext(
+		ctx,
+		&rows,
+		`SELECT effect, action_pattern, resource_pattern, created_at
+		 FROM iam_group_inline_policy_statements
+		 WHERE group_id = $1 AND policy_name = $2
+		 ORDER BY statement_index ASC`,
+		groupID,
+		name,
+	); err != nil {
+		return nil, err
+	}
+	out := make([]iamdomain.PolicyStatement, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, iamdomain.PolicyStatement{
+			PolicyName:      name,
+			Effect:          row.Effect,
+			ActionPattern:   row.ActionPattern,
+			ResourcePattern: row.ResourcePattern,
+			CreatedAt:       row.CreatedAt,
+		})
+	}
+	return out, nil
 }

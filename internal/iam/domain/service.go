@@ -142,12 +142,103 @@ func (s *iamService) GetPolicy(ctx context.Context, name string) (*Policy, []Pol
 	return policy, statements, nil
 }
 
+func (s *iamService) ListPolicyAttachments(ctx context.Context, name string) ([]PolicyAttachment, error) {
+	policy, err := s.policies.GetPolicyByName(ctx, strings.TrimSpace(name))
+	if err != nil {
+		return nil, err
+	}
+	return s.policies.ListPolicyAttachments(ctx, policy.ID)
+}
+
 func (s *iamService) DeletePolicy(ctx context.Context, name string) error {
 	policy, err := s.policies.GetPolicyByName(ctx, strings.TrimSpace(name))
 	if err != nil {
 		return err
 	}
 	return s.policies.DeletePolicy(ctx, policy.ID)
+}
+
+func (s *iamService) PutRoleTrustPolicy(ctx context.Context, input PutRoleTrustPolicyInput) error {
+	role, err := s.roles.GetByName(ctx, strings.TrimSpace(input.RoleName))
+	if err != nil {
+		return err
+	}
+	if len(input.Statements) == 0 {
+		return fmt.Errorf("iam: at least one trust statement is required")
+	}
+	now := time.Now().UTC()
+	statements := make([]RoleTrustStatement, 0, len(input.Statements))
+	for _, statement := range input.Statements {
+		effect := strings.ToLower(strings.TrimSpace(statement.Effect))
+		if effect == "" {
+			effect = PolicyEffectAllow
+		}
+		principalType := strings.TrimSpace(statement.PrincipalType)
+		principalPattern := strings.TrimSpace(statement.PrincipalPattern)
+		if principalType == "" || principalPattern == "" {
+			return ErrInvalidAssumeRole
+		}
+		tenantPattern := strings.TrimSpace(statement.TenantPattern)
+		if tenantPattern == "" {
+			tenantPattern = "*"
+		}
+		statements = append(statements, RoleTrustStatement{
+			RoleID:           role.ID,
+			Effect:           effect,
+			PrincipalType:    principalType,
+			PrincipalPattern: principalPattern,
+			TenantPattern:    tenantPattern,
+			CreatedAt:        now,
+		})
+	}
+	return s.roles.PutTrustPolicy(ctx, role.ID, statements)
+}
+
+func (s *iamService) GetRoleTrustPolicy(ctx context.Context, roleName string) ([]RoleTrustStatement, error) {
+	role, err := s.roles.GetByName(ctx, strings.TrimSpace(roleName))
+	if err != nil {
+		return nil, err
+	}
+	return s.roles.GetTrustPolicy(ctx, role.ID)
+}
+
+func (s *iamService) DeleteRoleTrustPolicy(ctx context.Context, roleName string) error {
+	role, err := s.roles.GetByName(ctx, strings.TrimSpace(roleName))
+	if err != nil {
+		return err
+	}
+	return s.roles.DeleteTrustPolicy(ctx, role.ID)
+}
+
+func (s *iamService) AssumeRole(ctx context.Context, input AssumeRoleInput) (*AssumedRole, error) {
+	if input.UserID == 0 {
+		return nil, ErrInvalidUserID
+	}
+	role, err := s.roles.GetByName(ctx, strings.TrimSpace(input.RoleName))
+	if err != nil {
+		return nil, err
+	}
+	tenantID := strings.TrimSpace(input.TenantID)
+	if role.Scope == PolicyScopeTenant && tenantID == "" {
+		return nil, ErrInvalidAssumeRole
+	}
+	if role.Scope == PolicyScopePlatform && tenantID != "" {
+		return nil, ErrInvalidAssumeRole
+	}
+	trustStatements, err := s.roles.GetTrustPolicy(ctx, role.ID)
+	if err != nil {
+		return nil, err
+	}
+	if !s.canAssumeRole(ctx, input.UserID, tenantID, trustStatements) {
+		return nil, ErrAssumeRoleDenied
+	}
+	return &AssumedRole{
+		RoleID:    role.ID,
+		RoleScope: role.Scope,
+		RoleName:  role.Name,
+		TenantID:  tenantID,
+		CreatedAt: time.Now().UTC(),
+	}, nil
 }
 
 func (s *iamService) CreateGroup(ctx context.Context, input CreateGroupInput) (*Group, error) {
@@ -177,6 +268,65 @@ func (s *iamService) DeleteGroup(ctx context.Context, groupID uint64) error {
 		return ErrGroupNotFound
 	}
 	return s.groups.DeleteGroup(ctx, groupID)
+}
+
+func (s *iamService) PutGroupInlinePolicy(ctx context.Context, input PutGroupInlinePolicyInput) error {
+	if input.GroupID == 0 {
+		return ErrGroupNotFound
+	}
+	if strings.TrimSpace(input.Name) == "" {
+		return ErrInvalidPolicyName
+	}
+	if len(input.Statements) == 0 {
+		return fmt.Errorf("iam: at least one policy statement is required")
+	}
+	now := time.Now().UTC()
+	statements := make([]PolicyStatement, 0, len(input.Statements))
+	for _, statement := range input.Statements {
+		effect := strings.ToLower(strings.TrimSpace(statement.Effect))
+		if effect == "" {
+			effect = PolicyEffectAllow
+		}
+		statements = append(statements, PolicyStatement{
+			Effect:          effect,
+			ActionPattern:   strings.TrimSpace(statement.ActionPattern),
+			ResourcePattern: strings.TrimSpace(statement.ResourcePattern),
+			CreatedAt:       now,
+		})
+	}
+	return s.groups.PutInlinePolicy(ctx, PutGroupInlinePolicyInput{
+		GroupID:     input.GroupID,
+		Name:        strings.TrimSpace(input.Name),
+		Description: strings.TrimSpace(input.Description),
+		Statements:  statements,
+	})
+}
+
+func (s *iamService) GetGroupInlinePolicy(ctx context.Context, groupID uint64, name string) (*GroupInlinePolicy, error) {
+	if groupID == 0 {
+		return nil, ErrGroupNotFound
+	}
+	if strings.TrimSpace(name) == "" {
+		return nil, ErrInvalidPolicyName
+	}
+	return s.groups.GetInlinePolicy(ctx, groupID, strings.TrimSpace(name))
+}
+
+func (s *iamService) ListGroupInlinePolicies(ctx context.Context, groupID uint64) ([]GroupInlinePolicy, error) {
+	if groupID == 0 {
+		return nil, ErrGroupNotFound
+	}
+	return s.groups.ListInlinePolicies(ctx, groupID)
+}
+
+func (s *iamService) DeleteGroupInlinePolicy(ctx context.Context, groupID uint64, name string) error {
+	if groupID == 0 {
+		return ErrGroupNotFound
+	}
+	if strings.TrimSpace(name) == "" {
+		return ErrInvalidPolicyName
+	}
+	return s.groups.DeleteInlinePolicy(ctx, groupID, strings.TrimSpace(name))
 }
 
 func (s *iamService) AddGroupMember(ctx context.Context, groupID uint64, userID uint) error {
@@ -239,6 +389,16 @@ func (s *iamService) CheckPlatformPermission(ctx context.Context, userID uint, p
 	if userID == 0 {
 		return false, ErrInvalidUserID
 	}
+	if assumedRole, ok := GetAssumedRole(ctx); ok {
+		if assumedRole.RoleScope != PolicyScopePlatform {
+			return false, nil
+		}
+		return s.evaluateAssumedRolePermission(ctx, AccessRequest{
+			UserID:   userID,
+			Action:   permission,
+			Resource: "*",
+		}, assumedRole.RoleID, permission)
+	}
 	request := AccessRequest{
 		UserID:   userID,
 		Action:   permission,
@@ -265,7 +425,15 @@ func (s *iamService) CheckPlatformPermission(ctx context.Context, userID uint, p
 		statements = append(statements, roleStatements...)
 	}
 	if len(statements) > 0 {
-		return evaluatePolicyStatements(request, statements), nil
+		allowed := evaluatePolicyStatements(request, statements)
+		if !allowed {
+			return false, nil
+		}
+		sessionStatements := GetSessionPolicyStatements(ctx)
+		if len(sessionStatements) > 0 {
+			return evaluatePolicyStatements(request, sessionStatements), nil
+		}
+		return true, nil
 	}
 	for _, roleID := range roleIDs {
 		allowed, err := s.roles.RoleHasPermission(ctx, roleID, permission)
@@ -273,6 +441,10 @@ func (s *iamService) CheckPlatformPermission(ctx context.Context, userID uint, p
 			return false, err
 		}
 		if allowed {
+			sessionStatements := GetSessionPolicyStatements(ctx)
+			if len(sessionStatements) > 0 {
+				return evaluatePolicyStatements(request, sessionStatements), nil
+			}
 			return true, nil
 		}
 	}
@@ -325,6 +497,65 @@ func (s *iamService) RemovePlatformRole(ctx context.Context, userID uint, roleNa
 		return err
 	}
 	return s.platformMemberships.Delete(ctx, userID, role.ID)
+}
+
+func (s *iamService) PutPlatformUserInlinePolicy(ctx context.Context, input PutPlatformUserInlinePolicyInput) error {
+	if input.UserID == 0 {
+		return ErrInvalidUserID
+	}
+	if strings.TrimSpace(input.Name) == "" {
+		return ErrInvalidPolicyName
+	}
+	if len(input.Statements) == 0 {
+		return fmt.Errorf("iam: at least one policy statement is required")
+	}
+	now := time.Now().UTC()
+	statements := make([]PolicyStatement, 0, len(input.Statements))
+	for _, statement := range input.Statements {
+		effect := strings.ToLower(strings.TrimSpace(statement.Effect))
+		if effect == "" {
+			effect = PolicyEffectAllow
+		}
+		statements = append(statements, PolicyStatement{
+			Effect:          effect,
+			ActionPattern:   strings.TrimSpace(statement.ActionPattern),
+			ResourcePattern: strings.TrimSpace(statement.ResourcePattern),
+			CreatedAt:       now,
+		})
+	}
+	return s.policies.PutPlatformUserInlinePolicy(ctx, PutPlatformUserInlinePolicyInput{
+		UserID:      input.UserID,
+		Name:        strings.TrimSpace(input.Name),
+		Description: strings.TrimSpace(input.Description),
+		Statements:  statements,
+	})
+}
+
+func (s *iamService) GetPlatformUserInlinePolicy(ctx context.Context, userID uint, name string) (*UserInlinePolicy, error) {
+	if userID == 0 {
+		return nil, ErrInvalidUserID
+	}
+	if strings.TrimSpace(name) == "" {
+		return nil, ErrInvalidPolicyName
+	}
+	return s.policies.GetPlatformUserInlinePolicy(ctx, userID, strings.TrimSpace(name))
+}
+
+func (s *iamService) ListPlatformUserInlinePolicies(ctx context.Context, userID uint) ([]UserInlinePolicy, error) {
+	if userID == 0 {
+		return nil, ErrInvalidUserID
+	}
+	return s.policies.ListPlatformUserInlinePolicies(ctx, userID)
+}
+
+func (s *iamService) DeletePlatformUserInlinePolicy(ctx context.Context, userID uint, name string) error {
+	if userID == 0 {
+		return ErrInvalidUserID
+	}
+	if strings.TrimSpace(name) == "" {
+		return ErrInvalidPolicyName
+	}
+	return s.policies.DeletePlatformUserInlinePolicy(ctx, userID, strings.TrimSpace(name))
 }
 
 func (s *iamService) AttachPlatformUserPolicy(ctx context.Context, userID uint, policyName string) error {
@@ -386,6 +617,78 @@ func (s *iamService) AddMember(ctx context.Context, tenantID string, userID uint
 		CreatedAt: now,
 		UpdatedAt: now,
 	})
+}
+
+func (s *iamService) PutTenantUserInlinePolicy(ctx context.Context, input PutTenantUserInlinePolicyInput) error {
+	if strings.TrimSpace(input.TenantID) == "" {
+		return ErrTenantNotFound
+	}
+	if input.UserID == 0 {
+		return ErrInvalidUserID
+	}
+	if strings.TrimSpace(input.Name) == "" {
+		return ErrInvalidPolicyName
+	}
+	if len(input.Statements) == 0 {
+		return fmt.Errorf("iam: at least one policy statement is required")
+	}
+	now := time.Now().UTC()
+	statements := make([]PolicyStatement, 0, len(input.Statements))
+	for _, statement := range input.Statements {
+		effect := strings.ToLower(strings.TrimSpace(statement.Effect))
+		if effect == "" {
+			effect = PolicyEffectAllow
+		}
+		statements = append(statements, PolicyStatement{
+			Effect:          effect,
+			ActionPattern:   strings.TrimSpace(statement.ActionPattern),
+			ResourcePattern: strings.TrimSpace(statement.ResourcePattern),
+			CreatedAt:       now,
+		})
+	}
+	return s.policies.PutTenantUserInlinePolicy(ctx, PutTenantUserInlinePolicyInput{
+		TenantID:    strings.TrimSpace(input.TenantID),
+		UserID:      input.UserID,
+		Name:        strings.TrimSpace(input.Name),
+		Description: strings.TrimSpace(input.Description),
+		Statements:  statements,
+	})
+}
+
+func (s *iamService) GetTenantUserInlinePolicy(ctx context.Context, tenantID string, userID uint, name string) (*UserInlinePolicy, error) {
+	if strings.TrimSpace(tenantID) == "" {
+		return nil, ErrTenantNotFound
+	}
+	if userID == 0 {
+		return nil, ErrInvalidUserID
+	}
+	if strings.TrimSpace(name) == "" {
+		return nil, ErrInvalidPolicyName
+	}
+	return s.policies.GetTenantUserInlinePolicy(ctx, strings.TrimSpace(tenantID), userID, strings.TrimSpace(name))
+}
+
+func (s *iamService) ListTenantUserInlinePolicies(ctx context.Context, tenantID string, userID uint) ([]UserInlinePolicy, error) {
+	if strings.TrimSpace(tenantID) == "" {
+		return nil, ErrTenantNotFound
+	}
+	if userID == 0 {
+		return nil, ErrInvalidUserID
+	}
+	return s.policies.ListTenantUserInlinePolicies(ctx, strings.TrimSpace(tenantID), userID)
+}
+
+func (s *iamService) DeleteTenantUserInlinePolicy(ctx context.Context, tenantID string, userID uint, name string) error {
+	if strings.TrimSpace(tenantID) == "" {
+		return ErrTenantNotFound
+	}
+	if userID == 0 {
+		return ErrInvalidUserID
+	}
+	if strings.TrimSpace(name) == "" {
+		return ErrInvalidPolicyName
+	}
+	return s.policies.DeleteTenantUserInlinePolicy(ctx, strings.TrimSpace(tenantID), userID, strings.TrimSpace(name))
 }
 
 func (s *iamService) AttachTenantUserPolicy(
@@ -604,6 +907,17 @@ func (s *iamService) CheckPermission(
 	userID uint,
 	permission string,
 ) (bool, error) {
+	if assumedRole, ok := GetAssumedRole(ctx); ok {
+		if assumedRole.RoleScope == PolicyScopeTenant && assumedRole.TenantID != strings.TrimSpace(tenantID) {
+			return false, nil
+		}
+		return s.evaluateAssumedRolePermission(ctx, AccessRequest{
+			TenantID: tenantID,
+			UserID:   userID,
+			Action:   permission,
+			Resource: "*",
+		}, assumedRole.RoleID, permission)
+	}
 	membership, err := s.GetMembership(ctx, tenantID, userID)
 	if err != nil {
 		return false, err
@@ -632,9 +946,25 @@ func (s *iamService) CheckPermission(
 	}
 	statements = append(statements, roleStatements...)
 	if len(statements) > 0 {
-		return evaluatePolicyStatements(request, statements), nil
+		allowed := evaluatePolicyStatements(request, statements)
+		if !allowed {
+			return false, nil
+		}
+		sessionStatements := GetSessionPolicyStatements(ctx)
+		if len(sessionStatements) > 0 {
+			return evaluatePolicyStatements(request, sessionStatements), nil
+		}
+		return true, nil
 	}
-	return s.roles.RoleHasPermission(ctx, membership.RoleID, permission)
+	allowed, err := s.roles.RoleHasPermission(ctx, membership.RoleID, permission)
+	if err != nil || !allowed {
+		return allowed, err
+	}
+	sessionStatements := GetSessionPolicyStatements(ctx)
+	if len(sessionStatements) > 0 {
+		return evaluatePolicyStatements(request, sessionStatements), nil
+	}
+	return true, nil
 }
 
 func (s *iamService) RequirePermission(ctx context.Context, tenantID string, userID uint, permission string) error {
@@ -646,4 +976,95 @@ func (s *iamService) RequirePermission(ctx context.Context, tenantID string, use
 		return ErrPermissionDenied
 	}
 	return nil
+}
+
+func (s *iamService) evaluateAssumedRolePermission(
+	ctx context.Context,
+	request AccessRequest,
+	roleID uint64,
+	permission string,
+) (bool, error) {
+	statements, err := s.policies.ListRoleStatements(ctx, roleID)
+	if err != nil {
+		return false, err
+	}
+	if len(statements) > 0 {
+		allowed := evaluatePolicyStatements(request, statements)
+		if !allowed {
+			return false, nil
+		}
+		sessionStatements := GetSessionPolicyStatements(ctx)
+		if len(sessionStatements) > 0 {
+			return evaluatePolicyStatements(request, sessionStatements), nil
+		}
+		return true, nil
+	}
+	allowed, err := s.roles.RoleHasPermission(ctx, roleID, permission)
+	if err != nil || !allowed {
+		return allowed, err
+	}
+	sessionStatements := GetSessionPolicyStatements(ctx)
+	if len(sessionStatements) > 0 {
+		return evaluatePolicyStatements(request, sessionStatements), nil
+	}
+	return true, nil
+}
+
+func (s *iamService) canAssumeRole(
+	ctx context.Context,
+	userID uint,
+	tenantID string,
+	statements []RoleTrustStatement,
+) bool {
+	if len(statements) == 0 {
+		return false
+	}
+
+	platformMemberships, _ := s.platformMemberships.ListByUser(ctx, userID)
+	var tenantMembership *Membership
+	if tenantID != "" {
+		tenantMembership, _ = s.memberships.GetByTenantAndUser(ctx, tenantID, userID)
+	}
+
+	allowed := false
+	for _, statement := range statements {
+		if !matchesTrustStatement(statement, userID, tenantID, platformMemberships, tenantMembership) {
+			continue
+		}
+		if statement.Effect == PolicyEffectDeny {
+			return false
+		}
+		if statement.Effect == PolicyEffectAllow {
+			allowed = true
+		}
+	}
+	return allowed
+}
+
+func matchesTrustStatement(
+	statement RoleTrustStatement,
+	userID uint,
+	tenantID string,
+	platformMemberships []PlatformMembership,
+	tenantMembership *Membership,
+) bool {
+	if !matchesPattern(statement.TenantPattern, tenantID) {
+		return false
+	}
+	switch statement.PrincipalType {
+	case TrustPrincipalUser:
+		return matchesPattern(statement.PrincipalPattern, fmt.Sprintf("%d", userID))
+	case TrustPrincipalPlatformRole:
+		for _, membership := range platformMemberships {
+			if matchesPattern(statement.PrincipalPattern, membership.RoleName) {
+				return true
+			}
+		}
+	case TrustPrincipalTenantRole:
+		if tenantMembership == nil || tenantMembership.Status != MembershipStatusActive {
+			return false
+		}
+		return matchesPattern(statement.PrincipalPattern, tenantMembership.RoleName)
+	}
+	return false
 }

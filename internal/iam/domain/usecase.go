@@ -7,10 +7,19 @@ type IAMUsecase interface {
 	CreatePolicy(ctx context.Context, input CreatePolicyInput) (*Policy, []PolicyStatement, error)
 	GetPolicy(ctx context.Context, name string) (*Policy, []PolicyStatement, error)
 	ListPolicies(ctx context.Context, scope string) ([]Policy, error)
+	ListPolicyAttachments(ctx context.Context, name string) ([]PolicyAttachment, error)
 	DeletePolicy(ctx context.Context, name string) error
+	PutRoleTrustPolicy(ctx context.Context, input PutRoleTrustPolicyInput) error
+	GetRoleTrustPolicy(ctx context.Context, roleName string) ([]RoleTrustStatement, error)
+	DeleteRoleTrustPolicy(ctx context.Context, roleName string) error
+	AssumeRole(ctx context.Context, input AssumeRoleInput) (*AssumedRole, error)
 	CreateGroup(ctx context.Context, input CreateGroupInput) (*Group, error)
 	ListGroups(ctx context.Context, scope string, tenantID string) ([]Group, error)
 	DeleteGroup(ctx context.Context, groupID uint64) error
+	PutGroupInlinePolicy(ctx context.Context, input PutGroupInlinePolicyInput) error
+	GetGroupInlinePolicy(ctx context.Context, groupID uint64, name string) (*GroupInlinePolicy, error)
+	ListGroupInlinePolicies(ctx context.Context, groupID uint64) ([]GroupInlinePolicy, error)
+	DeleteGroupInlinePolicy(ctx context.Context, groupID uint64, name string) error
 	AddGroupMember(ctx context.Context, groupID uint64, userID uint) error
 	RemoveGroupMember(ctx context.Context, groupID uint64, userID uint) error
 	ListGroupMembers(ctx context.Context, groupID uint64) ([]uint, error)
@@ -22,10 +31,18 @@ type IAMUsecase interface {
 	AddPlatformRole(ctx context.Context, userID uint, roleName string) error
 	ListPlatformRoles(ctx context.Context, userID uint) ([]PlatformMembership, error)
 	RemovePlatformRole(ctx context.Context, userID uint, roleName string) error
+	PutPlatformUserInlinePolicy(ctx context.Context, input PutPlatformUserInlinePolicyInput) error
+	GetPlatformUserInlinePolicy(ctx context.Context, userID uint, name string) (*UserInlinePolicy, error)
+	ListPlatformUserInlinePolicies(ctx context.Context, userID uint) ([]UserInlinePolicy, error)
+	DeletePlatformUserInlinePolicy(ctx context.Context, userID uint, name string) error
 	AttachPlatformUserPolicy(ctx context.Context, userID uint, policyName string) error
 	DetachPlatformUserPolicy(ctx context.Context, userID uint, policyName string) error
 	ListPlatformUserPolicies(ctx context.Context, userID uint) ([]Policy, error)
 	AddMember(ctx context.Context, tenantID string, userID uint, roleName string) error
+	PutTenantUserInlinePolicy(ctx context.Context, input PutTenantUserInlinePolicyInput) error
+	GetTenantUserInlinePolicy(ctx context.Context, tenantID string, userID uint, name string) (*UserInlinePolicy, error)
+	ListTenantUserInlinePolicies(ctx context.Context, tenantID string, userID uint) ([]UserInlinePolicy, error)
+	DeleteTenantUserInlinePolicy(ctx context.Context, tenantID string, userID uint, name string) error
 	AttachTenantUserPolicy(ctx context.Context, tenantID string, userID uint, policyName string) error
 	DetachTenantUserPolicy(ctx context.Context, tenantID string, userID uint, policyName string) error
 	ListTenantUserPolicies(ctx context.Context, tenantID string, userID uint) ([]Policy, error)

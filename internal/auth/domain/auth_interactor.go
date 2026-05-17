@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -14,6 +15,7 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
+	iamdomain "github.com/tuannm99/podzone/internal/iam/domain"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
@@ -28,6 +30,7 @@ func NewAuthUsecase(
 	sessionRepository outputport.SessionRepository,
 	refreshTokenRepository outputport.RefreshTokenRepository,
 	tenantAccessChecker TenantAccessChecker,
+	iamUC iamdomain.IAMUsecase,
 	cfg config.AuthConfig,
 ) *authInteractorImpl {
 	return &authInteractorImpl{
@@ -42,6 +45,7 @@ func NewAuthUsecase(
 		sessionRepository:    sessionRepository,
 		refreshTokenRepo:     refreshTokenRepository,
 		tenantAccessChecker:  tenantAccessChecker,
+		iamUC:                iamUC,
 	}
 }
 
@@ -59,6 +63,7 @@ type authInteractorImpl struct {
 	sessionRepository    outputport.SessionRepository
 	refreshTokenRepo     outputport.RefreshTokenRepository
 	tenantAccessChecker  TenantAccessChecker
+	iamUC                iamdomain.IAMUsecase
 }
 
 func (u *authInteractorImpl) Login(ctx context.Context, username, password string) (*inputport.AuthResult, error) {
@@ -128,7 +133,8 @@ func (u *authInteractorImpl) SwitchActiveTenant(
 		return nil, err
 	}
 
-	token, err := u.tokenUC.CreateJwtTokenForSession(*user, tenantID, session.ID)
+	session.ActiveTenantID = tenantID
+	token, err := u.issueSessionAccessToken(*user, *session)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +185,7 @@ func (u *authInteractorImpl) RefreshAccessToken(
 	if err := u.refreshTokenRepo.Create(ctx, refreshEntity); err != nil {
 		return nil, err
 	}
-	accessToken, err := u.tokenUC.CreateJwtTokenForSession(*user, session.ActiveTenantID, session.ID)
+	accessToken, err := u.issueSessionAccessToken(*user, *session)
 	if err != nil {
 		return nil, err
 	}
@@ -299,6 +305,66 @@ func (u *authInteractorImpl) Logout(ctx context.Context, accessToken string) (st
 	return "/", nil
 }
 
+func (u *authInteractorImpl) AssumeSessionPolicy(
+	ctx context.Context,
+	userID uint,
+	accessToken string,
+	statements []entity.SessionPolicyStatement,
+) (*inputport.AuthResult, error) {
+	if userID == 0 {
+		return nil, entity.ErrInvalidUserID
+	}
+	if len(statements) == 0 {
+		return nil, entity.ErrInvalidSessionPolicy
+	}
+	session, user, now, err := u.loadOwnedActiveSession(ctx, userID, accessToken)
+	if err != nil {
+		return nil, err
+	}
+	normalized := normalizeSessionPolicyStatements(statements)
+	if len(normalized) == 0 {
+		return nil, entity.ErrInvalidSessionPolicy
+	}
+	if err := u.sessionRepository.UpdateSessionPolicy(ctx, session.ID, normalized, now); err != nil {
+		return nil, err
+	}
+	session.SessionPolicy = normalized
+	token, err := u.issueSessionAccessToken(*user, *session)
+	if err != nil {
+		return nil, err
+	}
+	return &inputport.AuthResult{
+		JwtToken: token,
+		UserInfo: *user,
+	}, nil
+}
+
+func (u *authInteractorImpl) ClearSessionPolicy(
+	ctx context.Context,
+	userID uint,
+	accessToken string,
+) (*inputport.AuthResult, error) {
+	if userID == 0 {
+		return nil, entity.ErrInvalidUserID
+	}
+	session, user, now, err := u.loadOwnedActiveSession(ctx, userID, accessToken)
+	if err != nil {
+		return nil, err
+	}
+	if err := u.sessionRepository.UpdateSessionPolicy(ctx, session.ID, nil, now); err != nil {
+		return nil, err
+	}
+	session.SessionPolicy = nil
+	token, err := u.issueSessionAccessToken(*user, *session)
+	if err != nil {
+		return nil, err
+	}
+	return &inputport.AuthResult{
+		JwtToken: token,
+		UserInfo: *user,
+	}, nil
+}
+
 func (u *authInteractorImpl) newSessionAuthResult(
 	ctx context.Context,
 	user *entity.User,
@@ -309,6 +375,7 @@ func (u *authInteractorImpl) newSessionAuthResult(
 		ID:             uuid.NewString(),
 		UserID:         user.Id,
 		ActiveTenantID: tenantID,
+		SessionPolicy:  nil,
 		Status:         entity.SessionStatusActive,
 		CreatedAt:      now,
 		UpdatedAt:      now,
@@ -326,7 +393,7 @@ func (u *authInteractorImpl) newSessionAuthResult(
 		return nil, err
 	}
 
-	accessToken, err := u.tokenUC.CreateJwtTokenForSession(*user, tenantID, session.ID)
+	accessToken, err := u.issueSessionAccessToken(*user, session)
 	if err != nil {
 		return nil, err
 	}
@@ -335,6 +402,142 @@ func (u *authInteractorImpl) newSessionAuthResult(
 		RefreshToken: refreshToken,
 		UserInfo:     *user,
 	}, nil
+}
+
+func (u *authInteractorImpl) loadOwnedActiveSession(
+	ctx context.Context,
+	userID uint,
+	accessToken string,
+) (*entity.Session, *entity.User, time.Time, error) {
+	user, err := u.userRepository.GetByID(fmt.Sprintf("%d", userID))
+	if err != nil {
+		return nil, nil, time.Time{}, err
+	}
+	session, err := u.sessionFromAccessToken(accessToken)
+	if err != nil {
+		return nil, nil, time.Time{}, err
+	}
+	if session.UserID != userID {
+		return nil, nil, time.Time{}, entity.ErrSessionRevoked
+	}
+	now := time.Now().UTC()
+	if session.Status != entity.SessionStatusActive || session.RevokedAt != nil || now.After(session.ExpiresAt) {
+		return nil, nil, time.Time{}, entity.ErrSessionRevoked
+	}
+	return session, user, now, nil
+}
+
+func normalizeSessionPolicyStatements(
+	statements []entity.SessionPolicyStatement,
+) []entity.SessionPolicyStatement {
+	out := make([]entity.SessionPolicyStatement, 0, len(statements))
+	for _, statement := range statements {
+		effect := strings.ToLower(strings.TrimSpace(statement.Effect))
+		if effect == "" {
+			effect = iamdomain.PolicyEffectAllow
+		}
+		action := strings.TrimSpace(statement.ActionPattern)
+		if action == "" {
+			continue
+		}
+		resource := strings.TrimSpace(statement.ResourcePattern)
+		if resource == "" {
+			resource = "*"
+		}
+		out = append(out, entity.SessionPolicyStatement{
+			Effect:          effect,
+			ActionPattern:   action,
+			ResourcePattern: resource,
+		})
+	}
+	return out
+}
+
+func (u *authInteractorImpl) AssumeRole(
+	ctx context.Context,
+	userID uint,
+	accessToken string,
+	roleName string,
+	tenantID string,
+	sessionPolicy []entity.SessionPolicyStatement,
+) (*inputport.AuthResult, error) {
+	if userID == 0 {
+		return nil, entity.ErrInvalidUserID
+	}
+	session, user, now, err := u.loadOwnedActiveSession(ctx, userID, accessToken)
+	if err != nil {
+		return nil, err
+	}
+	assumedRole, err := u.iamUC.AssumeRole(ctx, iamdomain.AssumeRoleInput{
+		UserID:   userID,
+		RoleName: roleName,
+		TenantID: tenantID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	normalized := normalizeSessionPolicyStatements(sessionPolicy)
+	session.AssumedRoleID = assumedRole.RoleID
+	session.AssumedRoleScope = assumedRole.RoleScope
+	session.AssumedRoleName = assumedRole.RoleName
+	session.AssumedRoleTenantID = assumedRole.TenantID
+	session.SessionPolicy = normalized
+	if assumedRole.RoleScope == iamdomain.PolicyScopeTenant {
+		session.ActiveTenantID = assumedRole.TenantID
+	}
+	if err := u.sessionRepository.UpdateSessionPolicy(ctx, session.ID, normalized, now); err != nil {
+		return nil, err
+	}
+	if err := u.sessionRepository.UpdateAssumedRole(ctx, *session, now); err != nil {
+		return nil, err
+	}
+	token, err := u.issueSessionAccessToken(*user, *session)
+	if err != nil {
+		return nil, err
+	}
+	return &inputport.AuthResult{
+		JwtToken: token,
+		UserInfo: *user,
+	}, nil
+}
+
+func (u *authInteractorImpl) ClearAssumedRole(
+	ctx context.Context,
+	userID uint,
+	accessToken string,
+) (*inputport.AuthResult, error) {
+	if userID == 0 {
+		return nil, entity.ErrInvalidUserID
+	}
+	session, user, now, err := u.loadOwnedActiveSession(ctx, userID, accessToken)
+	if err != nil {
+		return nil, err
+	}
+	session.AssumedRoleID = 0
+	session.AssumedRoleScope = ""
+	session.AssumedRoleName = ""
+	session.AssumedRoleTenantID = ""
+	if err := u.sessionRepository.UpdateAssumedRole(ctx, *session, now); err != nil {
+		return nil, err
+	}
+	token, err := u.issueSessionAccessToken(*user, *session)
+	if err != nil {
+		return nil, err
+	}
+	return &inputport.AuthResult{
+		JwtToken: token,
+		UserInfo: *user,
+	}, nil
+}
+
+func (u *authInteractorImpl) issueSessionAccessToken(user entity.User, session entity.Session) (string, error) {
+	if session.AssumedRoleID == 0 && session.AssumedRoleName == "" {
+		if len(session.SessionPolicy) == 0 {
+			return u.tokenUC.CreateJwtTokenForSession(user, session.ActiveTenantID, session.ID)
+		}
+		return u.tokenUC.CreateJwtTokenForScopedSession(user, session.ActiveTenantID, session.ID, session.SessionPolicy)
+	}
+	return u.tokenUC.CreateJwtTokenForSessionState(user, session)
 }
 
 func (u *authInteractorImpl) newRefreshToken(sessionID string, now time.Time) (string, entity.RefreshToken, error) {

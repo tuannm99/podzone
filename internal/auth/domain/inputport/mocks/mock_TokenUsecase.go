@@ -96,6 +96,84 @@ func (_c *MockTokenUsecase_CreateJwtToken_Call) RunAndReturn(run func(user entit
 	return _c
 }
 
+// CreateJwtTokenForScopedSession provides a mock function for the type MockTokenUsecase
+func (_mock *MockTokenUsecase) CreateJwtTokenForScopedSession(user entity.User, activeTenantID string, sessionID string, sessionPolicy []entity.SessionPolicyStatement) (string, error) {
+	ret := _mock.Called(user, activeTenantID, sessionID, sessionPolicy)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateJwtTokenForScopedSession")
+	}
+
+	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(entity.User, string, string, []entity.SessionPolicyStatement) (string, error)); ok {
+		return returnFunc(user, activeTenantID, sessionID, sessionPolicy)
+	}
+	if returnFunc, ok := ret.Get(0).(func(entity.User, string, string, []entity.SessionPolicyStatement) string); ok {
+		r0 = returnFunc(user, activeTenantID, sessionID, sessionPolicy)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	if returnFunc, ok := ret.Get(1).(func(entity.User, string, string, []entity.SessionPolicyStatement) error); ok {
+		r1 = returnFunc(user, activeTenantID, sessionID, sessionPolicy)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockTokenUsecase_CreateJwtTokenForScopedSession_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateJwtTokenForScopedSession'
+type MockTokenUsecase_CreateJwtTokenForScopedSession_Call struct {
+	*mock.Call
+}
+
+// CreateJwtTokenForScopedSession is a helper method to define mock.On call
+//   - user entity.User
+//   - activeTenantID string
+//   - sessionID string
+//   - sessionPolicy []entity.SessionPolicyStatement
+func (_e *MockTokenUsecase_Expecter) CreateJwtTokenForScopedSession(user interface{}, activeTenantID interface{}, sessionID interface{}, sessionPolicy interface{}) *MockTokenUsecase_CreateJwtTokenForScopedSession_Call {
+	return &MockTokenUsecase_CreateJwtTokenForScopedSession_Call{Call: _e.mock.On("CreateJwtTokenForScopedSession", user, activeTenantID, sessionID, sessionPolicy)}
+}
+
+func (_c *MockTokenUsecase_CreateJwtTokenForScopedSession_Call) Run(run func(user entity.User, activeTenantID string, sessionID string, sessionPolicy []entity.SessionPolicyStatement)) *MockTokenUsecase_CreateJwtTokenForScopedSession_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 entity.User
+		if args[0] != nil {
+			arg0 = args[0].(entity.User)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 []entity.SessionPolicyStatement
+		if args[3] != nil {
+			arg3 = args[3].([]entity.SessionPolicyStatement)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockTokenUsecase_CreateJwtTokenForScopedSession_Call) Return(s string, err error) *MockTokenUsecase_CreateJwtTokenForScopedSession_Call {
+	_c.Call.Return(s, err)
+	return _c
+}
+
+func (_c *MockTokenUsecase_CreateJwtTokenForScopedSession_Call) RunAndReturn(run func(user entity.User, activeTenantID string, sessionID string, sessionPolicy []entity.SessionPolicyStatement) (string, error)) *MockTokenUsecase_CreateJwtTokenForScopedSession_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateJwtTokenForSession provides a mock function for the type MockTokenUsecase
 func (_mock *MockTokenUsecase) CreateJwtTokenForSession(user entity.User, activeTenantID string, sessionID string) (string, error) {
 	ret := _mock.Called(user, activeTenantID, sessionID)
@@ -164,6 +242,72 @@ func (_c *MockTokenUsecase_CreateJwtTokenForSession_Call) Return(s string, err e
 }
 
 func (_c *MockTokenUsecase_CreateJwtTokenForSession_Call) RunAndReturn(run func(user entity.User, activeTenantID string, sessionID string) (string, error)) *MockTokenUsecase_CreateJwtTokenForSession_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreateJwtTokenForSessionState provides a mock function for the type MockTokenUsecase
+func (_mock *MockTokenUsecase) CreateJwtTokenForSessionState(user entity.User, session entity.Session) (string, error) {
+	ret := _mock.Called(user, session)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateJwtTokenForSessionState")
+	}
+
+	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(entity.User, entity.Session) (string, error)); ok {
+		return returnFunc(user, session)
+	}
+	if returnFunc, ok := ret.Get(0).(func(entity.User, entity.Session) string); ok {
+		r0 = returnFunc(user, session)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	if returnFunc, ok := ret.Get(1).(func(entity.User, entity.Session) error); ok {
+		r1 = returnFunc(user, session)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockTokenUsecase_CreateJwtTokenForSessionState_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateJwtTokenForSessionState'
+type MockTokenUsecase_CreateJwtTokenForSessionState_Call struct {
+	*mock.Call
+}
+
+// CreateJwtTokenForSessionState is a helper method to define mock.On call
+//   - user entity.User
+//   - session entity.Session
+func (_e *MockTokenUsecase_Expecter) CreateJwtTokenForSessionState(user interface{}, session interface{}) *MockTokenUsecase_CreateJwtTokenForSessionState_Call {
+	return &MockTokenUsecase_CreateJwtTokenForSessionState_Call{Call: _e.mock.On("CreateJwtTokenForSessionState", user, session)}
+}
+
+func (_c *MockTokenUsecase_CreateJwtTokenForSessionState_Call) Run(run func(user entity.User, session entity.Session)) *MockTokenUsecase_CreateJwtTokenForSessionState_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 entity.User
+		if args[0] != nil {
+			arg0 = args[0].(entity.User)
+		}
+		var arg1 entity.Session
+		if args[1] != nil {
+			arg1 = args[1].(entity.Session)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockTokenUsecase_CreateJwtTokenForSessionState_Call) Return(s string, err error) *MockTokenUsecase_CreateJwtTokenForSessionState_Call {
+	_c.Call.Return(s, err)
+	return _c
+}
+
+func (_c *MockTokenUsecase_CreateJwtTokenForSessionState_Call) RunAndReturn(run func(user entity.User, session entity.Session) (string, error)) *MockTokenUsecase_CreateJwtTokenForSessionState_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -699,17 +699,22 @@ func (x *LogoutResponse) GetRedirectUrl() string {
 }
 
 type Session struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	UserId         uint64                 `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	ActiveTenantId string                 `protobuf:"bytes,3,opt,name=active_tenant_id,json=activeTenantId,proto3" json:"active_tenant_id,omitempty"`
-	Status         string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
-	CreatedAt      string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt      string                 `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	ExpiresAt      string                 `protobuf:"bytes,7,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
-	RevokedAt      string                 `protobuf:"bytes,8,opt,name=revoked_at,json=revokedAt,proto3" json:"revoked_at,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Id                  string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserId              uint64                 `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	ActiveTenantId      string                 `protobuf:"bytes,3,opt,name=active_tenant_id,json=activeTenantId,proto3" json:"active_tenant_id,omitempty"`
+	Status              string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	CreatedAt           string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt           string                 `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	ExpiresAt           string                 `protobuf:"bytes,7,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	RevokedAt           string                 `protobuf:"bytes,8,opt,name=revoked_at,json=revokedAt,proto3" json:"revoked_at,omitempty"`
+	SessionPolicy       []*PolicyStatement     `protobuf:"bytes,9,rep,name=session_policy,json=sessionPolicy,proto3" json:"session_policy,omitempty"`
+	AssumedRoleId       uint64                 `protobuf:"varint,10,opt,name=assumed_role_id,json=assumedRoleId,proto3" json:"assumed_role_id,omitempty"`
+	AssumedRoleScope    string                 `protobuf:"bytes,11,opt,name=assumed_role_scope,json=assumedRoleScope,proto3" json:"assumed_role_scope,omitempty"`
+	AssumedRoleName     string                 `protobuf:"bytes,12,opt,name=assumed_role_name,json=assumedRoleName,proto3" json:"assumed_role_name,omitempty"`
+	AssumedRoleTenantId string                 `protobuf:"bytes,13,opt,name=assumed_role_tenant_id,json=assumedRoleTenantId,proto3" json:"assumed_role_tenant_id,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *Session) Reset() {
@@ -794,6 +799,41 @@ func (x *Session) GetExpiresAt() string {
 func (x *Session) GetRevokedAt() string {
 	if x != nil {
 		return x.RevokedAt
+	}
+	return ""
+}
+
+func (x *Session) GetSessionPolicy() []*PolicyStatement {
+	if x != nil {
+		return x.SessionPolicy
+	}
+	return nil
+}
+
+func (x *Session) GetAssumedRoleId() uint64 {
+	if x != nil {
+		return x.AssumedRoleId
+	}
+	return 0
+}
+
+func (x *Session) GetAssumedRoleScope() string {
+	if x != nil {
+		return x.AssumedRoleScope
+	}
+	return ""
+}
+
+func (x *Session) GetAssumedRoleName() string {
+	if x != nil {
+		return x.AssumedRoleName
+	}
+	return ""
+}
+
+func (x *Session) GetAssumedRoleTenantId() string {
+	if x != nil {
+		return x.AssumedRoleTenantId
 	}
 	return ""
 }
@@ -2266,6 +2306,206 @@ func (x *Policy) GetUpdatedAt() string {
 	return ""
 }
 
+type PolicyAttachment struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	AttachmentType string                 `protobuf:"bytes,1,opt,name=attachment_type,json=attachmentType,proto3" json:"attachment_type,omitempty"`
+	Scope          string                 `protobuf:"bytes,2,opt,name=scope,proto3" json:"scope,omitempty"`
+	TenantId       string                 `protobuf:"bytes,3,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
+	RoleId         uint64                 `protobuf:"varint,4,opt,name=role_id,json=roleId,proto3" json:"role_id,omitempty"`
+	RoleName       string                 `protobuf:"bytes,5,opt,name=role_name,json=roleName,proto3" json:"role_name,omitempty"`
+	UserId         uint64                 `protobuf:"varint,6,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	GroupId        uint64                 `protobuf:"varint,7,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	GroupName      string                 `protobuf:"bytes,8,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
+	CreatedAt      string                 `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *PolicyAttachment) Reset() {
+	*x = PolicyAttachment{}
+	mi := &file_auth_v1_auth_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PolicyAttachment) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PolicyAttachment) ProtoMessage() {}
+
+func (x *PolicyAttachment) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PolicyAttachment.ProtoReflect.Descriptor instead.
+func (*PolicyAttachment) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *PolicyAttachment) GetAttachmentType() string {
+	if x != nil {
+		return x.AttachmentType
+	}
+	return ""
+}
+
+func (x *PolicyAttachment) GetScope() string {
+	if x != nil {
+		return x.Scope
+	}
+	return ""
+}
+
+func (x *PolicyAttachment) GetTenantId() string {
+	if x != nil {
+		return x.TenantId
+	}
+	return ""
+}
+
+func (x *PolicyAttachment) GetRoleId() uint64 {
+	if x != nil {
+		return x.RoleId
+	}
+	return 0
+}
+
+func (x *PolicyAttachment) GetRoleName() string {
+	if x != nil {
+		return x.RoleName
+	}
+	return ""
+}
+
+func (x *PolicyAttachment) GetUserId() uint64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *PolicyAttachment) GetGroupId() uint64 {
+	if x != nil {
+		return x.GroupId
+	}
+	return 0
+}
+
+func (x *PolicyAttachment) GetGroupName() string {
+	if x != nil {
+		return x.GroupName
+	}
+	return ""
+}
+
+func (x *PolicyAttachment) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+type RoleTrustStatement struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Id               uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	RoleId           uint64                 `protobuf:"varint,2,opt,name=role_id,json=roleId,proto3" json:"role_id,omitempty"`
+	Effect           string                 `protobuf:"bytes,3,opt,name=effect,proto3" json:"effect,omitempty"`
+	PrincipalType    string                 `protobuf:"bytes,4,opt,name=principal_type,json=principalType,proto3" json:"principal_type,omitempty"`
+	PrincipalPattern string                 `protobuf:"bytes,5,opt,name=principal_pattern,json=principalPattern,proto3" json:"principal_pattern,omitempty"`
+	TenantPattern    string                 `protobuf:"bytes,6,opt,name=tenant_pattern,json=tenantPattern,proto3" json:"tenant_pattern,omitempty"`
+	CreatedAt        string                 `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *RoleTrustStatement) Reset() {
+	*x = RoleTrustStatement{}
+	mi := &file_auth_v1_auth_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RoleTrustStatement) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RoleTrustStatement) ProtoMessage() {}
+
+func (x *RoleTrustStatement) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RoleTrustStatement.ProtoReflect.Descriptor instead.
+func (*RoleTrustStatement) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *RoleTrustStatement) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *RoleTrustStatement) GetRoleId() uint64 {
+	if x != nil {
+		return x.RoleId
+	}
+	return 0
+}
+
+func (x *RoleTrustStatement) GetEffect() string {
+	if x != nil {
+		return x.Effect
+	}
+	return ""
+}
+
+func (x *RoleTrustStatement) GetPrincipalType() string {
+	if x != nil {
+		return x.PrincipalType
+	}
+	return ""
+}
+
+func (x *RoleTrustStatement) GetPrincipalPattern() string {
+	if x != nil {
+		return x.PrincipalPattern
+	}
+	return ""
+}
+
+func (x *RoleTrustStatement) GetTenantPattern() string {
+	if x != nil {
+		return x.TenantPattern
+	}
+	return ""
+}
+
+func (x *RoleTrustStatement) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
 type Group struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -2282,7 +2522,7 @@ type Group struct {
 
 func (x *Group) Reset() {
 	*x = Group{}
-	mi := &file_auth_v1_auth_proto_msgTypes[37]
+	mi := &file_auth_v1_auth_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2294,7 +2534,7 @@ func (x *Group) String() string {
 func (*Group) ProtoMessage() {}
 
 func (x *Group) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[37]
+	mi := &file_auth_v1_auth_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2307,7 +2547,7 @@ func (x *Group) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Group.ProtoReflect.Descriptor instead.
 func (*Group) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{37}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *Group) GetId() uint64 {
@@ -2376,7 +2616,7 @@ type ListPlatformRolesRequest struct {
 
 func (x *ListPlatformRolesRequest) Reset() {
 	*x = ListPlatformRolesRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[38]
+	mi := &file_auth_v1_auth_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2388,7 +2628,7 @@ func (x *ListPlatformRolesRequest) String() string {
 func (*ListPlatformRolesRequest) ProtoMessage() {}
 
 func (x *ListPlatformRolesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[38]
+	mi := &file_auth_v1_auth_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2401,7 +2641,7 @@ func (x *ListPlatformRolesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPlatformRolesRequest.ProtoReflect.Descriptor instead.
 func (*ListPlatformRolesRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{38}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *ListPlatformRolesRequest) GetActorUserId() uint64 {
@@ -2427,7 +2667,7 @@ type ListPlatformRolesResponse struct {
 
 func (x *ListPlatformRolesResponse) Reset() {
 	*x = ListPlatformRolesResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[39]
+	mi := &file_auth_v1_auth_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2439,7 +2679,7 @@ func (x *ListPlatformRolesResponse) String() string {
 func (*ListPlatformRolesResponse) ProtoMessage() {}
 
 func (x *ListPlatformRolesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[39]
+	mi := &file_auth_v1_auth_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2452,7 +2692,7 @@ func (x *ListPlatformRolesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPlatformRolesResponse.ProtoReflect.Descriptor instead.
 func (*ListPlatformRolesResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{39}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *ListPlatformRolesResponse) GetMemberships() []*PlatformRoleMembership {
@@ -2473,7 +2713,7 @@ type AddPlatformRoleRequest struct {
 
 func (x *AddPlatformRoleRequest) Reset() {
 	*x = AddPlatformRoleRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[40]
+	mi := &file_auth_v1_auth_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2485,7 +2725,7 @@ func (x *AddPlatformRoleRequest) String() string {
 func (*AddPlatformRoleRequest) ProtoMessage() {}
 
 func (x *AddPlatformRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[40]
+	mi := &file_auth_v1_auth_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2498,7 +2738,7 @@ func (x *AddPlatformRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddPlatformRoleRequest.ProtoReflect.Descriptor instead.
 func (*AddPlatformRoleRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{40}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *AddPlatformRoleRequest) GetActorUserId() uint64 {
@@ -2530,7 +2770,7 @@ type AddPlatformRoleResponse struct {
 
 func (x *AddPlatformRoleResponse) Reset() {
 	*x = AddPlatformRoleResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[41]
+	mi := &file_auth_v1_auth_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2542,7 +2782,7 @@ func (x *AddPlatformRoleResponse) String() string {
 func (*AddPlatformRoleResponse) ProtoMessage() {}
 
 func (x *AddPlatformRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[41]
+	mi := &file_auth_v1_auth_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2555,7 +2795,7 @@ func (x *AddPlatformRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddPlatformRoleResponse.ProtoReflect.Descriptor instead.
 func (*AddPlatformRoleResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{41}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{43}
 }
 
 type CreatePolicyRequest struct {
@@ -2570,7 +2810,7 @@ type CreatePolicyRequest struct {
 
 func (x *CreatePolicyRequest) Reset() {
 	*x = CreatePolicyRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[42]
+	mi := &file_auth_v1_auth_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2582,7 +2822,7 @@ func (x *CreatePolicyRequest) String() string {
 func (*CreatePolicyRequest) ProtoMessage() {}
 
 func (x *CreatePolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[42]
+	mi := &file_auth_v1_auth_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2595,7 +2835,7 @@ func (x *CreatePolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePolicyRequest.ProtoReflect.Descriptor instead.
 func (*CreatePolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{42}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *CreatePolicyRequest) GetScope() string {
@@ -2636,7 +2876,7 @@ type CreatePolicyResponse struct {
 
 func (x *CreatePolicyResponse) Reset() {
 	*x = CreatePolicyResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[43]
+	mi := &file_auth_v1_auth_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2648,7 +2888,7 @@ func (x *CreatePolicyResponse) String() string {
 func (*CreatePolicyResponse) ProtoMessage() {}
 
 func (x *CreatePolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[43]
+	mi := &file_auth_v1_auth_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2661,7 +2901,7 @@ func (x *CreatePolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePolicyResponse.ProtoReflect.Descriptor instead.
 func (*CreatePolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{43}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *CreatePolicyResponse) GetPolicy() *Policy {
@@ -2687,7 +2927,7 @@ type GetPolicyRequest struct {
 
 func (x *GetPolicyRequest) Reset() {
 	*x = GetPolicyRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[44]
+	mi := &file_auth_v1_auth_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2699,7 +2939,7 @@ func (x *GetPolicyRequest) String() string {
 func (*GetPolicyRequest) ProtoMessage() {}
 
 func (x *GetPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[44]
+	mi := &file_auth_v1_auth_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2712,7 +2952,7 @@ func (x *GetPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPolicyRequest.ProtoReflect.Descriptor instead.
 func (*GetPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{44}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *GetPolicyRequest) GetName() string {
@@ -2732,7 +2972,7 @@ type GetPolicyResponse struct {
 
 func (x *GetPolicyResponse) Reset() {
 	*x = GetPolicyResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[45]
+	mi := &file_auth_v1_auth_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2744,7 +2984,7 @@ func (x *GetPolicyResponse) String() string {
 func (*GetPolicyResponse) ProtoMessage() {}
 
 func (x *GetPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[45]
+	mi := &file_auth_v1_auth_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2757,7 +2997,7 @@ func (x *GetPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPolicyResponse.ProtoReflect.Descriptor instead.
 func (*GetPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{45}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *GetPolicyResponse) GetPolicy() *Policy {
@@ -2783,7 +3023,7 @@ type ListPoliciesRequest struct {
 
 func (x *ListPoliciesRequest) Reset() {
 	*x = ListPoliciesRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[46]
+	mi := &file_auth_v1_auth_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2795,7 +3035,7 @@ func (x *ListPoliciesRequest) String() string {
 func (*ListPoliciesRequest) ProtoMessage() {}
 
 func (x *ListPoliciesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[46]
+	mi := &file_auth_v1_auth_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2808,7 +3048,7 @@ func (x *ListPoliciesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPoliciesRequest.ProtoReflect.Descriptor instead.
 func (*ListPoliciesRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{46}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *ListPoliciesRequest) GetScope() string {
@@ -2827,7 +3067,7 @@ type ListPoliciesResponse struct {
 
 func (x *ListPoliciesResponse) Reset() {
 	*x = ListPoliciesResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[47]
+	mi := &file_auth_v1_auth_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2839,7 +3079,7 @@ func (x *ListPoliciesResponse) String() string {
 func (*ListPoliciesResponse) ProtoMessage() {}
 
 func (x *ListPoliciesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[47]
+	mi := &file_auth_v1_auth_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2852,12 +3092,100 @@ func (x *ListPoliciesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPoliciesResponse.ProtoReflect.Descriptor instead.
 func (*ListPoliciesResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{47}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *ListPoliciesResponse) GetPolicies() []*Policy {
 	if x != nil {
 		return x.Policies
+	}
+	return nil
+}
+
+type ListPolicyAttachmentsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPolicyAttachmentsRequest) Reset() {
+	*x = ListPolicyAttachmentsRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[50]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPolicyAttachmentsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPolicyAttachmentsRequest) ProtoMessage() {}
+
+func (x *ListPolicyAttachmentsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[50]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPolicyAttachmentsRequest.ProtoReflect.Descriptor instead.
+func (*ListPolicyAttachmentsRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{50}
+}
+
+func (x *ListPolicyAttachmentsRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type ListPolicyAttachmentsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Attachments   []*PolicyAttachment    `protobuf:"bytes,1,rep,name=attachments,proto3" json:"attachments,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPolicyAttachmentsResponse) Reset() {
+	*x = ListPolicyAttachmentsResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[51]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPolicyAttachmentsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPolicyAttachmentsResponse) ProtoMessage() {}
+
+func (x *ListPolicyAttachmentsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[51]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPolicyAttachmentsResponse.ProtoReflect.Descriptor instead.
+func (*ListPolicyAttachmentsResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *ListPolicyAttachmentsResponse) GetAttachments() []*PolicyAttachment {
+	if x != nil {
+		return x.Attachments
 	}
 	return nil
 }
@@ -2871,7 +3199,7 @@ type DeletePolicyRequest struct {
 
 func (x *DeletePolicyRequest) Reset() {
 	*x = DeletePolicyRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[48]
+	mi := &file_auth_v1_auth_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2883,7 +3211,7 @@ func (x *DeletePolicyRequest) String() string {
 func (*DeletePolicyRequest) ProtoMessage() {}
 
 func (x *DeletePolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[48]
+	mi := &file_auth_v1_auth_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2896,7 +3224,7 @@ func (x *DeletePolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeletePolicyRequest.ProtoReflect.Descriptor instead.
 func (*DeletePolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{48}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *DeletePolicyRequest) GetName() string {
@@ -2914,7 +3242,7 @@ type DeletePolicyResponse struct {
 
 func (x *DeletePolicyResponse) Reset() {
 	*x = DeletePolicyResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[49]
+	mi := &file_auth_v1_auth_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2926,7 +3254,7 @@ func (x *DeletePolicyResponse) String() string {
 func (*DeletePolicyResponse) ProtoMessage() {}
 
 func (x *DeletePolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[49]
+	mi := &file_auth_v1_auth_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2939,7 +3267,263 @@ func (x *DeletePolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeletePolicyResponse.ProtoReflect.Descriptor instead.
 func (*DeletePolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{49}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{53}
+}
+
+type PutRoleTrustPolicyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RoleName      string                 `protobuf:"bytes,1,opt,name=role_name,json=roleName,proto3" json:"role_name,omitempty"`
+	Statements    []*RoleTrustStatement  `protobuf:"bytes,2,rep,name=statements,proto3" json:"statements,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PutRoleTrustPolicyRequest) Reset() {
+	*x = PutRoleTrustPolicyRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[54]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PutRoleTrustPolicyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PutRoleTrustPolicyRequest) ProtoMessage() {}
+
+func (x *PutRoleTrustPolicyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[54]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PutRoleTrustPolicyRequest.ProtoReflect.Descriptor instead.
+func (*PutRoleTrustPolicyRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *PutRoleTrustPolicyRequest) GetRoleName() string {
+	if x != nil {
+		return x.RoleName
+	}
+	return ""
+}
+
+func (x *PutRoleTrustPolicyRequest) GetStatements() []*RoleTrustStatement {
+	if x != nil {
+		return x.Statements
+	}
+	return nil
+}
+
+type PutRoleTrustPolicyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PutRoleTrustPolicyResponse) Reset() {
+	*x = PutRoleTrustPolicyResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[55]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PutRoleTrustPolicyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PutRoleTrustPolicyResponse) ProtoMessage() {}
+
+func (x *PutRoleTrustPolicyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[55]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PutRoleTrustPolicyResponse.ProtoReflect.Descriptor instead.
+func (*PutRoleTrustPolicyResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{55}
+}
+
+type GetRoleTrustPolicyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RoleName      string                 `protobuf:"bytes,1,opt,name=role_name,json=roleName,proto3" json:"role_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRoleTrustPolicyRequest) Reset() {
+	*x = GetRoleTrustPolicyRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[56]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRoleTrustPolicyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRoleTrustPolicyRequest) ProtoMessage() {}
+
+func (x *GetRoleTrustPolicyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[56]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRoleTrustPolicyRequest.ProtoReflect.Descriptor instead.
+func (*GetRoleTrustPolicyRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{56}
+}
+
+func (x *GetRoleTrustPolicyRequest) GetRoleName() string {
+	if x != nil {
+		return x.RoleName
+	}
+	return ""
+}
+
+type GetRoleTrustPolicyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Statements    []*RoleTrustStatement  `protobuf:"bytes,1,rep,name=statements,proto3" json:"statements,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRoleTrustPolicyResponse) Reset() {
+	*x = GetRoleTrustPolicyResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[57]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRoleTrustPolicyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRoleTrustPolicyResponse) ProtoMessage() {}
+
+func (x *GetRoleTrustPolicyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[57]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRoleTrustPolicyResponse.ProtoReflect.Descriptor instead.
+func (*GetRoleTrustPolicyResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{57}
+}
+
+func (x *GetRoleTrustPolicyResponse) GetStatements() []*RoleTrustStatement {
+	if x != nil {
+		return x.Statements
+	}
+	return nil
+}
+
+type DeleteRoleTrustPolicyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RoleName      string                 `protobuf:"bytes,1,opt,name=role_name,json=roleName,proto3" json:"role_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteRoleTrustPolicyRequest) Reset() {
+	*x = DeleteRoleTrustPolicyRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[58]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteRoleTrustPolicyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteRoleTrustPolicyRequest) ProtoMessage() {}
+
+func (x *DeleteRoleTrustPolicyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[58]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteRoleTrustPolicyRequest.ProtoReflect.Descriptor instead.
+func (*DeleteRoleTrustPolicyRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{58}
+}
+
+func (x *DeleteRoleTrustPolicyRequest) GetRoleName() string {
+	if x != nil {
+		return x.RoleName
+	}
+	return ""
+}
+
+type DeleteRoleTrustPolicyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteRoleTrustPolicyResponse) Reset() {
+	*x = DeleteRoleTrustPolicyResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[59]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteRoleTrustPolicyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteRoleTrustPolicyResponse) ProtoMessage() {}
+
+func (x *DeleteRoleTrustPolicyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[59]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteRoleTrustPolicyResponse.ProtoReflect.Descriptor instead.
+func (*DeleteRoleTrustPolicyResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{59}
 }
 
 type CreateGroupRequest struct {
@@ -2954,7 +3538,7 @@ type CreateGroupRequest struct {
 
 func (x *CreateGroupRequest) Reset() {
 	*x = CreateGroupRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[50]
+	mi := &file_auth_v1_auth_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2966,7 +3550,7 @@ func (x *CreateGroupRequest) String() string {
 func (*CreateGroupRequest) ProtoMessage() {}
 
 func (x *CreateGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[50]
+	mi := &file_auth_v1_auth_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2979,7 +3563,7 @@ func (x *CreateGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateGroupRequest.ProtoReflect.Descriptor instead.
 func (*CreateGroupRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{50}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *CreateGroupRequest) GetScope() string {
@@ -3019,7 +3603,7 @@ type CreateGroupResponse struct {
 
 func (x *CreateGroupResponse) Reset() {
 	*x = CreateGroupResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[51]
+	mi := &file_auth_v1_auth_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3031,7 +3615,7 @@ func (x *CreateGroupResponse) String() string {
 func (*CreateGroupResponse) ProtoMessage() {}
 
 func (x *CreateGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[51]
+	mi := &file_auth_v1_auth_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3044,7 +3628,7 @@ func (x *CreateGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateGroupResponse.ProtoReflect.Descriptor instead.
 func (*CreateGroupResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{51}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *CreateGroupResponse) GetGroup() *Group {
@@ -3064,7 +3648,7 @@ type ListGroupsRequest struct {
 
 func (x *ListGroupsRequest) Reset() {
 	*x = ListGroupsRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[52]
+	mi := &file_auth_v1_auth_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3076,7 +3660,7 @@ func (x *ListGroupsRequest) String() string {
 func (*ListGroupsRequest) ProtoMessage() {}
 
 func (x *ListGroupsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[52]
+	mi := &file_auth_v1_auth_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3089,7 +3673,7 @@ func (x *ListGroupsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupsRequest.ProtoReflect.Descriptor instead.
 func (*ListGroupsRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{52}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *ListGroupsRequest) GetScope() string {
@@ -3115,7 +3699,7 @@ type ListGroupsResponse struct {
 
 func (x *ListGroupsResponse) Reset() {
 	*x = ListGroupsResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[53]
+	mi := &file_auth_v1_auth_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3127,7 +3711,7 @@ func (x *ListGroupsResponse) String() string {
 func (*ListGroupsResponse) ProtoMessage() {}
 
 func (x *ListGroupsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[53]
+	mi := &file_auth_v1_auth_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3140,7 +3724,7 @@ func (x *ListGroupsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupsResponse.ProtoReflect.Descriptor instead.
 func (*ListGroupsResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{53}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *ListGroupsResponse) GetGroups() []*Group {
@@ -3159,7 +3743,7 @@ type DeleteGroupRequest struct {
 
 func (x *DeleteGroupRequest) Reset() {
 	*x = DeleteGroupRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[54]
+	mi := &file_auth_v1_auth_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3171,7 +3755,7 @@ func (x *DeleteGroupRequest) String() string {
 func (*DeleteGroupRequest) ProtoMessage() {}
 
 func (x *DeleteGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[54]
+	mi := &file_auth_v1_auth_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3184,7 +3768,7 @@ func (x *DeleteGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteGroupRequest.ProtoReflect.Descriptor instead.
 func (*DeleteGroupRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{54}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *DeleteGroupRequest) GetGroupId() uint64 {
@@ -3202,7 +3786,7 @@ type DeleteGroupResponse struct {
 
 func (x *DeleteGroupResponse) Reset() {
 	*x = DeleteGroupResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[55]
+	mi := &file_auth_v1_auth_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3214,7 +3798,7 @@ func (x *DeleteGroupResponse) String() string {
 func (*DeleteGroupResponse) ProtoMessage() {}
 
 func (x *DeleteGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[55]
+	mi := &file_auth_v1_auth_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3227,7 +3811,7 @@ func (x *DeleteGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteGroupResponse.ProtoReflect.Descriptor instead.
 func (*DeleteGroupResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{55}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{65}
 }
 
 type AddGroupMemberRequest struct {
@@ -3240,7 +3824,7 @@ type AddGroupMemberRequest struct {
 
 func (x *AddGroupMemberRequest) Reset() {
 	*x = AddGroupMemberRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[56]
+	mi := &file_auth_v1_auth_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3252,7 +3836,7 @@ func (x *AddGroupMemberRequest) String() string {
 func (*AddGroupMemberRequest) ProtoMessage() {}
 
 func (x *AddGroupMemberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[56]
+	mi := &file_auth_v1_auth_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3265,7 +3849,7 @@ func (x *AddGroupMemberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddGroupMemberRequest.ProtoReflect.Descriptor instead.
 func (*AddGroupMemberRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{56}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *AddGroupMemberRequest) GetGroupId() uint64 {
@@ -3290,7 +3874,7 @@ type AddGroupMemberResponse struct {
 
 func (x *AddGroupMemberResponse) Reset() {
 	*x = AddGroupMemberResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[57]
+	mi := &file_auth_v1_auth_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3302,7 +3886,7 @@ func (x *AddGroupMemberResponse) String() string {
 func (*AddGroupMemberResponse) ProtoMessage() {}
 
 func (x *AddGroupMemberResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[57]
+	mi := &file_auth_v1_auth_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3315,7 +3899,7 @@ func (x *AddGroupMemberResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddGroupMemberResponse.ProtoReflect.Descriptor instead.
 func (*AddGroupMemberResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{57}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{67}
 }
 
 type ListGroupMembersRequest struct {
@@ -3327,7 +3911,7 @@ type ListGroupMembersRequest struct {
 
 func (x *ListGroupMembersRequest) Reset() {
 	*x = ListGroupMembersRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[58]
+	mi := &file_auth_v1_auth_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3339,7 +3923,7 @@ func (x *ListGroupMembersRequest) String() string {
 func (*ListGroupMembersRequest) ProtoMessage() {}
 
 func (x *ListGroupMembersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[58]
+	mi := &file_auth_v1_auth_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3352,7 +3936,7 @@ func (x *ListGroupMembersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupMembersRequest.ProtoReflect.Descriptor instead.
 func (*ListGroupMembersRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{58}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *ListGroupMembersRequest) GetGroupId() uint64 {
@@ -3371,7 +3955,7 @@ type ListGroupMembersResponse struct {
 
 func (x *ListGroupMembersResponse) Reset() {
 	*x = ListGroupMembersResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[59]
+	mi := &file_auth_v1_auth_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3383,7 +3967,7 @@ func (x *ListGroupMembersResponse) String() string {
 func (*ListGroupMembersResponse) ProtoMessage() {}
 
 func (x *ListGroupMembersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[59]
+	mi := &file_auth_v1_auth_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3396,7 +3980,7 @@ func (x *ListGroupMembersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupMembersResponse.ProtoReflect.Descriptor instead.
 func (*ListGroupMembersResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{59}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *ListGroupMembersResponse) GetUserIds() []uint64 {
@@ -3416,7 +4000,7 @@ type RemoveGroupMemberRequest struct {
 
 func (x *RemoveGroupMemberRequest) Reset() {
 	*x = RemoveGroupMemberRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[60]
+	mi := &file_auth_v1_auth_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3428,7 +4012,7 @@ func (x *RemoveGroupMemberRequest) String() string {
 func (*RemoveGroupMemberRequest) ProtoMessage() {}
 
 func (x *RemoveGroupMemberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[60]
+	mi := &file_auth_v1_auth_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3441,7 +4025,7 @@ func (x *RemoveGroupMemberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveGroupMemberRequest.ProtoReflect.Descriptor instead.
 func (*RemoveGroupMemberRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{60}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *RemoveGroupMemberRequest) GetGroupId() uint64 {
@@ -3466,7 +4050,7 @@ type RemoveGroupMemberResponse struct {
 
 func (x *RemoveGroupMemberResponse) Reset() {
 	*x = RemoveGroupMemberResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[61]
+	mi := &file_auth_v1_auth_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3478,7 +4062,7 @@ func (x *RemoveGroupMemberResponse) String() string {
 func (*RemoveGroupMemberResponse) ProtoMessage() {}
 
 func (x *RemoveGroupMemberResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[61]
+	mi := &file_auth_v1_auth_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3491,7 +4075,7 @@ func (x *RemoveGroupMemberResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveGroupMemberResponse.ProtoReflect.Descriptor instead.
 func (*RemoveGroupMemberResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{61}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{71}
 }
 
 type AttachGroupPolicyRequest struct {
@@ -3504,7 +4088,7 @@ type AttachGroupPolicyRequest struct {
 
 func (x *AttachGroupPolicyRequest) Reset() {
 	*x = AttachGroupPolicyRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[62]
+	mi := &file_auth_v1_auth_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3516,7 +4100,7 @@ func (x *AttachGroupPolicyRequest) String() string {
 func (*AttachGroupPolicyRequest) ProtoMessage() {}
 
 func (x *AttachGroupPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[62]
+	mi := &file_auth_v1_auth_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3529,7 +4113,7 @@ func (x *AttachGroupPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttachGroupPolicyRequest.ProtoReflect.Descriptor instead.
 func (*AttachGroupPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{62}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *AttachGroupPolicyRequest) GetGroupId() uint64 {
@@ -3554,7 +4138,7 @@ type AttachGroupPolicyResponse struct {
 
 func (x *AttachGroupPolicyResponse) Reset() {
 	*x = AttachGroupPolicyResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[63]
+	mi := &file_auth_v1_auth_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3566,7 +4150,7 @@ func (x *AttachGroupPolicyResponse) String() string {
 func (*AttachGroupPolicyResponse) ProtoMessage() {}
 
 func (x *AttachGroupPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[63]
+	mi := &file_auth_v1_auth_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3579,7 +4163,7 @@ func (x *AttachGroupPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttachGroupPolicyResponse.ProtoReflect.Descriptor instead.
 func (*AttachGroupPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{63}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{73}
 }
 
 type ListGroupPoliciesRequest struct {
@@ -3591,7 +4175,7 @@ type ListGroupPoliciesRequest struct {
 
 func (x *ListGroupPoliciesRequest) Reset() {
 	*x = ListGroupPoliciesRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[64]
+	mi := &file_auth_v1_auth_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3603,7 +4187,7 @@ func (x *ListGroupPoliciesRequest) String() string {
 func (*ListGroupPoliciesRequest) ProtoMessage() {}
 
 func (x *ListGroupPoliciesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[64]
+	mi := &file_auth_v1_auth_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3616,7 +4200,7 @@ func (x *ListGroupPoliciesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupPoliciesRequest.ProtoReflect.Descriptor instead.
 func (*ListGroupPoliciesRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{64}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *ListGroupPoliciesRequest) GetGroupId() uint64 {
@@ -3635,7 +4219,7 @@ type ListGroupPoliciesResponse struct {
 
 func (x *ListGroupPoliciesResponse) Reset() {
 	*x = ListGroupPoliciesResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[65]
+	mi := &file_auth_v1_auth_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3647,7 +4231,7 @@ func (x *ListGroupPoliciesResponse) String() string {
 func (*ListGroupPoliciesResponse) ProtoMessage() {}
 
 func (x *ListGroupPoliciesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[65]
+	mi := &file_auth_v1_auth_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3660,7 +4244,7 @@ func (x *ListGroupPoliciesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupPoliciesResponse.ProtoReflect.Descriptor instead.
 func (*ListGroupPoliciesResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{65}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *ListGroupPoliciesResponse) GetPolicies() []*Policy {
@@ -3680,7 +4264,7 @@ type DetachGroupPolicyRequest struct {
 
 func (x *DetachGroupPolicyRequest) Reset() {
 	*x = DetachGroupPolicyRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[66]
+	mi := &file_auth_v1_auth_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3692,7 +4276,7 @@ func (x *DetachGroupPolicyRequest) String() string {
 func (*DetachGroupPolicyRequest) ProtoMessage() {}
 
 func (x *DetachGroupPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[66]
+	mi := &file_auth_v1_auth_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3705,7 +4289,7 @@ func (x *DetachGroupPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DetachGroupPolicyRequest.ProtoReflect.Descriptor instead.
 func (*DetachGroupPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{66}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *DetachGroupPolicyRequest) GetGroupId() uint64 {
@@ -3730,7 +4314,7 @@ type DetachGroupPolicyResponse struct {
 
 func (x *DetachGroupPolicyResponse) Reset() {
 	*x = DetachGroupPolicyResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[67]
+	mi := &file_auth_v1_auth_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3742,7 +4326,7 @@ func (x *DetachGroupPolicyResponse) String() string {
 func (*DetachGroupPolicyResponse) ProtoMessage() {}
 
 func (x *DetachGroupPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[67]
+	mi := &file_auth_v1_auth_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3755,7 +4339,567 @@ func (x *DetachGroupPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DetachGroupPolicyResponse.ProtoReflect.Descriptor instead.
 func (*DetachGroupPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{67}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{77}
+}
+
+type GroupInlinePolicy struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GroupId       uint64                 `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Statements    []*PolicyStatement     `protobuf:"bytes,4,rep,name=statements,proto3" json:"statements,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                 `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GroupInlinePolicy) Reset() {
+	*x = GroupInlinePolicy{}
+	mi := &file_auth_v1_auth_proto_msgTypes[78]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GroupInlinePolicy) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GroupInlinePolicy) ProtoMessage() {}
+
+func (x *GroupInlinePolicy) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[78]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GroupInlinePolicy.ProtoReflect.Descriptor instead.
+func (*GroupInlinePolicy) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{78}
+}
+
+func (x *GroupInlinePolicy) GetGroupId() uint64 {
+	if x != nil {
+		return x.GroupId
+	}
+	return 0
+}
+
+func (x *GroupInlinePolicy) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *GroupInlinePolicy) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *GroupInlinePolicy) GetStatements() []*PolicyStatement {
+	if x != nil {
+		return x.Statements
+	}
+	return nil
+}
+
+func (x *GroupInlinePolicy) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *GroupInlinePolicy) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+type UserInlinePolicy struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Scope         string                 `protobuf:"bytes,1,opt,name=scope,proto3" json:"scope,omitempty"`
+	TenantId      string                 `protobuf:"bytes,2,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
+	UserId        uint64                 `protobuf:"varint,3,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	Description   string                 `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
+	Statements    []*PolicyStatement     `protobuf:"bytes,6,rep,name=statements,proto3" json:"statements,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                 `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UserInlinePolicy) Reset() {
+	*x = UserInlinePolicy{}
+	mi := &file_auth_v1_auth_proto_msgTypes[79]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserInlinePolicy) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserInlinePolicy) ProtoMessage() {}
+
+func (x *UserInlinePolicy) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[79]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserInlinePolicy.ProtoReflect.Descriptor instead.
+func (*UserInlinePolicy) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{79}
+}
+
+func (x *UserInlinePolicy) GetScope() string {
+	if x != nil {
+		return x.Scope
+	}
+	return ""
+}
+
+func (x *UserInlinePolicy) GetTenantId() string {
+	if x != nil {
+		return x.TenantId
+	}
+	return ""
+}
+
+func (x *UserInlinePolicy) GetUserId() uint64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *UserInlinePolicy) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *UserInlinePolicy) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *UserInlinePolicy) GetStatements() []*PolicyStatement {
+	if x != nil {
+		return x.Statements
+	}
+	return nil
+}
+
+func (x *UserInlinePolicy) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *UserInlinePolicy) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+type PutGroupInlinePolicyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GroupId       uint64                 `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Statements    []*PolicyStatement     `protobuf:"bytes,4,rep,name=statements,proto3" json:"statements,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PutGroupInlinePolicyRequest) Reset() {
+	*x = PutGroupInlinePolicyRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[80]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PutGroupInlinePolicyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PutGroupInlinePolicyRequest) ProtoMessage() {}
+
+func (x *PutGroupInlinePolicyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[80]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PutGroupInlinePolicyRequest.ProtoReflect.Descriptor instead.
+func (*PutGroupInlinePolicyRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{80}
+}
+
+func (x *PutGroupInlinePolicyRequest) GetGroupId() uint64 {
+	if x != nil {
+		return x.GroupId
+	}
+	return 0
+}
+
+func (x *PutGroupInlinePolicyRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *PutGroupInlinePolicyRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *PutGroupInlinePolicyRequest) GetStatements() []*PolicyStatement {
+	if x != nil {
+		return x.Statements
+	}
+	return nil
+}
+
+type PutGroupInlinePolicyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PutGroupInlinePolicyResponse) Reset() {
+	*x = PutGroupInlinePolicyResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[81]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PutGroupInlinePolicyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PutGroupInlinePolicyResponse) ProtoMessage() {}
+
+func (x *PutGroupInlinePolicyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[81]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PutGroupInlinePolicyResponse.ProtoReflect.Descriptor instead.
+func (*PutGroupInlinePolicyResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{81}
+}
+
+type GetGroupInlinePolicyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GroupId       uint64                 `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetGroupInlinePolicyRequest) Reset() {
+	*x = GetGroupInlinePolicyRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[82]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetGroupInlinePolicyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetGroupInlinePolicyRequest) ProtoMessage() {}
+
+func (x *GetGroupInlinePolicyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[82]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetGroupInlinePolicyRequest.ProtoReflect.Descriptor instead.
+func (*GetGroupInlinePolicyRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{82}
+}
+
+func (x *GetGroupInlinePolicyRequest) GetGroupId() uint64 {
+	if x != nil {
+		return x.GroupId
+	}
+	return 0
+}
+
+func (x *GetGroupInlinePolicyRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type GetGroupInlinePolicyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Policy        *GroupInlinePolicy     `protobuf:"bytes,1,opt,name=policy,proto3" json:"policy,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetGroupInlinePolicyResponse) Reset() {
+	*x = GetGroupInlinePolicyResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[83]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetGroupInlinePolicyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetGroupInlinePolicyResponse) ProtoMessage() {}
+
+func (x *GetGroupInlinePolicyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[83]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetGroupInlinePolicyResponse.ProtoReflect.Descriptor instead.
+func (*GetGroupInlinePolicyResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{83}
+}
+
+func (x *GetGroupInlinePolicyResponse) GetPolicy() *GroupInlinePolicy {
+	if x != nil {
+		return x.Policy
+	}
+	return nil
+}
+
+type ListGroupInlinePoliciesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GroupId       uint64                 `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListGroupInlinePoliciesRequest) Reset() {
+	*x = ListGroupInlinePoliciesRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[84]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListGroupInlinePoliciesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListGroupInlinePoliciesRequest) ProtoMessage() {}
+
+func (x *ListGroupInlinePoliciesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[84]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListGroupInlinePoliciesRequest.ProtoReflect.Descriptor instead.
+func (*ListGroupInlinePoliciesRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{84}
+}
+
+func (x *ListGroupInlinePoliciesRequest) GetGroupId() uint64 {
+	if x != nil {
+		return x.GroupId
+	}
+	return 0
+}
+
+type ListGroupInlinePoliciesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Policies      []*GroupInlinePolicy   `protobuf:"bytes,1,rep,name=policies,proto3" json:"policies,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListGroupInlinePoliciesResponse) Reset() {
+	*x = ListGroupInlinePoliciesResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[85]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListGroupInlinePoliciesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListGroupInlinePoliciesResponse) ProtoMessage() {}
+
+func (x *ListGroupInlinePoliciesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[85]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListGroupInlinePoliciesResponse.ProtoReflect.Descriptor instead.
+func (*ListGroupInlinePoliciesResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{85}
+}
+
+func (x *ListGroupInlinePoliciesResponse) GetPolicies() []*GroupInlinePolicy {
+	if x != nil {
+		return x.Policies
+	}
+	return nil
+}
+
+type DeleteGroupInlinePolicyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GroupId       uint64                 `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteGroupInlinePolicyRequest) Reset() {
+	*x = DeleteGroupInlinePolicyRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[86]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteGroupInlinePolicyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteGroupInlinePolicyRequest) ProtoMessage() {}
+
+func (x *DeleteGroupInlinePolicyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[86]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteGroupInlinePolicyRequest.ProtoReflect.Descriptor instead.
+func (*DeleteGroupInlinePolicyRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{86}
+}
+
+func (x *DeleteGroupInlinePolicyRequest) GetGroupId() uint64 {
+	if x != nil {
+		return x.GroupId
+	}
+	return 0
+}
+
+func (x *DeleteGroupInlinePolicyRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type DeleteGroupInlinePolicyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteGroupInlinePolicyResponse) Reset() {
+	*x = DeleteGroupInlinePolicyResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[87]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteGroupInlinePolicyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteGroupInlinePolicyResponse) ProtoMessage() {}
+
+func (x *DeleteGroupInlinePolicyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[87]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteGroupInlinePolicyResponse.ProtoReflect.Descriptor instead.
+func (*DeleteGroupInlinePolicyResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{87}
 }
 
 type ListPlatformUserPoliciesRequest struct {
@@ -3767,7 +4911,7 @@ type ListPlatformUserPoliciesRequest struct {
 
 func (x *ListPlatformUserPoliciesRequest) Reset() {
 	*x = ListPlatformUserPoliciesRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[68]
+	mi := &file_auth_v1_auth_proto_msgTypes[88]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3779,7 +4923,7 @@ func (x *ListPlatformUserPoliciesRequest) String() string {
 func (*ListPlatformUserPoliciesRequest) ProtoMessage() {}
 
 func (x *ListPlatformUserPoliciesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[68]
+	mi := &file_auth_v1_auth_proto_msgTypes[88]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3792,7 +4936,7 @@ func (x *ListPlatformUserPoliciesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPlatformUserPoliciesRequest.ProtoReflect.Descriptor instead.
 func (*ListPlatformUserPoliciesRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{68}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{88}
 }
 
 func (x *ListPlatformUserPoliciesRequest) GetTargetUserId() uint64 {
@@ -3811,7 +4955,7 @@ type ListPlatformUserPoliciesResponse struct {
 
 func (x *ListPlatformUserPoliciesResponse) Reset() {
 	*x = ListPlatformUserPoliciesResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[69]
+	mi := &file_auth_v1_auth_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3823,7 +4967,7 @@ func (x *ListPlatformUserPoliciesResponse) String() string {
 func (*ListPlatformUserPoliciesResponse) ProtoMessage() {}
 
 func (x *ListPlatformUserPoliciesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[69]
+	mi := &file_auth_v1_auth_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3836,7 +4980,7 @@ func (x *ListPlatformUserPoliciesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPlatformUserPoliciesResponse.ProtoReflect.Descriptor instead.
 func (*ListPlatformUserPoliciesResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{69}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *ListPlatformUserPoliciesResponse) GetPolicies() []*Policy {
@@ -3844,6 +4988,382 @@ func (x *ListPlatformUserPoliciesResponse) GetPolicies() []*Policy {
 		return x.Policies
 	}
 	return nil
+}
+
+type PutPlatformUserInlinePolicyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TargetUserId  uint64                 `protobuf:"varint,1,opt,name=target_user_id,json=targetUserId,proto3" json:"target_user_id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Statements    []*PolicyStatement     `protobuf:"bytes,4,rep,name=statements,proto3" json:"statements,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PutPlatformUserInlinePolicyRequest) Reset() {
+	*x = PutPlatformUserInlinePolicyRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[90]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PutPlatformUserInlinePolicyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PutPlatformUserInlinePolicyRequest) ProtoMessage() {}
+
+func (x *PutPlatformUserInlinePolicyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[90]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PutPlatformUserInlinePolicyRequest.ProtoReflect.Descriptor instead.
+func (*PutPlatformUserInlinePolicyRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{90}
+}
+
+func (x *PutPlatformUserInlinePolicyRequest) GetTargetUserId() uint64 {
+	if x != nil {
+		return x.TargetUserId
+	}
+	return 0
+}
+
+func (x *PutPlatformUserInlinePolicyRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *PutPlatformUserInlinePolicyRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *PutPlatformUserInlinePolicyRequest) GetStatements() []*PolicyStatement {
+	if x != nil {
+		return x.Statements
+	}
+	return nil
+}
+
+type PutPlatformUserInlinePolicyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PutPlatformUserInlinePolicyResponse) Reset() {
+	*x = PutPlatformUserInlinePolicyResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[91]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PutPlatformUserInlinePolicyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PutPlatformUserInlinePolicyResponse) ProtoMessage() {}
+
+func (x *PutPlatformUserInlinePolicyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[91]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PutPlatformUserInlinePolicyResponse.ProtoReflect.Descriptor instead.
+func (*PutPlatformUserInlinePolicyResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{91}
+}
+
+type GetPlatformUserInlinePolicyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TargetUserId  uint64                 `protobuf:"varint,1,opt,name=target_user_id,json=targetUserId,proto3" json:"target_user_id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPlatformUserInlinePolicyRequest) Reset() {
+	*x = GetPlatformUserInlinePolicyRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[92]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPlatformUserInlinePolicyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPlatformUserInlinePolicyRequest) ProtoMessage() {}
+
+func (x *GetPlatformUserInlinePolicyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[92]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPlatformUserInlinePolicyRequest.ProtoReflect.Descriptor instead.
+func (*GetPlatformUserInlinePolicyRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{92}
+}
+
+func (x *GetPlatformUserInlinePolicyRequest) GetTargetUserId() uint64 {
+	if x != nil {
+		return x.TargetUserId
+	}
+	return 0
+}
+
+func (x *GetPlatformUserInlinePolicyRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type GetPlatformUserInlinePolicyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Policy        *UserInlinePolicy      `protobuf:"bytes,1,opt,name=policy,proto3" json:"policy,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPlatformUserInlinePolicyResponse) Reset() {
+	*x = GetPlatformUserInlinePolicyResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[93]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPlatformUserInlinePolicyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPlatformUserInlinePolicyResponse) ProtoMessage() {}
+
+func (x *GetPlatformUserInlinePolicyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[93]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPlatformUserInlinePolicyResponse.ProtoReflect.Descriptor instead.
+func (*GetPlatformUserInlinePolicyResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{93}
+}
+
+func (x *GetPlatformUserInlinePolicyResponse) GetPolicy() *UserInlinePolicy {
+	if x != nil {
+		return x.Policy
+	}
+	return nil
+}
+
+type ListPlatformUserInlinePoliciesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TargetUserId  uint64                 `protobuf:"varint,1,opt,name=target_user_id,json=targetUserId,proto3" json:"target_user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPlatformUserInlinePoliciesRequest) Reset() {
+	*x = ListPlatformUserInlinePoliciesRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[94]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPlatformUserInlinePoliciesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPlatformUserInlinePoliciesRequest) ProtoMessage() {}
+
+func (x *ListPlatformUserInlinePoliciesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[94]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPlatformUserInlinePoliciesRequest.ProtoReflect.Descriptor instead.
+func (*ListPlatformUserInlinePoliciesRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{94}
+}
+
+func (x *ListPlatformUserInlinePoliciesRequest) GetTargetUserId() uint64 {
+	if x != nil {
+		return x.TargetUserId
+	}
+	return 0
+}
+
+type ListPlatformUserInlinePoliciesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Policies      []*UserInlinePolicy    `protobuf:"bytes,1,rep,name=policies,proto3" json:"policies,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPlatformUserInlinePoliciesResponse) Reset() {
+	*x = ListPlatformUserInlinePoliciesResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[95]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPlatformUserInlinePoliciesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPlatformUserInlinePoliciesResponse) ProtoMessage() {}
+
+func (x *ListPlatformUserInlinePoliciesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[95]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPlatformUserInlinePoliciesResponse.ProtoReflect.Descriptor instead.
+func (*ListPlatformUserInlinePoliciesResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{95}
+}
+
+func (x *ListPlatformUserInlinePoliciesResponse) GetPolicies() []*UserInlinePolicy {
+	if x != nil {
+		return x.Policies
+	}
+	return nil
+}
+
+type DeletePlatformUserInlinePolicyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TargetUserId  uint64                 `protobuf:"varint,1,opt,name=target_user_id,json=targetUserId,proto3" json:"target_user_id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeletePlatformUserInlinePolicyRequest) Reset() {
+	*x = DeletePlatformUserInlinePolicyRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[96]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeletePlatformUserInlinePolicyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeletePlatformUserInlinePolicyRequest) ProtoMessage() {}
+
+func (x *DeletePlatformUserInlinePolicyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[96]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeletePlatformUserInlinePolicyRequest.ProtoReflect.Descriptor instead.
+func (*DeletePlatformUserInlinePolicyRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{96}
+}
+
+func (x *DeletePlatformUserInlinePolicyRequest) GetTargetUserId() uint64 {
+	if x != nil {
+		return x.TargetUserId
+	}
+	return 0
+}
+
+func (x *DeletePlatformUserInlinePolicyRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type DeletePlatformUserInlinePolicyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeletePlatformUserInlinePolicyResponse) Reset() {
+	*x = DeletePlatformUserInlinePolicyResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[97]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeletePlatformUserInlinePolicyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeletePlatformUserInlinePolicyResponse) ProtoMessage() {}
+
+func (x *DeletePlatformUserInlinePolicyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[97]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeletePlatformUserInlinePolicyResponse.ProtoReflect.Descriptor instead.
+func (*DeletePlatformUserInlinePolicyResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{97}
 }
 
 type AttachPlatformUserPolicyRequest struct {
@@ -3856,7 +5376,7 @@ type AttachPlatformUserPolicyRequest struct {
 
 func (x *AttachPlatformUserPolicyRequest) Reset() {
 	*x = AttachPlatformUserPolicyRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[70]
+	mi := &file_auth_v1_auth_proto_msgTypes[98]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3868,7 +5388,7 @@ func (x *AttachPlatformUserPolicyRequest) String() string {
 func (*AttachPlatformUserPolicyRequest) ProtoMessage() {}
 
 func (x *AttachPlatformUserPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[70]
+	mi := &file_auth_v1_auth_proto_msgTypes[98]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3881,7 +5401,7 @@ func (x *AttachPlatformUserPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttachPlatformUserPolicyRequest.ProtoReflect.Descriptor instead.
 func (*AttachPlatformUserPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{70}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{98}
 }
 
 func (x *AttachPlatformUserPolicyRequest) GetTargetUserId() uint64 {
@@ -3906,7 +5426,7 @@ type AttachPlatformUserPolicyResponse struct {
 
 func (x *AttachPlatformUserPolicyResponse) Reset() {
 	*x = AttachPlatformUserPolicyResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[71]
+	mi := &file_auth_v1_auth_proto_msgTypes[99]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3918,7 +5438,7 @@ func (x *AttachPlatformUserPolicyResponse) String() string {
 func (*AttachPlatformUserPolicyResponse) ProtoMessage() {}
 
 func (x *AttachPlatformUserPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[71]
+	mi := &file_auth_v1_auth_proto_msgTypes[99]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3931,7 +5451,7 @@ func (x *AttachPlatformUserPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttachPlatformUserPolicyResponse.ProtoReflect.Descriptor instead.
 func (*AttachPlatformUserPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{71}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{99}
 }
 
 type DetachPlatformUserPolicyRequest struct {
@@ -3944,7 +5464,7 @@ type DetachPlatformUserPolicyRequest struct {
 
 func (x *DetachPlatformUserPolicyRequest) Reset() {
 	*x = DetachPlatformUserPolicyRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[72]
+	mi := &file_auth_v1_auth_proto_msgTypes[100]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3956,7 +5476,7 @@ func (x *DetachPlatformUserPolicyRequest) String() string {
 func (*DetachPlatformUserPolicyRequest) ProtoMessage() {}
 
 func (x *DetachPlatformUserPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[72]
+	mi := &file_auth_v1_auth_proto_msgTypes[100]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3969,7 +5489,7 @@ func (x *DetachPlatformUserPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DetachPlatformUserPolicyRequest.ProtoReflect.Descriptor instead.
 func (*DetachPlatformUserPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{72}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{100}
 }
 
 func (x *DetachPlatformUserPolicyRequest) GetTargetUserId() uint64 {
@@ -3994,7 +5514,7 @@ type DetachPlatformUserPolicyResponse struct {
 
 func (x *DetachPlatformUserPolicyResponse) Reset() {
 	*x = DetachPlatformUserPolicyResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[73]
+	mi := &file_auth_v1_auth_proto_msgTypes[101]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4006,7 +5526,7 @@ func (x *DetachPlatformUserPolicyResponse) String() string {
 func (*DetachPlatformUserPolicyResponse) ProtoMessage() {}
 
 func (x *DetachPlatformUserPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[73]
+	mi := &file_auth_v1_auth_proto_msgTypes[101]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4019,7 +5539,7 @@ func (x *DetachPlatformUserPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DetachPlatformUserPolicyResponse.ProtoReflect.Descriptor instead.
 func (*DetachPlatformUserPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{73}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{101}
 }
 
 type RemovePlatformRoleRequest struct {
@@ -4033,7 +5553,7 @@ type RemovePlatformRoleRequest struct {
 
 func (x *RemovePlatformRoleRequest) Reset() {
 	*x = RemovePlatformRoleRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[74]
+	mi := &file_auth_v1_auth_proto_msgTypes[102]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4045,7 +5565,7 @@ func (x *RemovePlatformRoleRequest) String() string {
 func (*RemovePlatformRoleRequest) ProtoMessage() {}
 
 func (x *RemovePlatformRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[74]
+	mi := &file_auth_v1_auth_proto_msgTypes[102]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4058,7 +5578,7 @@ func (x *RemovePlatformRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemovePlatformRoleRequest.ProtoReflect.Descriptor instead.
 func (*RemovePlatformRoleRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{74}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{102}
 }
 
 func (x *RemovePlatformRoleRequest) GetActorUserId() uint64 {
@@ -4090,7 +5610,7 @@ type RemovePlatformRoleResponse struct {
 
 func (x *RemovePlatformRoleResponse) Reset() {
 	*x = RemovePlatformRoleResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[75]
+	mi := &file_auth_v1_auth_proto_msgTypes[103]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4102,7 +5622,7 @@ func (x *RemovePlatformRoleResponse) String() string {
 func (*RemovePlatformRoleResponse) ProtoMessage() {}
 
 func (x *RemovePlatformRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[75]
+	mi := &file_auth_v1_auth_proto_msgTypes[103]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4115,7 +5635,7 @@ func (x *RemovePlatformRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemovePlatformRoleResponse.ProtoReflect.Descriptor instead.
 func (*RemovePlatformRoleResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{75}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{103}
 }
 
 type GetTenantMembershipRequest struct {
@@ -4128,7 +5648,7 @@ type GetTenantMembershipRequest struct {
 
 func (x *GetTenantMembershipRequest) Reset() {
 	*x = GetTenantMembershipRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[76]
+	mi := &file_auth_v1_auth_proto_msgTypes[104]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4140,7 +5660,7 @@ func (x *GetTenantMembershipRequest) String() string {
 func (*GetTenantMembershipRequest) ProtoMessage() {}
 
 func (x *GetTenantMembershipRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[76]
+	mi := &file_auth_v1_auth_proto_msgTypes[104]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4153,7 +5673,7 @@ func (x *GetTenantMembershipRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTenantMembershipRequest.ProtoReflect.Descriptor instead.
 func (*GetTenantMembershipRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{76}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{104}
 }
 
 func (x *GetTenantMembershipRequest) GetTenantId() string {
@@ -4179,7 +5699,7 @@ type GetTenantMembershipResponse struct {
 
 func (x *GetTenantMembershipResponse) Reset() {
 	*x = GetTenantMembershipResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[77]
+	mi := &file_auth_v1_auth_proto_msgTypes[105]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4191,7 +5711,7 @@ func (x *GetTenantMembershipResponse) String() string {
 func (*GetTenantMembershipResponse) ProtoMessage() {}
 
 func (x *GetTenantMembershipResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[77]
+	mi := &file_auth_v1_auth_proto_msgTypes[105]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4204,7 +5724,7 @@ func (x *GetTenantMembershipResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTenantMembershipResponse.ProtoReflect.Descriptor instead.
 func (*GetTenantMembershipResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{77}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{105}
 }
 
 func (x *GetTenantMembershipResponse) GetMembership() *TenantMembership {
@@ -4225,7 +5745,7 @@ type CheckPermissionRequest struct {
 
 func (x *CheckPermissionRequest) Reset() {
 	*x = CheckPermissionRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[78]
+	mi := &file_auth_v1_auth_proto_msgTypes[106]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4237,7 +5757,7 @@ func (x *CheckPermissionRequest) String() string {
 func (*CheckPermissionRequest) ProtoMessage() {}
 
 func (x *CheckPermissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[78]
+	mi := &file_auth_v1_auth_proto_msgTypes[106]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4250,7 +5770,7 @@ func (x *CheckPermissionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckPermissionRequest.ProtoReflect.Descriptor instead.
 func (*CheckPermissionRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{78}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{106}
 }
 
 func (x *CheckPermissionRequest) GetTenantId() string {
@@ -4284,7 +5804,7 @@ type CheckPlatformPermissionRequest struct {
 
 func (x *CheckPlatformPermissionRequest) Reset() {
 	*x = CheckPlatformPermissionRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[79]
+	mi := &file_auth_v1_auth_proto_msgTypes[107]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4296,7 +5816,7 @@ func (x *CheckPlatformPermissionRequest) String() string {
 func (*CheckPlatformPermissionRequest) ProtoMessage() {}
 
 func (x *CheckPlatformPermissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[79]
+	mi := &file_auth_v1_auth_proto_msgTypes[107]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4309,7 +5829,7 @@ func (x *CheckPlatformPermissionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckPlatformPermissionRequest.ProtoReflect.Descriptor instead.
 func (*CheckPlatformPermissionRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{79}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{107}
 }
 
 func (x *CheckPlatformPermissionRequest) GetUserId() uint64 {
@@ -4335,7 +5855,7 @@ type CheckPermissionResponse struct {
 
 func (x *CheckPermissionResponse) Reset() {
 	*x = CheckPermissionResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[80]
+	mi := &file_auth_v1_auth_proto_msgTypes[108]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4347,7 +5867,7 @@ func (x *CheckPermissionResponse) String() string {
 func (*CheckPermissionResponse) ProtoMessage() {}
 
 func (x *CheckPermissionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[80]
+	mi := &file_auth_v1_auth_proto_msgTypes[108]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4360,7 +5880,7 @@ func (x *CheckPermissionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckPermissionResponse.ProtoReflect.Descriptor instead.
 func (*CheckPermissionResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{80}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{108}
 }
 
 func (x *CheckPermissionResponse) GetAllowed() bool {
@@ -4379,7 +5899,7 @@ type ListTenantMembersRequest struct {
 
 func (x *ListTenantMembersRequest) Reset() {
 	*x = ListTenantMembersRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[81]
+	mi := &file_auth_v1_auth_proto_msgTypes[109]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4391,7 +5911,7 @@ func (x *ListTenantMembersRequest) String() string {
 func (*ListTenantMembersRequest) ProtoMessage() {}
 
 func (x *ListTenantMembersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[81]
+	mi := &file_auth_v1_auth_proto_msgTypes[109]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4404,7 +5924,7 @@ func (x *ListTenantMembersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTenantMembersRequest.ProtoReflect.Descriptor instead.
 func (*ListTenantMembersRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{81}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{109}
 }
 
 func (x *ListTenantMembersRequest) GetTenantId() string {
@@ -4423,7 +5943,7 @@ type ListTenantMembersResponse struct {
 
 func (x *ListTenantMembersResponse) Reset() {
 	*x = ListTenantMembersResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[82]
+	mi := &file_auth_v1_auth_proto_msgTypes[110]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4435,7 +5955,7 @@ func (x *ListTenantMembersResponse) String() string {
 func (*ListTenantMembersResponse) ProtoMessage() {}
 
 func (x *ListTenantMembersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[82]
+	mi := &file_auth_v1_auth_proto_msgTypes[110]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4448,7 +5968,7 @@ func (x *ListTenantMembersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTenantMembersResponse.ProtoReflect.Descriptor instead.
 func (*ListTenantMembersResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{82}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{110}
 }
 
 func (x *ListTenantMembersResponse) GetMemberships() []*TenantMembership {
@@ -4468,7 +5988,7 @@ type RemoveTenantMemberRequest struct {
 
 func (x *RemoveTenantMemberRequest) Reset() {
 	*x = RemoveTenantMemberRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[83]
+	mi := &file_auth_v1_auth_proto_msgTypes[111]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4480,7 +6000,7 @@ func (x *RemoveTenantMemberRequest) String() string {
 func (*RemoveTenantMemberRequest) ProtoMessage() {}
 
 func (x *RemoveTenantMemberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[83]
+	mi := &file_auth_v1_auth_proto_msgTypes[111]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4493,7 +6013,7 @@ func (x *RemoveTenantMemberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveTenantMemberRequest.ProtoReflect.Descriptor instead.
 func (*RemoveTenantMemberRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{83}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{111}
 }
 
 func (x *RemoveTenantMemberRequest) GetTenantId() string {
@@ -4518,7 +6038,7 @@ type RemoveTenantMemberResponse struct {
 
 func (x *RemoveTenantMemberResponse) Reset() {
 	*x = RemoveTenantMemberResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[84]
+	mi := &file_auth_v1_auth_proto_msgTypes[112]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4530,7 +6050,7 @@ func (x *RemoveTenantMemberResponse) String() string {
 func (*RemoveTenantMemberResponse) ProtoMessage() {}
 
 func (x *RemoveTenantMemberResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[84]
+	mi := &file_auth_v1_auth_proto_msgTypes[112]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4543,7 +6063,7 @@ func (x *RemoveTenantMemberResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveTenantMemberResponse.ProtoReflect.Descriptor instead.
 func (*RemoveTenantMemberResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{84}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{112}
 }
 
 type ListTenantUserPoliciesRequest struct {
@@ -4556,7 +6076,7 @@ type ListTenantUserPoliciesRequest struct {
 
 func (x *ListTenantUserPoliciesRequest) Reset() {
 	*x = ListTenantUserPoliciesRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[85]
+	mi := &file_auth_v1_auth_proto_msgTypes[113]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4568,7 +6088,7 @@ func (x *ListTenantUserPoliciesRequest) String() string {
 func (*ListTenantUserPoliciesRequest) ProtoMessage() {}
 
 func (x *ListTenantUserPoliciesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[85]
+	mi := &file_auth_v1_auth_proto_msgTypes[113]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4581,7 +6101,7 @@ func (x *ListTenantUserPoliciesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTenantUserPoliciesRequest.ProtoReflect.Descriptor instead.
 func (*ListTenantUserPoliciesRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{85}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{113}
 }
 
 func (x *ListTenantUserPoliciesRequest) GetTenantId() string {
@@ -4607,7 +6127,7 @@ type ListTenantUserPoliciesResponse struct {
 
 func (x *ListTenantUserPoliciesResponse) Reset() {
 	*x = ListTenantUserPoliciesResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[86]
+	mi := &file_auth_v1_auth_proto_msgTypes[114]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4619,7 +6139,7 @@ func (x *ListTenantUserPoliciesResponse) String() string {
 func (*ListTenantUserPoliciesResponse) ProtoMessage() {}
 
 func (x *ListTenantUserPoliciesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[86]
+	mi := &file_auth_v1_auth_proto_msgTypes[114]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4632,7 +6152,7 @@ func (x *ListTenantUserPoliciesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTenantUserPoliciesResponse.ProtoReflect.Descriptor instead.
 func (*ListTenantUserPoliciesResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{86}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{114}
 }
 
 func (x *ListTenantUserPoliciesResponse) GetPolicies() []*Policy {
@@ -4640,6 +6160,414 @@ func (x *ListTenantUserPoliciesResponse) GetPolicies() []*Policy {
 		return x.Policies
 	}
 	return nil
+}
+
+type PutTenantUserInlinePolicyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TenantId      string                 `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
+	UserId        uint64                 `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Description   string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	Statements    []*PolicyStatement     `protobuf:"bytes,5,rep,name=statements,proto3" json:"statements,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PutTenantUserInlinePolicyRequest) Reset() {
+	*x = PutTenantUserInlinePolicyRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[115]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PutTenantUserInlinePolicyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PutTenantUserInlinePolicyRequest) ProtoMessage() {}
+
+func (x *PutTenantUserInlinePolicyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[115]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PutTenantUserInlinePolicyRequest.ProtoReflect.Descriptor instead.
+func (*PutTenantUserInlinePolicyRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{115}
+}
+
+func (x *PutTenantUserInlinePolicyRequest) GetTenantId() string {
+	if x != nil {
+		return x.TenantId
+	}
+	return ""
+}
+
+func (x *PutTenantUserInlinePolicyRequest) GetUserId() uint64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *PutTenantUserInlinePolicyRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *PutTenantUserInlinePolicyRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *PutTenantUserInlinePolicyRequest) GetStatements() []*PolicyStatement {
+	if x != nil {
+		return x.Statements
+	}
+	return nil
+}
+
+type PutTenantUserInlinePolicyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PutTenantUserInlinePolicyResponse) Reset() {
+	*x = PutTenantUserInlinePolicyResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[116]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PutTenantUserInlinePolicyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PutTenantUserInlinePolicyResponse) ProtoMessage() {}
+
+func (x *PutTenantUserInlinePolicyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[116]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PutTenantUserInlinePolicyResponse.ProtoReflect.Descriptor instead.
+func (*PutTenantUserInlinePolicyResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{116}
+}
+
+type GetTenantUserInlinePolicyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TenantId      string                 `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
+	UserId        uint64                 `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTenantUserInlinePolicyRequest) Reset() {
+	*x = GetTenantUserInlinePolicyRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[117]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTenantUserInlinePolicyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTenantUserInlinePolicyRequest) ProtoMessage() {}
+
+func (x *GetTenantUserInlinePolicyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[117]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTenantUserInlinePolicyRequest.ProtoReflect.Descriptor instead.
+func (*GetTenantUserInlinePolicyRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{117}
+}
+
+func (x *GetTenantUserInlinePolicyRequest) GetTenantId() string {
+	if x != nil {
+		return x.TenantId
+	}
+	return ""
+}
+
+func (x *GetTenantUserInlinePolicyRequest) GetUserId() uint64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *GetTenantUserInlinePolicyRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type GetTenantUserInlinePolicyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Policy        *UserInlinePolicy      `protobuf:"bytes,1,opt,name=policy,proto3" json:"policy,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTenantUserInlinePolicyResponse) Reset() {
+	*x = GetTenantUserInlinePolicyResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[118]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTenantUserInlinePolicyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTenantUserInlinePolicyResponse) ProtoMessage() {}
+
+func (x *GetTenantUserInlinePolicyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[118]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTenantUserInlinePolicyResponse.ProtoReflect.Descriptor instead.
+func (*GetTenantUserInlinePolicyResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{118}
+}
+
+func (x *GetTenantUserInlinePolicyResponse) GetPolicy() *UserInlinePolicy {
+	if x != nil {
+		return x.Policy
+	}
+	return nil
+}
+
+type ListTenantUserInlinePoliciesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TenantId      string                 `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
+	UserId        uint64                 `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListTenantUserInlinePoliciesRequest) Reset() {
+	*x = ListTenantUserInlinePoliciesRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[119]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListTenantUserInlinePoliciesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListTenantUserInlinePoliciesRequest) ProtoMessage() {}
+
+func (x *ListTenantUserInlinePoliciesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[119]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListTenantUserInlinePoliciesRequest.ProtoReflect.Descriptor instead.
+func (*ListTenantUserInlinePoliciesRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{119}
+}
+
+func (x *ListTenantUserInlinePoliciesRequest) GetTenantId() string {
+	if x != nil {
+		return x.TenantId
+	}
+	return ""
+}
+
+func (x *ListTenantUserInlinePoliciesRequest) GetUserId() uint64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+type ListTenantUserInlinePoliciesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Policies      []*UserInlinePolicy    `protobuf:"bytes,1,rep,name=policies,proto3" json:"policies,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListTenantUserInlinePoliciesResponse) Reset() {
+	*x = ListTenantUserInlinePoliciesResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[120]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListTenantUserInlinePoliciesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListTenantUserInlinePoliciesResponse) ProtoMessage() {}
+
+func (x *ListTenantUserInlinePoliciesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[120]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListTenantUserInlinePoliciesResponse.ProtoReflect.Descriptor instead.
+func (*ListTenantUserInlinePoliciesResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{120}
+}
+
+func (x *ListTenantUserInlinePoliciesResponse) GetPolicies() []*UserInlinePolicy {
+	if x != nil {
+		return x.Policies
+	}
+	return nil
+}
+
+type DeleteTenantUserInlinePolicyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TenantId      string                 `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
+	UserId        uint64                 `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteTenantUserInlinePolicyRequest) Reset() {
+	*x = DeleteTenantUserInlinePolicyRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[121]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteTenantUserInlinePolicyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteTenantUserInlinePolicyRequest) ProtoMessage() {}
+
+func (x *DeleteTenantUserInlinePolicyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[121]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteTenantUserInlinePolicyRequest.ProtoReflect.Descriptor instead.
+func (*DeleteTenantUserInlinePolicyRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{121}
+}
+
+func (x *DeleteTenantUserInlinePolicyRequest) GetTenantId() string {
+	if x != nil {
+		return x.TenantId
+	}
+	return ""
+}
+
+func (x *DeleteTenantUserInlinePolicyRequest) GetUserId() uint64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *DeleteTenantUserInlinePolicyRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type DeleteTenantUserInlinePolicyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteTenantUserInlinePolicyResponse) Reset() {
+	*x = DeleteTenantUserInlinePolicyResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[122]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteTenantUserInlinePolicyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteTenantUserInlinePolicyResponse) ProtoMessage() {}
+
+func (x *DeleteTenantUserInlinePolicyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[122]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteTenantUserInlinePolicyResponse.ProtoReflect.Descriptor instead.
+func (*DeleteTenantUserInlinePolicyResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{122}
 }
 
 type AttachTenantUserPolicyRequest struct {
@@ -4653,7 +6581,7 @@ type AttachTenantUserPolicyRequest struct {
 
 func (x *AttachTenantUserPolicyRequest) Reset() {
 	*x = AttachTenantUserPolicyRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[87]
+	mi := &file_auth_v1_auth_proto_msgTypes[123]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4665,7 +6593,7 @@ func (x *AttachTenantUserPolicyRequest) String() string {
 func (*AttachTenantUserPolicyRequest) ProtoMessage() {}
 
 func (x *AttachTenantUserPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[87]
+	mi := &file_auth_v1_auth_proto_msgTypes[123]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4678,7 +6606,7 @@ func (x *AttachTenantUserPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttachTenantUserPolicyRequest.ProtoReflect.Descriptor instead.
 func (*AttachTenantUserPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{87}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{123}
 }
 
 func (x *AttachTenantUserPolicyRequest) GetTenantId() string {
@@ -4710,7 +6638,7 @@ type AttachTenantUserPolicyResponse struct {
 
 func (x *AttachTenantUserPolicyResponse) Reset() {
 	*x = AttachTenantUserPolicyResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[88]
+	mi := &file_auth_v1_auth_proto_msgTypes[124]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4722,7 +6650,7 @@ func (x *AttachTenantUserPolicyResponse) String() string {
 func (*AttachTenantUserPolicyResponse) ProtoMessage() {}
 
 func (x *AttachTenantUserPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[88]
+	mi := &file_auth_v1_auth_proto_msgTypes[124]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4735,7 +6663,7 @@ func (x *AttachTenantUserPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttachTenantUserPolicyResponse.ProtoReflect.Descriptor instead.
 func (*AttachTenantUserPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{88}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{124}
 }
 
 type DetachTenantUserPolicyRequest struct {
@@ -4749,7 +6677,7 @@ type DetachTenantUserPolicyRequest struct {
 
 func (x *DetachTenantUserPolicyRequest) Reset() {
 	*x = DetachTenantUserPolicyRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[89]
+	mi := &file_auth_v1_auth_proto_msgTypes[125]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4761,7 +6689,7 @@ func (x *DetachTenantUserPolicyRequest) String() string {
 func (*DetachTenantUserPolicyRequest) ProtoMessage() {}
 
 func (x *DetachTenantUserPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[89]
+	mi := &file_auth_v1_auth_proto_msgTypes[125]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4774,7 +6702,7 @@ func (x *DetachTenantUserPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DetachTenantUserPolicyRequest.ProtoReflect.Descriptor instead.
 func (*DetachTenantUserPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{89}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{125}
 }
 
 func (x *DetachTenantUserPolicyRequest) GetTenantId() string {
@@ -4806,7 +6734,7 @@ type DetachTenantUserPolicyResponse struct {
 
 func (x *DetachTenantUserPolicyResponse) Reset() {
 	*x = DetachTenantUserPolicyResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[90]
+	mi := &file_auth_v1_auth_proto_msgTypes[126]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4818,7 +6746,7 @@ func (x *DetachTenantUserPolicyResponse) String() string {
 func (*DetachTenantUserPolicyResponse) ProtoMessage() {}
 
 func (x *DetachTenantUserPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[90]
+	mi := &file_auth_v1_auth_proto_msgTypes[126]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4831,7 +6759,7 @@ func (x *DetachTenantUserPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DetachTenantUserPolicyResponse.ProtoReflect.Descriptor instead.
 func (*DetachTenantUserPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{90}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{126}
 }
 
 type SwitchActiveTenantRequest struct {
@@ -4845,7 +6773,7 @@ type SwitchActiveTenantRequest struct {
 
 func (x *SwitchActiveTenantRequest) Reset() {
 	*x = SwitchActiveTenantRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[91]
+	mi := &file_auth_v1_auth_proto_msgTypes[127]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4857,7 +6785,7 @@ func (x *SwitchActiveTenantRequest) String() string {
 func (*SwitchActiveTenantRequest) ProtoMessage() {}
 
 func (x *SwitchActiveTenantRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[91]
+	mi := &file_auth_v1_auth_proto_msgTypes[127]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4870,7 +6798,7 @@ func (x *SwitchActiveTenantRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SwitchActiveTenantRequest.ProtoReflect.Descriptor instead.
 func (*SwitchActiveTenantRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{91}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{127}
 }
 
 func (x *SwitchActiveTenantRequest) GetUserId() uint64 {
@@ -4905,7 +6833,7 @@ type SwitchActiveTenantResponse struct {
 
 func (x *SwitchActiveTenantResponse) Reset() {
 	*x = SwitchActiveTenantResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[92]
+	mi := &file_auth_v1_auth_proto_msgTypes[128]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4917,7 +6845,7 @@ func (x *SwitchActiveTenantResponse) String() string {
 func (*SwitchActiveTenantResponse) ProtoMessage() {}
 
 func (x *SwitchActiveTenantResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[92]
+	mi := &file_auth_v1_auth_proto_msgTypes[128]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4930,7 +6858,7 @@ func (x *SwitchActiveTenantResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SwitchActiveTenantResponse.ProtoReflect.Descriptor instead.
 func (*SwitchActiveTenantResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{92}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{128}
 }
 
 func (x *SwitchActiveTenantResponse) GetJwtToken() string {
@@ -4954,6 +6882,422 @@ func (x *SwitchActiveTenantResponse) GetRefreshToken() string {
 	return ""
 }
 
+type AssumeSessionPolicyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	Statements    []*PolicyStatement     `protobuf:"bytes,2,rep,name=statements,proto3" json:"statements,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AssumeSessionPolicyRequest) Reset() {
+	*x = AssumeSessionPolicyRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[129]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AssumeSessionPolicyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssumeSessionPolicyRequest) ProtoMessage() {}
+
+func (x *AssumeSessionPolicyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[129]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AssumeSessionPolicyRequest.ProtoReflect.Descriptor instead.
+func (*AssumeSessionPolicyRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{129}
+}
+
+func (x *AssumeSessionPolicyRequest) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *AssumeSessionPolicyRequest) GetStatements() []*PolicyStatement {
+	if x != nil {
+		return x.Statements
+	}
+	return nil
+}
+
+type AssumeSessionPolicyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	JwtToken      string                 `protobuf:"bytes,1,opt,name=jwt_token,json=jwtToken,proto3" json:"jwt_token,omitempty"`
+	Session       *Session               `protobuf:"bytes,2,opt,name=session,proto3" json:"session,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AssumeSessionPolicyResponse) Reset() {
+	*x = AssumeSessionPolicyResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[130]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AssumeSessionPolicyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssumeSessionPolicyResponse) ProtoMessage() {}
+
+func (x *AssumeSessionPolicyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[130]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AssumeSessionPolicyResponse.ProtoReflect.Descriptor instead.
+func (*AssumeSessionPolicyResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{130}
+}
+
+func (x *AssumeSessionPolicyResponse) GetJwtToken() string {
+	if x != nil {
+		return x.JwtToken
+	}
+	return ""
+}
+
+func (x *AssumeSessionPolicyResponse) GetSession() *Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
+type ClearSessionPolicyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClearSessionPolicyRequest) Reset() {
+	*x = ClearSessionPolicyRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[131]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClearSessionPolicyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClearSessionPolicyRequest) ProtoMessage() {}
+
+func (x *ClearSessionPolicyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[131]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClearSessionPolicyRequest.ProtoReflect.Descriptor instead.
+func (*ClearSessionPolicyRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{131}
+}
+
+func (x *ClearSessionPolicyRequest) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+type ClearSessionPolicyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	JwtToken      string                 `protobuf:"bytes,1,opt,name=jwt_token,json=jwtToken,proto3" json:"jwt_token,omitempty"`
+	Session       *Session               `protobuf:"bytes,2,opt,name=session,proto3" json:"session,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClearSessionPolicyResponse) Reset() {
+	*x = ClearSessionPolicyResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[132]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClearSessionPolicyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClearSessionPolicyResponse) ProtoMessage() {}
+
+func (x *ClearSessionPolicyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[132]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClearSessionPolicyResponse.ProtoReflect.Descriptor instead.
+func (*ClearSessionPolicyResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{132}
+}
+
+func (x *ClearSessionPolicyResponse) GetJwtToken() string {
+	if x != nil {
+		return x.JwtToken
+	}
+	return ""
+}
+
+func (x *ClearSessionPolicyResponse) GetSession() *Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
+type AssumeRoleRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	RoleName      string                 `protobuf:"bytes,2,opt,name=role_name,json=roleName,proto3" json:"role_name,omitempty"`
+	TenantId      string                 `protobuf:"bytes,3,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
+	SessionPolicy []*PolicyStatement     `protobuf:"bytes,4,rep,name=session_policy,json=sessionPolicy,proto3" json:"session_policy,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AssumeRoleRequest) Reset() {
+	*x = AssumeRoleRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[133]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AssumeRoleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssumeRoleRequest) ProtoMessage() {}
+
+func (x *AssumeRoleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[133]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AssumeRoleRequest.ProtoReflect.Descriptor instead.
+func (*AssumeRoleRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{133}
+}
+
+func (x *AssumeRoleRequest) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *AssumeRoleRequest) GetRoleName() string {
+	if x != nil {
+		return x.RoleName
+	}
+	return ""
+}
+
+func (x *AssumeRoleRequest) GetTenantId() string {
+	if x != nil {
+		return x.TenantId
+	}
+	return ""
+}
+
+func (x *AssumeRoleRequest) GetSessionPolicy() []*PolicyStatement {
+	if x != nil {
+		return x.SessionPolicy
+	}
+	return nil
+}
+
+type AssumeRoleResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	JwtToken      string                 `protobuf:"bytes,1,opt,name=jwt_token,json=jwtToken,proto3" json:"jwt_token,omitempty"`
+	Session       *Session               `protobuf:"bytes,2,opt,name=session,proto3" json:"session,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AssumeRoleResponse) Reset() {
+	*x = AssumeRoleResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[134]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AssumeRoleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssumeRoleResponse) ProtoMessage() {}
+
+func (x *AssumeRoleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[134]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AssumeRoleResponse.ProtoReflect.Descriptor instead.
+func (*AssumeRoleResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{134}
+}
+
+func (x *AssumeRoleResponse) GetJwtToken() string {
+	if x != nil {
+		return x.JwtToken
+	}
+	return ""
+}
+
+func (x *AssumeRoleResponse) GetSession() *Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
+type ClearAssumedRoleRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClearAssumedRoleRequest) Reset() {
+	*x = ClearAssumedRoleRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[135]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClearAssumedRoleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClearAssumedRoleRequest) ProtoMessage() {}
+
+func (x *ClearAssumedRoleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[135]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClearAssumedRoleRequest.ProtoReflect.Descriptor instead.
+func (*ClearAssumedRoleRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{135}
+}
+
+func (x *ClearAssumedRoleRequest) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+type ClearAssumedRoleResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	JwtToken      string                 `protobuf:"bytes,1,opt,name=jwt_token,json=jwtToken,proto3" json:"jwt_token,omitempty"`
+	Session       *Session               `protobuf:"bytes,2,opt,name=session,proto3" json:"session,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ClearAssumedRoleResponse) Reset() {
+	*x = ClearAssumedRoleResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[136]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClearAssumedRoleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClearAssumedRoleResponse) ProtoMessage() {}
+
+func (x *ClearAssumedRoleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[136]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ClearAssumedRoleResponse.ProtoReflect.Descriptor instead.
+func (*ClearAssumedRoleResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{136}
+}
+
+func (x *ClearAssumedRoleResponse) GetJwtToken() string {
+	if x != nil {
+		return x.JwtToken
+	}
+	return ""
+}
+
+func (x *ClearAssumedRoleResponse) GetSession() *Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
 type GetSessionRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
@@ -4963,7 +7307,7 @@ type GetSessionRequest struct {
 
 func (x *GetSessionRequest) Reset() {
 	*x = GetSessionRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[93]
+	mi := &file_auth_v1_auth_proto_msgTypes[137]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4975,7 +7319,7 @@ func (x *GetSessionRequest) String() string {
 func (*GetSessionRequest) ProtoMessage() {}
 
 func (x *GetSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[93]
+	mi := &file_auth_v1_auth_proto_msgTypes[137]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4988,7 +7332,7 @@ func (x *GetSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSessionRequest.ProtoReflect.Descriptor instead.
 func (*GetSessionRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{93}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{137}
 }
 
 func (x *GetSessionRequest) GetSessionId() string {
@@ -5007,7 +7351,7 @@ type GetSessionResponse struct {
 
 func (x *GetSessionResponse) Reset() {
 	*x = GetSessionResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[94]
+	mi := &file_auth_v1_auth_proto_msgTypes[138]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5019,7 +7363,7 @@ func (x *GetSessionResponse) String() string {
 func (*GetSessionResponse) ProtoMessage() {}
 
 func (x *GetSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[94]
+	mi := &file_auth_v1_auth_proto_msgTypes[138]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5032,7 +7376,7 @@ func (x *GetSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSessionResponse.ProtoReflect.Descriptor instead.
 func (*GetSessionResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{94}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{138}
 }
 
 func (x *GetSessionResponse) GetSession() *Session {
@@ -5050,7 +7394,7 @@ type ListSessionsRequest struct {
 
 func (x *ListSessionsRequest) Reset() {
 	*x = ListSessionsRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[95]
+	mi := &file_auth_v1_auth_proto_msgTypes[139]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5062,7 +7406,7 @@ func (x *ListSessionsRequest) String() string {
 func (*ListSessionsRequest) ProtoMessage() {}
 
 func (x *ListSessionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[95]
+	mi := &file_auth_v1_auth_proto_msgTypes[139]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5075,7 +7419,7 @@ func (x *ListSessionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionsRequest.ProtoReflect.Descriptor instead.
 func (*ListSessionsRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{95}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{139}
 }
 
 type ListSessionsResponse struct {
@@ -5087,7 +7431,7 @@ type ListSessionsResponse struct {
 
 func (x *ListSessionsResponse) Reset() {
 	*x = ListSessionsResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[96]
+	mi := &file_auth_v1_auth_proto_msgTypes[140]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5099,7 +7443,7 @@ func (x *ListSessionsResponse) String() string {
 func (*ListSessionsResponse) ProtoMessage() {}
 
 func (x *ListSessionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[96]
+	mi := &file_auth_v1_auth_proto_msgTypes[140]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5112,7 +7456,7 @@ func (x *ListSessionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionsResponse.ProtoReflect.Descriptor instead.
 func (*ListSessionsResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{96}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{140}
 }
 
 func (x *ListSessionsResponse) GetSessions() []*Session {
@@ -5131,7 +7475,7 @@ type RevokeSessionRequest struct {
 
 func (x *RevokeSessionRequest) Reset() {
 	*x = RevokeSessionRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[97]
+	mi := &file_auth_v1_auth_proto_msgTypes[141]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5143,7 +7487,7 @@ func (x *RevokeSessionRequest) String() string {
 func (*RevokeSessionRequest) ProtoMessage() {}
 
 func (x *RevokeSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[97]
+	mi := &file_auth_v1_auth_proto_msgTypes[141]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5156,7 +7500,7 @@ func (x *RevokeSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeSessionRequest.ProtoReflect.Descriptor instead.
 func (*RevokeSessionRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{97}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{141}
 }
 
 func (x *RevokeSessionRequest) GetSessionId() string {
@@ -5174,7 +7518,7 @@ type RevokeSessionResponse struct {
 
 func (x *RevokeSessionResponse) Reset() {
 	*x = RevokeSessionResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[98]
+	mi := &file_auth_v1_auth_proto_msgTypes[142]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5186,7 +7530,7 @@ func (x *RevokeSessionResponse) String() string {
 func (*RevokeSessionResponse) ProtoMessage() {}
 
 func (x *RevokeSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[98]
+	mi := &file_auth_v1_auth_proto_msgTypes[142]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5199,7 +7543,7 @@ func (x *RevokeSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeSessionResponse.ProtoReflect.Descriptor instead.
 func (*RevokeSessionResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{98}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{142}
 }
 
 type ListAuditLogsRequest struct {
@@ -5211,7 +7555,7 @@ type ListAuditLogsRequest struct {
 
 func (x *ListAuditLogsRequest) Reset() {
 	*x = ListAuditLogsRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[99]
+	mi := &file_auth_v1_auth_proto_msgTypes[143]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5223,7 +7567,7 @@ func (x *ListAuditLogsRequest) String() string {
 func (*ListAuditLogsRequest) ProtoMessage() {}
 
 func (x *ListAuditLogsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[99]
+	mi := &file_auth_v1_auth_proto_msgTypes[143]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5236,7 +7580,7 @@ func (x *ListAuditLogsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAuditLogsRequest.ProtoReflect.Descriptor instead.
 func (*ListAuditLogsRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{99}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{143}
 }
 
 func (x *ListAuditLogsRequest) GetPageSize() int32 {
@@ -5255,7 +7599,7 @@ type ListAuditLogsResponse struct {
 
 func (x *ListAuditLogsResponse) Reset() {
 	*x = ListAuditLogsResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[100]
+	mi := &file_auth_v1_auth_proto_msgTypes[144]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5267,7 +7611,7 @@ func (x *ListAuditLogsResponse) String() string {
 func (*ListAuditLogsResponse) ProtoMessage() {}
 
 func (x *ListAuditLogsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[100]
+	mi := &file_auth_v1_auth_proto_msgTypes[144]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5280,7 +7624,7 @@ func (x *ListAuditLogsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAuditLogsResponse.ProtoReflect.Descriptor instead.
 func (*ListAuditLogsResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{100}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{144}
 }
 
 func (x *ListAuditLogsResponse) GetLogs() []*AuditLog {
@@ -5305,7 +7649,7 @@ type GoogleUserInfo struct {
 
 func (x *GoogleUserInfo) Reset() {
 	*x = GoogleUserInfo{}
-	mi := &file_auth_v1_auth_proto_msgTypes[101]
+	mi := &file_auth_v1_auth_proto_msgTypes[145]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5317,7 +7661,7 @@ func (x *GoogleUserInfo) String() string {
 func (*GoogleUserInfo) ProtoMessage() {}
 
 func (x *GoogleUserInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[101]
+	mi := &file_auth_v1_auth_proto_msgTypes[145]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5330,7 +7674,7 @@ func (x *GoogleUserInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GoogleUserInfo.ProtoReflect.Descriptor instead.
 func (*GoogleUserInfo) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{101}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{145}
 }
 
 func (x *GoogleUserInfo) GetId() string {
@@ -5402,7 +7746,7 @@ type UserInfo struct {
 
 func (x *UserInfo) Reset() {
 	*x = UserInfo{}
-	mi := &file_auth_v1_auth_proto_msgTypes[102]
+	mi := &file_auth_v1_auth_proto_msgTypes[146]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5414,7 +7758,7 @@ func (x *UserInfo) String() string {
 func (*UserInfo) ProtoMessage() {}
 
 func (x *UserInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[102]
+	mi := &file_auth_v1_auth_proto_msgTypes[146]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5427,7 +7771,7 @@ func (x *UserInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserInfo.ProtoReflect.Descriptor instead.
 func (*UserInfo) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{102}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{146}
 }
 
 func (x *UserInfo) GetId() int32 {
@@ -5557,7 +7901,7 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x05token\x18\x01 \x01(\tR\x05token\"M\n" +
 	"\x0eLogoutResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12!\n" +
-	"\fredirect_url\x18\x02 \x01(\tR\vredirectUrl\"\xf0\x01\n" +
+	"\fredirect_url\x18\x02 \x01(\tR\vredirectUrl\"\xe5\x03\n" +
 	"\aSession\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x04R\x06userId\x12(\n" +
@@ -5570,7 +7914,13 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\n" +
 	"expires_at\x18\a \x01(\tR\texpiresAt\x12\x1d\n" +
 	"\n" +
-	"revoked_at\x18\b \x01(\tR\trevokedAt\"\x93\x02\n" +
+	"revoked_at\x18\b \x01(\tR\trevokedAt\x12<\n" +
+	"\x0esession_policy\x18\t \x03(\v2\x15.auth.PolicyStatementR\rsessionPolicy\x12&\n" +
+	"\x0fassumed_role_id\x18\n" +
+	" \x01(\x04R\rassumedRoleId\x12,\n" +
+	"\x12assumed_role_scope\x18\v \x01(\tR\x10assumedRoleScope\x12*\n" +
+	"\x11assumed_role_name\x18\f \x01(\tR\x0fassumedRoleName\x123\n" +
+	"\x16assumed_role_tenant_id\x18\r \x01(\tR\x13assumedRoleTenantId\"\x93\x02\n" +
 	"\bAuditLog\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\"\n" +
 	"\ractor_user_id\x18\x02 \x01(\x04R\vactorUserId\x12\x16\n" +
@@ -5694,7 +8044,28 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x06 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\a \x01(\tR\tupdatedAt\"\xdb\x01\n" +
+	"updated_at\x18\a \x01(\tR\tupdatedAt\"\x96\x02\n" +
+	"\x10PolicyAttachment\x12'\n" +
+	"\x0fattachment_type\x18\x01 \x01(\tR\x0eattachmentType\x12\x14\n" +
+	"\x05scope\x18\x02 \x01(\tR\x05scope\x12\x1b\n" +
+	"\ttenant_id\x18\x03 \x01(\tR\btenantId\x12\x17\n" +
+	"\arole_id\x18\x04 \x01(\x04R\x06roleId\x12\x1b\n" +
+	"\trole_name\x18\x05 \x01(\tR\broleName\x12\x17\n" +
+	"\auser_id\x18\x06 \x01(\x04R\x06userId\x12\x19\n" +
+	"\bgroup_id\x18\a \x01(\x04R\agroupId\x12\x1d\n" +
+	"\n" +
+	"group_name\x18\b \x01(\tR\tgroupName\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\t \x01(\tR\tcreatedAt\"\xef\x01\n" +
+	"\x12RoleTrustStatement\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x17\n" +
+	"\arole_id\x18\x02 \x01(\x04R\x06roleId\x12\x16\n" +
+	"\x06effect\x18\x03 \x01(\tR\x06effect\x12%\n" +
+	"\x0eprincipal_type\x18\x04 \x01(\tR\rprincipalType\x12+\n" +
+	"\x11principal_pattern\x18\x05 \x01(\tR\x10principalPattern\x12%\n" +
+	"\x0etenant_pattern\x18\x06 \x01(\tR\rtenantPattern\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\a \x01(\tR\tcreatedAt\"\xdb\x01\n" +
 	"\x05Group\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x14\n" +
 	"\x05scope\x18\x02 \x01(\tR\x05scope\x12\x1b\n" +
@@ -5738,10 +8109,29 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x13ListPoliciesRequest\x12\x14\n" +
 	"\x05scope\x18\x01 \x01(\tR\x05scope\"@\n" +
 	"\x14ListPoliciesResponse\x12(\n" +
-	"\bpolicies\x18\x01 \x03(\v2\f.auth.PolicyR\bpolicies\")\n" +
+	"\bpolicies\x18\x01 \x03(\v2\f.auth.PolicyR\bpolicies\"2\n" +
+	"\x1cListPolicyAttachmentsRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"Y\n" +
+	"\x1dListPolicyAttachmentsResponse\x128\n" +
+	"\vattachments\x18\x01 \x03(\v2\x16.auth.PolicyAttachmentR\vattachments\")\n" +
 	"\x13DeletePolicyRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"\x16\n" +
-	"\x14DeletePolicyResponse\"}\n" +
+	"\x14DeletePolicyResponse\"r\n" +
+	"\x19PutRoleTrustPolicyRequest\x12\x1b\n" +
+	"\trole_name\x18\x01 \x01(\tR\broleName\x128\n" +
+	"\n" +
+	"statements\x18\x02 \x03(\v2\x18.auth.RoleTrustStatementR\n" +
+	"statements\"\x1c\n" +
+	"\x1aPutRoleTrustPolicyResponse\"8\n" +
+	"\x19GetRoleTrustPolicyRequest\x12\x1b\n" +
+	"\trole_name\x18\x01 \x01(\tR\broleName\"V\n" +
+	"\x1aGetRoleTrustPolicyResponse\x128\n" +
+	"\n" +
+	"statements\x18\x01 \x03(\v2\x18.auth.RoleTrustStatementR\n" +
+	"statements\";\n" +
+	"\x1cDeleteRoleTrustPolicyRequest\x12\x1b\n" +
+	"\trole_name\x18\x01 \x01(\tR\broleName\"\x1f\n" +
+	"\x1dDeleteRoleTrustPolicyResponse\"}\n" +
 	"\x12CreateGroupRequest\x12\x14\n" +
 	"\x05scope\x18\x01 \x01(\tR\x05scope\x12\x1b\n" +
 	"\ttenant_id\x18\x02 \x01(\tR\btenantId\x12\x12\n" +
@@ -5782,11 +8172,77 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\bgroup_id\x18\x01 \x01(\x04R\agroupId\x12\x1f\n" +
 	"\vpolicy_name\x18\x02 \x01(\tR\n" +
 	"policyName\"\x1b\n" +
-	"\x19DetachGroupPolicyResponse\"G\n" +
+	"\x19DetachGroupPolicyResponse\"\xd9\x01\n" +
+	"\x11GroupInlinePolicy\x12\x19\n" +
+	"\bgroup_id\x18\x01 \x01(\x04R\agroupId\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x125\n" +
+	"\n" +
+	"statements\x18\x04 \x03(\v2\x15.auth.PolicyStatementR\n" +
+	"statements\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x06 \x01(\tR\tupdatedAt\"\x89\x02\n" +
+	"\x10UserInlinePolicy\x12\x14\n" +
+	"\x05scope\x18\x01 \x01(\tR\x05scope\x12\x1b\n" +
+	"\ttenant_id\x18\x02 \x01(\tR\btenantId\x12\x17\n" +
+	"\auser_id\x18\x03 \x01(\x04R\x06userId\x12\x12\n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x05 \x01(\tR\vdescription\x125\n" +
+	"\n" +
+	"statements\x18\x06 \x03(\v2\x15.auth.PolicyStatementR\n" +
+	"statements\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\b \x01(\tR\tupdatedAt\"\xa5\x01\n" +
+	"\x1bPutGroupInlinePolicyRequest\x12\x19\n" +
+	"\bgroup_id\x18\x01 \x01(\x04R\agroupId\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x125\n" +
+	"\n" +
+	"statements\x18\x04 \x03(\v2\x15.auth.PolicyStatementR\n" +
+	"statements\"\x1e\n" +
+	"\x1cPutGroupInlinePolicyResponse\"L\n" +
+	"\x1bGetGroupInlinePolicyRequest\x12\x19\n" +
+	"\bgroup_id\x18\x01 \x01(\x04R\agroupId\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"O\n" +
+	"\x1cGetGroupInlinePolicyResponse\x12/\n" +
+	"\x06policy\x18\x01 \x01(\v2\x17.auth.GroupInlinePolicyR\x06policy\";\n" +
+	"\x1eListGroupInlinePoliciesRequest\x12\x19\n" +
+	"\bgroup_id\x18\x01 \x01(\x04R\agroupId\"V\n" +
+	"\x1fListGroupInlinePoliciesResponse\x123\n" +
+	"\bpolicies\x18\x01 \x03(\v2\x17.auth.GroupInlinePolicyR\bpolicies\"O\n" +
+	"\x1eDeleteGroupInlinePolicyRequest\x12\x19\n" +
+	"\bgroup_id\x18\x01 \x01(\x04R\agroupId\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"!\n" +
+	"\x1fDeleteGroupInlinePolicyResponse\"G\n" +
 	"\x1fListPlatformUserPoliciesRequest\x12$\n" +
 	"\x0etarget_user_id\x18\x01 \x01(\x04R\ftargetUserId\"L\n" +
 	" ListPlatformUserPoliciesResponse\x12(\n" +
-	"\bpolicies\x18\x01 \x03(\v2\f.auth.PolicyR\bpolicies\"h\n" +
+	"\bpolicies\x18\x01 \x03(\v2\f.auth.PolicyR\bpolicies\"\xb7\x01\n" +
+	"\"PutPlatformUserInlinePolicyRequest\x12$\n" +
+	"\x0etarget_user_id\x18\x01 \x01(\x04R\ftargetUserId\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x125\n" +
+	"\n" +
+	"statements\x18\x04 \x03(\v2\x15.auth.PolicyStatementR\n" +
+	"statements\"%\n" +
+	"#PutPlatformUserInlinePolicyResponse\"^\n" +
+	"\"GetPlatformUserInlinePolicyRequest\x12$\n" +
+	"\x0etarget_user_id\x18\x01 \x01(\x04R\ftargetUserId\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"U\n" +
+	"#GetPlatformUserInlinePolicyResponse\x12.\n" +
+	"\x06policy\x18\x01 \x01(\v2\x16.auth.UserInlinePolicyR\x06policy\"M\n" +
+	"%ListPlatformUserInlinePoliciesRequest\x12$\n" +
+	"\x0etarget_user_id\x18\x01 \x01(\x04R\ftargetUserId\"\\\n" +
+	"&ListPlatformUserInlinePoliciesResponse\x122\n" +
+	"\bpolicies\x18\x01 \x03(\v2\x16.auth.UserInlinePolicyR\bpolicies\"a\n" +
+	"%DeletePlatformUserInlinePolicyRequest\x12$\n" +
+	"\x0etarget_user_id\x18\x01 \x01(\x04R\ftargetUserId\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"(\n" +
+	"&DeletePlatformUserInlinePolicyResponse\"h\n" +
 	"\x1fAttachPlatformUserPolicyRequest\x12$\n" +
 	"\x0etarget_user_id\x18\x01 \x01(\x04R\ftargetUserId\x12\x1f\n" +
 	"\vpolicy_name\x18\x02 \x01(\tR\n" +
@@ -5834,7 +8290,32 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x04R\x06userId\"J\n" +
 	"\x1eListTenantUserPoliciesResponse\x12(\n" +
-	"\bpolicies\x18\x01 \x03(\v2\f.auth.PolicyR\bpolicies\"v\n" +
+	"\bpolicies\x18\x01 \x03(\v2\f.auth.PolicyR\bpolicies\"\xc5\x01\n" +
+	" PutTenantUserInlinePolicyRequest\x12\x1b\n" +
+	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x04R\x06userId\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\x125\n" +
+	"\n" +
+	"statements\x18\x05 \x03(\v2\x15.auth.PolicyStatementR\n" +
+	"statements\"#\n" +
+	"!PutTenantUserInlinePolicyResponse\"l\n" +
+	" GetTenantUserInlinePolicyRequest\x12\x1b\n" +
+	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x04R\x06userId\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\"S\n" +
+	"!GetTenantUserInlinePolicyResponse\x12.\n" +
+	"\x06policy\x18\x01 \x01(\v2\x16.auth.UserInlinePolicyR\x06policy\"[\n" +
+	"#ListTenantUserInlinePoliciesRequest\x12\x1b\n" +
+	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x04R\x06userId\"Z\n" +
+	"$ListTenantUserInlinePoliciesResponse\x122\n" +
+	"\bpolicies\x18\x01 \x03(\v2\x16.auth.UserInlinePolicyR\bpolicies\"o\n" +
+	"#DeleteTenantUserInlinePolicyRequest\x12\x1b\n" +
+	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x04R\x06userId\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\"&\n" +
+	"$DeleteTenantUserInlinePolicyResponse\"v\n" +
 	"\x1dAttachTenantUserPolicyRequest\x12\x1b\n" +
 	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x04R\x06userId\x12\x1f\n" +
@@ -5854,7 +8335,33 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x1aSwitchActiveTenantResponse\x12\x1b\n" +
 	"\tjwt_token\x18\x01 \x01(\tR\bjwtToken\x12+\n" +
 	"\tuser_info\x18\x02 \x01(\v2\x0e.auth.UserInfoR\buserInfo\x12#\n" +
-	"\rrefresh_token\x18\x03 \x01(\tR\frefreshToken\"2\n" +
+	"\rrefresh_token\x18\x03 \x01(\tR\frefreshToken\"v\n" +
+	"\x1aAssumeSessionPolicyRequest\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x125\n" +
+	"\n" +
+	"statements\x18\x02 \x03(\v2\x15.auth.PolicyStatementR\n" +
+	"statements\"c\n" +
+	"\x1bAssumeSessionPolicyResponse\x12\x1b\n" +
+	"\tjwt_token\x18\x01 \x01(\tR\bjwtToken\x12'\n" +
+	"\asession\x18\x02 \x01(\v2\r.auth.SessionR\asession\">\n" +
+	"\x19ClearSessionPolicyRequest\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"b\n" +
+	"\x1aClearSessionPolicyResponse\x12\x1b\n" +
+	"\tjwt_token\x18\x01 \x01(\tR\bjwtToken\x12'\n" +
+	"\asession\x18\x02 \x01(\v2\r.auth.SessionR\asession\"\xae\x01\n" +
+	"\x11AssumeRoleRequest\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1b\n" +
+	"\trole_name\x18\x02 \x01(\tR\broleName\x12\x1b\n" +
+	"\ttenant_id\x18\x03 \x01(\tR\btenantId\x12<\n" +
+	"\x0esession_policy\x18\x04 \x03(\v2\x15.auth.PolicyStatementR\rsessionPolicy\"Z\n" +
+	"\x12AssumeRoleResponse\x12\x1b\n" +
+	"\tjwt_token\x18\x01 \x01(\tR\bjwtToken\x12'\n" +
+	"\asession\x18\x02 \x01(\v2\r.auth.SessionR\asession\"<\n" +
+	"\x17ClearAssumedRoleRequest\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"`\n" +
+	"\x18ClearAssumedRoleResponse\x12\x1b\n" +
+	"\tjwt_token\x18\x01 \x01(\tR\bjwtToken\x12'\n" +
+	"\asession\x18\x02 \x01(\v2\r.auth.SessionR\asession\"2\n" +
 	"\x11GetSessionRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\"=\n" +
@@ -5896,7 +8403,7 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x03age\x18\n" +
 	" \x01(\x05R\x03age\x12\x10\n" +
 	"\x03dob\x18\v \x01(\tR\x03dob\x12%\n" +
-	"\x0eemail_verified\x18\f \x01(\bR\remailVerified2\xd2\t\n" +
+	"\x0eemail_verified\x18\f \x01(\bR\remailVerified2\xd0\r\n" +
 	"\vAuthService\x12a\n" +
 	"\vGoogleLogin\x12\x18.auth.GoogleLoginRequest\x1a\x19.auth.GoogleLoginResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/auth/v1/google/login\x12m\n" +
 	"\x0eGoogleCallback\x12\x1b.auth.GoogleCallbackRequest\x1a\x1c.auth.GoogleCallbackResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/auth/v1/google/callback\x12q\n" +
@@ -5905,12 +8412,17 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\bRegister\x12\x15.auth.RegisterRequest\x1a\x16.auth.RegisterResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/auth/v1/register\x12b\n" +
 	"\fRefreshToken\x12\x19.auth.RefreshTokenRequest\x1a\x1a.auth.RefreshTokenResponse\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/auth/v1/refresh\x12O\n" +
 	"\x06Logout\x12\x13.auth.LogoutRequest\x1a\x14.auth.LogoutResponse\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0f/auth/v1/logout\x12\x7f\n" +
-	"\x12SwitchActiveTenant\x12\x1f.auth.SwitchActiveTenantRequest\x1a .auth.SwitchActiveTenantResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/auth/v1/iam/tenants:switch\x12g\n" +
+	"\x12SwitchActiveTenant\x12\x1f.auth.SwitchActiveTenantRequest\x1a .auth.SwitchActiveTenantResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/auth/v1/iam/tenants:switch\x12\x86\x01\n" +
+	"\x13AssumeSessionPolicy\x12 .auth.AssumeSessionPolicyRequest\x1a!.auth.AssumeSessionPolicyResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/auth/v1/sessions:assume-policy\x12\x82\x01\n" +
+	"\x12ClearSessionPolicy\x12\x1f.auth.ClearSessionPolicyRequest\x1a .auth.ClearSessionPolicyResponse\")\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/auth/v1/sessions:clear-policy\x12i\n" +
+	"\n" +
+	"AssumeRole\x12\x17.auth.AssumeRoleRequest\x1a\x18.auth.AssumeRoleResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/auth/v1/sessions:assume-role\x12\x82\x01\n" +
+	"\x10ClearAssumedRole\x12\x1d.auth.ClearAssumedRoleRequest\x1a\x1e.auth.ClearAssumedRoleResponse\"/\x82\xd3\xe4\x93\x02):\x01*\"$/auth/v1/sessions:clear-assumed-role\x12g\n" +
 	"\n" +
 	"GetSession\x12\x17.auth.GetSessionRequest\x1a\x18.auth.GetSessionResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/auth/v1/sessions/{session_id}\x12`\n" +
 	"\fListSessions\x12\x19.auth.ListSessionsRequest\x1a\x1a.auth.ListSessionsResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/auth/v1/sessions\x12p\n" +
 	"\rRevokeSession\x12\x1a.auth.RevokeSessionRequest\x1a\x1b.auth.RevokeSessionResponse\"&\x82\xd3\xe4\x93\x02 *\x1e/auth/v1/sessions/{session_id}\x12e\n" +
-	"\rListAuditLogs\x12\x1a.auth.ListAuditLogsRequest\x1a\x1b.auth.ListAuditLogsResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/auth/v1/audit-logs2\xfe%\n" +
+	"\rListAuditLogs\x12\x1a.auth.ListAuditLogsRequest\x1a\x1b.auth.ListAuditLogsResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/auth/v1/audit-logs2\x82<\n" +
 	"\n" +
 	"IAMService\x12f\n" +
 	"\fCreateTenant\x12\x19.auth.CreateTenantRequest\x1a\x1a.auth.CreateTenantResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/auth/v1/iam/tenants\x12\x83\x01\n" +
@@ -5928,7 +8440,8 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x0fAddPlatformRole\x12\x1c.auth.AddPlatformRoleRequest\x1a\x1d.auth.AddPlatformRoleResponse\"=\x82\xd3\xe4\x93\x027:\x01*\"2/auth/v1/iam/platform-users/{target_user_id}/roles\x12g\n" +
 	"\fCreatePolicy\x12\x19.auth.CreatePolicyRequest\x1a\x1a.auth.CreatePolicyResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/auth/v1/iam/policies\x12b\n" +
 	"\tGetPolicy\x12\x16.auth.GetPolicyRequest\x1a\x17.auth.GetPolicyResponse\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/auth/v1/iam/policies/{name}\x12d\n" +
-	"\fListPolicies\x12\x19.auth.ListPoliciesRequest\x1a\x1a.auth.ListPoliciesResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/auth/v1/iam/policies\x12k\n" +
+	"\fListPolicies\x12\x19.auth.ListPoliciesRequest\x1a\x1a.auth.ListPoliciesResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/auth/v1/iam/policies\x12\x92\x01\n" +
+	"\x15ListPolicyAttachments\x12\".auth.ListPolicyAttachmentsRequest\x1a#.auth.ListPolicyAttachmentsResponse\"0\x82\xd3\xe4\x93\x02*\x12(/auth/v1/iam/policies/{name}/attachments\x12k\n" +
 	"\fDeletePolicy\x12\x19.auth.DeletePolicyRequest\x1a\x1a.auth.DeletePolicyResponse\"$\x82\xd3\xe4\x93\x02\x1e*\x1c/auth/v1/iam/policies/{name}\x12b\n" +
 	"\vCreateGroup\x12\x18.auth.CreateGroupRequest\x1a\x19.auth.CreateGroupResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/auth/v1/iam/groups\x12\\\n" +
 	"\n" +
@@ -5939,16 +8452,31 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x11RemoveGroupMember\x12\x1e.auth.RemoveGroupMemberRequest\x1a\x1f.auth.RemoveGroupMemberResponse\"8\x82\xd3\xe4\x93\x022*0/auth/v1/iam/groups/{group_id}/members/{user_id}\x12\x88\x01\n" +
 	"\x11AttachGroupPolicy\x12\x1e.auth.AttachGroupPolicyRequest\x1a\x1f.auth.AttachGroupPolicyResponse\"2\x82\xd3\xe4\x93\x02,:\x01*\"'/auth/v1/iam/groups/{group_id}/policies\x12\x85\x01\n" +
 	"\x11ListGroupPolicies\x12\x1e.auth.ListGroupPoliciesRequest\x1a\x1f.auth.ListGroupPoliciesResponse\"/\x82\xd3\xe4\x93\x02)\x12'/auth/v1/iam/groups/{group_id}/policies\x12\x93\x01\n" +
-	"\x11DetachGroupPolicy\x12\x1e.auth.DetachGroupPolicyRequest\x1a\x1f.auth.DetachGroupPolicyResponse\"=\x82\xd3\xe4\x93\x027*5/auth/v1/iam/groups/{group_id}/policies/{policy_name}\x12\xa8\x01\n" +
+	"\x11DetachGroupPolicy\x12\x1e.auth.DetachGroupPolicyRequest\x1a\x1f.auth.DetachGroupPolicyResponse\"=\x82\xd3\xe4\x93\x027*5/auth/v1/iam/groups/{group_id}/policies/{policy_name}\x12\x9f\x01\n" +
+	"\x14PutGroupInlinePolicy\x12!.auth.PutGroupInlinePolicyRequest\x1a\".auth.PutGroupInlinePolicyResponse\"@\x82\xd3\xe4\x93\x02::\x01*\x1a5/auth/v1/iam/groups/{group_id}/inline-policies/{name}\x12\x9c\x01\n" +
+	"\x14GetGroupInlinePolicy\x12!.auth.GetGroupInlinePolicyRequest\x1a\".auth.GetGroupInlinePolicyResponse\"=\x82\xd3\xe4\x93\x027\x125/auth/v1/iam/groups/{group_id}/inline-policies/{name}\x12\x9e\x01\n" +
+	"\x17ListGroupInlinePolicies\x12$.auth.ListGroupInlinePoliciesRequest\x1a%.auth.ListGroupInlinePoliciesResponse\"6\x82\xd3\xe4\x93\x020\x12./auth/v1/iam/groups/{group_id}/inline-policies\x12\xa5\x01\n" +
+	"\x17DeleteGroupInlinePolicy\x12$.auth.DeleteGroupInlinePolicyRequest\x1a%.auth.DeleteGroupInlinePolicyResponse\"=\x82\xd3\xe4\x93\x027*5/auth/v1/iam/groups/{group_id}/inline-policies/{name}\x12\xc2\x01\n" +
+	"\x1bPutPlatformUserInlinePolicy\x12(.auth.PutPlatformUserInlinePolicyRequest\x1a).auth.PutPlatformUserInlinePolicyResponse\"N\x82\xd3\xe4\x93\x02H:\x01*\x1aC/auth/v1/iam/platform-users/{target_user_id}/inline-policies/{name}\x12\xbf\x01\n" +
+	"\x1bGetPlatformUserInlinePolicy\x12(.auth.GetPlatformUserInlinePolicyRequest\x1a).auth.GetPlatformUserInlinePolicyResponse\"K\x82\xd3\xe4\x93\x02E\x12C/auth/v1/iam/platform-users/{target_user_id}/inline-policies/{name}\x12\xc1\x01\n" +
+	"\x1eListPlatformUserInlinePolicies\x12+.auth.ListPlatformUserInlinePoliciesRequest\x1a,.auth.ListPlatformUserInlinePoliciesResponse\"D\x82\xd3\xe4\x93\x02>\x12</auth/v1/iam/platform-users/{target_user_id}/inline-policies\x12\xc8\x01\n" +
+	"\x1eDeletePlatformUserInlinePolicy\x12+.auth.DeletePlatformUserInlinePolicyRequest\x1a,.auth.DeletePlatformUserInlinePolicyResponse\"K\x82\xd3\xe4\x93\x02E*C/auth/v1/iam/platform-users/{target_user_id}/inline-policies/{name}\x12\xa8\x01\n" +
 	"\x18ListPlatformUserPolicies\x12%.auth.ListPlatformUserPoliciesRequest\x1a&.auth.ListPlatformUserPoliciesResponse\"=\x82\xd3\xe4\x93\x027\x125/auth/v1/iam/platform-users/{target_user_id}/policies\x12\xab\x01\n" +
 	"\x18AttachPlatformUserPolicy\x12%.auth.AttachPlatformUserPolicyRequest\x1a&.auth.AttachPlatformUserPolicyResponse\"@\x82\xd3\xe4\x93\x02::\x01*\"5/auth/v1/iam/platform-users/{target_user_id}/policies\x12\xb6\x01\n" +
 	"\x18DetachPlatformUserPolicy\x12%.auth.DetachPlatformUserPolicyRequest\x1a&.auth.DetachPlatformUserPolicyResponse\"K\x82\xd3\xe4\x93\x02E*C/auth/v1/iam/platform-users/{target_user_id}/policies/{policy_name}\x12\x9f\x01\n" +
 	"\x12RemovePlatformRole\x12\x1f.auth.RemovePlatformRoleRequest\x1a .auth.RemovePlatformRoleResponse\"F\x82\xd3\xe4\x93\x02@*>/auth/v1/iam/platform-users/{target_user_id}/roles/{role_name}\x12\x86\x01\n" +
 	"\x11ListTenantMembers\x12\x1e.auth.ListTenantMembersRequest\x1a\x1f.auth.ListTenantMembersResponse\"0\x82\xd3\xe4\x93\x02*\x12(/auth/v1/iam/tenants/{tenant_id}/members\x12\x93\x01\n" +
-	"\x12RemoveTenantMember\x12\x1f.auth.RemoveTenantMemberRequest\x1a .auth.RemoveTenantMemberResponse\":\x82\xd3\xe4\x93\x024*2/auth/v1/iam/tenants/{tenant_id}/members/{user_id}\x12\xa8\x01\n" +
+	"\x12RemoveTenantMember\x12\x1f.auth.RemoveTenantMemberRequest\x1a .auth.RemoveTenantMemberResponse\":\x82\xd3\xe4\x93\x024*2/auth/v1/iam/tenants/{tenant_id}/members/{user_id}\x12\xc2\x01\n" +
+	"\x19PutTenantUserInlinePolicy\x12&.auth.PutTenantUserInlinePolicyRequest\x1a'.auth.PutTenantUserInlinePolicyResponse\"T\x82\xd3\xe4\x93\x02N:\x01*\x1aI/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/inline-policies/{name}\x12\xbf\x01\n" +
+	"\x19GetTenantUserInlinePolicy\x12&.auth.GetTenantUserInlinePolicyRequest\x1a'.auth.GetTenantUserInlinePolicyResponse\"Q\x82\xd3\xe4\x93\x02K\x12I/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/inline-policies/{name}\x12\xc1\x01\n" +
+	"\x1cListTenantUserInlinePolicies\x12).auth.ListTenantUserInlinePoliciesRequest\x1a*.auth.ListTenantUserInlinePoliciesResponse\"J\x82\xd3\xe4\x93\x02D\x12B/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/inline-policies\x12\xc8\x01\n" +
+	"\x1cDeleteTenantUserInlinePolicy\x12).auth.DeleteTenantUserInlinePolicyRequest\x1a*.auth.DeleteTenantUserInlinePolicyResponse\"Q\x82\xd3\xe4\x93\x02K*I/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/inline-policies/{name}\x12\xa8\x01\n" +
 	"\x16ListTenantUserPolicies\x12#.auth.ListTenantUserPoliciesRequest\x1a$.auth.ListTenantUserPoliciesResponse\"C\x82\xd3\xe4\x93\x02=\x12;/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/policies\x12\xab\x01\n" +
 	"\x16AttachTenantUserPolicy\x12#.auth.AttachTenantUserPolicyRequest\x1a$.auth.AttachTenantUserPolicyResponse\"F\x82\xd3\xe4\x93\x02@:\x01*\";/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/policies\x12\xb6\x01\n" +
-	"\x16DetachTenantUserPolicy\x12#.auth.DetachTenantUserPolicyRequest\x1a$.auth.DetachTenantUserPolicyResponse\"Q\x82\xd3\xe4\x93\x02K*I/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/policies/{policy_name}B<Z:github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1b\x06proto3"
+	"\x16DetachTenantUserPolicy\x12#.auth.DetachTenantUserPolicyRequest\x1a$.auth.DetachTenantUserPolicyResponse\"Q\x82\xd3\xe4\x93\x02K*I/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/policies/{policy_name}\x12\x8f\x01\n" +
+	"\x12PutRoleTrustPolicy\x12\x1f.auth.PutRoleTrustPolicyRequest\x1a .auth.PutRoleTrustPolicyResponse\"6\x82\xd3\xe4\x93\x020:\x01*\x1a+/auth/v1/iam/roles/{role_name}/trust-policy\x12\x8c\x01\n" +
+	"\x12GetRoleTrustPolicy\x12\x1f.auth.GetRoleTrustPolicyRequest\x1a .auth.GetRoleTrustPolicyResponse\"3\x82\xd3\xe4\x93\x02-\x12+/auth/v1/iam/roles/{role_name}/trust-policy\x12\x95\x01\n" +
+	"\x15DeleteRoleTrustPolicy\x12\".auth.DeleteRoleTrustPolicyRequest\x1a#.auth.DeleteRoleTrustPolicyResponse\"3\x82\xd3\xe4\x93\x02-*+/auth/v1/iam/roles/{role_name}/trust-policyB<Z:github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1b\x06proto3"
 
 var (
 	file_auth_v1_auth_proto_rawDescOnce sync.Once
@@ -5962,240 +8490,345 @@ func file_auth_v1_auth_proto_rawDescGZIP() []byte {
 	return file_auth_v1_auth_proto_rawDescData
 }
 
-var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 103)
+var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 147)
 var file_auth_v1_auth_proto_goTypes = []any{
-	(*LoginRequest)(nil),                      // 0: auth.LoginRequest
-	(*LoginResponse)(nil),                     // 1: auth.LoginResponse
-	(*RegisterRequest)(nil),                   // 2: auth.RegisterRequest
-	(*RegisterResponse)(nil),                  // 3: auth.RegisterResponse
-	(*RefreshTokenRequest)(nil),               // 4: auth.RefreshTokenRequest
-	(*RefreshTokenResponse)(nil),              // 5: auth.RefreshTokenResponse
-	(*GoogleLoginRequest)(nil),                // 6: auth.GoogleLoginRequest
-	(*GoogleLoginResponse)(nil),               // 7: auth.GoogleLoginResponse
-	(*GoogleCallbackRequest)(nil),             // 8: auth.GoogleCallbackRequest
-	(*GoogleCallbackResponse)(nil),            // 9: auth.GoogleCallbackResponse
-	(*ExchangeGoogleLoginRequest)(nil),        // 10: auth.ExchangeGoogleLoginRequest
-	(*LogoutRequest)(nil),                     // 11: auth.LogoutRequest
-	(*LogoutResponse)(nil),                    // 12: auth.LogoutResponse
-	(*Session)(nil),                           // 13: auth.Session
-	(*AuditLog)(nil),                          // 14: auth.AuditLog
-	(*Tenant)(nil),                            // 15: auth.Tenant
-	(*TenantMembership)(nil),                  // 16: auth.TenantMembership
-	(*TenantInvite)(nil),                      // 17: auth.TenantInvite
-	(*CreateTenantRequest)(nil),               // 18: auth.CreateTenantRequest
-	(*CreateTenantResponse)(nil),              // 19: auth.CreateTenantResponse
-	(*AddTenantMemberRequest)(nil),            // 20: auth.AddTenantMemberRequest
-	(*AddTenantMemberResponse)(nil),           // 21: auth.AddTenantMemberResponse
-	(*AddTenantMemberByIdentityRequest)(nil),  // 22: auth.AddTenantMemberByIdentityRequest
-	(*AddTenantMemberByIdentityResponse)(nil), // 23: auth.AddTenantMemberByIdentityResponse
-	(*CreateTenantInviteRequest)(nil),         // 24: auth.CreateTenantInviteRequest
-	(*CreateTenantInviteResponse)(nil),        // 25: auth.CreateTenantInviteResponse
-	(*ListTenantInvitesRequest)(nil),          // 26: auth.ListTenantInvitesRequest
-	(*ListTenantInvitesResponse)(nil),         // 27: auth.ListTenantInvitesResponse
-	(*RevokeTenantInviteRequest)(nil),         // 28: auth.RevokeTenantInviteRequest
-	(*RevokeTenantInviteResponse)(nil),        // 29: auth.RevokeTenantInviteResponse
-	(*AcceptTenantInviteRequest)(nil),         // 30: auth.AcceptTenantInviteRequest
-	(*AcceptTenantInviteResponse)(nil),        // 31: auth.AcceptTenantInviteResponse
-	(*ListUserTenantsRequest)(nil),            // 32: auth.ListUserTenantsRequest
-	(*ListUserTenantsResponse)(nil),           // 33: auth.ListUserTenantsResponse
-	(*PlatformRoleMembership)(nil),            // 34: auth.PlatformRoleMembership
-	(*PolicyStatement)(nil),                   // 35: auth.PolicyStatement
-	(*Policy)(nil),                            // 36: auth.Policy
-	(*Group)(nil),                             // 37: auth.Group
-	(*ListPlatformRolesRequest)(nil),          // 38: auth.ListPlatformRolesRequest
-	(*ListPlatformRolesResponse)(nil),         // 39: auth.ListPlatformRolesResponse
-	(*AddPlatformRoleRequest)(nil),            // 40: auth.AddPlatformRoleRequest
-	(*AddPlatformRoleResponse)(nil),           // 41: auth.AddPlatformRoleResponse
-	(*CreatePolicyRequest)(nil),               // 42: auth.CreatePolicyRequest
-	(*CreatePolicyResponse)(nil),              // 43: auth.CreatePolicyResponse
-	(*GetPolicyRequest)(nil),                  // 44: auth.GetPolicyRequest
-	(*GetPolicyResponse)(nil),                 // 45: auth.GetPolicyResponse
-	(*ListPoliciesRequest)(nil),               // 46: auth.ListPoliciesRequest
-	(*ListPoliciesResponse)(nil),              // 47: auth.ListPoliciesResponse
-	(*DeletePolicyRequest)(nil),               // 48: auth.DeletePolicyRequest
-	(*DeletePolicyResponse)(nil),              // 49: auth.DeletePolicyResponse
-	(*CreateGroupRequest)(nil),                // 50: auth.CreateGroupRequest
-	(*CreateGroupResponse)(nil),               // 51: auth.CreateGroupResponse
-	(*ListGroupsRequest)(nil),                 // 52: auth.ListGroupsRequest
-	(*ListGroupsResponse)(nil),                // 53: auth.ListGroupsResponse
-	(*DeleteGroupRequest)(nil),                // 54: auth.DeleteGroupRequest
-	(*DeleteGroupResponse)(nil),               // 55: auth.DeleteGroupResponse
-	(*AddGroupMemberRequest)(nil),             // 56: auth.AddGroupMemberRequest
-	(*AddGroupMemberResponse)(nil),            // 57: auth.AddGroupMemberResponse
-	(*ListGroupMembersRequest)(nil),           // 58: auth.ListGroupMembersRequest
-	(*ListGroupMembersResponse)(nil),          // 59: auth.ListGroupMembersResponse
-	(*RemoveGroupMemberRequest)(nil),          // 60: auth.RemoveGroupMemberRequest
-	(*RemoveGroupMemberResponse)(nil),         // 61: auth.RemoveGroupMemberResponse
-	(*AttachGroupPolicyRequest)(nil),          // 62: auth.AttachGroupPolicyRequest
-	(*AttachGroupPolicyResponse)(nil),         // 63: auth.AttachGroupPolicyResponse
-	(*ListGroupPoliciesRequest)(nil),          // 64: auth.ListGroupPoliciesRequest
-	(*ListGroupPoliciesResponse)(nil),         // 65: auth.ListGroupPoliciesResponse
-	(*DetachGroupPolicyRequest)(nil),          // 66: auth.DetachGroupPolicyRequest
-	(*DetachGroupPolicyResponse)(nil),         // 67: auth.DetachGroupPolicyResponse
-	(*ListPlatformUserPoliciesRequest)(nil),   // 68: auth.ListPlatformUserPoliciesRequest
-	(*ListPlatformUserPoliciesResponse)(nil),  // 69: auth.ListPlatformUserPoliciesResponse
-	(*AttachPlatformUserPolicyRequest)(nil),   // 70: auth.AttachPlatformUserPolicyRequest
-	(*AttachPlatformUserPolicyResponse)(nil),  // 71: auth.AttachPlatformUserPolicyResponse
-	(*DetachPlatformUserPolicyRequest)(nil),   // 72: auth.DetachPlatformUserPolicyRequest
-	(*DetachPlatformUserPolicyResponse)(nil),  // 73: auth.DetachPlatformUserPolicyResponse
-	(*RemovePlatformRoleRequest)(nil),         // 74: auth.RemovePlatformRoleRequest
-	(*RemovePlatformRoleResponse)(nil),        // 75: auth.RemovePlatformRoleResponse
-	(*GetTenantMembershipRequest)(nil),        // 76: auth.GetTenantMembershipRequest
-	(*GetTenantMembershipResponse)(nil),       // 77: auth.GetTenantMembershipResponse
-	(*CheckPermissionRequest)(nil),            // 78: auth.CheckPermissionRequest
-	(*CheckPlatformPermissionRequest)(nil),    // 79: auth.CheckPlatformPermissionRequest
-	(*CheckPermissionResponse)(nil),           // 80: auth.CheckPermissionResponse
-	(*ListTenantMembersRequest)(nil),          // 81: auth.ListTenantMembersRequest
-	(*ListTenantMembersResponse)(nil),         // 82: auth.ListTenantMembersResponse
-	(*RemoveTenantMemberRequest)(nil),         // 83: auth.RemoveTenantMemberRequest
-	(*RemoveTenantMemberResponse)(nil),        // 84: auth.RemoveTenantMemberResponse
-	(*ListTenantUserPoliciesRequest)(nil),     // 85: auth.ListTenantUserPoliciesRequest
-	(*ListTenantUserPoliciesResponse)(nil),    // 86: auth.ListTenantUserPoliciesResponse
-	(*AttachTenantUserPolicyRequest)(nil),     // 87: auth.AttachTenantUserPolicyRequest
-	(*AttachTenantUserPolicyResponse)(nil),    // 88: auth.AttachTenantUserPolicyResponse
-	(*DetachTenantUserPolicyRequest)(nil),     // 89: auth.DetachTenantUserPolicyRequest
-	(*DetachTenantUserPolicyResponse)(nil),    // 90: auth.DetachTenantUserPolicyResponse
-	(*SwitchActiveTenantRequest)(nil),         // 91: auth.SwitchActiveTenantRequest
-	(*SwitchActiveTenantResponse)(nil),        // 92: auth.SwitchActiveTenantResponse
-	(*GetSessionRequest)(nil),                 // 93: auth.GetSessionRequest
-	(*GetSessionResponse)(nil),                // 94: auth.GetSessionResponse
-	(*ListSessionsRequest)(nil),               // 95: auth.ListSessionsRequest
-	(*ListSessionsResponse)(nil),              // 96: auth.ListSessionsResponse
-	(*RevokeSessionRequest)(nil),              // 97: auth.RevokeSessionRequest
-	(*RevokeSessionResponse)(nil),             // 98: auth.RevokeSessionResponse
-	(*ListAuditLogsRequest)(nil),              // 99: auth.ListAuditLogsRequest
-	(*ListAuditLogsResponse)(nil),             // 100: auth.ListAuditLogsResponse
-	(*GoogleUserInfo)(nil),                    // 101: auth.GoogleUserInfo
-	(*UserInfo)(nil),                          // 102: auth.UserInfo
+	(*LoginRequest)(nil),                           // 0: auth.LoginRequest
+	(*LoginResponse)(nil),                          // 1: auth.LoginResponse
+	(*RegisterRequest)(nil),                        // 2: auth.RegisterRequest
+	(*RegisterResponse)(nil),                       // 3: auth.RegisterResponse
+	(*RefreshTokenRequest)(nil),                    // 4: auth.RefreshTokenRequest
+	(*RefreshTokenResponse)(nil),                   // 5: auth.RefreshTokenResponse
+	(*GoogleLoginRequest)(nil),                     // 6: auth.GoogleLoginRequest
+	(*GoogleLoginResponse)(nil),                    // 7: auth.GoogleLoginResponse
+	(*GoogleCallbackRequest)(nil),                  // 8: auth.GoogleCallbackRequest
+	(*GoogleCallbackResponse)(nil),                 // 9: auth.GoogleCallbackResponse
+	(*ExchangeGoogleLoginRequest)(nil),             // 10: auth.ExchangeGoogleLoginRequest
+	(*LogoutRequest)(nil),                          // 11: auth.LogoutRequest
+	(*LogoutResponse)(nil),                         // 12: auth.LogoutResponse
+	(*Session)(nil),                                // 13: auth.Session
+	(*AuditLog)(nil),                               // 14: auth.AuditLog
+	(*Tenant)(nil),                                 // 15: auth.Tenant
+	(*TenantMembership)(nil),                       // 16: auth.TenantMembership
+	(*TenantInvite)(nil),                           // 17: auth.TenantInvite
+	(*CreateTenantRequest)(nil),                    // 18: auth.CreateTenantRequest
+	(*CreateTenantResponse)(nil),                   // 19: auth.CreateTenantResponse
+	(*AddTenantMemberRequest)(nil),                 // 20: auth.AddTenantMemberRequest
+	(*AddTenantMemberResponse)(nil),                // 21: auth.AddTenantMemberResponse
+	(*AddTenantMemberByIdentityRequest)(nil),       // 22: auth.AddTenantMemberByIdentityRequest
+	(*AddTenantMemberByIdentityResponse)(nil),      // 23: auth.AddTenantMemberByIdentityResponse
+	(*CreateTenantInviteRequest)(nil),              // 24: auth.CreateTenantInviteRequest
+	(*CreateTenantInviteResponse)(nil),             // 25: auth.CreateTenantInviteResponse
+	(*ListTenantInvitesRequest)(nil),               // 26: auth.ListTenantInvitesRequest
+	(*ListTenantInvitesResponse)(nil),              // 27: auth.ListTenantInvitesResponse
+	(*RevokeTenantInviteRequest)(nil),              // 28: auth.RevokeTenantInviteRequest
+	(*RevokeTenantInviteResponse)(nil),             // 29: auth.RevokeTenantInviteResponse
+	(*AcceptTenantInviteRequest)(nil),              // 30: auth.AcceptTenantInviteRequest
+	(*AcceptTenantInviteResponse)(nil),             // 31: auth.AcceptTenantInviteResponse
+	(*ListUserTenantsRequest)(nil),                 // 32: auth.ListUserTenantsRequest
+	(*ListUserTenantsResponse)(nil),                // 33: auth.ListUserTenantsResponse
+	(*PlatformRoleMembership)(nil),                 // 34: auth.PlatformRoleMembership
+	(*PolicyStatement)(nil),                        // 35: auth.PolicyStatement
+	(*Policy)(nil),                                 // 36: auth.Policy
+	(*PolicyAttachment)(nil),                       // 37: auth.PolicyAttachment
+	(*RoleTrustStatement)(nil),                     // 38: auth.RoleTrustStatement
+	(*Group)(nil),                                  // 39: auth.Group
+	(*ListPlatformRolesRequest)(nil),               // 40: auth.ListPlatformRolesRequest
+	(*ListPlatformRolesResponse)(nil),              // 41: auth.ListPlatformRolesResponse
+	(*AddPlatformRoleRequest)(nil),                 // 42: auth.AddPlatformRoleRequest
+	(*AddPlatformRoleResponse)(nil),                // 43: auth.AddPlatformRoleResponse
+	(*CreatePolicyRequest)(nil),                    // 44: auth.CreatePolicyRequest
+	(*CreatePolicyResponse)(nil),                   // 45: auth.CreatePolicyResponse
+	(*GetPolicyRequest)(nil),                       // 46: auth.GetPolicyRequest
+	(*GetPolicyResponse)(nil),                      // 47: auth.GetPolicyResponse
+	(*ListPoliciesRequest)(nil),                    // 48: auth.ListPoliciesRequest
+	(*ListPoliciesResponse)(nil),                   // 49: auth.ListPoliciesResponse
+	(*ListPolicyAttachmentsRequest)(nil),           // 50: auth.ListPolicyAttachmentsRequest
+	(*ListPolicyAttachmentsResponse)(nil),          // 51: auth.ListPolicyAttachmentsResponse
+	(*DeletePolicyRequest)(nil),                    // 52: auth.DeletePolicyRequest
+	(*DeletePolicyResponse)(nil),                   // 53: auth.DeletePolicyResponse
+	(*PutRoleTrustPolicyRequest)(nil),              // 54: auth.PutRoleTrustPolicyRequest
+	(*PutRoleTrustPolicyResponse)(nil),             // 55: auth.PutRoleTrustPolicyResponse
+	(*GetRoleTrustPolicyRequest)(nil),              // 56: auth.GetRoleTrustPolicyRequest
+	(*GetRoleTrustPolicyResponse)(nil),             // 57: auth.GetRoleTrustPolicyResponse
+	(*DeleteRoleTrustPolicyRequest)(nil),           // 58: auth.DeleteRoleTrustPolicyRequest
+	(*DeleteRoleTrustPolicyResponse)(nil),          // 59: auth.DeleteRoleTrustPolicyResponse
+	(*CreateGroupRequest)(nil),                     // 60: auth.CreateGroupRequest
+	(*CreateGroupResponse)(nil),                    // 61: auth.CreateGroupResponse
+	(*ListGroupsRequest)(nil),                      // 62: auth.ListGroupsRequest
+	(*ListGroupsResponse)(nil),                     // 63: auth.ListGroupsResponse
+	(*DeleteGroupRequest)(nil),                     // 64: auth.DeleteGroupRequest
+	(*DeleteGroupResponse)(nil),                    // 65: auth.DeleteGroupResponse
+	(*AddGroupMemberRequest)(nil),                  // 66: auth.AddGroupMemberRequest
+	(*AddGroupMemberResponse)(nil),                 // 67: auth.AddGroupMemberResponse
+	(*ListGroupMembersRequest)(nil),                // 68: auth.ListGroupMembersRequest
+	(*ListGroupMembersResponse)(nil),               // 69: auth.ListGroupMembersResponse
+	(*RemoveGroupMemberRequest)(nil),               // 70: auth.RemoveGroupMemberRequest
+	(*RemoveGroupMemberResponse)(nil),              // 71: auth.RemoveGroupMemberResponse
+	(*AttachGroupPolicyRequest)(nil),               // 72: auth.AttachGroupPolicyRequest
+	(*AttachGroupPolicyResponse)(nil),              // 73: auth.AttachGroupPolicyResponse
+	(*ListGroupPoliciesRequest)(nil),               // 74: auth.ListGroupPoliciesRequest
+	(*ListGroupPoliciesResponse)(nil),              // 75: auth.ListGroupPoliciesResponse
+	(*DetachGroupPolicyRequest)(nil),               // 76: auth.DetachGroupPolicyRequest
+	(*DetachGroupPolicyResponse)(nil),              // 77: auth.DetachGroupPolicyResponse
+	(*GroupInlinePolicy)(nil),                      // 78: auth.GroupInlinePolicy
+	(*UserInlinePolicy)(nil),                       // 79: auth.UserInlinePolicy
+	(*PutGroupInlinePolicyRequest)(nil),            // 80: auth.PutGroupInlinePolicyRequest
+	(*PutGroupInlinePolicyResponse)(nil),           // 81: auth.PutGroupInlinePolicyResponse
+	(*GetGroupInlinePolicyRequest)(nil),            // 82: auth.GetGroupInlinePolicyRequest
+	(*GetGroupInlinePolicyResponse)(nil),           // 83: auth.GetGroupInlinePolicyResponse
+	(*ListGroupInlinePoliciesRequest)(nil),         // 84: auth.ListGroupInlinePoliciesRequest
+	(*ListGroupInlinePoliciesResponse)(nil),        // 85: auth.ListGroupInlinePoliciesResponse
+	(*DeleteGroupInlinePolicyRequest)(nil),         // 86: auth.DeleteGroupInlinePolicyRequest
+	(*DeleteGroupInlinePolicyResponse)(nil),        // 87: auth.DeleteGroupInlinePolicyResponse
+	(*ListPlatformUserPoliciesRequest)(nil),        // 88: auth.ListPlatformUserPoliciesRequest
+	(*ListPlatformUserPoliciesResponse)(nil),       // 89: auth.ListPlatformUserPoliciesResponse
+	(*PutPlatformUserInlinePolicyRequest)(nil),     // 90: auth.PutPlatformUserInlinePolicyRequest
+	(*PutPlatformUserInlinePolicyResponse)(nil),    // 91: auth.PutPlatformUserInlinePolicyResponse
+	(*GetPlatformUserInlinePolicyRequest)(nil),     // 92: auth.GetPlatformUserInlinePolicyRequest
+	(*GetPlatformUserInlinePolicyResponse)(nil),    // 93: auth.GetPlatformUserInlinePolicyResponse
+	(*ListPlatformUserInlinePoliciesRequest)(nil),  // 94: auth.ListPlatformUserInlinePoliciesRequest
+	(*ListPlatformUserInlinePoliciesResponse)(nil), // 95: auth.ListPlatformUserInlinePoliciesResponse
+	(*DeletePlatformUserInlinePolicyRequest)(nil),  // 96: auth.DeletePlatformUserInlinePolicyRequest
+	(*DeletePlatformUserInlinePolicyResponse)(nil), // 97: auth.DeletePlatformUserInlinePolicyResponse
+	(*AttachPlatformUserPolicyRequest)(nil),        // 98: auth.AttachPlatformUserPolicyRequest
+	(*AttachPlatformUserPolicyResponse)(nil),       // 99: auth.AttachPlatformUserPolicyResponse
+	(*DetachPlatformUserPolicyRequest)(nil),        // 100: auth.DetachPlatformUserPolicyRequest
+	(*DetachPlatformUserPolicyResponse)(nil),       // 101: auth.DetachPlatformUserPolicyResponse
+	(*RemovePlatformRoleRequest)(nil),              // 102: auth.RemovePlatformRoleRequest
+	(*RemovePlatformRoleResponse)(nil),             // 103: auth.RemovePlatformRoleResponse
+	(*GetTenantMembershipRequest)(nil),             // 104: auth.GetTenantMembershipRequest
+	(*GetTenantMembershipResponse)(nil),            // 105: auth.GetTenantMembershipResponse
+	(*CheckPermissionRequest)(nil),                 // 106: auth.CheckPermissionRequest
+	(*CheckPlatformPermissionRequest)(nil),         // 107: auth.CheckPlatformPermissionRequest
+	(*CheckPermissionResponse)(nil),                // 108: auth.CheckPermissionResponse
+	(*ListTenantMembersRequest)(nil),               // 109: auth.ListTenantMembersRequest
+	(*ListTenantMembersResponse)(nil),              // 110: auth.ListTenantMembersResponse
+	(*RemoveTenantMemberRequest)(nil),              // 111: auth.RemoveTenantMemberRequest
+	(*RemoveTenantMemberResponse)(nil),             // 112: auth.RemoveTenantMemberResponse
+	(*ListTenantUserPoliciesRequest)(nil),          // 113: auth.ListTenantUserPoliciesRequest
+	(*ListTenantUserPoliciesResponse)(nil),         // 114: auth.ListTenantUserPoliciesResponse
+	(*PutTenantUserInlinePolicyRequest)(nil),       // 115: auth.PutTenantUserInlinePolicyRequest
+	(*PutTenantUserInlinePolicyResponse)(nil),      // 116: auth.PutTenantUserInlinePolicyResponse
+	(*GetTenantUserInlinePolicyRequest)(nil),       // 117: auth.GetTenantUserInlinePolicyRequest
+	(*GetTenantUserInlinePolicyResponse)(nil),      // 118: auth.GetTenantUserInlinePolicyResponse
+	(*ListTenantUserInlinePoliciesRequest)(nil),    // 119: auth.ListTenantUserInlinePoliciesRequest
+	(*ListTenantUserInlinePoliciesResponse)(nil),   // 120: auth.ListTenantUserInlinePoliciesResponse
+	(*DeleteTenantUserInlinePolicyRequest)(nil),    // 121: auth.DeleteTenantUserInlinePolicyRequest
+	(*DeleteTenantUserInlinePolicyResponse)(nil),   // 122: auth.DeleteTenantUserInlinePolicyResponse
+	(*AttachTenantUserPolicyRequest)(nil),          // 123: auth.AttachTenantUserPolicyRequest
+	(*AttachTenantUserPolicyResponse)(nil),         // 124: auth.AttachTenantUserPolicyResponse
+	(*DetachTenantUserPolicyRequest)(nil),          // 125: auth.DetachTenantUserPolicyRequest
+	(*DetachTenantUserPolicyResponse)(nil),         // 126: auth.DetachTenantUserPolicyResponse
+	(*SwitchActiveTenantRequest)(nil),              // 127: auth.SwitchActiveTenantRequest
+	(*SwitchActiveTenantResponse)(nil),             // 128: auth.SwitchActiveTenantResponse
+	(*AssumeSessionPolicyRequest)(nil),             // 129: auth.AssumeSessionPolicyRequest
+	(*AssumeSessionPolicyResponse)(nil),            // 130: auth.AssumeSessionPolicyResponse
+	(*ClearSessionPolicyRequest)(nil),              // 131: auth.ClearSessionPolicyRequest
+	(*ClearSessionPolicyResponse)(nil),             // 132: auth.ClearSessionPolicyResponse
+	(*AssumeRoleRequest)(nil),                      // 133: auth.AssumeRoleRequest
+	(*AssumeRoleResponse)(nil),                     // 134: auth.AssumeRoleResponse
+	(*ClearAssumedRoleRequest)(nil),                // 135: auth.ClearAssumedRoleRequest
+	(*ClearAssumedRoleResponse)(nil),               // 136: auth.ClearAssumedRoleResponse
+	(*GetSessionRequest)(nil),                      // 137: auth.GetSessionRequest
+	(*GetSessionResponse)(nil),                     // 138: auth.GetSessionResponse
+	(*ListSessionsRequest)(nil),                    // 139: auth.ListSessionsRequest
+	(*ListSessionsResponse)(nil),                   // 140: auth.ListSessionsResponse
+	(*RevokeSessionRequest)(nil),                   // 141: auth.RevokeSessionRequest
+	(*RevokeSessionResponse)(nil),                  // 142: auth.RevokeSessionResponse
+	(*ListAuditLogsRequest)(nil),                   // 143: auth.ListAuditLogsRequest
+	(*ListAuditLogsResponse)(nil),                  // 144: auth.ListAuditLogsResponse
+	(*GoogleUserInfo)(nil),                         // 145: auth.GoogleUserInfo
+	(*UserInfo)(nil),                               // 146: auth.UserInfo
 }
 var file_auth_v1_auth_proto_depIdxs = []int32{
-	102, // 0: auth.LoginResponse.user_info:type_name -> auth.UserInfo
-	102, // 1: auth.RegisterResponse.user_info:type_name -> auth.UserInfo
-	102, // 2: auth.RefreshTokenResponse.user_info:type_name -> auth.UserInfo
-	101, // 3: auth.GoogleCallbackResponse.user_info:type_name -> auth.GoogleUserInfo
-	15,  // 4: auth.CreateTenantResponse.tenant:type_name -> auth.Tenant
-	16,  // 5: auth.CreateTenantResponse.owner_membership:type_name -> auth.TenantMembership
-	17,  // 6: auth.CreateTenantInviteResponse.invite:type_name -> auth.TenantInvite
-	17,  // 7: auth.ListTenantInvitesResponse.invites:type_name -> auth.TenantInvite
-	16,  // 8: auth.AcceptTenantInviteResponse.membership:type_name -> auth.TenantMembership
-	16,  // 9: auth.ListUserTenantsResponse.memberships:type_name -> auth.TenantMembership
-	34,  // 10: auth.ListPlatformRolesResponse.memberships:type_name -> auth.PlatformRoleMembership
-	35,  // 11: auth.CreatePolicyRequest.statements:type_name -> auth.PolicyStatement
-	36,  // 12: auth.CreatePolicyResponse.policy:type_name -> auth.Policy
-	35,  // 13: auth.CreatePolicyResponse.statements:type_name -> auth.PolicyStatement
-	36,  // 14: auth.GetPolicyResponse.policy:type_name -> auth.Policy
-	35,  // 15: auth.GetPolicyResponse.statements:type_name -> auth.PolicyStatement
-	36,  // 16: auth.ListPoliciesResponse.policies:type_name -> auth.Policy
-	37,  // 17: auth.CreateGroupResponse.group:type_name -> auth.Group
-	37,  // 18: auth.ListGroupsResponse.groups:type_name -> auth.Group
-	36,  // 19: auth.ListGroupPoliciesResponse.policies:type_name -> auth.Policy
-	36,  // 20: auth.ListPlatformUserPoliciesResponse.policies:type_name -> auth.Policy
-	16,  // 21: auth.GetTenantMembershipResponse.membership:type_name -> auth.TenantMembership
-	16,  // 22: auth.ListTenantMembersResponse.memberships:type_name -> auth.TenantMembership
-	36,  // 23: auth.ListTenantUserPoliciesResponse.policies:type_name -> auth.Policy
-	102, // 24: auth.SwitchActiveTenantResponse.user_info:type_name -> auth.UserInfo
-	13,  // 25: auth.GetSessionResponse.session:type_name -> auth.Session
-	13,  // 26: auth.ListSessionsResponse.sessions:type_name -> auth.Session
-	14,  // 27: auth.ListAuditLogsResponse.logs:type_name -> auth.AuditLog
-	6,   // 28: auth.AuthService.GoogleLogin:input_type -> auth.GoogleLoginRequest
-	8,   // 29: auth.AuthService.GoogleCallback:input_type -> auth.GoogleCallbackRequest
-	10,  // 30: auth.AuthService.ExchangeGoogleLogin:input_type -> auth.ExchangeGoogleLoginRequest
-	0,   // 31: auth.AuthService.Login:input_type -> auth.LoginRequest
-	2,   // 32: auth.AuthService.Register:input_type -> auth.RegisterRequest
-	4,   // 33: auth.AuthService.RefreshToken:input_type -> auth.RefreshTokenRequest
-	11,  // 34: auth.AuthService.Logout:input_type -> auth.LogoutRequest
-	91,  // 35: auth.AuthService.SwitchActiveTenant:input_type -> auth.SwitchActiveTenantRequest
-	93,  // 36: auth.AuthService.GetSession:input_type -> auth.GetSessionRequest
-	95,  // 37: auth.AuthService.ListSessions:input_type -> auth.ListSessionsRequest
-	97,  // 38: auth.AuthService.RevokeSession:input_type -> auth.RevokeSessionRequest
-	99,  // 39: auth.AuthService.ListAuditLogs:input_type -> auth.ListAuditLogsRequest
-	18,  // 40: auth.IAMService.CreateTenant:input_type -> auth.CreateTenantRequest
-	20,  // 41: auth.IAMService.AddTenantMember:input_type -> auth.AddTenantMemberRequest
-	22,  // 42: auth.IAMService.AddTenantMemberByIdentity:input_type -> auth.AddTenantMemberByIdentityRequest
-	24,  // 43: auth.IAMService.CreateTenantInvite:input_type -> auth.CreateTenantInviteRequest
-	26,  // 44: auth.IAMService.ListTenantInvites:input_type -> auth.ListTenantInvitesRequest
-	28,  // 45: auth.IAMService.RevokeTenantInvite:input_type -> auth.RevokeTenantInviteRequest
-	30,  // 46: auth.IAMService.AcceptTenantInvite:input_type -> auth.AcceptTenantInviteRequest
-	76,  // 47: auth.IAMService.GetTenantMembership:input_type -> auth.GetTenantMembershipRequest
-	78,  // 48: auth.IAMService.CheckPermission:input_type -> auth.CheckPermissionRequest
-	79,  // 49: auth.IAMService.CheckPlatformPermission:input_type -> auth.CheckPlatformPermissionRequest
-	32,  // 50: auth.IAMService.ListUserTenants:input_type -> auth.ListUserTenantsRequest
-	38,  // 51: auth.IAMService.ListPlatformRoles:input_type -> auth.ListPlatformRolesRequest
-	40,  // 52: auth.IAMService.AddPlatformRole:input_type -> auth.AddPlatformRoleRequest
-	42,  // 53: auth.IAMService.CreatePolicy:input_type -> auth.CreatePolicyRequest
-	44,  // 54: auth.IAMService.GetPolicy:input_type -> auth.GetPolicyRequest
-	46,  // 55: auth.IAMService.ListPolicies:input_type -> auth.ListPoliciesRequest
-	48,  // 56: auth.IAMService.DeletePolicy:input_type -> auth.DeletePolicyRequest
-	50,  // 57: auth.IAMService.CreateGroup:input_type -> auth.CreateGroupRequest
-	52,  // 58: auth.IAMService.ListGroups:input_type -> auth.ListGroupsRequest
-	54,  // 59: auth.IAMService.DeleteGroup:input_type -> auth.DeleteGroupRequest
-	56,  // 60: auth.IAMService.AddGroupMember:input_type -> auth.AddGroupMemberRequest
-	58,  // 61: auth.IAMService.ListGroupMembers:input_type -> auth.ListGroupMembersRequest
-	60,  // 62: auth.IAMService.RemoveGroupMember:input_type -> auth.RemoveGroupMemberRequest
-	62,  // 63: auth.IAMService.AttachGroupPolicy:input_type -> auth.AttachGroupPolicyRequest
-	64,  // 64: auth.IAMService.ListGroupPolicies:input_type -> auth.ListGroupPoliciesRequest
-	66,  // 65: auth.IAMService.DetachGroupPolicy:input_type -> auth.DetachGroupPolicyRequest
-	68,  // 66: auth.IAMService.ListPlatformUserPolicies:input_type -> auth.ListPlatformUserPoliciesRequest
-	70,  // 67: auth.IAMService.AttachPlatformUserPolicy:input_type -> auth.AttachPlatformUserPolicyRequest
-	72,  // 68: auth.IAMService.DetachPlatformUserPolicy:input_type -> auth.DetachPlatformUserPolicyRequest
-	74,  // 69: auth.IAMService.RemovePlatformRole:input_type -> auth.RemovePlatformRoleRequest
-	81,  // 70: auth.IAMService.ListTenantMembers:input_type -> auth.ListTenantMembersRequest
-	83,  // 71: auth.IAMService.RemoveTenantMember:input_type -> auth.RemoveTenantMemberRequest
-	85,  // 72: auth.IAMService.ListTenantUserPolicies:input_type -> auth.ListTenantUserPoliciesRequest
-	87,  // 73: auth.IAMService.AttachTenantUserPolicy:input_type -> auth.AttachTenantUserPolicyRequest
-	89,  // 74: auth.IAMService.DetachTenantUserPolicy:input_type -> auth.DetachTenantUserPolicyRequest
-	7,   // 75: auth.AuthService.GoogleLogin:output_type -> auth.GoogleLoginResponse
-	9,   // 76: auth.AuthService.GoogleCallback:output_type -> auth.GoogleCallbackResponse
-	1,   // 77: auth.AuthService.ExchangeGoogleLogin:output_type -> auth.LoginResponse
-	1,   // 78: auth.AuthService.Login:output_type -> auth.LoginResponse
-	3,   // 79: auth.AuthService.Register:output_type -> auth.RegisterResponse
-	5,   // 80: auth.AuthService.RefreshToken:output_type -> auth.RefreshTokenResponse
-	12,  // 81: auth.AuthService.Logout:output_type -> auth.LogoutResponse
-	92,  // 82: auth.AuthService.SwitchActiveTenant:output_type -> auth.SwitchActiveTenantResponse
-	94,  // 83: auth.AuthService.GetSession:output_type -> auth.GetSessionResponse
-	96,  // 84: auth.AuthService.ListSessions:output_type -> auth.ListSessionsResponse
-	98,  // 85: auth.AuthService.RevokeSession:output_type -> auth.RevokeSessionResponse
-	100, // 86: auth.AuthService.ListAuditLogs:output_type -> auth.ListAuditLogsResponse
-	19,  // 87: auth.IAMService.CreateTenant:output_type -> auth.CreateTenantResponse
-	21,  // 88: auth.IAMService.AddTenantMember:output_type -> auth.AddTenantMemberResponse
-	23,  // 89: auth.IAMService.AddTenantMemberByIdentity:output_type -> auth.AddTenantMemberByIdentityResponse
-	25,  // 90: auth.IAMService.CreateTenantInvite:output_type -> auth.CreateTenantInviteResponse
-	27,  // 91: auth.IAMService.ListTenantInvites:output_type -> auth.ListTenantInvitesResponse
-	29,  // 92: auth.IAMService.RevokeTenantInvite:output_type -> auth.RevokeTenantInviteResponse
-	31,  // 93: auth.IAMService.AcceptTenantInvite:output_type -> auth.AcceptTenantInviteResponse
-	77,  // 94: auth.IAMService.GetTenantMembership:output_type -> auth.GetTenantMembershipResponse
-	80,  // 95: auth.IAMService.CheckPermission:output_type -> auth.CheckPermissionResponse
-	80,  // 96: auth.IAMService.CheckPlatformPermission:output_type -> auth.CheckPermissionResponse
-	33,  // 97: auth.IAMService.ListUserTenants:output_type -> auth.ListUserTenantsResponse
-	39,  // 98: auth.IAMService.ListPlatformRoles:output_type -> auth.ListPlatformRolesResponse
-	41,  // 99: auth.IAMService.AddPlatformRole:output_type -> auth.AddPlatformRoleResponse
-	43,  // 100: auth.IAMService.CreatePolicy:output_type -> auth.CreatePolicyResponse
-	45,  // 101: auth.IAMService.GetPolicy:output_type -> auth.GetPolicyResponse
-	47,  // 102: auth.IAMService.ListPolicies:output_type -> auth.ListPoliciesResponse
-	49,  // 103: auth.IAMService.DeletePolicy:output_type -> auth.DeletePolicyResponse
-	51,  // 104: auth.IAMService.CreateGroup:output_type -> auth.CreateGroupResponse
-	53,  // 105: auth.IAMService.ListGroups:output_type -> auth.ListGroupsResponse
-	55,  // 106: auth.IAMService.DeleteGroup:output_type -> auth.DeleteGroupResponse
-	57,  // 107: auth.IAMService.AddGroupMember:output_type -> auth.AddGroupMemberResponse
-	59,  // 108: auth.IAMService.ListGroupMembers:output_type -> auth.ListGroupMembersResponse
-	61,  // 109: auth.IAMService.RemoveGroupMember:output_type -> auth.RemoveGroupMemberResponse
-	63,  // 110: auth.IAMService.AttachGroupPolicy:output_type -> auth.AttachGroupPolicyResponse
-	65,  // 111: auth.IAMService.ListGroupPolicies:output_type -> auth.ListGroupPoliciesResponse
-	67,  // 112: auth.IAMService.DetachGroupPolicy:output_type -> auth.DetachGroupPolicyResponse
-	69,  // 113: auth.IAMService.ListPlatformUserPolicies:output_type -> auth.ListPlatformUserPoliciesResponse
-	71,  // 114: auth.IAMService.AttachPlatformUserPolicy:output_type -> auth.AttachPlatformUserPolicyResponse
-	73,  // 115: auth.IAMService.DetachPlatformUserPolicy:output_type -> auth.DetachPlatformUserPolicyResponse
-	75,  // 116: auth.IAMService.RemovePlatformRole:output_type -> auth.RemovePlatformRoleResponse
-	82,  // 117: auth.IAMService.ListTenantMembers:output_type -> auth.ListTenantMembersResponse
-	84,  // 118: auth.IAMService.RemoveTenantMember:output_type -> auth.RemoveTenantMemberResponse
-	86,  // 119: auth.IAMService.ListTenantUserPolicies:output_type -> auth.ListTenantUserPoliciesResponse
-	88,  // 120: auth.IAMService.AttachTenantUserPolicy:output_type -> auth.AttachTenantUserPolicyResponse
-	90,  // 121: auth.IAMService.DetachTenantUserPolicy:output_type -> auth.DetachTenantUserPolicyResponse
-	75,  // [75:122] is the sub-list for method output_type
-	28,  // [28:75] is the sub-list for method input_type
-	28,  // [28:28] is the sub-list for extension type_name
-	28,  // [28:28] is the sub-list for extension extendee
-	0,   // [0:28] is the sub-list for field type_name
+	146, // 0: auth.LoginResponse.user_info:type_name -> auth.UserInfo
+	146, // 1: auth.RegisterResponse.user_info:type_name -> auth.UserInfo
+	146, // 2: auth.RefreshTokenResponse.user_info:type_name -> auth.UserInfo
+	145, // 3: auth.GoogleCallbackResponse.user_info:type_name -> auth.GoogleUserInfo
+	35,  // 4: auth.Session.session_policy:type_name -> auth.PolicyStatement
+	15,  // 5: auth.CreateTenantResponse.tenant:type_name -> auth.Tenant
+	16,  // 6: auth.CreateTenantResponse.owner_membership:type_name -> auth.TenantMembership
+	17,  // 7: auth.CreateTenantInviteResponse.invite:type_name -> auth.TenantInvite
+	17,  // 8: auth.ListTenantInvitesResponse.invites:type_name -> auth.TenantInvite
+	16,  // 9: auth.AcceptTenantInviteResponse.membership:type_name -> auth.TenantMembership
+	16,  // 10: auth.ListUserTenantsResponse.memberships:type_name -> auth.TenantMembership
+	34,  // 11: auth.ListPlatformRolesResponse.memberships:type_name -> auth.PlatformRoleMembership
+	35,  // 12: auth.CreatePolicyRequest.statements:type_name -> auth.PolicyStatement
+	36,  // 13: auth.CreatePolicyResponse.policy:type_name -> auth.Policy
+	35,  // 14: auth.CreatePolicyResponse.statements:type_name -> auth.PolicyStatement
+	36,  // 15: auth.GetPolicyResponse.policy:type_name -> auth.Policy
+	35,  // 16: auth.GetPolicyResponse.statements:type_name -> auth.PolicyStatement
+	36,  // 17: auth.ListPoliciesResponse.policies:type_name -> auth.Policy
+	37,  // 18: auth.ListPolicyAttachmentsResponse.attachments:type_name -> auth.PolicyAttachment
+	38,  // 19: auth.PutRoleTrustPolicyRequest.statements:type_name -> auth.RoleTrustStatement
+	38,  // 20: auth.GetRoleTrustPolicyResponse.statements:type_name -> auth.RoleTrustStatement
+	39,  // 21: auth.CreateGroupResponse.group:type_name -> auth.Group
+	39,  // 22: auth.ListGroupsResponse.groups:type_name -> auth.Group
+	36,  // 23: auth.ListGroupPoliciesResponse.policies:type_name -> auth.Policy
+	35,  // 24: auth.GroupInlinePolicy.statements:type_name -> auth.PolicyStatement
+	35,  // 25: auth.UserInlinePolicy.statements:type_name -> auth.PolicyStatement
+	35,  // 26: auth.PutGroupInlinePolicyRequest.statements:type_name -> auth.PolicyStatement
+	78,  // 27: auth.GetGroupInlinePolicyResponse.policy:type_name -> auth.GroupInlinePolicy
+	78,  // 28: auth.ListGroupInlinePoliciesResponse.policies:type_name -> auth.GroupInlinePolicy
+	36,  // 29: auth.ListPlatformUserPoliciesResponse.policies:type_name -> auth.Policy
+	35,  // 30: auth.PutPlatformUserInlinePolicyRequest.statements:type_name -> auth.PolicyStatement
+	79,  // 31: auth.GetPlatformUserInlinePolicyResponse.policy:type_name -> auth.UserInlinePolicy
+	79,  // 32: auth.ListPlatformUserInlinePoliciesResponse.policies:type_name -> auth.UserInlinePolicy
+	16,  // 33: auth.GetTenantMembershipResponse.membership:type_name -> auth.TenantMembership
+	16,  // 34: auth.ListTenantMembersResponse.memberships:type_name -> auth.TenantMembership
+	36,  // 35: auth.ListTenantUserPoliciesResponse.policies:type_name -> auth.Policy
+	35,  // 36: auth.PutTenantUserInlinePolicyRequest.statements:type_name -> auth.PolicyStatement
+	79,  // 37: auth.GetTenantUserInlinePolicyResponse.policy:type_name -> auth.UserInlinePolicy
+	79,  // 38: auth.ListTenantUserInlinePoliciesResponse.policies:type_name -> auth.UserInlinePolicy
+	146, // 39: auth.SwitchActiveTenantResponse.user_info:type_name -> auth.UserInfo
+	35,  // 40: auth.AssumeSessionPolicyRequest.statements:type_name -> auth.PolicyStatement
+	13,  // 41: auth.AssumeSessionPolicyResponse.session:type_name -> auth.Session
+	13,  // 42: auth.ClearSessionPolicyResponse.session:type_name -> auth.Session
+	35,  // 43: auth.AssumeRoleRequest.session_policy:type_name -> auth.PolicyStatement
+	13,  // 44: auth.AssumeRoleResponse.session:type_name -> auth.Session
+	13,  // 45: auth.ClearAssumedRoleResponse.session:type_name -> auth.Session
+	13,  // 46: auth.GetSessionResponse.session:type_name -> auth.Session
+	13,  // 47: auth.ListSessionsResponse.sessions:type_name -> auth.Session
+	14,  // 48: auth.ListAuditLogsResponse.logs:type_name -> auth.AuditLog
+	6,   // 49: auth.AuthService.GoogleLogin:input_type -> auth.GoogleLoginRequest
+	8,   // 50: auth.AuthService.GoogleCallback:input_type -> auth.GoogleCallbackRequest
+	10,  // 51: auth.AuthService.ExchangeGoogleLogin:input_type -> auth.ExchangeGoogleLoginRequest
+	0,   // 52: auth.AuthService.Login:input_type -> auth.LoginRequest
+	2,   // 53: auth.AuthService.Register:input_type -> auth.RegisterRequest
+	4,   // 54: auth.AuthService.RefreshToken:input_type -> auth.RefreshTokenRequest
+	11,  // 55: auth.AuthService.Logout:input_type -> auth.LogoutRequest
+	127, // 56: auth.AuthService.SwitchActiveTenant:input_type -> auth.SwitchActiveTenantRequest
+	129, // 57: auth.AuthService.AssumeSessionPolicy:input_type -> auth.AssumeSessionPolicyRequest
+	131, // 58: auth.AuthService.ClearSessionPolicy:input_type -> auth.ClearSessionPolicyRequest
+	133, // 59: auth.AuthService.AssumeRole:input_type -> auth.AssumeRoleRequest
+	135, // 60: auth.AuthService.ClearAssumedRole:input_type -> auth.ClearAssumedRoleRequest
+	137, // 61: auth.AuthService.GetSession:input_type -> auth.GetSessionRequest
+	139, // 62: auth.AuthService.ListSessions:input_type -> auth.ListSessionsRequest
+	141, // 63: auth.AuthService.RevokeSession:input_type -> auth.RevokeSessionRequest
+	143, // 64: auth.AuthService.ListAuditLogs:input_type -> auth.ListAuditLogsRequest
+	18,  // 65: auth.IAMService.CreateTenant:input_type -> auth.CreateTenantRequest
+	20,  // 66: auth.IAMService.AddTenantMember:input_type -> auth.AddTenantMemberRequest
+	22,  // 67: auth.IAMService.AddTenantMemberByIdentity:input_type -> auth.AddTenantMemberByIdentityRequest
+	24,  // 68: auth.IAMService.CreateTenantInvite:input_type -> auth.CreateTenantInviteRequest
+	26,  // 69: auth.IAMService.ListTenantInvites:input_type -> auth.ListTenantInvitesRequest
+	28,  // 70: auth.IAMService.RevokeTenantInvite:input_type -> auth.RevokeTenantInviteRequest
+	30,  // 71: auth.IAMService.AcceptTenantInvite:input_type -> auth.AcceptTenantInviteRequest
+	104, // 72: auth.IAMService.GetTenantMembership:input_type -> auth.GetTenantMembershipRequest
+	106, // 73: auth.IAMService.CheckPermission:input_type -> auth.CheckPermissionRequest
+	107, // 74: auth.IAMService.CheckPlatformPermission:input_type -> auth.CheckPlatformPermissionRequest
+	32,  // 75: auth.IAMService.ListUserTenants:input_type -> auth.ListUserTenantsRequest
+	40,  // 76: auth.IAMService.ListPlatformRoles:input_type -> auth.ListPlatformRolesRequest
+	42,  // 77: auth.IAMService.AddPlatformRole:input_type -> auth.AddPlatformRoleRequest
+	44,  // 78: auth.IAMService.CreatePolicy:input_type -> auth.CreatePolicyRequest
+	46,  // 79: auth.IAMService.GetPolicy:input_type -> auth.GetPolicyRequest
+	48,  // 80: auth.IAMService.ListPolicies:input_type -> auth.ListPoliciesRequest
+	50,  // 81: auth.IAMService.ListPolicyAttachments:input_type -> auth.ListPolicyAttachmentsRequest
+	52,  // 82: auth.IAMService.DeletePolicy:input_type -> auth.DeletePolicyRequest
+	60,  // 83: auth.IAMService.CreateGroup:input_type -> auth.CreateGroupRequest
+	62,  // 84: auth.IAMService.ListGroups:input_type -> auth.ListGroupsRequest
+	64,  // 85: auth.IAMService.DeleteGroup:input_type -> auth.DeleteGroupRequest
+	66,  // 86: auth.IAMService.AddGroupMember:input_type -> auth.AddGroupMemberRequest
+	68,  // 87: auth.IAMService.ListGroupMembers:input_type -> auth.ListGroupMembersRequest
+	70,  // 88: auth.IAMService.RemoveGroupMember:input_type -> auth.RemoveGroupMemberRequest
+	72,  // 89: auth.IAMService.AttachGroupPolicy:input_type -> auth.AttachGroupPolicyRequest
+	74,  // 90: auth.IAMService.ListGroupPolicies:input_type -> auth.ListGroupPoliciesRequest
+	76,  // 91: auth.IAMService.DetachGroupPolicy:input_type -> auth.DetachGroupPolicyRequest
+	80,  // 92: auth.IAMService.PutGroupInlinePolicy:input_type -> auth.PutGroupInlinePolicyRequest
+	82,  // 93: auth.IAMService.GetGroupInlinePolicy:input_type -> auth.GetGroupInlinePolicyRequest
+	84,  // 94: auth.IAMService.ListGroupInlinePolicies:input_type -> auth.ListGroupInlinePoliciesRequest
+	86,  // 95: auth.IAMService.DeleteGroupInlinePolicy:input_type -> auth.DeleteGroupInlinePolicyRequest
+	90,  // 96: auth.IAMService.PutPlatformUserInlinePolicy:input_type -> auth.PutPlatformUserInlinePolicyRequest
+	92,  // 97: auth.IAMService.GetPlatformUserInlinePolicy:input_type -> auth.GetPlatformUserInlinePolicyRequest
+	94,  // 98: auth.IAMService.ListPlatformUserInlinePolicies:input_type -> auth.ListPlatformUserInlinePoliciesRequest
+	96,  // 99: auth.IAMService.DeletePlatformUserInlinePolicy:input_type -> auth.DeletePlatformUserInlinePolicyRequest
+	88,  // 100: auth.IAMService.ListPlatformUserPolicies:input_type -> auth.ListPlatformUserPoliciesRequest
+	98,  // 101: auth.IAMService.AttachPlatformUserPolicy:input_type -> auth.AttachPlatformUserPolicyRequest
+	100, // 102: auth.IAMService.DetachPlatformUserPolicy:input_type -> auth.DetachPlatformUserPolicyRequest
+	102, // 103: auth.IAMService.RemovePlatformRole:input_type -> auth.RemovePlatformRoleRequest
+	109, // 104: auth.IAMService.ListTenantMembers:input_type -> auth.ListTenantMembersRequest
+	111, // 105: auth.IAMService.RemoveTenantMember:input_type -> auth.RemoveTenantMemberRequest
+	115, // 106: auth.IAMService.PutTenantUserInlinePolicy:input_type -> auth.PutTenantUserInlinePolicyRequest
+	117, // 107: auth.IAMService.GetTenantUserInlinePolicy:input_type -> auth.GetTenantUserInlinePolicyRequest
+	119, // 108: auth.IAMService.ListTenantUserInlinePolicies:input_type -> auth.ListTenantUserInlinePoliciesRequest
+	121, // 109: auth.IAMService.DeleteTenantUserInlinePolicy:input_type -> auth.DeleteTenantUserInlinePolicyRequest
+	113, // 110: auth.IAMService.ListTenantUserPolicies:input_type -> auth.ListTenantUserPoliciesRequest
+	123, // 111: auth.IAMService.AttachTenantUserPolicy:input_type -> auth.AttachTenantUserPolicyRequest
+	125, // 112: auth.IAMService.DetachTenantUserPolicy:input_type -> auth.DetachTenantUserPolicyRequest
+	54,  // 113: auth.IAMService.PutRoleTrustPolicy:input_type -> auth.PutRoleTrustPolicyRequest
+	56,  // 114: auth.IAMService.GetRoleTrustPolicy:input_type -> auth.GetRoleTrustPolicyRequest
+	58,  // 115: auth.IAMService.DeleteRoleTrustPolicy:input_type -> auth.DeleteRoleTrustPolicyRequest
+	7,   // 116: auth.AuthService.GoogleLogin:output_type -> auth.GoogleLoginResponse
+	9,   // 117: auth.AuthService.GoogleCallback:output_type -> auth.GoogleCallbackResponse
+	1,   // 118: auth.AuthService.ExchangeGoogleLogin:output_type -> auth.LoginResponse
+	1,   // 119: auth.AuthService.Login:output_type -> auth.LoginResponse
+	3,   // 120: auth.AuthService.Register:output_type -> auth.RegisterResponse
+	5,   // 121: auth.AuthService.RefreshToken:output_type -> auth.RefreshTokenResponse
+	12,  // 122: auth.AuthService.Logout:output_type -> auth.LogoutResponse
+	128, // 123: auth.AuthService.SwitchActiveTenant:output_type -> auth.SwitchActiveTenantResponse
+	130, // 124: auth.AuthService.AssumeSessionPolicy:output_type -> auth.AssumeSessionPolicyResponse
+	132, // 125: auth.AuthService.ClearSessionPolicy:output_type -> auth.ClearSessionPolicyResponse
+	134, // 126: auth.AuthService.AssumeRole:output_type -> auth.AssumeRoleResponse
+	136, // 127: auth.AuthService.ClearAssumedRole:output_type -> auth.ClearAssumedRoleResponse
+	138, // 128: auth.AuthService.GetSession:output_type -> auth.GetSessionResponse
+	140, // 129: auth.AuthService.ListSessions:output_type -> auth.ListSessionsResponse
+	142, // 130: auth.AuthService.RevokeSession:output_type -> auth.RevokeSessionResponse
+	144, // 131: auth.AuthService.ListAuditLogs:output_type -> auth.ListAuditLogsResponse
+	19,  // 132: auth.IAMService.CreateTenant:output_type -> auth.CreateTenantResponse
+	21,  // 133: auth.IAMService.AddTenantMember:output_type -> auth.AddTenantMemberResponse
+	23,  // 134: auth.IAMService.AddTenantMemberByIdentity:output_type -> auth.AddTenantMemberByIdentityResponse
+	25,  // 135: auth.IAMService.CreateTenantInvite:output_type -> auth.CreateTenantInviteResponse
+	27,  // 136: auth.IAMService.ListTenantInvites:output_type -> auth.ListTenantInvitesResponse
+	29,  // 137: auth.IAMService.RevokeTenantInvite:output_type -> auth.RevokeTenantInviteResponse
+	31,  // 138: auth.IAMService.AcceptTenantInvite:output_type -> auth.AcceptTenantInviteResponse
+	105, // 139: auth.IAMService.GetTenantMembership:output_type -> auth.GetTenantMembershipResponse
+	108, // 140: auth.IAMService.CheckPermission:output_type -> auth.CheckPermissionResponse
+	108, // 141: auth.IAMService.CheckPlatformPermission:output_type -> auth.CheckPermissionResponse
+	33,  // 142: auth.IAMService.ListUserTenants:output_type -> auth.ListUserTenantsResponse
+	41,  // 143: auth.IAMService.ListPlatformRoles:output_type -> auth.ListPlatformRolesResponse
+	43,  // 144: auth.IAMService.AddPlatformRole:output_type -> auth.AddPlatformRoleResponse
+	45,  // 145: auth.IAMService.CreatePolicy:output_type -> auth.CreatePolicyResponse
+	47,  // 146: auth.IAMService.GetPolicy:output_type -> auth.GetPolicyResponse
+	49,  // 147: auth.IAMService.ListPolicies:output_type -> auth.ListPoliciesResponse
+	51,  // 148: auth.IAMService.ListPolicyAttachments:output_type -> auth.ListPolicyAttachmentsResponse
+	53,  // 149: auth.IAMService.DeletePolicy:output_type -> auth.DeletePolicyResponse
+	61,  // 150: auth.IAMService.CreateGroup:output_type -> auth.CreateGroupResponse
+	63,  // 151: auth.IAMService.ListGroups:output_type -> auth.ListGroupsResponse
+	65,  // 152: auth.IAMService.DeleteGroup:output_type -> auth.DeleteGroupResponse
+	67,  // 153: auth.IAMService.AddGroupMember:output_type -> auth.AddGroupMemberResponse
+	69,  // 154: auth.IAMService.ListGroupMembers:output_type -> auth.ListGroupMembersResponse
+	71,  // 155: auth.IAMService.RemoveGroupMember:output_type -> auth.RemoveGroupMemberResponse
+	73,  // 156: auth.IAMService.AttachGroupPolicy:output_type -> auth.AttachGroupPolicyResponse
+	75,  // 157: auth.IAMService.ListGroupPolicies:output_type -> auth.ListGroupPoliciesResponse
+	77,  // 158: auth.IAMService.DetachGroupPolicy:output_type -> auth.DetachGroupPolicyResponse
+	81,  // 159: auth.IAMService.PutGroupInlinePolicy:output_type -> auth.PutGroupInlinePolicyResponse
+	83,  // 160: auth.IAMService.GetGroupInlinePolicy:output_type -> auth.GetGroupInlinePolicyResponse
+	85,  // 161: auth.IAMService.ListGroupInlinePolicies:output_type -> auth.ListGroupInlinePoliciesResponse
+	87,  // 162: auth.IAMService.DeleteGroupInlinePolicy:output_type -> auth.DeleteGroupInlinePolicyResponse
+	91,  // 163: auth.IAMService.PutPlatformUserInlinePolicy:output_type -> auth.PutPlatformUserInlinePolicyResponse
+	93,  // 164: auth.IAMService.GetPlatformUserInlinePolicy:output_type -> auth.GetPlatformUserInlinePolicyResponse
+	95,  // 165: auth.IAMService.ListPlatformUserInlinePolicies:output_type -> auth.ListPlatformUserInlinePoliciesResponse
+	97,  // 166: auth.IAMService.DeletePlatformUserInlinePolicy:output_type -> auth.DeletePlatformUserInlinePolicyResponse
+	89,  // 167: auth.IAMService.ListPlatformUserPolicies:output_type -> auth.ListPlatformUserPoliciesResponse
+	99,  // 168: auth.IAMService.AttachPlatformUserPolicy:output_type -> auth.AttachPlatformUserPolicyResponse
+	101, // 169: auth.IAMService.DetachPlatformUserPolicy:output_type -> auth.DetachPlatformUserPolicyResponse
+	103, // 170: auth.IAMService.RemovePlatformRole:output_type -> auth.RemovePlatformRoleResponse
+	110, // 171: auth.IAMService.ListTenantMembers:output_type -> auth.ListTenantMembersResponse
+	112, // 172: auth.IAMService.RemoveTenantMember:output_type -> auth.RemoveTenantMemberResponse
+	116, // 173: auth.IAMService.PutTenantUserInlinePolicy:output_type -> auth.PutTenantUserInlinePolicyResponse
+	118, // 174: auth.IAMService.GetTenantUserInlinePolicy:output_type -> auth.GetTenantUserInlinePolicyResponse
+	120, // 175: auth.IAMService.ListTenantUserInlinePolicies:output_type -> auth.ListTenantUserInlinePoliciesResponse
+	122, // 176: auth.IAMService.DeleteTenantUserInlinePolicy:output_type -> auth.DeleteTenantUserInlinePolicyResponse
+	114, // 177: auth.IAMService.ListTenantUserPolicies:output_type -> auth.ListTenantUserPoliciesResponse
+	124, // 178: auth.IAMService.AttachTenantUserPolicy:output_type -> auth.AttachTenantUserPolicyResponse
+	126, // 179: auth.IAMService.DetachTenantUserPolicy:output_type -> auth.DetachTenantUserPolicyResponse
+	55,  // 180: auth.IAMService.PutRoleTrustPolicy:output_type -> auth.PutRoleTrustPolicyResponse
+	57,  // 181: auth.IAMService.GetRoleTrustPolicy:output_type -> auth.GetRoleTrustPolicyResponse
+	59,  // 182: auth.IAMService.DeleteRoleTrustPolicy:output_type -> auth.DeleteRoleTrustPolicyResponse
+	116, // [116:183] is the sub-list for method output_type
+	49,  // [49:116] is the sub-list for method input_type
+	49,  // [49:49] is the sub-list for extension type_name
+	49,  // [49:49] is the sub-list for extension extendee
+	0,   // [0:49] is the sub-list for field type_name
 }
 
 func init() { file_auth_v1_auth_proto_init() }
@@ -6209,7 +8842,7 @@ func file_auth_v1_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_v1_auth_proto_rawDesc), len(file_auth_v1_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   103,
+			NumMessages:   147,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

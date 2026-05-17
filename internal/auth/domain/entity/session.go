@@ -13,14 +13,25 @@ const (
 )
 
 type Session struct {
-	ID             string     `json:"id"`
-	UserID         uint       `json:"user_id"`
-	ActiveTenantID string     `json:"active_tenant_id"`
-	Status         string     `json:"status"`
-	CreatedAt      time.Time  `json:"created_at"`
-	UpdatedAt      time.Time  `json:"updated_at"`
-	ExpiresAt      time.Time  `json:"expires_at"`
-	RevokedAt      *time.Time `json:"revoked_at"`
+	ID                  string                   `json:"id"`
+	UserID              uint                     `json:"user_id"`
+	ActiveTenantID      string                   `json:"active_tenant_id"`
+	SessionPolicy       []SessionPolicyStatement `json:"session_policy,omitempty"`
+	AssumedRoleID       uint64                   `json:"assumed_role_id,omitempty"`
+	AssumedRoleScope    string                   `json:"assumed_role_scope,omitempty"`
+	AssumedRoleName     string                   `json:"assumed_role_name,omitempty"`
+	AssumedRoleTenantID string                   `json:"assumed_role_tenant_id,omitempty"`
+	Status              string                   `json:"status"`
+	CreatedAt           time.Time                `json:"created_at"`
+	UpdatedAt           time.Time                `json:"updated_at"`
+	ExpiresAt           time.Time                `json:"expires_at"`
+	RevokedAt           *time.Time               `json:"revoked_at"`
+}
+
+type SessionPolicyStatement struct {
+	Effect          string `json:"effect"`
+	ActionPattern   string `json:"action_pattern"`
+	ResourcePattern string `json:"resource_pattern"`
 }
 
 type RefreshToken struct {
@@ -40,8 +51,9 @@ func HashToken(token string) string {
 }
 
 var (
-	ErrSessionNotFound     = errors.New("session not found")
-	ErrSessionRevoked      = errors.New("session revoked")
-	ErrRefreshTokenInvalid = errors.New("refresh token invalid")
-	ErrRefreshTokenExpired = errors.New("refresh token expired")
+	ErrSessionNotFound      = errors.New("session not found")
+	ErrSessionRevoked       = errors.New("session revoked")
+	ErrRefreshTokenInvalid  = errors.New("refresh token invalid")
+	ErrRefreshTokenExpired  = errors.New("refresh token expired")
+	ErrInvalidSessionPolicy = errors.New("session policy must include at least one statement")
 )

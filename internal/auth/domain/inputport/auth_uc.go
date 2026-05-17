@@ -42,5 +42,21 @@ type AuthUsecase interface {
 	Register(ctx context.Context, req RegisterCmd) (*AuthResult, error)
 	RefreshAccessToken(ctx context.Context, refreshToken string) (*AuthResult, error)
 	SwitchActiveTenant(ctx context.Context, userID uint, tenantID, accessToken string) (*AuthResult, error)
+	AssumeSessionPolicy(
+		ctx context.Context,
+		userID uint,
+		accessToken string,
+		statements []entity.SessionPolicyStatement,
+	) (*AuthResult, error)
+	ClearSessionPolicy(ctx context.Context, userID uint, accessToken string) (*AuthResult, error)
+	AssumeRole(
+		ctx context.Context,
+		userID uint,
+		accessToken string,
+		roleName string,
+		tenantID string,
+		sessionPolicy []entity.SessionPolicyStatement,
+	) (*AuthResult, error)
+	ClearAssumedRole(ctx context.Context, userID uint, accessToken string) (*AuthResult, error)
 	Logout(ctx context.Context, accessToken string) (string, error)
 }

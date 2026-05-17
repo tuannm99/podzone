@@ -31,13 +31,37 @@ func (t *tokenUCImpl) CreateJwtTokenForTenant(user entity.User, activeTenantID s
 }
 
 func (t *tokenUCImpl) CreateJwtTokenForSession(user entity.User, activeTenantID, sessionID string) (string, error) {
-	claims := entity.JWTClaims{
-		UserID:         user.Id,
-		Email:          user.Email,
-		Username:       user.Username,
+	return t.CreateJwtTokenForScopedSession(user, activeTenantID, sessionID, nil)
+}
+
+func (t *tokenUCImpl) CreateJwtTokenForScopedSession(
+	user entity.User,
+	activeTenantID, sessionID string,
+	sessionPolicy []entity.SessionPolicyStatement,
+) (string, error) {
+	return t.CreateJwtTokenForSessionState(user, entity.Session{
+		ID:             sessionID,
 		ActiveTenantID: activeTenantID,
-		SessionID:      sessionID,
-		Key:            t.cfg.JWTKey,
+		SessionPolicy:  sessionPolicy,
+	})
+}
+
+func (t *tokenUCImpl) CreateJwtTokenForSessionState(
+	user entity.User,
+	session entity.Session,
+) (string, error) {
+	claims := entity.JWTClaims{
+		UserID:              user.Id,
+		Email:               user.Email,
+		Username:            user.Username,
+		ActiveTenantID:      session.ActiveTenantID,
+		SessionID:           session.ID,
+		SessionPolicy:       session.SessionPolicy,
+		AssumedRoleID:       session.AssumedRoleID,
+		AssumedRoleScope:    session.AssumedRoleScope,
+		AssumedRoleName:     session.AssumedRoleName,
+		AssumedRoleTenantID: session.AssumedRoleTenantID,
+		Key:                 t.cfg.JWTKey,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
 			IssuedAt:  time.Now().Unix(),

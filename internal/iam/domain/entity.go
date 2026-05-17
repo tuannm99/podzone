@@ -19,6 +19,7 @@ type Tenant struct {
 
 type Role struct {
 	ID          uint64    `json:"id"`
+	Scope       string    `json:"scope"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	IsSystem    bool      `json:"is_system"`
@@ -76,6 +77,47 @@ type PolicyStatement struct {
 	CreatedAt       time.Time `json:"created_at"`
 }
 
+type PolicyAttachment struct {
+	AttachmentType string    `json:"attachment_type"`
+	Scope          string    `json:"scope,omitempty"`
+	TenantID       string    `json:"tenant_id,omitempty"`
+	RoleID         uint64    `json:"role_id,omitempty"`
+	RoleName       string    `json:"role_name,omitempty"`
+	UserID         uint      `json:"user_id,omitempty"`
+	GroupID        uint64    `json:"group_id,omitempty"`
+	GroupName      string    `json:"group_name,omitempty"`
+	CreatedAt      time.Time `json:"created_at"`
+}
+
+type RoleTrustStatement struct {
+	ID               uint64    `json:"id"`
+	RoleID           uint64    `json:"role_id"`
+	Effect           string    `json:"effect"`
+	PrincipalType    string    `json:"principal_type"`
+	PrincipalPattern string    `json:"principal_pattern"`
+	TenantPattern    string    `json:"tenant_pattern"`
+	CreatedAt        time.Time `json:"created_at"`
+}
+
+type PutRoleTrustPolicyInput struct {
+	RoleName   string               `json:"role_name"`
+	Statements []RoleTrustStatement `json:"statements"`
+}
+
+type AssumeRoleInput struct {
+	UserID   uint   `json:"user_id"`
+	RoleName string `json:"role_name"`
+	TenantID string `json:"tenant_id,omitempty"`
+}
+
+type AssumedRole struct {
+	RoleID    uint64    `json:"role_id"`
+	RoleScope string    `json:"role_scope"`
+	RoleName  string    `json:"role_name"`
+	TenantID  string    `json:"tenant_id,omitempty"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 type CreatePolicyInput struct {
 	Scope       string            `json:"scope"`
 	Name        string            `json:"name"`
@@ -88,6 +130,48 @@ type CreateGroupInput struct {
 	TenantID    string `json:"tenant_id,omitempty"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
+}
+
+type PutGroupInlinePolicyInput struct {
+	GroupID     uint64            `json:"group_id"`
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	Statements  []PolicyStatement `json:"statements"`
+}
+
+type GroupInlinePolicy struct {
+	GroupID     uint64            `json:"group_id"`
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	Statements  []PolicyStatement `json:"statements"`
+	CreatedAt   time.Time         `json:"created_at"`
+	UpdatedAt   time.Time         `json:"updated_at"`
+}
+
+type PutPlatformUserInlinePolicyInput struct {
+	UserID      uint              `json:"user_id"`
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	Statements  []PolicyStatement `json:"statements"`
+}
+
+type PutTenantUserInlinePolicyInput struct {
+	TenantID    string            `json:"tenant_id"`
+	UserID      uint              `json:"user_id"`
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	Statements  []PolicyStatement `json:"statements"`
+}
+
+type UserInlinePolicy struct {
+	Scope       string            `json:"scope"`
+	TenantID    string            `json:"tenant_id,omitempty"`
+	UserID      uint              `json:"user_id"`
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	Statements  []PolicyStatement `json:"statements"`
+	CreatedAt   time.Time         `json:"created_at"`
+	UpdatedAt   time.Time         `json:"updated_at"`
 }
 
 type AccessRequest struct {
@@ -134,6 +218,10 @@ const (
 	PolicyEffectAllow = "allow"
 	PolicyEffectDeny  = "deny"
 
+	TrustPrincipalUser         = "user"
+	TrustPrincipalPlatformRole = "platform_role"
+	TrustPrincipalTenantRole   = "tenant_role"
+
 	MembershipStatusActive = "active"
 
 	InviteStatusPending  = "pending"
@@ -164,6 +252,9 @@ var (
 	ErrImmutablePolicy     = errors.New("iam: managed/system policy cannot be deleted")
 	ErrImmutableGroup      = errors.New("iam: system group cannot be deleted")
 	ErrPolicyInUse         = errors.New("iam: policy is still attached")
+	ErrInvalidPolicyName   = errors.New("iam: policy name is required")
+	ErrInvalidAssumeRole   = errors.New("iam: invalid assume role target")
+	ErrAssumeRoleDenied    = errors.New("iam: assume role denied")
 )
 
 func NormalizeInviteEmail(email string) string {

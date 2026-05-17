@@ -363,3 +363,135 @@ func (_c *MockSessionRepository_UpdateActiveTenant_Call) RunAndReturn(run func(c
 	_c.Call.Return(run)
 	return _c
 }
+
+// UpdateAssumedRole provides a mock function for the type MockSessionRepository
+func (_mock *MockSessionRepository) UpdateAssumedRole(ctx context.Context, session entity.Session, updatedAt time.Time) error {
+	ret := _mock.Called(ctx, session, updatedAt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateAssumedRole")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.Session, time.Time) error); ok {
+		r0 = returnFunc(ctx, session, updatedAt)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockSessionRepository_UpdateAssumedRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateAssumedRole'
+type MockSessionRepository_UpdateAssumedRole_Call struct {
+	*mock.Call
+}
+
+// UpdateAssumedRole is a helper method to define mock.On call
+//   - ctx context.Context
+//   - session entity.Session
+//   - updatedAt time.Time
+func (_e *MockSessionRepository_Expecter) UpdateAssumedRole(ctx interface{}, session interface{}, updatedAt interface{}) *MockSessionRepository_UpdateAssumedRole_Call {
+	return &MockSessionRepository_UpdateAssumedRole_Call{Call: _e.mock.On("UpdateAssumedRole", ctx, session, updatedAt)}
+}
+
+func (_c *MockSessionRepository_UpdateAssumedRole_Call) Run(run func(ctx context.Context, session entity.Session, updatedAt time.Time)) *MockSessionRepository_UpdateAssumedRole_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 entity.Session
+		if args[1] != nil {
+			arg1 = args[1].(entity.Session)
+		}
+		var arg2 time.Time
+		if args[2] != nil {
+			arg2 = args[2].(time.Time)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockSessionRepository_UpdateAssumedRole_Call) Return(err error) *MockSessionRepository_UpdateAssumedRole_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockSessionRepository_UpdateAssumedRole_Call) RunAndReturn(run func(ctx context.Context, session entity.Session, updatedAt time.Time) error) *MockSessionRepository_UpdateAssumedRole_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateSessionPolicy provides a mock function for the type MockSessionRepository
+func (_mock *MockSessionRepository) UpdateSessionPolicy(ctx context.Context, id string, statements []entity.SessionPolicyStatement, updatedAt time.Time) error {
+	ret := _mock.Called(ctx, id, statements, updatedAt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateSessionPolicy")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, []entity.SessionPolicyStatement, time.Time) error); ok {
+		r0 = returnFunc(ctx, id, statements, updatedAt)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockSessionRepository_UpdateSessionPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateSessionPolicy'
+type MockSessionRepository_UpdateSessionPolicy_Call struct {
+	*mock.Call
+}
+
+// UpdateSessionPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+//   - statements []entity.SessionPolicyStatement
+//   - updatedAt time.Time
+func (_e *MockSessionRepository_Expecter) UpdateSessionPolicy(ctx interface{}, id interface{}, statements interface{}, updatedAt interface{}) *MockSessionRepository_UpdateSessionPolicy_Call {
+	return &MockSessionRepository_UpdateSessionPolicy_Call{Call: _e.mock.On("UpdateSessionPolicy", ctx, id, statements, updatedAt)}
+}
+
+func (_c *MockSessionRepository_UpdateSessionPolicy_Call) Run(run func(ctx context.Context, id string, statements []entity.SessionPolicyStatement, updatedAt time.Time)) *MockSessionRepository_UpdateSessionPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 []entity.SessionPolicyStatement
+		if args[2] != nil {
+			arg2 = args[2].([]entity.SessionPolicyStatement)
+		}
+		var arg3 time.Time
+		if args[3] != nil {
+			arg3 = args[3].(time.Time)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockSessionRepository_UpdateSessionPolicy_Call) Return(err error) *MockSessionRepository_UpdateSessionPolicy_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockSessionRepository_UpdateSessionPolicy_Call) RunAndReturn(run func(ctx context.Context, id string, statements []entity.SessionPolicyStatement, updatedAt time.Time) error) *MockSessionRepository_UpdateSessionPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}

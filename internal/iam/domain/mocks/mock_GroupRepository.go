@@ -289,6 +289,69 @@ func (_c *MockGroupRepository_DeleteGroup_Call) RunAndReturn(run func(ctx contex
 	return _c
 }
 
+// DeleteInlinePolicy provides a mock function for the type MockGroupRepository
+func (_mock *MockGroupRepository) DeleteInlinePolicy(ctx context.Context, groupID uint64, name string) error {
+	ret := _mock.Called(ctx, groupID, name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteInlinePolicy")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, string) error); ok {
+		r0 = returnFunc(ctx, groupID, name)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockGroupRepository_DeleteInlinePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteInlinePolicy'
+type MockGroupRepository_DeleteInlinePolicy_Call struct {
+	*mock.Call
+}
+
+// DeleteInlinePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID uint64
+//   - name string
+func (_e *MockGroupRepository_Expecter) DeleteInlinePolicy(ctx interface{}, groupID interface{}, name interface{}) *MockGroupRepository_DeleteInlinePolicy_Call {
+	return &MockGroupRepository_DeleteInlinePolicy_Call{Call: _e.mock.On("DeleteInlinePolicy", ctx, groupID, name)}
+}
+
+func (_c *MockGroupRepository_DeleteInlinePolicy_Call) Run(run func(ctx context.Context, groupID uint64, name string)) *MockGroupRepository_DeleteInlinePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockGroupRepository_DeleteInlinePolicy_Call) Return(err error) *MockGroupRepository_DeleteInlinePolicy_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockGroupRepository_DeleteInlinePolicy_Call) RunAndReturn(run func(ctx context.Context, groupID uint64, name string) error) *MockGroupRepository_DeleteInlinePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DetachPolicy provides a mock function for the type MockGroupRepository
 func (_mock *MockGroupRepository) DetachPolicy(ctx context.Context, groupID uint64, policyID uint64) error {
 	ret := _mock.Called(ctx, groupID, policyID)
@@ -348,6 +411,80 @@ func (_c *MockGroupRepository_DetachPolicy_Call) Return(err error) *MockGroupRep
 }
 
 func (_c *MockGroupRepository_DetachPolicy_Call) RunAndReturn(run func(ctx context.Context, groupID uint64, policyID uint64) error) *MockGroupRepository_DetachPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetInlinePolicy provides a mock function for the type MockGroupRepository
+func (_mock *MockGroupRepository) GetInlinePolicy(ctx context.Context, groupID uint64, name string) (*domain.GroupInlinePolicy, error) {
+	ret := _mock.Called(ctx, groupID, name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetInlinePolicy")
+	}
+
+	var r0 *domain.GroupInlinePolicy
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, string) (*domain.GroupInlinePolicy, error)); ok {
+		return returnFunc(ctx, groupID, name)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, string) *domain.GroupInlinePolicy); ok {
+		r0 = returnFunc(ctx, groupID, name)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.GroupInlinePolicy)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64, string) error); ok {
+		r1 = returnFunc(ctx, groupID, name)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockGroupRepository_GetInlinePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetInlinePolicy'
+type MockGroupRepository_GetInlinePolicy_Call struct {
+	*mock.Call
+}
+
+// GetInlinePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID uint64
+//   - name string
+func (_e *MockGroupRepository_Expecter) GetInlinePolicy(ctx interface{}, groupID interface{}, name interface{}) *MockGroupRepository_GetInlinePolicy_Call {
+	return &MockGroupRepository_GetInlinePolicy_Call{Call: _e.mock.On("GetInlinePolicy", ctx, groupID, name)}
+}
+
+func (_c *MockGroupRepository_GetInlinePolicy_Call) Run(run func(ctx context.Context, groupID uint64, name string)) *MockGroupRepository_GetInlinePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockGroupRepository_GetInlinePolicy_Call) Return(groupInlinePolicy *domain.GroupInlinePolicy, err error) *MockGroupRepository_GetInlinePolicy_Call {
+	_c.Call.Return(groupInlinePolicy, err)
+	return _c
+}
+
+func (_c *MockGroupRepository_GetInlinePolicy_Call) RunAndReturn(run func(ctx context.Context, groupID uint64, name string) (*domain.GroupInlinePolicy, error)) *MockGroupRepository_GetInlinePolicy_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -422,6 +559,74 @@ func (_c *MockGroupRepository_ListGroups_Call) Return(groups []domain.Group, err
 }
 
 func (_c *MockGroupRepository_ListGroups_Call) RunAndReturn(run func(ctx context.Context, scope string, tenantID string) ([]domain.Group, error)) *MockGroupRepository_ListGroups_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListInlinePolicies provides a mock function for the type MockGroupRepository
+func (_mock *MockGroupRepository) ListInlinePolicies(ctx context.Context, groupID uint64) ([]domain.GroupInlinePolicy, error) {
+	ret := _mock.Called(ctx, groupID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListInlinePolicies")
+	}
+
+	var r0 []domain.GroupInlinePolicy
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) ([]domain.GroupInlinePolicy, error)); ok {
+		return returnFunc(ctx, groupID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) []domain.GroupInlinePolicy); ok {
+		r0 = returnFunc(ctx, groupID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]domain.GroupInlinePolicy)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
+		r1 = returnFunc(ctx, groupID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockGroupRepository_ListInlinePolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListInlinePolicies'
+type MockGroupRepository_ListInlinePolicies_Call struct {
+	*mock.Call
+}
+
+// ListInlinePolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID uint64
+func (_e *MockGroupRepository_Expecter) ListInlinePolicies(ctx interface{}, groupID interface{}) *MockGroupRepository_ListInlinePolicies_Call {
+	return &MockGroupRepository_ListInlinePolicies_Call{Call: _e.mock.On("ListInlinePolicies", ctx, groupID)}
+}
+
+func (_c *MockGroupRepository_ListInlinePolicies_Call) Run(run func(ctx context.Context, groupID uint64)) *MockGroupRepository_ListInlinePolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockGroupRepository_ListInlinePolicies_Call) Return(groupInlinePolicys []domain.GroupInlinePolicy, err error) *MockGroupRepository_ListInlinePolicies_Call {
+	_c.Call.Return(groupInlinePolicys, err)
+	return _c
+}
+
+func (_c *MockGroupRepository_ListInlinePolicies_Call) RunAndReturn(run func(ctx context.Context, groupID uint64) ([]domain.GroupInlinePolicy, error)) *MockGroupRepository_ListInlinePolicies_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -558,6 +763,63 @@ func (_c *MockGroupRepository_ListPolicies_Call) Return(policys []domain.Policy,
 }
 
 func (_c *MockGroupRepository_ListPolicies_Call) RunAndReturn(run func(ctx context.Context, groupID uint64) ([]domain.Policy, error)) *MockGroupRepository_ListPolicies_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// PutInlinePolicy provides a mock function for the type MockGroupRepository
+func (_mock *MockGroupRepository) PutInlinePolicy(ctx context.Context, input domain.PutGroupInlinePolicyInput) error {
+	ret := _mock.Called(ctx, input)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PutInlinePolicy")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.PutGroupInlinePolicyInput) error); ok {
+		r0 = returnFunc(ctx, input)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockGroupRepository_PutInlinePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutInlinePolicy'
+type MockGroupRepository_PutInlinePolicy_Call struct {
+	*mock.Call
+}
+
+// PutInlinePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input domain.PutGroupInlinePolicyInput
+func (_e *MockGroupRepository_Expecter) PutInlinePolicy(ctx interface{}, input interface{}) *MockGroupRepository_PutInlinePolicy_Call {
+	return &MockGroupRepository_PutInlinePolicy_Call{Call: _e.mock.On("PutInlinePolicy", ctx, input)}
+}
+
+func (_c *MockGroupRepository_PutInlinePolicy_Call) Run(run func(ctx context.Context, input domain.PutGroupInlinePolicyInput)) *MockGroupRepository_PutInlinePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 domain.PutGroupInlinePolicyInput
+		if args[1] != nil {
+			arg1 = args[1].(domain.PutGroupInlinePolicyInput)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockGroupRepository_PutInlinePolicy_Call) Return(err error) *MockGroupRepository_PutInlinePolicy_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockGroupRepository_PutInlinePolicy_Call) RunAndReturn(run func(ctx context.Context, input domain.PutGroupInlinePolicyInput) error) *MockGroupRepository_PutInlinePolicy_Call {
 	_c.Call.Return(run)
 	return _c
 }

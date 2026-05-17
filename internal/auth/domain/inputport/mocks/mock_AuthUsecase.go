@@ -8,6 +8,7 @@ import (
 	"context"
 
 	mock "github.com/stretchr/testify/mock"
+	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
 )
 
@@ -36,6 +37,326 @@ type MockAuthUsecase_Expecter struct {
 
 func (_m *MockAuthUsecase) EXPECT() *MockAuthUsecase_Expecter {
 	return &MockAuthUsecase_Expecter{mock: &_m.Mock}
+}
+
+// AssumeRole provides a mock function for the type MockAuthUsecase
+func (_mock *MockAuthUsecase) AssumeRole(ctx context.Context, userID uint, accessToken string, roleName string, tenantID string, sessionPolicy []entity.SessionPolicyStatement) (*inputport.AuthResult, error) {
+	ret := _mock.Called(ctx, userID, accessToken, roleName, tenantID, sessionPolicy)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AssumeRole")
+	}
+
+	var r0 *inputport.AuthResult
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string, string, string, []entity.SessionPolicyStatement) (*inputport.AuthResult, error)); ok {
+		return returnFunc(ctx, userID, accessToken, roleName, tenantID, sessionPolicy)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string, string, string, []entity.SessionPolicyStatement) *inputport.AuthResult); ok {
+		r0 = returnFunc(ctx, userID, accessToken, roleName, tenantID, sessionPolicy)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*inputport.AuthResult)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint, string, string, string, []entity.SessionPolicyStatement) error); ok {
+		r1 = returnFunc(ctx, userID, accessToken, roleName, tenantID, sessionPolicy)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockAuthUsecase_AssumeRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AssumeRole'
+type MockAuthUsecase_AssumeRole_Call struct {
+	*mock.Call
+}
+
+// AssumeRole is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uint
+//   - accessToken string
+//   - roleName string
+//   - tenantID string
+//   - sessionPolicy []entity.SessionPolicyStatement
+func (_e *MockAuthUsecase_Expecter) AssumeRole(ctx interface{}, userID interface{}, accessToken interface{}, roleName interface{}, tenantID interface{}, sessionPolicy interface{}) *MockAuthUsecase_AssumeRole_Call {
+	return &MockAuthUsecase_AssumeRole_Call{Call: _e.mock.On("AssumeRole", ctx, userID, accessToken, roleName, tenantID, sessionPolicy)}
+}
+
+func (_c *MockAuthUsecase_AssumeRole_Call) Run(run func(ctx context.Context, userID uint, accessToken string, roleName string, tenantID string, sessionPolicy []entity.SessionPolicyStatement)) *MockAuthUsecase_AssumeRole_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		var arg4 string
+		if args[4] != nil {
+			arg4 = args[4].(string)
+		}
+		var arg5 []entity.SessionPolicyStatement
+		if args[5] != nil {
+			arg5 = args[5].([]entity.SessionPolicyStatement)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+			arg4,
+			arg5,
+		)
+	})
+	return _c
+}
+
+func (_c *MockAuthUsecase_AssumeRole_Call) Return(authResult *inputport.AuthResult, err error) *MockAuthUsecase_AssumeRole_Call {
+	_c.Call.Return(authResult, err)
+	return _c
+}
+
+func (_c *MockAuthUsecase_AssumeRole_Call) RunAndReturn(run func(ctx context.Context, userID uint, accessToken string, roleName string, tenantID string, sessionPolicy []entity.SessionPolicyStatement) (*inputport.AuthResult, error)) *MockAuthUsecase_AssumeRole_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// AssumeSessionPolicy provides a mock function for the type MockAuthUsecase
+func (_mock *MockAuthUsecase) AssumeSessionPolicy(ctx context.Context, userID uint, accessToken string, statements []entity.SessionPolicyStatement) (*inputport.AuthResult, error) {
+	ret := _mock.Called(ctx, userID, accessToken, statements)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AssumeSessionPolicy")
+	}
+
+	var r0 *inputport.AuthResult
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string, []entity.SessionPolicyStatement) (*inputport.AuthResult, error)); ok {
+		return returnFunc(ctx, userID, accessToken, statements)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string, []entity.SessionPolicyStatement) *inputport.AuthResult); ok {
+		r0 = returnFunc(ctx, userID, accessToken, statements)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*inputport.AuthResult)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint, string, []entity.SessionPolicyStatement) error); ok {
+		r1 = returnFunc(ctx, userID, accessToken, statements)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockAuthUsecase_AssumeSessionPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AssumeSessionPolicy'
+type MockAuthUsecase_AssumeSessionPolicy_Call struct {
+	*mock.Call
+}
+
+// AssumeSessionPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uint
+//   - accessToken string
+//   - statements []entity.SessionPolicyStatement
+func (_e *MockAuthUsecase_Expecter) AssumeSessionPolicy(ctx interface{}, userID interface{}, accessToken interface{}, statements interface{}) *MockAuthUsecase_AssumeSessionPolicy_Call {
+	return &MockAuthUsecase_AssumeSessionPolicy_Call{Call: _e.mock.On("AssumeSessionPolicy", ctx, userID, accessToken, statements)}
+}
+
+func (_c *MockAuthUsecase_AssumeSessionPolicy_Call) Run(run func(ctx context.Context, userID uint, accessToken string, statements []entity.SessionPolicyStatement)) *MockAuthUsecase_AssumeSessionPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 []entity.SessionPolicyStatement
+		if args[3] != nil {
+			arg3 = args[3].([]entity.SessionPolicyStatement)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockAuthUsecase_AssumeSessionPolicy_Call) Return(authResult *inputport.AuthResult, err error) *MockAuthUsecase_AssumeSessionPolicy_Call {
+	_c.Call.Return(authResult, err)
+	return _c
+}
+
+func (_c *MockAuthUsecase_AssumeSessionPolicy_Call) RunAndReturn(run func(ctx context.Context, userID uint, accessToken string, statements []entity.SessionPolicyStatement) (*inputport.AuthResult, error)) *MockAuthUsecase_AssumeSessionPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ClearAssumedRole provides a mock function for the type MockAuthUsecase
+func (_mock *MockAuthUsecase) ClearAssumedRole(ctx context.Context, userID uint, accessToken string) (*inputport.AuthResult, error) {
+	ret := _mock.Called(ctx, userID, accessToken)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ClearAssumedRole")
+	}
+
+	var r0 *inputport.AuthResult
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string) (*inputport.AuthResult, error)); ok {
+		return returnFunc(ctx, userID, accessToken)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string) *inputport.AuthResult); ok {
+		r0 = returnFunc(ctx, userID, accessToken)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*inputport.AuthResult)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint, string) error); ok {
+		r1 = returnFunc(ctx, userID, accessToken)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockAuthUsecase_ClearAssumedRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ClearAssumedRole'
+type MockAuthUsecase_ClearAssumedRole_Call struct {
+	*mock.Call
+}
+
+// ClearAssumedRole is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uint
+//   - accessToken string
+func (_e *MockAuthUsecase_Expecter) ClearAssumedRole(ctx interface{}, userID interface{}, accessToken interface{}) *MockAuthUsecase_ClearAssumedRole_Call {
+	return &MockAuthUsecase_ClearAssumedRole_Call{Call: _e.mock.On("ClearAssumedRole", ctx, userID, accessToken)}
+}
+
+func (_c *MockAuthUsecase_ClearAssumedRole_Call) Run(run func(ctx context.Context, userID uint, accessToken string)) *MockAuthUsecase_ClearAssumedRole_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockAuthUsecase_ClearAssumedRole_Call) Return(authResult *inputport.AuthResult, err error) *MockAuthUsecase_ClearAssumedRole_Call {
+	_c.Call.Return(authResult, err)
+	return _c
+}
+
+func (_c *MockAuthUsecase_ClearAssumedRole_Call) RunAndReturn(run func(ctx context.Context, userID uint, accessToken string) (*inputport.AuthResult, error)) *MockAuthUsecase_ClearAssumedRole_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ClearSessionPolicy provides a mock function for the type MockAuthUsecase
+func (_mock *MockAuthUsecase) ClearSessionPolicy(ctx context.Context, userID uint, accessToken string) (*inputport.AuthResult, error) {
+	ret := _mock.Called(ctx, userID, accessToken)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ClearSessionPolicy")
+	}
+
+	var r0 *inputport.AuthResult
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string) (*inputport.AuthResult, error)); ok {
+		return returnFunc(ctx, userID, accessToken)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string) *inputport.AuthResult); ok {
+		r0 = returnFunc(ctx, userID, accessToken)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*inputport.AuthResult)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint, string) error); ok {
+		r1 = returnFunc(ctx, userID, accessToken)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockAuthUsecase_ClearSessionPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ClearSessionPolicy'
+type MockAuthUsecase_ClearSessionPolicy_Call struct {
+	*mock.Call
+}
+
+// ClearSessionPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uint
+//   - accessToken string
+func (_e *MockAuthUsecase_Expecter) ClearSessionPolicy(ctx interface{}, userID interface{}, accessToken interface{}) *MockAuthUsecase_ClearSessionPolicy_Call {
+	return &MockAuthUsecase_ClearSessionPolicy_Call{Call: _e.mock.On("ClearSessionPolicy", ctx, userID, accessToken)}
+}
+
+func (_c *MockAuthUsecase_ClearSessionPolicy_Call) Run(run func(ctx context.Context, userID uint, accessToken string)) *MockAuthUsecase_ClearSessionPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockAuthUsecase_ClearSessionPolicy_Call) Return(authResult *inputport.AuthResult, err error) *MockAuthUsecase_ClearSessionPolicy_Call {
+	_c.Call.Return(authResult, err)
+	return _c
+}
+
+func (_c *MockAuthUsecase_ClearSessionPolicy_Call) RunAndReturn(run func(ctx context.Context, userID uint, accessToken string) (*inputport.AuthResult, error)) *MockAuthUsecase_ClearSessionPolicy_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // ExchangeOAuthLogin provides a mock function for the type MockAuthUsecase

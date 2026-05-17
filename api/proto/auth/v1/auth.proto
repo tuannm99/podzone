@@ -64,6 +64,34 @@ service AuthService {
     };
   }
 
+  rpc AssumeSessionPolicy(AssumeSessionPolicyRequest) returns (AssumeSessionPolicyResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/sessions:assume-policy"
+      body: "*"
+    };
+  }
+
+  rpc ClearSessionPolicy(ClearSessionPolicyRequest) returns (ClearSessionPolicyResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/sessions:clear-policy"
+      body: "*"
+    };
+  }
+
+  rpc AssumeRole(AssumeRoleRequest) returns (AssumeRoleResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/sessions:assume-role"
+      body: "*"
+    };
+  }
+
+  rpc ClearAssumedRole(ClearAssumedRoleRequest) returns (ClearAssumedRoleResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/sessions:clear-assumed-role"
+      body: "*"
+    };
+  }
+
   rpc GetSession(GetSessionRequest) returns (GetSessionResponse) {
     option (google.api.http) = {
       get: "/auth/v1/sessions/{session_id}"
@@ -198,6 +226,12 @@ service IAMService {
     };
   }
 
+  rpc ListPolicyAttachments(ListPolicyAttachmentsRequest) returns (ListPolicyAttachmentsResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/policies/{name}/attachments"
+    };
+  }
+
   rpc DeletePolicy(DeletePolicyRequest) returns (DeletePolicyResponse) {
     option (google.api.http) = {
       delete: "/auth/v1/iam/policies/{name}"
@@ -261,6 +295,56 @@ service IAMService {
     };
   }
 
+  rpc PutGroupInlinePolicy(PutGroupInlinePolicyRequest) returns (PutGroupInlinePolicyResponse) {
+    option (google.api.http) = {
+      put: "/auth/v1/iam/groups/{group_id}/inline-policies/{name}"
+      body: "*"
+    };
+  }
+
+  rpc GetGroupInlinePolicy(GetGroupInlinePolicyRequest) returns (GetGroupInlinePolicyResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/groups/{group_id}/inline-policies/{name}"
+    };
+  }
+
+  rpc ListGroupInlinePolicies(ListGroupInlinePoliciesRequest) returns (ListGroupInlinePoliciesResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/groups/{group_id}/inline-policies"
+    };
+  }
+
+  rpc DeleteGroupInlinePolicy(DeleteGroupInlinePolicyRequest) returns (DeleteGroupInlinePolicyResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/groups/{group_id}/inline-policies/{name}"
+    };
+  }
+
+  rpc PutPlatformUserInlinePolicy(PutPlatformUserInlinePolicyRequest) returns (PutPlatformUserInlinePolicyResponse) {
+    option (google.api.http) = {
+      put: "/auth/v1/iam/platform-users/{target_user_id}/inline-policies/{name}"
+      body: "*"
+    };
+  }
+
+  rpc GetPlatformUserInlinePolicy(GetPlatformUserInlinePolicyRequest) returns (GetPlatformUserInlinePolicyResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/platform-users/{target_user_id}/inline-policies/{name}"
+    };
+  }
+
+  rpc ListPlatformUserInlinePolicies(ListPlatformUserInlinePoliciesRequest) returns (ListPlatformUserInlinePoliciesResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/platform-users/{target_user_id}/inline-policies"
+    };
+  }
+
+  rpc DeletePlatformUserInlinePolicy(DeletePlatformUserInlinePolicyRequest) returns (DeletePlatformUserInlinePolicyResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/platform-users/{target_user_id}/inline-policies/{name}"
+    };
+  }
+
   rpc ListPlatformUserPolicies(ListPlatformUserPoliciesRequest) returns (ListPlatformUserPoliciesResponse) {
     option (google.api.http) = {
       get: "/auth/v1/iam/platform-users/{target_user_id}/policies"
@@ -298,6 +382,31 @@ service IAMService {
     };
   }
 
+  rpc PutTenantUserInlinePolicy(PutTenantUserInlinePolicyRequest) returns (PutTenantUserInlinePolicyResponse) {
+    option (google.api.http) = {
+      put: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/inline-policies/{name}"
+      body: "*"
+    };
+  }
+
+  rpc GetTenantUserInlinePolicy(GetTenantUserInlinePolicyRequest) returns (GetTenantUserInlinePolicyResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/inline-policies/{name}"
+    };
+  }
+
+  rpc ListTenantUserInlinePolicies(ListTenantUserInlinePoliciesRequest) returns (ListTenantUserInlinePoliciesResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/inline-policies"
+    };
+  }
+
+  rpc DeleteTenantUserInlinePolicy(DeleteTenantUserInlinePolicyRequest) returns (DeleteTenantUserInlinePolicyResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/inline-policies/{name}"
+    };
+  }
+
   rpc ListTenantUserPolicies(ListTenantUserPoliciesRequest) returns (ListTenantUserPoliciesResponse) {
     option (google.api.http) = {
       get: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/policies"
@@ -314,6 +423,25 @@ service IAMService {
   rpc DetachTenantUserPolicy(DetachTenantUserPolicyRequest) returns (DetachTenantUserPolicyResponse) {
     option (google.api.http) = {
       delete: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/policies/{policy_name}"
+    };
+  }
+
+  rpc PutRoleTrustPolicy(PutRoleTrustPolicyRequest) returns (PutRoleTrustPolicyResponse) {
+    option (google.api.http) = {
+      put: "/auth/v1/iam/roles/{role_name}/trust-policy"
+      body: "*"
+    };
+  }
+
+  rpc GetRoleTrustPolicy(GetRoleTrustPolicyRequest) returns (GetRoleTrustPolicyResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/roles/{role_name}/trust-policy"
+    };
+  }
+
+  rpc DeleteRoleTrustPolicy(DeleteRoleTrustPolicyRequest) returns (DeleteRoleTrustPolicyResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/roles/{role_name}/trust-policy"
     };
   }
 }
@@ -392,6 +520,11 @@ message Session {
   string updated_at = 6;
   string expires_at = 7;
   string revoked_at = 8;
+  repeated PolicyStatement session_policy = 9;
+  uint64 assumed_role_id = 10;
+  string assumed_role_scope = 11;
+  string assumed_role_name = 12;
+  string assumed_role_tenant_id = 13;
 }
 
 message AuditLog {
@@ -541,6 +674,28 @@ message Policy {
   string updated_at = 7;
 }
 
+message PolicyAttachment {
+  string attachment_type = 1;
+  string scope = 2;
+  string tenant_id = 3;
+  uint64 role_id = 4;
+  string role_name = 5;
+  uint64 user_id = 6;
+  uint64 group_id = 7;
+  string group_name = 8;
+  string created_at = 9;
+}
+
+message RoleTrustStatement {
+  uint64 id = 1;
+  uint64 role_id = 2;
+  string effect = 3;
+  string principal_type = 4;
+  string principal_pattern = 5;
+  string tenant_pattern = 6;
+  string created_at = 7;
+}
+
 message Group {
   uint64 id = 1;
   string scope = 2;
@@ -598,11 +753,40 @@ message ListPoliciesResponse {
   repeated Policy policies = 1;
 }
 
+message ListPolicyAttachmentsRequest {
+  string name = 1;
+}
+
+message ListPolicyAttachmentsResponse {
+  repeated PolicyAttachment attachments = 1;
+}
+
 message DeletePolicyRequest {
   string name = 1;
 }
 
 message DeletePolicyResponse {}
+
+message PutRoleTrustPolicyRequest {
+  string role_name = 1;
+  repeated RoleTrustStatement statements = 2;
+}
+
+message PutRoleTrustPolicyResponse {}
+
+message GetRoleTrustPolicyRequest {
+  string role_name = 1;
+}
+
+message GetRoleTrustPolicyResponse {
+  repeated RoleTrustStatement statements = 1;
+}
+
+message DeleteRoleTrustPolicyRequest {
+  string role_name = 1;
+}
+
+message DeleteRoleTrustPolicyResponse {}
 
 message CreateGroupRequest {
   string scope = 1;
@@ -674,6 +858,59 @@ message DetachGroupPolicyRequest {
 
 message DetachGroupPolicyResponse {}
 
+message GroupInlinePolicy {
+  uint64 group_id = 1;
+  string name = 2;
+  string description = 3;
+  repeated PolicyStatement statements = 4;
+  string created_at = 5;
+  string updated_at = 6;
+}
+
+message UserInlinePolicy {
+  string scope = 1;
+  string tenant_id = 2;
+  uint64 user_id = 3;
+  string name = 4;
+  string description = 5;
+  repeated PolicyStatement statements = 6;
+  string created_at = 7;
+  string updated_at = 8;
+}
+
+message PutGroupInlinePolicyRequest {
+  uint64 group_id = 1;
+  string name = 2;
+  string description = 3;
+  repeated PolicyStatement statements = 4;
+}
+
+message PutGroupInlinePolicyResponse {}
+
+message GetGroupInlinePolicyRequest {
+  uint64 group_id = 1;
+  string name = 2;
+}
+
+message GetGroupInlinePolicyResponse {
+  GroupInlinePolicy policy = 1;
+}
+
+message ListGroupInlinePoliciesRequest {
+  uint64 group_id = 1;
+}
+
+message ListGroupInlinePoliciesResponse {
+  repeated GroupInlinePolicy policies = 1;
+}
+
+message DeleteGroupInlinePolicyRequest {
+  uint64 group_id = 1;
+  string name = 2;
+}
+
+message DeleteGroupInlinePolicyResponse {}
+
 message ListPlatformUserPoliciesRequest {
   uint64 target_user_id = 1;
 }
@@ -681,6 +918,39 @@ message ListPlatformUserPoliciesRequest {
 message ListPlatformUserPoliciesResponse {
   repeated Policy policies = 1;
 }
+
+message PutPlatformUserInlinePolicyRequest {
+  uint64 target_user_id = 1;
+  string name = 2;
+  string description = 3;
+  repeated PolicyStatement statements = 4;
+}
+
+message PutPlatformUserInlinePolicyResponse {}
+
+message GetPlatformUserInlinePolicyRequest {
+  uint64 target_user_id = 1;
+  string name = 2;
+}
+
+message GetPlatformUserInlinePolicyResponse {
+  UserInlinePolicy policy = 1;
+}
+
+message ListPlatformUserInlinePoliciesRequest {
+  uint64 target_user_id = 1;
+}
+
+message ListPlatformUserInlinePoliciesResponse {
+  repeated UserInlinePolicy policies = 1;
+}
+
+message DeletePlatformUserInlinePolicyRequest {
+  uint64 target_user_id = 1;
+  string name = 2;
+}
+
+message DeletePlatformUserInlinePolicyResponse {}
 
 message AttachPlatformUserPolicyRequest {
   uint64 target_user_id = 1;
@@ -752,6 +1022,43 @@ message ListTenantUserPoliciesResponse {
   repeated Policy policies = 1;
 }
 
+message PutTenantUserInlinePolicyRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+  string name = 3;
+  string description = 4;
+  repeated PolicyStatement statements = 5;
+}
+
+message PutTenantUserInlinePolicyResponse {}
+
+message GetTenantUserInlinePolicyRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+  string name = 3;
+}
+
+message GetTenantUserInlinePolicyResponse {
+  UserInlinePolicy policy = 1;
+}
+
+message ListTenantUserInlinePoliciesRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+}
+
+message ListTenantUserInlinePoliciesResponse {
+  repeated UserInlinePolicy policies = 1;
+}
+
+message DeleteTenantUserInlinePolicyRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+  string name = 3;
+}
+
+message DeleteTenantUserInlinePolicyResponse {}
+
 message AttachTenantUserPolicyRequest {
   string tenant_id = 1;
   uint64 user_id = 2;
@@ -778,6 +1085,46 @@ message SwitchActiveTenantResponse {
   string jwt_token = 1;
   UserInfo user_info = 2;
   string refresh_token = 3;
+}
+
+message AssumeSessionPolicyRequest {
+  string access_token = 1;
+  repeated PolicyStatement statements = 2;
+}
+
+message AssumeSessionPolicyResponse {
+  string jwt_token = 1;
+  Session session = 2;
+}
+
+message ClearSessionPolicyRequest {
+  string access_token = 1;
+}
+
+message ClearSessionPolicyResponse {
+  string jwt_token = 1;
+  Session session = 2;
+}
+
+message AssumeRoleRequest {
+  string access_token = 1;
+  string role_name = 2;
+  string tenant_id = 3;
+  repeated PolicyStatement session_policy = 4;
+}
+
+message AssumeRoleResponse {
+  string jwt_token = 1;
+  Session session = 2;
+}
+
+message ClearAssumedRoleRequest {
+  string access_token = 1;
+}
+
+message ClearAssumedRoleResponse {
+  string jwt_token = 1;
+  Session session = 2;
 }
 
 message GetSessionRequest {

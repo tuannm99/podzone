@@ -22,7 +22,7 @@ func (r *RoleRepositoryImpl) GetByName(ctx context.Context, name string) (*iamdo
 	if err := r.db.GetContext(
 		ctx,
 		&out,
-		`SELECT id, name, description, is_system, created_at, updated_at FROM iam_roles WHERE name = $1`,
+		`SELECT id, scope, name, description, is_system, created_at, updated_at FROM iam_roles WHERE name = $1`,
 		name,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -32,6 +32,7 @@ func (r *RoleRepositoryImpl) GetByName(ctx context.Context, name string) (*iamdo
 	}
 	return &iamdomain.Role{
 		ID:          out.ID,
+		Scope:       out.Scope,
 		Name:        out.Name,
 		Description: out.Description,
 		IsSystem:    out.IsSystem,
@@ -55,4 +56,62 @@ func (r *RoleRepositoryImpl) RoleHasPermission(ctx context.Context, roleID uint6
 		permission,
 	)
 	return exists, err
+}
+
+func (r *RoleRepositoryImpl) PutTrustPolicy(
+	ctx context.Context,
+	roleID uint64,
+	statements []iamdomain.RoleTrustStatement,
+) error {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	if _, err := tx.ExecContext(ctx, `DELETE FROM iam_role_trust_statements WHERE role_id = $1`, roleID); err != nil {
+		return err
+	}
+	for _, statement := range statements {
+		if _, err := tx.ExecContext(
+			ctx,
+			`INSERT INTO iam_role_trust_statements
+			 (role_id, effect, principal_type, principal_pattern, tenant_pattern, created_at)
+			 VALUES ($1, $2, $3, $4, $5, $6)`,
+			roleID,
+			statement.Effect,
+			statement.PrincipalType,
+			statement.PrincipalPattern,
+			statement.TenantPattern,
+			statement.CreatedAt,
+		); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
+func (r *RoleRepositoryImpl) GetTrustPolicy(ctx context.Context, roleID uint64) ([]iamdomain.RoleTrustStatement, error) {
+	rows := make([]roleTrustStatementModel, 0)
+	if err := r.db.SelectContext(
+		ctx,
+		&rows,
+		`SELECT id, role_id, effect, principal_type, principal_pattern, tenant_pattern, created_at
+		 FROM iam_role_trust_statements
+		 WHERE role_id = $1
+		 ORDER BY id ASC`,
+		roleID,
+	); err != nil {
+		return nil, err
+	}
+	out := make([]iamdomain.RoleTrustStatement, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, row.toEntity())
+	}
+	return out, nil
+}
+
+func (r *RoleRepositoryImpl) DeleteTrustPolicy(ctx context.Context, roleID uint64) error {
+	_, err := r.db.ExecContext(ctx, `DELETE FROM iam_role_trust_statements WHERE role_id = $1`, roleID)
+	return err
 }

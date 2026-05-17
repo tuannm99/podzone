@@ -12,6 +12,8 @@ type SessionRepository interface {
 	GetByID(ctx context.Context, id string) (*entity.Session, error)
 	ListByUser(ctx context.Context, userID uint) ([]entity.Session, error)
 	UpdateActiveTenant(ctx context.Context, id, tenantID string, updatedAt time.Time) error
+	UpdateSessionPolicy(ctx context.Context, id string, statements []entity.SessionPolicyStatement, updatedAt time.Time) error
+	UpdateAssumedRole(ctx context.Context, session entity.Session, updatedAt time.Time) error
 	Revoke(ctx context.Context, id string, revokedAt time.Time) error
 }
 

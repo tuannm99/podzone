@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -27,11 +28,17 @@ func NewSessionRepositoryImpl(p UserRepoParams) *SessionRepositoryImpl {
 }
 
 func (r *SessionRepositoryImpl) Create(ctx context.Context, session entity.Session) error {
+	policyJSON, err := json.Marshal(session.SessionPolicy)
+	if err != nil {
+		return err
+	}
 	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
 		Insert("auth_sessions").
-		Columns("id", "user_id", "active_tenant_id", "status", "created_at",
+		Columns("id", "user_id", "active_tenant_id", "session_policy_json", "assumed_role_id",
+			"assumed_role_scope", "assumed_role_name", "assumed_role_tenant_id", "status", "created_at",
 			"updated_at", "expires_at", "revoked_at").
-		Values(session.ID, session.UserID, session.ActiveTenantID, session.Status, session.CreatedAt,
+		Values(session.ID, session.UserID, session.ActiveTenantID, string(policyJSON), session.AssumedRoleID,
+			session.AssumedRoleScope, session.AssumedRoleName, session.AssumedRoleTenantID, session.Status, session.CreatedAt,
 			session.UpdatedAt, session.ExpiresAt, session.RevokedAt).
 		ToSql()
 	if err != nil {
@@ -43,7 +50,8 @@ func (r *SessionRepositoryImpl) Create(ctx context.Context, session entity.Sessi
 
 func (r *SessionRepositoryImpl) GetByID(ctx context.Context, id string) (*entity.Session, error) {
 	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
-		Select("id", "user_id", "active_tenant_id", "status", "created_at",
+		Select("id", "user_id", "active_tenant_id", "session_policy_json", "assumed_role_id",
+			"assumed_role_scope", "assumed_role_name", "assumed_role_tenant_id", "status", "created_at",
 			"updated_at", "expires_at", "revoked_at").
 		From("auth_sessions").
 		Where(sq.Eq{"id": id}).
@@ -64,7 +72,8 @@ func (r *SessionRepositoryImpl) GetByID(ctx context.Context, id string) (*entity
 
 func (r *SessionRepositoryImpl) ListByUser(ctx context.Context, userID uint) ([]entity.Session, error) {
 	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
-		Select("id", "user_id", "active_tenant_id", "status", "created_at",
+		Select("id", "user_id", "active_tenant_id", "session_policy_json", "assumed_role_id",
+			"assumed_role_scope", "assumed_role_name", "assumed_role_tenant_id", "status", "created_at",
 			"updated_at", "expires_at", "revoked_at").
 		From("auth_sessions").
 		Where(sq.Eq{"user_id": userID}).
@@ -96,6 +105,50 @@ func (r *SessionRepositoryImpl) UpdateActiveTenant(
 		Set("active_tenant_id", tenantID).
 		Set("updated_at", updatedAt).
 		Where(sq.Eq{"id": id}).
+		ToSql()
+	if err != nil {
+		return err
+	}
+	_, err = r.db.ExecContext(ctx, query, args...)
+	return err
+}
+
+func (r *SessionRepositoryImpl) UpdateSessionPolicy(
+	ctx context.Context,
+	id string,
+	statements []entity.SessionPolicyStatement,
+	updatedAt time.Time,
+) error {
+	policyJSON, err := json.Marshal(statements)
+	if err != nil {
+		return err
+	}
+	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+		Update("auth_sessions").
+		Set("session_policy_json", string(policyJSON)).
+		Set("updated_at", updatedAt).
+		Where(sq.Eq{"id": id}).
+		ToSql()
+	if err != nil {
+		return err
+	}
+	_, err = r.db.ExecContext(ctx, query, args...)
+	return err
+}
+
+func (r *SessionRepositoryImpl) UpdateAssumedRole(
+	ctx context.Context,
+	session entity.Session,
+	updatedAt time.Time,
+) error {
+	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+		Update("auth_sessions").
+		Set("assumed_role_id", session.AssumedRoleID).
+		Set("assumed_role_scope", session.AssumedRoleScope).
+		Set("assumed_role_name", session.AssumedRoleName).
+		Set("assumed_role_tenant_id", session.AssumedRoleTenantID).
+		Set("updated_at", updatedAt).
+		Where(sq.Eq{"id": session.ID}).
 		ToSql()
 	if err != nil {
 		return err
