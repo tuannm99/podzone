@@ -28,19 +28,31 @@ func newConnectionStoreMock(t *testing.T, state *connectionStoreState) *coremock
 		state.lastConn = &copyInfo
 		return nil
 	}).Maybe()
-	store.EXPECT().SoftDelete(mock.Anything, mock.Anything, mock.Anything).RunAndReturn(func(tenantID string, infraType core.InfraType, name string) error {
-		state.softDeleteCalls++
-		return nil
-	}).Maybe()
-	store.EXPECT().Get(mock.Anything, mock.Anything, mock.Anything).RunAndReturn(func(tenantID string, infraType core.InfraType, name string) (*core.ConnectionInfo, error) {
-		if state.lastConn == nil {
-			return nil, nil
-		}
-		copyInfo := *state.lastConn
-		return &copyInfo, nil
-	}).Maybe()
-	store.EXPECT().ListConnections(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]core.ConnectionInfo(nil), nil).Maybe()
-	store.EXPECT().ListEvents(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]core.ConnectionEvent(nil), nil).Maybe()
+	store.EXPECT().
+		SoftDelete(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(tenantID string, infraType core.InfraType, name string) error {
+			state.softDeleteCalls++
+			return nil
+		}).
+		Maybe()
+	store.EXPECT().
+		Get(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(tenantID string, infraType core.InfraType, name string) (*core.ConnectionInfo, error) {
+			if state.lastConn == nil {
+				return nil, nil
+			}
+			copyInfo := *state.lastConn
+			return &copyInfo, nil
+		}).
+		Maybe()
+	store.EXPECT().
+		ListConnections(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		Return([]core.ConnectionInfo(nil), nil).
+		Maybe()
+	store.EXPECT().
+		ListEvents(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		Return([]core.ConnectionEvent(nil), nil).
+		Maybe()
 	store.EXPECT().AppendEvent(mock.Anything).RunAndReturn(func(ev core.ConnectionEvent) error {
 		state.events = append(state.events, ev)
 		return nil

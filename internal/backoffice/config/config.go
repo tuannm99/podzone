@@ -27,6 +27,30 @@ func NewConfigFromKoanf(k *koanf.Koanf) (Config, error) {
 		return cfg, fmt.Errorf("unmarshal backoffice config failed: %w", err)
 	}
 	if cfg.Auth.JWTSecret == "" {
+		cfg.Auth.JWTSecret = k.String("backoffice.auth.jwt_secret")
+	}
+	if cfg.Auth.JWTKey == "" {
+		cfg.Auth.JWTKey = k.String("backoffice.auth.jwt_key")
+	}
+	if cfg.Auth.GRPCHost == "" {
+		cfg.Auth.GRPCHost = k.String("backoffice.auth.grpc_host")
+	}
+	if cfg.Auth.GRPCPort == "" {
+		cfg.Auth.GRPCPort = k.String("backoffice.auth.grpc_port")
+	}
+	if cfg.IAM.JWTSecret == "" {
+		cfg.IAM.JWTSecret = k.String("backoffice.iam.jwt_secret")
+	}
+	if cfg.IAM.JWTKey == "" {
+		cfg.IAM.JWTKey = k.String("backoffice.iam.jwt_key")
+	}
+	if cfg.IAM.GRPCHost == "" {
+		cfg.IAM.GRPCHost = k.String("backoffice.iam.grpc_host")
+	}
+	if cfg.IAM.GRPCPort == "" {
+		cfg.IAM.GRPCPort = k.String("backoffice.iam.grpc_port")
+	}
+	if cfg.Auth.JWTSecret == "" {
 		return cfg, fmt.Errorf("missing config: backoffice.auth.jwt_secret")
 	}
 	if cfg.Auth.GRPCHost == "" {

@@ -20,36 +20,39 @@ func TestCreateRoutedOrderMapsInputAndOutput(t *testing.T) {
 
 	orderUC := inputmocks.NewMockOrderRoutingUsecase(t)
 	productUC := inputmocks.NewMockProductSetupUsecase(t)
-	orderUC.EXPECT().CreateRoutedOrder(mock.Anything, mock.Anything).RunAndReturn(func(_ context.Context, cmd inputport.CreateRoutedOrderCmd) (*entity.RoutedOrder, error) {
-		require.Equal(t, inputport.CreateRoutedOrderCmd{
-			CandidateID:  "cand-1",
-			CustomerName: "Alex POD",
-			Quantity:     3,
-		}, cmd)
-		now := time.Date(2026, 5, 15, 10, 0, 0, 0, time.UTC)
-		return &entity.RoutedOrder{
-			ID:               "ord-1",
-			CandidateID:      cmd.CandidateID,
-			ProductTitle:     "Vintage Tee",
-			Partner:          "Print Partner A",
-			Quantity:         cmd.Quantity,
-			Total:            "$60.00",
-			CustomerName:     cmd.CustomerName,
-			Status:           entity.RoutedOrderStatusQueued,
-			Timeline:         []string{"created"},
-			ShipmentStatus:   entity.RoutedOrderShipmentStatusAwaitingLabel,
-			OperatorAssignee: "unassigned",
-			BaseCostSnapshot: "$24.00",
-			FulfillmentCost:  "$24.00",
-			ShippingCost:     "$0.00",
-			IssueCost:        "$0.00",
-			IssueResolution:  entity.RoutedOrderIssueResolutionMonitor,
-			RealizedMargin:   "$36.00",
-			SettlementStatus: entity.RoutedOrderSettlementStatusPending,
-			CreatedAt:        now,
-			UpdatedAt:        now,
-		}, nil
-	}).Once()
+	orderUC.EXPECT().
+		CreateRoutedOrder(mock.Anything, mock.Anything).
+		RunAndReturn(func(_ context.Context, cmd inputport.CreateRoutedOrderCmd) (*entity.RoutedOrder, error) {
+			require.Equal(t, inputport.CreateRoutedOrderCmd{
+				CandidateID:  "cand-1",
+				CustomerName: "Alex POD",
+				Quantity:     3,
+			}, cmd)
+			now := time.Date(2026, 5, 15, 10, 0, 0, 0, time.UTC)
+			return &entity.RoutedOrder{
+				ID:               "ord-1",
+				CandidateID:      cmd.CandidateID,
+				ProductTitle:     "Vintage Tee",
+				Partner:          "Print Partner A",
+				Quantity:         cmd.Quantity,
+				Total:            "$60.00",
+				CustomerName:     cmd.CustomerName,
+				Status:           entity.RoutedOrderStatusQueued,
+				Timeline:         []string{"created"},
+				ShipmentStatus:   entity.RoutedOrderShipmentStatusAwaitingLabel,
+				OperatorAssignee: "unassigned",
+				BaseCostSnapshot: "$24.00",
+				FulfillmentCost:  "$24.00",
+				ShippingCost:     "$0.00",
+				IssueCost:        "$0.00",
+				IssueResolution:  entity.RoutedOrderIssueResolutionMonitor,
+				RealizedMargin:   "$36.00",
+				SettlementStatus: entity.RoutedOrderSettlementStatusPending,
+				CreatedAt:        now,
+				UpdatedAt:        now,
+			}, nil
+		}).
+		Once()
 
 	resolver := &mutationResolver{&Resolver{
 		ProductSetupUsecase: productUC,
@@ -77,19 +80,22 @@ func TestBulkUpdateRoutedOrdersMapsPointersAndList(t *testing.T) {
 	status := entity.RoutedOrderSettlementStatusPaid
 	orderUC := inputmocks.NewMockOrderRoutingUsecase(t)
 	productUC := inputmocks.NewMockProductSetupUsecase(t)
-	orderUC.EXPECT().BulkUpdateRoutedOrders(mock.Anything, mock.Anything).RunAndReturn(func(_ context.Context, cmd inputport.BulkUpdateRoutedOrdersCmd) ([]entity.RoutedOrder, error) {
-		require.Equal(t, []string{"ord-1", "ord-2"}, cmd.OrderIDs)
-		require.NotNil(t, cmd.OperatorAssignee)
-		require.Equal(t, owner, *cmd.OperatorAssignee)
-		require.NotNil(t, cmd.ShipmentSlaDueAt)
-		require.True(t, cmd.ShipmentSlaDueAt.Equal(sla))
-		require.NotNil(t, cmd.SettlementStatus)
-		require.Equal(t, status, *cmd.SettlementStatus)
-		return []entity.RoutedOrder{
-			{ID: "ord-1", OperatorAssignee: owner, ShipmentSlaDueAt: &sla, SettlementStatus: status},
-			{ID: "ord-2", OperatorAssignee: owner, ShipmentSlaDueAt: &sla, SettlementStatus: status},
-		}, nil
-	}).Once()
+	orderUC.EXPECT().
+		BulkUpdateRoutedOrders(mock.Anything, mock.Anything).
+		RunAndReturn(func(_ context.Context, cmd inputport.BulkUpdateRoutedOrdersCmd) ([]entity.RoutedOrder, error) {
+			require.Equal(t, []string{"ord-1", "ord-2"}, cmd.OrderIDs)
+			require.NotNil(t, cmd.OperatorAssignee)
+			require.Equal(t, owner, *cmd.OperatorAssignee)
+			require.NotNil(t, cmd.ShipmentSlaDueAt)
+			require.True(t, cmd.ShipmentSlaDueAt.Equal(sla))
+			require.NotNil(t, cmd.SettlementStatus)
+			require.Equal(t, status, *cmd.SettlementStatus)
+			return []entity.RoutedOrder{
+				{ID: "ord-1", OperatorAssignee: owner, ShipmentSlaDueAt: &sla, SettlementStatus: status},
+				{ID: "ord-2", OperatorAssignee: owner, ShipmentSlaDueAt: &sla, SettlementStatus: status},
+			}, nil
+		}).
+		Once()
 
 	resolver := &mutationResolver{&Resolver{
 		ProductSetupUsecase: productUC,
@@ -180,11 +186,14 @@ func TestUpdateOrderShipmentPropagatesUsecaseErrors(t *testing.T) {
 	wantErr := errors.New("invalid shipment status")
 	orderUC := inputmocks.NewMockOrderRoutingUsecase(t)
 	productUC := inputmocks.NewMockProductSetupUsecase(t)
-	orderUC.EXPECT().UpdateOrderShipment(mock.Anything, mock.Anything).RunAndReturn(func(_ context.Context, cmd inputport.UpdateOrderShipmentCmd) (*entity.RoutedOrder, error) {
-		require.Equal(t, "ord-1", cmd.OrderID)
-		require.Equal(t, "bad-status", cmd.ShipmentStatus)
-		return nil, wantErr
-	}).Once()
+	orderUC.EXPECT().
+		UpdateOrderShipment(mock.Anything, mock.Anything).
+		RunAndReturn(func(_ context.Context, cmd inputport.UpdateOrderShipmentCmd) (*entity.RoutedOrder, error) {
+			require.Equal(t, "ord-1", cmd.OrderID)
+			require.Equal(t, "bad-status", cmd.ShipmentStatus)
+			return nil, wantErr
+		}).
+		Once()
 
 	resolver := &mutationResolver{&Resolver{
 		ProductSetupUsecase: productUC,
@@ -209,38 +218,41 @@ func TestRoutedOrderActivitiesMapsQueryAndResponse(t *testing.T) {
 	since := time.Date(2026, 5, 15, 0, 0, 0, 0, time.UTC)
 	orderUC := inputmocks.NewMockOrderRoutingUsecase(t)
 	productUC := inputmocks.NewMockProductSetupUsecase(t)
-	orderUC.EXPECT().ListRoutedOrderActivities(mock.Anything, mock.Anything).RunAndReturn(func(_ context.Context, query inputport.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error) {
-		require.Equal(t, "shipment_note", query.ActivityType)
-		require.Equal(t, "user:12", query.ActorContains)
-		require.Equal(t, "ord-1", query.OrderID)
-		require.Equal(t, "print partner a", query.Partner)
-		require.Equal(t, "ops.lead", query.Assignee)
-		require.NotNil(t, query.Since)
-		require.True(t, query.Since.Equal(since))
-		require.Equal(t, 25, query.Limit)
-		require.Equal(t, "cursor-1", query.After)
-		require.True(t, query.IncludeSystem)
-		nextCursor := "cursor-2"
-		return &entity.RoutedOrderActivityFeedPage{
-			Entries: []entity.RoutedOrderActivityFeedEntry{
-				{
-					OrderID:          "ord-1",
-					ProductTitle:     "Vintage Tee",
-					Partner:          "Print Partner A",
-					OperatorAssignee: "ops.lead",
-					Activity: entity.RoutedOrderActivity{
-						Type:      entity.RoutedOrderActivityTypeShipmentNote,
-						Actor:     "user:12",
-						Message:   "Handed off to carrier",
-						Details:   []entity.RoutedOrderActivityDetail{{Key: "carrier", Value: "DHL"}},
-						CreatedAt: since,
+	orderUC.EXPECT().
+		ListRoutedOrderActivities(mock.Anything, mock.Anything).
+		RunAndReturn(func(_ context.Context, query inputport.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error) {
+			require.Equal(t, "shipment_note", query.ActivityType)
+			require.Equal(t, "user:12", query.ActorContains)
+			require.Equal(t, "ord-1", query.OrderID)
+			require.Equal(t, "print partner a", query.Partner)
+			require.Equal(t, "ops.lead", query.Assignee)
+			require.NotNil(t, query.Since)
+			require.True(t, query.Since.Equal(since))
+			require.Equal(t, 25, query.Limit)
+			require.Equal(t, "cursor-1", query.After)
+			require.True(t, query.IncludeSystem)
+			nextCursor := "cursor-2"
+			return &entity.RoutedOrderActivityFeedPage{
+				Entries: []entity.RoutedOrderActivityFeedEntry{
+					{
+						OrderID:          "ord-1",
+						ProductTitle:     "Vintage Tee",
+						Partner:          "Print Partner A",
+						OperatorAssignee: "ops.lead",
+						Activity: entity.RoutedOrderActivity{
+							Type:      entity.RoutedOrderActivityTypeShipmentNote,
+							Actor:     "user:12",
+							Message:   "Handed off to carrier",
+							Details:   []entity.RoutedOrderActivityDetail{{Key: "carrier", Value: "DHL"}},
+							CreatedAt: since,
+						},
 					},
 				},
-			},
-			Total:      80,
-			NextCursor: &nextCursor,
-		}, nil
-	}).Once()
+				Total:      80,
+				NextCursor: &nextCursor,
+			}, nil
+		}).
+		Once()
 
 	resolver := &queryResolver{&Resolver{
 		ProductSetupUsecase: productUC,

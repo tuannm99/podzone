@@ -206,6 +206,198 @@ func TestListAuditLogs_OK(t *testing.T) {
 	assert.Equal(t, `{"slug":"seller-one"}`, res.Logs[0].PayloadJson)
 }
 
+func TestCreatePolicy_OK(t *testing.T) {
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
+			return permission == "platform:manage_roles", nil
+		},
+		createPolicyFunc: func(ctx context.Context, input iamdomain.CreatePolicyInput) (*iamdomain.Policy, []iamdomain.PolicyStatement, error) {
+			require.Equal(t, "tenant/orders_editor", input.Name)
+			return &iamdomain.Policy{
+					ID:          1,
+					Scope:       input.Scope,
+					Name:        input.Name,
+					Description: input.Description,
+					CreatedAt:   time.Now().UTC(),
+					UpdatedAt:   time.Now().UTC(),
+				},
+				[]iamdomain.PolicyStatement{{
+					ID:              9,
+					PolicyID:        1,
+					PolicyName:      input.Name,
+					Effect:          iamdomain.PolicyEffectAllow,
+					ActionPattern:   "order:update",
+					ResourcePattern: "*",
+					CreatedAt:       time.Now().UTC(),
+				}}, nil
+		},
+	}))
+
+	res, err := srv.CreatePolicy(authContextForUser(t, 7), &pbauthv1.CreatePolicyRequest{
+		Scope:       iamdomain.PolicyScopeTenant,
+		Name:        "tenant/orders_editor",
+		Description: "Edit routed orders",
+		Statements: []*pbauthv1.PolicyStatement{{
+			Effect:          iamdomain.PolicyEffectAllow,
+			ActionPattern:   "order:update",
+			ResourcePattern: "*",
+		}},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	assert.Equal(t, "tenant/orders_editor", res.Policy.Name)
+	require.Len(t, res.Statements, 1)
+	assert.Equal(t, "order:update", res.Statements[0].ActionPattern)
+}
+
+func TestAttachTenantUserPolicy_OK(t *testing.T) {
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
+			return tenantID == "t1" && permission == "tenant:manage_members", nil
+		},
+		attachTenantPolicyFunc: func(ctx context.Context, tenantID string, userID uint, policyName string) error {
+			require.Equal(t, "t1", tenantID)
+			require.Equal(t, uint(9), userID)
+			require.Equal(t, "tenant/orders_editor", policyName)
+			return nil
+		},
+	}))
+
+	res, err := srv.AttachTenantUserPolicy(authContextForUser(t, 7), &pbauthv1.AttachTenantUserPolicyRequest{
+		TenantId:   "t1",
+		UserId:     9,
+		PolicyName: "tenant/orders_editor",
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+}
+
+func TestGetPolicy_OK(t *testing.T) {
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
+			return permission == "platform:manage_roles", nil
+		},
+		getPolicyFunc: func(ctx context.Context, name string) (*iamdomain.Policy, []iamdomain.PolicyStatement, error) {
+			return &iamdomain.Policy{
+					ID:    1,
+					Scope: iamdomain.PolicyScopeTenant,
+					Name:  name,
+				},
+				[]iamdomain.PolicyStatement{{
+					ID:              1,
+					PolicyID:        1,
+					PolicyName:      name,
+					Effect:          iamdomain.PolicyEffectAllow,
+					ActionPattern:   "order:update",
+					ResourcePattern: "*",
+					CreatedAt:       time.Now().UTC(),
+				}}, nil
+		},
+	}))
+
+	res, err := srv.GetPolicy(authContextForUser(t, 7), &pbauthv1.GetPolicyRequest{Name: "tenant/orders_editor"})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	assert.Equal(t, "tenant/orders_editor", res.Policy.Name)
+	require.Len(t, res.Statements, 1)
+}
+
+func TestDeletePolicy_OK(t *testing.T) {
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
+			return permission == "platform:manage_roles", nil
+		},
+		deletePolicyFunc: func(ctx context.Context, name string) error {
+			require.Equal(t, "tenant/orders_editor", name)
+			return nil
+		},
+	}))
+
+	res, err := srv.DeletePolicy(authContextForUser(t, 7), &pbauthv1.DeletePolicyRequest{Name: "tenant/orders_editor"})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+}
+
+func TestCreateGroup_OK(t *testing.T) {
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
+			return tenantID == "t1" && permission == "tenant:manage_members", nil
+		},
+		createGroupFunc: func(ctx context.Context, input iamdomain.CreateGroupInput) (*iamdomain.Group, error) {
+			return &iamdomain.Group{
+				ID:       12,
+				Scope:    input.Scope,
+				TenantID: input.TenantID,
+				Name:     input.Name,
+			}, nil
+		},
+	}))
+
+	res, err := srv.CreateGroup(authContextForUser(t, 7), &pbauthv1.CreateGroupRequest{
+		Scope:    iamdomain.PolicyScopeTenant,
+		TenantId: "t1",
+		Name:     "ops-team",
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	assert.Equal(t, "ops-team", res.Group.Name)
+}
+
+func TestDeleteGroup_OK(t *testing.T) {
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
+			return permission == "platform:manage_roles", nil
+		},
+		deleteGroupFunc: func(ctx context.Context, groupID uint64) error {
+			require.Equal(t, uint64(12), groupID)
+			return nil
+		},
+	}))
+
+	res, err := srv.DeleteGroup(authContextForUser(t, 7), &pbauthv1.DeleteGroupRequest{GroupId: 12})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+}
+
+func TestListGroupMembers_OK(t *testing.T) {
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
+			return permission == "platform:manage_roles", nil
+		},
+		listGroupMembersFunc: func(ctx context.Context, groupID uint64) ([]uint, error) {
+			require.Equal(t, uint64(12), groupID)
+			return []uint{7, 9}, nil
+		},
+	}))
+
+	res, err := srv.ListGroupMembers(authContextForUser(t, 7), &pbauthv1.ListGroupMembersRequest{
+		GroupId: 12,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.Equal(t, []uint64{7, 9}, res.UserIds)
+}
+
+func TestDetachGroupPolicy_OK(t *testing.T) {
+	srv := newServerWithIAM(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
+			return permission == "platform:manage_roles", nil
+		},
+		detachGroupPolicyFunc: func(ctx context.Context, groupID uint64, policyName string) error {
+			require.Equal(t, uint64(12), groupID)
+			require.Equal(t, "tenant/orders_editor", policyName)
+			return nil
+		},
+	}))
+
+	res, err := srv.DetachGroupPolicy(authContextForUser(t, 7), &pbauthv1.DetachGroupPolicyRequest{
+		GroupId:    12,
+		PolicyName: "tenant/orders_editor",
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+}
+
 func TestLogin_OK(t *testing.T) {
 	srv, uc := newServerWithMock(t)
 	ctx := context.Background()

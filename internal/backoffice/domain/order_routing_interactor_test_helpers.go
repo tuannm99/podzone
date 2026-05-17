@@ -27,7 +27,10 @@ func (h *testOrderRoutingHarness) mustSeed(order entity.RoutedOrder) {
 	h.orders[order.ID] = cloneOrder(order)
 }
 
-func newOrderRoutingTestInteractor(t *testing.T, candidates map[string]entity.ProductSetupCandidate) (*OrderRoutingInteractor, *testOrderRoutingHarness, *outputmocks.MockProductSetupRepository) {
+func newOrderRoutingTestInteractor(
+	t *testing.T,
+	candidates map[string]entity.ProductSetupCandidate,
+) (*OrderRoutingInteractor, *testOrderRoutingHarness, *outputmocks.MockProductSetupRepository) {
 	t.Helper()
 
 	ordersMock := outputmocks.NewMockOrderRoutingRepository(t)
@@ -46,133 +49,171 @@ func newOrderRoutingTestInteractor(t *testing.T, candidates map[string]entity.Pr
 		return orders, nil
 	}).Maybe()
 
-	ordersMock.EXPECT().ListActivityFeed(mock.Anything, mock.Anything).RunAndReturn(func(_ context.Context, query inputport.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error) {
-		entries := make([]entity.RoutedOrderActivityFeedEntry, 0)
-		for _, order := range orderState.orders {
-			if query.OrderID != "" && order.ID != strings.TrimSpace(query.OrderID) {
-				continue
-			}
-			if query.Partner != "" && !strings.Contains(strings.ToLower(order.Partner), strings.ToLower(query.Partner)) {
-				continue
-			}
-			if query.Assignee != "" && !strings.Contains(strings.ToLower(order.OperatorAssignee), strings.ToLower(query.Assignee)) {
-				continue
-			}
-			for _, activity := range order.ActivityLog {
-				if query.ActivityType == "notes" && activity.Type == entity.RoutedOrderActivityTypeSystem {
+	ordersMock.EXPECT().
+		ListActivityFeed(mock.Anything, mock.Anything).
+		RunAndReturn(func(_ context.Context, query inputport.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error) {
+			entries := make([]entity.RoutedOrderActivityFeedEntry, 0)
+			for _, order := range orderState.orders {
+				if query.OrderID != "" && order.ID != strings.TrimSpace(query.OrderID) {
 					continue
 				}
-				if query.ActivityType != "" && query.ActivityType != "all" && query.ActivityType != "notes" && activity.Type != query.ActivityType {
+				if query.Partner != "" &&
+					!strings.Contains(strings.ToLower(order.Partner), strings.ToLower(query.Partner)) {
 					continue
 				}
-				if !query.IncludeSystem && query.ActivityType != "system" && query.ActivityType != "notes" && activity.Type == entity.RoutedOrderActivityTypeSystem {
+				if query.Assignee != "" &&
+					!strings.Contains(strings.ToLower(order.OperatorAssignee), strings.ToLower(query.Assignee)) {
 					continue
 				}
-				if query.Since != nil && activity.CreatedAt.Before(query.Since.UTC()) {
-					continue
+				for _, activity := range order.ActivityLog {
+					if query.ActivityType == "notes" && activity.Type == entity.RoutedOrderActivityTypeSystem {
+						continue
+					}
+					if query.ActivityType != "" && query.ActivityType != "all" && query.ActivityType != "notes" &&
+						activity.Type != query.ActivityType {
+						continue
+					}
+					if !query.IncludeSystem && query.ActivityType != "system" && query.ActivityType != "notes" &&
+						activity.Type == entity.RoutedOrderActivityTypeSystem {
+						continue
+					}
+					if query.Since != nil && activity.CreatedAt.Before(query.Since.UTC()) {
+						continue
+					}
+					if query.ActorContains != "" &&
+						!strings.Contains(strings.ToLower(activity.Actor), strings.ToLower(query.ActorContains)) {
+						continue
+					}
+					entries = append(entries, entity.RoutedOrderActivityFeedEntry{
+						OrderID:          order.ID,
+						ProductTitle:     order.ProductTitle,
+						Partner:          order.Partner,
+						OperatorAssignee: order.OperatorAssignee,
+						Activity:         activity,
+					})
 				}
-				if query.ActorContains != "" && !strings.Contains(strings.ToLower(activity.Actor), strings.ToLower(query.ActorContains)) {
-					continue
-				}
-				entries = append(entries, entity.RoutedOrderActivityFeedEntry{
-					OrderID:          order.ID,
-					ProductTitle:     order.ProductTitle,
-					Partner:          order.Partner,
-					OperatorAssignee: order.OperatorAssignee,
-					Activity:         activity,
-				})
 			}
-		}
-		sort.Slice(entries, func(i, j int) bool {
-			return entries[i].Activity.CreatedAt.After(entries[j].Activity.CreatedAt)
-		})
-		total := len(entries)
-		start := 0
-		if query.After != "" {
-			for idx, entry := range entries {
-				if encodeTestActivityCursor(entry) == query.After {
-					start = idx + 1
-					break
+			sort.Slice(entries, func(i, j int) bool {
+				return entries[i].Activity.CreatedAt.After(entries[j].Activity.CreatedAt)
+			})
+			total := len(entries)
+			start := 0
+			if query.After != "" {
+				for idx, entry := range entries {
+					if encodeTestActivityCursor(entry) == query.After {
+						start = idx + 1
+						break
+					}
 				}
 			}
-		}
-		limit := query.Limit
-		if limit <= 0 {
-			limit = 50
-		}
-		end := start + limit
-		if end > total {
-			end = total
-		}
-		pageEntries := entries[start:end]
-		var nextCursor *string
-		if end < total && len(pageEntries) > 0 {
-			value := encodeTestActivityCursor(pageEntries[len(pageEntries)-1])
-			nextCursor = &value
-		}
-		return &entity.RoutedOrderActivityFeedPage{
-			Entries:    pageEntries,
-			Total:      total,
-			NextCursor: nextCursor,
-		}, nil
-	}).Maybe()
+			limit := query.Limit
+			if limit <= 0 {
+				limit = 50
+			}
+			end := start + limit
+			if end > total {
+				end = total
+			}
+			pageEntries := entries[start:end]
+			var nextCursor *string
+			if end < total && len(pageEntries) > 0 {
+				value := encodeTestActivityCursor(pageEntries[len(pageEntries)-1])
+				nextCursor = &value
+			}
+			return &entity.RoutedOrderActivityFeedPage{
+				Entries:    pageEntries,
+				Total:      total,
+				NextCursor: nextCursor,
+			}, nil
+		}).
+		Maybe()
 
-	ordersMock.EXPECT().GetByID(mock.Anything, mock.Anything).RunAndReturn(func(_ context.Context, id string) (*entity.RoutedOrder, error) {
-		order, ok := orderState.orders[id]
-		if !ok {
+	ordersMock.EXPECT().
+		GetByID(mock.Anything, mock.Anything).
+		RunAndReturn(func(_ context.Context, id string) (*entity.RoutedOrder, error) {
+			order, ok := orderState.orders[id]
+			if !ok {
+				return nil, nil
+			}
+			cloned := cloneOrder(order)
+			return &cloned, nil
+		}).
+		Maybe()
+
+	ordersMock.EXPECT().
+		Create(mock.Anything, mock.Anything).
+		RunAndReturn(func(_ context.Context, order entity.RoutedOrder) (*entity.RoutedOrder, error) {
+			orderState.orders[order.ID] = cloneOrder(order)
+			cloned := cloneOrder(order)
+			return &cloned, nil
+		}).
+		Maybe()
+
+	ordersMock.EXPECT().
+		Update(mock.Anything, mock.Anything).
+		RunAndReturn(func(_ context.Context, order entity.RoutedOrder) (*entity.RoutedOrder, error) {
+			if _, ok := orderState.orders[order.ID]; !ok {
+				return nil, fmt.Errorf("order %s not found", order.ID)
+			}
+			orderState.orders[order.ID] = cloneOrder(order)
+			cloned := cloneOrder(order)
+			return &cloned, nil
+		}).
+		Maybe()
+
+	productsMock.EXPECT().
+		GetCandidateByID(mock.Anything, mock.Anything).
+		RunAndReturn(func(_ context.Context, id string) (*entity.ProductSetupCandidate, error) {
+			candidate, ok := productState[id]
+			if !ok {
+				return nil, nil
+			}
+			copyCandidate := candidate
+			return &copyCandidate, nil
+		}).
+		Maybe()
+
+	productsMock.EXPECT().
+		GetCandidateByDraftID(mock.Anything, mock.Anything).
+		RunAndReturn(func(_ context.Context, draftID string) (*entity.ProductSetupCandidate, error) {
+			for _, candidate := range productState {
+				if candidate.DraftID == draftID {
+					copyCandidate := candidate
+					return &copyCandidate, nil
+				}
+			}
 			return nil, nil
-		}
-		cloned := cloneOrder(order)
-		return &cloned, nil
-	}).Maybe()
+		}).
+		Maybe()
 
-	ordersMock.EXPECT().Create(mock.Anything, mock.Anything).RunAndReturn(func(_ context.Context, order entity.RoutedOrder) (*entity.RoutedOrder, error) {
-		orderState.orders[order.ID] = cloneOrder(order)
-		cloned := cloneOrder(order)
-		return &cloned, nil
-	}).Maybe()
-
-	ordersMock.EXPECT().Update(mock.Anything, mock.Anything).RunAndReturn(func(_ context.Context, order entity.RoutedOrder) (*entity.RoutedOrder, error) {
-		if _, ok := orderState.orders[order.ID]; !ok {
-			return nil, fmt.Errorf("order %s not found", order.ID)
-		}
-		orderState.orders[order.ID] = cloneOrder(order)
-		cloned := cloneOrder(order)
-		return &cloned, nil
-	}).Maybe()
-
-	productsMock.EXPECT().GetCandidateByID(mock.Anything, mock.Anything).RunAndReturn(func(_ context.Context, id string) (*entity.ProductSetupCandidate, error) {
-		candidate, ok := productState[id]
-		if !ok {
-			return nil, nil
-		}
-		copyCandidate := candidate
-		return &copyCandidate, nil
-	}).Maybe()
-
-	productsMock.EXPECT().GetCandidateByDraftID(mock.Anything, mock.Anything).RunAndReturn(func(_ context.Context, draftID string) (*entity.ProductSetupCandidate, error) {
-		for _, candidate := range productState {
-			if candidate.DraftID == draftID {
-				copyCandidate := candidate
-				return &copyCandidate, nil
+	productsMock.EXPECT().
+		ListCandidates(mock.Anything).
+		RunAndReturn(func(context.Context) ([]entity.ProductSetupCandidate, error) {
+			candidates := make([]entity.ProductSetupCandidate, 0, len(productState))
+			for _, candidate := range productState {
+				candidates = append(candidates, candidate)
 			}
-		}
-		return nil, nil
-	}).Maybe()
-
-	productsMock.EXPECT().ListCandidates(mock.Anything).RunAndReturn(func(context.Context) ([]entity.ProductSetupCandidate, error) {
-		candidates := make([]entity.ProductSetupCandidate, 0, len(productState))
-		for _, candidate := range productState {
-			candidates = append(candidates, candidate)
-		}
-		return candidates, nil
-	}).Maybe()
+			return candidates, nil
+		}).
+		Maybe()
 
 	productsMock.EXPECT().ListDrafts(mock.Anything).Return([]entity.ProductSetupDraft(nil), nil).Maybe()
-	productsMock.EXPECT().GetDraftByID(mock.Anything, mock.Anything).Return((*entity.ProductSetupDraft)(nil), nil).Maybe()
-	productsMock.EXPECT().CreateDraft(mock.Anything, mock.Anything).Return((*entity.ProductSetupDraft)(nil), fmt.Errorf("not implemented")).Maybe()
-	productsMock.EXPECT().CreateCandidate(mock.Anything, mock.Anything).Return((*entity.ProductSetupCandidate)(nil), fmt.Errorf("not implemented")).Maybe()
-	productsMock.EXPECT().UpdateCandidateStatus(mock.Anything, mock.Anything, mock.Anything).Return((*entity.ProductSetupCandidate)(nil), fmt.Errorf("not implemented")).Maybe()
+	productsMock.EXPECT().
+		GetDraftByID(mock.Anything, mock.Anything).
+		Return((*entity.ProductSetupDraft)(nil), nil).
+		Maybe()
+	productsMock.EXPECT().
+		CreateDraft(mock.Anything, mock.Anything).
+		Return((*entity.ProductSetupDraft)(nil), fmt.Errorf("not implemented")).
+		Maybe()
+	productsMock.EXPECT().
+		CreateCandidate(mock.Anything, mock.Anything).
+		Return((*entity.ProductSetupCandidate)(nil), fmt.Errorf("not implemented")).
+		Maybe()
+	productsMock.EXPECT().
+		UpdateCandidateStatus(mock.Anything, mock.Anything, mock.Anything).
+		Return((*entity.ProductSetupCandidate)(nil), fmt.Errorf("not implemented")).
+		Maybe()
 
 	return &OrderRoutingInteractor{orders: ordersMock, products: productsMock}, orderState, productsMock
 }

@@ -119,6 +119,15 @@ export default function LoginPage() {
               Create one
             </Link>
           </p>
+          <p class="text-sm text-gray-500">
+            Local dev seed ready?{' '}
+            <Link
+              to="/auth/dev/bootstrap"
+              class="font-semibold text-sky-700"
+            >
+              Import seeded credentials
+            </Link>
+          </p>
         </Card>
       </div>
     </div>

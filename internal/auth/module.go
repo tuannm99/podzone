@@ -36,6 +36,8 @@ var Module = fx.Options(
 		fx.Annotate(repository.NewAuditLogRepositoryImpl, fx.As(new(outputport.AuditLogRepository))),
 		fx.Annotate(iamrepo.NewTenantRepository, fx.As(new(iamdomain.TenantRepository))),
 		fx.Annotate(iamrepo.NewRoleRepository, fx.As(new(iamdomain.RoleRepository))),
+		fx.Annotate(iamrepo.NewPolicyRepository, fx.As(new(iamdomain.PolicyRepository))),
+		fx.Annotate(iamrepo.NewGroupRepository, fx.As(new(iamdomain.GroupRepository))),
 		fx.Annotate(iamrepo.NewPlatformMembershipRepository, fx.As(new(iamdomain.PlatformMembershipRepository))),
 		fx.Annotate(iamrepo.NewMembershipRepository, fx.As(new(iamdomain.MembershipRepository))),
 		fx.Annotate(iamrepo.NewInviteRepository, fx.As(new(iamdomain.InviteRepository))),

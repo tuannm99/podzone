@@ -1,0 +1,38 @@
+logger:
+  app_name: 'podzone_backoffice'
+  provider: 'zap'
+  level: 'debug'
+  env: 'dev'
+
+consul_kv:
+  address: 'http://consul:8500'
+  token: ''
+  tls:
+    insecure_skip_verify: true
+
+http:
+  address: ':8000'
+  trusted_proxies: []
+
+  graphql:
+    enabled: true
+    query_path: '/query'
+    playground:
+      enabled: true
+      path: '/'
+
+pprof:
+  enable: false
+  addr: '127.0.0.1:6060'
+
+backoffice:
+  auth:
+    jwt_secret: 'dev-secret'
+    jwt_key: ''
+    grpc_host: 'auth-service'
+    grpc_port: '50051'
+  iam:
+    jwt_secret: 'dev-secret'
+    jwt_key: ''
+    grpc_host: 'iam-service'
+    grpc_port: '50053'

@@ -676,6 +676,358 @@ func (s *AuthServer) AddPlatformRole(
 	return &pbauthv1.AddPlatformRoleResponse{}, nil
 }
 
+func (s *AuthServer) CreatePolicy(
+	ctx context.Context,
+	req *pbauthv1.CreatePolicyRequest,
+) (*pbauthv1.CreatePolicyResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	policy, statements, err := s.iamUC.CreatePolicy(ctx, iamdomain.CreatePolicyInput{
+		Scope:       req.Scope,
+		Name:        req.Name,
+		Description: req.Description,
+		Statements:  fromProtoPolicyStatements(req.Statements),
+	})
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "iam.policy.created", "iam_policy", policy.Name, "", map[string]any{
+		"scope":      policy.Scope,
+		"statements": len(statements),
+	})
+	return &pbauthv1.CreatePolicyResponse{
+		Policy:     toProtoPolicy(policy),
+		Statements: toProtoPolicyStatements(statements),
+	}, nil
+}
+
+func (s *AuthServer) GetPolicy(
+	ctx context.Context,
+	req *pbauthv1.GetPolicyRequest,
+) (*pbauthv1.GetPolicyResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	policy, statements, err := s.iamUC.GetPolicy(ctx, req.Name)
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	return &pbauthv1.GetPolicyResponse{
+		Policy:     toProtoPolicy(policy),
+		Statements: toProtoPolicyStatements(statements),
+	}, nil
+}
+
+func (s *AuthServer) ListPolicies(
+	ctx context.Context,
+	req *pbauthv1.ListPoliciesRequest,
+) (*pbauthv1.ListPoliciesResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	items, err := s.iamUC.ListPolicies(ctx, req.Scope)
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	return &pbauthv1.ListPoliciesResponse{Policies: toProtoPolicies(items)}, nil
+}
+
+func (s *AuthServer) DeletePolicy(
+	ctx context.Context,
+	req *pbauthv1.DeletePolicyRequest,
+) (*pbauthv1.DeletePolicyResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	if err := s.iamUC.DeletePolicy(ctx, req.Name); err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "iam.policy.deleted", "iam_policy", req.Name, "", map[string]any{
+		"policy_name": req.Name,
+	})
+	return &pbauthv1.DeletePolicyResponse{}, nil
+}
+
+func (s *AuthServer) CreateGroup(
+	ctx context.Context,
+	req *pbauthv1.CreateGroupRequest,
+) (*pbauthv1.CreateGroupResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if req.Scope == iamdomain.PolicyScopePlatform {
+		if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+			return nil, iamStatusError(err)
+		}
+	} else if err := s.iamUC.RequirePermission(ctx, req.TenantId, actorUserID, "tenant:manage_members"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	group, err := s.iamUC.CreateGroup(ctx, iamdomain.CreateGroupInput{
+		Scope:       req.Scope,
+		TenantID:    req.TenantId,
+		Name:        req.Name,
+		Description: req.Description,
+	})
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	return &pbauthv1.CreateGroupResponse{Group: toProtoGroup(group)}, nil
+}
+
+func (s *AuthServer) ListGroups(
+	ctx context.Context,
+	req *pbauthv1.ListGroupsRequest,
+) (*pbauthv1.ListGroupsResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if req.Scope == iamdomain.PolicyScopePlatform {
+		if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+			return nil, iamStatusError(err)
+		}
+	} else if strings.TrimSpace(req.TenantId) != "" {
+		if err := s.iamUC.RequirePermission(ctx, req.TenantId, actorUserID, "tenant:manage_members"); err != nil {
+			return nil, iamStatusError(err)
+		}
+	}
+	items, err := s.iamUC.ListGroups(ctx, req.Scope, req.TenantId)
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	out := make([]*pbauthv1.Group, 0, len(items))
+	for i := range items {
+		out = append(out, toProtoGroup(&items[i]))
+	}
+	return &pbauthv1.ListGroupsResponse{Groups: out}, nil
+}
+
+func (s *AuthServer) DeleteGroup(
+	ctx context.Context,
+	req *pbauthv1.DeleteGroupRequest,
+) (*pbauthv1.DeleteGroupResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	if err := s.iamUC.DeleteGroup(ctx, req.GroupId); err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "iam.group.deleted", "iam_group", fmt.Sprintf("%d", req.GroupId), "", map[string]any{
+		"group_id": req.GroupId,
+	})
+	return &pbauthv1.DeleteGroupResponse{}, nil
+}
+
+func (s *AuthServer) AddGroupMember(
+	ctx context.Context,
+	req *pbauthv1.AddGroupMemberRequest,
+) (*pbauthv1.AddGroupMemberResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	userID, err := toUint(req.UserId)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.iamUC.AddGroupMember(ctx, req.GroupId, userID); err != nil {
+		return nil, iamStatusError(err)
+	}
+	return &pbauthv1.AddGroupMemberResponse{}, nil
+}
+
+func (s *AuthServer) ListGroupMembers(
+	ctx context.Context,
+	req *pbauthv1.ListGroupMembersRequest,
+) (*pbauthv1.ListGroupMembersResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	items, err := s.iamUC.ListGroupMembers(ctx, req.GroupId)
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	out := make([]uint64, 0, len(items))
+	for _, item := range items {
+		out = append(out, uint64(item))
+	}
+	return &pbauthv1.ListGroupMembersResponse{UserIds: out}, nil
+}
+
+func (s *AuthServer) RemoveGroupMember(
+	ctx context.Context,
+	req *pbauthv1.RemoveGroupMemberRequest,
+) (*pbauthv1.RemoveGroupMemberResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	userID, err := toUint(req.UserId)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.iamUC.RemoveGroupMember(ctx, req.GroupId, userID); err != nil {
+		return nil, iamStatusError(err)
+	}
+	return &pbauthv1.RemoveGroupMemberResponse{}, nil
+}
+
+func (s *AuthServer) AttachGroupPolicy(
+	ctx context.Context,
+	req *pbauthv1.AttachGroupPolicyRequest,
+) (*pbauthv1.AttachGroupPolicyResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	if err := s.iamUC.AttachGroupPolicy(ctx, req.GroupId, req.PolicyName); err != nil {
+		return nil, iamStatusError(err)
+	}
+	return &pbauthv1.AttachGroupPolicyResponse{}, nil
+}
+
+func (s *AuthServer) ListGroupPolicies(
+	ctx context.Context,
+	req *pbauthv1.ListGroupPoliciesRequest,
+) (*pbauthv1.ListGroupPoliciesResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	items, err := s.iamUC.ListGroupPolicies(ctx, req.GroupId)
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	return &pbauthv1.ListGroupPoliciesResponse{Policies: toProtoPolicies(items)}, nil
+}
+
+func (s *AuthServer) DetachGroupPolicy(
+	ctx context.Context,
+	req *pbauthv1.DetachGroupPolicyRequest,
+) (*pbauthv1.DetachGroupPolicyResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	if err := s.iamUC.DetachGroupPolicy(ctx, req.GroupId, req.PolicyName); err != nil {
+		return nil, iamStatusError(err)
+	}
+	return &pbauthv1.DetachGroupPolicyResponse{}, nil
+}
+
+func (s *AuthServer) ListPlatformUserPolicies(
+	ctx context.Context,
+	req *pbauthv1.ListPlatformUserPoliciesRequest,
+) (*pbauthv1.ListPlatformUserPoliciesResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	targetUserID, err := toUint(req.TargetUserId)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	items, err := s.iamUC.ListPlatformUserPolicies(ctx, targetUserID)
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	return &pbauthv1.ListPlatformUserPoliciesResponse{Policies: toProtoPolicies(items)}, nil
+}
+
+func (s *AuthServer) AttachPlatformUserPolicy(
+	ctx context.Context,
+	req *pbauthv1.AttachPlatformUserPolicyRequest,
+) (*pbauthv1.AttachPlatformUserPolicyResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	targetUserID, err := toUint(req.TargetUserId)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	if err := s.iamUC.AttachPlatformUserPolicy(ctx, targetUserID, req.PolicyName); err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "iam.platform_user_policy.attached", "iam_policy_attachment", req.PolicyName, "", map[string]any{
+		"target_user_id": targetUserID,
+		"policy_name":    req.PolicyName,
+	})
+	return &pbauthv1.AttachPlatformUserPolicyResponse{}, nil
+}
+
+func (s *AuthServer) DetachPlatformUserPolicy(
+	ctx context.Context,
+	req *pbauthv1.DetachPlatformUserPolicyRequest,
+) (*pbauthv1.DetachPlatformUserPolicyResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	targetUserID, err := toUint(req.TargetUserId)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	if err := s.iamUC.DetachPlatformUserPolicy(ctx, targetUserID, req.PolicyName); err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "iam.platform_user_policy.detached", "iam_policy_attachment", req.PolicyName, "", map[string]any{
+		"target_user_id": targetUserID,
+		"policy_name":    req.PolicyName,
+	})
+	return &pbauthv1.DetachPlatformUserPolicyResponse{}, nil
+}
+
 func (s *AuthServer) RemovePlatformRole(
 	ctx context.Context,
 	req *pbauthv1.RemovePlatformRoleRequest,
@@ -764,6 +1116,80 @@ func (s *AuthServer) RemoveTenantMember(
 	return &pbauthv1.RemoveTenantMemberResponse{}, nil
 }
 
+func (s *AuthServer) ListTenantUserPolicies(
+	ctx context.Context,
+	req *pbauthv1.ListTenantUserPoliciesRequest,
+) (*pbauthv1.ListTenantUserPoliciesResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	userID, err := toUint(req.UserId)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.iamUC.RequirePermission(ctx, req.TenantId, actorUserID, "tenant:manage_members"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	items, err := s.iamUC.ListTenantUserPolicies(ctx, req.TenantId, userID)
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	return &pbauthv1.ListTenantUserPoliciesResponse{Policies: toProtoPolicies(items)}, nil
+}
+
+func (s *AuthServer) AttachTenantUserPolicy(
+	ctx context.Context,
+	req *pbauthv1.AttachTenantUserPolicyRequest,
+) (*pbauthv1.AttachTenantUserPolicyResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	userID, err := toUint(req.UserId)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.iamUC.RequirePermission(ctx, req.TenantId, actorUserID, "tenant:manage_members"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	if err := s.iamUC.AttachTenantUserPolicy(ctx, req.TenantId, userID, req.PolicyName); err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "iam.tenant_user_policy.attached", "iam_policy_attachment", req.PolicyName, req.TenantId, map[string]any{
+		"user_id":     userID,
+		"tenant_id":   req.TenantId,
+		"policy_name": req.PolicyName,
+	})
+	return &pbauthv1.AttachTenantUserPolicyResponse{}, nil
+}
+
+func (s *AuthServer) DetachTenantUserPolicy(
+	ctx context.Context,
+	req *pbauthv1.DetachTenantUserPolicyRequest,
+) (*pbauthv1.DetachTenantUserPolicyResponse, error) {
+	actorUserID, err := s.actorUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	userID, err := toUint(req.UserId)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.iamUC.RequirePermission(ctx, req.TenantId, actorUserID, "tenant:manage_members"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	if err := s.iamUC.DetachTenantUserPolicy(ctx, req.TenantId, userID, req.PolicyName); err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "iam.tenant_user_policy.detached", "iam_policy_attachment", req.PolicyName, req.TenantId, map[string]any{
+		"user_id":     userID,
+		"tenant_id":   req.TenantId,
+		"policy_name": req.PolicyName,
+	})
+	return &pbauthv1.DetachTenantUserPolicyResponse{}, nil
+}
+
 func toUint(v uint64) (uint, error) {
 	if v == 0 {
 		return 0, status.Error(codes.InvalidArgument, "user_id is required")
@@ -815,6 +1241,77 @@ func toProtoPlatformMembership(m *iamdomain.PlatformMembership) *pbauthv1.Platfo
 		CreatedAt: m.CreatedAt.Format(time.RFC3339),
 		UpdatedAt: m.UpdatedAt.Format(time.RFC3339),
 	}
+}
+
+func toProtoPolicy(policy *iamdomain.Policy) *pbauthv1.Policy {
+	if policy == nil {
+		return nil
+	}
+	return &pbauthv1.Policy{
+		Id:          policy.ID,
+		Scope:       policy.Scope,
+		Name:        policy.Name,
+		Description: policy.Description,
+		IsSystem:    policy.IsSystem,
+		CreatedAt:   policy.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:   policy.UpdatedAt.Format(time.RFC3339),
+	}
+}
+
+func toProtoGroup(group *iamdomain.Group) *pbauthv1.Group {
+	if group == nil {
+		return nil
+	}
+	return &pbauthv1.Group{
+		Id:          group.ID,
+		Scope:       group.Scope,
+		TenantId:    group.TenantID,
+		Name:        group.Name,
+		Description: group.Description,
+		IsSystem:    group.IsSystem,
+		CreatedAt:   group.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:   group.UpdatedAt.Format(time.RFC3339),
+	}
+}
+
+func toProtoPolicies(items []iamdomain.Policy) []*pbauthv1.Policy {
+	out := make([]*pbauthv1.Policy, 0, len(items))
+	for i := range items {
+		out = append(out, toProtoPolicy(&items[i]))
+	}
+	return out
+}
+
+func toProtoPolicyStatements(items []iamdomain.PolicyStatement) []*pbauthv1.PolicyStatement {
+	out := make([]*pbauthv1.PolicyStatement, 0, len(items))
+	for i := range items {
+		item := items[i]
+		out = append(out, &pbauthv1.PolicyStatement{
+			Id:              item.ID,
+			PolicyId:        item.PolicyID,
+			PolicyName:      item.PolicyName,
+			Effect:          item.Effect,
+			ActionPattern:   item.ActionPattern,
+			ResourcePattern: item.ResourcePattern,
+			CreatedAt:       item.CreatedAt.Format(time.RFC3339),
+		})
+	}
+	return out
+}
+
+func fromProtoPolicyStatements(items []*pbauthv1.PolicyStatement) []iamdomain.PolicyStatement {
+	out := make([]iamdomain.PolicyStatement, 0, len(items))
+	for _, item := range items {
+		if item == nil {
+			continue
+		}
+		out = append(out, iamdomain.PolicyStatement{
+			Effect:          item.Effect,
+			ActionPattern:   item.ActionPattern,
+			ResourcePattern: item.ResourcePattern,
+		})
+	}
+	return out
 }
 
 func inviteAcceptBaseURL(appRedirectURL string) string {
@@ -944,13 +1441,19 @@ func iamStatusError(err error) error {
 		return status.Error(codes.InvalidArgument, err.Error())
 	case errors.Is(err, iamdomain.ErrTenantNotFound),
 		errors.Is(err, iamdomain.ErrMembershipNotFound),
-		errors.Is(err, iamdomain.ErrRoleNotFound):
+		errors.Is(err, iamdomain.ErrRoleNotFound),
+		errors.Is(err, iamdomain.ErrPolicyNotFound),
+		errors.Is(err, iamdomain.ErrGroupNotFound):
 		return status.Error(codes.NotFound, err.Error())
 	case errors.Is(err, iamdomain.ErrTenantSlugTaken):
 		return status.Error(codes.AlreadyExists, err.Error())
 	case errors.Is(err, iamdomain.ErrPermissionDenied):
 		return status.Error(codes.PermissionDenied, err.Error())
 	case errors.Is(err, iamdomain.ErrInactiveMembership):
+		return status.Error(codes.FailedPrecondition, err.Error())
+	case errors.Is(err, iamdomain.ErrImmutablePolicy),
+		errors.Is(err, iamdomain.ErrImmutableGroup),
+		errors.Is(err, iamdomain.ErrPolicyInUse):
 		return status.Error(codes.FailedPrecondition, err.Error())
 	default:
 		return status.Error(codes.Internal, err.Error())

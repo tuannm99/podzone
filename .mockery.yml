@@ -80,6 +80,8 @@ packages:
     interfaces:
       TenantRepository:
       RoleRepository:
+      PolicyRepository:
+      GroupRepository:
       PlatformMembershipRepository:
       MembershipRepository:
       InviteRepository:

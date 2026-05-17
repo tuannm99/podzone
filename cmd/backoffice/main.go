@@ -29,7 +29,7 @@ func newAppContainer(extra ...fx.Option) *fx.App {
 
 		// <-- use shared gin/http server
 		pdhttp.Module,
-		pdgraphql.Module,
+		fx.Provide(pdgraphql.NewConfigFromKoanf),
 
 		fx.Options(extra...),
 	)

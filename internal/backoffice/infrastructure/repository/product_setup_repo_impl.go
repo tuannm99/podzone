@@ -112,7 +112,10 @@ func (r *ProductSetupRepositoryImpl) GetDraftByID(ctx context.Context, id string
 	return &out, nil
 }
 
-func (r *ProductSetupRepositoryImpl) CreateDraft(ctx context.Context, draft entity.ProductSetupDraft) (*entity.ProductSetupDraft, error) {
+func (r *ProductSetupRepositoryImpl) CreateDraft(
+	ctx context.Context,
+	draft entity.ProductSetupDraft,
+) (*entity.ProductSetupDraft, error) {
 	query, args, err := psql.
 		Insert("product_setup_drafts").
 		Columns("id", "name", "partner", "base_cost", "retail_price", "status", "notes", "created_at", "updated_at").
@@ -136,7 +139,22 @@ func (r *ProductSetupRepositoryImpl) CreateDraft(ctx context.Context, draft enti
 
 func (r *ProductSetupRepositoryImpl) ListCandidates(ctx context.Context) ([]entity.ProductSetupCandidate, error) {
 	query, args, err := psql.
-		Select("id", "draft_id", "title", "sku", "partner", "base_cost", "retail_price", "estimated_margin", "status", "channel", "variants_json", "artwork_checklist_json", "merchandising_notes", "updated_at").
+		Select(
+			"id",
+			"draft_id",
+			"title",
+			"sku",
+			"partner",
+			"base_cost",
+			"retail_price",
+			"estimated_margin",
+			"status",
+			"channel",
+			"variants_json",
+			"artwork_checklist_json",
+			"merchandising_notes",
+			"updated_at",
+		).
 		From("product_setup_candidates").
 		OrderBy("updated_at DESC").
 		ToSql()
@@ -165,9 +183,27 @@ func (r *ProductSetupRepositoryImpl) ListCandidates(ctx context.Context) ([]enti
 	return out, nil
 }
 
-func (r *ProductSetupRepositoryImpl) GetCandidateByID(ctx context.Context, id string) (*entity.ProductSetupCandidate, error) {
+func (r *ProductSetupRepositoryImpl) GetCandidateByID(
+	ctx context.Context,
+	id string,
+) (*entity.ProductSetupCandidate, error) {
 	query, args, err := psql.
-		Select("id", "draft_id", "title", "sku", "partner", "base_cost", "retail_price", "estimated_margin", "status", "channel", "variants_json", "artwork_checklist_json", "merchandising_notes", "updated_at").
+		Select(
+			"id",
+			"draft_id",
+			"title",
+			"sku",
+			"partner",
+			"base_cost",
+			"retail_price",
+			"estimated_margin",
+			"status",
+			"channel",
+			"variants_json",
+			"artwork_checklist_json",
+			"merchandising_notes",
+			"updated_at",
+		).
 		From("product_setup_candidates").
 		Where(sq.Eq{"id": id}).
 		ToSql()
@@ -200,9 +236,27 @@ func (r *ProductSetupRepositoryImpl) GetCandidateByID(ctx context.Context, id st
 	return &mapped, nil
 }
 
-func (r *ProductSetupRepositoryImpl) GetCandidateByDraftID(ctx context.Context, draftID string) (*entity.ProductSetupCandidate, error) {
+func (r *ProductSetupRepositoryImpl) GetCandidateByDraftID(
+	ctx context.Context,
+	draftID string,
+) (*entity.ProductSetupCandidate, error) {
 	query, args, err := psql.
-		Select("id", "draft_id", "title", "sku", "partner", "base_cost", "retail_price", "estimated_margin", "status", "channel", "variants_json", "artwork_checklist_json", "merchandising_notes", "updated_at").
+		Select(
+			"id",
+			"draft_id",
+			"title",
+			"sku",
+			"partner",
+			"base_cost",
+			"retail_price",
+			"estimated_margin",
+			"status",
+			"channel",
+			"variants_json",
+			"artwork_checklist_json",
+			"merchandising_notes",
+			"updated_at",
+		).
 		From("product_setup_candidates").
 		Where(sq.Eq{"draft_id": draftID}).
 		ToSql()
@@ -236,7 +290,10 @@ func (r *ProductSetupRepositoryImpl) GetCandidateByDraftID(ctx context.Context, 
 	return &mapped, nil
 }
 
-func (r *ProductSetupRepositoryImpl) CreateCandidate(ctx context.Context, candidate entity.ProductSetupCandidate) (*entity.ProductSetupCandidate, error) {
+func (r *ProductSetupRepositoryImpl) CreateCandidate(
+	ctx context.Context,
+	candidate entity.ProductSetupCandidate,
+) (*entity.ProductSetupCandidate, error) {
 	variantsJSON, err := json.Marshal(candidate.Variants)
 	if err != nil {
 		return nil, err
@@ -267,7 +324,10 @@ func (r *ProductSetupRepositoryImpl) CreateCandidate(ctx context.Context, candid
 	return &candidate, nil
 }
 
-func (r *ProductSetupRepositoryImpl) UpdateCandidateStatus(ctx context.Context, id, status string) (*entity.ProductSetupCandidate, error) {
+func (r *ProductSetupRepositoryImpl) UpdateCandidateStatus(
+	ctx context.Context,
+	id, status string,
+) (*entity.ProductSetupCandidate, error) {
 	query, args, err := psql.
 		Update("product_setup_candidates").
 		Set("status", status).

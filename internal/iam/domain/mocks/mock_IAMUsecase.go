@@ -118,6 +118,69 @@ func (_c *MockIAMUsecase_AcceptInvite_Call) RunAndReturn(run func(ctx context.Co
 	return _c
 }
 
+// AddGroupMember provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) AddGroupMember(ctx context.Context, groupID uint64, userID uint) error {
+	ret := _mock.Called(ctx, groupID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AddGroupMember")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, uint) error); ok {
+		r0 = returnFunc(ctx, groupID, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMUsecase_AddGroupMember_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddGroupMember'
+type MockIAMUsecase_AddGroupMember_Call struct {
+	*mock.Call
+}
+
+// AddGroupMember is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID uint64
+//   - userID uint
+func (_e *MockIAMUsecase_Expecter) AddGroupMember(ctx interface{}, groupID interface{}, userID interface{}) *MockIAMUsecase_AddGroupMember_Call {
+	return &MockIAMUsecase_AddGroupMember_Call{Call: _e.mock.On("AddGroupMember", ctx, groupID, userID)}
+}
+
+func (_c *MockIAMUsecase_AddGroupMember_Call) Run(run func(ctx context.Context, groupID uint64, userID uint)) *MockIAMUsecase_AddGroupMember_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_AddGroupMember_Call) Return(err error) *MockIAMUsecase_AddGroupMember_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_AddGroupMember_Call) RunAndReturn(run func(ctx context.Context, groupID uint64, userID uint) error) *MockIAMUsecase_AddGroupMember_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // AddMember provides a mock function for the type MockIAMUsecase
 func (_mock *MockIAMUsecase) AddMember(ctx context.Context, tenantID string, userID uint, roleName string) error {
 	ret := _mock.Called(ctx, tenantID, userID, roleName)
@@ -246,6 +309,201 @@ func (_c *MockIAMUsecase_AddPlatformRole_Call) Return(err error) *MockIAMUsecase
 }
 
 func (_c *MockIAMUsecase_AddPlatformRole_Call) RunAndReturn(run func(ctx context.Context, userID uint, roleName string) error) *MockIAMUsecase_AddPlatformRole_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// AttachGroupPolicy provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) AttachGroupPolicy(ctx context.Context, groupID uint64, policyName string) error {
+	ret := _mock.Called(ctx, groupID, policyName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AttachGroupPolicy")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, string) error); ok {
+		r0 = returnFunc(ctx, groupID, policyName)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMUsecase_AttachGroupPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AttachGroupPolicy'
+type MockIAMUsecase_AttachGroupPolicy_Call struct {
+	*mock.Call
+}
+
+// AttachGroupPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID uint64
+//   - policyName string
+func (_e *MockIAMUsecase_Expecter) AttachGroupPolicy(ctx interface{}, groupID interface{}, policyName interface{}) *MockIAMUsecase_AttachGroupPolicy_Call {
+	return &MockIAMUsecase_AttachGroupPolicy_Call{Call: _e.mock.On("AttachGroupPolicy", ctx, groupID, policyName)}
+}
+
+func (_c *MockIAMUsecase_AttachGroupPolicy_Call) Run(run func(ctx context.Context, groupID uint64, policyName string)) *MockIAMUsecase_AttachGroupPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_AttachGroupPolicy_Call) Return(err error) *MockIAMUsecase_AttachGroupPolicy_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_AttachGroupPolicy_Call) RunAndReturn(run func(ctx context.Context, groupID uint64, policyName string) error) *MockIAMUsecase_AttachGroupPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// AttachPlatformUserPolicy provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) AttachPlatformUserPolicy(ctx context.Context, userID uint, policyName string) error {
+	ret := _mock.Called(ctx, userID, policyName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AttachPlatformUserPolicy")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string) error); ok {
+		r0 = returnFunc(ctx, userID, policyName)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMUsecase_AttachPlatformUserPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AttachPlatformUserPolicy'
+type MockIAMUsecase_AttachPlatformUserPolicy_Call struct {
+	*mock.Call
+}
+
+// AttachPlatformUserPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uint
+//   - policyName string
+func (_e *MockIAMUsecase_Expecter) AttachPlatformUserPolicy(ctx interface{}, userID interface{}, policyName interface{}) *MockIAMUsecase_AttachPlatformUserPolicy_Call {
+	return &MockIAMUsecase_AttachPlatformUserPolicy_Call{Call: _e.mock.On("AttachPlatformUserPolicy", ctx, userID, policyName)}
+}
+
+func (_c *MockIAMUsecase_AttachPlatformUserPolicy_Call) Run(run func(ctx context.Context, userID uint, policyName string)) *MockIAMUsecase_AttachPlatformUserPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_AttachPlatformUserPolicy_Call) Return(err error) *MockIAMUsecase_AttachPlatformUserPolicy_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_AttachPlatformUserPolicy_Call) RunAndReturn(run func(ctx context.Context, userID uint, policyName string) error) *MockIAMUsecase_AttachPlatformUserPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// AttachTenantUserPolicy provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) AttachTenantUserPolicy(ctx context.Context, tenantID string, userID uint, policyName string) error {
+	ret := _mock.Called(ctx, tenantID, userID, policyName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AttachTenantUserPolicy")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint, string) error); ok {
+		r0 = returnFunc(ctx, tenantID, userID, policyName)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMUsecase_AttachTenantUserPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AttachTenantUserPolicy'
+type MockIAMUsecase_AttachTenantUserPolicy_Call struct {
+	*mock.Call
+}
+
+// AttachTenantUserPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - userID uint
+//   - policyName string
+func (_e *MockIAMUsecase_Expecter) AttachTenantUserPolicy(ctx interface{}, tenantID interface{}, userID interface{}, policyName interface{}) *MockIAMUsecase_AttachTenantUserPolicy_Call {
+	return &MockIAMUsecase_AttachTenantUserPolicy_Call{Call: _e.mock.On("AttachTenantUserPolicy", ctx, tenantID, userID, policyName)}
+}
+
+func (_c *MockIAMUsecase_AttachTenantUserPolicy_Call) Run(run func(ctx context.Context, tenantID string, userID uint, policyName string)) *MockIAMUsecase_AttachTenantUserPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_AttachTenantUserPolicy_Call) Return(err error) *MockIAMUsecase_AttachTenantUserPolicy_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_AttachTenantUserPolicy_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint, policyName string) error) *MockIAMUsecase_AttachTenantUserPolicy_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -400,6 +658,74 @@ func (_c *MockIAMUsecase_CheckPlatformPermission_Call) RunAndReturn(run func(ctx
 	return _c
 }
 
+// CreateGroup provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) CreateGroup(ctx context.Context, input domain.CreateGroupInput) (*domain.Group, error) {
+	ret := _mock.Called(ctx, input)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateGroup")
+	}
+
+	var r0 *domain.Group
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.CreateGroupInput) (*domain.Group, error)); ok {
+		return returnFunc(ctx, input)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.CreateGroupInput) *domain.Group); ok {
+		r0 = returnFunc(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.Group)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, domain.CreateGroupInput) error); ok {
+		r1 = returnFunc(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMUsecase_CreateGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateGroup'
+type MockIAMUsecase_CreateGroup_Call struct {
+	*mock.Call
+}
+
+// CreateGroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input domain.CreateGroupInput
+func (_e *MockIAMUsecase_Expecter) CreateGroup(ctx interface{}, input interface{}) *MockIAMUsecase_CreateGroup_Call {
+	return &MockIAMUsecase_CreateGroup_Call{Call: _e.mock.On("CreateGroup", ctx, input)}
+}
+
+func (_c *MockIAMUsecase_CreateGroup_Call) Run(run func(ctx context.Context, input domain.CreateGroupInput)) *MockIAMUsecase_CreateGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 domain.CreateGroupInput
+		if args[1] != nil {
+			arg1 = args[1].(domain.CreateGroupInput)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_CreateGroup_Call) Return(group *domain.Group, err error) *MockIAMUsecase_CreateGroup_Call {
+	_c.Call.Return(group, err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_CreateGroup_Call) RunAndReturn(run func(ctx context.Context, input domain.CreateGroupInput) (*domain.Group, error)) *MockIAMUsecase_CreateGroup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateInvite provides a mock function for the type MockIAMUsecase
 func (_mock *MockIAMUsecase) CreateInvite(ctx context.Context, tenantID string, email string, roleName string, invitedByUserID uint) (*domain.TenantInvite, string, error) {
 	ret := _mock.Called(ctx, tenantID, email, roleName, invitedByUserID)
@@ -492,6 +818,82 @@ func (_c *MockIAMUsecase_CreateInvite_Call) RunAndReturn(run func(ctx context.Co
 	return _c
 }
 
+// CreatePolicy provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) CreatePolicy(ctx context.Context, input domain.CreatePolicyInput) (*domain.Policy, []domain.PolicyStatement, error) {
+	ret := _mock.Called(ctx, input)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreatePolicy")
+	}
+
+	var r0 *domain.Policy
+	var r1 []domain.PolicyStatement
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.CreatePolicyInput) (*domain.Policy, []domain.PolicyStatement, error)); ok {
+		return returnFunc(ctx, input)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.CreatePolicyInput) *domain.Policy); ok {
+		r0 = returnFunc(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.Policy)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, domain.CreatePolicyInput) []domain.PolicyStatement); ok {
+		r1 = returnFunc(ctx, input)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]domain.PolicyStatement)
+		}
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, domain.CreatePolicyInput) error); ok {
+		r2 = returnFunc(ctx, input)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockIAMUsecase_CreatePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreatePolicy'
+type MockIAMUsecase_CreatePolicy_Call struct {
+	*mock.Call
+}
+
+// CreatePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input domain.CreatePolicyInput
+func (_e *MockIAMUsecase_Expecter) CreatePolicy(ctx interface{}, input interface{}) *MockIAMUsecase_CreatePolicy_Call {
+	return &MockIAMUsecase_CreatePolicy_Call{Call: _e.mock.On("CreatePolicy", ctx, input)}
+}
+
+func (_c *MockIAMUsecase_CreatePolicy_Call) Run(run func(ctx context.Context, input domain.CreatePolicyInput)) *MockIAMUsecase_CreatePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 domain.CreatePolicyInput
+		if args[1] != nil {
+			arg1 = args[1].(domain.CreatePolicyInput)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_CreatePolicy_Call) Return(policy *domain.Policy, policyStatements []domain.PolicyStatement, err error) *MockIAMUsecase_CreatePolicy_Call {
+	_c.Call.Return(policy, policyStatements, err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_CreatePolicy_Call) RunAndReturn(run func(ctx context.Context, input domain.CreatePolicyInput) (*domain.Policy, []domain.PolicyStatement, error)) *MockIAMUsecase_CreatePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateTenant provides a mock function for the type MockIAMUsecase
 func (_mock *MockIAMUsecase) CreateTenant(ctx context.Context, ownerUserID uint, cmd domain.CreateTenantCmd) (*domain.Tenant, error) {
 	ret := _mock.Called(ctx, ownerUserID, cmd)
@@ -562,6 +964,315 @@ func (_c *MockIAMUsecase_CreateTenant_Call) Return(tenant *domain.Tenant, err er
 }
 
 func (_c *MockIAMUsecase_CreateTenant_Call) RunAndReturn(run func(ctx context.Context, ownerUserID uint, cmd domain.CreateTenantCmd) (*domain.Tenant, error)) *MockIAMUsecase_CreateTenant_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteGroup provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) DeleteGroup(ctx context.Context, groupID uint64) error {
+	ret := _mock.Called(ctx, groupID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteGroup")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) error); ok {
+		r0 = returnFunc(ctx, groupID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMUsecase_DeleteGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteGroup'
+type MockIAMUsecase_DeleteGroup_Call struct {
+	*mock.Call
+}
+
+// DeleteGroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID uint64
+func (_e *MockIAMUsecase_Expecter) DeleteGroup(ctx interface{}, groupID interface{}) *MockIAMUsecase_DeleteGroup_Call {
+	return &MockIAMUsecase_DeleteGroup_Call{Call: _e.mock.On("DeleteGroup", ctx, groupID)}
+}
+
+func (_c *MockIAMUsecase_DeleteGroup_Call) Run(run func(ctx context.Context, groupID uint64)) *MockIAMUsecase_DeleteGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_DeleteGroup_Call) Return(err error) *MockIAMUsecase_DeleteGroup_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_DeleteGroup_Call) RunAndReturn(run func(ctx context.Context, groupID uint64) error) *MockIAMUsecase_DeleteGroup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeletePolicy provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) DeletePolicy(ctx context.Context, name string) error {
+	ret := _mock.Called(ctx, name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeletePolicy")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, name)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMUsecase_DeletePolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeletePolicy'
+type MockIAMUsecase_DeletePolicy_Call struct {
+	*mock.Call
+}
+
+// DeletePolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+func (_e *MockIAMUsecase_Expecter) DeletePolicy(ctx interface{}, name interface{}) *MockIAMUsecase_DeletePolicy_Call {
+	return &MockIAMUsecase_DeletePolicy_Call{Call: _e.mock.On("DeletePolicy", ctx, name)}
+}
+
+func (_c *MockIAMUsecase_DeletePolicy_Call) Run(run func(ctx context.Context, name string)) *MockIAMUsecase_DeletePolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_DeletePolicy_Call) Return(err error) *MockIAMUsecase_DeletePolicy_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_DeletePolicy_Call) RunAndReturn(run func(ctx context.Context, name string) error) *MockIAMUsecase_DeletePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DetachGroupPolicy provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) DetachGroupPolicy(ctx context.Context, groupID uint64, policyName string) error {
+	ret := _mock.Called(ctx, groupID, policyName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DetachGroupPolicy")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, string) error); ok {
+		r0 = returnFunc(ctx, groupID, policyName)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMUsecase_DetachGroupPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DetachGroupPolicy'
+type MockIAMUsecase_DetachGroupPolicy_Call struct {
+	*mock.Call
+}
+
+// DetachGroupPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID uint64
+//   - policyName string
+func (_e *MockIAMUsecase_Expecter) DetachGroupPolicy(ctx interface{}, groupID interface{}, policyName interface{}) *MockIAMUsecase_DetachGroupPolicy_Call {
+	return &MockIAMUsecase_DetachGroupPolicy_Call{Call: _e.mock.On("DetachGroupPolicy", ctx, groupID, policyName)}
+}
+
+func (_c *MockIAMUsecase_DetachGroupPolicy_Call) Run(run func(ctx context.Context, groupID uint64, policyName string)) *MockIAMUsecase_DetachGroupPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_DetachGroupPolicy_Call) Return(err error) *MockIAMUsecase_DetachGroupPolicy_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_DetachGroupPolicy_Call) RunAndReturn(run func(ctx context.Context, groupID uint64, policyName string) error) *MockIAMUsecase_DetachGroupPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DetachPlatformUserPolicy provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) DetachPlatformUserPolicy(ctx context.Context, userID uint, policyName string) error {
+	ret := _mock.Called(ctx, userID, policyName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DetachPlatformUserPolicy")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string) error); ok {
+		r0 = returnFunc(ctx, userID, policyName)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMUsecase_DetachPlatformUserPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DetachPlatformUserPolicy'
+type MockIAMUsecase_DetachPlatformUserPolicy_Call struct {
+	*mock.Call
+}
+
+// DetachPlatformUserPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uint
+//   - policyName string
+func (_e *MockIAMUsecase_Expecter) DetachPlatformUserPolicy(ctx interface{}, userID interface{}, policyName interface{}) *MockIAMUsecase_DetachPlatformUserPolicy_Call {
+	return &MockIAMUsecase_DetachPlatformUserPolicy_Call{Call: _e.mock.On("DetachPlatformUserPolicy", ctx, userID, policyName)}
+}
+
+func (_c *MockIAMUsecase_DetachPlatformUserPolicy_Call) Run(run func(ctx context.Context, userID uint, policyName string)) *MockIAMUsecase_DetachPlatformUserPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_DetachPlatformUserPolicy_Call) Return(err error) *MockIAMUsecase_DetachPlatformUserPolicy_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_DetachPlatformUserPolicy_Call) RunAndReturn(run func(ctx context.Context, userID uint, policyName string) error) *MockIAMUsecase_DetachPlatformUserPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DetachTenantUserPolicy provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) DetachTenantUserPolicy(ctx context.Context, tenantID string, userID uint, policyName string) error {
+	ret := _mock.Called(ctx, tenantID, userID, policyName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DetachTenantUserPolicy")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint, string) error); ok {
+		r0 = returnFunc(ctx, tenantID, userID, policyName)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMUsecase_DetachTenantUserPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DetachTenantUserPolicy'
+type MockIAMUsecase_DetachTenantUserPolicy_Call struct {
+	*mock.Call
+}
+
+// DetachTenantUserPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - userID uint
+//   - policyName string
+func (_e *MockIAMUsecase_Expecter) DetachTenantUserPolicy(ctx interface{}, tenantID interface{}, userID interface{}, policyName interface{}) *MockIAMUsecase_DetachTenantUserPolicy_Call {
+	return &MockIAMUsecase_DetachTenantUserPolicy_Call{Call: _e.mock.On("DetachTenantUserPolicy", ctx, tenantID, userID, policyName)}
+}
+
+func (_c *MockIAMUsecase_DetachTenantUserPolicy_Call) Run(run func(ctx context.Context, tenantID string, userID uint, policyName string)) *MockIAMUsecase_DetachTenantUserPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_DetachTenantUserPolicy_Call) Return(err error) *MockIAMUsecase_DetachTenantUserPolicy_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_DetachTenantUserPolicy_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint, policyName string) error) *MockIAMUsecase_DetachTenantUserPolicy_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -708,6 +1419,292 @@ func (_c *MockIAMUsecase_GetMembership_Call) RunAndReturn(run func(ctx context.C
 	return _c
 }
 
+// GetPolicy provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) GetPolicy(ctx context.Context, name string) (*domain.Policy, []domain.PolicyStatement, error) {
+	ret := _mock.Called(ctx, name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPolicy")
+	}
+
+	var r0 *domain.Policy
+	var r1 []domain.PolicyStatement
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*domain.Policy, []domain.PolicyStatement, error)); ok {
+		return returnFunc(ctx, name)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *domain.Policy); ok {
+		r0 = returnFunc(ctx, name)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.Policy)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) []domain.PolicyStatement); ok {
+		r1 = returnFunc(ctx, name)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]domain.PolicyStatement)
+		}
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, string) error); ok {
+		r2 = returnFunc(ctx, name)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockIAMUsecase_GetPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPolicy'
+type MockIAMUsecase_GetPolicy_Call struct {
+	*mock.Call
+}
+
+// GetPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+func (_e *MockIAMUsecase_Expecter) GetPolicy(ctx interface{}, name interface{}) *MockIAMUsecase_GetPolicy_Call {
+	return &MockIAMUsecase_GetPolicy_Call{Call: _e.mock.On("GetPolicy", ctx, name)}
+}
+
+func (_c *MockIAMUsecase_GetPolicy_Call) Run(run func(ctx context.Context, name string)) *MockIAMUsecase_GetPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_GetPolicy_Call) Return(policy *domain.Policy, policyStatements []domain.PolicyStatement, err error) *MockIAMUsecase_GetPolicy_Call {
+	_c.Call.Return(policy, policyStatements, err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_GetPolicy_Call) RunAndReturn(run func(ctx context.Context, name string) (*domain.Policy, []domain.PolicyStatement, error)) *MockIAMUsecase_GetPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListGroupMembers provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) ListGroupMembers(ctx context.Context, groupID uint64) ([]uint, error) {
+	ret := _mock.Called(ctx, groupID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListGroupMembers")
+	}
+
+	var r0 []uint
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) ([]uint, error)); ok {
+		return returnFunc(ctx, groupID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) []uint); ok {
+		r0 = returnFunc(ctx, groupID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]uint)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
+		r1 = returnFunc(ctx, groupID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMUsecase_ListGroupMembers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListGroupMembers'
+type MockIAMUsecase_ListGroupMembers_Call struct {
+	*mock.Call
+}
+
+// ListGroupMembers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID uint64
+func (_e *MockIAMUsecase_Expecter) ListGroupMembers(ctx interface{}, groupID interface{}) *MockIAMUsecase_ListGroupMembers_Call {
+	return &MockIAMUsecase_ListGroupMembers_Call{Call: _e.mock.On("ListGroupMembers", ctx, groupID)}
+}
+
+func (_c *MockIAMUsecase_ListGroupMembers_Call) Run(run func(ctx context.Context, groupID uint64)) *MockIAMUsecase_ListGroupMembers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_ListGroupMembers_Call) Return(uints []uint, err error) *MockIAMUsecase_ListGroupMembers_Call {
+	_c.Call.Return(uints, err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_ListGroupMembers_Call) RunAndReturn(run func(ctx context.Context, groupID uint64) ([]uint, error)) *MockIAMUsecase_ListGroupMembers_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListGroupPolicies provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) ListGroupPolicies(ctx context.Context, groupID uint64) ([]domain.Policy, error) {
+	ret := _mock.Called(ctx, groupID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListGroupPolicies")
+	}
+
+	var r0 []domain.Policy
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) ([]domain.Policy, error)); ok {
+		return returnFunc(ctx, groupID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) []domain.Policy); ok {
+		r0 = returnFunc(ctx, groupID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]domain.Policy)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
+		r1 = returnFunc(ctx, groupID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMUsecase_ListGroupPolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListGroupPolicies'
+type MockIAMUsecase_ListGroupPolicies_Call struct {
+	*mock.Call
+}
+
+// ListGroupPolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID uint64
+func (_e *MockIAMUsecase_Expecter) ListGroupPolicies(ctx interface{}, groupID interface{}) *MockIAMUsecase_ListGroupPolicies_Call {
+	return &MockIAMUsecase_ListGroupPolicies_Call{Call: _e.mock.On("ListGroupPolicies", ctx, groupID)}
+}
+
+func (_c *MockIAMUsecase_ListGroupPolicies_Call) Run(run func(ctx context.Context, groupID uint64)) *MockIAMUsecase_ListGroupPolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_ListGroupPolicies_Call) Return(policys []domain.Policy, err error) *MockIAMUsecase_ListGroupPolicies_Call {
+	_c.Call.Return(policys, err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_ListGroupPolicies_Call) RunAndReturn(run func(ctx context.Context, groupID uint64) ([]domain.Policy, error)) *MockIAMUsecase_ListGroupPolicies_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListGroups provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) ListGroups(ctx context.Context, scope string, tenantID string) ([]domain.Group, error) {
+	ret := _mock.Called(ctx, scope, tenantID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListGroups")
+	}
+
+	var r0 []domain.Group
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) ([]domain.Group, error)); ok {
+		return returnFunc(ctx, scope, tenantID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) []domain.Group); ok {
+		r0 = returnFunc(ctx, scope, tenantID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]domain.Group)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = returnFunc(ctx, scope, tenantID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMUsecase_ListGroups_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListGroups'
+type MockIAMUsecase_ListGroups_Call struct {
+	*mock.Call
+}
+
+// ListGroups is a helper method to define mock.On call
+//   - ctx context.Context
+//   - scope string
+//   - tenantID string
+func (_e *MockIAMUsecase_Expecter) ListGroups(ctx interface{}, scope interface{}, tenantID interface{}) *MockIAMUsecase_ListGroups_Call {
+	return &MockIAMUsecase_ListGroups_Call{Call: _e.mock.On("ListGroups", ctx, scope, tenantID)}
+}
+
+func (_c *MockIAMUsecase_ListGroups_Call) Run(run func(ctx context.Context, scope string, tenantID string)) *MockIAMUsecase_ListGroups_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_ListGroups_Call) Return(groups []domain.Group, err error) *MockIAMUsecase_ListGroups_Call {
+	_c.Call.Return(groups, err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_ListGroups_Call) RunAndReturn(run func(ctx context.Context, scope string, tenantID string) ([]domain.Group, error)) *MockIAMUsecase_ListGroups_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListPlatformRoles provides a mock function for the type MockIAMUsecase
 func (_mock *MockIAMUsecase) ListPlatformRoles(ctx context.Context, userID uint) ([]domain.PlatformMembership, error) {
 	ret := _mock.Called(ctx, userID)
@@ -772,6 +1769,142 @@ func (_c *MockIAMUsecase_ListPlatformRoles_Call) Return(platformMemberships []do
 }
 
 func (_c *MockIAMUsecase_ListPlatformRoles_Call) RunAndReturn(run func(ctx context.Context, userID uint) ([]domain.PlatformMembership, error)) *MockIAMUsecase_ListPlatformRoles_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListPlatformUserPolicies provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) ListPlatformUserPolicies(ctx context.Context, userID uint) ([]domain.Policy, error) {
+	ret := _mock.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListPlatformUserPolicies")
+	}
+
+	var r0 []domain.Policy
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) ([]domain.Policy, error)); ok {
+		return returnFunc(ctx, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) []domain.Policy); ok {
+		r0 = returnFunc(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]domain.Policy)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint) error); ok {
+		r1 = returnFunc(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMUsecase_ListPlatformUserPolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPlatformUserPolicies'
+type MockIAMUsecase_ListPlatformUserPolicies_Call struct {
+	*mock.Call
+}
+
+// ListPlatformUserPolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uint
+func (_e *MockIAMUsecase_Expecter) ListPlatformUserPolicies(ctx interface{}, userID interface{}) *MockIAMUsecase_ListPlatformUserPolicies_Call {
+	return &MockIAMUsecase_ListPlatformUserPolicies_Call{Call: _e.mock.On("ListPlatformUserPolicies", ctx, userID)}
+}
+
+func (_c *MockIAMUsecase_ListPlatformUserPolicies_Call) Run(run func(ctx context.Context, userID uint)) *MockIAMUsecase_ListPlatformUserPolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_ListPlatformUserPolicies_Call) Return(policys []domain.Policy, err error) *MockIAMUsecase_ListPlatformUserPolicies_Call {
+	_c.Call.Return(policys, err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_ListPlatformUserPolicies_Call) RunAndReturn(run func(ctx context.Context, userID uint) ([]domain.Policy, error)) *MockIAMUsecase_ListPlatformUserPolicies_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListPolicies provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) ListPolicies(ctx context.Context, scope string) ([]domain.Policy, error) {
+	ret := _mock.Called(ctx, scope)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListPolicies")
+	}
+
+	var r0 []domain.Policy
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]domain.Policy, error)); ok {
+		return returnFunc(ctx, scope)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []domain.Policy); ok {
+		r0 = returnFunc(ctx, scope)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]domain.Policy)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, scope)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMUsecase_ListPolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPolicies'
+type MockIAMUsecase_ListPolicies_Call struct {
+	*mock.Call
+}
+
+// ListPolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - scope string
+func (_e *MockIAMUsecase_Expecter) ListPolicies(ctx interface{}, scope interface{}) *MockIAMUsecase_ListPolicies_Call {
+	return &MockIAMUsecase_ListPolicies_Call{Call: _e.mock.On("ListPolicies", ctx, scope)}
+}
+
+func (_c *MockIAMUsecase_ListPolicies_Call) Run(run func(ctx context.Context, scope string)) *MockIAMUsecase_ListPolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_ListPolicies_Call) Return(policys []domain.Policy, err error) *MockIAMUsecase_ListPolicies_Call {
+	_c.Call.Return(policys, err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_ListPolicies_Call) RunAndReturn(run func(ctx context.Context, scope string) ([]domain.Policy, error)) *MockIAMUsecase_ListPolicies_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -912,6 +2045,80 @@ func (_c *MockIAMUsecase_ListTenantMembers_Call) RunAndReturn(run func(ctx conte
 	return _c
 }
 
+// ListTenantUserPolicies provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) ListTenantUserPolicies(ctx context.Context, tenantID string, userID uint) ([]domain.Policy, error) {
+	ret := _mock.Called(ctx, tenantID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListTenantUserPolicies")
+	}
+
+	var r0 []domain.Policy
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) ([]domain.Policy, error)); ok {
+		return returnFunc(ctx, tenantID, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) []domain.Policy); ok {
+		r0 = returnFunc(ctx, tenantID, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]domain.Policy)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint) error); ok {
+		r1 = returnFunc(ctx, tenantID, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMUsecase_ListTenantUserPolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListTenantUserPolicies'
+type MockIAMUsecase_ListTenantUserPolicies_Call struct {
+	*mock.Call
+}
+
+// ListTenantUserPolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - userID uint
+func (_e *MockIAMUsecase_Expecter) ListTenantUserPolicies(ctx interface{}, tenantID interface{}, userID interface{}) *MockIAMUsecase_ListTenantUserPolicies_Call {
+	return &MockIAMUsecase_ListTenantUserPolicies_Call{Call: _e.mock.On("ListTenantUserPolicies", ctx, tenantID, userID)}
+}
+
+func (_c *MockIAMUsecase_ListTenantUserPolicies_Call) Run(run func(ctx context.Context, tenantID string, userID uint)) *MockIAMUsecase_ListTenantUserPolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_ListTenantUserPolicies_Call) Return(policys []domain.Policy, err error) *MockIAMUsecase_ListTenantUserPolicies_Call {
+	_c.Call.Return(policys, err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_ListTenantUserPolicies_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint) ([]domain.Policy, error)) *MockIAMUsecase_ListTenantUserPolicies_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListUserTenants provides a mock function for the type MockIAMUsecase
 func (_mock *MockIAMUsecase) ListUserTenants(ctx context.Context, userID uint) ([]domain.Membership, error) {
 	ret := _mock.Called(ctx, userID)
@@ -976,6 +2183,69 @@ func (_c *MockIAMUsecase_ListUserTenants_Call) Return(memberships []domain.Membe
 }
 
 func (_c *MockIAMUsecase_ListUserTenants_Call) RunAndReturn(run func(ctx context.Context, userID uint) ([]domain.Membership, error)) *MockIAMUsecase_ListUserTenants_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// RemoveGroupMember provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) RemoveGroupMember(ctx context.Context, groupID uint64, userID uint) error {
+	ret := _mock.Called(ctx, groupID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveGroupMember")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, uint) error); ok {
+		r0 = returnFunc(ctx, groupID, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMUsecase_RemoveGroupMember_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveGroupMember'
+type MockIAMUsecase_RemoveGroupMember_Call struct {
+	*mock.Call
+}
+
+// RemoveGroupMember is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID uint64
+//   - userID uint
+func (_e *MockIAMUsecase_Expecter) RemoveGroupMember(ctx interface{}, groupID interface{}, userID interface{}) *MockIAMUsecase_RemoveGroupMember_Call {
+	return &MockIAMUsecase_RemoveGroupMember_Call{Call: _e.mock.On("RemoveGroupMember", ctx, groupID, userID)}
+}
+
+func (_c *MockIAMUsecase_RemoveGroupMember_Call) Run(run func(ctx context.Context, groupID uint64, userID uint)) *MockIAMUsecase_RemoveGroupMember_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_RemoveGroupMember_Call) Return(err error) *MockIAMUsecase_RemoveGroupMember_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_RemoveGroupMember_Call) RunAndReturn(run func(ctx context.Context, groupID uint64, userID uint) error) *MockIAMUsecase_RemoveGroupMember_Call {
 	_c.Call.Return(run)
 	return _c
 }

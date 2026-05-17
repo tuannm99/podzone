@@ -15,9 +15,12 @@ func TestCreatePartner_NormalizesCodeFromName(t *testing.T) {
 	t.Parallel()
 
 	repo := domainmocks.NewMockPartnerRepository(t)
-	repo.EXPECT().Create(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, partner domain.Partner) (*domain.Partner, error) {
-		return &partner, nil
-	}).Once()
+	repo.EXPECT().
+		Create(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, partner domain.Partner) (*domain.Partner, error) {
+			return &partner, nil
+		}).
+		Once()
 
 	uc := domain.NewPartnerUsecase(repo)
 	out, err := uc.CreatePartner(context.Background(), domain.CreatePartnerCmd{

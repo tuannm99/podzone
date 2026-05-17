@@ -80,7 +80,40 @@ type routedOrderActivityRow struct {
 
 func (r *OrderRoutingRepositoryImpl) List(ctx context.Context) ([]entity.RoutedOrder, error) {
 	query, args, err := psql.
-		Select("id", "candidate_id", "product_title", "partner", "quantity", "total", "customer_name", "status", "timeline_json", "exception_type", "exception_status", "shipment_status", "shipment_carrier", "shipment_tracking_number", "shipment_tracking_url", "shipment_notes", "operator_assignee", "shipment_sla_due_at", "issue_sla_due_at", "base_cost_snapshot", "fulfillment_cost", "shipping_cost", "issue_cost", "issue_resolution", "issue_notes", "realized_margin", "settlement_status", "settlement_notes", "shipped_at", "delivered_at", "created_at", "updated_at").
+		Select(
+			"id",
+			"candidate_id",
+			"product_title",
+			"partner",
+			"quantity",
+			"total",
+			"customer_name",
+			"status",
+			"timeline_json",
+			"exception_type",
+			"exception_status",
+			"shipment_status",
+			"shipment_carrier",
+			"shipment_tracking_number",
+			"shipment_tracking_url",
+			"shipment_notes",
+			"operator_assignee",
+			"shipment_sla_due_at",
+			"issue_sla_due_at",
+			"base_cost_snapshot",
+			"fulfillment_cost",
+			"shipping_cost",
+			"issue_cost",
+			"issue_resolution",
+			"issue_notes",
+			"realized_margin",
+			"settlement_status",
+			"settlement_notes",
+			"shipped_at",
+			"delivered_at",
+			"created_at",
+			"updated_at",
+		).
 		From("routed_orders").
 		OrderBy("created_at DESC").
 		ToSql()
@@ -117,7 +150,40 @@ func (r *OrderRoutingRepositoryImpl) List(ctx context.Context) ([]entity.RoutedO
 
 func (r *OrderRoutingRepositoryImpl) GetByID(ctx context.Context, id string) (*entity.RoutedOrder, error) {
 	query, args, err := psql.
-		Select("id", "candidate_id", "product_title", "partner", "quantity", "total", "customer_name", "status", "timeline_json", "exception_type", "exception_status", "shipment_status", "shipment_carrier", "shipment_tracking_number", "shipment_tracking_url", "shipment_notes", "operator_assignee", "shipment_sla_due_at", "issue_sla_due_at", "base_cost_snapshot", "fulfillment_cost", "shipping_cost", "issue_cost", "issue_resolution", "issue_notes", "realized_margin", "settlement_status", "settlement_notes", "shipped_at", "delivered_at", "created_at", "updated_at").
+		Select(
+			"id",
+			"candidate_id",
+			"product_title",
+			"partner",
+			"quantity",
+			"total",
+			"customer_name",
+			"status",
+			"timeline_json",
+			"exception_type",
+			"exception_status",
+			"shipment_status",
+			"shipment_carrier",
+			"shipment_tracking_number",
+			"shipment_tracking_url",
+			"shipment_notes",
+			"operator_assignee",
+			"shipment_sla_due_at",
+			"issue_sla_due_at",
+			"base_cost_snapshot",
+			"fulfillment_cost",
+			"shipping_cost",
+			"issue_cost",
+			"issue_resolution",
+			"issue_notes",
+			"realized_margin",
+			"settlement_status",
+			"settlement_notes",
+			"shipped_at",
+			"delivered_at",
+			"created_at",
+			"updated_at",
+		).
 		From("routed_orders").
 		Where(sq.Eq{"id": id}).
 		ToSql()
@@ -154,14 +220,28 @@ func (r *OrderRoutingRepositoryImpl) GetByID(ctx context.Context, id string) (*e
 	return &order, nil
 }
 
-func (r *OrderRoutingRepositoryImpl) ListActivityFeed(ctx context.Context, query inputport.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error) {
+func (r *OrderRoutingRepositoryImpl) ListActivityFeed(
+	ctx context.Context,
+	query inputport.ListRoutedOrderActivitiesQuery,
+) (*entity.RoutedOrderActivityFeedPage, error) {
 	limit := query.Limit
 	if limit <= 0 {
 		limit = 50
 	}
 
 	builder := psql.
-		Select("id", "order_id", "product_title", "partner", "operator_assignee", "activity_type", "actor", "message", "details_json", "created_at").
+		Select(
+			"id",
+			"order_id",
+			"product_title",
+			"partner",
+			"operator_assignee",
+			"activity_type",
+			"actor",
+			"message",
+			"details_json",
+			"created_at",
+		).
 		From("routed_order_activities")
 	countBuilder := psql.Select("COUNT(*)").From("routed_order_activities")
 	applyFilters := func(b sq.SelectBuilder) sq.SelectBuilder {
@@ -250,7 +330,10 @@ func (r *OrderRoutingRepositoryImpl) ListActivityFeed(ctx context.Context, query
 	}, nil
 }
 
-func (r *OrderRoutingRepositoryImpl) Create(ctx context.Context, order entity.RoutedOrder) (*entity.RoutedOrder, error) {
+func (r *OrderRoutingRepositoryImpl) Create(
+	ctx context.Context,
+	order entity.RoutedOrder,
+) (*entity.RoutedOrder, error) {
 	timelineJSON, err := json.Marshal(order.Timeline)
 	if err != nil {
 		return nil, err
@@ -277,7 +360,10 @@ func (r *OrderRoutingRepositoryImpl) Create(ctx context.Context, order entity.Ro
 	return &order, nil
 }
 
-func (r *OrderRoutingRepositoryImpl) Update(ctx context.Context, order entity.RoutedOrder) (*entity.RoutedOrder, error) {
+func (r *OrderRoutingRepositoryImpl) Update(
+	ctx context.Context,
+	order entity.RoutedOrder,
+) (*entity.RoutedOrder, error) {
 	timelineJSON, err := json.Marshal(order.Timeline)
 	if err != nil {
 		return nil, err
@@ -441,7 +527,12 @@ func mapRoutedOrderActivityRow(row routedOrderActivityRow) (entity.RoutedOrderAc
 	}, nil
 }
 
-func insertOrderActivities(ctx context.Context, tx *sqlx.Tx, orderID, productTitle, partner, operatorAssignee string, activities []entity.RoutedOrderActivity) error {
+func insertOrderActivities(
+	ctx context.Context,
+	tx *sqlx.Tx,
+	orderID, productTitle, partner, operatorAssignee string,
+	activities []entity.RoutedOrderActivity,
+) error {
 	for _, activity := range activities {
 		detailsJSON, err := json.Marshal(activity.Details)
 		if err != nil {
@@ -475,13 +566,28 @@ func collectOrderIDs(rows []routedOrderRow) []string {
 	return ids
 }
 
-func loadOrderActivitiesByOrderIDs(ctx context.Context, tx *sqlx.Tx, orderIDs []string) (map[string][]entity.RoutedOrderActivity, error) {
+func loadOrderActivitiesByOrderIDs(
+	ctx context.Context,
+	tx *sqlx.Tx,
+	orderIDs []string,
+) (map[string][]entity.RoutedOrderActivity, error) {
 	activitiesByOrderID := make(map[string][]entity.RoutedOrderActivity, len(orderIDs))
 	if len(orderIDs) == 0 {
 		return activitiesByOrderID, nil
 	}
 	query, args, err := psql.
-		Select("id", "order_id", "product_title", "partner", "operator_assignee", "activity_type", "actor", "message", "details_json", "created_at").
+		Select(
+			"id",
+			"order_id",
+			"product_title",
+			"partner",
+			"operator_assignee",
+			"activity_type",
+			"actor",
+			"message",
+			"details_json",
+			"created_at",
+		).
 		From("routed_order_activities").
 		Where(sq.Eq{"order_id": orderIDs}).
 		OrderBy("created_at ASC", "id ASC").
@@ -504,7 +610,9 @@ func loadOrderActivitiesByOrderIDs(ctx context.Context, tx *sqlx.Tx, orderIDs []
 }
 
 func encodeActivityCursor(id int64, createdAt time.Time) string {
-	return base64.StdEncoding.EncodeToString([]byte(createdAt.UTC().Format(time.RFC3339Nano) + "|" + strconv.FormatInt(id, 10)))
+	return base64.StdEncoding.EncodeToString(
+		[]byte(createdAt.UTC().Format(time.RFC3339Nano) + "|" + strconv.FormatInt(id, 10)),
+	)
 }
 
 func decodeActivityCursor(cursor string) (int64, time.Time, bool) {

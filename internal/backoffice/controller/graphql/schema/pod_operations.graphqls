@@ -204,17 +204,28 @@ input RoutedOrderActivityFeedInput {
 extend type Query {
   productSetupSnapshot: ProductSetupSnapshot!
   routedOrders: [RoutedOrder!]!
-  routedOrderActivities(input: RoutedOrderActivityFeedInput): RoutedOrderActivityFeedPage!
+  routedOrderActivities(
+    input: RoutedOrderActivityFeedInput
+  ): RoutedOrderActivityFeedPage!
 }
 
 extend type Mutation {
-  createProductSetupDraft(input: CreateProductSetupDraftInput!): ProductSetupDraft!
-  promoteProductSetupCandidate(input: PromoteProductSetupCandidateInput!): ProductSetupCandidate!
-  updateProductSetupCandidateStatus(id: ID!, status: String!): ProductSetupCandidate!
+  createProductSetupDraft(
+    input: CreateProductSetupDraftInput!
+  ): ProductSetupDraft!
+  promoteProductSetupCandidate(
+    input: PromoteProductSetupCandidateInput!
+  ): ProductSetupCandidate!
+  updateProductSetupCandidateStatus(
+    id: ID!
+    status: String!
+  ): ProductSetupCandidate!
   createRoutedOrder(input: CreateRoutedOrderInput!): RoutedOrder!
   advanceRoutedOrder(id: ID!): RoutedOrder!
   openOrderException(input: OpenOrderExceptionInput!): RoutedOrder!
-  updateOrderExceptionStatus(input: UpdateOrderExceptionStatusInput!): RoutedOrder!
+  updateOrderExceptionStatus(
+    input: UpdateOrderExceptionStatusInput!
+  ): RoutedOrder!
   updateOrderShipment(input: UpdateOrderShipmentInput!): RoutedOrder!
   updateOrderSettlement(input: UpdateOrderSettlementInput!): RoutedOrder!
   updateOrderIssueHandling(input: UpdateOrderIssueHandlingInput!): RoutedOrder!

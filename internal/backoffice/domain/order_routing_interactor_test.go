@@ -212,8 +212,18 @@ func TestListRoutedOrderActivitiesFiltersAndSorts(t *testing.T) {
 		ProductTitle:     "Vintage Tee",
 		OperatorAssignee: "ops.lead",
 		ActivityLog: []entity.RoutedOrderActivity{
-			{Type: entity.RoutedOrderActivityTypeSystem, Actor: "system", Message: "Queued", CreatedAt: now.Add(-2 * time.Hour)},
-			{Type: entity.RoutedOrderActivityTypeShipmentNote, Actor: "user:12", Message: "Carrier assigned", CreatedAt: now.Add(-1 * time.Hour)},
+			{
+				Type:      entity.RoutedOrderActivityTypeSystem,
+				Actor:     "system",
+				Message:   "Queued",
+				CreatedAt: now.Add(-2 * time.Hour),
+			},
+			{
+				Type:      entity.RoutedOrderActivityTypeShipmentNote,
+				Actor:     "user:12",
+				Message:   "Carrier assigned",
+				CreatedAt: now.Add(-1 * time.Hour),
+			},
 		},
 	})
 	orders.mustSeed(entity.RoutedOrder{
@@ -221,17 +231,25 @@ func TestListRoutedOrderActivitiesFiltersAndSorts(t *testing.T) {
 		ProductTitle:     "Poster",
 		OperatorAssignee: "ops.a",
 		ActivityLog: []entity.RoutedOrderActivity{
-			{Type: entity.RoutedOrderActivityTypeShipmentNote, Actor: "user:15", Message: "Packed", CreatedAt: now.Add(-30 * time.Minute)},
+			{
+				Type:      entity.RoutedOrderActivityTypeShipmentNote,
+				Actor:     "user:15",
+				Message:   "Packed",
+				CreatedAt: now.Add(-30 * time.Minute),
+			},
 		},
 	})
 
-	firstPage, err := interactor.ListRoutedOrderActivities(context.Background(), inputport.ListRoutedOrderActivitiesQuery{
-		ActivityType:  entity.RoutedOrderActivityTypeShipmentNote,
-		ActorContains: "user:",
-		Since:         ptrTime(now.Add(-90 * time.Minute)),
-		Limit:         1,
-		IncludeSystem: false,
-	})
+	firstPage, err := interactor.ListRoutedOrderActivities(
+		context.Background(),
+		inputport.ListRoutedOrderActivitiesQuery{
+			ActivityType:  entity.RoutedOrderActivityTypeShipmentNote,
+			ActorContains: "user:",
+			Since:         ptrTime(now.Add(-90 * time.Minute)),
+			Limit:         1,
+			IncludeSystem: false,
+		},
+	)
 	require.NoError(t, err)
 	require.Equal(t, 2, firstPage.Total)
 	require.Len(t, firstPage.Entries, 1)
@@ -239,14 +257,17 @@ func TestListRoutedOrderActivitiesFiltersAndSorts(t *testing.T) {
 	require.NotNil(t, firstPage.NextCursor)
 	require.NotEmpty(t, *firstPage.NextCursor)
 
-	secondPage, err := interactor.ListRoutedOrderActivities(context.Background(), inputport.ListRoutedOrderActivitiesQuery{
-		ActivityType:  entity.RoutedOrderActivityTypeShipmentNote,
-		ActorContains: "user:",
-		Since:         ptrTime(now.Add(-90 * time.Minute)),
-		Limit:         1,
-		After:         *firstPage.NextCursor,
-		IncludeSystem: false,
-	})
+	secondPage, err := interactor.ListRoutedOrderActivities(
+		context.Background(),
+		inputport.ListRoutedOrderActivitiesQuery{
+			ActivityType:  entity.RoutedOrderActivityTypeShipmentNote,
+			ActorContains: "user:",
+			Since:         ptrTime(now.Add(-90 * time.Minute)),
+			Limit:         1,
+			After:         *firstPage.NextCursor,
+			IncludeSystem: false,
+		},
+	)
 	require.NoError(t, err)
 	require.Len(t, secondPage.Entries, 1)
 	require.Equal(t, "ord-1", secondPage.Entries[0].OrderID)
@@ -304,10 +325,13 @@ func TestOpenAndResolveOrderException(t *testing.T) {
 	require.Equal(t, entity.RoutedOrderExceptionStatusOpen, opened.ExceptionStatus)
 	require.Contains(t, opened.Timeline[len(opened.Timeline)-1], "Exception opened")
 
-	resolved, err := interactor.UpdateOrderExceptionStatus(context.Background(), inputport.UpdateOrderExceptionStatusCmd{
-		OrderID: "ord-exception",
-		Status:  entity.RoutedOrderExceptionStatusResolved,
-	})
+	resolved, err := interactor.UpdateOrderExceptionStatus(
+		context.Background(),
+		inputport.UpdateOrderExceptionStatusCmd{
+			OrderID: "ord-exception",
+			Status:  entity.RoutedOrderExceptionStatusResolved,
+		},
+	)
 	require.NoError(t, err)
 	require.Equal(t, entity.RoutedOrderExceptionStatusResolved, resolved.ExceptionStatus)
 	require.Contains(t, resolved.Timeline[len(resolved.Timeline)-1], "Exception resolved")

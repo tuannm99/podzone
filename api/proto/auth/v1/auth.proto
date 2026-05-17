@@ -179,6 +179,107 @@ service IAMService {
     };
   }
 
+  rpc CreatePolicy(CreatePolicyRequest) returns (CreatePolicyResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/policies"
+      body: "*"
+    };
+  }
+
+  rpc GetPolicy(GetPolicyRequest) returns (GetPolicyResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/policies/{name}"
+    };
+  }
+
+  rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/policies"
+    };
+  }
+
+  rpc DeletePolicy(DeletePolicyRequest) returns (DeletePolicyResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/policies/{name}"
+    };
+  }
+
+  rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/groups"
+      body: "*"
+    };
+  }
+
+  rpc ListGroups(ListGroupsRequest) returns (ListGroupsResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/groups"
+    };
+  }
+
+  rpc DeleteGroup(DeleteGroupRequest) returns (DeleteGroupResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/groups/{group_id}"
+    };
+  }
+
+  rpc AddGroupMember(AddGroupMemberRequest) returns (AddGroupMemberResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/groups/{group_id}/members"
+      body: "*"
+    };
+  }
+
+  rpc ListGroupMembers(ListGroupMembersRequest) returns (ListGroupMembersResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/groups/{group_id}/members"
+    };
+  }
+
+  rpc RemoveGroupMember(RemoveGroupMemberRequest) returns (RemoveGroupMemberResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/groups/{group_id}/members/{user_id}"
+    };
+  }
+
+  rpc AttachGroupPolicy(AttachGroupPolicyRequest) returns (AttachGroupPolicyResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/groups/{group_id}/policies"
+      body: "*"
+    };
+  }
+
+  rpc ListGroupPolicies(ListGroupPoliciesRequest) returns (ListGroupPoliciesResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/groups/{group_id}/policies"
+    };
+  }
+
+  rpc DetachGroupPolicy(DetachGroupPolicyRequest) returns (DetachGroupPolicyResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/groups/{group_id}/policies/{policy_name}"
+    };
+  }
+
+  rpc ListPlatformUserPolicies(ListPlatformUserPoliciesRequest) returns (ListPlatformUserPoliciesResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/platform-users/{target_user_id}/policies"
+    };
+  }
+
+  rpc AttachPlatformUserPolicy(AttachPlatformUserPolicyRequest) returns (AttachPlatformUserPolicyResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/platform-users/{target_user_id}/policies"
+      body: "*"
+    };
+  }
+
+  rpc DetachPlatformUserPolicy(DetachPlatformUserPolicyRequest) returns (DetachPlatformUserPolicyResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/platform-users/{target_user_id}/policies/{policy_name}"
+    };
+  }
+
   rpc RemovePlatformRole(RemovePlatformRoleRequest) returns (RemovePlatformRoleResponse) {
     option (google.api.http) = {
       delete: "/auth/v1/iam/platform-users/{target_user_id}/roles/{role_name}"
@@ -194,6 +295,25 @@ service IAMService {
   rpc RemoveTenantMember(RemoveTenantMemberRequest) returns (RemoveTenantMemberResponse) {
     option (google.api.http) = {
       delete: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}"
+    };
+  }
+
+  rpc ListTenantUserPolicies(ListTenantUserPoliciesRequest) returns (ListTenantUserPoliciesResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/policies"
+    };
+  }
+
+  rpc AttachTenantUserPolicy(AttachTenantUserPolicyRequest) returns (AttachTenantUserPolicyResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/policies"
+      body: "*"
+    };
+  }
+
+  rpc DetachTenantUserPolicy(DetachTenantUserPolicyRequest) returns (DetachTenantUserPolicyResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/policies/{policy_name}"
     };
   }
 }
@@ -401,6 +521,37 @@ message PlatformRoleMembership {
   string updated_at = 6;
 }
 
+message PolicyStatement {
+  uint64 id = 1;
+  uint64 policy_id = 2;
+  string policy_name = 3;
+  string effect = 4;
+  string action_pattern = 5;
+  string resource_pattern = 6;
+  string created_at = 7;
+}
+
+message Policy {
+  uint64 id = 1;
+  string scope = 2;
+  string name = 3;
+  string description = 4;
+  bool is_system = 5;
+  string created_at = 6;
+  string updated_at = 7;
+}
+
+message Group {
+  uint64 id = 1;
+  string scope = 2;
+  string tenant_id = 3;
+  string name = 4;
+  string description = 5;
+  bool is_system = 6;
+  string created_at = 7;
+  string updated_at = 8;
+}
+
 message ListPlatformRolesRequest {
   uint64 actor_user_id = 1;
   uint64 target_user_id = 2;
@@ -417,6 +568,133 @@ message AddPlatformRoleRequest {
 }
 
 message AddPlatformRoleResponse {}
+
+message CreatePolicyRequest {
+  string scope = 1;
+  string name = 2;
+  string description = 3;
+  repeated PolicyStatement statements = 4;
+}
+
+message CreatePolicyResponse {
+  Policy policy = 1;
+  repeated PolicyStatement statements = 2;
+}
+
+message GetPolicyRequest {
+  string name = 1;
+}
+
+message GetPolicyResponse {
+  Policy policy = 1;
+  repeated PolicyStatement statements = 2;
+}
+
+message ListPoliciesRequest {
+  string scope = 1;
+}
+
+message ListPoliciesResponse {
+  repeated Policy policies = 1;
+}
+
+message DeletePolicyRequest {
+  string name = 1;
+}
+
+message DeletePolicyResponse {}
+
+message CreateGroupRequest {
+  string scope = 1;
+  string tenant_id = 2;
+  string name = 3;
+  string description = 4;
+}
+
+message CreateGroupResponse {
+  Group group = 1;
+}
+
+message ListGroupsRequest {
+  string scope = 1;
+  string tenant_id = 2;
+}
+
+message ListGroupsResponse {
+  repeated Group groups = 1;
+}
+
+message DeleteGroupRequest {
+  uint64 group_id = 1;
+}
+
+message DeleteGroupResponse {}
+
+message AddGroupMemberRequest {
+  uint64 group_id = 1;
+  uint64 user_id = 2;
+}
+
+message AddGroupMemberResponse {}
+
+message ListGroupMembersRequest {
+  uint64 group_id = 1;
+}
+
+message ListGroupMembersResponse {
+  repeated uint64 user_ids = 1;
+}
+
+message RemoveGroupMemberRequest {
+  uint64 group_id = 1;
+  uint64 user_id = 2;
+}
+
+message RemoveGroupMemberResponse {}
+
+message AttachGroupPolicyRequest {
+  uint64 group_id = 1;
+  string policy_name = 2;
+}
+
+message AttachGroupPolicyResponse {}
+
+message ListGroupPoliciesRequest {
+  uint64 group_id = 1;
+}
+
+message ListGroupPoliciesResponse {
+  repeated Policy policies = 1;
+}
+
+message DetachGroupPolicyRequest {
+  uint64 group_id = 1;
+  string policy_name = 2;
+}
+
+message DetachGroupPolicyResponse {}
+
+message ListPlatformUserPoliciesRequest {
+  uint64 target_user_id = 1;
+}
+
+message ListPlatformUserPoliciesResponse {
+  repeated Policy policies = 1;
+}
+
+message AttachPlatformUserPolicyRequest {
+  uint64 target_user_id = 1;
+  string policy_name = 2;
+}
+
+message AttachPlatformUserPolicyResponse {}
+
+message DetachPlatformUserPolicyRequest {
+  uint64 target_user_id = 1;
+  string policy_name = 2;
+}
+
+message DetachPlatformUserPolicyResponse {}
 
 message RemovePlatformRoleRequest {
   uint64 actor_user_id = 1;
@@ -464,6 +742,31 @@ message RemoveTenantMemberRequest {
 }
 
 message RemoveTenantMemberResponse {}
+
+message ListTenantUserPoliciesRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+}
+
+message ListTenantUserPoliciesResponse {
+  repeated Policy policies = 1;
+}
+
+message AttachTenantUserPolicyRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+  string policy_name = 3;
+}
+
+message AttachTenantUserPolicyResponse {}
+
+message DetachTenantUserPolicyRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+  string policy_name = 3;
+}
+
+message DetachTenantUserPolicyResponse {}
 
 message SwitchActiveTenantRequest {
   uint64 user_id = 1;

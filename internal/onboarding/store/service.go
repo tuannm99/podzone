@@ -27,9 +27,18 @@ type StoreService struct {
 
 type storeCollection interface {
 	FindOne(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) *mongo.SingleResult
-	InsertOne(ctx context.Context, document interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error)
+	InsertOne(
+		ctx context.Context,
+		document interface{},
+		opts ...*options.InsertOneOptions,
+	) (*mongo.InsertOneResult, error)
 	Find(ctx context.Context, filter interface{}, opts ...*options.FindOptions) (*mongo.Cursor, error)
-	UpdateOne(ctx context.Context, filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error)
+	UpdateOne(
+		ctx context.Context,
+		filter interface{},
+		update interface{},
+		opts ...*options.UpdateOptions,
+	) (*mongo.UpdateResult, error)
 	Indexes() mongo.IndexView
 }
 

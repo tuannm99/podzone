@@ -48,7 +48,7 @@ func RegisterGRPCServer(
 
 type MigrateParams struct {
 	fx.In
-	Logger           pdlog.Logger
+	Logger          pdlog.Logger
 	PartnerDBConfig *pdsql.Config `name:"sql-partner-config"`
 	PartnerDB       *sqlx.DB      `name:"sql-partner"`
 }

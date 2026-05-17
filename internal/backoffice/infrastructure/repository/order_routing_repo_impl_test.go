@@ -67,10 +67,12 @@ func TestOrderRoutingRepositoryPersistsTenantScopedOrders(t *testing.T) {
 				CreatedAt: createdAt,
 			},
 			{
-				Type:      entity.RoutedOrderActivityTypeShipmentNote,
-				Actor:     "user:12",
-				Message:   "Delivered cleanly",
-				Details:   []entity.RoutedOrderActivityDetail{{Key: "shipment_status", Value: entity.RoutedOrderShipmentStatusDelivered}},
+				Type:    entity.RoutedOrderActivityTypeShipmentNote,
+				Actor:   "user:12",
+				Message: "Delivered cleanly",
+				Details: []entity.RoutedOrderActivityDetail{
+					{Key: "shipment_status", Value: entity.RoutedOrderShipmentStatusDelivered},
+				},
 				CreatedAt: updatedAt,
 			},
 		},
@@ -381,13 +383,16 @@ func newRepositoryTestManager(
 		SSLMode:  "disable",
 	}, nil).Maybe()
 	resolver := pdtenantdbmocks.NewMockPlacementResolver(t)
-	resolver.EXPECT().Resolve(mock.Anything, mock.Anything).RunAndReturn(func(_ context.Context, tenantID string) (pdtenantdb.Placement, error) {
-		pl, ok := placements[tenantID]
-		if !ok {
-			return pdtenantdb.Placement{}, fmt.Errorf("missing placement for %s", tenantID)
-		}
-		return pl, nil
-	}).Maybe()
+	resolver.EXPECT().
+		Resolve(mock.Anything, mock.Anything).
+		RunAndReturn(func(_ context.Context, tenantID string) (pdtenantdb.Placement, error) {
+			pl, ok := placements[tenantID]
+			if !ok {
+				return pdtenantdb.Placement{}, fmt.Errorf("missing placement for %s", tenantID)
+			}
+			return pl, nil
+		}).
+		Maybe()
 	return pdtenantdb.NewManager(&pdtenantdb.Config{
 		SharedDB: info.DBName,
 	}, resolver, registry)

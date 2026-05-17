@@ -74,6 +74,14 @@ const acceptInviteRoute = createRoute({
   ),
 });
 
+const devAuthBootstrapRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/auth/dev/bootstrap',
+  component: lazyRouteComponent(
+    () => import('./pages/podzone/DevAuthBootstrapPage')
+  ),
+});
+
 const adminHomeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/admin',
@@ -148,6 +156,7 @@ const routeTree = rootRoute.addChildren([
   registerRoute,
   googleCallbackRoute,
   acceptInviteRoute,
+  devAuthBootstrapRoute,
   adminHomeRoute,
   adminSettingsRoute,
   tenantHomeRoute,

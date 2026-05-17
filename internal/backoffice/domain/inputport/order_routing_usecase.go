@@ -75,7 +75,10 @@ type ListRoutedOrderActivitiesQuery struct {
 
 type OrderRoutingUsecase interface {
 	ListRoutedOrders(ctx context.Context) ([]entity.RoutedOrder, error)
-	ListRoutedOrderActivities(ctx context.Context, query ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error)
+	ListRoutedOrderActivities(
+		ctx context.Context,
+		query ListRoutedOrderActivitiesQuery,
+	) (*entity.RoutedOrderActivityFeedPage, error)
 	CreateRoutedOrder(ctx context.Context, cmd CreateRoutedOrderCmd) (*entity.RoutedOrder, error)
 	AdvanceRoutedOrder(ctx context.Context, orderID string) (*entity.RoutedOrder, error)
 	OpenOrderException(ctx context.Context, cmd OpenOrderExceptionCmd) (*entity.RoutedOrder, error)

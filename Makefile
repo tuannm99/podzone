@@ -1,4 +1,4 @@
-.PHONY: all proto swagger build test lint dev down clean help docker-dev docker-dev-infra docker-dev-down mocks
+.PHONY: all proto swagger build test lint dev down clean help docker-dev docker-dev-infra docker-dev-down mocks dev-backoffice-seed dev-backoffice-sample dev-auth-bootstrap dev-ui-auth-sync dev-pod-sample
 
 GO := go
 
@@ -46,12 +46,119 @@ docker-dev:
 docker-dev-down:
 	docker compose -f deployments/docker/infras.yml -f deployments/docker/services.yml down
 
+dev-backoffice-seed:
+	@TENANT_ID=$(TENANT_ID) \
+	STORE_NAME=$(STORE_NAME) \
+	STORE_SUBDOMAIN=$(STORE_SUBDOMAIN) \
+	CLUSTER_NAME=$(CLUSTER_NAME) \
+	DB_NAME=$(DB_NAME) \
+	SCHEMA_NAME=$(SCHEMA_NAME) \
+	PG_HOST=$(PG_HOST) \
+	PG_PORT=$(PG_PORT) \
+	PG_USER=$(PG_USER) \
+	PG_PASSWORD=$(PG_PASSWORD) \
+	PG_SSL_MODE=$(PG_SSL_MODE) \
+	CONSUL_URL=$(CONSUL_URL) \
+	ONBOARDING_URL=$(ONBOARDING_URL) \
+	CREATE_STORE=$(CREATE_STORE) \
+	sh scripts/dev/seed_backoffice_tenant.sh
+
+dev-backoffice-sample:
+	@TENANT_ID=$(TENANT_ID) \
+	STORE_NAME=$(STORE_NAME) \
+	STORE_SUBDOMAIN=$(STORE_SUBDOMAIN) \
+	CLUSTER_NAME=$(CLUSTER_NAME) \
+	DB_NAME=$(DB_NAME) \
+	SCHEMA_NAME=$(SCHEMA_NAME) \
+	PG_HOST=$(PG_HOST) \
+	PG_PORT=$(PG_PORT) \
+	PG_USER=$(PG_USER) \
+	PG_PASSWORD=$(PG_PASSWORD) \
+	PG_SSL_MODE=$(PG_SSL_MODE) \
+	CONSUL_URL=$(CONSUL_URL) \
+	ONBOARDING_URL=$(ONBOARDING_URL) \
+	CREATE_STORE=$(CREATE_STORE) \
+	sh scripts/dev/seed_backoffice_tenant.sh
+	@TENANT_ID=$(TENANT_ID) \
+	STORE_NAME=$(STORE_NAME) \
+	STORE_SUBDOMAIN=$(STORE_SUBDOMAIN) \
+	DB_NAME=$(DB_NAME) \
+	SCHEMA_NAME=$(SCHEMA_NAME) \
+	PG_HOST=$(PG_HOST) \
+	PG_PORT=$(PG_PORT) \
+	PG_USER=$(PG_USER) \
+	PG_PASSWORD=$(PG_PASSWORD) \
+	PG_SSL_MODE=$(PG_SSL_MODE) \
+	ONBOARDING_URL=$(ONBOARDING_URL) \
+	$(GO) run ./scripts/dev/seed_backoffice_sample.go
+
+dev-auth-bootstrap:
+	@TENANT_ID=$(TENANT_ID) \
+	TENANT_NAME=$(TENANT_NAME) \
+	TENANT_SLUG=$(TENANT_SLUG) \
+	DEV_USERNAME=$(DEV_USERNAME) \
+	DEV_EMAIL=$(DEV_EMAIL) \
+	DEV_PASSWORD=$(DEV_PASSWORD) \
+	DEV_FULL_NAME=$(DEV_FULL_NAME) \
+	PG_HOST=$(PG_HOST) \
+	PG_PORT=$(PG_PORT) \
+	PG_USER=$(PG_USER) \
+	PG_PASSWORD=$(PG_PASSWORD) \
+	PG_SSL_MODE=$(PG_SSL_MODE) \
+	JWT_SECRET=$(JWT_SECRET) \
+	JWT_KEY=$(JWT_KEY) \
+	AUTH_BOOTSTRAP_OUTPUT=$(AUTH_BOOTSTRAP_OUTPUT) \
+	$(GO) run ./scripts/dev/seed_auth_bootstrap.go
+
+dev-ui-auth-sync:
+	@AUTH_BOOTSTRAP_OUTPUT=$(AUTH_BOOTSTRAP_OUTPUT) \
+	UI_AUTH_BOOTSTRAP_TARGET=$(UI_AUTH_BOOTSTRAP_TARGET) \
+	sh scripts/dev/sync_ui_auth_bootstrap.sh
+
+dev-pod-sample:
+	@$(MAKE) dev-backoffice-sample \
+		TENANT_ID=$(TENANT_ID) \
+		STORE_NAME=$(STORE_NAME) \
+		STORE_SUBDOMAIN=$(STORE_SUBDOMAIN) \
+		TENANT_NAME=$(TENANT_NAME) \
+		TENANT_SLUG=$(TENANT_SLUG) \
+		CLUSTER_NAME=$(CLUSTER_NAME) \
+		DB_NAME=$(DB_NAME) \
+		SCHEMA_NAME=$(SCHEMA_NAME) \
+		PG_HOST=$(PG_HOST) \
+		PG_PORT=$(PG_PORT) \
+		PG_USER=$(PG_USER) \
+		PG_PASSWORD=$(PG_PASSWORD) \
+		PG_SSL_MODE=$(PG_SSL_MODE) \
+		CONSUL_URL=$(CONSUL_URL) \
+		ONBOARDING_URL=$(ONBOARDING_URL) \
+		CREATE_STORE=$(CREATE_STORE)
+	@$(MAKE) dev-auth-bootstrap \
+		TENANT_ID=$(TENANT_ID) \
+		TENANT_NAME=$(TENANT_NAME) \
+		TENANT_SLUG=$(TENANT_SLUG) \
+		DEV_USERNAME=$(DEV_USERNAME) \
+		DEV_EMAIL=$(DEV_EMAIL) \
+		DEV_PASSWORD=$(DEV_PASSWORD) \
+		DEV_FULL_NAME=$(DEV_FULL_NAME) \
+		PG_HOST=$(PG_HOST) \
+		PG_PORT=$(PG_PORT) \
+		PG_USER=$(PG_USER) \
+		PG_PASSWORD=$(PG_PASSWORD) \
+		PG_SSL_MODE=$(PG_SSL_MODE) \
+		JWT_SECRET=$(JWT_SECRET) \
+		JWT_KEY=$(JWT_KEY) \
+		AUTH_BOOTSTRAP_OUTPUT=$(AUTH_BOOTSTRAP_OUTPUT)
+	@$(MAKE) dev-ui-auth-sync \
+		AUTH_BOOTSTRAP_OUTPUT=$(AUTH_BOOTSTRAP_OUTPUT) \
+		UI_AUTH_BOOTSTRAP_TARGET=$(UI_AUTH_BOOTSTRAP_TARGET)
+
 gql-backoffice:
 	go run github.com/99designs/gqlgen generate
 
 mocks:
 	@echo "$(COLOR_GREEN)Generating mocks via mockery...$(COLOR_RESET)"
-	@$(MOCKERY)
+	@GOCACHE=$${GOCACHE:-/tmp/podzone-mockery-cache} $(MOCKERY)
 
 dev:
 	@echo "🔁 Starting services in parallel..."
@@ -152,6 +259,11 @@ help:
 	@echo "  make docker-dev                       - Run dockerized dev infra + hot reload services"
 	@echo "  make docker-dev-infra                 - Run only dockerized dev infrastructure"
 	@echo "  make docker-dev-down                  - Stop dockerized dev infra + services"
+	@echo "  make dev-backoffice-seed TENANT_ID=t1 - Seed Consul placement + onboarding connection for one tenant"
+	@echo "  make dev-backoffice-sample TENANT_ID=t1 - Seed placement plus sample POD partners/products/orders"
+	@echo "  make dev-auth-bootstrap TENANT_ID=t1 - Seed user, tenant membership, session, and token bundle"
+	@echo "  make dev-ui-auth-sync                - Copy the dev auth bundle into the UI public assets"
+	@echo "  make dev-pod-sample TENANT_ID=t1 - Seed infra, sample business data, and auth bootstrap together"
 	@echo "  make gql-backoffice                   - Generate backoffice graphql"
 	@echo "  make k8s ENV=${env} SVC=${service}    - Deploy service to k8s dev EG: make k8s ENV="staging" SVC="grpcgateway catalog auth storefront backoffice""
 	@echo "  make k8s-ui ENV=${env} SVC=${service} - Deploy service to k8s dev EG: make k8s-ui ENV="staging" SVC="ui-podzone""

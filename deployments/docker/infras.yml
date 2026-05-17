@@ -113,6 +113,24 @@ services:
       retries: 10
     restart: unless-stopped
 
+  consul:
+    image: hashicorp/consul:latest
+    container_name: podzone-consul
+    command:
+      - agent
+      - -dev
+      - -client=0.0.0.0
+      - -ui
+    ports:
+      - '8500:8500'
+      - '8600:8600/udp'
+    healthcheck:
+      test: ['CMD', 'consul', 'info']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
   apisix:
     image: apache/apisix:3.12.0-debian
     container_name: podzone-apisix

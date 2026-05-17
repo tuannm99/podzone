@@ -8,8 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var ErrTenantNotFound = errors.New("tenant not found")
-var ErrUserNotFound = errors.New("user not found")
+var (
+	ErrTenantNotFound = errors.New("tenant not found")
+	ErrUserNotFound   = errors.New("user not found")
+)
 
 type ContextKey string
 

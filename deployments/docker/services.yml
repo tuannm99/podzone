@@ -90,6 +90,50 @@ services:
     ports:
       - '50054:50054'
 
+  onboarding-service:
+    <<: *go-dev-common
+    container_name: podzone-onboarding-dev
+    command: ['sh', 'deployments/docker/run-go-service.sh']
+    environment:
+      GO_SERVICE: onboarding
+      GOMODCACHE: /go/pkg/mod
+      GOCACHE: /root/.cache/go-build
+      CONFIG_PATH: deployments/docker/config/onboarding.yml
+    depends_on:
+      mongo:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
+    ports:
+      - '8800:8800'
+
+  backoffice-service:
+    <<: *go-dev-common
+    container_name: podzone-backoffice-dev
+    command: ['sh', 'deployments/docker/run-go-service.sh']
+    environment:
+      GO_SERVICE: backoffice
+      GOMODCACHE: /go/pkg/mod
+      GOCACHE: /root/.cache/go-build
+      CONFIG_PATH: deployments/docker/config/backoffice.yml
+      JWT_SECRET: ${JWT_SECRET:-dev-secret}
+      JWT_KEY: ${JWT_KEY:-}
+      AUTH_GRPC_HOST: auth-service
+      AUTH_GRPC_PORT: '50051'
+      IAM_GRPC_HOST: iam-service
+      IAM_GRPC_PORT: '50053'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+      iam-service:
+        condition: service_started
+    ports:
+      - '8000:8000'
+
   grpc-gateway:
     <<: *go-dev-common
     container_name: podzone-grpcgateway-dev
@@ -130,13 +174,15 @@ services:
     command: ['npm', 'run', 'dev', '--', '--host', '0.0.0.0', '--port', '3000']
     environment:
       VITE_PODZONE_GW_API_URL: http://localhost:8080
-      VITE_PODZONE_GRAPHQL_API_URL: http://localhost:8000/graphql
+      VITE_PODZONE_GRAPHQL_API_URL: http://localhost:8000/query
       VITE_API_PROXY_TARGET: http://grpc-gateway:8080
     volumes:
       - ../../internal/ui-podzone:/app
       - podzone_ui_node_modules:/app/node_modules
     depends_on:
       grpc-gateway:
+        condition: service_started
+      backoffice-service:
         condition: service_started
     ports:
       - '3000:3000'

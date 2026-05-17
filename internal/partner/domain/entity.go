@@ -16,14 +16,14 @@ const (
 )
 
 var (
-	ErrPartnerNotFound       = errors.New("partner not found")
-	ErrPartnerCodeTaken      = errors.New("partner code already exists in store")
-	ErrInvalidPartnerID      = errors.New("invalid partner id")
-	ErrInvalidPartnerCode    = errors.New("invalid partner code")
-	ErrInvalidPartnerName    = errors.New("invalid partner name")
-	ErrInvalidTenantID       = errors.New("invalid tenant id")
-	ErrInvalidPartnerType    = errors.New("invalid partner type")
-	ErrInvalidPartnerStatus  = errors.New("invalid partner status")
+	ErrPartnerNotFound      = errors.New("partner not found")
+	ErrPartnerCodeTaken     = errors.New("partner code already exists in store")
+	ErrInvalidPartnerID     = errors.New("invalid partner id")
+	ErrInvalidPartnerCode   = errors.New("invalid partner code")
+	ErrInvalidPartnerName   = errors.New("invalid partner name")
+	ErrInvalidTenantID      = errors.New("invalid tenant id")
+	ErrInvalidPartnerType   = errors.New("invalid partner type")
+	ErrInvalidPartnerStatus = errors.New("invalid partner status")
 )
 
 type Partner struct {

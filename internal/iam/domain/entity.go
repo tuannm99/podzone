@@ -45,26 +45,78 @@ type PlatformMembership struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+type Policy struct {
+	ID          uint64    `json:"id"`
+	Scope       string    `json:"scope"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	IsSystem    bool      `json:"is_system"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+type Group struct {
+	ID          uint64    `json:"id"`
+	Scope       string    `json:"scope"`
+	TenantID    string    `json:"tenant_id,omitempty"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	IsSystem    bool      `json:"is_system"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+type PolicyStatement struct {
+	ID              uint64    `json:"id"`
+	PolicyID        uint64    `json:"policy_id"`
+	PolicyName      string    `json:"policy_name"`
+	Effect          string    `json:"effect"`
+	ActionPattern   string    `json:"action_pattern"`
+	ResourcePattern string    `json:"resource_pattern"`
+	CreatedAt       time.Time `json:"created_at"`
+}
+
+type CreatePolicyInput struct {
+	Scope       string            `json:"scope"`
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	Statements  []PolicyStatement `json:"statements"`
+}
+
+type CreateGroupInput struct {
+	Scope       string `json:"scope"`
+	TenantID    string `json:"tenant_id,omitempty"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+type AccessRequest struct {
+	TenantID string `json:"tenant_id,omitempty"`
+	UserID   uint   `json:"user_id,omitempty"`
+	Action   string `json:"action"`
+	Resource string `json:"resource"`
+}
+
 type CreateTenantCmd struct {
 	Name string `json:"name"`
 	Slug string `json:"slug"`
 }
 
 type TenantInvite struct {
-	ID              string     `json:"id"`
-	TenantID        string     `json:"tenant_id"`
-	Email           string     `json:"email"`
-	RoleID          uint64     `json:"role_id"`
-	RoleName        string     `json:"role_name"`
-	Status          string     `json:"status"`
-	InvitedByUserID uint       `json:"invited_by_user_id"`
-	AcceptedByUserID *uint     `json:"accepted_by_user_id,omitempty"`
-	TokenHash       string     `json:"-"`
-	CreatedAt       time.Time  `json:"created_at"`
-	UpdatedAt       time.Time  `json:"updated_at"`
-	ExpiresAt       time.Time  `json:"expires_at"`
-	AcceptedAt      *time.Time `json:"accepted_at,omitempty"`
-	RevokedAt       *time.Time `json:"revoked_at,omitempty"`
+	ID               string     `json:"id"`
+	TenantID         string     `json:"tenant_id"`
+	Email            string     `json:"email"`
+	RoleID           uint64     `json:"role_id"`
+	RoleName         string     `json:"role_name"`
+	Status           string     `json:"status"`
+	InvitedByUserID  uint       `json:"invited_by_user_id"`
+	AcceptedByUserID *uint      `json:"accepted_by_user_id,omitempty"`
+	TokenHash        string     `json:"-"`
+	CreatedAt        time.Time  `json:"created_at"`
+	UpdatedAt        time.Time  `json:"updated_at"`
+	ExpiresAt        time.Time  `json:"expires_at"`
+	AcceptedAt       *time.Time `json:"accepted_at,omitempty"`
+	RevokedAt        *time.Time `json:"revoked_at,omitempty"`
 }
 
 const (
@@ -76,6 +128,12 @@ const (
 	RoleTenantEditor = "tenant_editor"
 	RoleTenantViewer = "tenant_viewer"
 
+	PolicyScopePlatform = "platform"
+	PolicyScopeTenant   = "tenant"
+
+	PolicyEffectAllow = "allow"
+	PolicyEffectDeny  = "deny"
+
 	MembershipStatusActive = "active"
 
 	InviteStatusPending  = "pending"
@@ -84,23 +142,28 @@ const (
 )
 
 var (
-	ErrTenantNotFound     = errors.New("iam: tenant not found")
-	ErrRoleNotFound       = errors.New("iam: role not found")
-	ErrMembershipNotFound = errors.New("iam: membership not found")
-	ErrPermissionDenied   = errors.New("iam: permission denied")
-	ErrTenantSlugTaken    = errors.New("iam: tenant slug already exists")
-	ErrInvalidTenantName  = errors.New("iam: tenant name is required")
-	ErrInvalidTenantSlug  = errors.New("iam: tenant slug is required")
-	ErrInvalidUserID      = errors.New("iam: user id is required")
-	ErrInvalidRoleName    = errors.New("iam: role name is required")
-	ErrInvalidInviteEmail = errors.New("iam: invite email is required")
-	ErrInvalidInviteToken = errors.New("iam: invite token is required")
-	ErrInactiveMembership = errors.New("iam: membership is inactive")
-	ErrInviteNotFound     = errors.New("iam: invite not found")
-	ErrInviteExpired      = errors.New("iam: invite expired")
-	ErrInviteRevoked      = errors.New("iam: invite revoked")
-	ErrInviteAccepted     = errors.New("iam: invite already accepted")
+	ErrTenantNotFound      = errors.New("iam: tenant not found")
+	ErrRoleNotFound        = errors.New("iam: role not found")
+	ErrPolicyNotFound      = errors.New("iam: policy not found")
+	ErrGroupNotFound       = errors.New("iam: group not found")
+	ErrMembershipNotFound  = errors.New("iam: membership not found")
+	ErrPermissionDenied    = errors.New("iam: permission denied")
+	ErrTenantSlugTaken     = errors.New("iam: tenant slug already exists")
+	ErrInvalidTenantName   = errors.New("iam: tenant name is required")
+	ErrInvalidTenantSlug   = errors.New("iam: tenant slug is required")
+	ErrInvalidUserID       = errors.New("iam: user id is required")
+	ErrInvalidRoleName     = errors.New("iam: role name is required")
+	ErrInvalidInviteEmail  = errors.New("iam: invite email is required")
+	ErrInvalidInviteToken  = errors.New("iam: invite token is required")
+	ErrInactiveMembership  = errors.New("iam: membership is inactive")
+	ErrInviteNotFound      = errors.New("iam: invite not found")
+	ErrInviteExpired       = errors.New("iam: invite expired")
+	ErrInviteRevoked       = errors.New("iam: invite revoked")
+	ErrInviteAccepted      = errors.New("iam: invite already accepted")
 	ErrInviteEmailMismatch = errors.New("iam: invite email does not match authenticated user")
+	ErrImmutablePolicy     = errors.New("iam: managed/system policy cannot be deleted")
+	ErrImmutableGroup      = errors.New("iam: system group cannot be deleted")
+	ErrPolicyInUse         = errors.New("iam: policy is still attached")
 )
 
 func NormalizeInviteEmail(email string) string {
