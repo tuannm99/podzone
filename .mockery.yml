@@ -79,6 +79,7 @@ packages:
       dir: internal/iam/domain/mocks
     interfaces:
       TenantRepository:
+      OrganizationRepository:
       RoleRepository:
       PolicyRepository:
       GroupRepository:

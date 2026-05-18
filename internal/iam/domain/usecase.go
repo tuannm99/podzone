@@ -4,14 +4,28 @@ import "context"
 
 type IAMUsecase interface {
 	CreateTenant(ctx context.Context, ownerUserID uint, cmd CreateTenantCmd) (*Tenant, error)
+	CreateOrganization(ctx context.Context, name string, slug string) (*Organization, error)
+	ListOrganizations(ctx context.Context) ([]Organization, error)
+	AttachTenantToOrganization(ctx context.Context, tenantID string, orgID string) error
+	DetachTenantFromOrganization(ctx context.Context, tenantID string) error
+	AttachServiceControlPolicy(ctx context.Context, orgID string, policyName string) error
+	DetachServiceControlPolicy(ctx context.Context, orgID string, policyName string) error
+	ListServiceControlPolicies(ctx context.Context, orgID string) ([]Policy, error)
 	CreatePolicy(ctx context.Context, input CreatePolicyInput) (*Policy, []PolicyStatement, error)
+	CreatePolicyVersion(ctx context.Context, input CreatePolicyVersionInput) (*PolicyVersion, []PolicyStatement, error)
+	DeletePolicyVersion(ctx context.Context, name string, version string) error
 	GetPolicy(ctx context.Context, name string) (*Policy, []PolicyStatement, error)
+	ListPolicyVersions(ctx context.Context, name string) ([]PolicyVersion, error)
+	SetDefaultPolicyVersion(ctx context.Context, name string, version string) error
 	ListPolicies(ctx context.Context, scope string) ([]Policy, error)
 	ListPolicyAttachments(ctx context.Context, name string) ([]PolicyAttachment, error)
 	DeletePolicy(ctx context.Context, name string) error
 	PutRoleTrustPolicy(ctx context.Context, input PutRoleTrustPolicyInput) error
 	GetRoleTrustPolicy(ctx context.Context, roleName string) ([]RoleTrustStatement, error)
 	DeleteRoleTrustPolicy(ctx context.Context, roleName string) error
+	PutRolePermissionBoundary(ctx context.Context, roleName string, policyName string) error
+	GetRolePermissionBoundary(ctx context.Context, roleName string) (*RolePermissionBoundary, error)
+	DeleteRolePermissionBoundary(ctx context.Context, roleName string) error
 	AssumeRole(ctx context.Context, input AssumeRoleInput) (*AssumedRole, error)
 	CreateGroup(ctx context.Context, input CreateGroupInput) (*Group, error)
 	ListGroups(ctx context.Context, scope string, tenantID string) ([]Group, error)
@@ -38,6 +52,9 @@ type IAMUsecase interface {
 	AttachPlatformUserPolicy(ctx context.Context, userID uint, policyName string) error
 	DetachPlatformUserPolicy(ctx context.Context, userID uint, policyName string) error
 	ListPlatformUserPolicies(ctx context.Context, userID uint) ([]Policy, error)
+	PutPlatformUserPermissionBoundary(ctx context.Context, userID uint, policyName string) error
+	GetPlatformUserPermissionBoundary(ctx context.Context, userID uint) (*PermissionBoundary, error)
+	DeletePlatformUserPermissionBoundary(ctx context.Context, userID uint) error
 	AddMember(ctx context.Context, tenantID string, userID uint, roleName string) error
 	PutTenantUserInlinePolicy(ctx context.Context, input PutTenantUserInlinePolicyInput) error
 	GetTenantUserInlinePolicy(ctx context.Context, tenantID string, userID uint, name string) (*UserInlinePolicy, error)
@@ -46,6 +63,9 @@ type IAMUsecase interface {
 	AttachTenantUserPolicy(ctx context.Context, tenantID string, userID uint, policyName string) error
 	DetachTenantUserPolicy(ctx context.Context, tenantID string, userID uint, policyName string) error
 	ListTenantUserPolicies(ctx context.Context, tenantID string, userID uint) ([]Policy, error)
+	PutTenantUserPermissionBoundary(ctx context.Context, tenantID string, userID uint, policyName string) error
+	GetTenantUserPermissionBoundary(ctx context.Context, tenantID string, userID uint) (*PermissionBoundary, error)
+	DeleteTenantUserPermissionBoundary(ctx context.Context, tenantID string, userID uint) error
 	CreateInvite(
 		ctx context.Context,
 		tenantID, email, roleName string,
@@ -61,4 +81,5 @@ type IAMUsecase interface {
 	RemoveMember(ctx context.Context, tenantID string, userID uint) error
 	CheckPermission(ctx context.Context, tenantID string, userID uint, permission string) (bool, error)
 	RequirePermission(ctx context.Context, tenantID string, userID uint, permission string) error
+	SimulateAccess(ctx context.Context, input SimulateAccessInput) (*SimulateAccessResult, error)
 }

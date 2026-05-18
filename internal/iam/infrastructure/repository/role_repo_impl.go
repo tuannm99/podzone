@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	iamdomain "github.com/tuannm99/podzone/internal/iam/domain"
@@ -76,13 +77,14 @@ func (r *RoleRepositoryImpl) PutTrustPolicy(
 		if _, err := tx.ExecContext(
 			ctx,
 			`INSERT INTO iam_role_trust_statements
-			 (role_id, effect, principal_type, principal_pattern, tenant_pattern, created_at)
-			 VALUES ($1, $2, $3, $4, $5, $6)`,
+			 (role_id, effect, principal_type, principal_pattern, tenant_pattern, external_id_pattern, created_at)
+			 VALUES ($1, $2, $3, $4, $5, $6, $7)`,
 			roleID,
 			statement.Effect,
 			statement.PrincipalType,
 			statement.PrincipalPattern,
 			statement.TenantPattern,
+			statement.ExternalIDPattern,
 			statement.CreatedAt,
 		); err != nil {
 			return err
@@ -96,7 +98,7 @@ func (r *RoleRepositoryImpl) GetTrustPolicy(ctx context.Context, roleID uint64) 
 	if err := r.db.SelectContext(
 		ctx,
 		&rows,
-		`SELECT id, role_id, effect, principal_type, principal_pattern, tenant_pattern, created_at
+		`SELECT id, role_id, effect, principal_type, principal_pattern, tenant_pattern, external_id_pattern, created_at
 		 FROM iam_role_trust_statements
 		 WHERE role_id = $1
 		 ORDER BY id ASC`,
@@ -113,5 +115,73 @@ func (r *RoleRepositoryImpl) GetTrustPolicy(ctx context.Context, roleID uint64) 
 
 func (r *RoleRepositoryImpl) DeleteTrustPolicy(ctx context.Context, roleID uint64) error {
 	_, err := r.db.ExecContext(ctx, `DELETE FROM iam_role_trust_statements WHERE role_id = $1`, roleID)
+	return err
+}
+
+func (r *RoleRepositoryImpl) PutPermissionBoundary(ctx context.Context, roleID uint64, policyID uint64) error {
+	_, err := r.db.ExecContext(
+		ctx,
+		`INSERT INTO iam_role_permission_boundaries (role_id, policy_id, created_at, updated_at)
+		 VALUES ($1, $2, now(), now())
+		 ON CONFLICT (role_id)
+		 DO UPDATE SET policy_id = EXCLUDED.policy_id, updated_at = now()`,
+		roleID,
+		policyID,
+	)
+	return err
+}
+
+func (r *RoleRepositoryImpl) GetPermissionBoundary(ctx context.Context, roleID uint64) (*iamdomain.RolePermissionBoundary, error) {
+	var row struct {
+		RoleID     uint64    `db:"role_id"`
+		RoleName   string    `db:"role_name"`
+		PolicyID   uint64    `db:"policy_id"`
+		PolicyName string    `db:"policy_name"`
+		CreatedAt  time.Time `db:"created_at"`
+	}
+	if err := r.db.GetContext(
+		ctx,
+		&row,
+		`SELECT rpb.role_id, r.name AS role_name, rpb.policy_id, p.name AS policy_name, rpb.created_at
+		 FROM iam_role_permission_boundaries rpb
+		 JOIN iam_roles r ON r.id = rpb.role_id
+		 JOIN iam_policies p ON p.id = rpb.policy_id
+		 WHERE rpb.role_id = $1`,
+		roleID,
+	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &iamdomain.RolePermissionBoundary{
+		RoleID:     row.RoleID,
+		RoleName:   row.RoleName,
+		PolicyID:   row.PolicyID,
+		PolicyName: row.PolicyName,
+		CreatedAt:  row.CreatedAt,
+	}, nil
+}
+
+func (r *RoleRepositoryImpl) GetPermissionBoundaryStatements(ctx context.Context, roleID uint64) ([]iamdomain.PolicyStatement, error) {
+	rows := make([]policyStatementModel, 0)
+	if err := r.db.SelectContext(
+		ctx,
+		&rows,
+		`SELECT ps.id, ps.policy_id, p.name AS policy_name, ps.effect, ps.action_pattern, ps.resource_pattern, ps.conditions_json, ps.created_at
+		 FROM iam_role_permission_boundaries rpb
+		 JOIN iam_policies p ON p.id = rpb.policy_id
+		 JOIN iam_policy_statements ps ON ps.policy_id = p.id
+		 WHERE rpb.role_id = $1
+		 ORDER BY ps.id ASC`,
+		roleID,
+	); err != nil {
+		return nil, err
+	}
+	return toPolicyStatements(rows), nil
+}
+
+func (r *RoleRepositoryImpl) DeletePermissionBoundary(ctx context.Context, roleID uint64) error {
+	_, err := r.db.ExecContext(ctx, `DELETE FROM iam_role_permission_boundaries WHERE role_id = $1`, roleID)
 	return err
 }

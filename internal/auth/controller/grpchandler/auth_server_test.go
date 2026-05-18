@@ -1538,6 +1538,8 @@ func TestAssumeRole_OK(t *testing.T) {
 	authUC := srv.authUC.(*inputmocks.MockAuthUsecase)
 	authUC.On("AssumeRole", mock.Anything, uint(7), accessToken, iamdomain.RoleTenantAdmin, "tenant-9", mock.MatchedBy(func(items []entity.SessionPolicyStatement) bool {
 		return len(items) == 1 && items[0].ActionPattern == "order:read"
+	}), "", "", "", uint32(0), "", mock.MatchedBy(func(tags map[string]string) bool {
+		return len(tags) == 0
 	})).Return(&inputport.AuthResult{
 		JwtToken: "jwt-assumed",
 		UserInfo: entity.User{Id: 7, Username: "neo"},

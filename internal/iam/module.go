@@ -13,6 +13,7 @@ var Module = fx.Options(
 		fx.Annotate(repository.NewRoleRepository, fx.As(new(iamdomain.RoleRepository))),
 		fx.Annotate(repository.NewPolicyRepository, fx.As(new(iamdomain.PolicyRepository))),
 		fx.Annotate(repository.NewGroupRepository, fx.As(new(iamdomain.GroupRepository))),
+		fx.Annotate(repository.NewOrganizationRepository, fx.As(new(iamdomain.OrganizationRepository))),
 		fx.Annotate(repository.NewPlatformMembershipRepository, fx.As(new(iamdomain.PlatformMembershipRepository))),
 		fx.Annotate(repository.NewMembershipRepository, fx.As(new(iamdomain.MembershipRepository))),
 		fx.Annotate(repository.NewInviteRepository, fx.As(new(iamdomain.InviteRepository))),

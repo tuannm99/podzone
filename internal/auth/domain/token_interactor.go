@@ -50,20 +50,31 @@ func (t *tokenUCImpl) CreateJwtTokenForSessionState(
 	user entity.User,
 	session entity.Session,
 ) (string, error) {
+	expiresAt := time.Now().Add(24 * time.Hour)
+	if !session.ExpiresAt.IsZero() && session.ExpiresAt.Before(expiresAt) {
+		expiresAt = session.ExpiresAt
+	}
+	if session.AssumedRoleExpiresAt != nil && session.AssumedRoleExpiresAt.Before(expiresAt) {
+		expiresAt = *session.AssumedRoleExpiresAt
+	}
 	claims := entity.JWTClaims{
-		UserID:              user.Id,
-		Email:               user.Email,
-		Username:            user.Username,
-		ActiveTenantID:      session.ActiveTenantID,
-		SessionID:           session.ID,
-		SessionPolicy:       session.SessionPolicy,
-		AssumedRoleID:       session.AssumedRoleID,
-		AssumedRoleScope:    session.AssumedRoleScope,
-		AssumedRoleName:     session.AssumedRoleName,
-		AssumedRoleTenantID: session.AssumedRoleTenantID,
-		Key:                 t.cfg.JWTKey,
+		UserID:                      user.Id,
+		Email:                       user.Email,
+		Username:                    user.Username,
+		ActiveTenantID:              session.ActiveTenantID,
+		SessionID:                   session.ID,
+		SessionPolicy:               session.SessionPolicy,
+		SessionTags:                 session.SessionTags,
+		AssumedRoleID:               session.AssumedRoleID,
+		AssumedRoleScope:            session.AssumedRoleScope,
+		AssumedRoleName:             session.AssumedRoleName,
+		AssumedRoleTenantID:         session.AssumedRoleTenantID,
+		AssumedRoleServicePrincipal: session.AssumedRoleServicePrincipal,
+		AssumedRoleSessionName:      session.AssumedRoleSessionName,
+		AssumedRoleSourceIdentity:   session.AssumedRoleSourceIdentity,
+		Key:                         t.cfg.JWTKey,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(24 * time.Hour).Unix(),
+			ExpiresAt: expiresAt.Unix(),
 			IssuedAt:  time.Now().Unix(),
 		},
 	}

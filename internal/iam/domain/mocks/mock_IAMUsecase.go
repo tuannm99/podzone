@@ -507,6 +507,132 @@ func (_c *MockIAMUsecase_AttachPlatformUserPolicy_Call) RunAndReturn(run func(ct
 	return _c
 }
 
+// AttachServiceControlPolicy provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) AttachServiceControlPolicy(ctx context.Context, orgID string, policyName string) error {
+	ret := _mock.Called(ctx, orgID, policyName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AttachServiceControlPolicy")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = returnFunc(ctx, orgID, policyName)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMUsecase_AttachServiceControlPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AttachServiceControlPolicy'
+type MockIAMUsecase_AttachServiceControlPolicy_Call struct {
+	*mock.Call
+}
+
+// AttachServiceControlPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orgID string
+//   - policyName string
+func (_e *MockIAMUsecase_Expecter) AttachServiceControlPolicy(ctx interface{}, orgID interface{}, policyName interface{}) *MockIAMUsecase_AttachServiceControlPolicy_Call {
+	return &MockIAMUsecase_AttachServiceControlPolicy_Call{Call: _e.mock.On("AttachServiceControlPolicy", ctx, orgID, policyName)}
+}
+
+func (_c *MockIAMUsecase_AttachServiceControlPolicy_Call) Run(run func(ctx context.Context, orgID string, policyName string)) *MockIAMUsecase_AttachServiceControlPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_AttachServiceControlPolicy_Call) Return(err error) *MockIAMUsecase_AttachServiceControlPolicy_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_AttachServiceControlPolicy_Call) RunAndReturn(run func(ctx context.Context, orgID string, policyName string) error) *MockIAMUsecase_AttachServiceControlPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// AttachTenantToOrganization provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) AttachTenantToOrganization(ctx context.Context, tenantID string, orgID string) error {
+	ret := _mock.Called(ctx, tenantID, orgID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AttachTenantToOrganization")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = returnFunc(ctx, tenantID, orgID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMUsecase_AttachTenantToOrganization_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AttachTenantToOrganization'
+type MockIAMUsecase_AttachTenantToOrganization_Call struct {
+	*mock.Call
+}
+
+// AttachTenantToOrganization is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - orgID string
+func (_e *MockIAMUsecase_Expecter) AttachTenantToOrganization(ctx interface{}, tenantID interface{}, orgID interface{}) *MockIAMUsecase_AttachTenantToOrganization_Call {
+	return &MockIAMUsecase_AttachTenantToOrganization_Call{Call: _e.mock.On("AttachTenantToOrganization", ctx, tenantID, orgID)}
+}
+
+func (_c *MockIAMUsecase_AttachTenantToOrganization_Call) Run(run func(ctx context.Context, tenantID string, orgID string)) *MockIAMUsecase_AttachTenantToOrganization_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_AttachTenantToOrganization_Call) Return(err error) *MockIAMUsecase_AttachTenantToOrganization_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_AttachTenantToOrganization_Call) RunAndReturn(run func(ctx context.Context, tenantID string, orgID string) error) *MockIAMUsecase_AttachTenantToOrganization_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // AttachTenantUserPolicy provides a mock function for the type MockIAMUsecase
 func (_mock *MockIAMUsecase) AttachTenantUserPolicy(ctx context.Context, tenantID string, userID uint, policyName string) error {
 	ret := _mock.Called(ctx, tenantID, userID, policyName)
@@ -886,6 +1012,80 @@ func (_c *MockIAMUsecase_CreateInvite_Call) RunAndReturn(run func(ctx context.Co
 	return _c
 }
 
+// CreateOrganization provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) CreateOrganization(ctx context.Context, name string, slug string) (*domain.Organization, error) {
+	ret := _mock.Called(ctx, name, slug)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateOrganization")
+	}
+
+	var r0 *domain.Organization
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (*domain.Organization, error)); ok {
+		return returnFunc(ctx, name, slug)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) *domain.Organization); ok {
+		r0 = returnFunc(ctx, name, slug)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.Organization)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = returnFunc(ctx, name, slug)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMUsecase_CreateOrganization_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateOrganization'
+type MockIAMUsecase_CreateOrganization_Call struct {
+	*mock.Call
+}
+
+// CreateOrganization is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+//   - slug string
+func (_e *MockIAMUsecase_Expecter) CreateOrganization(ctx interface{}, name interface{}, slug interface{}) *MockIAMUsecase_CreateOrganization_Call {
+	return &MockIAMUsecase_CreateOrganization_Call{Call: _e.mock.On("CreateOrganization", ctx, name, slug)}
+}
+
+func (_c *MockIAMUsecase_CreateOrganization_Call) Run(run func(ctx context.Context, name string, slug string)) *MockIAMUsecase_CreateOrganization_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_CreateOrganization_Call) Return(organization *domain.Organization, err error) *MockIAMUsecase_CreateOrganization_Call {
+	_c.Call.Return(organization, err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_CreateOrganization_Call) RunAndReturn(run func(ctx context.Context, name string, slug string) (*domain.Organization, error)) *MockIAMUsecase_CreateOrganization_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreatePolicy provides a mock function for the type MockIAMUsecase
 func (_mock *MockIAMUsecase) CreatePolicy(ctx context.Context, input domain.CreatePolicyInput) (*domain.Policy, []domain.PolicyStatement, error) {
 	ret := _mock.Called(ctx, input)
@@ -958,6 +1158,82 @@ func (_c *MockIAMUsecase_CreatePolicy_Call) Return(policy *domain.Policy, policy
 }
 
 func (_c *MockIAMUsecase_CreatePolicy_Call) RunAndReturn(run func(ctx context.Context, input domain.CreatePolicyInput) (*domain.Policy, []domain.PolicyStatement, error)) *MockIAMUsecase_CreatePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CreatePolicyVersion provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) CreatePolicyVersion(ctx context.Context, input domain.CreatePolicyVersionInput) (*domain.PolicyVersion, []domain.PolicyStatement, error) {
+	ret := _mock.Called(ctx, input)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreatePolicyVersion")
+	}
+
+	var r0 *domain.PolicyVersion
+	var r1 []domain.PolicyStatement
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.CreatePolicyVersionInput) (*domain.PolicyVersion, []domain.PolicyStatement, error)); ok {
+		return returnFunc(ctx, input)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.CreatePolicyVersionInput) *domain.PolicyVersion); ok {
+		r0 = returnFunc(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.PolicyVersion)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, domain.CreatePolicyVersionInput) []domain.PolicyStatement); ok {
+		r1 = returnFunc(ctx, input)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]domain.PolicyStatement)
+		}
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, domain.CreatePolicyVersionInput) error); ok {
+		r2 = returnFunc(ctx, input)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockIAMUsecase_CreatePolicyVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreatePolicyVersion'
+type MockIAMUsecase_CreatePolicyVersion_Call struct {
+	*mock.Call
+}
+
+// CreatePolicyVersion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input domain.CreatePolicyVersionInput
+func (_e *MockIAMUsecase_Expecter) CreatePolicyVersion(ctx interface{}, input interface{}) *MockIAMUsecase_CreatePolicyVersion_Call {
+	return &MockIAMUsecase_CreatePolicyVersion_Call{Call: _e.mock.On("CreatePolicyVersion", ctx, input)}
+}
+
+func (_c *MockIAMUsecase_CreatePolicyVersion_Call) Run(run func(ctx context.Context, input domain.CreatePolicyVersionInput)) *MockIAMUsecase_CreatePolicyVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 domain.CreatePolicyVersionInput
+		if args[1] != nil {
+			arg1 = args[1].(domain.CreatePolicyVersionInput)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_CreatePolicyVersion_Call) Return(policyVersion *domain.PolicyVersion, policyStatements []domain.PolicyStatement, err error) *MockIAMUsecase_CreatePolicyVersion_Call {
+	_c.Call.Return(policyVersion, policyStatements, err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_CreatePolicyVersion_Call) RunAndReturn(run func(ctx context.Context, input domain.CreatePolicyVersionInput) (*domain.PolicyVersion, []domain.PolicyStatement, error)) *MockIAMUsecase_CreatePolicyVersion_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1219,6 +1495,63 @@ func (_c *MockIAMUsecase_DeletePlatformUserInlinePolicy_Call) RunAndReturn(run f
 	return _c
 }
 
+// DeletePlatformUserPermissionBoundary provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) DeletePlatformUserPermissionBoundary(ctx context.Context, userID uint) error {
+	ret := _mock.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeletePlatformUserPermissionBoundary")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) error); ok {
+		r0 = returnFunc(ctx, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMUsecase_DeletePlatformUserPermissionBoundary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeletePlatformUserPermissionBoundary'
+type MockIAMUsecase_DeletePlatformUserPermissionBoundary_Call struct {
+	*mock.Call
+}
+
+// DeletePlatformUserPermissionBoundary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uint
+func (_e *MockIAMUsecase_Expecter) DeletePlatformUserPermissionBoundary(ctx interface{}, userID interface{}) *MockIAMUsecase_DeletePlatformUserPermissionBoundary_Call {
+	return &MockIAMUsecase_DeletePlatformUserPermissionBoundary_Call{Call: _e.mock.On("DeletePlatformUserPermissionBoundary", ctx, userID)}
+}
+
+func (_c *MockIAMUsecase_DeletePlatformUserPermissionBoundary_Call) Run(run func(ctx context.Context, userID uint)) *MockIAMUsecase_DeletePlatformUserPermissionBoundary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_DeletePlatformUserPermissionBoundary_Call) Return(err error) *MockIAMUsecase_DeletePlatformUserPermissionBoundary_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_DeletePlatformUserPermissionBoundary_Call) RunAndReturn(run func(ctx context.Context, userID uint) error) *MockIAMUsecase_DeletePlatformUserPermissionBoundary_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeletePolicy provides a mock function for the type MockIAMUsecase
 func (_mock *MockIAMUsecase) DeletePolicy(ctx context.Context, name string) error {
 	ret := _mock.Called(ctx, name)
@@ -1272,6 +1605,126 @@ func (_c *MockIAMUsecase_DeletePolicy_Call) Return(err error) *MockIAMUsecase_De
 }
 
 func (_c *MockIAMUsecase_DeletePolicy_Call) RunAndReturn(run func(ctx context.Context, name string) error) *MockIAMUsecase_DeletePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeletePolicyVersion provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) DeletePolicyVersion(ctx context.Context, name string, version string) error {
+	ret := _mock.Called(ctx, name, version)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeletePolicyVersion")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = returnFunc(ctx, name, version)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMUsecase_DeletePolicyVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeletePolicyVersion'
+type MockIAMUsecase_DeletePolicyVersion_Call struct {
+	*mock.Call
+}
+
+// DeletePolicyVersion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+//   - version string
+func (_e *MockIAMUsecase_Expecter) DeletePolicyVersion(ctx interface{}, name interface{}, version interface{}) *MockIAMUsecase_DeletePolicyVersion_Call {
+	return &MockIAMUsecase_DeletePolicyVersion_Call{Call: _e.mock.On("DeletePolicyVersion", ctx, name, version)}
+}
+
+func (_c *MockIAMUsecase_DeletePolicyVersion_Call) Run(run func(ctx context.Context, name string, version string)) *MockIAMUsecase_DeletePolicyVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_DeletePolicyVersion_Call) Return(err error) *MockIAMUsecase_DeletePolicyVersion_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_DeletePolicyVersion_Call) RunAndReturn(run func(ctx context.Context, name string, version string) error) *MockIAMUsecase_DeletePolicyVersion_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteRolePermissionBoundary provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) DeleteRolePermissionBoundary(ctx context.Context, roleName string) error {
+	ret := _mock.Called(ctx, roleName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteRolePermissionBoundary")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, roleName)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMUsecase_DeleteRolePermissionBoundary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteRolePermissionBoundary'
+type MockIAMUsecase_DeleteRolePermissionBoundary_Call struct {
+	*mock.Call
+}
+
+// DeleteRolePermissionBoundary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - roleName string
+func (_e *MockIAMUsecase_Expecter) DeleteRolePermissionBoundary(ctx interface{}, roleName interface{}) *MockIAMUsecase_DeleteRolePermissionBoundary_Call {
+	return &MockIAMUsecase_DeleteRolePermissionBoundary_Call{Call: _e.mock.On("DeleteRolePermissionBoundary", ctx, roleName)}
+}
+
+func (_c *MockIAMUsecase_DeleteRolePermissionBoundary_Call) Run(run func(ctx context.Context, roleName string)) *MockIAMUsecase_DeleteRolePermissionBoundary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_DeleteRolePermissionBoundary_Call) Return(err error) *MockIAMUsecase_DeleteRolePermissionBoundary_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_DeleteRolePermissionBoundary_Call) RunAndReturn(run func(ctx context.Context, roleName string) error) *MockIAMUsecase_DeleteRolePermissionBoundary_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1402,6 +1855,69 @@ func (_c *MockIAMUsecase_DeleteTenantUserInlinePolicy_Call) RunAndReturn(run fun
 	return _c
 }
 
+// DeleteTenantUserPermissionBoundary provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) DeleteTenantUserPermissionBoundary(ctx context.Context, tenantID string, userID uint) error {
+	ret := _mock.Called(ctx, tenantID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteTenantUserPermissionBoundary")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) error); ok {
+		r0 = returnFunc(ctx, tenantID, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMUsecase_DeleteTenantUserPermissionBoundary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteTenantUserPermissionBoundary'
+type MockIAMUsecase_DeleteTenantUserPermissionBoundary_Call struct {
+	*mock.Call
+}
+
+// DeleteTenantUserPermissionBoundary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - userID uint
+func (_e *MockIAMUsecase_Expecter) DeleteTenantUserPermissionBoundary(ctx interface{}, tenantID interface{}, userID interface{}) *MockIAMUsecase_DeleteTenantUserPermissionBoundary_Call {
+	return &MockIAMUsecase_DeleteTenantUserPermissionBoundary_Call{Call: _e.mock.On("DeleteTenantUserPermissionBoundary", ctx, tenantID, userID)}
+}
+
+func (_c *MockIAMUsecase_DeleteTenantUserPermissionBoundary_Call) Run(run func(ctx context.Context, tenantID string, userID uint)) *MockIAMUsecase_DeleteTenantUserPermissionBoundary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_DeleteTenantUserPermissionBoundary_Call) Return(err error) *MockIAMUsecase_DeleteTenantUserPermissionBoundary_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_DeleteTenantUserPermissionBoundary_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint) error) *MockIAMUsecase_DeleteTenantUserPermissionBoundary_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DetachGroupPolicy provides a mock function for the type MockIAMUsecase
 func (_mock *MockIAMUsecase) DetachGroupPolicy(ctx context.Context, groupID uint64, policyName string) error {
 	ret := _mock.Called(ctx, groupID, policyName)
@@ -1524,6 +2040,126 @@ func (_c *MockIAMUsecase_DetachPlatformUserPolicy_Call) Return(err error) *MockI
 }
 
 func (_c *MockIAMUsecase_DetachPlatformUserPolicy_Call) RunAndReturn(run func(ctx context.Context, userID uint, policyName string) error) *MockIAMUsecase_DetachPlatformUserPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DetachServiceControlPolicy provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) DetachServiceControlPolicy(ctx context.Context, orgID string, policyName string) error {
+	ret := _mock.Called(ctx, orgID, policyName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DetachServiceControlPolicy")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = returnFunc(ctx, orgID, policyName)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMUsecase_DetachServiceControlPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DetachServiceControlPolicy'
+type MockIAMUsecase_DetachServiceControlPolicy_Call struct {
+	*mock.Call
+}
+
+// DetachServiceControlPolicy is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orgID string
+//   - policyName string
+func (_e *MockIAMUsecase_Expecter) DetachServiceControlPolicy(ctx interface{}, orgID interface{}, policyName interface{}) *MockIAMUsecase_DetachServiceControlPolicy_Call {
+	return &MockIAMUsecase_DetachServiceControlPolicy_Call{Call: _e.mock.On("DetachServiceControlPolicy", ctx, orgID, policyName)}
+}
+
+func (_c *MockIAMUsecase_DetachServiceControlPolicy_Call) Run(run func(ctx context.Context, orgID string, policyName string)) *MockIAMUsecase_DetachServiceControlPolicy_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_DetachServiceControlPolicy_Call) Return(err error) *MockIAMUsecase_DetachServiceControlPolicy_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_DetachServiceControlPolicy_Call) RunAndReturn(run func(ctx context.Context, orgID string, policyName string) error) *MockIAMUsecase_DetachServiceControlPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DetachTenantFromOrganization provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) DetachTenantFromOrganization(ctx context.Context, tenantID string) error {
+	ret := _mock.Called(ctx, tenantID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DetachTenantFromOrganization")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, tenantID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMUsecase_DetachTenantFromOrganization_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DetachTenantFromOrganization'
+type MockIAMUsecase_DetachTenantFromOrganization_Call struct {
+	*mock.Call
+}
+
+// DetachTenantFromOrganization is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+func (_e *MockIAMUsecase_Expecter) DetachTenantFromOrganization(ctx interface{}, tenantID interface{}) *MockIAMUsecase_DetachTenantFromOrganization_Call {
+	return &MockIAMUsecase_DetachTenantFromOrganization_Call{Call: _e.mock.On("DetachTenantFromOrganization", ctx, tenantID)}
+}
+
+func (_c *MockIAMUsecase_DetachTenantFromOrganization_Call) Run(run func(ctx context.Context, tenantID string)) *MockIAMUsecase_DetachTenantFromOrganization_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_DetachTenantFromOrganization_Call) Return(err error) *MockIAMUsecase_DetachTenantFromOrganization_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_DetachTenantFromOrganization_Call) RunAndReturn(run func(ctx context.Context, tenantID string) error) *MockIAMUsecase_DetachTenantFromOrganization_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1887,6 +2523,74 @@ func (_c *MockIAMUsecase_GetPlatformUserInlinePolicy_Call) RunAndReturn(run func
 	return _c
 }
 
+// GetPlatformUserPermissionBoundary provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) GetPlatformUserPermissionBoundary(ctx context.Context, userID uint) (*domain.PermissionBoundary, error) {
+	ret := _mock.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPlatformUserPermissionBoundary")
+	}
+
+	var r0 *domain.PermissionBoundary
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) (*domain.PermissionBoundary, error)); ok {
+		return returnFunc(ctx, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) *domain.PermissionBoundary); ok {
+		r0 = returnFunc(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.PermissionBoundary)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint) error); ok {
+		r1 = returnFunc(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMUsecase_GetPlatformUserPermissionBoundary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPlatformUserPermissionBoundary'
+type MockIAMUsecase_GetPlatformUserPermissionBoundary_Call struct {
+	*mock.Call
+}
+
+// GetPlatformUserPermissionBoundary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uint
+func (_e *MockIAMUsecase_Expecter) GetPlatformUserPermissionBoundary(ctx interface{}, userID interface{}) *MockIAMUsecase_GetPlatformUserPermissionBoundary_Call {
+	return &MockIAMUsecase_GetPlatformUserPermissionBoundary_Call{Call: _e.mock.On("GetPlatformUserPermissionBoundary", ctx, userID)}
+}
+
+func (_c *MockIAMUsecase_GetPlatformUserPermissionBoundary_Call) Run(run func(ctx context.Context, userID uint)) *MockIAMUsecase_GetPlatformUserPermissionBoundary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_GetPlatformUserPermissionBoundary_Call) Return(permissionBoundary *domain.PermissionBoundary, err error) *MockIAMUsecase_GetPlatformUserPermissionBoundary_Call {
+	_c.Call.Return(permissionBoundary, err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_GetPlatformUserPermissionBoundary_Call) RunAndReturn(run func(ctx context.Context, userID uint) (*domain.PermissionBoundary, error)) *MockIAMUsecase_GetPlatformUserPermissionBoundary_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetPolicy provides a mock function for the type MockIAMUsecase
 func (_mock *MockIAMUsecase) GetPolicy(ctx context.Context, name string) (*domain.Policy, []domain.PolicyStatement, error) {
 	ret := _mock.Called(ctx, name)
@@ -1959,6 +2663,74 @@ func (_c *MockIAMUsecase_GetPolicy_Call) Return(policy *domain.Policy, policySta
 }
 
 func (_c *MockIAMUsecase_GetPolicy_Call) RunAndReturn(run func(ctx context.Context, name string) (*domain.Policy, []domain.PolicyStatement, error)) *MockIAMUsecase_GetPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetRolePermissionBoundary provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) GetRolePermissionBoundary(ctx context.Context, roleName string) (*domain.RolePermissionBoundary, error) {
+	ret := _mock.Called(ctx, roleName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetRolePermissionBoundary")
+	}
+
+	var r0 *domain.RolePermissionBoundary
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*domain.RolePermissionBoundary, error)); ok {
+		return returnFunc(ctx, roleName)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *domain.RolePermissionBoundary); ok {
+		r0 = returnFunc(ctx, roleName)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.RolePermissionBoundary)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, roleName)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMUsecase_GetRolePermissionBoundary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRolePermissionBoundary'
+type MockIAMUsecase_GetRolePermissionBoundary_Call struct {
+	*mock.Call
+}
+
+// GetRolePermissionBoundary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - roleName string
+func (_e *MockIAMUsecase_Expecter) GetRolePermissionBoundary(ctx interface{}, roleName interface{}) *MockIAMUsecase_GetRolePermissionBoundary_Call {
+	return &MockIAMUsecase_GetRolePermissionBoundary_Call{Call: _e.mock.On("GetRolePermissionBoundary", ctx, roleName)}
+}
+
+func (_c *MockIAMUsecase_GetRolePermissionBoundary_Call) Run(run func(ctx context.Context, roleName string)) *MockIAMUsecase_GetRolePermissionBoundary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_GetRolePermissionBoundary_Call) Return(rolePermissionBoundary *domain.RolePermissionBoundary, err error) *MockIAMUsecase_GetRolePermissionBoundary_Call {
+	_c.Call.Return(rolePermissionBoundary, err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_GetRolePermissionBoundary_Call) RunAndReturn(run func(ctx context.Context, roleName string) (*domain.RolePermissionBoundary, error)) *MockIAMUsecase_GetRolePermissionBoundary_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2107,6 +2879,80 @@ func (_c *MockIAMUsecase_GetTenantUserInlinePolicy_Call) Return(userInlinePolicy
 }
 
 func (_c *MockIAMUsecase_GetTenantUserInlinePolicy_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint, name string) (*domain.UserInlinePolicy, error)) *MockIAMUsecase_GetTenantUserInlinePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetTenantUserPermissionBoundary provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) GetTenantUserPermissionBoundary(ctx context.Context, tenantID string, userID uint) (*domain.PermissionBoundary, error) {
+	ret := _mock.Called(ctx, tenantID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTenantUserPermissionBoundary")
+	}
+
+	var r0 *domain.PermissionBoundary
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) (*domain.PermissionBoundary, error)); ok {
+		return returnFunc(ctx, tenantID, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) *domain.PermissionBoundary); ok {
+		r0 = returnFunc(ctx, tenantID, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.PermissionBoundary)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint) error); ok {
+		r1 = returnFunc(ctx, tenantID, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMUsecase_GetTenantUserPermissionBoundary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTenantUserPermissionBoundary'
+type MockIAMUsecase_GetTenantUserPermissionBoundary_Call struct {
+	*mock.Call
+}
+
+// GetTenantUserPermissionBoundary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - userID uint
+func (_e *MockIAMUsecase_Expecter) GetTenantUserPermissionBoundary(ctx interface{}, tenantID interface{}, userID interface{}) *MockIAMUsecase_GetTenantUserPermissionBoundary_Call {
+	return &MockIAMUsecase_GetTenantUserPermissionBoundary_Call{Call: _e.mock.On("GetTenantUserPermissionBoundary", ctx, tenantID, userID)}
+}
+
+func (_c *MockIAMUsecase_GetTenantUserPermissionBoundary_Call) Run(run func(ctx context.Context, tenantID string, userID uint)) *MockIAMUsecase_GetTenantUserPermissionBoundary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_GetTenantUserPermissionBoundary_Call) Return(permissionBoundary *domain.PermissionBoundary, err error) *MockIAMUsecase_GetTenantUserPermissionBoundary_Call {
+	_c.Call.Return(permissionBoundary, err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_GetTenantUserPermissionBoundary_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint) (*domain.PermissionBoundary, error)) *MockIAMUsecase_GetTenantUserPermissionBoundary_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2385,6 +3231,68 @@ func (_c *MockIAMUsecase_ListGroups_Call) Return(groups []domain.Group, err erro
 }
 
 func (_c *MockIAMUsecase_ListGroups_Call) RunAndReturn(run func(ctx context.Context, scope string, tenantID string) ([]domain.Group, error)) *MockIAMUsecase_ListGroups_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListOrganizations provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) ListOrganizations(ctx context.Context) ([]domain.Organization, error) {
+	ret := _mock.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListOrganizations")
+	}
+
+	var r0 []domain.Organization
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) ([]domain.Organization, error)); ok {
+		return returnFunc(ctx)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context) []domain.Organization); ok {
+		r0 = returnFunc(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]domain.Organization)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = returnFunc(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMUsecase_ListOrganizations_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListOrganizations'
+type MockIAMUsecase_ListOrganizations_Call struct {
+	*mock.Call
+}
+
+// ListOrganizations is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *MockIAMUsecase_Expecter) ListOrganizations(ctx interface{}) *MockIAMUsecase_ListOrganizations_Call {
+	return &MockIAMUsecase_ListOrganizations_Call{Call: _e.mock.On("ListOrganizations", ctx)}
+}
+
+func (_c *MockIAMUsecase_ListOrganizations_Call) Run(run func(ctx context.Context)) *MockIAMUsecase_ListOrganizations_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_ListOrganizations_Call) Return(organizations []domain.Organization, err error) *MockIAMUsecase_ListOrganizations_Call {
+	_c.Call.Return(organizations, err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_ListOrganizations_Call) RunAndReturn(run func(ctx context.Context) ([]domain.Organization, error)) *MockIAMUsecase_ListOrganizations_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2725,6 +3633,142 @@ func (_c *MockIAMUsecase_ListPolicyAttachments_Call) Return(policyAttachments []
 }
 
 func (_c *MockIAMUsecase_ListPolicyAttachments_Call) RunAndReturn(run func(ctx context.Context, name string) ([]domain.PolicyAttachment, error)) *MockIAMUsecase_ListPolicyAttachments_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListPolicyVersions provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) ListPolicyVersions(ctx context.Context, name string) ([]domain.PolicyVersion, error) {
+	ret := _mock.Called(ctx, name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListPolicyVersions")
+	}
+
+	var r0 []domain.PolicyVersion
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]domain.PolicyVersion, error)); ok {
+		return returnFunc(ctx, name)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []domain.PolicyVersion); ok {
+		r0 = returnFunc(ctx, name)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]domain.PolicyVersion)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, name)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMUsecase_ListPolicyVersions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPolicyVersions'
+type MockIAMUsecase_ListPolicyVersions_Call struct {
+	*mock.Call
+}
+
+// ListPolicyVersions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+func (_e *MockIAMUsecase_Expecter) ListPolicyVersions(ctx interface{}, name interface{}) *MockIAMUsecase_ListPolicyVersions_Call {
+	return &MockIAMUsecase_ListPolicyVersions_Call{Call: _e.mock.On("ListPolicyVersions", ctx, name)}
+}
+
+func (_c *MockIAMUsecase_ListPolicyVersions_Call) Run(run func(ctx context.Context, name string)) *MockIAMUsecase_ListPolicyVersions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_ListPolicyVersions_Call) Return(policyVersions []domain.PolicyVersion, err error) *MockIAMUsecase_ListPolicyVersions_Call {
+	_c.Call.Return(policyVersions, err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_ListPolicyVersions_Call) RunAndReturn(run func(ctx context.Context, name string) ([]domain.PolicyVersion, error)) *MockIAMUsecase_ListPolicyVersions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListServiceControlPolicies provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) ListServiceControlPolicies(ctx context.Context, orgID string) ([]domain.Policy, error) {
+	ret := _mock.Called(ctx, orgID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListServiceControlPolicies")
+	}
+
+	var r0 []domain.Policy
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]domain.Policy, error)); ok {
+		return returnFunc(ctx, orgID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []domain.Policy); ok {
+		r0 = returnFunc(ctx, orgID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]domain.Policy)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, orgID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMUsecase_ListServiceControlPolicies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListServiceControlPolicies'
+type MockIAMUsecase_ListServiceControlPolicies_Call struct {
+	*mock.Call
+}
+
+// ListServiceControlPolicies is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orgID string
+func (_e *MockIAMUsecase_Expecter) ListServiceControlPolicies(ctx interface{}, orgID interface{}) *MockIAMUsecase_ListServiceControlPolicies_Call {
+	return &MockIAMUsecase_ListServiceControlPolicies_Call{Call: _e.mock.On("ListServiceControlPolicies", ctx, orgID)}
+}
+
+func (_c *MockIAMUsecase_ListServiceControlPolicies_Call) Run(run func(ctx context.Context, orgID string)) *MockIAMUsecase_ListServiceControlPolicies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_ListServiceControlPolicies_Call) Return(policys []domain.Policy, err error) *MockIAMUsecase_ListServiceControlPolicies_Call {
+	_c.Call.Return(policys, err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_ListServiceControlPolicies_Call) RunAndReturn(run func(ctx context.Context, orgID string) ([]domain.Policy, error)) *MockIAMUsecase_ListServiceControlPolicies_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -3195,6 +4239,132 @@ func (_c *MockIAMUsecase_PutPlatformUserInlinePolicy_Call) RunAndReturn(run func
 	return _c
 }
 
+// PutPlatformUserPermissionBoundary provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) PutPlatformUserPermissionBoundary(ctx context.Context, userID uint, policyName string) error {
+	ret := _mock.Called(ctx, userID, policyName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PutPlatformUserPermissionBoundary")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string) error); ok {
+		r0 = returnFunc(ctx, userID, policyName)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMUsecase_PutPlatformUserPermissionBoundary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutPlatformUserPermissionBoundary'
+type MockIAMUsecase_PutPlatformUserPermissionBoundary_Call struct {
+	*mock.Call
+}
+
+// PutPlatformUserPermissionBoundary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uint
+//   - policyName string
+func (_e *MockIAMUsecase_Expecter) PutPlatformUserPermissionBoundary(ctx interface{}, userID interface{}, policyName interface{}) *MockIAMUsecase_PutPlatformUserPermissionBoundary_Call {
+	return &MockIAMUsecase_PutPlatformUserPermissionBoundary_Call{Call: _e.mock.On("PutPlatformUserPermissionBoundary", ctx, userID, policyName)}
+}
+
+func (_c *MockIAMUsecase_PutPlatformUserPermissionBoundary_Call) Run(run func(ctx context.Context, userID uint, policyName string)) *MockIAMUsecase_PutPlatformUserPermissionBoundary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_PutPlatformUserPermissionBoundary_Call) Return(err error) *MockIAMUsecase_PutPlatformUserPermissionBoundary_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_PutPlatformUserPermissionBoundary_Call) RunAndReturn(run func(ctx context.Context, userID uint, policyName string) error) *MockIAMUsecase_PutPlatformUserPermissionBoundary_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// PutRolePermissionBoundary provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) PutRolePermissionBoundary(ctx context.Context, roleName string, policyName string) error {
+	ret := _mock.Called(ctx, roleName, policyName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PutRolePermissionBoundary")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = returnFunc(ctx, roleName, policyName)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMUsecase_PutRolePermissionBoundary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutRolePermissionBoundary'
+type MockIAMUsecase_PutRolePermissionBoundary_Call struct {
+	*mock.Call
+}
+
+// PutRolePermissionBoundary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - roleName string
+//   - policyName string
+func (_e *MockIAMUsecase_Expecter) PutRolePermissionBoundary(ctx interface{}, roleName interface{}, policyName interface{}) *MockIAMUsecase_PutRolePermissionBoundary_Call {
+	return &MockIAMUsecase_PutRolePermissionBoundary_Call{Call: _e.mock.On("PutRolePermissionBoundary", ctx, roleName, policyName)}
+}
+
+func (_c *MockIAMUsecase_PutRolePermissionBoundary_Call) Run(run func(ctx context.Context, roleName string, policyName string)) *MockIAMUsecase_PutRolePermissionBoundary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_PutRolePermissionBoundary_Call) Return(err error) *MockIAMUsecase_PutRolePermissionBoundary_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_PutRolePermissionBoundary_Call) RunAndReturn(run func(ctx context.Context, roleName string, policyName string) error) *MockIAMUsecase_PutRolePermissionBoundary_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // PutRoleTrustPolicy provides a mock function for the type MockIAMUsecase
 func (_mock *MockIAMUsecase) PutRoleTrustPolicy(ctx context.Context, input domain.PutRoleTrustPolicyInput) error {
 	ret := _mock.Called(ctx, input)
@@ -3305,6 +4475,75 @@ func (_c *MockIAMUsecase_PutTenantUserInlinePolicy_Call) Return(err error) *Mock
 }
 
 func (_c *MockIAMUsecase_PutTenantUserInlinePolicy_Call) RunAndReturn(run func(ctx context.Context, input domain.PutTenantUserInlinePolicyInput) error) *MockIAMUsecase_PutTenantUserInlinePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// PutTenantUserPermissionBoundary provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) PutTenantUserPermissionBoundary(ctx context.Context, tenantID string, userID uint, policyName string) error {
+	ret := _mock.Called(ctx, tenantID, userID, policyName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PutTenantUserPermissionBoundary")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint, string) error); ok {
+		r0 = returnFunc(ctx, tenantID, userID, policyName)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMUsecase_PutTenantUserPermissionBoundary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutTenantUserPermissionBoundary'
+type MockIAMUsecase_PutTenantUserPermissionBoundary_Call struct {
+	*mock.Call
+}
+
+// PutTenantUserPermissionBoundary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - userID uint
+//   - policyName string
+func (_e *MockIAMUsecase_Expecter) PutTenantUserPermissionBoundary(ctx interface{}, tenantID interface{}, userID interface{}, policyName interface{}) *MockIAMUsecase_PutTenantUserPermissionBoundary_Call {
+	return &MockIAMUsecase_PutTenantUserPermissionBoundary_Call{Call: _e.mock.On("PutTenantUserPermissionBoundary", ctx, tenantID, userID, policyName)}
+}
+
+func (_c *MockIAMUsecase_PutTenantUserPermissionBoundary_Call) Run(run func(ctx context.Context, tenantID string, userID uint, policyName string)) *MockIAMUsecase_PutTenantUserPermissionBoundary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_PutTenantUserPermissionBoundary_Call) Return(err error) *MockIAMUsecase_PutTenantUserPermissionBoundary_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_PutTenantUserPermissionBoundary_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint, policyName string) error) *MockIAMUsecase_PutTenantUserPermissionBoundary_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -3683,6 +4922,137 @@ func (_c *MockIAMUsecase_RevokeInvite_Call) Return(err error) *MockIAMUsecase_Re
 }
 
 func (_c *MockIAMUsecase_RevokeInvite_Call) RunAndReturn(run func(ctx context.Context, inviteID string) error) *MockIAMUsecase_RevokeInvite_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SetDefaultPolicyVersion provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) SetDefaultPolicyVersion(ctx context.Context, name string, version string) error {
+	ret := _mock.Called(ctx, name, version)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetDefaultPolicyVersion")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = returnFunc(ctx, name, version)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMUsecase_SetDefaultPolicyVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetDefaultPolicyVersion'
+type MockIAMUsecase_SetDefaultPolicyVersion_Call struct {
+	*mock.Call
+}
+
+// SetDefaultPolicyVersion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+//   - version string
+func (_e *MockIAMUsecase_Expecter) SetDefaultPolicyVersion(ctx interface{}, name interface{}, version interface{}) *MockIAMUsecase_SetDefaultPolicyVersion_Call {
+	return &MockIAMUsecase_SetDefaultPolicyVersion_Call{Call: _e.mock.On("SetDefaultPolicyVersion", ctx, name, version)}
+}
+
+func (_c *MockIAMUsecase_SetDefaultPolicyVersion_Call) Run(run func(ctx context.Context, name string, version string)) *MockIAMUsecase_SetDefaultPolicyVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_SetDefaultPolicyVersion_Call) Return(err error) *MockIAMUsecase_SetDefaultPolicyVersion_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_SetDefaultPolicyVersion_Call) RunAndReturn(run func(ctx context.Context, name string, version string) error) *MockIAMUsecase_SetDefaultPolicyVersion_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SimulateAccess provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) SimulateAccess(ctx context.Context, input domain.SimulateAccessInput) (*domain.SimulateAccessResult, error) {
+	ret := _mock.Called(ctx, input)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SimulateAccess")
+	}
+
+	var r0 *domain.SimulateAccessResult
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.SimulateAccessInput) (*domain.SimulateAccessResult, error)); ok {
+		return returnFunc(ctx, input)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.SimulateAccessInput) *domain.SimulateAccessResult); ok {
+		r0 = returnFunc(ctx, input)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.SimulateAccessResult)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, domain.SimulateAccessInput) error); ok {
+		r1 = returnFunc(ctx, input)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMUsecase_SimulateAccess_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SimulateAccess'
+type MockIAMUsecase_SimulateAccess_Call struct {
+	*mock.Call
+}
+
+// SimulateAccess is a helper method to define mock.On call
+//   - ctx context.Context
+//   - input domain.SimulateAccessInput
+func (_e *MockIAMUsecase_Expecter) SimulateAccess(ctx interface{}, input interface{}) *MockIAMUsecase_SimulateAccess_Call {
+	return &MockIAMUsecase_SimulateAccess_Call{Call: _e.mock.On("SimulateAccess", ctx, input)}
+}
+
+func (_c *MockIAMUsecase_SimulateAccess_Call) Run(run func(ctx context.Context, input domain.SimulateAccessInput)) *MockIAMUsecase_SimulateAccess_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 domain.SimulateAccessInput
+		if args[1] != nil {
+			arg1 = args[1].(domain.SimulateAccessInput)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_SimulateAccess_Call) Return(simulateAccessResult *domain.SimulateAccessResult, err error) *MockIAMUsecase_SimulateAccess_Call {
+	_c.Call.Return(simulateAccessResult, err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_SimulateAccess_Call) RunAndReturn(run func(ctx context.Context, input domain.SimulateAccessInput) (*domain.SimulateAccessResult, error)) *MockIAMUsecase_SimulateAccess_Call {
 	_c.Call.Return(run)
 	return _c
 }

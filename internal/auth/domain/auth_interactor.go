@@ -460,6 +460,12 @@ func (u *authInteractorImpl) AssumeRole(
 	roleName string,
 	tenantID string,
 	sessionPolicy []entity.SessionPolicyStatement,
+	externalID string,
+	sessionName string,
+	sourceIdentity string,
+	durationSeconds uint32,
+	servicePrincipal string,
+	sessionTags map[string]string,
 ) (*inputport.AuthResult, error) {
 	if userID == 0 {
 		return nil, entity.ErrInvalidUserID
@@ -469,9 +475,20 @@ func (u *authInteractorImpl) AssumeRole(
 		return nil, err
 	}
 	assumedRole, err := u.iamUC.AssumeRole(ctx, iamdomain.AssumeRoleInput{
-		UserID:   userID,
-		RoleName: roleName,
-		TenantID: tenantID,
+		UserID:           userID,
+		RoleName:         roleName,
+		TenantID:         tenantID,
+		ExternalID:       externalID,
+		SessionName:      sessionName,
+		SourceIdentity:   sourceIdentity,
+		DurationSeconds:  durationSeconds,
+		ServicePrincipal: strings.TrimSpace(servicePrincipal),
+		SessionTags: func() map[string]string {
+			if len(sessionTags) > 0 {
+				return cloneStringMap(sessionTags)
+			}
+			return cloneStringMap(session.SessionTags)
+		}(),
 	})
 	if err != nil {
 		return nil, err
@@ -481,6 +498,11 @@ func (u *authInteractorImpl) AssumeRole(
 	session.AssumedRoleScope = assumedRole.RoleScope
 	session.AssumedRoleName = assumedRole.RoleName
 	session.AssumedRoleTenantID = assumedRole.TenantID
+	session.AssumedRoleServicePrincipal = assumedRole.ServicePrincipal
+	session.AssumedRoleSessionName = assumedRole.SessionName
+	session.AssumedRoleSourceIdentity = assumedRole.SourceIdentity
+	session.SessionTags = cloneStringMap(assumedRole.SessionTags)
+	session.AssumedRoleExpiresAt = &assumedRole.ExpiresAt
 	session.SessionPolicy = normalized
 	if assumedRole.RoleScope == iamdomain.PolicyScopeTenant {
 		session.ActiveTenantID = assumedRole.TenantID
@@ -517,6 +539,11 @@ func (u *authInteractorImpl) ClearAssumedRole(
 	session.AssumedRoleScope = ""
 	session.AssumedRoleName = ""
 	session.AssumedRoleTenantID = ""
+	session.AssumedRoleServicePrincipal = ""
+	session.AssumedRoleSessionName = ""
+	session.AssumedRoleSourceIdentity = ""
+	session.AssumedRoleExpiresAt = nil
+	session.SessionTags = nil
 	if err := u.sessionRepository.UpdateAssumedRole(ctx, *session, now); err != nil {
 		return nil, err
 	}
@@ -562,6 +589,17 @@ func randomToken(n int) (string, error) {
 		return "", err
 	}
 	return base64.RawURLEncoding.EncodeToString(b), nil
+}
+
+func cloneStringMap(items map[string]string) map[string]string {
+	if len(items) == 0 {
+		return nil
+	}
+	out := make(map[string]string, len(items))
+	for k, v := range items {
+		out[k] = v
+	}
+	return out
 }
 
 func (u *authInteractorImpl) sessionFromAccessToken(raw string) (*entity.Session, error) {

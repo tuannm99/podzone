@@ -40,8 +40,8 @@ func (_m *MockAuthUsecase) EXPECT() *MockAuthUsecase_Expecter {
 }
 
 // AssumeRole provides a mock function for the type MockAuthUsecase
-func (_mock *MockAuthUsecase) AssumeRole(ctx context.Context, userID uint, accessToken string, roleName string, tenantID string, sessionPolicy []entity.SessionPolicyStatement) (*inputport.AuthResult, error) {
-	ret := _mock.Called(ctx, userID, accessToken, roleName, tenantID, sessionPolicy)
+func (_mock *MockAuthUsecase) AssumeRole(ctx context.Context, userID uint, accessToken string, roleName string, tenantID string, sessionPolicy []entity.SessionPolicyStatement, externalID string, sessionName string, sourceIdentity string, durationSeconds uint32, servicePrincipal string, sessionTags map[string]string) (*inputport.AuthResult, error) {
+	ret := _mock.Called(ctx, userID, accessToken, roleName, tenantID, sessionPolicy, externalID, sessionName, sourceIdentity, durationSeconds, servicePrincipal, sessionTags)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AssumeRole")
@@ -49,18 +49,18 @@ func (_mock *MockAuthUsecase) AssumeRole(ctx context.Context, userID uint, acces
 
 	var r0 *inputport.AuthResult
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string, string, string, []entity.SessionPolicyStatement) (*inputport.AuthResult, error)); ok {
-		return returnFunc(ctx, userID, accessToken, roleName, tenantID, sessionPolicy)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string, string, string, []entity.SessionPolicyStatement, string, string, string, uint32, string, map[string]string) (*inputport.AuthResult, error)); ok {
+		return returnFunc(ctx, userID, accessToken, roleName, tenantID, sessionPolicy, externalID, sessionName, sourceIdentity, durationSeconds, servicePrincipal, sessionTags)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string, string, string, []entity.SessionPolicyStatement) *inputport.AuthResult); ok {
-		r0 = returnFunc(ctx, userID, accessToken, roleName, tenantID, sessionPolicy)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string, string, string, []entity.SessionPolicyStatement, string, string, string, uint32, string, map[string]string) *inputport.AuthResult); ok {
+		r0 = returnFunc(ctx, userID, accessToken, roleName, tenantID, sessionPolicy, externalID, sessionName, sourceIdentity, durationSeconds, servicePrincipal, sessionTags)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*inputport.AuthResult)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, uint, string, string, string, []entity.SessionPolicyStatement) error); ok {
-		r1 = returnFunc(ctx, userID, accessToken, roleName, tenantID, sessionPolicy)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint, string, string, string, []entity.SessionPolicyStatement, string, string, string, uint32, string, map[string]string) error); ok {
+		r1 = returnFunc(ctx, userID, accessToken, roleName, tenantID, sessionPolicy, externalID, sessionName, sourceIdentity, durationSeconds, servicePrincipal, sessionTags)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -79,11 +79,17 @@ type MockAuthUsecase_AssumeRole_Call struct {
 //   - roleName string
 //   - tenantID string
 //   - sessionPolicy []entity.SessionPolicyStatement
-func (_e *MockAuthUsecase_Expecter) AssumeRole(ctx interface{}, userID interface{}, accessToken interface{}, roleName interface{}, tenantID interface{}, sessionPolicy interface{}) *MockAuthUsecase_AssumeRole_Call {
-	return &MockAuthUsecase_AssumeRole_Call{Call: _e.mock.On("AssumeRole", ctx, userID, accessToken, roleName, tenantID, sessionPolicy)}
+//   - externalID string
+//   - sessionName string
+//   - sourceIdentity string
+//   - durationSeconds uint32
+//   - servicePrincipal string
+//   - sessionTags map[string]string
+func (_e *MockAuthUsecase_Expecter) AssumeRole(ctx interface{}, userID interface{}, accessToken interface{}, roleName interface{}, tenantID interface{}, sessionPolicy interface{}, externalID interface{}, sessionName interface{}, sourceIdentity interface{}, durationSeconds interface{}, servicePrincipal interface{}, sessionTags interface{}) *MockAuthUsecase_AssumeRole_Call {
+	return &MockAuthUsecase_AssumeRole_Call{Call: _e.mock.On("AssumeRole", ctx, userID, accessToken, roleName, tenantID, sessionPolicy, externalID, sessionName, sourceIdentity, durationSeconds, servicePrincipal, sessionTags)}
 }
 
-func (_c *MockAuthUsecase_AssumeRole_Call) Run(run func(ctx context.Context, userID uint, accessToken string, roleName string, tenantID string, sessionPolicy []entity.SessionPolicyStatement)) *MockAuthUsecase_AssumeRole_Call {
+func (_c *MockAuthUsecase_AssumeRole_Call) Run(run func(ctx context.Context, userID uint, accessToken string, roleName string, tenantID string, sessionPolicy []entity.SessionPolicyStatement, externalID string, sessionName string, sourceIdentity string, durationSeconds uint32, servicePrincipal string, sessionTags map[string]string)) *MockAuthUsecase_AssumeRole_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -109,6 +115,30 @@ func (_c *MockAuthUsecase_AssumeRole_Call) Run(run func(ctx context.Context, use
 		if args[5] != nil {
 			arg5 = args[5].([]entity.SessionPolicyStatement)
 		}
+		var arg6 string
+		if args[6] != nil {
+			arg6 = args[6].(string)
+		}
+		var arg7 string
+		if args[7] != nil {
+			arg7 = args[7].(string)
+		}
+		var arg8 string
+		if args[8] != nil {
+			arg8 = args[8].(string)
+		}
+		var arg9 uint32
+		if args[9] != nil {
+			arg9 = args[9].(uint32)
+		}
+		var arg10 string
+		if args[10] != nil {
+			arg10 = args[10].(string)
+		}
+		var arg11 map[string]string
+		if args[11] != nil {
+			arg11 = args[11].(map[string]string)
+		}
 		run(
 			arg0,
 			arg1,
@@ -116,6 +146,12 @@ func (_c *MockAuthUsecase_AssumeRole_Call) Run(run func(ctx context.Context, use
 			arg3,
 			arg4,
 			arg5,
+			arg6,
+			arg7,
+			arg8,
+			arg9,
+			arg10,
+			arg11,
 		)
 	})
 	return _c
@@ -126,7 +162,7 @@ func (_c *MockAuthUsecase_AssumeRole_Call) Return(authResult *inputport.AuthResu
 	return _c
 }
 
-func (_c *MockAuthUsecase_AssumeRole_Call) RunAndReturn(run func(ctx context.Context, userID uint, accessToken string, roleName string, tenantID string, sessionPolicy []entity.SessionPolicyStatement) (*inputport.AuthResult, error)) *MockAuthUsecase_AssumeRole_Call {
+func (_c *MockAuthUsecase_AssumeRole_Call) RunAndReturn(run func(ctx context.Context, userID uint, accessToken string, roleName string, tenantID string, sessionPolicy []entity.SessionPolicyStatement, externalID string, sessionName string, sourceIdentity string, durationSeconds uint32, servicePrincipal string, sessionTags map[string]string) (*inputport.AuthResult, error)) *MockAuthUsecase_AssumeRole_Call {
 	_c.Call.Return(run)
 	return _c
 }

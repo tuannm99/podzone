@@ -38,6 +38,69 @@ func (_m *MockTenantRepository) EXPECT() *MockTenantRepository_Expecter {
 	return &MockTenantRepository_Expecter{mock: &_m.Mock}
 }
 
+// AttachOrganization provides a mock function for the type MockTenantRepository
+func (_mock *MockTenantRepository) AttachOrganization(ctx context.Context, tenantID string, orgID string) error {
+	ret := _mock.Called(ctx, tenantID, orgID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AttachOrganization")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = returnFunc(ctx, tenantID, orgID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockTenantRepository_AttachOrganization_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AttachOrganization'
+type MockTenantRepository_AttachOrganization_Call struct {
+	*mock.Call
+}
+
+// AttachOrganization is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - orgID string
+func (_e *MockTenantRepository_Expecter) AttachOrganization(ctx interface{}, tenantID interface{}, orgID interface{}) *MockTenantRepository_AttachOrganization_Call {
+	return &MockTenantRepository_AttachOrganization_Call{Call: _e.mock.On("AttachOrganization", ctx, tenantID, orgID)}
+}
+
+func (_c *MockTenantRepository_AttachOrganization_Call) Run(run func(ctx context.Context, tenantID string, orgID string)) *MockTenantRepository_AttachOrganization_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockTenantRepository_AttachOrganization_Call) Return(err error) *MockTenantRepository_AttachOrganization_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockTenantRepository_AttachOrganization_Call) RunAndReturn(run func(ctx context.Context, tenantID string, orgID string) error) *MockTenantRepository_AttachOrganization_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Create provides a mock function for the type MockTenantRepository
 func (_mock *MockTenantRepository) Create(ctx context.Context, tenant domain.Tenant) (*domain.Tenant, error) {
 	ret := _mock.Called(ctx, tenant)
@@ -102,6 +165,63 @@ func (_c *MockTenantRepository_Create_Call) Return(tenant1 *domain.Tenant, err e
 }
 
 func (_c *MockTenantRepository_Create_Call) RunAndReturn(run func(ctx context.Context, tenant domain.Tenant) (*domain.Tenant, error)) *MockTenantRepository_Create_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DetachOrganization provides a mock function for the type MockTenantRepository
+func (_mock *MockTenantRepository) DetachOrganization(ctx context.Context, tenantID string) error {
+	ret := _mock.Called(ctx, tenantID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DetachOrganization")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, tenantID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockTenantRepository_DetachOrganization_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DetachOrganization'
+type MockTenantRepository_DetachOrganization_Call struct {
+	*mock.Call
+}
+
+// DetachOrganization is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+func (_e *MockTenantRepository_Expecter) DetachOrganization(ctx interface{}, tenantID interface{}) *MockTenantRepository_DetachOrganization_Call {
+	return &MockTenantRepository_DetachOrganization_Call{Call: _e.mock.On("DetachOrganization", ctx, tenantID)}
+}
+
+func (_c *MockTenantRepository_DetachOrganization_Call) Run(run func(ctx context.Context, tenantID string)) *MockTenantRepository_DetachOrganization_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockTenantRepository_DetachOrganization_Call) Return(err error) *MockTenantRepository_DetachOrganization_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockTenantRepository_DetachOrganization_Call) RunAndReturn(run func(ctx context.Context, tenantID string) error) *MockTenantRepository_DetachOrganization_Call {
 	_c.Call.Return(run)
 	return _c
 }

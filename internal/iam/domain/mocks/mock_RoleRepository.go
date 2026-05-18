@@ -38,6 +38,63 @@ func (_m *MockRoleRepository) EXPECT() *MockRoleRepository_Expecter {
 	return &MockRoleRepository_Expecter{mock: &_m.Mock}
 }
 
+// DeletePermissionBoundary provides a mock function for the type MockRoleRepository
+func (_mock *MockRoleRepository) DeletePermissionBoundary(ctx context.Context, roleID uint64) error {
+	ret := _mock.Called(ctx, roleID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeletePermissionBoundary")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) error); ok {
+		r0 = returnFunc(ctx, roleID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockRoleRepository_DeletePermissionBoundary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeletePermissionBoundary'
+type MockRoleRepository_DeletePermissionBoundary_Call struct {
+	*mock.Call
+}
+
+// DeletePermissionBoundary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - roleID uint64
+func (_e *MockRoleRepository_Expecter) DeletePermissionBoundary(ctx interface{}, roleID interface{}) *MockRoleRepository_DeletePermissionBoundary_Call {
+	return &MockRoleRepository_DeletePermissionBoundary_Call{Call: _e.mock.On("DeletePermissionBoundary", ctx, roleID)}
+}
+
+func (_c *MockRoleRepository_DeletePermissionBoundary_Call) Run(run func(ctx context.Context, roleID uint64)) *MockRoleRepository_DeletePermissionBoundary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRoleRepository_DeletePermissionBoundary_Call) Return(err error) *MockRoleRepository_DeletePermissionBoundary_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockRoleRepository_DeletePermissionBoundary_Call) RunAndReturn(run func(ctx context.Context, roleID uint64) error) *MockRoleRepository_DeletePermissionBoundary_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteTrustPolicy provides a mock function for the type MockRoleRepository
 func (_mock *MockRoleRepository) DeleteTrustPolicy(ctx context.Context, roleID uint64) error {
 	ret := _mock.Called(ctx, roleID)
@@ -163,6 +220,142 @@ func (_c *MockRoleRepository_GetByName_Call) RunAndReturn(run func(ctx context.C
 	return _c
 }
 
+// GetPermissionBoundary provides a mock function for the type MockRoleRepository
+func (_mock *MockRoleRepository) GetPermissionBoundary(ctx context.Context, roleID uint64) (*domain.RolePermissionBoundary, error) {
+	ret := _mock.Called(ctx, roleID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPermissionBoundary")
+	}
+
+	var r0 *domain.RolePermissionBoundary
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) (*domain.RolePermissionBoundary, error)); ok {
+		return returnFunc(ctx, roleID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) *domain.RolePermissionBoundary); ok {
+		r0 = returnFunc(ctx, roleID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.RolePermissionBoundary)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
+		r1 = returnFunc(ctx, roleID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRoleRepository_GetPermissionBoundary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPermissionBoundary'
+type MockRoleRepository_GetPermissionBoundary_Call struct {
+	*mock.Call
+}
+
+// GetPermissionBoundary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - roleID uint64
+func (_e *MockRoleRepository_Expecter) GetPermissionBoundary(ctx interface{}, roleID interface{}) *MockRoleRepository_GetPermissionBoundary_Call {
+	return &MockRoleRepository_GetPermissionBoundary_Call{Call: _e.mock.On("GetPermissionBoundary", ctx, roleID)}
+}
+
+func (_c *MockRoleRepository_GetPermissionBoundary_Call) Run(run func(ctx context.Context, roleID uint64)) *MockRoleRepository_GetPermissionBoundary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRoleRepository_GetPermissionBoundary_Call) Return(rolePermissionBoundary *domain.RolePermissionBoundary, err error) *MockRoleRepository_GetPermissionBoundary_Call {
+	_c.Call.Return(rolePermissionBoundary, err)
+	return _c
+}
+
+func (_c *MockRoleRepository_GetPermissionBoundary_Call) RunAndReturn(run func(ctx context.Context, roleID uint64) (*domain.RolePermissionBoundary, error)) *MockRoleRepository_GetPermissionBoundary_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetPermissionBoundaryStatements provides a mock function for the type MockRoleRepository
+func (_mock *MockRoleRepository) GetPermissionBoundaryStatements(ctx context.Context, roleID uint64) ([]domain.PolicyStatement, error) {
+	ret := _mock.Called(ctx, roleID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPermissionBoundaryStatements")
+	}
+
+	var r0 []domain.PolicyStatement
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) ([]domain.PolicyStatement, error)); ok {
+		return returnFunc(ctx, roleID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) []domain.PolicyStatement); ok {
+		r0 = returnFunc(ctx, roleID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]domain.PolicyStatement)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
+		r1 = returnFunc(ctx, roleID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRoleRepository_GetPermissionBoundaryStatements_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPermissionBoundaryStatements'
+type MockRoleRepository_GetPermissionBoundaryStatements_Call struct {
+	*mock.Call
+}
+
+// GetPermissionBoundaryStatements is a helper method to define mock.On call
+//   - ctx context.Context
+//   - roleID uint64
+func (_e *MockRoleRepository_Expecter) GetPermissionBoundaryStatements(ctx interface{}, roleID interface{}) *MockRoleRepository_GetPermissionBoundaryStatements_Call {
+	return &MockRoleRepository_GetPermissionBoundaryStatements_Call{Call: _e.mock.On("GetPermissionBoundaryStatements", ctx, roleID)}
+}
+
+func (_c *MockRoleRepository_GetPermissionBoundaryStatements_Call) Run(run func(ctx context.Context, roleID uint64)) *MockRoleRepository_GetPermissionBoundaryStatements_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRoleRepository_GetPermissionBoundaryStatements_Call) Return(policyStatements []domain.PolicyStatement, err error) *MockRoleRepository_GetPermissionBoundaryStatements_Call {
+	_c.Call.Return(policyStatements, err)
+	return _c
+}
+
+func (_c *MockRoleRepository_GetPermissionBoundaryStatements_Call) RunAndReturn(run func(ctx context.Context, roleID uint64) ([]domain.PolicyStatement, error)) *MockRoleRepository_GetPermissionBoundaryStatements_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetTrustPolicy provides a mock function for the type MockRoleRepository
 func (_mock *MockRoleRepository) GetTrustPolicy(ctx context.Context, roleID uint64) ([]domain.RoleTrustStatement, error) {
 	ret := _mock.Called(ctx, roleID)
@@ -227,6 +420,69 @@ func (_c *MockRoleRepository_GetTrustPolicy_Call) Return(roleTrustStatements []d
 }
 
 func (_c *MockRoleRepository_GetTrustPolicy_Call) RunAndReturn(run func(ctx context.Context, roleID uint64) ([]domain.RoleTrustStatement, error)) *MockRoleRepository_GetTrustPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// PutPermissionBoundary provides a mock function for the type MockRoleRepository
+func (_mock *MockRoleRepository) PutPermissionBoundary(ctx context.Context, roleID uint64, policyID uint64) error {
+	ret := _mock.Called(ctx, roleID, policyID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PutPermissionBoundary")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, uint64) error); ok {
+		r0 = returnFunc(ctx, roleID, policyID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockRoleRepository_PutPermissionBoundary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutPermissionBoundary'
+type MockRoleRepository_PutPermissionBoundary_Call struct {
+	*mock.Call
+}
+
+// PutPermissionBoundary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - roleID uint64
+//   - policyID uint64
+func (_e *MockRoleRepository_Expecter) PutPermissionBoundary(ctx interface{}, roleID interface{}, policyID interface{}) *MockRoleRepository_PutPermissionBoundary_Call {
+	return &MockRoleRepository_PutPermissionBoundary_Call{Call: _e.mock.On("PutPermissionBoundary", ctx, roleID, policyID)}
+}
+
+func (_c *MockRoleRepository_PutPermissionBoundary_Call) Run(run func(ctx context.Context, roleID uint64, policyID uint64)) *MockRoleRepository_PutPermissionBoundary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		var arg2 uint64
+		if args[2] != nil {
+			arg2 = args[2].(uint64)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRoleRepository_PutPermissionBoundary_Call) Return(err error) *MockRoleRepository_PutPermissionBoundary_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockRoleRepository_PutPermissionBoundary_Call) RunAndReturn(run func(ctx context.Context, roleID uint64, policyID uint64) error) *MockRoleRepository_PutPermissionBoundary_Call {
 	_c.Call.Return(run)
 	return _c
 }

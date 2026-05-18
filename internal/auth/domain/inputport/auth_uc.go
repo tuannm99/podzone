@@ -56,6 +56,12 @@ type AuthUsecase interface {
 		roleName string,
 		tenantID string,
 		sessionPolicy []entity.SessionPolicyStatement,
+		externalID string,
+		sessionName string,
+		sourceIdentity string,
+		durationSeconds uint32,
+		servicePrincipal string,
+		sessionTags map[string]string,
 	) (*AuthResult, error)
 	ClearAssumedRole(ctx context.Context, userID uint, accessToken string) (*AuthResult, error)
 	Logout(ctx context.Context, accessToken string) (string, error)

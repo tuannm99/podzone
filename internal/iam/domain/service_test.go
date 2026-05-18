@@ -51,6 +51,64 @@ func TestIAMService_CreatePolicy(t *testing.T) {
 	require.Len(t, statements, 1)
 	require.Equal(t, "tenant/orders_editor", policy.Name)
 	require.Contains(t, state.policiesByName, policy.Name)
+	require.Equal(t, "v1", policy.DefaultVersion)
+}
+
+func TestIAMService_CreatePolicyVersionAndSetDefault(t *testing.T) {
+	t.Parallel()
+
+	svc, _ := newIAMTestUsecase(t)
+	policy, _, err := svc.CreatePolicy(context.Background(), domain.CreatePolicyInput{
+		Scope:       domain.PolicyScopeTenant,
+		Name:        "tenant/orders_editor",
+		Description: "Edit routed orders",
+		Statements: []domain.PolicyStatement{
+			{Effect: domain.PolicyEffectAllow, ActionPattern: "order:update", ResourcePattern: "*"},
+		},
+	})
+	require.NoError(t, err)
+
+	version, statements, err := svc.CreatePolicyVersion(context.Background(), domain.CreatePolicyVersionInput{
+		PolicyName: policy.Name,
+		Statements: []domain.PolicyStatement{
+			{Effect: domain.PolicyEffectAllow, ActionPattern: "order:read", ResourcePattern: "*"},
+		},
+		SetAsDefault: true,
+	})
+	require.NoError(t, err)
+	require.Equal(t, "v2", version.Version)
+	require.True(t, version.IsDefault)
+	require.Len(t, statements, 1)
+
+	gotPolicy, gotStatements, err := svc.GetPolicy(context.Background(), policy.Name)
+	require.NoError(t, err)
+	require.Equal(t, "v2", gotPolicy.DefaultVersion)
+	require.Len(t, gotStatements, 1)
+	require.Equal(t, "order:read", gotStatements[0].ActionPattern)
+}
+
+func TestIAMService_DeleteNonDefaultPolicyVersion(t *testing.T) {
+	t.Parallel()
+
+	svc, _ := newIAMTestUsecase(t)
+	policy, _, err := svc.CreatePolicy(context.Background(), domain.CreatePolicyInput{
+		Scope: domain.PolicyScopeTenant,
+		Name:  "tenant/orders_editor",
+		Statements: []domain.PolicyStatement{
+			{Effect: domain.PolicyEffectAllow, ActionPattern: "order:update", ResourcePattern: "*"},
+		},
+	})
+	require.NoError(t, err)
+	_, _, err = svc.CreatePolicyVersion(context.Background(), domain.CreatePolicyVersionInput{
+		PolicyName: policy.Name,
+		Statements: []domain.PolicyStatement{
+			{Effect: domain.PolicyEffectAllow, ActionPattern: "order:read", ResourcePattern: "*"},
+		},
+	})
+	require.NoError(t, err)
+
+	require.NoError(t, svc.DeletePolicyVersion(context.Background(), policy.Name, "v2"))
+	require.ErrorIs(t, svc.DeletePolicyVersion(context.Background(), policy.Name, "v1"), domain.ErrDefaultPolicyVersion)
 }
 
 func TestIAMService_RequirePermission(t *testing.T) {
@@ -92,10 +150,22 @@ func TestIAMService_RequirePermission_ExplicitDenyWins(t *testing.T) {
 		Status:   domain.MembershipStatusActive,
 	}
 	state.roleStatements[2] = []domain.PolicyStatement{
-		{PolicyID: 10, PolicyName: "managed/tenant_editor", Effect: domain.PolicyEffectAllow, ActionPattern: "store:update", ResourcePattern: "*"},
+		{
+			PolicyID:        10,
+			PolicyName:      "managed/tenant_editor",
+			Effect:          domain.PolicyEffectAllow,
+			ActionPattern:   "store:update",
+			ResourcePattern: "*",
+		},
 	}
 	state.tenantDirect[membershipKey("t1", 9)] = []domain.PolicyStatement{
-		{PolicyID: 11, PolicyName: "inline/deny-store-update", Effect: domain.PolicyEffectDeny, ActionPattern: "store:update", ResourcePattern: "*"},
+		{
+			PolicyID:        11,
+			PolicyName:      "inline/deny-store-update",
+			Effect:          domain.PolicyEffectDeny,
+			ActionPattern:   "store:update",
+			ResourcePattern: "*",
+		},
 	}
 
 	require.ErrorIs(
@@ -125,7 +195,13 @@ func TestIAMService_RequirePlatformPermission_DirectPolicy(t *testing.T) {
 
 	svc, state := newIAMTestUsecase(t)
 	state.platformDirect[11] = []domain.PolicyStatement{
-		{PolicyID: 20, PolicyName: "inline/platform-direct", Effect: domain.PolicyEffectAllow, ActionPattern: "tenant:create", ResourcePattern: "*"},
+		{
+			PolicyID:        20,
+			PolicyName:      "inline/platform-direct",
+			Effect:          domain.PolicyEffectAllow,
+			ActionPattern:   "tenant:create",
+			ResourcePattern: "*",
+		},
 	}
 
 	require.NoError(t, svc.RequirePlatformPermission(context.Background(), 11, "tenant:create"))
@@ -169,6 +245,150 @@ func TestIAMService_AssumeRole_TenantTrust(t *testing.T) {
 	require.Equal(t, "t1", assumedRole.TenantID)
 }
 
+func TestIAMService_CheckPermission_AssumedRoleRejectsDifferentTenant(t *testing.T) {
+	t.Parallel()
+
+	svc, state := newIAMTestUsecase(t)
+	state.roleByName[domain.RoleTenantAdmin] = domain.Role{
+		ID:    2,
+		Scope: domain.PolicyScopeTenant,
+		Name:  domain.RoleTenantAdmin,
+	}
+	state.roleStatements[2] = []domain.PolicyStatement{
+		{
+			PolicyID:        10,
+			PolicyName:      "managed/tenant_admin",
+			Effect:          domain.PolicyEffectAllow,
+			ActionPattern:   "order:update",
+			ResourcePattern: "*",
+		},
+	}
+
+	ctx := domain.WithAssumedRole(context.Background(), domain.AssumedRole{
+		RoleID:    2,
+		RoleScope: domain.PolicyScopeTenant,
+		RoleName:  domain.RoleTenantAdmin,
+		TenantID:  "t1",
+	})
+	allowed, err := svc.CheckPermission(ctx, "t2", 9, "order:update")
+	require.NoError(t, err)
+	require.False(t, allowed)
+}
+
+func TestIAMService_CheckPermission_AssumedRoleSessionPolicyScopesDown(t *testing.T) {
+	t.Parallel()
+
+	svc, state := newIAMTestUsecase(t)
+	state.roleByName[domain.RoleTenantAdmin] = domain.Role{
+		ID:    2,
+		Scope: domain.PolicyScopeTenant,
+		Name:  domain.RoleTenantAdmin,
+	}
+	state.roleStatements[2] = []domain.PolicyStatement{
+		{
+			PolicyID:        10,
+			PolicyName:      "managed/tenant_admin",
+			Effect:          domain.PolicyEffectAllow,
+			ActionPattern:   "order:update",
+			ResourcePattern: "*",
+		},
+	}
+
+	ctx := domain.WithAssumedRole(context.Background(), domain.AssumedRole{
+		RoleID:    2,
+		RoleScope: domain.PolicyScopeTenant,
+		RoleName:  domain.RoleTenantAdmin,
+		TenantID:  "t1",
+	})
+	ctx = domain.WithSessionPolicyStatements(ctx, []domain.PolicyStatement{
+		{Effect: domain.PolicyEffectAllow, ActionPattern: "order:read", ResourcePattern: "*"},
+	})
+
+	allowed, err := svc.CheckPermission(ctx, "t1", 9, "order:update")
+	require.NoError(t, err)
+	require.False(t, allowed)
+}
+
+func TestIAMService_AssumeRole_ExternalIDPattern(t *testing.T) {
+	t.Parallel()
+
+	svc, state := newIAMTestUsecase(t)
+	state.roleByName[domain.RoleTenantAdmin] = domain.Role{ID: 2, Scope: domain.PolicyScopeTenant, Name: domain.RoleTenantAdmin}
+	state.roleTrustStatements[2] = []domain.RoleTrustStatement{{
+		RoleID:            2,
+		Effect:            domain.PolicyEffectAllow,
+		PrincipalType:     domain.TrustPrincipalTenantRole,
+		PrincipalPattern:  domain.RoleTenantOwner,
+		TenantPattern:     "t1",
+		ExternalIDPattern: "ext-*",
+	}}
+	state.memberships.items[membershipKey("t1", 9)] = domain.Membership{
+		TenantID: "t1", UserID: 9, RoleID: 1, RoleName: domain.RoleTenantOwner, Status: domain.MembershipStatusActive,
+	}
+
+	_, err := svc.AssumeRole(context.Background(), domain.AssumeRoleInput{
+		UserID: 9, RoleName: domain.RoleTenantAdmin, TenantID: "t1", ExternalID: "bad",
+	})
+	require.ErrorIs(t, err, domain.ErrAssumeRoleDenied)
+
+	assumedRole, err := svc.AssumeRole(context.Background(), domain.AssumeRoleInput{
+		UserID: 9, RoleName: domain.RoleTenantAdmin, TenantID: "t1", ExternalID: "ext-123",
+	})
+	require.NoError(t, err)
+	require.Equal(t, domain.RoleTenantAdmin, assumedRole.RoleName)
+}
+
+func TestIAMService_SimulateAccess_WithConditionAndBoundary(t *testing.T) {
+	t.Parallel()
+
+	svc, state := newIAMTestUsecase(t)
+	state.tenants["t1"] = domain.Tenant{ID: "t1", Name: "Tenant", Slug: "tenant"}
+	state.roleByName[domain.RoleTenantEditor] = domain.Role{ID: 2, Scope: domain.PolicyScopeTenant, Name: domain.RoleTenantEditor}
+	state.memberships.items[membershipKey("t1", 9)] = domain.Membership{
+		TenantID: "t1", UserID: 9, RoleID: 2, RoleName: domain.RoleTenantEditor, Status: domain.MembershipStatusActive,
+	}
+	state.tenantDirect[membershipKey("t1", 9)] = []domain.PolicyStatement{{
+		PolicyName:      "inline/orders",
+		Effect:          domain.PolicyEffectAllow,
+		ActionPattern:   "order:update",
+		ResourcePattern: "*",
+		Conditions: []domain.PolicyCondition{{
+			Operator: domain.ConditionStringEquals,
+			Key:      "region",
+			Value:    "us",
+		}},
+	}}
+	state.tenantBoundaryStmts[membershipKey("t1", 9)] = []domain.PolicyStatement{{
+		PolicyName:      "boundary/orders",
+		Effect:          domain.PolicyEffectAllow,
+		ActionPattern:   "order:update",
+		ResourcePattern: "*",
+	}}
+
+	result, err := svc.SimulateAccess(context.Background(), domain.SimulateAccessInput{
+		Scope:      domain.PolicyScopeTenant,
+		TenantID:   "t1",
+		UserID:     9,
+		Action:     "order:update",
+		Resource:   "*",
+		Attributes: map[string]string{"region": "eu"},
+	})
+	require.NoError(t, err)
+	require.False(t, result.Allowed)
+
+	result, err = svc.SimulateAccess(context.Background(), domain.SimulateAccessInput{
+		Scope:      domain.PolicyScopeTenant,
+		TenantID:   "t1",
+		UserID:     9,
+		Action:     "order:update",
+		Resource:   "*",
+		Attributes: map[string]string{"region": "us"},
+	})
+	require.NoError(t, err)
+	require.True(t, result.Allowed)
+	require.NotEmpty(t, result.MatchedStatements)
+}
+
 func TestIAMService_PlatformUserInlinePolicyAffectsPermission(t *testing.T) {
 	t.Parallel()
 
@@ -181,6 +401,23 @@ func TestIAMService_PlatformUserInlinePolicyAffectsPermission(t *testing.T) {
 		},
 	}))
 	require.NoError(t, svc.RequirePlatformPermission(context.Background(), 11, "tenant:create"))
+}
+
+func TestIAMService_PlatformUserPermissionBoundaryScopesDown(t *testing.T) {
+	t.Parallel()
+
+	svc, state := newIAMTestUsecase(t)
+	state.platformDirect[11] = []domain.PolicyStatement{
+		{PolicyID: 20, PolicyName: "inline/platform-direct", Effect: domain.PolicyEffectAllow, ActionPattern: "tenant:create", ResourcePattern: "*"},
+	}
+	state.policiesByName["managed/platform-readonly-boundary"] = domain.Policy{ID: 21, Scope: domain.PolicyScopePlatform, Name: "managed/platform-readonly-boundary"}
+	state.policiesByID[21] = state.policiesByName["managed/platform-readonly-boundary"]
+	state.policyStatements[21] = []domain.PolicyStatement{
+		{ID: 1, PolicyID: 21, PolicyName: "managed/platform-readonly-boundary", Effect: domain.PolicyEffectAllow, ActionPattern: "tenant:read", ResourcePattern: "*"},
+	}
+
+	require.NoError(t, svc.PutPlatformUserPermissionBoundary(context.Background(), 11, "managed/platform-readonly-boundary"))
+	require.ErrorIs(t, svc.RequirePlatformPermission(context.Background(), 11, "tenant:create"), domain.ErrPermissionDenied)
 }
 
 func TestIAMService_AddAndRemovePlatformRole(t *testing.T) {
@@ -205,7 +442,11 @@ func TestIAMService_AttachAndListDirectPolicies(t *testing.T) {
 	t.Parallel()
 
 	svc, state := newIAMTestUsecase(t)
-	state.policiesByName["managed/platform_owner"] = domain.Policy{ID: 5, Scope: domain.PolicyScopePlatform, Name: "managed/platform_owner"}
+	state.policiesByName["managed/platform_owner"] = domain.Policy{
+		ID:    5,
+		Scope: domain.PolicyScopePlatform,
+		Name:  "managed/platform_owner",
+	}
 	state.policiesByName["tenant/custom"] = domain.Policy{ID: 6, Scope: domain.PolicyScopeTenant, Name: "tenant/custom"}
 	state.policiesByID[5] = state.policiesByName["managed/platform_owner"]
 	state.policiesByID[6] = state.policiesByName["tenant/custom"]
@@ -227,10 +468,21 @@ func TestIAMService_GetPolicy(t *testing.T) {
 	t.Parallel()
 
 	svc, state := newIAMTestUsecase(t)
-	state.policiesByName["tenant/orders_editor"] = domain.Policy{ID: 9, Scope: domain.PolicyScopeTenant, Name: "tenant/orders_editor"}
+	state.policiesByName["tenant/orders_editor"] = domain.Policy{
+		ID:    9,
+		Scope: domain.PolicyScopeTenant,
+		Name:  "tenant/orders_editor",
+	}
 	state.policiesByID[9] = state.policiesByName["tenant/orders_editor"]
 	state.policyStatements[9] = []domain.PolicyStatement{
-		{ID: 1, PolicyID: 9, PolicyName: "tenant/orders_editor", Effect: domain.PolicyEffectAllow, ActionPattern: "order:update", ResourcePattern: "*"},
+		{
+			ID:              1,
+			PolicyID:        9,
+			PolicyName:      "tenant/orders_editor",
+			Effect:          domain.PolicyEffectAllow,
+			ActionPattern:   "order:update",
+			ResourcePattern: "*",
+		},
 	}
 
 	policy, statements, err := svc.GetPolicy(context.Background(), "tenant/orders_editor")
@@ -244,7 +496,11 @@ func TestIAMService_ListPolicyAttachments(t *testing.T) {
 	t.Parallel()
 
 	svc, state := newIAMTestUsecase(t)
-	state.policiesByName["tenant/orders_editor"] = domain.Policy{ID: 9, Scope: domain.PolicyScopeTenant, Name: "tenant/orders_editor"}
+	state.policiesByName["tenant/orders_editor"] = domain.Policy{
+		ID:    9,
+		Scope: domain.PolicyScopeTenant,
+		Name:  "tenant/orders_editor",
+	}
 	state.policiesByID[9] = state.policiesByName["tenant/orders_editor"]
 	state.policyAttachments[9] = []domain.PolicyAttachment{
 		{AttachmentType: "role", RoleID: 2, RoleName: "tenant_editor"},
@@ -270,7 +526,14 @@ func TestIAMService_DeletePolicy(t *testing.T) {
 	}
 	state.policiesByID[9] = state.policiesByName["tenant/orders_editor"]
 	state.policyStatements[9] = []domain.PolicyStatement{
-		{ID: 1, PolicyID: 9, PolicyName: "tenant/orders_editor", Effect: domain.PolicyEffectAllow, ActionPattern: "order:update", ResourcePattern: "*"},
+		{
+			ID:              1,
+			PolicyID:        9,
+			PolicyName:      "tenant/orders_editor",
+			Effect:          domain.PolicyEffectAllow,
+			ActionPattern:   "order:update",
+			ResourcePattern: "*",
+		},
 	}
 
 	require.NoError(t, svc.DeletePolicy(context.Background(), "tenant/orders_editor"))
@@ -308,10 +571,21 @@ func TestIAMService_GroupPoliciesAffectPermission(t *testing.T) {
 		RoleName: domain.RoleTenantViewer,
 		Status:   domain.MembershipStatusActive,
 	}
-	state.policiesByName["tenant/orders_editor"] = domain.Policy{ID: 15, Scope: domain.PolicyScopeTenant, Name: "tenant/orders_editor"}
+	state.policiesByName["tenant/orders_editor"] = domain.Policy{
+		ID:    15,
+		Scope: domain.PolicyScopeTenant,
+		Name:  "tenant/orders_editor",
+	}
 	state.policiesByID[15] = state.policiesByName["tenant/orders_editor"]
 	state.policyStatements[15] = []domain.PolicyStatement{
-		{ID: 1, PolicyID: 15, PolicyName: "tenant/orders_editor", Effect: domain.PolicyEffectAllow, ActionPattern: "order:update", ResourcePattern: "*"},
+		{
+			ID:              1,
+			PolicyID:        15,
+			PolicyName:      "tenant/orders_editor",
+			Effect:          domain.PolicyEffectAllow,
+			ActionPattern:   "order:update",
+			ResourcePattern: "*",
+		},
 	}
 
 	group, err := svc.CreateGroup(context.Background(), domain.CreateGroupInput{
@@ -402,6 +676,33 @@ func TestIAMService_TenantUserInlinePolicyAffectsPermission(t *testing.T) {
 	require.NoError(t, svc.RequirePermission(context.Background(), "t1", 9, "order:update"))
 }
 
+func TestIAMService_TenantUserPermissionBoundaryScopesDown(t *testing.T) {
+	t.Parallel()
+
+	svc, state := newIAMTestUsecase(t)
+	tenant := domain.Tenant{ID: "t1", Name: "Tenant", Slug: "tenant"}
+	state.tenants[tenant.ID] = tenant
+	state.roleByName[domain.RoleTenantEditor] = domain.Role{ID: 4, Name: domain.RoleTenantEditor}
+	state.memberships.items[membershipKey("t1", 9)] = domain.Membership{
+		TenantID: "t1",
+		UserID:   9,
+		RoleID:   4,
+		RoleName: domain.RoleTenantEditor,
+		Status:   domain.MembershipStatusActive,
+	}
+	state.roleStatements[4] = []domain.PolicyStatement{
+		{PolicyID: 15, PolicyName: "managed/tenant_editor", Effect: domain.PolicyEffectAllow, ActionPattern: "order:update", ResourcePattern: "*"},
+	}
+	state.policiesByName["tenant/orders-readonly-boundary"] = domain.Policy{ID: 22, Scope: domain.PolicyScopeTenant, Name: "tenant/orders-readonly-boundary"}
+	state.policiesByID[22] = state.policiesByName["tenant/orders-readonly-boundary"]
+	state.policyStatements[22] = []domain.PolicyStatement{
+		{ID: 1, PolicyID: 22, PolicyName: "tenant/orders-readonly-boundary", Effect: domain.PolicyEffectAllow, ActionPattern: "order:read", ResourcePattern: "*"},
+	}
+
+	require.NoError(t, svc.PutTenantUserPermissionBoundary(context.Background(), "t1", 9, "tenant/orders-readonly-boundary"))
+	require.ErrorIs(t, svc.RequirePermission(context.Background(), "t1", 9, "order:update"), domain.ErrPermissionDenied)
+}
+
 func TestIAMService_CreateAndAcceptInvite(t *testing.T) {
 	t.Parallel()
 
@@ -464,26 +765,34 @@ func TestIAMService_RevokeInvite(t *testing.T) {
 }
 
 type iamTestState struct {
-	tenants                map[string]domain.Tenant
-	roleByName             map[string]domain.Role
-	roleTrustStatements    map[uint64][]domain.RoleTrustStatement
-	rolePermissions        map[uint64]map[string]bool
-	policiesByName         map[string]domain.Policy
-	policiesByID           map[uint64]domain.Policy
-	policyStatements       map[uint64][]domain.PolicyStatement
-	policyAttachments      map[uint64][]domain.PolicyAttachment
-	nextPolicyID           uint64
-	groupsByID             map[uint64]domain.Group
-	groupInlinePolicies    map[uint64]map[string]domain.GroupInlinePolicy
-	nextGroupID            uint64
-	roleStatements         map[uint64][]domain.PolicyStatement
-	platformDirect         map[uint][]domain.PolicyStatement
-	tenantDirect           map[string][]domain.PolicyStatement
-	platformInlinePolicies map[uint]map[string]domain.UserInlinePolicy
-	tenantInlinePolicies   map[string]map[string]domain.UserInlinePolicy
-	platformRoleIDs        map[uint][]uint64
-	memberships            *membershipState
-	invites                *inviteState
+	tenants                 map[string]domain.Tenant
+	roleByName              map[string]domain.Role
+	roleTrustStatements     map[uint64][]domain.RoleTrustStatement
+	rolePermissions         map[uint64]map[string]bool
+	policiesByName          map[string]domain.Policy
+	policiesByID            map[uint64]domain.Policy
+	policyStatements        map[uint64][]domain.PolicyStatement
+	policyVersions          map[uint64][]domain.PolicyVersion
+	policyVersionStatements map[string][]domain.PolicyStatement
+	policyAttachments       map[uint64][]domain.PolicyAttachment
+	nextPolicyID            uint64
+	groupsByID              map[uint64]domain.Group
+	groupInlinePolicies     map[uint64]map[string]domain.GroupInlinePolicy
+	nextGroupID             uint64
+	roleStatements          map[uint64][]domain.PolicyStatement
+	roleBoundary            map[uint64]*domain.RolePermissionBoundary
+	roleBoundaryStmts       map[uint64][]domain.PolicyStatement
+	platformDirect          map[uint][]domain.PolicyStatement
+	tenantDirect            map[string][]domain.PolicyStatement
+	platformBoundary        map[uint]*domain.PermissionBoundary
+	platformBoundaryStmts   map[uint][]domain.PolicyStatement
+	platformInlinePolicies  map[uint]map[string]domain.UserInlinePolicy
+	tenantBoundary          map[string]*domain.PermissionBoundary
+	tenantBoundaryStmts     map[string][]domain.PolicyStatement
+	tenantInlinePolicies    map[string]map[string]domain.UserInlinePolicy
+	platformRoleIDs         map[uint][]uint64
+	memberships             *membershipState
+	invites                 *inviteState
 }
 
 type membershipState struct {
@@ -508,6 +817,15 @@ type inviteState struct {
 	tokenIndex map[string]string
 }
 
+func (s *iamTestState) roleByID(roleID uint64) domain.Role {
+	for _, role := range s.roleByName {
+		if role.ID == roleID {
+			return role
+		}
+	}
+	return domain.Role{ID: roleID}
+}
+
 func (r *inviteState) GetByID(_ context.Context, inviteID string) (*domain.TenantInvite, error) {
 	item, ok := r.items[inviteID]
 	if !ok {
@@ -524,32 +842,73 @@ func newIAMTestUsecase(t *testing.T) (domain.IAMUsecase, *iamTestState) {
 	roleRepo := domainmocks.NewMockRoleRepository(t)
 	policyRepo := domainmocks.NewMockPolicyRepository(t)
 	groupRepo := domainmocks.NewMockGroupRepository(t)
+	orgRepo := domainmocks.NewMockOrganizationRepository(t)
 	platformRepo := domainmocks.NewMockPlatformMembershipRepository(t)
 	membershipRepo := domainmocks.NewMockMembershipRepository(t)
 	inviteRepo := domainmocks.NewMockInviteRepository(t)
 
 	state := &iamTestState{
-		tenants:                map[string]domain.Tenant{},
-		roleByName:             map[string]domain.Role{},
-		roleTrustStatements:    map[uint64][]domain.RoleTrustStatement{},
-		rolePermissions:        map[uint64]map[string]bool{},
-		policiesByName:         map[string]domain.Policy{},
-		policiesByID:           map[uint64]domain.Policy{},
-		policyStatements:       map[uint64][]domain.PolicyStatement{},
-		policyAttachments:      map[uint64][]domain.PolicyAttachment{},
-		nextPolicyID:           100,
-		groupsByID:             map[uint64]domain.Group{},
-		groupInlinePolicies:    map[uint64]map[string]domain.GroupInlinePolicy{},
-		nextGroupID:            200,
-		roleStatements:         map[uint64][]domain.PolicyStatement{},
-		platformDirect:         map[uint][]domain.PolicyStatement{},
-		tenantDirect:           map[string][]domain.PolicyStatement{},
-		platformInlinePolicies: map[uint]map[string]domain.UserInlinePolicy{},
-		tenantInlinePolicies:   map[string]map[string]domain.UserInlinePolicy{},
-		platformRoleIDs:        map[uint][]uint64{},
-		memberships:            &membershipState{items: map[string]domain.Membership{}},
-		invites:                &inviteState{items: map[string]domain.TenantInvite{}, tokenIndex: map[string]string{}},
+		tenants:                 map[string]domain.Tenant{},
+		roleByName:              map[string]domain.Role{},
+		roleTrustStatements:     map[uint64][]domain.RoleTrustStatement{},
+		rolePermissions:         map[uint64]map[string]bool{},
+		policiesByName:          map[string]domain.Policy{},
+		policiesByID:            map[uint64]domain.Policy{},
+		policyStatements:        map[uint64][]domain.PolicyStatement{},
+		policyVersions:          map[uint64][]domain.PolicyVersion{},
+		policyVersionStatements: map[string][]domain.PolicyStatement{},
+		policyAttachments:       map[uint64][]domain.PolicyAttachment{},
+		nextPolicyID:            100,
+		groupsByID:              map[uint64]domain.Group{},
+		groupInlinePolicies:     map[uint64]map[string]domain.GroupInlinePolicy{},
+		nextGroupID:             200,
+		roleStatements:          map[uint64][]domain.PolicyStatement{},
+		roleBoundary:            map[uint64]*domain.RolePermissionBoundary{},
+		roleBoundaryStmts:       map[uint64][]domain.PolicyStatement{},
+		platformDirect:          map[uint][]domain.PolicyStatement{},
+		tenantDirect:            map[string][]domain.PolicyStatement{},
+		platformBoundary:        map[uint]*domain.PermissionBoundary{},
+		platformBoundaryStmts:   map[uint][]domain.PolicyStatement{},
+		platformInlinePolicies:  map[uint]map[string]domain.UserInlinePolicy{},
+		tenantBoundary:          map[string]*domain.PermissionBoundary{},
+		tenantBoundaryStmts:     map[string][]domain.PolicyStatement{},
+		tenantInlinePolicies:    map[string]map[string]domain.UserInlinePolicy{},
+		platformRoleIDs:         map[uint][]uint64{},
+		memberships:             &membershipState{items: map[string]domain.Membership{}},
+		invites:                 &inviteState{items: map[string]domain.TenantInvite{}, tokenIndex: map[string]string{}},
 	}
+
+	orgRepo.EXPECT().
+		Create(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, org domain.Organization) (*domain.Organization, error) {
+			copyOrg := org
+			return &copyOrg, nil
+		}).Maybe()
+	orgRepo.EXPECT().
+		List(mock.Anything).
+		RunAndReturn(func(ctx context.Context) ([]domain.Organization, error) {
+			return nil, nil
+		}).Maybe()
+	orgRepo.EXPECT().
+		GetByID(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, orgID string) (*domain.Organization, error) {
+			if orgID == "" {
+				return nil, domain.ErrOrganizationNotFound
+			}
+			return &domain.Organization{ID: orgID, Slug: orgID, Name: orgID}, nil
+		}).Maybe()
+	orgRepo.EXPECT().
+		AttachServiceControlPolicy(mock.Anything, mock.Anything, mock.Anything).
+		Return(nil).Maybe()
+	orgRepo.EXPECT().
+		DetachServiceControlPolicy(mock.Anything, mock.Anything, mock.Anything).
+		Return(nil).Maybe()
+	orgRepo.EXPECT().
+		ListServiceControlPolicies(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, orgID string) ([]domain.Policy, error) { return nil, nil }).Maybe()
+	orgRepo.EXPECT().
+		ListServiceControlPolicyStatements(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, orgID string) ([]domain.PolicyStatement, error) { return nil, nil }).Maybe()
 
 	tenantRepo.EXPECT().
 		Create(mock.Anything, mock.Anything).
@@ -570,6 +929,22 @@ func newIAMTestUsecase(t *testing.T) (domain.IAMUsecase, *iamTestState) {
 			return &copyTenant, nil
 		}).
 		Maybe()
+	tenantRepo.EXPECT().
+		AttachOrganization(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, tenantID string, orgID string) error {
+			tenant := state.tenants[tenantID]
+			tenant.OrgID = orgID
+			state.tenants[tenantID] = tenant
+			return nil
+		}).Maybe()
+	tenantRepo.EXPECT().
+		DetachOrganization(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, tenantID string) error {
+			tenant := state.tenants[tenantID]
+			tenant.OrgID = ""
+			state.tenants[tenantID] = tenant
+			return nil
+		}).Maybe()
 
 	roleRepo.EXPECT().
 		GetByName(mock.Anything, mock.Anything).
@@ -608,12 +983,53 @@ func newIAMTestUsecase(t *testing.T) (domain.IAMUsecase, *iamTestState) {
 			return nil
 		}).
 		Maybe()
+	roleRepo.EXPECT().
+		PutPermissionBoundary(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, roleID uint64, policyID uint64) error {
+			policy := state.policiesByID[policyID]
+			state.roleBoundary[roleID] = &domain.RolePermissionBoundary{
+				RoleID:     roleID,
+				RoleName:   state.roleByID(roleID).Name,
+				PolicyID:   policyID,
+				PolicyName: policy.Name,
+				CreatedAt:  time.Now().UTC(),
+			}
+			state.roleBoundaryStmts[roleID] = append([]domain.PolicyStatement(nil), state.policyStatements[policyID]...)
+			return nil
+		}).
+		Maybe()
+	roleRepo.EXPECT().
+		GetPermissionBoundary(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, roleID uint64) (*domain.RolePermissionBoundary, error) {
+			item := state.roleBoundary[roleID]
+			if item == nil {
+				return nil, nil
+			}
+			copyItem := *item
+			return &copyItem, nil
+		}).
+		Maybe()
+	roleRepo.EXPECT().
+		GetPermissionBoundaryStatements(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, roleID uint64) ([]domain.PolicyStatement, error) {
+			return append([]domain.PolicyStatement(nil), state.roleBoundaryStmts[roleID]...), nil
+		}).
+		Maybe()
+	roleRepo.EXPECT().
+		DeletePermissionBoundary(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, roleID uint64) error {
+			delete(state.roleBoundary, roleID)
+			delete(state.roleBoundaryStmts, roleID)
+			return nil
+		}).
+		Maybe()
 
 	policyRepo.EXPECT().
 		CreatePolicy(mock.Anything, mock.Anything, mock.Anything).
 		RunAndReturn(func(ctx context.Context, policy domain.Policy, statements []domain.PolicyStatement) (*domain.Policy, []domain.PolicyStatement, error) {
 			policy.ID = state.nextPolicyID
 			state.nextPolicyID++
+			policy.DefaultVersion = "v1"
 			state.policiesByName[policy.Name] = policy
 			state.policiesByID[policy.ID] = policy
 			outStatements := make([]domain.PolicyStatement, 0, len(statements))
@@ -624,7 +1040,68 @@ func newIAMTestUsecase(t *testing.T) (domain.IAMUsecase, *iamTestState) {
 				outStatements = append(outStatements, statement)
 			}
 			state.policyStatements[policy.ID] = append([]domain.PolicyStatement(nil), outStatements...)
+			state.policyVersions[policy.ID] = []domain.PolicyVersion{{
+				ID:         1,
+				PolicyID:   policy.ID,
+				PolicyName: policy.Name,
+				Version:    "v1",
+				IsDefault:  true,
+				CreatedAt:  policy.CreatedAt,
+			}}
+			state.policyVersionStatements[fmt.Sprintf("%d:%s", policy.ID, "v1")] = append([]domain.PolicyStatement(nil), outStatements...)
 			return &policy, outStatements, nil
+		}).
+		Maybe()
+	policyRepo.EXPECT().
+		CreatePolicyVersion(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, policyID uint64, policyName string, statements []domain.PolicyStatement, setAsDefault bool) (*domain.PolicyVersion, []domain.PolicyStatement, error) {
+			versions := state.policyVersions[policyID]
+			versionLabel := fmt.Sprintf("v%d", len(versions)+1)
+			version := domain.PolicyVersion{
+				ID:         uint64(len(versions) + 1),
+				PolicyID:   policyID,
+				PolicyName: policyName,
+				Version:    versionLabel,
+				IsDefault:  setAsDefault,
+				CreatedAt:  time.Now().UTC(),
+			}
+			if setAsDefault {
+				for i := range versions {
+					versions[i].IsDefault = false
+				}
+				policy := state.policiesByID[policyID]
+				policy.DefaultVersion = versionLabel
+				state.policiesByID[policyID] = policy
+				state.policiesByName[policy.Name] = policy
+				state.policyStatements[policyID] = append([]domain.PolicyStatement(nil), statements...)
+			}
+			state.policyVersions[policyID] = append(versions, version)
+			state.policyVersionStatements[fmt.Sprintf("%d:%s", policyID, versionLabel)] = append([]domain.PolicyStatement(nil), statements...)
+			return &version, append([]domain.PolicyStatement(nil), statements...), nil
+		}).
+		Maybe()
+	policyRepo.EXPECT().
+		DeletePolicyVersion(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, policyID uint64, version string) error {
+			versions := state.policyVersions[policyID]
+			nextVersions := make([]domain.PolicyVersion, 0, len(versions))
+			found := false
+			for _, item := range versions {
+				if item.Version != version {
+					nextVersions = append(nextVersions, item)
+					continue
+				}
+				if item.IsDefault {
+					return domain.ErrDefaultPolicyVersion
+				}
+				found = true
+			}
+			if !found {
+				return domain.ErrPolicyVersionNotFound
+			}
+			state.policyVersions[policyID] = nextVersions
+			delete(state.policyVersionStatements, fmt.Sprintf("%d:%s", policyID, version))
+			return nil
 		}).
 		Maybe()
 	policyRepo.EXPECT().
@@ -642,6 +1119,28 @@ func newIAMTestUsecase(t *testing.T) (domain.IAMUsecase, *iamTestState) {
 		GetPolicyStatements(mock.Anything, mock.Anything).
 		RunAndReturn(func(ctx context.Context, policyID uint64) ([]domain.PolicyStatement, error) {
 			return append([]domain.PolicyStatement(nil), state.policyStatements[policyID]...), nil
+		}).
+		Maybe()
+	policyRepo.EXPECT().
+		ListPolicyVersions(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, policyID uint64, policyName string) ([]domain.PolicyVersion, error) {
+			return append([]domain.PolicyVersion(nil), state.policyVersions[policyID]...), nil
+		}).
+		Maybe()
+	policyRepo.EXPECT().
+		SetDefaultPolicyVersion(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, policyID uint64, version string) error {
+			versions := state.policyVersions[policyID]
+			for i := range versions {
+				versions[i].IsDefault = versions[i].Version == version
+			}
+			state.policyVersions[policyID] = versions
+			policy := state.policiesByID[policyID]
+			policy.DefaultVersion = version
+			state.policiesByID[policyID] = policy
+			state.policiesByName[policy.Name] = policy
+			state.policyStatements[policyID] = append([]domain.PolicyStatement(nil), state.policyVersionStatements[fmt.Sprintf("%d:%s", policyID, version)]...)
+			return nil
 		}).
 		Maybe()
 	policyRepo.EXPECT().
@@ -974,6 +1473,47 @@ func newIAMTestUsecase(t *testing.T) (domain.IAMUsecase, *iamTestState) {
 		}).
 		Maybe()
 	policyRepo.EXPECT().
+		PutPlatformUserPermissionBoundary(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, userID uint, policyID uint64) error {
+			policy := state.policiesByID[policyID]
+			boundary := &domain.PermissionBoundary{
+				Scope:      domain.PolicyScopePlatform,
+				UserID:     userID,
+				PolicyID:   policyID,
+				PolicyName: policy.Name,
+				CreatedAt:  time.Now().UTC(),
+			}
+			state.platformBoundary[userID] = boundary
+			state.platformBoundaryStmts[userID] = append([]domain.PolicyStatement(nil), state.policyStatements[policyID]...)
+			return nil
+		}).
+		Maybe()
+	policyRepo.EXPECT().
+		GetPlatformUserPermissionBoundary(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, userID uint) (*domain.PermissionBoundary, error) {
+			item := state.platformBoundary[userID]
+			if item == nil {
+				return nil, nil
+			}
+			copyItem := *item
+			return &copyItem, nil
+		}).
+		Maybe()
+	policyRepo.EXPECT().
+		GetPlatformUserPermissionBoundaryStatements(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, userID uint) ([]domain.PolicyStatement, error) {
+			return append([]domain.PolicyStatement(nil), state.platformBoundaryStmts[userID]...), nil
+		}).
+		Maybe()
+	policyRepo.EXPECT().
+		DeletePlatformUserPermissionBoundary(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, userID uint) error {
+			delete(state.platformBoundary, userID)
+			delete(state.platformBoundaryStmts, userID)
+			return nil
+		}).
+		Maybe()
+	policyRepo.EXPECT().
 		AttachTenantUserPolicy(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 		RunAndReturn(func(ctx context.Context, tenantID string, userID uint, policyID uint64) error {
 			policy := state.policiesByID[policyID]
@@ -1060,6 +1600,50 @@ func newIAMTestUsecase(t *testing.T) (domain.IAMUsecase, *iamTestState) {
 				return domain.ErrPolicyNotFound
 			}
 			delete(state.tenantInlinePolicies[key], name)
+			return nil
+		}).
+		Maybe()
+	policyRepo.EXPECT().
+		PutTenantUserPermissionBoundary(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, tenantID string, userID uint, policyID uint64) error {
+			policy := state.policiesByID[policyID]
+			key := membershipKey(tenantID, userID)
+			boundary := &domain.PermissionBoundary{
+				Scope:      domain.PolicyScopeTenant,
+				TenantID:   tenantID,
+				UserID:     userID,
+				PolicyID:   policyID,
+				PolicyName: policy.Name,
+				CreatedAt:  time.Now().UTC(),
+			}
+			state.tenantBoundary[key] = boundary
+			state.tenantBoundaryStmts[key] = append([]domain.PolicyStatement(nil), state.policyStatements[policyID]...)
+			return nil
+		}).
+		Maybe()
+	policyRepo.EXPECT().
+		GetTenantUserPermissionBoundary(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, tenantID string, userID uint) (*domain.PermissionBoundary, error) {
+			item := state.tenantBoundary[membershipKey(tenantID, userID)]
+			if item == nil {
+				return nil, nil
+			}
+			copyItem := *item
+			return &copyItem, nil
+		}).
+		Maybe()
+	policyRepo.EXPECT().
+		GetTenantUserPermissionBoundaryStatements(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, tenantID string, userID uint) ([]domain.PolicyStatement, error) {
+			return append([]domain.PolicyStatement(nil), state.tenantBoundaryStmts[membershipKey(tenantID, userID)]...), nil
+		}).
+		Maybe()
+	policyRepo.EXPECT().
+		DeleteTenantUserPermissionBoundary(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, tenantID string, userID uint) error {
+			key := membershipKey(tenantID, userID)
+			delete(state.tenantBoundary, key)
+			delete(state.tenantBoundaryStmts, key)
 			return nil
 		}).
 		Maybe()
@@ -1229,7 +1813,16 @@ func newIAMTestUsecase(t *testing.T) (domain.IAMUsecase, *iamTestState) {
 		}).
 		Maybe()
 
-	return domain.NewIAMUsecase(tenantRepo, roleRepo, policyRepo, groupRepo, platformRepo, membershipRepo, inviteRepo), state
+	return domain.NewIAMUsecase(
+		tenantRepo,
+		roleRepo,
+		policyRepo,
+		groupRepo,
+		orgRepo,
+		platformRepo,
+		membershipRepo,
+		inviteRepo,
+	), state
 }
 
 func membershipKey(tenantID string, userID uint) string {

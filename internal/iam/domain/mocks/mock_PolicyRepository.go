@@ -252,6 +252,100 @@ func (_c *MockPolicyRepository_CreatePolicy_Call) RunAndReturn(run func(ctx cont
 	return _c
 }
 
+// CreatePolicyVersion provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) CreatePolicyVersion(ctx context.Context, policyID uint64, policyName string, statements []domain.PolicyStatement, setAsDefault bool) (*domain.PolicyVersion, []domain.PolicyStatement, error) {
+	ret := _mock.Called(ctx, policyID, policyName, statements, setAsDefault)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreatePolicyVersion")
+	}
+
+	var r0 *domain.PolicyVersion
+	var r1 []domain.PolicyStatement
+	var r2 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, string, []domain.PolicyStatement, bool) (*domain.PolicyVersion, []domain.PolicyStatement, error)); ok {
+		return returnFunc(ctx, policyID, policyName, statements, setAsDefault)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, string, []domain.PolicyStatement, bool) *domain.PolicyVersion); ok {
+		r0 = returnFunc(ctx, policyID, policyName, statements, setAsDefault)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.PolicyVersion)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64, string, []domain.PolicyStatement, bool) []domain.PolicyStatement); ok {
+		r1 = returnFunc(ctx, policyID, policyName, statements, setAsDefault)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]domain.PolicyStatement)
+		}
+	}
+	if returnFunc, ok := ret.Get(2).(func(context.Context, uint64, string, []domain.PolicyStatement, bool) error); ok {
+		r2 = returnFunc(ctx, policyID, policyName, statements, setAsDefault)
+	} else {
+		r2 = ret.Error(2)
+	}
+	return r0, r1, r2
+}
+
+// MockPolicyRepository_CreatePolicyVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreatePolicyVersion'
+type MockPolicyRepository_CreatePolicyVersion_Call struct {
+	*mock.Call
+}
+
+// CreatePolicyVersion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - policyID uint64
+//   - policyName string
+//   - statements []domain.PolicyStatement
+//   - setAsDefault bool
+func (_e *MockPolicyRepository_Expecter) CreatePolicyVersion(ctx interface{}, policyID interface{}, policyName interface{}, statements interface{}, setAsDefault interface{}) *MockPolicyRepository_CreatePolicyVersion_Call {
+	return &MockPolicyRepository_CreatePolicyVersion_Call{Call: _e.mock.On("CreatePolicyVersion", ctx, policyID, policyName, statements, setAsDefault)}
+}
+
+func (_c *MockPolicyRepository_CreatePolicyVersion_Call) Run(run func(ctx context.Context, policyID uint64, policyName string, statements []domain.PolicyStatement, setAsDefault bool)) *MockPolicyRepository_CreatePolicyVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 []domain.PolicyStatement
+		if args[3] != nil {
+			arg3 = args[3].([]domain.PolicyStatement)
+		}
+		var arg4 bool
+		if args[4] != nil {
+			arg4 = args[4].(bool)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+			arg4,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPolicyRepository_CreatePolicyVersion_Call) Return(policyVersion *domain.PolicyVersion, policyStatements []domain.PolicyStatement, err error) *MockPolicyRepository_CreatePolicyVersion_Call {
+	_c.Call.Return(policyVersion, policyStatements, err)
+	return _c
+}
+
+func (_c *MockPolicyRepository_CreatePolicyVersion_Call) RunAndReturn(run func(ctx context.Context, policyID uint64, policyName string, statements []domain.PolicyStatement, setAsDefault bool) (*domain.PolicyVersion, []domain.PolicyStatement, error)) *MockPolicyRepository_CreatePolicyVersion_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeletePlatformUserInlinePolicy provides a mock function for the type MockPolicyRepository
 func (_mock *MockPolicyRepository) DeletePlatformUserInlinePolicy(ctx context.Context, userID uint, name string) error {
 	ret := _mock.Called(ctx, userID, name)
@@ -315,6 +409,63 @@ func (_c *MockPolicyRepository_DeletePlatformUserInlinePolicy_Call) RunAndReturn
 	return _c
 }
 
+// DeletePlatformUserPermissionBoundary provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) DeletePlatformUserPermissionBoundary(ctx context.Context, userID uint) error {
+	ret := _mock.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeletePlatformUserPermissionBoundary")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) error); ok {
+		r0 = returnFunc(ctx, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockPolicyRepository_DeletePlatformUserPermissionBoundary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeletePlatformUserPermissionBoundary'
+type MockPolicyRepository_DeletePlatformUserPermissionBoundary_Call struct {
+	*mock.Call
+}
+
+// DeletePlatformUserPermissionBoundary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uint
+func (_e *MockPolicyRepository_Expecter) DeletePlatformUserPermissionBoundary(ctx interface{}, userID interface{}) *MockPolicyRepository_DeletePlatformUserPermissionBoundary_Call {
+	return &MockPolicyRepository_DeletePlatformUserPermissionBoundary_Call{Call: _e.mock.On("DeletePlatformUserPermissionBoundary", ctx, userID)}
+}
+
+func (_c *MockPolicyRepository_DeletePlatformUserPermissionBoundary_Call) Run(run func(ctx context.Context, userID uint)) *MockPolicyRepository_DeletePlatformUserPermissionBoundary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPolicyRepository_DeletePlatformUserPermissionBoundary_Call) Return(err error) *MockPolicyRepository_DeletePlatformUserPermissionBoundary_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockPolicyRepository_DeletePlatformUserPermissionBoundary_Call) RunAndReturn(run func(ctx context.Context, userID uint) error) *MockPolicyRepository_DeletePlatformUserPermissionBoundary_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeletePolicy provides a mock function for the type MockPolicyRepository
 func (_mock *MockPolicyRepository) DeletePolicy(ctx context.Context, policyID uint64) error {
 	ret := _mock.Called(ctx, policyID)
@@ -368,6 +519,69 @@ func (_c *MockPolicyRepository_DeletePolicy_Call) Return(err error) *MockPolicyR
 }
 
 func (_c *MockPolicyRepository_DeletePolicy_Call) RunAndReturn(run func(ctx context.Context, policyID uint64) error) *MockPolicyRepository_DeletePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeletePolicyVersion provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) DeletePolicyVersion(ctx context.Context, policyID uint64, version string) error {
+	ret := _mock.Called(ctx, policyID, version)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeletePolicyVersion")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, string) error); ok {
+		r0 = returnFunc(ctx, policyID, version)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockPolicyRepository_DeletePolicyVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeletePolicyVersion'
+type MockPolicyRepository_DeletePolicyVersion_Call struct {
+	*mock.Call
+}
+
+// DeletePolicyVersion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - policyID uint64
+//   - version string
+func (_e *MockPolicyRepository_Expecter) DeletePolicyVersion(ctx interface{}, policyID interface{}, version interface{}) *MockPolicyRepository_DeletePolicyVersion_Call {
+	return &MockPolicyRepository_DeletePolicyVersion_Call{Call: _e.mock.On("DeletePolicyVersion", ctx, policyID, version)}
+}
+
+func (_c *MockPolicyRepository_DeletePolicyVersion_Call) Run(run func(ctx context.Context, policyID uint64, version string)) *MockPolicyRepository_DeletePolicyVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPolicyRepository_DeletePolicyVersion_Call) Return(err error) *MockPolicyRepository_DeletePolicyVersion_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockPolicyRepository_DeletePolicyVersion_Call) RunAndReturn(run func(ctx context.Context, policyID uint64, version string) error) *MockPolicyRepository_DeletePolicyVersion_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -437,6 +651,69 @@ func (_c *MockPolicyRepository_DeleteTenantUserInlinePolicy_Call) Return(err err
 }
 
 func (_c *MockPolicyRepository_DeleteTenantUserInlinePolicy_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint, name string) error) *MockPolicyRepository_DeleteTenantUserInlinePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteTenantUserPermissionBoundary provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) DeleteTenantUserPermissionBoundary(ctx context.Context, tenantID string, userID uint) error {
+	ret := _mock.Called(ctx, tenantID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteTenantUserPermissionBoundary")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) error); ok {
+		r0 = returnFunc(ctx, tenantID, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockPolicyRepository_DeleteTenantUserPermissionBoundary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteTenantUserPermissionBoundary'
+type MockPolicyRepository_DeleteTenantUserPermissionBoundary_Call struct {
+	*mock.Call
+}
+
+// DeleteTenantUserPermissionBoundary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - userID uint
+func (_e *MockPolicyRepository_Expecter) DeleteTenantUserPermissionBoundary(ctx interface{}, tenantID interface{}, userID interface{}) *MockPolicyRepository_DeleteTenantUserPermissionBoundary_Call {
+	return &MockPolicyRepository_DeleteTenantUserPermissionBoundary_Call{Call: _e.mock.On("DeleteTenantUserPermissionBoundary", ctx, tenantID, userID)}
+}
+
+func (_c *MockPolicyRepository_DeleteTenantUserPermissionBoundary_Call) Run(run func(ctx context.Context, tenantID string, userID uint)) *MockPolicyRepository_DeleteTenantUserPermissionBoundary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPolicyRepository_DeleteTenantUserPermissionBoundary_Call) Return(err error) *MockPolicyRepository_DeleteTenantUserPermissionBoundary_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockPolicyRepository_DeleteTenantUserPermissionBoundary_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint) error) *MockPolicyRepository_DeleteTenantUserPermissionBoundary_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -643,6 +920,142 @@ func (_c *MockPolicyRepository_GetPlatformUserInlinePolicy_Call) Return(userInli
 }
 
 func (_c *MockPolicyRepository_GetPlatformUserInlinePolicy_Call) RunAndReturn(run func(ctx context.Context, userID uint, name string) (*domain.UserInlinePolicy, error)) *MockPolicyRepository_GetPlatformUserInlinePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetPlatformUserPermissionBoundary provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) GetPlatformUserPermissionBoundary(ctx context.Context, userID uint) (*domain.PermissionBoundary, error) {
+	ret := _mock.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPlatformUserPermissionBoundary")
+	}
+
+	var r0 *domain.PermissionBoundary
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) (*domain.PermissionBoundary, error)); ok {
+		return returnFunc(ctx, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) *domain.PermissionBoundary); ok {
+		r0 = returnFunc(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.PermissionBoundary)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint) error); ok {
+		r1 = returnFunc(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockPolicyRepository_GetPlatformUserPermissionBoundary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPlatformUserPermissionBoundary'
+type MockPolicyRepository_GetPlatformUserPermissionBoundary_Call struct {
+	*mock.Call
+}
+
+// GetPlatformUserPermissionBoundary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uint
+func (_e *MockPolicyRepository_Expecter) GetPlatformUserPermissionBoundary(ctx interface{}, userID interface{}) *MockPolicyRepository_GetPlatformUserPermissionBoundary_Call {
+	return &MockPolicyRepository_GetPlatformUserPermissionBoundary_Call{Call: _e.mock.On("GetPlatformUserPermissionBoundary", ctx, userID)}
+}
+
+func (_c *MockPolicyRepository_GetPlatformUserPermissionBoundary_Call) Run(run func(ctx context.Context, userID uint)) *MockPolicyRepository_GetPlatformUserPermissionBoundary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPolicyRepository_GetPlatformUserPermissionBoundary_Call) Return(permissionBoundary *domain.PermissionBoundary, err error) *MockPolicyRepository_GetPlatformUserPermissionBoundary_Call {
+	_c.Call.Return(permissionBoundary, err)
+	return _c
+}
+
+func (_c *MockPolicyRepository_GetPlatformUserPermissionBoundary_Call) RunAndReturn(run func(ctx context.Context, userID uint) (*domain.PermissionBoundary, error)) *MockPolicyRepository_GetPlatformUserPermissionBoundary_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetPlatformUserPermissionBoundaryStatements provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) GetPlatformUserPermissionBoundaryStatements(ctx context.Context, userID uint) ([]domain.PolicyStatement, error) {
+	ret := _mock.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPlatformUserPermissionBoundaryStatements")
+	}
+
+	var r0 []domain.PolicyStatement
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) ([]domain.PolicyStatement, error)); ok {
+		return returnFunc(ctx, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) []domain.PolicyStatement); ok {
+		r0 = returnFunc(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]domain.PolicyStatement)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint) error); ok {
+		r1 = returnFunc(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockPolicyRepository_GetPlatformUserPermissionBoundaryStatements_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPlatformUserPermissionBoundaryStatements'
+type MockPolicyRepository_GetPlatformUserPermissionBoundaryStatements_Call struct {
+	*mock.Call
+}
+
+// GetPlatformUserPermissionBoundaryStatements is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uint
+func (_e *MockPolicyRepository_Expecter) GetPlatformUserPermissionBoundaryStatements(ctx interface{}, userID interface{}) *MockPolicyRepository_GetPlatformUserPermissionBoundaryStatements_Call {
+	return &MockPolicyRepository_GetPlatformUserPermissionBoundaryStatements_Call{Call: _e.mock.On("GetPlatformUserPermissionBoundaryStatements", ctx, userID)}
+}
+
+func (_c *MockPolicyRepository_GetPlatformUserPermissionBoundaryStatements_Call) Run(run func(ctx context.Context, userID uint)) *MockPolicyRepository_GetPlatformUserPermissionBoundaryStatements_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPolicyRepository_GetPlatformUserPermissionBoundaryStatements_Call) Return(policyStatements []domain.PolicyStatement, err error) *MockPolicyRepository_GetPlatformUserPermissionBoundaryStatements_Call {
+	_c.Call.Return(policyStatements, err)
+	return _c
+}
+
+func (_c *MockPolicyRepository_GetPlatformUserPermissionBoundaryStatements_Call) RunAndReturn(run func(ctx context.Context, userID uint) ([]domain.PolicyStatement, error)) *MockPolicyRepository_GetPlatformUserPermissionBoundaryStatements_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -859,6 +1272,154 @@ func (_c *MockPolicyRepository_GetTenantUserInlinePolicy_Call) Return(userInline
 }
 
 func (_c *MockPolicyRepository_GetTenantUserInlinePolicy_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint, name string) (*domain.UserInlinePolicy, error)) *MockPolicyRepository_GetTenantUserInlinePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetTenantUserPermissionBoundary provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) GetTenantUserPermissionBoundary(ctx context.Context, tenantID string, userID uint) (*domain.PermissionBoundary, error) {
+	ret := _mock.Called(ctx, tenantID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTenantUserPermissionBoundary")
+	}
+
+	var r0 *domain.PermissionBoundary
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) (*domain.PermissionBoundary, error)); ok {
+		return returnFunc(ctx, tenantID, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) *domain.PermissionBoundary); ok {
+		r0 = returnFunc(ctx, tenantID, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.PermissionBoundary)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint) error); ok {
+		r1 = returnFunc(ctx, tenantID, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockPolicyRepository_GetTenantUserPermissionBoundary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTenantUserPermissionBoundary'
+type MockPolicyRepository_GetTenantUserPermissionBoundary_Call struct {
+	*mock.Call
+}
+
+// GetTenantUserPermissionBoundary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - userID uint
+func (_e *MockPolicyRepository_Expecter) GetTenantUserPermissionBoundary(ctx interface{}, tenantID interface{}, userID interface{}) *MockPolicyRepository_GetTenantUserPermissionBoundary_Call {
+	return &MockPolicyRepository_GetTenantUserPermissionBoundary_Call{Call: _e.mock.On("GetTenantUserPermissionBoundary", ctx, tenantID, userID)}
+}
+
+func (_c *MockPolicyRepository_GetTenantUserPermissionBoundary_Call) Run(run func(ctx context.Context, tenantID string, userID uint)) *MockPolicyRepository_GetTenantUserPermissionBoundary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPolicyRepository_GetTenantUserPermissionBoundary_Call) Return(permissionBoundary *domain.PermissionBoundary, err error) *MockPolicyRepository_GetTenantUserPermissionBoundary_Call {
+	_c.Call.Return(permissionBoundary, err)
+	return _c
+}
+
+func (_c *MockPolicyRepository_GetTenantUserPermissionBoundary_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint) (*domain.PermissionBoundary, error)) *MockPolicyRepository_GetTenantUserPermissionBoundary_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetTenantUserPermissionBoundaryStatements provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) GetTenantUserPermissionBoundaryStatements(ctx context.Context, tenantID string, userID uint) ([]domain.PolicyStatement, error) {
+	ret := _mock.Called(ctx, tenantID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTenantUserPermissionBoundaryStatements")
+	}
+
+	var r0 []domain.PolicyStatement
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) ([]domain.PolicyStatement, error)); ok {
+		return returnFunc(ctx, tenantID, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) []domain.PolicyStatement); ok {
+		r0 = returnFunc(ctx, tenantID, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]domain.PolicyStatement)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint) error); ok {
+		r1 = returnFunc(ctx, tenantID, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockPolicyRepository_GetTenantUserPermissionBoundaryStatements_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTenantUserPermissionBoundaryStatements'
+type MockPolicyRepository_GetTenantUserPermissionBoundaryStatements_Call struct {
+	*mock.Call
+}
+
+// GetTenantUserPermissionBoundaryStatements is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - userID uint
+func (_e *MockPolicyRepository_Expecter) GetTenantUserPermissionBoundaryStatements(ctx interface{}, tenantID interface{}, userID interface{}) *MockPolicyRepository_GetTenantUserPermissionBoundaryStatements_Call {
+	return &MockPolicyRepository_GetTenantUserPermissionBoundaryStatements_Call{Call: _e.mock.On("GetTenantUserPermissionBoundaryStatements", ctx, tenantID, userID)}
+}
+
+func (_c *MockPolicyRepository_GetTenantUserPermissionBoundaryStatements_Call) Run(run func(ctx context.Context, tenantID string, userID uint)) *MockPolicyRepository_GetTenantUserPermissionBoundaryStatements_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPolicyRepository_GetTenantUserPermissionBoundaryStatements_Call) Return(policyStatements []domain.PolicyStatement, err error) *MockPolicyRepository_GetTenantUserPermissionBoundaryStatements_Call {
+	_c.Call.Return(policyStatements, err)
+	return _c
+}
+
+func (_c *MockPolicyRepository_GetTenantUserPermissionBoundaryStatements_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint) ([]domain.PolicyStatement, error)) *MockPolicyRepository_GetTenantUserPermissionBoundaryStatements_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1267,6 +1828,80 @@ func (_c *MockPolicyRepository_ListPolicyAttachments_Call) Return(policyAttachme
 }
 
 func (_c *MockPolicyRepository_ListPolicyAttachments_Call) RunAndReturn(run func(ctx context.Context, policyID uint64) ([]domain.PolicyAttachment, error)) *MockPolicyRepository_ListPolicyAttachments_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListPolicyVersions provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) ListPolicyVersions(ctx context.Context, policyID uint64, policyName string) ([]domain.PolicyVersion, error) {
+	ret := _mock.Called(ctx, policyID, policyName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListPolicyVersions")
+	}
+
+	var r0 []domain.PolicyVersion
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, string) ([]domain.PolicyVersion, error)); ok {
+		return returnFunc(ctx, policyID, policyName)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, string) []domain.PolicyVersion); ok {
+		r0 = returnFunc(ctx, policyID, policyName)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]domain.PolicyVersion)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64, string) error); ok {
+		r1 = returnFunc(ctx, policyID, policyName)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockPolicyRepository_ListPolicyVersions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPolicyVersions'
+type MockPolicyRepository_ListPolicyVersions_Call struct {
+	*mock.Call
+}
+
+// ListPolicyVersions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - policyID uint64
+//   - policyName string
+func (_e *MockPolicyRepository_Expecter) ListPolicyVersions(ctx interface{}, policyID interface{}, policyName interface{}) *MockPolicyRepository_ListPolicyVersions_Call {
+	return &MockPolicyRepository_ListPolicyVersions_Call{Call: _e.mock.On("ListPolicyVersions", ctx, policyID, policyName)}
+}
+
+func (_c *MockPolicyRepository_ListPolicyVersions_Call) Run(run func(ctx context.Context, policyID uint64, policyName string)) *MockPolicyRepository_ListPolicyVersions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPolicyRepository_ListPolicyVersions_Call) Return(policyVersions []domain.PolicyVersion, err error) *MockPolicyRepository_ListPolicyVersions_Call {
+	_c.Call.Return(policyVersions, err)
+	return _c
+}
+
+func (_c *MockPolicyRepository_ListPolicyVersions_Call) RunAndReturn(run func(ctx context.Context, policyID uint64, policyName string) ([]domain.PolicyVersion, error)) *MockPolicyRepository_ListPolicyVersions_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1692,6 +2327,69 @@ func (_c *MockPolicyRepository_PutPlatformUserInlinePolicy_Call) RunAndReturn(ru
 	return _c
 }
 
+// PutPlatformUserPermissionBoundary provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) PutPlatformUserPermissionBoundary(ctx context.Context, userID uint, policyID uint64) error {
+	ret := _mock.Called(ctx, userID, policyID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PutPlatformUserPermissionBoundary")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, uint64) error); ok {
+		r0 = returnFunc(ctx, userID, policyID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockPolicyRepository_PutPlatformUserPermissionBoundary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutPlatformUserPermissionBoundary'
+type MockPolicyRepository_PutPlatformUserPermissionBoundary_Call struct {
+	*mock.Call
+}
+
+// PutPlatformUserPermissionBoundary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uint
+//   - policyID uint64
+func (_e *MockPolicyRepository_Expecter) PutPlatformUserPermissionBoundary(ctx interface{}, userID interface{}, policyID interface{}) *MockPolicyRepository_PutPlatformUserPermissionBoundary_Call {
+	return &MockPolicyRepository_PutPlatformUserPermissionBoundary_Call{Call: _e.mock.On("PutPlatformUserPermissionBoundary", ctx, userID, policyID)}
+}
+
+func (_c *MockPolicyRepository_PutPlatformUserPermissionBoundary_Call) Run(run func(ctx context.Context, userID uint, policyID uint64)) *MockPolicyRepository_PutPlatformUserPermissionBoundary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		var arg2 uint64
+		if args[2] != nil {
+			arg2 = args[2].(uint64)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPolicyRepository_PutPlatformUserPermissionBoundary_Call) Return(err error) *MockPolicyRepository_PutPlatformUserPermissionBoundary_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockPolicyRepository_PutPlatformUserPermissionBoundary_Call) RunAndReturn(run func(ctx context.Context, userID uint, policyID uint64) error) *MockPolicyRepository_PutPlatformUserPermissionBoundary_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // PutTenantUserInlinePolicy provides a mock function for the type MockPolicyRepository
 func (_mock *MockPolicyRepository) PutTenantUserInlinePolicy(ctx context.Context, input domain.PutTenantUserInlinePolicyInput) error {
 	ret := _mock.Called(ctx, input)
@@ -1745,6 +2443,138 @@ func (_c *MockPolicyRepository_PutTenantUserInlinePolicy_Call) Return(err error)
 }
 
 func (_c *MockPolicyRepository_PutTenantUserInlinePolicy_Call) RunAndReturn(run func(ctx context.Context, input domain.PutTenantUserInlinePolicyInput) error) *MockPolicyRepository_PutTenantUserInlinePolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// PutTenantUserPermissionBoundary provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) PutTenantUserPermissionBoundary(ctx context.Context, tenantID string, userID uint, policyID uint64) error {
+	ret := _mock.Called(ctx, tenantID, userID, policyID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PutTenantUserPermissionBoundary")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint, uint64) error); ok {
+		r0 = returnFunc(ctx, tenantID, userID, policyID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockPolicyRepository_PutTenantUserPermissionBoundary_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PutTenantUserPermissionBoundary'
+type MockPolicyRepository_PutTenantUserPermissionBoundary_Call struct {
+	*mock.Call
+}
+
+// PutTenantUserPermissionBoundary is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - userID uint
+//   - policyID uint64
+func (_e *MockPolicyRepository_Expecter) PutTenantUserPermissionBoundary(ctx interface{}, tenantID interface{}, userID interface{}, policyID interface{}) *MockPolicyRepository_PutTenantUserPermissionBoundary_Call {
+	return &MockPolicyRepository_PutTenantUserPermissionBoundary_Call{Call: _e.mock.On("PutTenantUserPermissionBoundary", ctx, tenantID, userID, policyID)}
+}
+
+func (_c *MockPolicyRepository_PutTenantUserPermissionBoundary_Call) Run(run func(ctx context.Context, tenantID string, userID uint, policyID uint64)) *MockPolicyRepository_PutTenantUserPermissionBoundary_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		var arg3 uint64
+		if args[3] != nil {
+			arg3 = args[3].(uint64)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPolicyRepository_PutTenantUserPermissionBoundary_Call) Return(err error) *MockPolicyRepository_PutTenantUserPermissionBoundary_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockPolicyRepository_PutTenantUserPermissionBoundary_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint, policyID uint64) error) *MockPolicyRepository_PutTenantUserPermissionBoundary_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SetDefaultPolicyVersion provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) SetDefaultPolicyVersion(ctx context.Context, policyID uint64, version string) error {
+	ret := _mock.Called(ctx, policyID, version)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetDefaultPolicyVersion")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, string) error); ok {
+		r0 = returnFunc(ctx, policyID, version)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockPolicyRepository_SetDefaultPolicyVersion_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetDefaultPolicyVersion'
+type MockPolicyRepository_SetDefaultPolicyVersion_Call struct {
+	*mock.Call
+}
+
+// SetDefaultPolicyVersion is a helper method to define mock.On call
+//   - ctx context.Context
+//   - policyID uint64
+//   - version string
+func (_e *MockPolicyRepository_Expecter) SetDefaultPolicyVersion(ctx interface{}, policyID interface{}, version interface{}) *MockPolicyRepository_SetDefaultPolicyVersion_Call {
+	return &MockPolicyRepository_SetDefaultPolicyVersion_Call{Call: _e.mock.On("SetDefaultPolicyVersion", ctx, policyID, version)}
+}
+
+func (_c *MockPolicyRepository_SetDefaultPolicyVersion_Call) Run(run func(ctx context.Context, policyID uint64, version string)) *MockPolicyRepository_SetDefaultPolicyVersion_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPolicyRepository_SetDefaultPolicyVersion_Call) Return(err error) *MockPolicyRepository_SetDefaultPolicyVersion_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockPolicyRepository_SetDefaultPolicyVersion_Call) RunAndReturn(run func(ctx context.Context, policyID uint64, version string) error) *MockPolicyRepository_SetDefaultPolicyVersion_Call {
 	_c.Call.Return(run)
 	return _c
 }

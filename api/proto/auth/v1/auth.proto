@@ -128,6 +128,51 @@ service IAMService {
     };
   }
 
+  rpc CreateOrganization(CreateOrganizationRequest) returns (CreateOrganizationResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/organizations"
+      body: "*"
+    };
+  }
+
+  rpc ListOrganizations(ListOrganizationsRequest) returns (ListOrganizationsResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/organizations"
+    };
+  }
+
+  rpc AttachTenantToOrganization(AttachTenantToOrganizationRequest) returns (AttachTenantToOrganizationResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/organizations/{org_id}/tenants/{tenant_id}"
+      body: "*"
+    };
+  }
+
+  rpc DetachTenantFromOrganization(DetachTenantFromOrganizationRequest) returns (DetachTenantFromOrganizationResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/organizations/{org_id}/tenants/{tenant_id}"
+    };
+  }
+
+  rpc AttachServiceControlPolicy(AttachServiceControlPolicyRequest) returns (AttachServiceControlPolicyResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/organizations/{org_id}/service-control-policies"
+      body: "*"
+    };
+  }
+
+  rpc DetachServiceControlPolicy(DetachServiceControlPolicyRequest) returns (DetachServiceControlPolicyResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/organizations/{org_id}/service-control-policies/{policy_name}"
+    };
+  }
+
+  rpc ListServiceControlPolicies(ListServiceControlPoliciesRequest) returns (ListServiceControlPoliciesResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/organizations/{org_id}/service-control-policies"
+    };
+  }
+
   rpc AddTenantMember(AddTenantMemberRequest) returns (AddTenantMemberResponse) {
     option (google.api.http) = {
       post: "/auth/v1/iam/tenants/{tenant_id}/members"
@@ -214,9 +259,35 @@ service IAMService {
     };
   }
 
+  rpc CreatePolicyVersion(CreatePolicyVersionRequest) returns (CreatePolicyVersionResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/policies/{name}/versions"
+      body: "*"
+    };
+  }
+
   rpc GetPolicy(GetPolicyRequest) returns (GetPolicyResponse) {
     option (google.api.http) = {
       get: "/auth/v1/iam/policies/{name}"
+    };
+  }
+
+  rpc ListPolicyVersions(ListPolicyVersionsRequest) returns (ListPolicyVersionsResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/policies/{name}/versions"
+    };
+  }
+
+  rpc SetDefaultPolicyVersion(SetDefaultPolicyVersionRequest) returns (SetDefaultPolicyVersionResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/policies/{name}/versions/{version}:set-default"
+      body: "*"
+    };
+  }
+
+  rpc DeletePolicyVersion(DeletePolicyVersionRequest) returns (DeletePolicyVersionResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/policies/{name}/versions/{version}"
     };
   }
 
@@ -364,6 +435,25 @@ service IAMService {
     };
   }
 
+  rpc PutPlatformUserPermissionBoundary(PutPlatformUserPermissionBoundaryRequest) returns (PutPlatformUserPermissionBoundaryResponse) {
+    option (google.api.http) = {
+      put: "/auth/v1/iam/platform-users/{target_user_id}/permission-boundary"
+      body: "*"
+    };
+  }
+
+  rpc GetPlatformUserPermissionBoundary(GetPlatformUserPermissionBoundaryRequest) returns (GetPlatformUserPermissionBoundaryResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/platform-users/{target_user_id}/permission-boundary"
+    };
+  }
+
+  rpc DeletePlatformUserPermissionBoundary(DeletePlatformUserPermissionBoundaryRequest) returns (DeletePlatformUserPermissionBoundaryResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/platform-users/{target_user_id}/permission-boundary"
+    };
+  }
+
   rpc RemovePlatformRole(RemovePlatformRoleRequest) returns (RemovePlatformRoleResponse) {
     option (google.api.http) = {
       delete: "/auth/v1/iam/platform-users/{target_user_id}/roles/{role_name}"
@@ -426,6 +516,25 @@ service IAMService {
     };
   }
 
+  rpc PutTenantUserPermissionBoundary(PutTenantUserPermissionBoundaryRequest) returns (PutTenantUserPermissionBoundaryResponse) {
+    option (google.api.http) = {
+      put: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/permission-boundary"
+      body: "*"
+    };
+  }
+
+  rpc GetTenantUserPermissionBoundary(GetTenantUserPermissionBoundaryRequest) returns (GetTenantUserPermissionBoundaryResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/permission-boundary"
+    };
+  }
+
+  rpc DeleteTenantUserPermissionBoundary(DeleteTenantUserPermissionBoundaryRequest) returns (DeleteTenantUserPermissionBoundaryResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/permission-boundary"
+    };
+  }
+
   rpc PutRoleTrustPolicy(PutRoleTrustPolicyRequest) returns (PutRoleTrustPolicyResponse) {
     option (google.api.http) = {
       put: "/auth/v1/iam/roles/{role_name}/trust-policy"
@@ -442,6 +551,32 @@ service IAMService {
   rpc DeleteRoleTrustPolicy(DeleteRoleTrustPolicyRequest) returns (DeleteRoleTrustPolicyResponse) {
     option (google.api.http) = {
       delete: "/auth/v1/iam/roles/{role_name}/trust-policy"
+    };
+  }
+
+  rpc PutRolePermissionBoundary(PutRolePermissionBoundaryRequest) returns (PutRolePermissionBoundaryResponse) {
+    option (google.api.http) = {
+      put: "/auth/v1/iam/roles/{role_name}/permission-boundary"
+      body: "*"
+    };
+  }
+
+  rpc GetRolePermissionBoundary(GetRolePermissionBoundaryRequest) returns (GetRolePermissionBoundaryResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/roles/{role_name}/permission-boundary"
+    };
+  }
+
+  rpc DeleteRolePermissionBoundary(DeleteRolePermissionBoundaryRequest) returns (DeleteRolePermissionBoundaryResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/roles/{role_name}/permission-boundary"
+    };
+  }
+
+  rpc SimulateAccess(SimulateAccessRequest) returns (SimulateAccessResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/access:simulate"
+      body: "*"
     };
   }
 }
@@ -525,6 +660,11 @@ message Session {
   string assumed_role_scope = 11;
   string assumed_role_name = 12;
   string assumed_role_tenant_id = 13;
+  string assumed_role_session_name = 14;
+  string assumed_role_source_identity = 15;
+  string assumed_role_expires_at = 16;
+  map<string, string> session_tags = 17;
+  string assumed_role_service_principal = 18;
 }
 
 message AuditLog {
@@ -540,6 +680,15 @@ message AuditLog {
 }
 
 message Tenant {
+  string id = 1;
+  string slug = 2;
+  string name = 3;
+  string created_at = 4;
+  string updated_at = 5;
+  string org_id = 6;
+}
+
+message Organization {
   string id = 1;
   string slug = 2;
   string name = 3;
@@ -583,6 +732,35 @@ message CreateTenantResponse {
   Tenant tenant = 1;
   TenantMembership owner_membership = 2;
 }
+
+message CreateOrganizationRequest {
+  string name = 1;
+  string slug = 2;
+}
+
+message CreateOrganizationResponse {
+  Organization organization = 1;
+}
+
+message ListOrganizationsRequest {}
+
+message ListOrganizationsResponse {
+  repeated Organization organizations = 1;
+}
+
+message AttachTenantToOrganizationRequest {
+  string org_id = 1;
+  string tenant_id = 2;
+}
+
+message AttachTenantToOrganizationResponse {}
+
+message DetachTenantFromOrganizationRequest {
+  string org_id = 1;
+  string tenant_id = 2;
+}
+
+message DetachTenantFromOrganizationResponse {}
 
 message AddTenantMemberRequest {
   string tenant_id = 1;
@@ -661,7 +839,14 @@ message PolicyStatement {
   string effect = 4;
   string action_pattern = 5;
   string resource_pattern = 6;
-  string created_at = 7;
+  repeated PolicyCondition conditions = 7;
+  string created_at = 8;
+}
+
+message PolicyCondition {
+  string operator = 1;
+  string key = 2;
+  string value = 3;
 }
 
 message Policy {
@@ -670,8 +855,18 @@ message Policy {
   string name = 3;
   string description = 4;
   bool is_system = 5;
+  string default_version = 6;
+  string created_at = 7;
+  string updated_at = 8;
+}
+
+message PolicyVersion {
+  uint64 id = 1;
+  uint64 policy_id = 2;
+  string policy_name = 3;
+  string version = 4;
+  bool is_default = 5;
   string created_at = 6;
-  string updated_at = 7;
 }
 
 message PolicyAttachment {
@@ -686,6 +881,35 @@ message PolicyAttachment {
   string created_at = 9;
 }
 
+message ServiceControlPolicyAttachment {
+  string org_id = 1;
+  uint64 policy_id = 2;
+  string policy_name = 3;
+  string created_at = 4;
+}
+
+message AttachServiceControlPolicyRequest {
+  string org_id = 1;
+  string policy_name = 2;
+}
+
+message AttachServiceControlPolicyResponse {}
+
+message DetachServiceControlPolicyRequest {
+  string org_id = 1;
+  string policy_name = 2;
+}
+
+message DetachServiceControlPolicyResponse {}
+
+message ListServiceControlPoliciesRequest {
+  string org_id = 1;
+}
+
+message ListServiceControlPoliciesResponse {
+  repeated Policy policies = 1;
+}
+
 message RoleTrustStatement {
   uint64 id = 1;
   uint64 role_id = 2;
@@ -693,7 +917,8 @@ message RoleTrustStatement {
   string principal_type = 4;
   string principal_pattern = 5;
   string tenant_pattern = 6;
-  string created_at = 7;
+  string external_id_pattern = 7;
+  string created_at = 8;
 }
 
 message Group {
@@ -736,6 +961,17 @@ message CreatePolicyResponse {
   repeated PolicyStatement statements = 2;
 }
 
+message CreatePolicyVersionRequest {
+  string name = 1;
+  repeated PolicyStatement statements = 2;
+  bool set_as_default = 3;
+}
+
+message CreatePolicyVersionResponse {
+  PolicyVersion policy_version = 1;
+  repeated PolicyStatement statements = 2;
+}
+
 message GetPolicyRequest {
   string name = 1;
 }
@@ -744,6 +980,28 @@ message GetPolicyResponse {
   Policy policy = 1;
   repeated PolicyStatement statements = 2;
 }
+
+message ListPolicyVersionsRequest {
+  string name = 1;
+}
+
+message ListPolicyVersionsResponse {
+  repeated PolicyVersion versions = 1;
+}
+
+message SetDefaultPolicyVersionRequest {
+  string name = 1;
+  string version = 2;
+}
+
+message SetDefaultPolicyVersionResponse {}
+
+message DeletePolicyVersionRequest {
+  string name = 1;
+  string version = 2;
+}
+
+message DeletePolicyVersionResponse {}
 
 message ListPoliciesRequest {
   string scope = 1;
@@ -878,6 +1136,23 @@ message UserInlinePolicy {
   string updated_at = 8;
 }
 
+message PermissionBoundary {
+  string scope = 1;
+  string tenant_id = 2;
+  uint64 user_id = 3;
+  uint64 policy_id = 4;
+  string policy_name = 5;
+  string created_at = 6;
+}
+
+message RolePermissionBoundary {
+  uint64 role_id = 1;
+  string role_name = 2;
+  uint64 policy_id = 3;
+  string policy_name = 4;
+  string created_at = 5;
+}
+
 message PutGroupInlinePolicyRequest {
   uint64 group_id = 1;
   string name = 2;
@@ -965,6 +1240,27 @@ message DetachPlatformUserPolicyRequest {
 }
 
 message DetachPlatformUserPolicyResponse {}
+
+message PutPlatformUserPermissionBoundaryRequest {
+  uint64 target_user_id = 1;
+  string policy_name = 2;
+}
+
+message PutPlatformUserPermissionBoundaryResponse {}
+
+message GetPlatformUserPermissionBoundaryRequest {
+  uint64 target_user_id = 1;
+}
+
+message GetPlatformUserPermissionBoundaryResponse {
+  PermissionBoundary boundary = 1;
+}
+
+message DeletePlatformUserPermissionBoundaryRequest {
+  uint64 target_user_id = 1;
+}
+
+message DeletePlatformUserPermissionBoundaryResponse {}
 
 message RemovePlatformRoleRequest {
   uint64 actor_user_id = 1;
@@ -1075,6 +1371,89 @@ message DetachTenantUserPolicyRequest {
 
 message DetachTenantUserPolicyResponse {}
 
+message PutTenantUserPermissionBoundaryRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+  string policy_name = 3;
+}
+
+message PutTenantUserPermissionBoundaryResponse {}
+
+message GetTenantUserPermissionBoundaryRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+}
+
+message GetTenantUserPermissionBoundaryResponse {
+  PermissionBoundary boundary = 1;
+}
+
+message DeleteTenantUserPermissionBoundaryRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+}
+
+message DeleteTenantUserPermissionBoundaryResponse {}
+
+message PutRolePermissionBoundaryRequest {
+  string role_name = 1;
+  string policy_name = 2;
+}
+
+message PutRolePermissionBoundaryResponse {}
+
+message GetRolePermissionBoundaryRequest {
+  string role_name = 1;
+}
+
+message GetRolePermissionBoundaryResponse {
+  RolePermissionBoundary boundary = 1;
+}
+
+message DeleteRolePermissionBoundaryRequest {
+  string role_name = 1;
+}
+
+message DeleteRolePermissionBoundaryResponse {}
+
+message SimulateAccessRequest {
+  string scope = 1;
+  string tenant_id = 2;
+  uint64 user_id = 3;
+  string action = 4;
+  string resource = 5;
+  bool use_assumed_role = 6;
+  Session assumed_role_session = 7;
+  repeated PolicyStatement session_policy = 8;
+  map<string, string> attributes = 9;
+  string service_principal = 10;
+  map<string, string> session_tags = 11;
+}
+
+message SimulateMatchedStatement {
+  string policy_name = 1;
+  string effect = 2;
+  string action_pattern = 3;
+  string resource_pattern = 4;
+  repeated PolicyCondition conditions = 5;
+  string source = 6;
+}
+
+message SimulateAccessResponse {
+  bool allowed = 1;
+  string decision_source = 2;
+  string reason = 3;
+  repeated SimulateMatchedStatement matched_statements = 4;
+  repeated SimulateDecisionLayer layers = 5;
+}
+
+message SimulateDecisionLayer {
+  string layer = 1;
+  bool allowed = 2;
+  string reason = 3;
+  repeated SimulateMatchedStatement matched_statements = 4;
+}
+
 message SwitchActiveTenantRequest {
   uint64 user_id = 1;
   string tenant_id = 2;
@@ -1111,6 +1490,12 @@ message AssumeRoleRequest {
   string role_name = 2;
   string tenant_id = 3;
   repeated PolicyStatement session_policy = 4;
+  string external_id = 5;
+  string session_name = 6;
+  string source_identity = 7;
+  uint32 duration_seconds = 8;
+  string service_principal = 9;
+  map<string, string> session_tags = 10;
 }
 
 message AssumeRoleResponse {

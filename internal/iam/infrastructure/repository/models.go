@@ -10,6 +10,15 @@ type tenantModel struct {
 	ID        string    `db:"id"`
 	Slug      string    `db:"slug"`
 	Name      string    `db:"name"`
+	OrgID     string    `db:"org_id"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
+type organizationModel struct {
+	ID        string    `db:"id"`
+	Slug      string    `db:"slug"`
+	Name      string    `db:"name"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
@@ -25,23 +34,34 @@ type roleModel struct {
 }
 
 type roleTrustStatementModel struct {
-	ID               uint64    `db:"id"`
-	RoleID           uint64    `db:"role_id"`
-	Effect           string    `db:"effect"`
-	PrincipalType    string    `db:"principal_type"`
-	PrincipalPattern string    `db:"principal_pattern"`
-	TenantPattern    string    `db:"tenant_pattern"`
-	CreatedAt        time.Time `db:"created_at"`
+	ID                uint64    `db:"id"`
+	RoleID            uint64    `db:"role_id"`
+	Effect            string    `db:"effect"`
+	PrincipalType     string    `db:"principal_type"`
+	PrincipalPattern  string    `db:"principal_pattern"`
+	TenantPattern     string    `db:"tenant_pattern"`
+	ExternalIDPattern string    `db:"external_id_pattern"`
+	CreatedAt         time.Time `db:"created_at"`
 }
 
 type policyModel struct {
-	ID          uint64    `db:"id"`
-	Scope       string    `db:"scope"`
-	Name        string    `db:"name"`
-	Description string    `db:"description"`
-	IsSystem    bool      `db:"is_system"`
-	CreatedAt   time.Time `db:"created_at"`
-	UpdatedAt   time.Time `db:"updated_at"`
+	ID             uint64    `db:"id"`
+	Scope          string    `db:"scope"`
+	Name           string    `db:"name"`
+	Description    string    `db:"description"`
+	IsSystem       bool      `db:"is_system"`
+	DefaultVersion string    `db:"default_version"`
+	CreatedAt      time.Time `db:"created_at"`
+	UpdatedAt      time.Time `db:"updated_at"`
+}
+
+type policyVersionModel struct {
+	ID         uint64    `db:"id"`
+	PolicyID   uint64    `db:"policy_id"`
+	PolicyName string    `db:"policy_name"`
+	Version    string    `db:"version"`
+	IsDefault  bool      `db:"is_default"`
+	CreatedAt  time.Time `db:"created_at"`
 }
 
 type groupModel struct {
@@ -80,6 +100,7 @@ type policyStatementModel struct {
 	Effect          string    `db:"effect"`
 	ActionPattern   string    `db:"action_pattern"`
 	ResourcePattern string    `db:"resource_pattern"`
+	ConditionsJSON  string    `db:"conditions_json"`
 	CreatedAt       time.Time `db:"created_at"`
 }
 
@@ -93,6 +114,15 @@ type policyAttachmentModel struct {
 	GroupID        uint64    `db:"group_id"`
 	GroupName      string    `db:"group_name"`
 	CreatedAt      time.Time `db:"created_at"`
+}
+
+type permissionBoundaryModel struct {
+	Scope      string    `db:"scope"`
+	TenantID   string    `db:"tenant_id"`
+	UserID     uint      `db:"user_id"`
+	PolicyID   uint64    `db:"policy_id"`
+	PolicyName string    `db:"policy_name"`
+	CreatedAt  time.Time `db:"created_at"`
 }
 
 type membershipModel struct {
@@ -157,6 +187,7 @@ func (m policyStatementModel) toEntity() iamdomain.PolicyStatement {
 		Effect:          m.Effect,
 		ActionPattern:   m.ActionPattern,
 		ResourcePattern: m.ResourcePattern,
+		Conditions:      parsePolicyConditionsJSON(m.ConditionsJSON),
 		CreatedAt:       m.CreatedAt,
 	}
 }
@@ -175,15 +206,38 @@ func (m policyAttachmentModel) toEntity() iamdomain.PolicyAttachment {
 	}
 }
 
+func (m permissionBoundaryModel) toEntity() *iamdomain.PermissionBoundary {
+	return &iamdomain.PermissionBoundary{
+		Scope:      m.Scope,
+		TenantID:   m.TenantID,
+		UserID:     m.UserID,
+		PolicyID:   m.PolicyID,
+		PolicyName: m.PolicyName,
+		CreatedAt:  m.CreatedAt,
+	}
+}
+
 func (m policyModel) toEntity() iamdomain.Policy {
 	return iamdomain.Policy{
-		ID:          m.ID,
-		Scope:       m.Scope,
-		Name:        m.Name,
-		Description: m.Description,
-		IsSystem:    m.IsSystem,
-		CreatedAt:   m.CreatedAt,
-		UpdatedAt:   m.UpdatedAt,
+		ID:             m.ID,
+		Scope:          m.Scope,
+		Name:           m.Name,
+		Description:    m.Description,
+		IsSystem:       m.IsSystem,
+		DefaultVersion: m.DefaultVersion,
+		CreatedAt:      m.CreatedAt,
+		UpdatedAt:      m.UpdatedAt,
+	}
+}
+
+func (m policyVersionModel) toEntity() iamdomain.PolicyVersion {
+	return iamdomain.PolicyVersion{
+		ID:         m.ID,
+		PolicyID:   m.PolicyID,
+		PolicyName: m.PolicyName,
+		Version:    m.Version,
+		IsDefault:  m.IsDefault,
+		CreatedAt:  m.CreatedAt,
 	}
 }
 
@@ -226,12 +280,13 @@ func (m userInlinePolicyModel) toEntity(statements []iamdomain.PolicyStatement) 
 
 func (m roleTrustStatementModel) toEntity() iamdomain.RoleTrustStatement {
 	return iamdomain.RoleTrustStatement{
-		ID:               m.ID,
-		RoleID:           m.RoleID,
-		Effect:           m.Effect,
-		PrincipalType:    m.PrincipalType,
-		PrincipalPattern: m.PrincipalPattern,
-		TenantPattern:    m.TenantPattern,
-		CreatedAt:        m.CreatedAt,
+		ID:                m.ID,
+		RoleID:            m.RoleID,
+		Effect:            m.Effect,
+		PrincipalType:     m.PrincipalType,
+		PrincipalPattern:  m.PrincipalPattern,
+		TenantPattern:     m.TenantPattern,
+		ExternalIDPattern: m.ExternalIDPattern,
+		CreatedAt:         m.CreatedAt,
 	}
 }

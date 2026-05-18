@@ -2,8 +2,11 @@ package domain
 
 import "context"
 
-type sessionPolicyContextKey struct{}
-type assumedRoleContextKey struct{}
+type (
+	sessionPolicyContextKey struct{}
+	assumedRoleContextKey   struct{}
+	sessionTagsContextKey   struct{}
+)
 
 func WithSessionPolicyStatements(ctx context.Context, statements []PolicyStatement) context.Context {
 	if len(statements) == 0 {
@@ -34,4 +37,27 @@ func GetAssumedRole(ctx context.Context) (*AssumedRole, bool) {
 		return nil, false
 	}
 	return &assumedRole, true
+}
+
+func WithSessionTags(ctx context.Context, tags map[string]string) context.Context {
+	if len(tags) == 0 {
+		return ctx
+	}
+	cloned := make(map[string]string, len(tags))
+	for k, v := range tags {
+		cloned[k] = v
+	}
+	return context.WithValue(ctx, sessionTagsContextKey{}, cloned)
+}
+
+func GetSessionTags(ctx context.Context) map[string]string {
+	tags, ok := ctx.Value(sessionTagsContextKey{}).(map[string]string)
+	if !ok || len(tags) == 0 {
+		return nil
+	}
+	cloned := make(map[string]string, len(tags))
+	for k, v := range tags {
+		cloned[k] = v
+	}
+	return cloned
 }

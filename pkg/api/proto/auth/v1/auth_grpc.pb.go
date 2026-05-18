@@ -697,57 +697,78 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	IAMService_CreateTenant_FullMethodName                   = "/auth.IAMService/CreateTenant"
-	IAMService_AddTenantMember_FullMethodName                = "/auth.IAMService/AddTenantMember"
-	IAMService_AddTenantMemberByIdentity_FullMethodName      = "/auth.IAMService/AddTenantMemberByIdentity"
-	IAMService_CreateTenantInvite_FullMethodName             = "/auth.IAMService/CreateTenantInvite"
-	IAMService_ListTenantInvites_FullMethodName              = "/auth.IAMService/ListTenantInvites"
-	IAMService_RevokeTenantInvite_FullMethodName             = "/auth.IAMService/RevokeTenantInvite"
-	IAMService_AcceptTenantInvite_FullMethodName             = "/auth.IAMService/AcceptTenantInvite"
-	IAMService_GetTenantMembership_FullMethodName            = "/auth.IAMService/GetTenantMembership"
-	IAMService_CheckPermission_FullMethodName                = "/auth.IAMService/CheckPermission"
-	IAMService_CheckPlatformPermission_FullMethodName        = "/auth.IAMService/CheckPlatformPermission"
-	IAMService_ListUserTenants_FullMethodName                = "/auth.IAMService/ListUserTenants"
-	IAMService_ListPlatformRoles_FullMethodName              = "/auth.IAMService/ListPlatformRoles"
-	IAMService_AddPlatformRole_FullMethodName                = "/auth.IAMService/AddPlatformRole"
-	IAMService_CreatePolicy_FullMethodName                   = "/auth.IAMService/CreatePolicy"
-	IAMService_GetPolicy_FullMethodName                      = "/auth.IAMService/GetPolicy"
-	IAMService_ListPolicies_FullMethodName                   = "/auth.IAMService/ListPolicies"
-	IAMService_ListPolicyAttachments_FullMethodName          = "/auth.IAMService/ListPolicyAttachments"
-	IAMService_DeletePolicy_FullMethodName                   = "/auth.IAMService/DeletePolicy"
-	IAMService_CreateGroup_FullMethodName                    = "/auth.IAMService/CreateGroup"
-	IAMService_ListGroups_FullMethodName                     = "/auth.IAMService/ListGroups"
-	IAMService_DeleteGroup_FullMethodName                    = "/auth.IAMService/DeleteGroup"
-	IAMService_AddGroupMember_FullMethodName                 = "/auth.IAMService/AddGroupMember"
-	IAMService_ListGroupMembers_FullMethodName               = "/auth.IAMService/ListGroupMembers"
-	IAMService_RemoveGroupMember_FullMethodName              = "/auth.IAMService/RemoveGroupMember"
-	IAMService_AttachGroupPolicy_FullMethodName              = "/auth.IAMService/AttachGroupPolicy"
-	IAMService_ListGroupPolicies_FullMethodName              = "/auth.IAMService/ListGroupPolicies"
-	IAMService_DetachGroupPolicy_FullMethodName              = "/auth.IAMService/DetachGroupPolicy"
-	IAMService_PutGroupInlinePolicy_FullMethodName           = "/auth.IAMService/PutGroupInlinePolicy"
-	IAMService_GetGroupInlinePolicy_FullMethodName           = "/auth.IAMService/GetGroupInlinePolicy"
-	IAMService_ListGroupInlinePolicies_FullMethodName        = "/auth.IAMService/ListGroupInlinePolicies"
-	IAMService_DeleteGroupInlinePolicy_FullMethodName        = "/auth.IAMService/DeleteGroupInlinePolicy"
-	IAMService_PutPlatformUserInlinePolicy_FullMethodName    = "/auth.IAMService/PutPlatformUserInlinePolicy"
-	IAMService_GetPlatformUserInlinePolicy_FullMethodName    = "/auth.IAMService/GetPlatformUserInlinePolicy"
-	IAMService_ListPlatformUserInlinePolicies_FullMethodName = "/auth.IAMService/ListPlatformUserInlinePolicies"
-	IAMService_DeletePlatformUserInlinePolicy_FullMethodName = "/auth.IAMService/DeletePlatformUserInlinePolicy"
-	IAMService_ListPlatformUserPolicies_FullMethodName       = "/auth.IAMService/ListPlatformUserPolicies"
-	IAMService_AttachPlatformUserPolicy_FullMethodName       = "/auth.IAMService/AttachPlatformUserPolicy"
-	IAMService_DetachPlatformUserPolicy_FullMethodName       = "/auth.IAMService/DetachPlatformUserPolicy"
-	IAMService_RemovePlatformRole_FullMethodName             = "/auth.IAMService/RemovePlatformRole"
-	IAMService_ListTenantMembers_FullMethodName              = "/auth.IAMService/ListTenantMembers"
-	IAMService_RemoveTenantMember_FullMethodName             = "/auth.IAMService/RemoveTenantMember"
-	IAMService_PutTenantUserInlinePolicy_FullMethodName      = "/auth.IAMService/PutTenantUserInlinePolicy"
-	IAMService_GetTenantUserInlinePolicy_FullMethodName      = "/auth.IAMService/GetTenantUserInlinePolicy"
-	IAMService_ListTenantUserInlinePolicies_FullMethodName   = "/auth.IAMService/ListTenantUserInlinePolicies"
-	IAMService_DeleteTenantUserInlinePolicy_FullMethodName   = "/auth.IAMService/DeleteTenantUserInlinePolicy"
-	IAMService_ListTenantUserPolicies_FullMethodName         = "/auth.IAMService/ListTenantUserPolicies"
-	IAMService_AttachTenantUserPolicy_FullMethodName         = "/auth.IAMService/AttachTenantUserPolicy"
-	IAMService_DetachTenantUserPolicy_FullMethodName         = "/auth.IAMService/DetachTenantUserPolicy"
-	IAMService_PutRoleTrustPolicy_FullMethodName             = "/auth.IAMService/PutRoleTrustPolicy"
-	IAMService_GetRoleTrustPolicy_FullMethodName             = "/auth.IAMService/GetRoleTrustPolicy"
-	IAMService_DeleteRoleTrustPolicy_FullMethodName          = "/auth.IAMService/DeleteRoleTrustPolicy"
+	IAMService_CreateTenant_FullMethodName                         = "/auth.IAMService/CreateTenant"
+	IAMService_CreateOrganization_FullMethodName                   = "/auth.IAMService/CreateOrganization"
+	IAMService_ListOrganizations_FullMethodName                    = "/auth.IAMService/ListOrganizations"
+	IAMService_AttachTenantToOrganization_FullMethodName           = "/auth.IAMService/AttachTenantToOrganization"
+	IAMService_DetachTenantFromOrganization_FullMethodName         = "/auth.IAMService/DetachTenantFromOrganization"
+	IAMService_AttachServiceControlPolicy_FullMethodName           = "/auth.IAMService/AttachServiceControlPolicy"
+	IAMService_DetachServiceControlPolicy_FullMethodName           = "/auth.IAMService/DetachServiceControlPolicy"
+	IAMService_ListServiceControlPolicies_FullMethodName           = "/auth.IAMService/ListServiceControlPolicies"
+	IAMService_AddTenantMember_FullMethodName                      = "/auth.IAMService/AddTenantMember"
+	IAMService_AddTenantMemberByIdentity_FullMethodName            = "/auth.IAMService/AddTenantMemberByIdentity"
+	IAMService_CreateTenantInvite_FullMethodName                   = "/auth.IAMService/CreateTenantInvite"
+	IAMService_ListTenantInvites_FullMethodName                    = "/auth.IAMService/ListTenantInvites"
+	IAMService_RevokeTenantInvite_FullMethodName                   = "/auth.IAMService/RevokeTenantInvite"
+	IAMService_AcceptTenantInvite_FullMethodName                   = "/auth.IAMService/AcceptTenantInvite"
+	IAMService_GetTenantMembership_FullMethodName                  = "/auth.IAMService/GetTenantMembership"
+	IAMService_CheckPermission_FullMethodName                      = "/auth.IAMService/CheckPermission"
+	IAMService_CheckPlatformPermission_FullMethodName              = "/auth.IAMService/CheckPlatformPermission"
+	IAMService_ListUserTenants_FullMethodName                      = "/auth.IAMService/ListUserTenants"
+	IAMService_ListPlatformRoles_FullMethodName                    = "/auth.IAMService/ListPlatformRoles"
+	IAMService_AddPlatformRole_FullMethodName                      = "/auth.IAMService/AddPlatformRole"
+	IAMService_CreatePolicy_FullMethodName                         = "/auth.IAMService/CreatePolicy"
+	IAMService_CreatePolicyVersion_FullMethodName                  = "/auth.IAMService/CreatePolicyVersion"
+	IAMService_GetPolicy_FullMethodName                            = "/auth.IAMService/GetPolicy"
+	IAMService_ListPolicyVersions_FullMethodName                   = "/auth.IAMService/ListPolicyVersions"
+	IAMService_SetDefaultPolicyVersion_FullMethodName              = "/auth.IAMService/SetDefaultPolicyVersion"
+	IAMService_DeletePolicyVersion_FullMethodName                  = "/auth.IAMService/DeletePolicyVersion"
+	IAMService_ListPolicies_FullMethodName                         = "/auth.IAMService/ListPolicies"
+	IAMService_ListPolicyAttachments_FullMethodName                = "/auth.IAMService/ListPolicyAttachments"
+	IAMService_DeletePolicy_FullMethodName                         = "/auth.IAMService/DeletePolicy"
+	IAMService_CreateGroup_FullMethodName                          = "/auth.IAMService/CreateGroup"
+	IAMService_ListGroups_FullMethodName                           = "/auth.IAMService/ListGroups"
+	IAMService_DeleteGroup_FullMethodName                          = "/auth.IAMService/DeleteGroup"
+	IAMService_AddGroupMember_FullMethodName                       = "/auth.IAMService/AddGroupMember"
+	IAMService_ListGroupMembers_FullMethodName                     = "/auth.IAMService/ListGroupMembers"
+	IAMService_RemoveGroupMember_FullMethodName                    = "/auth.IAMService/RemoveGroupMember"
+	IAMService_AttachGroupPolicy_FullMethodName                    = "/auth.IAMService/AttachGroupPolicy"
+	IAMService_ListGroupPolicies_FullMethodName                    = "/auth.IAMService/ListGroupPolicies"
+	IAMService_DetachGroupPolicy_FullMethodName                    = "/auth.IAMService/DetachGroupPolicy"
+	IAMService_PutGroupInlinePolicy_FullMethodName                 = "/auth.IAMService/PutGroupInlinePolicy"
+	IAMService_GetGroupInlinePolicy_FullMethodName                 = "/auth.IAMService/GetGroupInlinePolicy"
+	IAMService_ListGroupInlinePolicies_FullMethodName              = "/auth.IAMService/ListGroupInlinePolicies"
+	IAMService_DeleteGroupInlinePolicy_FullMethodName              = "/auth.IAMService/DeleteGroupInlinePolicy"
+	IAMService_PutPlatformUserInlinePolicy_FullMethodName          = "/auth.IAMService/PutPlatformUserInlinePolicy"
+	IAMService_GetPlatformUserInlinePolicy_FullMethodName          = "/auth.IAMService/GetPlatformUserInlinePolicy"
+	IAMService_ListPlatformUserInlinePolicies_FullMethodName       = "/auth.IAMService/ListPlatformUserInlinePolicies"
+	IAMService_DeletePlatformUserInlinePolicy_FullMethodName       = "/auth.IAMService/DeletePlatformUserInlinePolicy"
+	IAMService_ListPlatformUserPolicies_FullMethodName             = "/auth.IAMService/ListPlatformUserPolicies"
+	IAMService_AttachPlatformUserPolicy_FullMethodName             = "/auth.IAMService/AttachPlatformUserPolicy"
+	IAMService_DetachPlatformUserPolicy_FullMethodName             = "/auth.IAMService/DetachPlatformUserPolicy"
+	IAMService_PutPlatformUserPermissionBoundary_FullMethodName    = "/auth.IAMService/PutPlatformUserPermissionBoundary"
+	IAMService_GetPlatformUserPermissionBoundary_FullMethodName    = "/auth.IAMService/GetPlatformUserPermissionBoundary"
+	IAMService_DeletePlatformUserPermissionBoundary_FullMethodName = "/auth.IAMService/DeletePlatformUserPermissionBoundary"
+	IAMService_RemovePlatformRole_FullMethodName                   = "/auth.IAMService/RemovePlatformRole"
+	IAMService_ListTenantMembers_FullMethodName                    = "/auth.IAMService/ListTenantMembers"
+	IAMService_RemoveTenantMember_FullMethodName                   = "/auth.IAMService/RemoveTenantMember"
+	IAMService_PutTenantUserInlinePolicy_FullMethodName            = "/auth.IAMService/PutTenantUserInlinePolicy"
+	IAMService_GetTenantUserInlinePolicy_FullMethodName            = "/auth.IAMService/GetTenantUserInlinePolicy"
+	IAMService_ListTenantUserInlinePolicies_FullMethodName         = "/auth.IAMService/ListTenantUserInlinePolicies"
+	IAMService_DeleteTenantUserInlinePolicy_FullMethodName         = "/auth.IAMService/DeleteTenantUserInlinePolicy"
+	IAMService_ListTenantUserPolicies_FullMethodName               = "/auth.IAMService/ListTenantUserPolicies"
+	IAMService_AttachTenantUserPolicy_FullMethodName               = "/auth.IAMService/AttachTenantUserPolicy"
+	IAMService_DetachTenantUserPolicy_FullMethodName               = "/auth.IAMService/DetachTenantUserPolicy"
+	IAMService_PutTenantUserPermissionBoundary_FullMethodName      = "/auth.IAMService/PutTenantUserPermissionBoundary"
+	IAMService_GetTenantUserPermissionBoundary_FullMethodName      = "/auth.IAMService/GetTenantUserPermissionBoundary"
+	IAMService_DeleteTenantUserPermissionBoundary_FullMethodName   = "/auth.IAMService/DeleteTenantUserPermissionBoundary"
+	IAMService_PutRoleTrustPolicy_FullMethodName                   = "/auth.IAMService/PutRoleTrustPolicy"
+	IAMService_GetRoleTrustPolicy_FullMethodName                   = "/auth.IAMService/GetRoleTrustPolicy"
+	IAMService_DeleteRoleTrustPolicy_FullMethodName                = "/auth.IAMService/DeleteRoleTrustPolicy"
+	IAMService_PutRolePermissionBoundary_FullMethodName            = "/auth.IAMService/PutRolePermissionBoundary"
+	IAMService_GetRolePermissionBoundary_FullMethodName            = "/auth.IAMService/GetRolePermissionBoundary"
+	IAMService_DeleteRolePermissionBoundary_FullMethodName         = "/auth.IAMService/DeleteRolePermissionBoundary"
+	IAMService_SimulateAccess_FullMethodName                       = "/auth.IAMService/SimulateAccess"
 )
 
 // IAMServiceClient is the client API for IAMService service.
@@ -758,6 +779,13 @@ const (
 // It is intentionally separate from AuthService so it can scale and deploy independently.
 type IAMServiceClient interface {
 	CreateTenant(ctx context.Context, in *CreateTenantRequest, opts ...grpc.CallOption) (*CreateTenantResponse, error)
+	CreateOrganization(ctx context.Context, in *CreateOrganizationRequest, opts ...grpc.CallOption) (*CreateOrganizationResponse, error)
+	ListOrganizations(ctx context.Context, in *ListOrganizationsRequest, opts ...grpc.CallOption) (*ListOrganizationsResponse, error)
+	AttachTenantToOrganization(ctx context.Context, in *AttachTenantToOrganizationRequest, opts ...grpc.CallOption) (*AttachTenantToOrganizationResponse, error)
+	DetachTenantFromOrganization(ctx context.Context, in *DetachTenantFromOrganizationRequest, opts ...grpc.CallOption) (*DetachTenantFromOrganizationResponse, error)
+	AttachServiceControlPolicy(ctx context.Context, in *AttachServiceControlPolicyRequest, opts ...grpc.CallOption) (*AttachServiceControlPolicyResponse, error)
+	DetachServiceControlPolicy(ctx context.Context, in *DetachServiceControlPolicyRequest, opts ...grpc.CallOption) (*DetachServiceControlPolicyResponse, error)
+	ListServiceControlPolicies(ctx context.Context, in *ListServiceControlPoliciesRequest, opts ...grpc.CallOption) (*ListServiceControlPoliciesResponse, error)
 	AddTenantMember(ctx context.Context, in *AddTenantMemberRequest, opts ...grpc.CallOption) (*AddTenantMemberResponse, error)
 	AddTenantMemberByIdentity(ctx context.Context, in *AddTenantMemberByIdentityRequest, opts ...grpc.CallOption) (*AddTenantMemberByIdentityResponse, error)
 	CreateTenantInvite(ctx context.Context, in *CreateTenantInviteRequest, opts ...grpc.CallOption) (*CreateTenantInviteResponse, error)
@@ -771,7 +799,11 @@ type IAMServiceClient interface {
 	ListPlatformRoles(ctx context.Context, in *ListPlatformRolesRequest, opts ...grpc.CallOption) (*ListPlatformRolesResponse, error)
 	AddPlatformRole(ctx context.Context, in *AddPlatformRoleRequest, opts ...grpc.CallOption) (*AddPlatformRoleResponse, error)
 	CreatePolicy(ctx context.Context, in *CreatePolicyRequest, opts ...grpc.CallOption) (*CreatePolicyResponse, error)
+	CreatePolicyVersion(ctx context.Context, in *CreatePolicyVersionRequest, opts ...grpc.CallOption) (*CreatePolicyVersionResponse, error)
 	GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error)
+	ListPolicyVersions(ctx context.Context, in *ListPolicyVersionsRequest, opts ...grpc.CallOption) (*ListPolicyVersionsResponse, error)
+	SetDefaultPolicyVersion(ctx context.Context, in *SetDefaultPolicyVersionRequest, opts ...grpc.CallOption) (*SetDefaultPolicyVersionResponse, error)
+	DeletePolicyVersion(ctx context.Context, in *DeletePolicyVersionRequest, opts ...grpc.CallOption) (*DeletePolicyVersionResponse, error)
 	ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error)
 	ListPolicyAttachments(ctx context.Context, in *ListPolicyAttachmentsRequest, opts ...grpc.CallOption) (*ListPolicyAttachmentsResponse, error)
 	DeletePolicy(ctx context.Context, in *DeletePolicyRequest, opts ...grpc.CallOption) (*DeletePolicyResponse, error)
@@ -795,6 +827,9 @@ type IAMServiceClient interface {
 	ListPlatformUserPolicies(ctx context.Context, in *ListPlatformUserPoliciesRequest, opts ...grpc.CallOption) (*ListPlatformUserPoliciesResponse, error)
 	AttachPlatformUserPolicy(ctx context.Context, in *AttachPlatformUserPolicyRequest, opts ...grpc.CallOption) (*AttachPlatformUserPolicyResponse, error)
 	DetachPlatformUserPolicy(ctx context.Context, in *DetachPlatformUserPolicyRequest, opts ...grpc.CallOption) (*DetachPlatformUserPolicyResponse, error)
+	PutPlatformUserPermissionBoundary(ctx context.Context, in *PutPlatformUserPermissionBoundaryRequest, opts ...grpc.CallOption) (*PutPlatformUserPermissionBoundaryResponse, error)
+	GetPlatformUserPermissionBoundary(ctx context.Context, in *GetPlatformUserPermissionBoundaryRequest, opts ...grpc.CallOption) (*GetPlatformUserPermissionBoundaryResponse, error)
+	DeletePlatformUserPermissionBoundary(ctx context.Context, in *DeletePlatformUserPermissionBoundaryRequest, opts ...grpc.CallOption) (*DeletePlatformUserPermissionBoundaryResponse, error)
 	RemovePlatformRole(ctx context.Context, in *RemovePlatformRoleRequest, opts ...grpc.CallOption) (*RemovePlatformRoleResponse, error)
 	ListTenantMembers(ctx context.Context, in *ListTenantMembersRequest, opts ...grpc.CallOption) (*ListTenantMembersResponse, error)
 	RemoveTenantMember(ctx context.Context, in *RemoveTenantMemberRequest, opts ...grpc.CallOption) (*RemoveTenantMemberResponse, error)
@@ -805,9 +840,16 @@ type IAMServiceClient interface {
 	ListTenantUserPolicies(ctx context.Context, in *ListTenantUserPoliciesRequest, opts ...grpc.CallOption) (*ListTenantUserPoliciesResponse, error)
 	AttachTenantUserPolicy(ctx context.Context, in *AttachTenantUserPolicyRequest, opts ...grpc.CallOption) (*AttachTenantUserPolicyResponse, error)
 	DetachTenantUserPolicy(ctx context.Context, in *DetachTenantUserPolicyRequest, opts ...grpc.CallOption) (*DetachTenantUserPolicyResponse, error)
+	PutTenantUserPermissionBoundary(ctx context.Context, in *PutTenantUserPermissionBoundaryRequest, opts ...grpc.CallOption) (*PutTenantUserPermissionBoundaryResponse, error)
+	GetTenantUserPermissionBoundary(ctx context.Context, in *GetTenantUserPermissionBoundaryRequest, opts ...grpc.CallOption) (*GetTenantUserPermissionBoundaryResponse, error)
+	DeleteTenantUserPermissionBoundary(ctx context.Context, in *DeleteTenantUserPermissionBoundaryRequest, opts ...grpc.CallOption) (*DeleteTenantUserPermissionBoundaryResponse, error)
 	PutRoleTrustPolicy(ctx context.Context, in *PutRoleTrustPolicyRequest, opts ...grpc.CallOption) (*PutRoleTrustPolicyResponse, error)
 	GetRoleTrustPolicy(ctx context.Context, in *GetRoleTrustPolicyRequest, opts ...grpc.CallOption) (*GetRoleTrustPolicyResponse, error)
 	DeleteRoleTrustPolicy(ctx context.Context, in *DeleteRoleTrustPolicyRequest, opts ...grpc.CallOption) (*DeleteRoleTrustPolicyResponse, error)
+	PutRolePermissionBoundary(ctx context.Context, in *PutRolePermissionBoundaryRequest, opts ...grpc.CallOption) (*PutRolePermissionBoundaryResponse, error)
+	GetRolePermissionBoundary(ctx context.Context, in *GetRolePermissionBoundaryRequest, opts ...grpc.CallOption) (*GetRolePermissionBoundaryResponse, error)
+	DeleteRolePermissionBoundary(ctx context.Context, in *DeleteRolePermissionBoundaryRequest, opts ...grpc.CallOption) (*DeleteRolePermissionBoundaryResponse, error)
+	SimulateAccess(ctx context.Context, in *SimulateAccessRequest, opts ...grpc.CallOption) (*SimulateAccessResponse, error)
 }
 
 type iAMServiceClient struct {
@@ -822,6 +864,76 @@ func (c *iAMServiceClient) CreateTenant(ctx context.Context, in *CreateTenantReq
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateTenantResponse)
 	err := c.cc.Invoke(ctx, IAMService_CreateTenant_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) CreateOrganization(ctx context.Context, in *CreateOrganizationRequest, opts ...grpc.CallOption) (*CreateOrganizationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateOrganizationResponse)
+	err := c.cc.Invoke(ctx, IAMService_CreateOrganization_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) ListOrganizations(ctx context.Context, in *ListOrganizationsRequest, opts ...grpc.CallOption) (*ListOrganizationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListOrganizationsResponse)
+	err := c.cc.Invoke(ctx, IAMService_ListOrganizations_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) AttachTenantToOrganization(ctx context.Context, in *AttachTenantToOrganizationRequest, opts ...grpc.CallOption) (*AttachTenantToOrganizationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AttachTenantToOrganizationResponse)
+	err := c.cc.Invoke(ctx, IAMService_AttachTenantToOrganization_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) DetachTenantFromOrganization(ctx context.Context, in *DetachTenantFromOrganizationRequest, opts ...grpc.CallOption) (*DetachTenantFromOrganizationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DetachTenantFromOrganizationResponse)
+	err := c.cc.Invoke(ctx, IAMService_DetachTenantFromOrganization_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) AttachServiceControlPolicy(ctx context.Context, in *AttachServiceControlPolicyRequest, opts ...grpc.CallOption) (*AttachServiceControlPolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AttachServiceControlPolicyResponse)
+	err := c.cc.Invoke(ctx, IAMService_AttachServiceControlPolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) DetachServiceControlPolicy(ctx context.Context, in *DetachServiceControlPolicyRequest, opts ...grpc.CallOption) (*DetachServiceControlPolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DetachServiceControlPolicyResponse)
+	err := c.cc.Invoke(ctx, IAMService_DetachServiceControlPolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) ListServiceControlPolicies(ctx context.Context, in *ListServiceControlPoliciesRequest, opts ...grpc.CallOption) (*ListServiceControlPoliciesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListServiceControlPoliciesResponse)
+	err := c.cc.Invoke(ctx, IAMService_ListServiceControlPolicies_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -958,10 +1070,50 @@ func (c *iAMServiceClient) CreatePolicy(ctx context.Context, in *CreatePolicyReq
 	return out, nil
 }
 
+func (c *iAMServiceClient) CreatePolicyVersion(ctx context.Context, in *CreatePolicyVersionRequest, opts ...grpc.CallOption) (*CreatePolicyVersionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreatePolicyVersionResponse)
+	err := c.cc.Invoke(ctx, IAMService_CreatePolicyVersion_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *iAMServiceClient) GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetPolicyResponse)
 	err := c.cc.Invoke(ctx, IAMService_GetPolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) ListPolicyVersions(ctx context.Context, in *ListPolicyVersionsRequest, opts ...grpc.CallOption) (*ListPolicyVersionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPolicyVersionsResponse)
+	err := c.cc.Invoke(ctx, IAMService_ListPolicyVersions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) SetDefaultPolicyVersion(ctx context.Context, in *SetDefaultPolicyVersionRequest, opts ...grpc.CallOption) (*SetDefaultPolicyVersionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetDefaultPolicyVersionResponse)
+	err := c.cc.Invoke(ctx, IAMService_SetDefaultPolicyVersion_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) DeletePolicyVersion(ctx context.Context, in *DeletePolicyVersionRequest, opts ...grpc.CallOption) (*DeletePolicyVersionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletePolicyVersionResponse)
+	err := c.cc.Invoke(ctx, IAMService_DeletePolicyVersion_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1198,6 +1350,36 @@ func (c *iAMServiceClient) DetachPlatformUserPolicy(ctx context.Context, in *Det
 	return out, nil
 }
 
+func (c *iAMServiceClient) PutPlatformUserPermissionBoundary(ctx context.Context, in *PutPlatformUserPermissionBoundaryRequest, opts ...grpc.CallOption) (*PutPlatformUserPermissionBoundaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PutPlatformUserPermissionBoundaryResponse)
+	err := c.cc.Invoke(ctx, IAMService_PutPlatformUserPermissionBoundary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) GetPlatformUserPermissionBoundary(ctx context.Context, in *GetPlatformUserPermissionBoundaryRequest, opts ...grpc.CallOption) (*GetPlatformUserPermissionBoundaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPlatformUserPermissionBoundaryResponse)
+	err := c.cc.Invoke(ctx, IAMService_GetPlatformUserPermissionBoundary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) DeletePlatformUserPermissionBoundary(ctx context.Context, in *DeletePlatformUserPermissionBoundaryRequest, opts ...grpc.CallOption) (*DeletePlatformUserPermissionBoundaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletePlatformUserPermissionBoundaryResponse)
+	err := c.cc.Invoke(ctx, IAMService_DeletePlatformUserPermissionBoundary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *iAMServiceClient) RemovePlatformRole(ctx context.Context, in *RemovePlatformRoleRequest, opts ...grpc.CallOption) (*RemovePlatformRoleResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RemovePlatformRoleResponse)
@@ -1298,6 +1480,36 @@ func (c *iAMServiceClient) DetachTenantUserPolicy(ctx context.Context, in *Detac
 	return out, nil
 }
 
+func (c *iAMServiceClient) PutTenantUserPermissionBoundary(ctx context.Context, in *PutTenantUserPermissionBoundaryRequest, opts ...grpc.CallOption) (*PutTenantUserPermissionBoundaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PutTenantUserPermissionBoundaryResponse)
+	err := c.cc.Invoke(ctx, IAMService_PutTenantUserPermissionBoundary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) GetTenantUserPermissionBoundary(ctx context.Context, in *GetTenantUserPermissionBoundaryRequest, opts ...grpc.CallOption) (*GetTenantUserPermissionBoundaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetTenantUserPermissionBoundaryResponse)
+	err := c.cc.Invoke(ctx, IAMService_GetTenantUserPermissionBoundary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) DeleteTenantUserPermissionBoundary(ctx context.Context, in *DeleteTenantUserPermissionBoundaryRequest, opts ...grpc.CallOption) (*DeleteTenantUserPermissionBoundaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteTenantUserPermissionBoundaryResponse)
+	err := c.cc.Invoke(ctx, IAMService_DeleteTenantUserPermissionBoundary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *iAMServiceClient) PutRoleTrustPolicy(ctx context.Context, in *PutRoleTrustPolicyRequest, opts ...grpc.CallOption) (*PutRoleTrustPolicyResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PutRoleTrustPolicyResponse)
@@ -1328,6 +1540,46 @@ func (c *iAMServiceClient) DeleteRoleTrustPolicy(ctx context.Context, in *Delete
 	return out, nil
 }
 
+func (c *iAMServiceClient) PutRolePermissionBoundary(ctx context.Context, in *PutRolePermissionBoundaryRequest, opts ...grpc.CallOption) (*PutRolePermissionBoundaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PutRolePermissionBoundaryResponse)
+	err := c.cc.Invoke(ctx, IAMService_PutRolePermissionBoundary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) GetRolePermissionBoundary(ctx context.Context, in *GetRolePermissionBoundaryRequest, opts ...grpc.CallOption) (*GetRolePermissionBoundaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRolePermissionBoundaryResponse)
+	err := c.cc.Invoke(ctx, IAMService_GetRolePermissionBoundary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) DeleteRolePermissionBoundary(ctx context.Context, in *DeleteRolePermissionBoundaryRequest, opts ...grpc.CallOption) (*DeleteRolePermissionBoundaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteRolePermissionBoundaryResponse)
+	err := c.cc.Invoke(ctx, IAMService_DeleteRolePermissionBoundary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) SimulateAccess(ctx context.Context, in *SimulateAccessRequest, opts ...grpc.CallOption) (*SimulateAccessResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SimulateAccessResponse)
+	err := c.cc.Invoke(ctx, IAMService_SimulateAccess_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // IAMServiceServer is the server API for IAMService service.
 // All implementations must embed UnimplementedIAMServiceServer
 // for forward compatibility.
@@ -1336,6 +1588,13 @@ func (c *iAMServiceClient) DeleteRoleTrustPolicy(ctx context.Context, in *Delete
 // It is intentionally separate from AuthService so it can scale and deploy independently.
 type IAMServiceServer interface {
 	CreateTenant(context.Context, *CreateTenantRequest) (*CreateTenantResponse, error)
+	CreateOrganization(context.Context, *CreateOrganizationRequest) (*CreateOrganizationResponse, error)
+	ListOrganizations(context.Context, *ListOrganizationsRequest) (*ListOrganizationsResponse, error)
+	AttachTenantToOrganization(context.Context, *AttachTenantToOrganizationRequest) (*AttachTenantToOrganizationResponse, error)
+	DetachTenantFromOrganization(context.Context, *DetachTenantFromOrganizationRequest) (*DetachTenantFromOrganizationResponse, error)
+	AttachServiceControlPolicy(context.Context, *AttachServiceControlPolicyRequest) (*AttachServiceControlPolicyResponse, error)
+	DetachServiceControlPolicy(context.Context, *DetachServiceControlPolicyRequest) (*DetachServiceControlPolicyResponse, error)
+	ListServiceControlPolicies(context.Context, *ListServiceControlPoliciesRequest) (*ListServiceControlPoliciesResponse, error)
 	AddTenantMember(context.Context, *AddTenantMemberRequest) (*AddTenantMemberResponse, error)
 	AddTenantMemberByIdentity(context.Context, *AddTenantMemberByIdentityRequest) (*AddTenantMemberByIdentityResponse, error)
 	CreateTenantInvite(context.Context, *CreateTenantInviteRequest) (*CreateTenantInviteResponse, error)
@@ -1349,7 +1608,11 @@ type IAMServiceServer interface {
 	ListPlatformRoles(context.Context, *ListPlatformRolesRequest) (*ListPlatformRolesResponse, error)
 	AddPlatformRole(context.Context, *AddPlatformRoleRequest) (*AddPlatformRoleResponse, error)
 	CreatePolicy(context.Context, *CreatePolicyRequest) (*CreatePolicyResponse, error)
+	CreatePolicyVersion(context.Context, *CreatePolicyVersionRequest) (*CreatePolicyVersionResponse, error)
 	GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error)
+	ListPolicyVersions(context.Context, *ListPolicyVersionsRequest) (*ListPolicyVersionsResponse, error)
+	SetDefaultPolicyVersion(context.Context, *SetDefaultPolicyVersionRequest) (*SetDefaultPolicyVersionResponse, error)
+	DeletePolicyVersion(context.Context, *DeletePolicyVersionRequest) (*DeletePolicyVersionResponse, error)
 	ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error)
 	ListPolicyAttachments(context.Context, *ListPolicyAttachmentsRequest) (*ListPolicyAttachmentsResponse, error)
 	DeletePolicy(context.Context, *DeletePolicyRequest) (*DeletePolicyResponse, error)
@@ -1373,6 +1636,9 @@ type IAMServiceServer interface {
 	ListPlatformUserPolicies(context.Context, *ListPlatformUserPoliciesRequest) (*ListPlatformUserPoliciesResponse, error)
 	AttachPlatformUserPolicy(context.Context, *AttachPlatformUserPolicyRequest) (*AttachPlatformUserPolicyResponse, error)
 	DetachPlatformUserPolicy(context.Context, *DetachPlatformUserPolicyRequest) (*DetachPlatformUserPolicyResponse, error)
+	PutPlatformUserPermissionBoundary(context.Context, *PutPlatformUserPermissionBoundaryRequest) (*PutPlatformUserPermissionBoundaryResponse, error)
+	GetPlatformUserPermissionBoundary(context.Context, *GetPlatformUserPermissionBoundaryRequest) (*GetPlatformUserPermissionBoundaryResponse, error)
+	DeletePlatformUserPermissionBoundary(context.Context, *DeletePlatformUserPermissionBoundaryRequest) (*DeletePlatformUserPermissionBoundaryResponse, error)
 	RemovePlatformRole(context.Context, *RemovePlatformRoleRequest) (*RemovePlatformRoleResponse, error)
 	ListTenantMembers(context.Context, *ListTenantMembersRequest) (*ListTenantMembersResponse, error)
 	RemoveTenantMember(context.Context, *RemoveTenantMemberRequest) (*RemoveTenantMemberResponse, error)
@@ -1383,9 +1649,16 @@ type IAMServiceServer interface {
 	ListTenantUserPolicies(context.Context, *ListTenantUserPoliciesRequest) (*ListTenantUserPoliciesResponse, error)
 	AttachTenantUserPolicy(context.Context, *AttachTenantUserPolicyRequest) (*AttachTenantUserPolicyResponse, error)
 	DetachTenantUserPolicy(context.Context, *DetachTenantUserPolicyRequest) (*DetachTenantUserPolicyResponse, error)
+	PutTenantUserPermissionBoundary(context.Context, *PutTenantUserPermissionBoundaryRequest) (*PutTenantUserPermissionBoundaryResponse, error)
+	GetTenantUserPermissionBoundary(context.Context, *GetTenantUserPermissionBoundaryRequest) (*GetTenantUserPermissionBoundaryResponse, error)
+	DeleteTenantUserPermissionBoundary(context.Context, *DeleteTenantUserPermissionBoundaryRequest) (*DeleteTenantUserPermissionBoundaryResponse, error)
 	PutRoleTrustPolicy(context.Context, *PutRoleTrustPolicyRequest) (*PutRoleTrustPolicyResponse, error)
 	GetRoleTrustPolicy(context.Context, *GetRoleTrustPolicyRequest) (*GetRoleTrustPolicyResponse, error)
 	DeleteRoleTrustPolicy(context.Context, *DeleteRoleTrustPolicyRequest) (*DeleteRoleTrustPolicyResponse, error)
+	PutRolePermissionBoundary(context.Context, *PutRolePermissionBoundaryRequest) (*PutRolePermissionBoundaryResponse, error)
+	GetRolePermissionBoundary(context.Context, *GetRolePermissionBoundaryRequest) (*GetRolePermissionBoundaryResponse, error)
+	DeleteRolePermissionBoundary(context.Context, *DeleteRolePermissionBoundaryRequest) (*DeleteRolePermissionBoundaryResponse, error)
+	SimulateAccess(context.Context, *SimulateAccessRequest) (*SimulateAccessResponse, error)
 	mustEmbedUnimplementedIAMServiceServer()
 }
 
@@ -1398,6 +1671,27 @@ type UnimplementedIAMServiceServer struct{}
 
 func (UnimplementedIAMServiceServer) CreateTenant(context.Context, *CreateTenantRequest) (*CreateTenantResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateTenant not implemented")
+}
+func (UnimplementedIAMServiceServer) CreateOrganization(context.Context, *CreateOrganizationRequest) (*CreateOrganizationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateOrganization not implemented")
+}
+func (UnimplementedIAMServiceServer) ListOrganizations(context.Context, *ListOrganizationsRequest) (*ListOrganizationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizations not implemented")
+}
+func (UnimplementedIAMServiceServer) AttachTenantToOrganization(context.Context, *AttachTenantToOrganizationRequest) (*AttachTenantToOrganizationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AttachTenantToOrganization not implemented")
+}
+func (UnimplementedIAMServiceServer) DetachTenantFromOrganization(context.Context, *DetachTenantFromOrganizationRequest) (*DetachTenantFromOrganizationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DetachTenantFromOrganization not implemented")
+}
+func (UnimplementedIAMServiceServer) AttachServiceControlPolicy(context.Context, *AttachServiceControlPolicyRequest) (*AttachServiceControlPolicyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AttachServiceControlPolicy not implemented")
+}
+func (UnimplementedIAMServiceServer) DetachServiceControlPolicy(context.Context, *DetachServiceControlPolicyRequest) (*DetachServiceControlPolicyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DetachServiceControlPolicy not implemented")
+}
+func (UnimplementedIAMServiceServer) ListServiceControlPolicies(context.Context, *ListServiceControlPoliciesRequest) (*ListServiceControlPoliciesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListServiceControlPolicies not implemented")
 }
 func (UnimplementedIAMServiceServer) AddTenantMember(context.Context, *AddTenantMemberRequest) (*AddTenantMemberResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddTenantMember not implemented")
@@ -1438,8 +1732,20 @@ func (UnimplementedIAMServiceServer) AddPlatformRole(context.Context, *AddPlatfo
 func (UnimplementedIAMServiceServer) CreatePolicy(context.Context, *CreatePolicyRequest) (*CreatePolicyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePolicy not implemented")
 }
+func (UnimplementedIAMServiceServer) CreatePolicyVersion(context.Context, *CreatePolicyVersionRequest) (*CreatePolicyVersionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePolicyVersion not implemented")
+}
 func (UnimplementedIAMServiceServer) GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPolicy not implemented")
+}
+func (UnimplementedIAMServiceServer) ListPolicyVersions(context.Context, *ListPolicyVersionsRequest) (*ListPolicyVersionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPolicyVersions not implemented")
+}
+func (UnimplementedIAMServiceServer) SetDefaultPolicyVersion(context.Context, *SetDefaultPolicyVersionRequest) (*SetDefaultPolicyVersionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetDefaultPolicyVersion not implemented")
+}
+func (UnimplementedIAMServiceServer) DeletePolicyVersion(context.Context, *DeletePolicyVersionRequest) (*DeletePolicyVersionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePolicyVersion not implemented")
 }
 func (UnimplementedIAMServiceServer) ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListPolicies not implemented")
@@ -1510,6 +1816,15 @@ func (UnimplementedIAMServiceServer) AttachPlatformUserPolicy(context.Context, *
 func (UnimplementedIAMServiceServer) DetachPlatformUserPolicy(context.Context, *DetachPlatformUserPolicyRequest) (*DetachPlatformUserPolicyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DetachPlatformUserPolicy not implemented")
 }
+func (UnimplementedIAMServiceServer) PutPlatformUserPermissionBoundary(context.Context, *PutPlatformUserPermissionBoundaryRequest) (*PutPlatformUserPermissionBoundaryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PutPlatformUserPermissionBoundary not implemented")
+}
+func (UnimplementedIAMServiceServer) GetPlatformUserPermissionBoundary(context.Context, *GetPlatformUserPermissionBoundaryRequest) (*GetPlatformUserPermissionBoundaryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPlatformUserPermissionBoundary not implemented")
+}
+func (UnimplementedIAMServiceServer) DeletePlatformUserPermissionBoundary(context.Context, *DeletePlatformUserPermissionBoundaryRequest) (*DeletePlatformUserPermissionBoundaryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePlatformUserPermissionBoundary not implemented")
+}
 func (UnimplementedIAMServiceServer) RemovePlatformRole(context.Context, *RemovePlatformRoleRequest) (*RemovePlatformRoleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemovePlatformRole not implemented")
 }
@@ -1540,6 +1855,15 @@ func (UnimplementedIAMServiceServer) AttachTenantUserPolicy(context.Context, *At
 func (UnimplementedIAMServiceServer) DetachTenantUserPolicy(context.Context, *DetachTenantUserPolicyRequest) (*DetachTenantUserPolicyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DetachTenantUserPolicy not implemented")
 }
+func (UnimplementedIAMServiceServer) PutTenantUserPermissionBoundary(context.Context, *PutTenantUserPermissionBoundaryRequest) (*PutTenantUserPermissionBoundaryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PutTenantUserPermissionBoundary not implemented")
+}
+func (UnimplementedIAMServiceServer) GetTenantUserPermissionBoundary(context.Context, *GetTenantUserPermissionBoundaryRequest) (*GetTenantUserPermissionBoundaryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTenantUserPermissionBoundary not implemented")
+}
+func (UnimplementedIAMServiceServer) DeleteTenantUserPermissionBoundary(context.Context, *DeleteTenantUserPermissionBoundaryRequest) (*DeleteTenantUserPermissionBoundaryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteTenantUserPermissionBoundary not implemented")
+}
 func (UnimplementedIAMServiceServer) PutRoleTrustPolicy(context.Context, *PutRoleTrustPolicyRequest) (*PutRoleTrustPolicyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PutRoleTrustPolicy not implemented")
 }
@@ -1548,6 +1872,18 @@ func (UnimplementedIAMServiceServer) GetRoleTrustPolicy(context.Context, *GetRol
 }
 func (UnimplementedIAMServiceServer) DeleteRoleTrustPolicy(context.Context, *DeleteRoleTrustPolicyRequest) (*DeleteRoleTrustPolicyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteRoleTrustPolicy not implemented")
+}
+func (UnimplementedIAMServiceServer) PutRolePermissionBoundary(context.Context, *PutRolePermissionBoundaryRequest) (*PutRolePermissionBoundaryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PutRolePermissionBoundary not implemented")
+}
+func (UnimplementedIAMServiceServer) GetRolePermissionBoundary(context.Context, *GetRolePermissionBoundaryRequest) (*GetRolePermissionBoundaryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRolePermissionBoundary not implemented")
+}
+func (UnimplementedIAMServiceServer) DeleteRolePermissionBoundary(context.Context, *DeleteRolePermissionBoundaryRequest) (*DeleteRolePermissionBoundaryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteRolePermissionBoundary not implemented")
+}
+func (UnimplementedIAMServiceServer) SimulateAccess(context.Context, *SimulateAccessRequest) (*SimulateAccessResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SimulateAccess not implemented")
 }
 func (UnimplementedIAMServiceServer) mustEmbedUnimplementedIAMServiceServer() {}
 func (UnimplementedIAMServiceServer) testEmbeddedByValue()                    {}
@@ -1584,6 +1920,132 @@ func _IAMService_CreateTenant_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(IAMServiceServer).CreateTenant(ctx, req.(*CreateTenantRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_CreateOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateOrganizationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).CreateOrganization(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_CreateOrganization_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).CreateOrganization(ctx, req.(*CreateOrganizationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_ListOrganizations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOrganizationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).ListOrganizations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_ListOrganizations_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).ListOrganizations(ctx, req.(*ListOrganizationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_AttachTenantToOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AttachTenantToOrganizationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).AttachTenantToOrganization(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_AttachTenantToOrganization_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).AttachTenantToOrganization(ctx, req.(*AttachTenantToOrganizationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_DetachTenantFromOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DetachTenantFromOrganizationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).DetachTenantFromOrganization(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_DetachTenantFromOrganization_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).DetachTenantFromOrganization(ctx, req.(*DetachTenantFromOrganizationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_AttachServiceControlPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AttachServiceControlPolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).AttachServiceControlPolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_AttachServiceControlPolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).AttachServiceControlPolicy(ctx, req.(*AttachServiceControlPolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_DetachServiceControlPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DetachServiceControlPolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).DetachServiceControlPolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_DetachServiceControlPolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).DetachServiceControlPolicy(ctx, req.(*DetachServiceControlPolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_ListServiceControlPolicies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListServiceControlPoliciesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).ListServiceControlPolicies(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_ListServiceControlPolicies_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).ListServiceControlPolicies(ctx, req.(*ListServiceControlPoliciesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1822,6 +2284,24 @@ func _IAMService_CreatePolicy_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IAMService_CreatePolicyVersion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePolicyVersionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).CreatePolicyVersion(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_CreatePolicyVersion_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).CreatePolicyVersion(ctx, req.(*CreatePolicyVersionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _IAMService_GetPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetPolicyRequest)
 	if err := dec(in); err != nil {
@@ -1836,6 +2316,60 @@ func _IAMService_GetPolicy_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(IAMServiceServer).GetPolicy(ctx, req.(*GetPolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_ListPolicyVersions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPolicyVersionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).ListPolicyVersions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_ListPolicyVersions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).ListPolicyVersions(ctx, req.(*ListPolicyVersionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_SetDefaultPolicyVersion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetDefaultPolicyVersionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).SetDefaultPolicyVersion(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_SetDefaultPolicyVersion_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).SetDefaultPolicyVersion(ctx, req.(*SetDefaultPolicyVersionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_DeletePolicyVersion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePolicyVersionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).DeletePolicyVersion(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_DeletePolicyVersion_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).DeletePolicyVersion(ctx, req.(*DeletePolicyVersionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2254,6 +2788,60 @@ func _IAMService_DetachPlatformUserPolicy_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IAMService_PutPlatformUserPermissionBoundary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PutPlatformUserPermissionBoundaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).PutPlatformUserPermissionBoundary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_PutPlatformUserPermissionBoundary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).PutPlatformUserPermissionBoundary(ctx, req.(*PutPlatformUserPermissionBoundaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_GetPlatformUserPermissionBoundary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPlatformUserPermissionBoundaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).GetPlatformUserPermissionBoundary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_GetPlatformUserPermissionBoundary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).GetPlatformUserPermissionBoundary(ctx, req.(*GetPlatformUserPermissionBoundaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_DeletePlatformUserPermissionBoundary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePlatformUserPermissionBoundaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).DeletePlatformUserPermissionBoundary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_DeletePlatformUserPermissionBoundary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).DeletePlatformUserPermissionBoundary(ctx, req.(*DeletePlatformUserPermissionBoundaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _IAMService_RemovePlatformRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RemovePlatformRoleRequest)
 	if err := dec(in); err != nil {
@@ -2434,6 +3022,60 @@ func _IAMService_DetachTenantUserPolicy_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IAMService_PutTenantUserPermissionBoundary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PutTenantUserPermissionBoundaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).PutTenantUserPermissionBoundary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_PutTenantUserPermissionBoundary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).PutTenantUserPermissionBoundary(ctx, req.(*PutTenantUserPermissionBoundaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_GetTenantUserPermissionBoundary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTenantUserPermissionBoundaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).GetTenantUserPermissionBoundary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_GetTenantUserPermissionBoundary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).GetTenantUserPermissionBoundary(ctx, req.(*GetTenantUserPermissionBoundaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_DeleteTenantUserPermissionBoundary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteTenantUserPermissionBoundaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).DeleteTenantUserPermissionBoundary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_DeleteTenantUserPermissionBoundary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).DeleteTenantUserPermissionBoundary(ctx, req.(*DeleteTenantUserPermissionBoundaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _IAMService_PutRoleTrustPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PutRoleTrustPolicyRequest)
 	if err := dec(in); err != nil {
@@ -2488,6 +3130,78 @@ func _IAMService_DeleteRoleTrustPolicy_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IAMService_PutRolePermissionBoundary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PutRolePermissionBoundaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).PutRolePermissionBoundary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_PutRolePermissionBoundary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).PutRolePermissionBoundary(ctx, req.(*PutRolePermissionBoundaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_GetRolePermissionBoundary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRolePermissionBoundaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).GetRolePermissionBoundary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_GetRolePermissionBoundary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).GetRolePermissionBoundary(ctx, req.(*GetRolePermissionBoundaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_DeleteRolePermissionBoundary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRolePermissionBoundaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).DeleteRolePermissionBoundary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_DeleteRolePermissionBoundary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).DeleteRolePermissionBoundary(ctx, req.(*DeleteRolePermissionBoundaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_SimulateAccess_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SimulateAccessRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).SimulateAccess(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_SimulateAccess_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).SimulateAccess(ctx, req.(*SimulateAccessRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // IAMService_ServiceDesc is the grpc.ServiceDesc for IAMService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2498,6 +3212,34 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateTenant",
 			Handler:    _IAMService_CreateTenant_Handler,
+		},
+		{
+			MethodName: "CreateOrganization",
+			Handler:    _IAMService_CreateOrganization_Handler,
+		},
+		{
+			MethodName: "ListOrganizations",
+			Handler:    _IAMService_ListOrganizations_Handler,
+		},
+		{
+			MethodName: "AttachTenantToOrganization",
+			Handler:    _IAMService_AttachTenantToOrganization_Handler,
+		},
+		{
+			MethodName: "DetachTenantFromOrganization",
+			Handler:    _IAMService_DetachTenantFromOrganization_Handler,
+		},
+		{
+			MethodName: "AttachServiceControlPolicy",
+			Handler:    _IAMService_AttachServiceControlPolicy_Handler,
+		},
+		{
+			MethodName: "DetachServiceControlPolicy",
+			Handler:    _IAMService_DetachServiceControlPolicy_Handler,
+		},
+		{
+			MethodName: "ListServiceControlPolicies",
+			Handler:    _IAMService_ListServiceControlPolicies_Handler,
 		},
 		{
 			MethodName: "AddTenantMember",
@@ -2552,8 +3294,24 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _IAMService_CreatePolicy_Handler,
 		},
 		{
+			MethodName: "CreatePolicyVersion",
+			Handler:    _IAMService_CreatePolicyVersion_Handler,
+		},
+		{
 			MethodName: "GetPolicy",
 			Handler:    _IAMService_GetPolicy_Handler,
+		},
+		{
+			MethodName: "ListPolicyVersions",
+			Handler:    _IAMService_ListPolicyVersions_Handler,
+		},
+		{
+			MethodName: "SetDefaultPolicyVersion",
+			Handler:    _IAMService_SetDefaultPolicyVersion_Handler,
+		},
+		{
+			MethodName: "DeletePolicyVersion",
+			Handler:    _IAMService_DeletePolicyVersion_Handler,
 		},
 		{
 			MethodName: "ListPolicies",
@@ -2648,6 +3406,18 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _IAMService_DetachPlatformUserPolicy_Handler,
 		},
 		{
+			MethodName: "PutPlatformUserPermissionBoundary",
+			Handler:    _IAMService_PutPlatformUserPermissionBoundary_Handler,
+		},
+		{
+			MethodName: "GetPlatformUserPermissionBoundary",
+			Handler:    _IAMService_GetPlatformUserPermissionBoundary_Handler,
+		},
+		{
+			MethodName: "DeletePlatformUserPermissionBoundary",
+			Handler:    _IAMService_DeletePlatformUserPermissionBoundary_Handler,
+		},
+		{
 			MethodName: "RemovePlatformRole",
 			Handler:    _IAMService_RemovePlatformRole_Handler,
 		},
@@ -2688,6 +3458,18 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _IAMService_DetachTenantUserPolicy_Handler,
 		},
 		{
+			MethodName: "PutTenantUserPermissionBoundary",
+			Handler:    _IAMService_PutTenantUserPermissionBoundary_Handler,
+		},
+		{
+			MethodName: "GetTenantUserPermissionBoundary",
+			Handler:    _IAMService_GetTenantUserPermissionBoundary_Handler,
+		},
+		{
+			MethodName: "DeleteTenantUserPermissionBoundary",
+			Handler:    _IAMService_DeleteTenantUserPermissionBoundary_Handler,
+		},
+		{
 			MethodName: "PutRoleTrustPolicy",
 			Handler:    _IAMService_PutRoleTrustPolicy_Handler,
 		},
@@ -2698,6 +3480,22 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteRoleTrustPolicy",
 			Handler:    _IAMService_DeleteRoleTrustPolicy_Handler,
+		},
+		{
+			MethodName: "PutRolePermissionBoundary",
+			Handler:    _IAMService_PutRolePermissionBoundary_Handler,
+		},
+		{
+			MethodName: "GetRolePermissionBoundary",
+			Handler:    _IAMService_GetRolePermissionBoundary_Handler,
+		},
+		{
+			MethodName: "DeleteRolePermissionBoundary",
+			Handler:    _IAMService_DeleteRolePermissionBoundary_Handler,
+		},
+		{
+			MethodName: "SimulateAccess",
+			Handler:    _IAMService_SimulateAccess_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

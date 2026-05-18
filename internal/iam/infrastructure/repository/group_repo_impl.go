@@ -120,8 +120,8 @@ func (r *GroupRepositoryImpl) PutInlinePolicy(ctx context.Context, input iamdoma
 		if _, err := tx.ExecContext(
 			ctx,
 			`INSERT INTO iam_group_inline_policy_statements
-			  (group_id, policy_name, statement_index, effect, action_pattern, resource_pattern, created_at)
-			 VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+			  (group_id, policy_name, statement_index, effect, action_pattern, resource_pattern, conditions_json, created_at)
+			 VALUES ($1, $2, $3, $4, $5, $6, '[]', $7)`,
 			input.GroupID,
 			input.Name,
 			i,
@@ -274,12 +274,13 @@ func (r *GroupRepositoryImpl) listInlinePolicyStatements(ctx context.Context, gr
 		Effect          string    `db:"effect"`
 		ActionPattern   string    `db:"action_pattern"`
 		ResourcePattern string    `db:"resource_pattern"`
+		ConditionsJSON  string    `db:"conditions_json"`
 		CreatedAt       time.Time `db:"created_at"`
 	}
 	if err := r.db.SelectContext(
 		ctx,
 		&rows,
-		`SELECT effect, action_pattern, resource_pattern, created_at
+		`SELECT effect, action_pattern, resource_pattern, '[]' AS conditions_json, created_at
 		 FROM iam_group_inline_policy_statements
 		 WHERE group_id = $1 AND policy_name = $2
 		 ORDER BY statement_index ASC`,
@@ -295,6 +296,7 @@ func (r *GroupRepositoryImpl) listInlinePolicyStatements(ctx context.Context, gr
 			Effect:          row.Effect,
 			ActionPattern:   row.ActionPattern,
 			ResourcePattern: row.ResourcePattern,
+			Conditions:      nil,
 			CreatedAt:       row.CreatedAt,
 		})
 	}

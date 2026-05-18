@@ -1,3 +1,5 @@
+-- +goose Up
+-- +goose StatementBegin
 ALTER TABLE iam_roles
 ADD COLUMN IF NOT EXISTS scope TEXT NOT NULL DEFAULT 'tenant';
 
@@ -98,3 +100,12 @@ WHERE r.name = 'tenant_viewer'
       AND t.principal_pattern = src.role_name
       AND t.tenant_pattern = '*'
   );
+-- +goose StatementEnd
+
+-- +goose Down
+-- +goose StatementBegin
+DROP INDEX IF EXISTS idx_iam_role_trust_statements_role_id;
+DROP TABLE IF EXISTS iam_role_trust_statements;
+ALTER TABLE iam_roles
+DROP COLUMN IF EXISTS scope;
+-- +goose StatementEnd

@@ -191,6 +191,153 @@ func (s *AuthServer) CreateTenant(
 	}, nil
 }
 
+func (s *AuthServer) CreateOrganization(
+	ctx context.Context,
+	req *pbauthv1.CreateOrganizationRequest,
+) (*pbauthv1.CreateOrganizationResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	org, err := s.iamUC.CreateOrganization(ctx, req.Name, req.Slug)
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "organization.created", "organization", org.ID, "", map[string]any{
+		"slug": org.Slug,
+		"name": org.Name,
+	})
+	return &pbauthv1.CreateOrganizationResponse{Organization: toProtoOrganization(org)}, nil
+}
+
+func (s *AuthServer) ListOrganizations(
+	ctx context.Context,
+	_ *pbauthv1.ListOrganizationsRequest,
+) (*pbauthv1.ListOrganizationsResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	items, err := s.iamUC.ListOrganizations(ctx)
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	out := make([]*pbauthv1.Organization, 0, len(items))
+	for i := range items {
+		item := items[i]
+		out = append(out, toProtoOrganization(&item))
+	}
+	return &pbauthv1.ListOrganizationsResponse{Organizations: out}, nil
+}
+
+func (s *AuthServer) AttachTenantToOrganization(
+	ctx context.Context,
+	req *pbauthv1.AttachTenantToOrganizationRequest,
+) (*pbauthv1.AttachTenantToOrganizationResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	if err := s.iamUC.AttachTenantToOrganization(ctx, req.TenantId, req.OrgId); err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "organization.tenant.attached", "organization_tenant", req.OrgId+":"+req.TenantId, req.TenantId, map[string]any{
+		"org_id":    req.OrgId,
+		"tenant_id": req.TenantId,
+	})
+	return &pbauthv1.AttachTenantToOrganizationResponse{}, nil
+}
+
+func (s *AuthServer) DetachTenantFromOrganization(
+	ctx context.Context,
+	req *pbauthv1.DetachTenantFromOrganizationRequest,
+) (*pbauthv1.DetachTenantFromOrganizationResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	if err := s.iamUC.DetachTenantFromOrganization(ctx, req.TenantId); err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "organization.tenant.detached", "organization_tenant", req.OrgId+":"+req.TenantId, req.TenantId, map[string]any{
+		"org_id":    req.OrgId,
+		"tenant_id": req.TenantId,
+	})
+	return &pbauthv1.DetachTenantFromOrganizationResponse{}, nil
+}
+
+func (s *AuthServer) AttachServiceControlPolicy(
+	ctx context.Context,
+	req *pbauthv1.AttachServiceControlPolicyRequest,
+) (*pbauthv1.AttachServiceControlPolicyResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	if err := s.iamUC.AttachServiceControlPolicy(ctx, req.OrgId, req.PolicyName); err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "organization.scp.attached", "organization_policy", req.OrgId+":"+req.PolicyName, "", map[string]any{
+		"org_id":      req.OrgId,
+		"policy_name": req.PolicyName,
+	})
+	return &pbauthv1.AttachServiceControlPolicyResponse{}, nil
+}
+
+func (s *AuthServer) DetachServiceControlPolicy(
+	ctx context.Context,
+	req *pbauthv1.DetachServiceControlPolicyRequest,
+) (*pbauthv1.DetachServiceControlPolicyResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	if err := s.iamUC.DetachServiceControlPolicy(ctx, req.OrgId, req.PolicyName); err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "organization.scp.detached", "organization_policy", req.OrgId+":"+req.PolicyName, "", map[string]any{
+		"org_id":      req.OrgId,
+		"policy_name": req.PolicyName,
+	})
+	return &pbauthv1.DetachServiceControlPolicyResponse{}, nil
+}
+
+func (s *AuthServer) ListServiceControlPolicies(
+	ctx context.Context,
+	req *pbauthv1.ListServiceControlPoliciesRequest,
+) (*pbauthv1.ListServiceControlPoliciesResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	items, err := s.iamUC.ListServiceControlPolicies(ctx, req.OrgId)
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	return &pbauthv1.ListServiceControlPoliciesResponse{Policies: toProtoPolicies(items)}, nil
+}
+
 func (s *AuthServer) AddTenantMember(
 	ctx context.Context,
 	req *pbauthv1.AddTenantMemberRequest,
@@ -553,6 +700,12 @@ func (s *AuthServer) AssumeRole(
 		req.RoleName,
 		req.TenantId,
 		fromProtoSessionPolicyStatements(req.SessionPolicy),
+		req.ExternalId,
+		req.SessionName,
+		req.SourceIdentity,
+		req.DurationSeconds,
+		req.ServicePrincipal,
+		req.SessionTags,
 	)
 	if err != nil {
 		return nil, authStatusError(err)
@@ -806,6 +959,36 @@ func (s *AuthServer) CreatePolicy(
 	}, nil
 }
 
+func (s *AuthServer) CreatePolicyVersion(
+	ctx context.Context,
+	req *pbauthv1.CreatePolicyVersionRequest,
+) (*pbauthv1.CreatePolicyVersionResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	version, statements, err := s.iamUC.CreatePolicyVersion(ctx, iamdomain.CreatePolicyVersionInput{
+		PolicyName:   req.Name,
+		Statements:   fromProtoPolicyStatements(req.Statements),
+		SetAsDefault: req.SetAsDefault,
+	})
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "iam.policy.version.created", "iam_policy_version", req.Name, "", map[string]any{
+		"version":        version.Version,
+		"set_as_default": req.SetAsDefault,
+		"statements":     len(statements),
+	})
+	return &pbauthv1.CreatePolicyVersionResponse{
+		PolicyVersion: toProtoPolicyVersion(version),
+		Statements:    toProtoPolicyStatements(statements),
+	}, nil
+}
+
 func (s *AuthServer) GetPolicy(
 	ctx context.Context,
 	req *pbauthv1.GetPolicyRequest,
@@ -825,6 +1008,68 @@ func (s *AuthServer) GetPolicy(
 		Policy:     toProtoPolicy(policy),
 		Statements: toProtoPolicyStatements(statements),
 	}, nil
+}
+
+func (s *AuthServer) ListPolicyVersions(
+	ctx context.Context,
+	req *pbauthv1.ListPolicyVersionsRequest,
+) (*pbauthv1.ListPolicyVersionsResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	items, err := s.iamUC.ListPolicyVersions(ctx, req.Name)
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	out := make([]*pbauthv1.PolicyVersion, 0, len(items))
+	for i := range items {
+		out = append(out, toProtoPolicyVersion(&items[i]))
+	}
+	return &pbauthv1.ListPolicyVersionsResponse{Versions: out}, nil
+}
+
+func (s *AuthServer) SetDefaultPolicyVersion(
+	ctx context.Context,
+	req *pbauthv1.SetDefaultPolicyVersionRequest,
+) (*pbauthv1.SetDefaultPolicyVersionResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	if err := s.iamUC.SetDefaultPolicyVersion(ctx, req.Name, req.Version); err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "iam.policy.version.set_default", "iam_policy_version", req.Name, "", map[string]any{
+		"version": req.Version,
+	})
+	return &pbauthv1.SetDefaultPolicyVersionResponse{}, nil
+}
+
+func (s *AuthServer) DeletePolicyVersion(
+	ctx context.Context,
+	req *pbauthv1.DeletePolicyVersionRequest,
+) (*pbauthv1.DeletePolicyVersionResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	if err := s.iamUC.DeletePolicyVersion(ctx, req.Name, req.Version); err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "iam.policy.version.deleted", "iam_policy_version", req.Name, "", map[string]any{
+		"version": req.Version,
+	})
+	return &pbauthv1.DeletePolicyVersionResponse{}, nil
 }
 
 func (s *AuthServer) ListPolicies(
@@ -1375,6 +1620,77 @@ func (s *AuthServer) DetachPlatformUserPolicy(
 	return &pbauthv1.DetachPlatformUserPolicyResponse{}, nil
 }
 
+func (s *AuthServer) PutPlatformUserPermissionBoundary(
+	ctx context.Context,
+	req *pbauthv1.PutPlatformUserPermissionBoundaryRequest,
+) (*pbauthv1.PutPlatformUserPermissionBoundaryResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	targetUserID, err := toUint(req.TargetUserId)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	if err := s.iamUC.PutPlatformUserPermissionBoundary(ctx, targetUserID, req.PolicyName); err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "iam.platform_user_boundary.put", "iam_permission_boundary", req.PolicyName, "", map[string]any{
+		"target_user_id": targetUserID,
+		"policy_name":    req.PolicyName,
+	})
+	return &pbauthv1.PutPlatformUserPermissionBoundaryResponse{}, nil
+}
+
+func (s *AuthServer) GetPlatformUserPermissionBoundary(
+	ctx context.Context,
+	req *pbauthv1.GetPlatformUserPermissionBoundaryRequest,
+) (*pbauthv1.GetPlatformUserPermissionBoundaryResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	targetUserID, err := toUint(req.TargetUserId)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	item, err := s.iamUC.GetPlatformUserPermissionBoundary(ctx, targetUserID)
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	return &pbauthv1.GetPlatformUserPermissionBoundaryResponse{Boundary: toProtoPermissionBoundary(item)}, nil
+}
+
+func (s *AuthServer) DeletePlatformUserPermissionBoundary(
+	ctx context.Context,
+	req *pbauthv1.DeletePlatformUserPermissionBoundaryRequest,
+) (*pbauthv1.DeletePlatformUserPermissionBoundaryResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	targetUserID, err := toUint(req.TargetUserId)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	if err := s.iamUC.DeletePlatformUserPermissionBoundary(ctx, targetUserID); err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "iam.platform_user_boundary.deleted", "iam_permission_boundary", fmt.Sprintf("%d", targetUserID), "", map[string]any{
+		"target_user_id": targetUserID,
+	})
+	return &pbauthv1.DeletePlatformUserPermissionBoundaryResponse{}, nil
+}
+
 func (s *AuthServer) RemovePlatformRole(
 	ctx context.Context,
 	req *pbauthv1.RemovePlatformRoleRequest,
@@ -1633,6 +1949,181 @@ func (s *AuthServer) DetachTenantUserPolicy(
 	return &pbauthv1.DetachTenantUserPolicyResponse{}, nil
 }
 
+func (s *AuthServer) PutTenantUserPermissionBoundary(
+	ctx context.Context,
+	req *pbauthv1.PutTenantUserPermissionBoundaryRequest,
+) (*pbauthv1.PutTenantUserPermissionBoundaryResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	userID, err := toUint(req.UserId)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.iamUC.RequirePermission(ctx, req.TenantId, actorUserID, "tenant:manage_members"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	if err := s.iamUC.PutTenantUserPermissionBoundary(ctx, req.TenantId, userID, req.PolicyName); err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "iam.tenant_user_boundary.put", "iam_permission_boundary", req.PolicyName, req.TenantId, map[string]any{
+		"user_id":     userID,
+		"tenant_id":   req.TenantId,
+		"policy_name": req.PolicyName,
+	})
+	return &pbauthv1.PutTenantUserPermissionBoundaryResponse{}, nil
+}
+
+func (s *AuthServer) GetTenantUserPermissionBoundary(
+	ctx context.Context,
+	req *pbauthv1.GetTenantUserPermissionBoundaryRequest,
+) (*pbauthv1.GetTenantUserPermissionBoundaryResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	userID, err := toUint(req.UserId)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.iamUC.RequirePermission(ctx, req.TenantId, actorUserID, "tenant:manage_members"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	item, err := s.iamUC.GetTenantUserPermissionBoundary(ctx, req.TenantId, userID)
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	return &pbauthv1.GetTenantUserPermissionBoundaryResponse{Boundary: toProtoPermissionBoundary(item)}, nil
+}
+
+func (s *AuthServer) DeleteTenantUserPermissionBoundary(
+	ctx context.Context,
+	req *pbauthv1.DeleteTenantUserPermissionBoundaryRequest,
+) (*pbauthv1.DeleteTenantUserPermissionBoundaryResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	userID, err := toUint(req.UserId)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.iamUC.RequirePermission(ctx, req.TenantId, actorUserID, "tenant:manage_members"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	if err := s.iamUC.DeleteTenantUserPermissionBoundary(ctx, req.TenantId, userID); err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "iam.tenant_user_boundary.deleted", "iam_permission_boundary", fmt.Sprintf("%s:%d", req.TenantId, userID), req.TenantId, map[string]any{
+		"user_id":   userID,
+		"tenant_id": req.TenantId,
+	})
+	return &pbauthv1.DeleteTenantUserPermissionBoundaryResponse{}, nil
+}
+
+func (s *AuthServer) PutRolePermissionBoundary(
+	ctx context.Context,
+	req *pbauthv1.PutRolePermissionBoundaryRequest,
+) (*pbauthv1.PutRolePermissionBoundaryResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	if err := s.iamUC.PutRolePermissionBoundary(ctx, req.RoleName, req.PolicyName); err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "iam.role_boundary.put", "iam_role_permission_boundary", req.RoleName, "", map[string]any{
+		"policy_name": req.PolicyName,
+	})
+	return &pbauthv1.PutRolePermissionBoundaryResponse{}, nil
+}
+
+func (s *AuthServer) GetRolePermissionBoundary(
+	ctx context.Context,
+	req *pbauthv1.GetRolePermissionBoundaryRequest,
+) (*pbauthv1.GetRolePermissionBoundaryResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	item, err := s.iamUC.GetRolePermissionBoundary(ctx, req.RoleName)
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	return &pbauthv1.GetRolePermissionBoundaryResponse{Boundary: toProtoRolePermissionBoundary(item)}, nil
+}
+
+func (s *AuthServer) DeleteRolePermissionBoundary(
+	ctx context.Context,
+	req *pbauthv1.DeleteRolePermissionBoundaryRequest,
+) (*pbauthv1.DeleteRolePermissionBoundaryResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	if err := s.iamUC.DeleteRolePermissionBoundary(ctx, req.RoleName); err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "iam.role_boundary.deleted", "iam_role_permission_boundary", req.RoleName, "", nil)
+	return &pbauthv1.DeleteRolePermissionBoundaryResponse{}, nil
+}
+
+func (s *AuthServer) SimulateAccess(
+	ctx context.Context,
+	req *pbauthv1.SimulateAccessRequest,
+) (*pbauthv1.SimulateAccessResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+		return nil, iamStatusError(err)
+	}
+	userID, err := toUint(req.UserId)
+	if err != nil {
+		return nil, err
+	}
+	var assumedRole *iamdomain.AssumedRole
+	if req.UseAssumedRole && req.AssumedRoleSession != nil && req.AssumedRoleSession.AssumedRoleId != 0 {
+		assumedRole = &iamdomain.AssumedRole{
+			RoleID:           req.AssumedRoleSession.AssumedRoleId,
+			RoleScope:        req.AssumedRoleSession.AssumedRoleScope,
+			RoleName:         req.AssumedRoleSession.AssumedRoleName,
+			TenantID:         req.AssumedRoleSession.AssumedRoleTenantId,
+			ServicePrincipal: req.AssumedRoleSession.AssumedRoleServicePrincipal,
+			SessionName:      req.AssumedRoleSession.AssumedRoleSessionName,
+			SourceIdentity:   req.AssumedRoleSession.AssumedRoleSourceIdentity,
+			SessionTags:      req.AssumedRoleSession.SessionTags,
+		}
+	}
+	result, err := s.iamUC.SimulateAccess(ctx, iamdomain.SimulateAccessInput{
+		Scope:            req.Scope,
+		TenantID:         req.TenantId,
+		UserID:           userID,
+		Action:           req.Action,
+		Resource:         req.Resource,
+		UseAssumedRole:   req.UseAssumedRole,
+		AssumedRole:      assumedRole,
+		SessionPolicy:    fromProtoPolicyStatements(req.SessionPolicy),
+		Attributes:       mergeStringMaps(req.Attributes, toPrincipalTagAttributes(req.SessionTags)),
+		ServicePrincipal: req.ServicePrincipal,
+	})
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	return toProtoSimulateAccessResponse(result), nil
+}
+
 func toUint(v uint64) (uint, error) {
 	if v == 0 {
 		return 0, status.Error(codes.InvalidArgument, "user_id is required")
@@ -1654,6 +2145,20 @@ func toProtoTenant(t *iamdomain.Tenant) *pbauthv1.Tenant {
 		Name:      t.Name,
 		CreatedAt: t.CreatedAt.Format(time.RFC3339),
 		UpdatedAt: t.UpdatedAt.Format(time.RFC3339),
+		OrgId:     t.OrgID,
+	}
+}
+
+func toProtoOrganization(org *iamdomain.Organization) *pbauthv1.Organization {
+	if org == nil {
+		return nil
+	}
+	return &pbauthv1.Organization{
+		Id:        org.ID,
+		Slug:      org.Slug,
+		Name:      org.Name,
+		CreatedAt: org.CreatedAt.Format(time.RFC3339),
+		UpdatedAt: org.UpdatedAt.Format(time.RFC3339),
 	}
 }
 
@@ -1691,13 +2196,28 @@ func toProtoPolicy(policy *iamdomain.Policy) *pbauthv1.Policy {
 		return nil
 	}
 	return &pbauthv1.Policy{
-		Id:          policy.ID,
-		Scope:       policy.Scope,
-		Name:        policy.Name,
-		Description: policy.Description,
-		IsSystem:    policy.IsSystem,
-		CreatedAt:   policy.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:   policy.UpdatedAt.Format(time.RFC3339),
+		Id:             policy.ID,
+		Scope:          policy.Scope,
+		Name:           policy.Name,
+		Description:    policy.Description,
+		IsSystem:       policy.IsSystem,
+		DefaultVersion: policy.DefaultVersion,
+		CreatedAt:      policy.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:      policy.UpdatedAt.Format(time.RFC3339),
+	}
+}
+
+func toProtoPolicyVersion(version *iamdomain.PolicyVersion) *pbauthv1.PolicyVersion {
+	if version == nil {
+		return nil
+	}
+	return &pbauthv1.PolicyVersion{
+		Id:         version.ID,
+		PolicyId:   version.PolicyID,
+		PolicyName: version.PolicyName,
+		Version:    version.Version,
+		IsDefault:  version.IsDefault,
+		CreatedAt:  version.CreatedAt.Format(time.RFC3339),
 	}
 }
 
@@ -1747,6 +2267,105 @@ func toProtoUserInlinePolicy(policy *iamdomain.UserInlinePolicy) *pbauthv1.UserI
 	}
 }
 
+func toProtoPermissionBoundary(boundary *iamdomain.PermissionBoundary) *pbauthv1.PermissionBoundary {
+	if boundary == nil {
+		return nil
+	}
+	return &pbauthv1.PermissionBoundary{
+		Scope:      boundary.Scope,
+		TenantId:   boundary.TenantID,
+		UserId:     uint64(boundary.UserID),
+		PolicyId:   boundary.PolicyID,
+		PolicyName: boundary.PolicyName,
+		CreatedAt:  boundary.CreatedAt.Format(time.RFC3339),
+	}
+}
+
+func toProtoRolePermissionBoundary(boundary *iamdomain.RolePermissionBoundary) *pbauthv1.RolePermissionBoundary {
+	if boundary == nil {
+		return nil
+	}
+	return &pbauthv1.RolePermissionBoundary{
+		RoleId:     boundary.RoleID,
+		RoleName:   boundary.RoleName,
+		PolicyId:   boundary.PolicyID,
+		PolicyName: boundary.PolicyName,
+		CreatedAt:  boundary.CreatedAt.Format(time.RFC3339),
+	}
+}
+
+func toProtoSimulateAccessResponse(result *iamdomain.SimulateAccessResult) *pbauthv1.SimulateAccessResponse {
+	if result == nil {
+		return nil
+	}
+	out := make([]*pbauthv1.SimulateMatchedStatement, 0, len(result.MatchedStatements))
+	for i := range result.MatchedStatements {
+		item := result.MatchedStatements[i]
+		out = append(out, &pbauthv1.SimulateMatchedStatement{
+			PolicyName:      item.PolicyName,
+			Effect:          item.Effect,
+			ActionPattern:   item.ActionPattern,
+			ResourcePattern: item.ResourcePattern,
+			Conditions:      toProtoPolicyConditions(item.Conditions),
+			Source:          item.Source,
+		})
+	}
+	layers := make([]*pbauthv1.SimulateDecisionLayer, 0, len(result.Layers))
+	for i := range result.Layers {
+		layer := result.Layers[i]
+		statements := make([]*pbauthv1.SimulateMatchedStatement, 0, len(layer.MatchedStatements))
+		for j := range layer.MatchedStatements {
+			item := layer.MatchedStatements[j]
+			statements = append(statements, &pbauthv1.SimulateMatchedStatement{
+				PolicyName:      item.PolicyName,
+				Effect:          item.Effect,
+				ActionPattern:   item.ActionPattern,
+				ResourcePattern: item.ResourcePattern,
+				Conditions:      toProtoPolicyConditions(item.Conditions),
+				Source:          item.Source,
+			})
+		}
+		layers = append(layers, &pbauthv1.SimulateDecisionLayer{
+			Layer:             layer.Layer,
+			Allowed:           layer.Allowed,
+			Reason:            layer.Reason,
+			MatchedStatements: statements,
+		})
+	}
+	return &pbauthv1.SimulateAccessResponse{
+		Allowed:           result.Allowed,
+		DecisionSource:    result.DecisionSource,
+		Reason:            result.Reason,
+		MatchedStatements: out,
+		Layers:            layers,
+	}
+}
+
+func mergeStringMaps(items ...map[string]string) map[string]string {
+	merged := make(map[string]string)
+	for _, item := range items {
+		for k, v := range item {
+			merged[k] = v
+		}
+	}
+	if len(merged) == 0 {
+		return nil
+	}
+	return merged
+}
+
+func toPrincipalTagAttributes(tags map[string]string) map[string]string {
+	if len(tags) == 0 {
+		return nil
+	}
+	out := make(map[string]string, len(tags)*2)
+	for k, v := range tags {
+		out["principal_tag:"+k] = v
+		out["request_tag:"+k] = v
+	}
+	return out
+}
+
 func toProtoPolicies(items []iamdomain.Policy) []*pbauthv1.Policy {
 	out := make([]*pbauthv1.Policy, 0, len(items))
 	for i := range items {
@@ -1779,13 +2398,14 @@ func toProtoRoleTrustStatements(items []iamdomain.RoleTrustStatement) []*pbauthv
 	for i := range items {
 		item := items[i]
 		out = append(out, &pbauthv1.RoleTrustStatement{
-			Id:               item.ID,
-			RoleId:           item.RoleID,
-			Effect:           item.Effect,
-			PrincipalType:    item.PrincipalType,
-			PrincipalPattern: item.PrincipalPattern,
-			TenantPattern:    item.TenantPattern,
-			CreatedAt:        item.CreatedAt.Format(time.RFC3339),
+			Id:                item.ID,
+			RoleId:            item.RoleID,
+			Effect:            item.Effect,
+			PrincipalType:     item.PrincipalType,
+			PrincipalPattern:  item.PrincipalPattern,
+			TenantPattern:     item.TenantPattern,
+			ExternalIdPattern: item.ExternalIDPattern,
+			CreatedAt:         item.CreatedAt.Format(time.RFC3339),
 		})
 	}
 	return out
@@ -1802,6 +2422,7 @@ func toProtoPolicyStatements(items []iamdomain.PolicyStatement) []*pbauthv1.Poli
 			Effect:          item.Effect,
 			ActionPattern:   item.ActionPattern,
 			ResourcePattern: item.ResourcePattern,
+			Conditions:      toProtoPolicyConditions(item.Conditions),
 			CreatedAt:       item.CreatedAt.Format(time.RFC3339),
 		})
 	}
@@ -1818,6 +2439,7 @@ func fromProtoPolicyStatements(items []*pbauthv1.PolicyStatement) []iamdomain.Po
 			Effect:          item.Effect,
 			ActionPattern:   item.ActionPattern,
 			ResourcePattern: item.ResourcePattern,
+			Conditions:      fromProtoPolicyConditions(item.Conditions),
 		})
 	}
 	return out
@@ -1830,10 +2452,11 @@ func fromProtoRoleTrustStatements(items []*pbauthv1.RoleTrustStatement) []iamdom
 			continue
 		}
 		out = append(out, iamdomain.RoleTrustStatement{
-			Effect:           item.Effect,
-			PrincipalType:    item.PrincipalType,
-			PrincipalPattern: item.PrincipalPattern,
-			TenantPattern:    item.TenantPattern,
+			Effect:            item.Effect,
+			PrincipalType:     item.PrincipalType,
+			PrincipalPattern:  item.PrincipalPattern,
+			TenantPattern:     item.TenantPattern,
+			ExternalIDPattern: item.ExternalIdPattern,
 		})
 	}
 	return out
@@ -1882,18 +2505,25 @@ func toProtoSession(s *entity.Session) *pbauthv1.Session {
 		return nil
 	}
 	resp := &pbauthv1.Session{
-		Id:                  s.ID,
-		UserId:              uint64(s.UserID),
-		ActiveTenantId:      s.ActiveTenantID,
-		Status:              s.Status,
-		CreatedAt:           s.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:           s.UpdatedAt.Format(time.RFC3339),
-		ExpiresAt:           s.ExpiresAt.Format(time.RFC3339),
-		SessionPolicy:       toProtoSessionPolicyStatements(s.SessionPolicy),
-		AssumedRoleId:       s.AssumedRoleID,
-		AssumedRoleScope:    s.AssumedRoleScope,
-		AssumedRoleName:     s.AssumedRoleName,
-		AssumedRoleTenantId: s.AssumedRoleTenantID,
+		Id:                          s.ID,
+		UserId:                      uint64(s.UserID),
+		ActiveTenantId:              s.ActiveTenantID,
+		Status:                      s.Status,
+		CreatedAt:                   s.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:                   s.UpdatedAt.Format(time.RFC3339),
+		ExpiresAt:                   s.ExpiresAt.Format(time.RFC3339),
+		SessionPolicy:               toProtoSessionPolicyStatements(s.SessionPolicy),
+		AssumedRoleId:               s.AssumedRoleID,
+		AssumedRoleScope:            s.AssumedRoleScope,
+		AssumedRoleName:             s.AssumedRoleName,
+		AssumedRoleTenantId:         s.AssumedRoleTenantID,
+		AssumedRoleSessionName:      s.AssumedRoleSessionName,
+		AssumedRoleSourceIdentity:   s.AssumedRoleSourceIdentity,
+		SessionTags:                 s.SessionTags,
+		AssumedRoleServicePrincipal: s.AssumedRoleServicePrincipal,
+	}
+	if s.AssumedRoleExpiresAt != nil {
+		resp.AssumedRoleExpiresAt = s.AssumedRoleExpiresAt.Format(time.RFC3339)
 	}
 	if s.RevokedAt != nil {
 		resp.RevokedAt = s.RevokedAt.Format(time.RFC3339)
@@ -1967,15 +2597,21 @@ func iamStatusError(err error) error {
 	switch {
 	case errors.Is(err, iamdomain.ErrInvalidTenantName),
 		errors.Is(err, iamdomain.ErrInvalidTenantSlug),
+		errors.Is(err, iamdomain.ErrInvalidOrganizationName),
+		errors.Is(err, iamdomain.ErrInvalidOrganizationSlug),
 		errors.Is(err, iamdomain.ErrInvalidUserID),
 		errors.Is(err, iamdomain.ErrInvalidRoleName),
 		errors.Is(err, iamdomain.ErrInvalidPolicyName),
-		errors.Is(err, iamdomain.ErrInvalidAssumeRole):
+		errors.Is(err, iamdomain.ErrInvalidAssumeRole),
+		errors.Is(err, iamdomain.ErrInvalidServicePrincipal),
+		errors.Is(err, iamdomain.ErrInvalidPolicyStatement):
 		return status.Error(codes.InvalidArgument, err.Error())
 	case errors.Is(err, iamdomain.ErrTenantNotFound),
+		errors.Is(err, iamdomain.ErrOrganizationNotFound),
 		errors.Is(err, iamdomain.ErrMembershipNotFound),
 		errors.Is(err, iamdomain.ErrRoleNotFound),
 		errors.Is(err, iamdomain.ErrPolicyNotFound),
+		errors.Is(err, iamdomain.ErrPolicyVersionNotFound),
 		errors.Is(err, iamdomain.ErrGroupNotFound):
 		return status.Error(codes.NotFound, err.Error())
 	case errors.Is(err, iamdomain.ErrTenantSlugTaken):
@@ -1987,7 +2623,8 @@ func iamStatusError(err error) error {
 		return status.Error(codes.FailedPrecondition, err.Error())
 	case errors.Is(err, iamdomain.ErrImmutablePolicy),
 		errors.Is(err, iamdomain.ErrImmutableGroup),
-		errors.Is(err, iamdomain.ErrPolicyInUse):
+		errors.Is(err, iamdomain.ErrPolicyInUse),
+		errors.Is(err, iamdomain.ErrDefaultPolicyVersion):
 		return status.Error(codes.FailedPrecondition, err.Error())
 	default:
 		return status.Error(codes.Internal, err.Error())
@@ -2011,12 +2648,17 @@ func (s *AuthServer) authorizedContext(ctx context.Context) (context.Context, ui
 		return ctx, 0, err
 	}
 	ctx = iamdomain.WithSessionPolicyStatements(ctx, toIAMSessionPolicyStatements(claims.SessionPolicy))
+	ctx = iamdomain.WithSessionTags(ctx, claims.SessionTags)
 	if claims.AssumedRoleID != 0 && claims.AssumedRoleName != "" {
 		ctx = iamdomain.WithAssumedRole(ctx, iamdomain.AssumedRole{
-			RoleID:    claims.AssumedRoleID,
-			RoleScope: claims.AssumedRoleScope,
-			RoleName:  claims.AssumedRoleName,
-			TenantID:  claims.AssumedRoleTenantID,
+			RoleID:           claims.AssumedRoleID,
+			RoleScope:        claims.AssumedRoleScope,
+			RoleName:         claims.AssumedRoleName,
+			TenantID:         claims.AssumedRoleTenantID,
+			ServicePrincipal: claims.AssumedRoleServicePrincipal,
+			SessionName:      claims.AssumedRoleSessionName,
+			SourceIdentity:   claims.AssumedRoleSourceIdentity,
+			SessionTags:      claims.SessionTags,
 		})
 	}
 	if claims.UserID == 0 {
@@ -2079,6 +2721,7 @@ func toProtoSessionPolicyStatements(items []entity.SessionPolicyStatement) []*pb
 			Effect:          item.Effect,
 			ActionPattern:   item.ActionPattern,
 			ResourcePattern: item.ResourcePattern,
+			Conditions:      toProtoSessionPolicyConditions(item.Conditions),
 		})
 	}
 	return out
@@ -2094,6 +2737,7 @@ func fromProtoSessionPolicyStatements(items []*pbauthv1.PolicyStatement) []entit
 			Effect:          item.Effect,
 			ActionPattern:   item.ActionPattern,
 			ResourcePattern: item.ResourcePattern,
+			Conditions:      fromProtoSessionPolicyConditions(item.Conditions),
 		})
 	}
 	return out
@@ -2106,6 +2750,73 @@ func toIAMSessionPolicyStatements(items []entity.SessionPolicyStatement) []iamdo
 			Effect:          item.Effect,
 			ActionPattern:   item.ActionPattern,
 			ResourcePattern: item.ResourcePattern,
+			Conditions:      toIAMSessionPolicyConditions(item.Conditions),
+		})
+	}
+	return out
+}
+
+func toProtoPolicyConditions(items []iamdomain.PolicyCondition) []*pbauthv1.PolicyCondition {
+	out := make([]*pbauthv1.PolicyCondition, 0, len(items))
+	for _, item := range items {
+		out = append(out, &pbauthv1.PolicyCondition{
+			Operator: item.Operator,
+			Key:      item.Key,
+			Value:    item.Value,
+		})
+	}
+	return out
+}
+
+func fromProtoPolicyConditions(items []*pbauthv1.PolicyCondition) []iamdomain.PolicyCondition {
+	out := make([]iamdomain.PolicyCondition, 0, len(items))
+	for _, item := range items {
+		if item == nil {
+			continue
+		}
+		out = append(out, iamdomain.PolicyCondition{
+			Operator: item.Operator,
+			Key:      item.Key,
+			Value:    item.Value,
+		})
+	}
+	return out
+}
+
+func toProtoSessionPolicyConditions(items []entity.SessionPolicyCondition) []*pbauthv1.PolicyCondition {
+	out := make([]*pbauthv1.PolicyCondition, 0, len(items))
+	for _, item := range items {
+		out = append(out, &pbauthv1.PolicyCondition{
+			Operator: item.Operator,
+			Key:      item.Key,
+			Value:    item.Value,
+		})
+	}
+	return out
+}
+
+func fromProtoSessionPolicyConditions(items []*pbauthv1.PolicyCondition) []entity.SessionPolicyCondition {
+	out := make([]entity.SessionPolicyCondition, 0, len(items))
+	for _, item := range items {
+		if item == nil {
+			continue
+		}
+		out = append(out, entity.SessionPolicyCondition{
+			Operator: item.Operator,
+			Key:      item.Key,
+			Value:    item.Value,
+		})
+	}
+	return out
+}
+
+func toIAMSessionPolicyConditions(items []entity.SessionPolicyCondition) []iamdomain.PolicyCondition {
+	out := make([]iamdomain.PolicyCondition, 0, len(items))
+	for _, item := range items {
+		out = append(out, iamdomain.PolicyCondition{
+			Operator: item.Operator,
+			Key:      item.Key,
+			Value:    item.Value,
 		})
 	}
 	return out

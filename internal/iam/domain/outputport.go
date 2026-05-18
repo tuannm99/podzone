@@ -8,6 +8,8 @@ import (
 type TenantRepository interface {
 	Create(ctx context.Context, tenant Tenant) (*Tenant, error)
 	GetByID(ctx context.Context, tenantID string) (*Tenant, error)
+	AttachOrganization(ctx context.Context, tenantID string, orgID string) error
+	DetachOrganization(ctx context.Context, tenantID string) error
 }
 
 type RoleRepository interface {
@@ -16,12 +18,20 @@ type RoleRepository interface {
 	PutTrustPolicy(ctx context.Context, roleID uint64, statements []RoleTrustStatement) error
 	GetTrustPolicy(ctx context.Context, roleID uint64) ([]RoleTrustStatement, error)
 	DeleteTrustPolicy(ctx context.Context, roleID uint64) error
+	PutPermissionBoundary(ctx context.Context, roleID uint64, policyID uint64) error
+	GetPermissionBoundary(ctx context.Context, roleID uint64) (*RolePermissionBoundary, error)
+	GetPermissionBoundaryStatements(ctx context.Context, roleID uint64) ([]PolicyStatement, error)
+	DeletePermissionBoundary(ctx context.Context, roleID uint64) error
 }
 
 type PolicyRepository interface {
 	CreatePolicy(ctx context.Context, policy Policy, statements []PolicyStatement) (*Policy, []PolicyStatement, error)
+	CreatePolicyVersion(ctx context.Context, policyID uint64, policyName string, statements []PolicyStatement, setAsDefault bool) (*PolicyVersion, []PolicyStatement, error)
+	DeletePolicyVersion(ctx context.Context, policyID uint64, version string) error
 	GetPolicyByName(ctx context.Context, name string) (*Policy, error)
 	GetPolicyStatements(ctx context.Context, policyID uint64) ([]PolicyStatement, error)
+	ListPolicyVersions(ctx context.Context, policyID uint64, policyName string) ([]PolicyVersion, error)
+	SetDefaultPolicyVersion(ctx context.Context, policyID uint64, version string) error
 	ListPolicies(ctx context.Context, scope string) ([]Policy, error)
 	ListPolicyAttachments(ctx context.Context, policyID uint64) ([]PolicyAttachment, error)
 	DeletePolicy(ctx context.Context, policyID uint64) error
@@ -37,6 +47,10 @@ type PolicyRepository interface {
 	GetPlatformUserInlinePolicy(ctx context.Context, userID uint, name string) (*UserInlinePolicy, error)
 	ListPlatformUserInlinePolicies(ctx context.Context, userID uint) ([]UserInlinePolicy, error)
 	DeletePlatformUserInlinePolicy(ctx context.Context, userID uint, name string) error
+	PutPlatformUserPermissionBoundary(ctx context.Context, userID uint, policyID uint64) error
+	GetPlatformUserPermissionBoundary(ctx context.Context, userID uint) (*PermissionBoundary, error)
+	GetPlatformUserPermissionBoundaryStatements(ctx context.Context, userID uint) ([]PolicyStatement, error)
+	DeletePlatformUserPermissionBoundary(ctx context.Context, userID uint) error
 	AttachTenantUserPolicy(ctx context.Context, tenantID string, userID uint, policyID uint64) error
 	DetachTenantUserPolicy(ctx context.Context, tenantID string, userID uint, policyID uint64) error
 	ListTenantUserPolicies(ctx context.Context, tenantID string, userID uint) ([]Policy, error)
@@ -44,6 +58,10 @@ type PolicyRepository interface {
 	GetTenantUserInlinePolicy(ctx context.Context, tenantID string, userID uint, name string) (*UserInlinePolicy, error)
 	ListTenantUserInlinePolicies(ctx context.Context, tenantID string, userID uint) ([]UserInlinePolicy, error)
 	DeleteTenantUserInlinePolicy(ctx context.Context, tenantID string, userID uint, name string) error
+	PutTenantUserPermissionBoundary(ctx context.Context, tenantID string, userID uint, policyID uint64) error
+	GetTenantUserPermissionBoundary(ctx context.Context, tenantID string, userID uint) (*PermissionBoundary, error)
+	GetTenantUserPermissionBoundaryStatements(ctx context.Context, tenantID string, userID uint) ([]PolicyStatement, error)
+	DeleteTenantUserPermissionBoundary(ctx context.Context, tenantID string, userID uint) error
 }
 
 type GroupRepository interface {
@@ -84,4 +102,14 @@ type InviteRepository interface {
 	ListByTenant(ctx context.Context, tenantID string) ([]TenantInvite, error)
 	MarkAccepted(ctx context.Context, inviteID string, acceptedByUserID uint, acceptedAt time.Time) error
 	MarkRevoked(ctx context.Context, inviteID string, revokedAt time.Time) error
+}
+
+type OrganizationRepository interface {
+	Create(ctx context.Context, org Organization) (*Organization, error)
+	List(ctx context.Context) ([]Organization, error)
+	GetByID(ctx context.Context, orgID string) (*Organization, error)
+	AttachServiceControlPolicy(ctx context.Context, orgID string, policyID uint64) error
+	DetachServiceControlPolicy(ctx context.Context, orgID string, policyID uint64) error
+	ListServiceControlPolicies(ctx context.Context, orgID string) ([]Policy, error)
+	ListServiceControlPolicyStatements(ctx context.Context, orgID string) ([]PolicyStatement, error)
 }
