@@ -131,6 +131,8 @@ services:
         condition: service_started
       iam-service:
         condition: service_started
+      partner-service:
+        condition: service_started
     ports:
       - '8000:8000'
 

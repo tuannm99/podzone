@@ -31,7 +31,7 @@ func (r *PartnerRepositoryImpl) Create(
 	partner partnerdomain.Partner,
 ) (*partnerdomain.Partner, error) {
 	query, args, err := sq.Insert("partners").
-		Columns("id", "tenant_id", "code", "name", "contact_name", "contact_email", "notes", "partner_type", "status", "created_at", "updated_at").
+		Columns("id", "tenant_id", "code", "name", "contact_name", "contact_email", "notes", "partner_type", "status", "supported_product_types", "supported_regions", "sla_days", "routing_priority", "created_at", "updated_at").
 		Values(
 			partner.ID,
 			partner.TenantID,
@@ -42,10 +42,14 @@ func (r *PartnerRepositoryImpl) Create(
 			partner.Notes,
 			partner.PartnerType,
 			partner.Status,
+			partner.SupportedProductTypes,
+			partner.SupportedRegions,
+			partner.SLADays,
+			partner.RoutingPriority,
 			partner.CreatedAt,
 			partner.UpdatedAt,
 		).
-		Suffix("RETURNING id, tenant_id, code, name, contact_name, contact_email, notes, partner_type, status, created_at, updated_at").
+		Suffix("RETURNING id, tenant_id, code, name, contact_name, contact_email, notes, partner_type, status, supported_product_types, supported_regions, sla_days, routing_priority, created_at, updated_at").
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
@@ -73,6 +77,10 @@ func (r *PartnerRepositoryImpl) GetByID(ctx context.Context, id string) (*partne
 		"notes",
 		"partner_type",
 		"status",
+		"supported_product_types",
+		"supported_regions",
+		"sla_days",
+		"routing_priority",
 		"created_at",
 		"updated_at",
 	).From("partners").Where(sq.Eq{"id": id}).PlaceholderFormat(sq.Dollar).ToSql()
@@ -104,9 +112,13 @@ func (r *PartnerRepositoryImpl) List(
 		"notes",
 		"partner_type",
 		"status",
+		"supported_product_types",
+		"supported_regions",
+		"sla_days",
+		"routing_priority",
 		"created_at",
 		"updated_at",
-	).From("partners").Where(sq.Eq{"tenant_id": queryArg.TenantID}).OrderBy("created_at DESC")
+	).From("partners").Where(sq.Eq{"tenant_id": queryArg.TenantID}).OrderBy("routing_priority DESC", "created_at DESC")
 	if queryArg.Status != "" {
 		builder = builder.Where(sq.Eq{"status": queryArg.Status})
 	}
@@ -140,9 +152,13 @@ func (r *PartnerRepositoryImpl) Update(
 		Set("contact_email", partner.ContactEmail).
 		Set("notes", partner.Notes).
 		Set("partner_type", partner.PartnerType).
+		Set("supported_product_types", partner.SupportedProductTypes).
+		Set("supported_regions", partner.SupportedRegions).
+		Set("sla_days", partner.SLADays).
+		Set("routing_priority", partner.RoutingPriority).
 		Set("updated_at", partner.UpdatedAt).
 		Where(sq.Eq{"id": partner.ID}).
-		Suffix("RETURNING id, tenant_id, code, name, contact_name, contact_email, notes, partner_type, status, created_at, updated_at").
+		Suffix("RETURNING id, tenant_id, code, name, contact_name, contact_email, notes, partner_type, status, supported_product_types, supported_regions, sla_days, routing_priority, created_at, updated_at").
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
@@ -167,7 +183,7 @@ func (r *PartnerRepositoryImpl) UpdateStatus(
 		Set("status", status).
 		Set("updated_at", sq.Expr("NOW() AT TIME ZONE 'UTC'")).
 		Where(sq.Eq{"id": id}).
-		Suffix("RETURNING id, tenant_id, code, name, contact_name, contact_email, notes, partner_type, status, created_at, updated_at").
+		Suffix("RETURNING id, tenant_id, code, name, contact_name, contact_email, notes, partner_type, status, supported_product_types, supported_regions, sla_days, routing_priority, created_at, updated_at").
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {

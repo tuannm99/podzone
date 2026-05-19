@@ -9,12 +9,13 @@ import (
 
 	"github.com/tuannm99/podzone/internal/backoffice/domain/entity"
 	"github.com/tuannm99/podzone/internal/backoffice/domain/inputport"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 func TestCreateRoutedOrderSnapshotsCostsAndMargin(t *testing.T) {
 	t.Parallel()
 
-	interactor, _, _ := newOrderRoutingTestInteractor(t, map[string]entity.ProductSetupCandidate{
+	interactor, _, _, _ := newOrderRoutingTestInteractor(t, map[string]entity.ProductSetupCandidate{
 		"cand-1": {
 			ID:          "cand-1",
 			Title:       "Vintage Tee",
@@ -25,10 +26,13 @@ func TestCreateRoutedOrderSnapshotsCostsAndMargin(t *testing.T) {
 		},
 	})
 
-	order, err := interactor.CreateRoutedOrder(context.Background(), inputport.CreateRoutedOrderCmd{
+	ctx := toolkit.WithTenantID(context.Background(), "t_demo")
+	order, err := interactor.CreateRoutedOrder(ctx, inputport.CreateRoutedOrderCmd{
 		CandidateID:  "cand-1",
 		CustomerName: "Alex POD",
 		Quantity:     2,
+		ProductType:  "tshirt",
+		ShipRegion:   "us",
 	})
 	require.NoError(t, err)
 	require.Equal(t, entity.RoutedOrderStatusQueued, order.Status)
@@ -45,10 +49,44 @@ func TestCreateRoutedOrderSnapshotsCostsAndMargin(t *testing.T) {
 	require.NotEmpty(t, order.ActivityLog[0].Details)
 }
 
+func TestRecommendRoutedOrderPartnerPrefersEligibleRequestedPartner(t *testing.T) {
+	t.Parallel()
+
+	interactor, _, _, _ := newOrderRoutingTestInteractor(t, map[string]entity.ProductSetupCandidate{
+		"cand-1": {
+			ID:      "cand-1",
+			Title:   "Vintage Tee",
+			Partner: "Print Partner A",
+			Status:  entity.ProductSetupCandidateStatusPublishedMock,
+		},
+	})
+
+	ctx := toolkit.WithTenantID(context.Background(), "t_demo")
+	recommendation, err := interactor.RecommendRoutedOrderPartner(ctx, inputport.RecommendRoutedOrderPartnerQuery{
+		CandidateID:      "cand-1",
+		ProductType:      "tshirt",
+		ShipRegion:       "us",
+		PreferredPartner: "Fulfill Fast",
+	})
+	require.NoError(t, err)
+	require.Equal(t, "cand-1", recommendation.CandidateID)
+	require.Equal(t, "Fulfill Fast", recommendation.SelectedPartner)
+	require.Equal(t, "Print Partner A", recommendation.CandidatePartner)
+	require.NotEmpty(t, recommendation.Options)
+	foundPreferred := false
+	for _, option := range recommendation.Options {
+		if option.Partner.Name == "Fulfill Fast" {
+			foundPreferred = true
+			require.True(t, option.Eligible)
+		}
+	}
+	require.True(t, foundPreferred)
+}
+
 func TestUpdateOrderSettlementRecalculatesMarginIncludingIssueCost(t *testing.T) {
 	t.Parallel()
 
-	interactor, orders, _ := newOrderRoutingTestInteractor(t, nil)
+	interactor, orders, _, _ := newOrderRoutingTestInteractor(t, nil)
 	orders.mustSeed(entity.RoutedOrder{
 		ID:               "ord-1",
 		Total:            "$40.00",
@@ -83,7 +121,7 @@ func TestUpdateOrderSettlementRecalculatesMarginIncludingIssueCost(t *testing.T)
 func TestUpdateOrderIssueHandlingRequiresActiveIssue(t *testing.T) {
 	t.Parallel()
 
-	interactor, orders, _ := newOrderRoutingTestInteractor(t, nil)
+	interactor, orders, _, _ := newOrderRoutingTestInteractor(t, nil)
 	orders.mustSeed(entity.RoutedOrder{
 		ID:               "ord-no-issue",
 		Total:            "$40.00",
@@ -107,7 +145,7 @@ func TestUpdateOrderIssueHandlingRequiresActiveIssue(t *testing.T) {
 func TestUpdateOrderIssueHandlingRecalculatesMargin(t *testing.T) {
 	t.Parallel()
 
-	interactor, orders, _ := newOrderRoutingTestInteractor(t, nil)
+	interactor, orders, _, _ := newOrderRoutingTestInteractor(t, nil)
 	orders.mustSeed(entity.RoutedOrder{
 		ID:               "ord-issue",
 		Total:            "$40.00",
@@ -144,7 +182,7 @@ func TestUpdateOrderQueueControlNormalizesAssigneeAndPersistsSLA(t *testing.T) {
 
 	shipmentSLA := time.Date(2026, 5, 15, 12, 0, 0, 0, time.UTC)
 	issueSLA := shipmentSLA.Add(4 * time.Hour)
-	interactor, orders, _ := newOrderRoutingTestInteractor(t, nil)
+	interactor, orders, _, _ := newOrderRoutingTestInteractor(t, nil)
 	orders.mustSeed(entity.RoutedOrder{
 		ID:       "ord-queue",
 		Timeline: []string{"created"},
@@ -171,7 +209,7 @@ func TestBulkUpdateRoutedOrdersUpdatesSelectedOrders(t *testing.T) {
 	shipmentSLA := time.Date(2026, 5, 15, 18, 30, 0, 0, time.UTC)
 	assignee := "ops.lead"
 	settlementStatus := entity.RoutedOrderSettlementStatusPaid
-	interactor, orders, _ := newOrderRoutingTestInteractor(t, nil)
+	interactor, orders, _, _ := newOrderRoutingTestInteractor(t, nil)
 	orders.mustSeed(entity.RoutedOrder{
 		ID:               "ord-1",
 		OperatorAssignee: "unassigned",
@@ -206,7 +244,7 @@ func TestListRoutedOrderActivitiesFiltersAndSorts(t *testing.T) {
 	t.Parallel()
 
 	now := time.Date(2026, 5, 15, 12, 0, 0, 0, time.UTC)
-	interactor, orders, _ := newOrderRoutingTestInteractor(t, nil)
+	interactor, orders, _, _ := newOrderRoutingTestInteractor(t, nil)
 	orders.mustSeed(entity.RoutedOrder{
 		ID:               "ord-1",
 		ProductTitle:     "Vintage Tee",
@@ -277,7 +315,7 @@ func TestListRoutedOrderActivitiesFiltersAndSorts(t *testing.T) {
 func TestAdvanceRoutedOrderBlocksWhenExceptionActive(t *testing.T) {
 	t.Parallel()
 
-	interactor, orders, _ := newOrderRoutingTestInteractor(t, nil)
+	interactor, orders, _, _ := newOrderRoutingTestInteractor(t, nil)
 	orders.mustSeed(entity.RoutedOrder{
 		ID:              "ord-blocked",
 		Status:          entity.RoutedOrderStatusQueued,
@@ -293,7 +331,7 @@ func TestAdvanceRoutedOrderBlocksWhenExceptionActive(t *testing.T) {
 func TestAdvanceRoutedOrderTransitionsQueuedToProduction(t *testing.T) {
 	t.Parallel()
 
-	interactor, orders, _ := newOrderRoutingTestInteractor(t, nil)
+	interactor, orders, _, _ := newOrderRoutingTestInteractor(t, nil)
 	orders.mustSeed(entity.RoutedOrder{
 		ID:       "ord-advance",
 		Status:   entity.RoutedOrderStatusQueued,
@@ -310,7 +348,7 @@ func TestAdvanceRoutedOrderTransitionsQueuedToProduction(t *testing.T) {
 func TestOpenAndResolveOrderException(t *testing.T) {
 	t.Parallel()
 
-	interactor, orders, _ := newOrderRoutingTestInteractor(t, nil)
+	interactor, orders, _, _ := newOrderRoutingTestInteractor(t, nil)
 	orders.mustSeed(entity.RoutedOrder{
 		ID:       "ord-exception",
 		Timeline: []string{"created"},
@@ -340,7 +378,7 @@ func TestOpenAndResolveOrderException(t *testing.T) {
 func TestUpdateOrderShipmentMarksInTransitAndAppendsTracking(t *testing.T) {
 	t.Parallel()
 
-	interactor, orders, _ := newOrderRoutingTestInteractor(t, nil)
+	interactor, orders, _, _ := newOrderRoutingTestInteractor(t, nil)
 	orders.mustSeed(entity.RoutedOrder{
 		ID:             "ord-ship",
 		Status:         entity.RoutedOrderStatusQueued,
@@ -374,7 +412,7 @@ func TestUpdateOrderShipmentMarksDelivered(t *testing.T) {
 	t.Parallel()
 
 	shippedAt := time.Date(2026, 5, 15, 8, 0, 0, 0, time.UTC)
-	interactor, orders, _ := newOrderRoutingTestInteractor(t, nil)
+	interactor, orders, _, _ := newOrderRoutingTestInteractor(t, nil)
 	orders.mustSeed(entity.RoutedOrder{
 		ID:             "ord-delivered",
 		Status:         entity.RoutedOrderStatusShipped,

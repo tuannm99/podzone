@@ -211,6 +211,26 @@
         },
         "partnerType": {
           "type": "string"
+        },
+        "supportedProductTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "supportedRegions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "slaDays": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "routingPriority": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
@@ -245,6 +265,26 @@
         },
         "partnerType": {
           "type": "string"
+        },
+        "supportedProductTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "supportedRegions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "slaDays": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "routingPriority": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
@@ -297,6 +337,26 @@
         "updatedAt": {
           "type": "string",
           "format": "date-time"
+        },
+        "supportedProductTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "supportedRegions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "slaDays": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "routingPriority": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },

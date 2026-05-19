@@ -19,6 +19,7 @@ var Module = fx.Options(
 		boconfig.NewConfigFromKoanf,
 		fx.Annotate(NewTenantAuthorizer, fx.As(new(TenantAuthorizer))),
 		fx.Annotate(NewTenantBootstrapper, fx.As(new(TenantBootstrapper))),
+		fx.Annotate(NewPartnerDirectory, fx.As(new(outputport.PartnerDirectory))),
 
 		// --- Infrastructure layer ---
 		fx.Annotate(repository.NewStoreRepository, fx.As(new(outputport.StoreRepository))),

@@ -4,8 +4,10 @@ import {
   advanceRoutedOrder,
   bulkUpdateRoutedOrders,
   createRoutedOrder,
+  getRoutedOrderRecommendation,
   getRoutedOrders,
   openRoutedOrderException,
+  type RoutedOrderRecommendation,
   type RoutedOrder,
   updateRoutedOrderExceptionStatus,
   updateRoutedOrderIssueHandling,
@@ -69,6 +71,20 @@ const issueResolutionOptions = [
   { name: 'Refund', value: 'refund' },
   { name: 'Carrier claim', value: 'carrier_claim' },
   { name: 'Address retry', value: 'address_retry' },
+];
+
+const productTypeOptions = [
+  { name: 'T-shirt', value: 'tshirt' },
+  { name: 'Hoodie', value: 'hoodie' },
+  { name: 'Tote', value: 'tote' },
+  { name: 'Poster', value: 'poster' },
+];
+
+const shipRegionOptions = [
+  { name: 'US', value: 'us' },
+  { name: 'EU', value: 'eu' },
+  { name: 'UK', value: 'uk' },
+  { name: 'SEA', value: 'sea' },
 ];
 
 const activityFilterOptions = [
@@ -351,6 +367,11 @@ export default function TenantOrdersPage() {
   const [selectedCandidateId, setSelectedCandidateId] = createSignal('');
   const [customerName, setCustomerName] = createSignal('');
   const [quantity, setQuantity] = createSignal('1');
+  const [selectedProductType, setSelectedProductType] = createSignal('tshirt');
+  const [selectedShipRegion, setSelectedShipRegion] = createSignal('us');
+  const [preferredPartner, setPreferredPartner] = createSignal('');
+  const [routingRecommendation, setRoutingRecommendation] =
+    createSignal<RoutedOrderRecommendation | null>(null);
   const [selectedExceptionType, setSelectedExceptionType] =
     createSignal('artwork_issue');
   const [activeQueueView, setActiveQueueView] = createSignal<QueueView>('all');
@@ -514,6 +535,26 @@ export default function TenantOrdersPage() {
         setOperatorLens(firstAssigned.operatorAssignee);
       }
     }
+  };
+
+  const loadRoutingRecommendation = async () => {
+    const candidateID = selectedCandidateId().trim();
+    if (!candidateID) {
+      setRoutingRecommendation(null);
+      return;
+    }
+    const result = await getRoutedOrderRecommendation({
+      candidateId: candidateID,
+      productType: selectedProductType(),
+      shipRegion: selectedShipRegion(),
+      preferredPartner: preferredPartner().trim() || undefined,
+    });
+    if (!result.success) {
+      setError(result.message);
+      setRoutingRecommendation(null);
+      return;
+    }
+    setRoutingRecommendation(result.data);
   };
 
   const matchesQueueView = (order: RoutedOrder, view: QueueView) => {
@@ -830,6 +871,9 @@ export default function TenantOrdersPage() {
       candidateId: candidate.id,
       customerName: customerName().trim(),
       quantity: Math.max(1, Number.parseInt(quantity(), 10) || 1),
+      productType: selectedProductType(),
+      shipRegion: selectedShipRegion(),
+      preferredPartner: preferredPartner().trim() || undefined,
     });
     if (!result.success) {
       setError(result.message);
@@ -838,6 +882,7 @@ export default function TenantOrdersPage() {
     setOrders((current) => [result.data, ...current]);
     setCustomerName('');
     setQuantity('1');
+    setPreferredPartner('');
     setMessage(`Created routed order ${result.data.id}.`);
   };
 
@@ -1061,6 +1106,10 @@ export default function TenantOrdersPage() {
     }
   });
 
+  createEffect(() => {
+    void loadRoutingRecommendation();
+  });
+
   return (
     <PageShell>
       <Card class="space-y-4">
@@ -1125,6 +1174,77 @@ export default function TenantOrdersPage() {
                   onInput={(event) => setQuantity(event.currentTarget.value)}
                 />
               </div>
+              <div class="grid gap-4 md:grid-cols-3">
+                <SelectField
+                  label="Product type"
+                  value={selectedProductType()}
+                  options={productTypeOptions}
+                  onChange={(event) =>
+                    setSelectedProductType(event.currentTarget.value)
+                  }
+                />
+                <SelectField
+                  label="Ship region"
+                  value={selectedShipRegion()}
+                  options={shipRegionOptions}
+                  onChange={(event) =>
+                    setSelectedShipRegion(event.currentTarget.value)
+                  }
+                />
+                <InputField
+                  label="Preferred partner"
+                  value={preferredPartner()}
+                  placeholder="optional code or name"
+                  onInput={(event) =>
+                    setPreferredPartner(event.currentTarget.value)
+                  }
+                />
+              </div>
+              <Show when={routingRecommendation()}>
+                {(recommendation) => (
+                  <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <Badge content="routing recommendation" color="blue" />
+                      <Show when={recommendation().selectedPartner}>
+                        <Badge
+                          content={`selected ${recommendation().selectedPartner}`}
+                          color="green"
+                        />
+                      </Show>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-600">
+                      {recommendation().summary}
+                    </p>
+                    <div class="mt-3 space-y-2">
+                      <For each={recommendation().options.slice(0, 4)}>
+                        {(option) => (
+                          <div class="rounded-xl bg-white p-3 text-sm text-gray-600">
+                            <div class="flex flex-wrap items-center gap-2">
+                              <Badge
+                                content={option.partner.name}
+                                color={option.eligible ? 'green' : 'dark'}
+                              />
+                              <Badge
+                                content={`priority ${option.partner.routingPriority}`}
+                                color="blue"
+                              />
+                              <Badge
+                                content={`${option.partner.slaDays}d sla`}
+                                color="indigo"
+                              />
+                            </div>
+                            <p class="mt-2">{option.reason}</p>
+                            <p class="mt-1 text-xs text-gray-500">
+                              Products: {option.partner.supportedProductTypes.join(', ') || 'Any'} ·
+                              Regions: {option.partner.supportedRegions.join(', ') || 'Any'}
+                            </p>
+                          </div>
+                        )}
+                      </For>
+                    </div>
+                  </div>
+                )}
+              </Show>
               <SelectField
                 label="Default exception scenario"
                 value={selectedExceptionType()}

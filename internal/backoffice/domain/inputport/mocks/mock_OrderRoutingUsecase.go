@@ -441,6 +441,74 @@ func (_c *MockOrderRoutingUsecase_OpenOrderException_Call) RunAndReturn(run func
 	return _c
 }
 
+// RecommendRoutedOrderPartner provides a mock function for the type MockOrderRoutingUsecase
+func (_mock *MockOrderRoutingUsecase) RecommendRoutedOrderPartner(ctx context.Context, query inputport.RecommendRoutedOrderPartnerQuery) (*entity.RoutedOrderRecommendation, error) {
+	ret := _mock.Called(ctx, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RecommendRoutedOrderPartner")
+	}
+
+	var r0 *entity.RoutedOrderRecommendation
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.RecommendRoutedOrderPartnerQuery) (*entity.RoutedOrderRecommendation, error)); ok {
+		return returnFunc(ctx, query)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.RecommendRoutedOrderPartnerQuery) *entity.RoutedOrderRecommendation); ok {
+		r0 = returnFunc(ctx, query)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.RoutedOrderRecommendation)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, inputport.RecommendRoutedOrderPartnerQuery) error); ok {
+		r1 = returnFunc(ctx, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockOrderRoutingUsecase_RecommendRoutedOrderPartner_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RecommendRoutedOrderPartner'
+type MockOrderRoutingUsecase_RecommendRoutedOrderPartner_Call struct {
+	*mock.Call
+}
+
+// RecommendRoutedOrderPartner is a helper method to define mock.On call
+//   - ctx context.Context
+//   - query inputport.RecommendRoutedOrderPartnerQuery
+func (_e *MockOrderRoutingUsecase_Expecter) RecommendRoutedOrderPartner(ctx interface{}, query interface{}) *MockOrderRoutingUsecase_RecommendRoutedOrderPartner_Call {
+	return &MockOrderRoutingUsecase_RecommendRoutedOrderPartner_Call{Call: _e.mock.On("RecommendRoutedOrderPartner", ctx, query)}
+}
+
+func (_c *MockOrderRoutingUsecase_RecommendRoutedOrderPartner_Call) Run(run func(ctx context.Context, query inputport.RecommendRoutedOrderPartnerQuery)) *MockOrderRoutingUsecase_RecommendRoutedOrderPartner_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 inputport.RecommendRoutedOrderPartnerQuery
+		if args[1] != nil {
+			arg1 = args[1].(inputport.RecommendRoutedOrderPartnerQuery)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockOrderRoutingUsecase_RecommendRoutedOrderPartner_Call) Return(routedOrderRecommendation *entity.RoutedOrderRecommendation, err error) *MockOrderRoutingUsecase_RecommendRoutedOrderPartner_Call {
+	_c.Call.Return(routedOrderRecommendation, err)
+	return _c
+}
+
+func (_c *MockOrderRoutingUsecase_RecommendRoutedOrderPartner_Call) RunAndReturn(run func(ctx context.Context, query inputport.RecommendRoutedOrderPartnerQuery) (*entity.RoutedOrderRecommendation, error)) *MockOrderRoutingUsecase_RecommendRoutedOrderPartner_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // UpdateOrderExceptionStatus provides a mock function for the type MockOrderRoutingUsecase
 func (_mock *MockOrderRoutingUsecase) UpdateOrderExceptionStatus(ctx context.Context, cmd inputport.UpdateOrderExceptionStatusCmd) (*entity.RoutedOrder, error) {
 	ret := _mock.Called(ctx, cmd)

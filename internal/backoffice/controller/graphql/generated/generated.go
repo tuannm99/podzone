@@ -65,6 +65,18 @@ type ComplexityRoot struct {
 		UpdateProductSetupCandidateStatus func(childComplexity int, id string, status string) int
 	}
 
+	PartnerRoutingProfile struct {
+		Code                  func(childComplexity int) int
+		ID                    func(childComplexity int) int
+		Name                  func(childComplexity int) int
+		PartnerType           func(childComplexity int) int
+		RoutingPriority       func(childComplexity int) int
+		SLADays               func(childComplexity int) int
+		Status                func(childComplexity int) int
+		SupportedProductTypes func(childComplexity int) int
+		SupportedRegions      func(childComplexity int) int
+	}
+
 	ProductSetupArtworkChecklist struct {
 		BackArtwork      func(childComplexity int) int
 		FrontArtwork     func(childComplexity int) int
@@ -115,13 +127,14 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		ProductSetupSnapshot  func(childComplexity int) int
-		RoutedOrderActivities func(childComplexity int, input *model.RoutedOrderActivityFeedInput) int
-		RoutedOrders          func(childComplexity int) int
-		Store                 func(childComplexity int, id string) int
-		StoreConfig           func(childComplexity int, id string) int
-		StoreConfigs          func(childComplexity int) int
-		Stores                func(childComplexity int) int
+		ProductSetupSnapshot      func(childComplexity int) int
+		RoutedOrderActivities     func(childComplexity int, input *model.RoutedOrderActivityFeedInput) int
+		RoutedOrderRecommendation func(childComplexity int, input model.RoutedOrderRecommendationInput) int
+		RoutedOrders              func(childComplexity int) int
+		Store                     func(childComplexity int, id string) int
+		StoreConfig               func(childComplexity int, id string) int
+		StoreConfigs              func(childComplexity int) int
+		Stores                    func(childComplexity int) int
 	}
 
 	RoutedOrder struct {
@@ -187,6 +200,23 @@ type ComplexityRoot struct {
 		Total      func(childComplexity int) int
 	}
 
+	RoutedOrderRecommendation struct {
+		CandidateID      func(childComplexity int) int
+		CandidatePartner func(childComplexity int) int
+		Options          func(childComplexity int) int
+		ProductTitle     func(childComplexity int) int
+		ProductType      func(childComplexity int) int
+		SelectedPartner  func(childComplexity int) int
+		ShipRegion       func(childComplexity int) int
+		Summary          func(childComplexity int) int
+	}
+
+	RoutingPartnerOption struct {
+		Eligible func(childComplexity int) int
+		Partner  func(childComplexity int) int
+		Reason   func(childComplexity int) int
+	}
+
 	Store struct {
 		CreatedAt   func(childComplexity int) int
 		Description func(childComplexity int) int
@@ -228,6 +258,7 @@ type QueryResolver interface {
 	ProductSetupSnapshot(ctx context.Context) (*model.ProductSetupSnapshot, error)
 	RoutedOrders(ctx context.Context) ([]*model.RoutedOrder, error)
 	RoutedOrderActivities(ctx context.Context, input *model.RoutedOrderActivityFeedInput) (*model.RoutedOrderActivityFeedPage, error)
+	RoutedOrderRecommendation(ctx context.Context, input model.RoutedOrderRecommendationInput) (*model.RoutedOrderRecommendation, error)
 	Stores(ctx context.Context) ([]*model.Store, error)
 	Store(ctx context.Context, id string) (*model.Store, error)
 	StoreConfigs(ctx context.Context) ([]*model.StoreConfig, error)
@@ -418,6 +449,61 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.UpdateProductSetupCandidateStatus(childComplexity, args["id"].(string), args["status"].(string)), true
+
+	case "PartnerRoutingProfile.code":
+		if e.complexity.PartnerRoutingProfile.Code == nil {
+			break
+		}
+
+		return e.complexity.PartnerRoutingProfile.Code(childComplexity), true
+	case "PartnerRoutingProfile.id":
+		if e.complexity.PartnerRoutingProfile.ID == nil {
+			break
+		}
+
+		return e.complexity.PartnerRoutingProfile.ID(childComplexity), true
+	case "PartnerRoutingProfile.name":
+		if e.complexity.PartnerRoutingProfile.Name == nil {
+			break
+		}
+
+		return e.complexity.PartnerRoutingProfile.Name(childComplexity), true
+	case "PartnerRoutingProfile.partnerType":
+		if e.complexity.PartnerRoutingProfile.PartnerType == nil {
+			break
+		}
+
+		return e.complexity.PartnerRoutingProfile.PartnerType(childComplexity), true
+	case "PartnerRoutingProfile.routingPriority":
+		if e.complexity.PartnerRoutingProfile.RoutingPriority == nil {
+			break
+		}
+
+		return e.complexity.PartnerRoutingProfile.RoutingPriority(childComplexity), true
+	case "PartnerRoutingProfile.slaDays":
+		if e.complexity.PartnerRoutingProfile.SLADays == nil {
+			break
+		}
+
+		return e.complexity.PartnerRoutingProfile.SLADays(childComplexity), true
+	case "PartnerRoutingProfile.status":
+		if e.complexity.PartnerRoutingProfile.Status == nil {
+			break
+		}
+
+		return e.complexity.PartnerRoutingProfile.Status(childComplexity), true
+	case "PartnerRoutingProfile.supportedProductTypes":
+		if e.complexity.PartnerRoutingProfile.SupportedProductTypes == nil {
+			break
+		}
+
+		return e.complexity.PartnerRoutingProfile.SupportedProductTypes(childComplexity), true
+	case "PartnerRoutingProfile.supportedRegions":
+		if e.complexity.PartnerRoutingProfile.SupportedRegions == nil {
+			break
+		}
+
+		return e.complexity.PartnerRoutingProfile.SupportedRegions(childComplexity), true
 
 	case "ProductSetupArtworkChecklist.backArtwork":
 		if e.complexity.ProductSetupArtworkChecklist.BackArtwork == nil {
@@ -645,6 +731,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.RoutedOrderActivities(childComplexity, args["input"].(*model.RoutedOrderActivityFeedInput)), true
+	case "Query.routedOrderRecommendation":
+		if e.complexity.Query.RoutedOrderRecommendation == nil {
+			break
+		}
+
+		args, err := ec.field_Query_routedOrderRecommendation_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.RoutedOrderRecommendation(childComplexity, args["input"].(model.RoutedOrderRecommendationInput)), true
 	case "Query.routedOrders":
 		if e.complexity.Query.RoutedOrders == nil {
 			break
@@ -979,6 +1076,74 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.RoutedOrderActivityFeedPage.Total(childComplexity), true
 
+	case "RoutedOrderRecommendation.candidateId":
+		if e.complexity.RoutedOrderRecommendation.CandidateID == nil {
+			break
+		}
+
+		return e.complexity.RoutedOrderRecommendation.CandidateID(childComplexity), true
+	case "RoutedOrderRecommendation.candidatePartner":
+		if e.complexity.RoutedOrderRecommendation.CandidatePartner == nil {
+			break
+		}
+
+		return e.complexity.RoutedOrderRecommendation.CandidatePartner(childComplexity), true
+	case "RoutedOrderRecommendation.options":
+		if e.complexity.RoutedOrderRecommendation.Options == nil {
+			break
+		}
+
+		return e.complexity.RoutedOrderRecommendation.Options(childComplexity), true
+	case "RoutedOrderRecommendation.productTitle":
+		if e.complexity.RoutedOrderRecommendation.ProductTitle == nil {
+			break
+		}
+
+		return e.complexity.RoutedOrderRecommendation.ProductTitle(childComplexity), true
+	case "RoutedOrderRecommendation.productType":
+		if e.complexity.RoutedOrderRecommendation.ProductType == nil {
+			break
+		}
+
+		return e.complexity.RoutedOrderRecommendation.ProductType(childComplexity), true
+	case "RoutedOrderRecommendation.selectedPartner":
+		if e.complexity.RoutedOrderRecommendation.SelectedPartner == nil {
+			break
+		}
+
+		return e.complexity.RoutedOrderRecommendation.SelectedPartner(childComplexity), true
+	case "RoutedOrderRecommendation.shipRegion":
+		if e.complexity.RoutedOrderRecommendation.ShipRegion == nil {
+			break
+		}
+
+		return e.complexity.RoutedOrderRecommendation.ShipRegion(childComplexity), true
+	case "RoutedOrderRecommendation.summary":
+		if e.complexity.RoutedOrderRecommendation.Summary == nil {
+			break
+		}
+
+		return e.complexity.RoutedOrderRecommendation.Summary(childComplexity), true
+
+	case "RoutingPartnerOption.eligible":
+		if e.complexity.RoutingPartnerOption.Eligible == nil {
+			break
+		}
+
+		return e.complexity.RoutingPartnerOption.Eligible(childComplexity), true
+	case "RoutingPartnerOption.partner":
+		if e.complexity.RoutingPartnerOption.Partner == nil {
+			break
+		}
+
+		return e.complexity.RoutingPartnerOption.Partner(childComplexity), true
+	case "RoutingPartnerOption.reason":
+		if e.complexity.RoutingPartnerOption.Reason == nil {
+			break
+		}
+
+		return e.complexity.RoutingPartnerOption.Reason(childComplexity), true
+
 	case "Store.created_at":
 		if e.complexity.Store.CreatedAt == nil {
 			break
@@ -1075,6 +1240,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputProductSetupArtworkChecklistInput,
 		ec.unmarshalInputPromoteProductSetupCandidateInput,
 		ec.unmarshalInputRoutedOrderActivityFeedInput,
+		ec.unmarshalInputRoutedOrderRecommendationInput,
 		ec.unmarshalInputUpdateOrderExceptionStatusInput,
 		ec.unmarshalInputUpdateOrderIssueHandlingInput,
 		ec.unmarshalInputUpdateOrderQueueControlInput,
@@ -1255,6 +1421,35 @@ type RoutedOrderActivityFeedPage {
   nextCursor: String
 }
 
+type PartnerRoutingProfile {
+  id: ID!
+  code: String!
+  name: String!
+  partnerType: String!
+  status: String!
+  supportedProductTypes: [String!]!
+  supportedRegions: [String!]!
+  slaDays: Int!
+  routingPriority: Int!
+}
+
+type RoutingPartnerOption {
+  partner: PartnerRoutingProfile!
+  eligible: Boolean!
+  reason: String!
+}
+
+type RoutedOrderRecommendation {
+  candidateId: ID!
+  productTitle: String!
+  candidatePartner: String!
+  productType: String!
+  shipRegion: String!
+  selectedPartner: String!
+  summary: String!
+  options: [RoutingPartnerOption!]!
+}
+
 type RoutedOrder {
   id: ID!
   candidateId: ID!
@@ -1320,6 +1515,16 @@ input CreateRoutedOrderInput {
   candidateId: ID!
   customerName: String!
   quantity: Int!
+  productType: String!
+  shipRegion: String!
+  preferredPartner: String
+}
+
+input RoutedOrderRecommendationInput {
+  candidateId: ID!
+  productType: String!
+  shipRegion: String!
+  preferredPartner: String
 }
 
 input OpenOrderExceptionInput {
@@ -1385,17 +1590,31 @@ input RoutedOrderActivityFeedInput {
 extend type Query {
   productSetupSnapshot: ProductSetupSnapshot!
   routedOrders: [RoutedOrder!]!
-  routedOrderActivities(input: RoutedOrderActivityFeedInput): RoutedOrderActivityFeedPage!
+  routedOrderActivities(
+    input: RoutedOrderActivityFeedInput
+  ): RoutedOrderActivityFeedPage!
+  routedOrderRecommendation(
+    input: RoutedOrderRecommendationInput!
+  ): RoutedOrderRecommendation!
 }
 
 extend type Mutation {
-  createProductSetupDraft(input: CreateProductSetupDraftInput!): ProductSetupDraft!
-  promoteProductSetupCandidate(input: PromoteProductSetupCandidateInput!): ProductSetupCandidate!
-  updateProductSetupCandidateStatus(id: ID!, status: String!): ProductSetupCandidate!
+  createProductSetupDraft(
+    input: CreateProductSetupDraftInput!
+  ): ProductSetupDraft!
+  promoteProductSetupCandidate(
+    input: PromoteProductSetupCandidateInput!
+  ): ProductSetupCandidate!
+  updateProductSetupCandidateStatus(
+    id: ID!
+    status: String!
+  ): ProductSetupCandidate!
   createRoutedOrder(input: CreateRoutedOrderInput!): RoutedOrder!
   advanceRoutedOrder(id: ID!): RoutedOrder!
   openOrderException(input: OpenOrderExceptionInput!): RoutedOrder!
-  updateOrderExceptionStatus(input: UpdateOrderExceptionStatusInput!): RoutedOrder!
+  updateOrderExceptionStatus(
+    input: UpdateOrderExceptionStatusInput!
+  ): RoutedOrder!
   updateOrderShipment(input: UpdateOrderShipmentInput!): RoutedOrder!
   updateOrderSettlement(input: UpdateOrderSettlementInput!): RoutedOrder!
   updateOrderIssueHandling(input: UpdateOrderIssueHandlingInput!): RoutedOrder!
@@ -1635,6 +1854,17 @@ func (ec *executionContext) field_Query_routedOrderActivities_args(ctx context.C
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalORoutedOrderActivityFeedInput2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐRoutedOrderActivityFeedInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_routedOrderRecommendation_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNRoutedOrderRecommendationInput2githubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐRoutedOrderRecommendationInput)
 	if err != nil {
 		return nil, err
 	}
@@ -3077,6 +3307,267 @@ func (ec *executionContext) fieldContext_Mutation_deactivateStore(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _PartnerRoutingProfile_id(ctx context.Context, field graphql.CollectedField, obj *model.PartnerRoutingProfile) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PartnerRoutingProfile_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PartnerRoutingProfile_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PartnerRoutingProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PartnerRoutingProfile_code(ctx context.Context, field graphql.CollectedField, obj *model.PartnerRoutingProfile) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PartnerRoutingProfile_code,
+		func(ctx context.Context) (any, error) {
+			return obj.Code, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PartnerRoutingProfile_code(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PartnerRoutingProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PartnerRoutingProfile_name(ctx context.Context, field graphql.CollectedField, obj *model.PartnerRoutingProfile) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PartnerRoutingProfile_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PartnerRoutingProfile_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PartnerRoutingProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PartnerRoutingProfile_partnerType(ctx context.Context, field graphql.CollectedField, obj *model.PartnerRoutingProfile) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PartnerRoutingProfile_partnerType,
+		func(ctx context.Context) (any, error) {
+			return obj.PartnerType, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PartnerRoutingProfile_partnerType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PartnerRoutingProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PartnerRoutingProfile_status(ctx context.Context, field graphql.CollectedField, obj *model.PartnerRoutingProfile) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PartnerRoutingProfile_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PartnerRoutingProfile_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PartnerRoutingProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PartnerRoutingProfile_supportedProductTypes(ctx context.Context, field graphql.CollectedField, obj *model.PartnerRoutingProfile) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PartnerRoutingProfile_supportedProductTypes,
+		func(ctx context.Context) (any, error) {
+			return obj.SupportedProductTypes, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PartnerRoutingProfile_supportedProductTypes(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PartnerRoutingProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PartnerRoutingProfile_supportedRegions(ctx context.Context, field graphql.CollectedField, obj *model.PartnerRoutingProfile) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PartnerRoutingProfile_supportedRegions,
+		func(ctx context.Context) (any, error) {
+			return obj.SupportedRegions, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PartnerRoutingProfile_supportedRegions(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PartnerRoutingProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PartnerRoutingProfile_slaDays(ctx context.Context, field graphql.CollectedField, obj *model.PartnerRoutingProfile) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PartnerRoutingProfile_slaDays,
+		func(ctx context.Context) (any, error) {
+			return obj.SLADays, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PartnerRoutingProfile_slaDays(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PartnerRoutingProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PartnerRoutingProfile_routingPriority(ctx context.Context, field graphql.CollectedField, obj *model.PartnerRoutingProfile) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PartnerRoutingProfile_routingPriority,
+		func(ctx context.Context) (any, error) {
+			return obj.RoutingPriority, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PartnerRoutingProfile_routingPriority(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PartnerRoutingProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ProductSetupArtworkChecklist_frontArtwork(ctx context.Context, field graphql.CollectedField, obj *model.ProductSetupArtworkChecklist) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -4310,6 +4801,65 @@ func (ec *executionContext) fieldContext_Query_routedOrderActivities(ctx context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_routedOrderActivities_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_routedOrderRecommendation(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_routedOrderRecommendation,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().RoutedOrderRecommendation(ctx, fc.Args["input"].(model.RoutedOrderRecommendationInput))
+		},
+		nil,
+		ec.marshalNRoutedOrderRecommendation2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐRoutedOrderRecommendation,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_routedOrderRecommendation(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "candidateId":
+				return ec.fieldContext_RoutedOrderRecommendation_candidateId(ctx, field)
+			case "productTitle":
+				return ec.fieldContext_RoutedOrderRecommendation_productTitle(ctx, field)
+			case "candidatePartner":
+				return ec.fieldContext_RoutedOrderRecommendation_candidatePartner(ctx, field)
+			case "productType":
+				return ec.fieldContext_RoutedOrderRecommendation_productType(ctx, field)
+			case "shipRegion":
+				return ec.fieldContext_RoutedOrderRecommendation_shipRegion(ctx, field)
+			case "selectedPartner":
+				return ec.fieldContext_RoutedOrderRecommendation_selectedPartner(ctx, field)
+			case "summary":
+				return ec.fieldContext_RoutedOrderRecommendation_summary(ctx, field)
+			case "options":
+				return ec.fieldContext_RoutedOrderRecommendation_options(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RoutedOrderRecommendation", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_routedOrderRecommendation_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -6048,6 +6598,353 @@ func (ec *executionContext) _RoutedOrderActivityFeedPage_nextCursor(ctx context.
 func (ec *executionContext) fieldContext_RoutedOrderActivityFeedPage_nextCursor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "RoutedOrderActivityFeedPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutedOrderRecommendation_candidateId(ctx context.Context, field graphql.CollectedField, obj *model.RoutedOrderRecommendation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutedOrderRecommendation_candidateId,
+		func(ctx context.Context) (any, error) {
+			return obj.CandidateID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutedOrderRecommendation_candidateId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutedOrderRecommendation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutedOrderRecommendation_productTitle(ctx context.Context, field graphql.CollectedField, obj *model.RoutedOrderRecommendation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutedOrderRecommendation_productTitle,
+		func(ctx context.Context) (any, error) {
+			return obj.ProductTitle, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutedOrderRecommendation_productTitle(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutedOrderRecommendation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutedOrderRecommendation_candidatePartner(ctx context.Context, field graphql.CollectedField, obj *model.RoutedOrderRecommendation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutedOrderRecommendation_candidatePartner,
+		func(ctx context.Context) (any, error) {
+			return obj.CandidatePartner, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutedOrderRecommendation_candidatePartner(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutedOrderRecommendation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutedOrderRecommendation_productType(ctx context.Context, field graphql.CollectedField, obj *model.RoutedOrderRecommendation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutedOrderRecommendation_productType,
+		func(ctx context.Context) (any, error) {
+			return obj.ProductType, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutedOrderRecommendation_productType(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutedOrderRecommendation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutedOrderRecommendation_shipRegion(ctx context.Context, field graphql.CollectedField, obj *model.RoutedOrderRecommendation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutedOrderRecommendation_shipRegion,
+		func(ctx context.Context) (any, error) {
+			return obj.ShipRegion, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutedOrderRecommendation_shipRegion(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutedOrderRecommendation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutedOrderRecommendation_selectedPartner(ctx context.Context, field graphql.CollectedField, obj *model.RoutedOrderRecommendation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutedOrderRecommendation_selectedPartner,
+		func(ctx context.Context) (any, error) {
+			return obj.SelectedPartner, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutedOrderRecommendation_selectedPartner(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutedOrderRecommendation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutedOrderRecommendation_summary(ctx context.Context, field graphql.CollectedField, obj *model.RoutedOrderRecommendation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutedOrderRecommendation_summary,
+		func(ctx context.Context) (any, error) {
+			return obj.Summary, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutedOrderRecommendation_summary(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutedOrderRecommendation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutedOrderRecommendation_options(ctx context.Context, field graphql.CollectedField, obj *model.RoutedOrderRecommendation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutedOrderRecommendation_options,
+		func(ctx context.Context) (any, error) {
+			return obj.Options, nil
+		},
+		nil,
+		ec.marshalNRoutingPartnerOption2ᚕᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐRoutingPartnerOptionᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutedOrderRecommendation_options(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutedOrderRecommendation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "partner":
+				return ec.fieldContext_RoutingPartnerOption_partner(ctx, field)
+			case "eligible":
+				return ec.fieldContext_RoutingPartnerOption_eligible(ctx, field)
+			case "reason":
+				return ec.fieldContext_RoutingPartnerOption_reason(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RoutingPartnerOption", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutingPartnerOption_partner(ctx context.Context, field graphql.CollectedField, obj *model.RoutingPartnerOption) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutingPartnerOption_partner,
+		func(ctx context.Context) (any, error) {
+			return obj.Partner, nil
+		},
+		nil,
+		ec.marshalNPartnerRoutingProfile2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐPartnerRoutingProfile,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutingPartnerOption_partner(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutingPartnerOption",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PartnerRoutingProfile_id(ctx, field)
+			case "code":
+				return ec.fieldContext_PartnerRoutingProfile_code(ctx, field)
+			case "name":
+				return ec.fieldContext_PartnerRoutingProfile_name(ctx, field)
+			case "partnerType":
+				return ec.fieldContext_PartnerRoutingProfile_partnerType(ctx, field)
+			case "status":
+				return ec.fieldContext_PartnerRoutingProfile_status(ctx, field)
+			case "supportedProductTypes":
+				return ec.fieldContext_PartnerRoutingProfile_supportedProductTypes(ctx, field)
+			case "supportedRegions":
+				return ec.fieldContext_PartnerRoutingProfile_supportedRegions(ctx, field)
+			case "slaDays":
+				return ec.fieldContext_PartnerRoutingProfile_slaDays(ctx, field)
+			case "routingPriority":
+				return ec.fieldContext_PartnerRoutingProfile_routingPriority(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PartnerRoutingProfile", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutingPartnerOption_eligible(ctx context.Context, field graphql.CollectedField, obj *model.RoutingPartnerOption) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutingPartnerOption_eligible,
+		func(ctx context.Context) (any, error) {
+			return obj.Eligible, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutingPartnerOption_eligible(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutingPartnerOption",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutingPartnerOption_reason(ctx context.Context, field graphql.CollectedField, obj *model.RoutingPartnerOption) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutingPartnerOption_reason,
+		func(ctx context.Context) (any, error) {
+			return obj.Reason, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutingPartnerOption_reason(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutingPartnerOption",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -7998,7 +8895,7 @@ func (ec *executionContext) unmarshalInputCreateRoutedOrderInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"candidateId", "customerName", "quantity"}
+	fieldsInOrder := [...]string{"candidateId", "customerName", "quantity", "productType", "shipRegion", "preferredPartner"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -8026,6 +8923,27 @@ func (ec *executionContext) unmarshalInputCreateRoutedOrderInput(ctx context.Con
 				return it, err
 			}
 			it.Quantity = data
+		case "productType":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("productType"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ProductType = data
+		case "shipRegion":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shipRegion"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ShipRegion = data
+		case "preferredPartner":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("preferredPartner"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PreferredPartner = data
 		}
 	}
 
@@ -8287,6 +9205,54 @@ func (ec *executionContext) unmarshalInputRoutedOrderActivityFeedInput(ctx conte
 				return it, err
 			}
 			it.IncludeSystem = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputRoutedOrderRecommendationInput(ctx context.Context, obj any) (model.RoutedOrderRecommendationInput, error) {
+	var it model.RoutedOrderRecommendationInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"candidateId", "productType", "shipRegion", "preferredPartner"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "candidateId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("candidateId"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CandidateID = data
+		case "productType":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("productType"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ProductType = data
+		case "shipRegion":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("shipRegion"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ShipRegion = data
+		case "preferredPartner":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("preferredPartner"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PreferredPartner = data
 		}
 	}
 
@@ -8669,6 +9635,85 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deactivateStore(ctx, field)
 			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var partnerRoutingProfileImplementors = []string{"PartnerRoutingProfile"}
+
+func (ec *executionContext) _PartnerRoutingProfile(ctx context.Context, sel ast.SelectionSet, obj *model.PartnerRoutingProfile) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, partnerRoutingProfileImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PartnerRoutingProfile")
+		case "id":
+			out.Values[i] = ec._PartnerRoutingProfile_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "code":
+			out.Values[i] = ec._PartnerRoutingProfile_code(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._PartnerRoutingProfile_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "partnerType":
+			out.Values[i] = ec._PartnerRoutingProfile_partnerType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._PartnerRoutingProfile_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "supportedProductTypes":
+			out.Values[i] = ec._PartnerRoutingProfile_supportedProductTypes(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "supportedRegions":
+			out.Values[i] = ec._PartnerRoutingProfile_supportedRegions(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "slaDays":
+			out.Values[i] = ec._PartnerRoutingProfile_slaDays(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "routingPriority":
+			out.Values[i] = ec._PartnerRoutingProfile_routingPriority(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -9108,6 +10153,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_routedOrderActivities(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "routedOrderRecommendation":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_routedOrderRecommendation(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -9608,6 +10675,129 @@ func (ec *executionContext) _RoutedOrderActivityFeedPage(ctx context.Context, se
 			}
 		case "nextCursor":
 			out.Values[i] = ec._RoutedOrderActivityFeedPage_nextCursor(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var routedOrderRecommendationImplementors = []string{"RoutedOrderRecommendation"}
+
+func (ec *executionContext) _RoutedOrderRecommendation(ctx context.Context, sel ast.SelectionSet, obj *model.RoutedOrderRecommendation) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, routedOrderRecommendationImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RoutedOrderRecommendation")
+		case "candidateId":
+			out.Values[i] = ec._RoutedOrderRecommendation_candidateId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "productTitle":
+			out.Values[i] = ec._RoutedOrderRecommendation_productTitle(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "candidatePartner":
+			out.Values[i] = ec._RoutedOrderRecommendation_candidatePartner(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "productType":
+			out.Values[i] = ec._RoutedOrderRecommendation_productType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "shipRegion":
+			out.Values[i] = ec._RoutedOrderRecommendation_shipRegion(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "selectedPartner":
+			out.Values[i] = ec._RoutedOrderRecommendation_selectedPartner(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "summary":
+			out.Values[i] = ec._RoutedOrderRecommendation_summary(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "options":
+			out.Values[i] = ec._RoutedOrderRecommendation_options(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var routingPartnerOptionImplementors = []string{"RoutingPartnerOption"}
+
+func (ec *executionContext) _RoutingPartnerOption(ctx context.Context, sel ast.SelectionSet, obj *model.RoutingPartnerOption) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, routingPartnerOptionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RoutingPartnerOption")
+		case "partner":
+			out.Values[i] = ec._RoutingPartnerOption_partner(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "eligible":
+			out.Values[i] = ec._RoutingPartnerOption_eligible(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "reason":
+			out.Values[i] = ec._RoutingPartnerOption_reason(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -10202,6 +11392,16 @@ func (ec *executionContext) unmarshalNOpenOrderExceptionInput2githubᚗcomᚋtua
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNPartnerRoutingProfile2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐPartnerRoutingProfile(ctx context.Context, sel ast.SelectionSet, v *model.PartnerRoutingProfile) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PartnerRoutingProfile(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNProductSetupArtworkChecklist2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐProductSetupArtworkChecklist(ctx context.Context, sel ast.SelectionSet, v *model.ProductSetupArtworkChecklist) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -10638,6 +11838,79 @@ func (ec *executionContext) marshalNRoutedOrderActivityFeedPage2ᚖgithubᚗcom�
 		return graphql.Null
 	}
 	return ec._RoutedOrderActivityFeedPage(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNRoutedOrderRecommendation2githubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐRoutedOrderRecommendation(ctx context.Context, sel ast.SelectionSet, v model.RoutedOrderRecommendation) graphql.Marshaler {
+	return ec._RoutedOrderRecommendation(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRoutedOrderRecommendation2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐRoutedOrderRecommendation(ctx context.Context, sel ast.SelectionSet, v *model.RoutedOrderRecommendation) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RoutedOrderRecommendation(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNRoutedOrderRecommendationInput2githubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐRoutedOrderRecommendationInput(ctx context.Context, v any) (model.RoutedOrderRecommendationInput, error) {
+	res, err := ec.unmarshalInputRoutedOrderRecommendationInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRoutingPartnerOption2ᚕᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐRoutingPartnerOptionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RoutingPartnerOption) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRoutingPartnerOption2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐRoutingPartnerOption(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNRoutingPartnerOption2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐRoutingPartnerOption(ctx context.Context, sel ast.SelectionSet, v *model.RoutingPartnerOption) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RoutingPartnerOption(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNStore2githubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐStore(ctx context.Context, sel ast.SelectionSet, v model.Store) graphql.Marshaler {

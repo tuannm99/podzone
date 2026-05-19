@@ -8,9 +8,19 @@ import (
 )
 
 type CreateRoutedOrderCmd struct {
-	CandidateID  string
-	CustomerName string
-	Quantity     int
+	CandidateID      string
+	CustomerName     string
+	Quantity         int
+	ProductType      string
+	ShipRegion       string
+	PreferredPartner string
+}
+
+type RecommendRoutedOrderPartnerQuery struct {
+	CandidateID      string
+	ProductType      string
+	ShipRegion       string
+	PreferredPartner string
 }
 
 type OpenOrderExceptionCmd struct {
@@ -79,6 +89,10 @@ type OrderRoutingUsecase interface {
 		ctx context.Context,
 		query ListRoutedOrderActivitiesQuery,
 	) (*entity.RoutedOrderActivityFeedPage, error)
+	RecommendRoutedOrderPartner(
+		ctx context.Context,
+		query RecommendRoutedOrderPartnerQuery,
+	) (*entity.RoutedOrderRecommendation, error)
 	CreateRoutedOrder(ctx context.Context, cmd CreateRoutedOrderCmd) (*entity.RoutedOrder, error)
 	AdvanceRoutedOrder(ctx context.Context, orderID string) (*entity.RoutedOrder, error)
 	OpenOrderException(ctx context.Context, cmd OpenOrderExceptionCmd) (*entity.RoutedOrder, error)

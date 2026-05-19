@@ -41,17 +41,21 @@ func (s *partnerService) CreatePartner(ctx context.Context, cmd CreatePartnerCmd
 
 	now := time.Now().UTC()
 	return s.repo.Create(ctx, Partner{
-		ID:           uuid.NewString(),
-		TenantID:     tenantID,
-		Code:         code,
-		Name:         name,
-		ContactName:  strings.TrimSpace(cmd.ContactName),
-		ContactEmail: strings.TrimSpace(strings.ToLower(cmd.ContactEmail)),
-		Notes:        strings.TrimSpace(cmd.Notes),
-		PartnerType:  partnerType,
-		Status:       PartnerStatusActive,
-		CreatedAt:    now,
-		UpdatedAt:    now,
+		ID:                    uuid.NewString(),
+		TenantID:              tenantID,
+		Code:                  code,
+		Name:                  name,
+		ContactName:           strings.TrimSpace(cmd.ContactName),
+		ContactEmail:          strings.TrimSpace(strings.ToLower(cmd.ContactEmail)),
+		Notes:                 strings.TrimSpace(cmd.Notes),
+		PartnerType:           partnerType,
+		Status:                PartnerStatusActive,
+		SupportedProductTypes: NormalizeCapabilityList(cmd.SupportedProductTypes),
+		SupportedRegions:      NormalizeCapabilityList(cmd.SupportedRegions),
+		SLADays:               normalizeSLADays(cmd.SLADays),
+		RoutingPriority:       normalizeRoutingPriority(cmd.RoutingPriority),
+		CreatedAt:             now,
+		UpdatedAt:             now,
 	})
 }
 
@@ -107,6 +111,10 @@ func (s *partnerService) UpdatePartner(ctx context.Context, cmd UpdatePartnerCmd
 	current.ContactName = strings.TrimSpace(cmd.ContactName)
 	current.ContactEmail = strings.TrimSpace(strings.ToLower(cmd.ContactEmail))
 	current.Notes = strings.TrimSpace(cmd.Notes)
+	current.SupportedProductTypes = NormalizeCapabilityList(cmd.SupportedProductTypes)
+	current.SupportedRegions = NormalizeCapabilityList(cmd.SupportedRegions)
+	current.SLADays = normalizeSLADays(cmd.SLADays)
+	current.RoutingPriority = normalizeRoutingPriority(cmd.RoutingPriority)
 	current.UpdatedAt = time.Now().UTC()
 	return s.repo.Update(ctx, *current)
 }
@@ -152,4 +160,18 @@ func normalizePartnerCode(raw string) string {
 		return ""
 	}
 	return out
+}
+
+func normalizeSLADays(value int32) int32 {
+	if value < 0 {
+		return 0
+	}
+	return value
+}
+
+func normalizeRoutingPriority(value int32) int32 {
+	if value < 0 {
+		return 0
+	}
+	return value
 }

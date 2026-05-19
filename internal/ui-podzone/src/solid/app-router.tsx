@@ -98,6 +98,13 @@ const adminSettingsRoute = createRoute({
   ),
 });
 
+const adminIamRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/admin/iam',
+  beforeLoad: requireAuth,
+  component: lazyRouteComponent(() => import('./pages/podzone/AdminIamPage')),
+});
+
 const tenantHomeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/t/$tenantId',
@@ -159,6 +166,7 @@ const routeTree = rootRoute.addChildren([
   devAuthBootstrapRoute,
   adminHomeRoute,
   adminSettingsRoute,
+  adminIamRoute,
   tenantHomeRoute,
   tenantOrdersRoute,
   tenantOrderAuditRoute,

@@ -23,9 +23,12 @@ type CreateProductSetupDraftInput struct {
 }
 
 type CreateRoutedOrderInput struct {
-	CandidateID  string `json:"candidateId"`
-	CustomerName string `json:"customerName"`
-	Quantity     int    `json:"quantity"`
+	CandidateID      string  `json:"candidateId"`
+	CustomerName     string  `json:"customerName"`
+	Quantity         int     `json:"quantity"`
+	ProductType      string  `json:"productType"`
+	ShipRegion       string  `json:"shipRegion"`
+	PreferredPartner *string `json:"preferredPartner,omitempty"`
 }
 
 type CreateStoreInput struct {
@@ -39,6 +42,18 @@ type Mutation struct {
 type OpenOrderExceptionInput struct {
 	OrderID       string `json:"orderId"`
 	ExceptionType string `json:"exceptionType"`
+}
+
+type PartnerRoutingProfile struct {
+	ID                    string   `json:"id"`
+	Code                  string   `json:"code"`
+	Name                  string   `json:"name"`
+	PartnerType           string   `json:"partnerType"`
+	Status                string   `json:"status"`
+	SupportedProductTypes []string `json:"supportedProductTypes"`
+	SupportedRegions      []string `json:"supportedRegions"`
+	SLADays               int      `json:"slaDays"`
+	RoutingPriority       int      `json:"routingPriority"`
 }
 
 type ProductSetupArtworkChecklist struct {
@@ -182,6 +197,30 @@ type RoutedOrderActivityFeedPage struct {
 	Entries    []*RoutedOrderActivityFeedEntry `json:"entries"`
 	Total      int                             `json:"total"`
 	NextCursor *string                         `json:"nextCursor,omitempty"`
+}
+
+type RoutedOrderRecommendation struct {
+	CandidateID      string                  `json:"candidateId"`
+	ProductTitle     string                  `json:"productTitle"`
+	CandidatePartner string                  `json:"candidatePartner"`
+	ProductType      string                  `json:"productType"`
+	ShipRegion       string                  `json:"shipRegion"`
+	SelectedPartner  string                  `json:"selectedPartner"`
+	Summary          string                  `json:"summary"`
+	Options          []*RoutingPartnerOption `json:"options"`
+}
+
+type RoutedOrderRecommendationInput struct {
+	CandidateID      string  `json:"candidateId"`
+	ProductType      string  `json:"productType"`
+	ShipRegion       string  `json:"shipRegion"`
+	PreferredPartner *string `json:"preferredPartner,omitempty"`
+}
+
+type RoutingPartnerOption struct {
+	Partner  *PartnerRoutingProfile `json:"partner"`
+	Eligible bool                   `json:"eligible"`
+	Reason   string                 `json:"reason"`
 }
 
 type Store struct {

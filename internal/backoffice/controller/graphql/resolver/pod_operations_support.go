@@ -175,3 +175,42 @@ func toGraphQLRoutedOrderActivityFeedPage(page entity.RoutedOrderActivityFeedPag
 		NextCursor: page.NextCursor,
 	}
 }
+
+func toGraphQLPartnerRoutingProfile(profile entity.PartnerRoutingProfile) *model.PartnerRoutingProfile {
+	return &model.PartnerRoutingProfile{
+		ID:                    profile.ID,
+		Code:                  profile.Code,
+		Name:                  profile.Name,
+		PartnerType:           profile.PartnerType,
+		Status:                profile.Status,
+		SupportedProductTypes: append([]string(nil), profile.SupportedProductTypes...),
+		SupportedRegions:      append([]string(nil), profile.SupportedRegions...),
+		SLADays:               int(profile.SLADays),
+		RoutingPriority:       int(profile.RoutingPriority),
+	}
+}
+
+func toGraphQLRoutingPartnerOption(option entity.RoutingPartnerOption) *model.RoutingPartnerOption {
+	return &model.RoutingPartnerOption{
+		Partner:  toGraphQLPartnerRoutingProfile(option.Partner),
+		Eligible: option.Eligible,
+		Reason:   option.Reason,
+	}
+}
+
+func toGraphQLRoutedOrderRecommendation(recommendation entity.RoutedOrderRecommendation) *model.RoutedOrderRecommendation {
+	options := make([]*model.RoutingPartnerOption, 0, len(recommendation.Options))
+	for _, option := range recommendation.Options {
+		options = append(options, toGraphQLRoutingPartnerOption(option))
+	}
+	return &model.RoutedOrderRecommendation{
+		CandidateID:      recommendation.CandidateID,
+		ProductTitle:     recommendation.ProductTitle,
+		CandidatePartner: recommendation.CandidatePartner,
+		ProductType:      recommendation.ProductType,
+		ShipRegion:       recommendation.ShipRegion,
+		SelectedPartner:  recommendation.SelectedPartner,
+		Summary:          recommendation.Summary,
+		Options:          options,
+	}
+}

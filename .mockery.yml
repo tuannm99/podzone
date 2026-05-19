@@ -73,6 +73,7 @@ packages:
       StoreRepository:
       ProductSetupRepository:
       OrderRoutingRepository:
+      PartnerDirectory:
 
   github.com/tuannm99/podzone/internal/iam/domain:
     config:

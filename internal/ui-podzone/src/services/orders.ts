@@ -67,6 +67,38 @@ type CreateRoutedOrderPayload = {
   candidateId: string;
   customerName: string;
   quantity: number;
+  productType: string;
+  shipRegion: string;
+  preferredPartner?: string;
+};
+
+export type PartnerRoutingProfile = {
+  id: string;
+  code: string;
+  name: string;
+  partnerType: string;
+  status: string;
+  supportedProductTypes: string[];
+  supportedRegions: string[];
+  slaDays: number;
+  routingPriority: number;
+};
+
+export type RoutingPartnerOption = {
+  partner: PartnerRoutingProfile;
+  eligible: boolean;
+  reason: string;
+};
+
+export type RoutedOrderRecommendation = {
+  candidateId: string;
+  productTitle: string;
+  candidatePartner: string;
+  productType: string;
+  shipRegion: string;
+  selectedPartner: string;
+  summary: string;
+  options: RoutingPartnerOption[];
 };
 
 type UpdateRoutedOrderShipmentPayload = {
@@ -231,6 +263,51 @@ ${routedOrderFields}
     return { success: false, message: result.message };
   }
   return { success: true, data: result.data.createRoutedOrder };
+}
+
+export async function getRoutedOrderRecommendation(input: {
+  candidateId: string;
+  productType: string;
+  shipRegion: string;
+  preferredPartner?: string;
+}): Promise<OrdersResult<RoutedOrderRecommendation>> {
+  const result = await postBackofficeGraphQL<{
+    routedOrderRecommendation: RoutedOrderRecommendation;
+  }>(
+    `
+      query RoutedOrderRecommendation($input: RoutedOrderRecommendationInput!) {
+        routedOrderRecommendation(input: $input) {
+          candidateId
+          productTitle
+          candidatePartner
+          productType
+          shipRegion
+          selectedPartner
+          summary
+          options {
+            eligible
+            reason
+            partner {
+              id
+              code
+              name
+              partnerType
+              status
+              supportedProductTypes
+              supportedRegions
+              slaDays
+              routingPriority
+            }
+          }
+        }
+      }
+    `,
+    { input }
+  );
+  if (!result.success) {
+    return { success: false, message: result.message };
+  }
+  return { success: true, data: result.data.routedOrderRecommendation };
 }
 
 export async function advanceRoutedOrder(

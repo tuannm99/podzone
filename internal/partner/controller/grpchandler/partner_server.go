@@ -29,13 +29,17 @@ func (s *PartnerServer) CreatePartner(
 		return nil, status.Error(codes.PermissionDenied, err.Error())
 	}
 	out, err := s.uc.CreatePartner(ctx, partnerdomain.CreatePartnerCmd{
-		TenantID:     req.TenantId,
-		Code:         req.Code,
-		Name:         req.Name,
-		ContactName:  req.ContactName,
-		ContactEmail: req.ContactEmail,
-		Notes:        req.Notes,
-		PartnerType:  req.PartnerType,
+		TenantID:              req.TenantId,
+		Code:                  req.Code,
+		Name:                  req.Name,
+		ContactName:           req.ContactName,
+		ContactEmail:          req.ContactEmail,
+		Notes:                 req.Notes,
+		PartnerType:           req.PartnerType,
+		SupportedProductTypes: req.SupportedProductTypes,
+		SupportedRegions:      req.SupportedRegions,
+		SLADays:               req.SlaDays,
+		RoutingPriority:       req.RoutingPriority,
 	})
 	if err != nil {
 		return nil, partnerStatusError(err)
@@ -95,12 +99,16 @@ func (s *PartnerServer) UpdatePartner(
 		return nil, status.Error(codes.PermissionDenied, err.Error())
 	}
 	out, err := s.uc.UpdatePartner(ctx, partnerdomain.UpdatePartnerCmd{
-		ID:           req.Id,
-		Name:         req.Name,
-		ContactName:  req.ContactName,
-		ContactEmail: req.ContactEmail,
-		Notes:        req.Notes,
-		PartnerType:  req.PartnerType,
+		ID:                    req.Id,
+		Name:                  req.Name,
+		ContactName:           req.ContactName,
+		ContactEmail:          req.ContactEmail,
+		Notes:                 req.Notes,
+		PartnerType:           req.PartnerType,
+		SupportedProductTypes: req.SupportedProductTypes,
+		SupportedRegions:      req.SupportedRegions,
+		SLADays:               req.SlaDays,
+		RoutingPriority:       req.RoutingPriority,
 	})
 	if err != nil {
 		return nil, partnerStatusError(err)

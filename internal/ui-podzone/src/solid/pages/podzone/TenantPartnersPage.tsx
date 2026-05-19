@@ -47,6 +47,17 @@ function partnerTypeLabel(partnerType: string) {
   return partnerType.replaceAll('_', ' ');
 }
 
+function joinCapabilityList(items: string[]) {
+  return (items || []).join(', ');
+}
+
+function parseCapabilityList(raw: string) {
+  return raw
+    .split(',')
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+}
+
 export default function TenantPartnersPage() {
   const params = useParams({ from: '/t/$tenantId/partners' });
 
@@ -62,6 +73,10 @@ export default function TenantPartnersPage() {
   const [contactEmail, setContactEmail] = createSignal('');
   const [notes, setNotes] = createSignal('');
   const [partnerType, setPartnerType] = createSignal('print_on_demand');
+  const [supportedProductTypes, setSupportedProductTypes] = createSignal('tshirt, hoodie');
+  const [supportedRegions, setSupportedRegions] = createSignal('us, eu');
+  const [slaDays, setSlaDays] = createSignal('3');
+  const [routingPriority, setRoutingPriority] = createSignal('100');
   const [editingPartnerId, setEditingPartnerId] = createSignal('');
   const [filterPartnerType, setFilterPartnerType] = createSignal('');
   const [filterStatus, setFilterStatus] = createSignal('');
@@ -76,6 +91,10 @@ export default function TenantPartnersPage() {
     setContactEmail('');
     setNotes('');
     setPartnerType('print_on_demand');
+    setSupportedProductTypes('tshirt, hoodie');
+    setSupportedRegions('us, eu');
+    setSlaDays('3');
+    setRoutingPriority('100');
   };
 
   const loadPartners = async () => {
@@ -116,6 +135,10 @@ export default function TenantPartnersPage() {
             contactEmail: contactEmail().trim(),
             notes: notes().trim(),
             partnerType: partnerType(),
+            supportedProductTypes: parseCapabilityList(supportedProductTypes()),
+            supportedRegions: parseCapabilityList(supportedRegions()),
+            slaDays: Math.max(0, Number.parseInt(slaDays(), 10) || 0),
+            routingPriority: Math.max(0, Number.parseInt(routingPriority(), 10) || 0),
           })
         : await createPartner({
             tenantId: params().tenantId,
@@ -125,6 +148,10 @@ export default function TenantPartnersPage() {
             contactEmail: contactEmail().trim(),
             notes: notes().trim(),
             partnerType: partnerType(),
+            supportedProductTypes: parseCapabilityList(supportedProductTypes()),
+            supportedRegions: parseCapabilityList(supportedRegions()),
+            slaDays: Math.max(0, Number.parseInt(slaDays(), 10) || 0),
+            routingPriority: Math.max(0, Number.parseInt(routingPriority(), 10) || 0),
           });
       if (!result.success) {
         setError(result.message);
@@ -162,6 +189,10 @@ export default function TenantPartnersPage() {
     setContactEmail(partner.contactEmail || '');
     setNotes(partner.notes || '');
     setPartnerType(partner.partnerType || 'print_on_demand');
+    setSupportedProductTypes(joinCapabilityList(partner.supportedProductTypes || []));
+    setSupportedRegions(joinCapabilityList(partner.supportedRegions || []));
+    setSlaDays(String(partner.slaDays || 0));
+    setRoutingPriority(String(partner.routingPriority || 0));
     setError('');
     setMessage(`Editing print partner ${partner.name}.`);
   };
@@ -245,6 +276,40 @@ export default function TenantPartnersPage() {
               options={partnerTypeOptions}
               onChange={(event) => setPartnerType(event.currentTarget.value)}
             />
+            <div class="grid gap-4 md:grid-cols-2">
+              <InputField
+                label="Supported product types"
+                value={supportedProductTypes()}
+                placeholder="tshirt, hoodie, tote"
+                onInput={(event) =>
+                  setSupportedProductTypes(event.currentTarget.value)
+                }
+              />
+              <InputField
+                label="Supported regions"
+                value={supportedRegions()}
+                placeholder="us, eu, uk"
+                onInput={(event) =>
+                  setSupportedRegions(event.currentTarget.value)
+                }
+              />
+            </div>
+            <div class="grid gap-4 md:grid-cols-2">
+              <InputField
+                label="SLA days"
+                value={slaDays()}
+                placeholder="3"
+                onInput={(event) => setSlaDays(event.currentTarget.value)}
+              />
+              <InputField
+                label="Routing priority"
+                value={routingPriority()}
+                placeholder="100"
+                onInput={(event) =>
+                  setRoutingPriority(event.currentTarget.value)
+                }
+              />
+            </div>
             <TextareaField
               label="Notes"
               value={notes()}
@@ -347,6 +412,10 @@ export default function TenantPartnersPage() {
                         <p class="mt-1 text-sm text-gray-500">
                           {partner.code} · {partnerTypeLabel(partner.partnerType)}
                         </p>
+                        <p class="mt-1 text-sm text-gray-500">
+                          Priority {partner.routingPriority || 0} · SLA{' '}
+                          {partner.slaDays || 0}d
+                        </p>
                         <Show when={partner.contactEmail || partner.contactName}>
                           <p class="mt-1 text-sm text-gray-500">
                             {partner.contactName || 'No contact name'} ·{' '}
@@ -386,6 +455,10 @@ export default function TenantPartnersPage() {
                     <Show when={partner.notes}>
                       <p class="mt-3 text-sm text-gray-600">{partner.notes}</p>
                     </Show>
+                    <p class="mt-3 text-sm text-gray-600">
+                      Products: {joinCapabilityList(partner.supportedProductTypes || []) || 'Any'} ·
+                      Regions: {joinCapabilityList(partner.supportedRegions || []) || 'Any'}
+                    </p>
                   </div>
                 )}
               </For>

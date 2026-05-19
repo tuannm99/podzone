@@ -30,15 +30,40 @@ func (h *testOrderRoutingHarness) mustSeed(order entity.RoutedOrder) {
 func newOrderRoutingTestInteractor(
 	t *testing.T,
 	candidates map[string]entity.ProductSetupCandidate,
-) (*OrderRoutingInteractor, *testOrderRoutingHarness, *outputmocks.MockProductSetupRepository) {
+) (*OrderRoutingInteractor, *testOrderRoutingHarness, *outputmocks.MockProductSetupRepository, *outputmocks.MockPartnerDirectory) {
 	t.Helper()
 
 	ordersMock := outputmocks.NewMockOrderRoutingRepository(t)
 	productsMock := outputmocks.NewMockProductSetupRepository(t)
+	partnersMock := outputmocks.NewMockPartnerDirectory(t)
 	orderState := newTestOrderRoutingHarness()
 	productState := map[string]entity.ProductSetupCandidate{}
 	for id, candidate := range candidates {
 		productState[id] = candidate
+	}
+	partnerState := []entity.PartnerRoutingProfile{
+		{
+			ID:                    "prt-1",
+			Code:                  "print-partner-a",
+			Name:                  "Print Partner A",
+			PartnerType:           "print_on_demand",
+			Status:                "active",
+			SupportedProductTypes: []string{"tshirt", "hoodie", "tote"},
+			SupportedRegions:      []string{"us", "eu"},
+			SLADays:               3,
+			RoutingPriority:       100,
+		},
+		{
+			ID:                    "prt-2",
+			Code:                  "fulfill-fast",
+			Name:                  "Fulfill Fast",
+			PartnerType:           "fulfillment",
+			Status:                "active",
+			SupportedProductTypes: []string{"poster", "tshirt"},
+			SupportedRegions:      []string{"us", "uk"},
+			SLADays:               2,
+			RoutingPriority:       90,
+		},
 	}
 
 	ordersMock.EXPECT().List(mock.Anything).RunAndReturn(func(context.Context) ([]entity.RoutedOrder, error) {
@@ -215,7 +240,14 @@ func newOrderRoutingTestInteractor(
 		Return((*entity.ProductSetupCandidate)(nil), fmt.Errorf("not implemented")).
 		Maybe()
 
-	return &OrderRoutingInteractor{orders: ordersMock, products: productsMock}, orderState, productsMock
+	partnersMock.EXPECT().
+		ListActivePartners(mock.Anything, mock.Anything).
+		RunAndReturn(func(context.Context, string) ([]entity.PartnerRoutingProfile, error) {
+			return append([]entity.PartnerRoutingProfile(nil), partnerState...), nil
+		}).
+		Maybe()
+
+	return &OrderRoutingInteractor{orders: ordersMock, products: productsMock, partners: partnersMock}, orderState, productsMock, partnersMock
 }
 
 func cloneOrder(order entity.RoutedOrder) entity.RoutedOrder {

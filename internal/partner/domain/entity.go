@@ -27,36 +27,48 @@ var (
 )
 
 type Partner struct {
-	ID           string
-	TenantID     string
-	Code         string
-	Name         string
-	ContactName  string
-	ContactEmail string
-	Notes        string
-	PartnerType  string
-	Status       string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID                    string
+	TenantID              string
+	Code                  string
+	Name                  string
+	ContactName           string
+	ContactEmail          string
+	Notes                 string
+	PartnerType           string
+	Status                string
+	SupportedProductTypes []string
+	SupportedRegions      []string
+	SLADays               int32
+	RoutingPriority       int32
+	CreatedAt             time.Time
+	UpdatedAt             time.Time
 }
 
 type CreatePartnerCmd struct {
-	TenantID     string
-	Code         string
-	Name         string
-	ContactName  string
-	ContactEmail string
-	Notes        string
-	PartnerType  string
+	TenantID              string
+	Code                  string
+	Name                  string
+	ContactName           string
+	ContactEmail          string
+	Notes                 string
+	PartnerType           string
+	SupportedProductTypes []string
+	SupportedRegions      []string
+	SLADays               int32
+	RoutingPriority       int32
 }
 
 type UpdatePartnerCmd struct {
-	ID           string
-	Name         string
-	ContactName  string
-	ContactEmail string
-	Notes        string
-	PartnerType  string
+	ID                    string
+	Name                  string
+	ContactName           string
+	ContactEmail          string
+	Notes                 string
+	PartnerType           string
+	SupportedProductTypes []string
+	SupportedRegions      []string
+	SLADays               int32
+	RoutingPriority       int32
 }
 
 type ListPartnersQuery struct {
@@ -87,4 +99,21 @@ func NormalizePartnerType(raw string) string {
 	default:
 		return ""
 	}
+}
+
+func NormalizeCapabilityList(items []string) []string {
+	seen := make(map[string]struct{}, len(items))
+	out := make([]string, 0, len(items))
+	for _, item := range items {
+		normalized := strings.TrimSpace(strings.ToLower(item))
+		if normalized == "" {
+			continue
+		}
+		if _, ok := seen[normalized]; ok {
+			continue
+		}
+		seen[normalized] = struct{}{}
+		out = append(out, normalized)
+	}
+	return out
 }

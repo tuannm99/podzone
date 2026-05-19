@@ -24,20 +24,24 @@ const (
 )
 
 type Partner struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	TenantId      string                 `protobuf:"bytes,2,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
-	Code          string                 `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
-	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
-	ContactName   string                 `protobuf:"bytes,5,opt,name=contact_name,json=contactName,proto3" json:"contact_name,omitempty"`
-	ContactEmail  string                 `protobuf:"bytes,6,opt,name=contact_email,json=contactEmail,proto3" json:"contact_email,omitempty"`
-	Notes         string                 `protobuf:"bytes,7,opt,name=notes,proto3" json:"notes,omitempty"`
-	PartnerType   string                 `protobuf:"bytes,8,opt,name=partner_type,json=partnerType,proto3" json:"partner_type,omitempty"`
-	Status        string                 `protobuf:"bytes,9,opt,name=status,proto3" json:"status,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Id                    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	TenantId              string                 `protobuf:"bytes,2,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
+	Code                  string                 `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
+	Name                  string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	ContactName           string                 `protobuf:"bytes,5,opt,name=contact_name,json=contactName,proto3" json:"contact_name,omitempty"`
+	ContactEmail          string                 `protobuf:"bytes,6,opt,name=contact_email,json=contactEmail,proto3" json:"contact_email,omitempty"`
+	Notes                 string                 `protobuf:"bytes,7,opt,name=notes,proto3" json:"notes,omitempty"`
+	PartnerType           string                 `protobuf:"bytes,8,opt,name=partner_type,json=partnerType,proto3" json:"partner_type,omitempty"`
+	Status                string                 `protobuf:"bytes,9,opt,name=status,proto3" json:"status,omitempty"`
+	CreatedAt             *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt             *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	SupportedProductTypes []string               `protobuf:"bytes,12,rep,name=supported_product_types,json=supportedProductTypes,proto3" json:"supported_product_types,omitempty"`
+	SupportedRegions      []string               `protobuf:"bytes,13,rep,name=supported_regions,json=supportedRegions,proto3" json:"supported_regions,omitempty"`
+	SlaDays               int32                  `protobuf:"varint,14,opt,name=sla_days,json=slaDays,proto3" json:"sla_days,omitempty"`
+	RoutingPriority       int32                  `protobuf:"varint,15,opt,name=routing_priority,json=routingPriority,proto3" json:"routing_priority,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *Partner) Reset() {
@@ -147,17 +151,49 @@ func (x *Partner) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *Partner) GetSupportedProductTypes() []string {
+	if x != nil {
+		return x.SupportedProductTypes
+	}
+	return nil
+}
+
+func (x *Partner) GetSupportedRegions() []string {
+	if x != nil {
+		return x.SupportedRegions
+	}
+	return nil
+}
+
+func (x *Partner) GetSlaDays() int32 {
+	if x != nil {
+		return x.SlaDays
+	}
+	return 0
+}
+
+func (x *Partner) GetRoutingPriority() int32 {
+	if x != nil {
+		return x.RoutingPriority
+	}
+	return 0
+}
+
 type CreatePartnerRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	TenantId      string                 `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
-	Code          string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	ContactName   string                 `protobuf:"bytes,4,opt,name=contact_name,json=contactName,proto3" json:"contact_name,omitempty"`
-	ContactEmail  string                 `protobuf:"bytes,5,opt,name=contact_email,json=contactEmail,proto3" json:"contact_email,omitempty"`
-	Notes         string                 `protobuf:"bytes,6,opt,name=notes,proto3" json:"notes,omitempty"`
-	PartnerType   string                 `protobuf:"bytes,7,opt,name=partner_type,json=partnerType,proto3" json:"partner_type,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	TenantId              string                 `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
+	Code                  string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	Name                  string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	ContactName           string                 `protobuf:"bytes,4,opt,name=contact_name,json=contactName,proto3" json:"contact_name,omitempty"`
+	ContactEmail          string                 `protobuf:"bytes,5,opt,name=contact_email,json=contactEmail,proto3" json:"contact_email,omitempty"`
+	Notes                 string                 `protobuf:"bytes,6,opt,name=notes,proto3" json:"notes,omitempty"`
+	PartnerType           string                 `protobuf:"bytes,7,opt,name=partner_type,json=partnerType,proto3" json:"partner_type,omitempty"`
+	SupportedProductTypes []string               `protobuf:"bytes,8,rep,name=supported_product_types,json=supportedProductTypes,proto3" json:"supported_product_types,omitempty"`
+	SupportedRegions      []string               `protobuf:"bytes,9,rep,name=supported_regions,json=supportedRegions,proto3" json:"supported_regions,omitempty"`
+	SlaDays               int32                  `protobuf:"varint,10,opt,name=sla_days,json=slaDays,proto3" json:"sla_days,omitempty"`
+	RoutingPriority       int32                  `protobuf:"varint,11,opt,name=routing_priority,json=routingPriority,proto3" json:"routing_priority,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *CreatePartnerRequest) Reset() {
@@ -237,6 +273,34 @@ func (x *CreatePartnerRequest) GetPartnerType() string {
 		return x.PartnerType
 	}
 	return ""
+}
+
+func (x *CreatePartnerRequest) GetSupportedProductTypes() []string {
+	if x != nil {
+		return x.SupportedProductTypes
+	}
+	return nil
+}
+
+func (x *CreatePartnerRequest) GetSupportedRegions() []string {
+	if x != nil {
+		return x.SupportedRegions
+	}
+	return nil
+}
+
+func (x *CreatePartnerRequest) GetSlaDays() int32 {
+	if x != nil {
+		return x.SlaDays
+	}
+	return 0
+}
+
+func (x *CreatePartnerRequest) GetRoutingPriority() int32 {
+	if x != nil {
+		return x.RoutingPriority
+	}
+	return 0
 }
 
 type GetPartnerRequest struct {
@@ -388,15 +452,19 @@ func (x *ListPartnersResponse) GetPartners() []*Partner {
 }
 
 type UpdatePartnerRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	ContactName   string                 `protobuf:"bytes,3,opt,name=contact_name,json=contactName,proto3" json:"contact_name,omitempty"`
-	ContactEmail  string                 `protobuf:"bytes,4,opt,name=contact_email,json=contactEmail,proto3" json:"contact_email,omitempty"`
-	Notes         string                 `protobuf:"bytes,5,opt,name=notes,proto3" json:"notes,omitempty"`
-	PartnerType   string                 `protobuf:"bytes,6,opt,name=partner_type,json=partnerType,proto3" json:"partner_type,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Id                    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name                  string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	ContactName           string                 `protobuf:"bytes,3,opt,name=contact_name,json=contactName,proto3" json:"contact_name,omitempty"`
+	ContactEmail          string                 `protobuf:"bytes,4,opt,name=contact_email,json=contactEmail,proto3" json:"contact_email,omitempty"`
+	Notes                 string                 `protobuf:"bytes,5,opt,name=notes,proto3" json:"notes,omitempty"`
+	PartnerType           string                 `protobuf:"bytes,6,opt,name=partner_type,json=partnerType,proto3" json:"partner_type,omitempty"`
+	SupportedProductTypes []string               `protobuf:"bytes,7,rep,name=supported_product_types,json=supportedProductTypes,proto3" json:"supported_product_types,omitempty"`
+	SupportedRegions      []string               `protobuf:"bytes,8,rep,name=supported_regions,json=supportedRegions,proto3" json:"supported_regions,omitempty"`
+	SlaDays               int32                  `protobuf:"varint,9,opt,name=sla_days,json=slaDays,proto3" json:"sla_days,omitempty"`
+	RoutingPriority       int32                  `protobuf:"varint,10,opt,name=routing_priority,json=routingPriority,proto3" json:"routing_priority,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *UpdatePartnerRequest) Reset() {
@@ -471,6 +539,34 @@ func (x *UpdatePartnerRequest) GetPartnerType() string {
 	return ""
 }
 
+func (x *UpdatePartnerRequest) GetSupportedProductTypes() []string {
+	if x != nil {
+		return x.SupportedProductTypes
+	}
+	return nil
+}
+
+func (x *UpdatePartnerRequest) GetSupportedRegions() []string {
+	if x != nil {
+		return x.SupportedRegions
+	}
+	return nil
+}
+
+func (x *UpdatePartnerRequest) GetSlaDays() int32 {
+	if x != nil {
+		return x.SlaDays
+	}
+	return 0
+}
+
+func (x *UpdatePartnerRequest) GetRoutingPriority() int32 {
+	if x != nil {
+		return x.RoutingPriority
+	}
+	return 0
+}
+
 type UpdatePartnerStatusRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -527,7 +623,7 @@ var File_partner_v1_partner_proto protoreflect.FileDescriptor
 
 const file_partner_v1_partner_proto_rawDesc = "" +
 	"\n" +
-	"\x18partner/v1/partner.proto\x12\apartner\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xed\x02\n" +
+	"\x18partner/v1/partner.proto\x12\apartner\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x98\x04\n" +
 	"\aPartner\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\ttenant_id\x18\x02 \x01(\tR\btenantId\x12\x12\n" +
@@ -542,7 +638,11 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"created_at\x18\n" +
 	" \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xdc\x01\n" +
+	"updated_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x126\n" +
+	"\x17supported_product_types\x18\f \x03(\tR\x15supportedProductTypes\x12+\n" +
+	"\x11supported_regions\x18\r \x03(\tR\x10supportedRegions\x12\x19\n" +
+	"\bsla_days\x18\x0e \x01(\x05R\aslaDays\x12)\n" +
+	"\x10routing_priority\x18\x0f \x01(\x05R\x0froutingPriority\"\x87\x03\n" +
 	"\x14CreatePartnerRequest\x12\x1b\n" +
 	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
@@ -550,7 +650,12 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\fcontact_name\x18\x04 \x01(\tR\vcontactName\x12#\n" +
 	"\rcontact_email\x18\x05 \x01(\tR\fcontactEmail\x12\x14\n" +
 	"\x05notes\x18\x06 \x01(\tR\x05notes\x12!\n" +
-	"\fpartner_type\x18\a \x01(\tR\vpartnerType\"#\n" +
+	"\fpartner_type\x18\a \x01(\tR\vpartnerType\x126\n" +
+	"\x17supported_product_types\x18\b \x03(\tR\x15supportedProductTypes\x12+\n" +
+	"\x11supported_regions\x18\t \x03(\tR\x10supportedRegions\x12\x19\n" +
+	"\bsla_days\x18\n" +
+	" \x01(\x05R\aslaDays\x12)\n" +
+	"\x10routing_priority\x18\v \x01(\x05R\x0froutingPriority\"#\n" +
 	"\x11GetPartnerRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"m\n" +
 	"\x13ListPartnersRequest\x12\x1b\n" +
@@ -558,14 +663,19 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\x06status\x18\x02 \x01(\tR\x06status\x12!\n" +
 	"\fpartner_type\x18\x03 \x01(\tR\vpartnerType\"D\n" +
 	"\x14ListPartnersResponse\x12,\n" +
-	"\bpartners\x18\x01 \x03(\v2\x10.partner.PartnerR\bpartners\"\xbb\x01\n" +
+	"\bpartners\x18\x01 \x03(\v2\x10.partner.PartnerR\bpartners\"\xe6\x02\n" +
 	"\x14UpdatePartnerRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12!\n" +
 	"\fcontact_name\x18\x03 \x01(\tR\vcontactName\x12#\n" +
 	"\rcontact_email\x18\x04 \x01(\tR\fcontactEmail\x12\x14\n" +
 	"\x05notes\x18\x05 \x01(\tR\x05notes\x12!\n" +
-	"\fpartner_type\x18\x06 \x01(\tR\vpartnerType\"D\n" +
+	"\fpartner_type\x18\x06 \x01(\tR\vpartnerType\x126\n" +
+	"\x17supported_product_types\x18\a \x03(\tR\x15supportedProductTypes\x12+\n" +
+	"\x11supported_regions\x18\b \x03(\tR\x10supportedRegions\x12\x19\n" +
+	"\bsla_days\x18\t \x01(\x05R\aslaDays\x12)\n" +
+	"\x10routing_priority\x18\n" +
+	" \x01(\x05R\x0froutingPriority\"D\n" +
 	"\x1aUpdatePartnerStatusRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status2\xa0\x04\n" +

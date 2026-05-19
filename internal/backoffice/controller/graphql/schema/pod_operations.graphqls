@@ -74,6 +74,35 @@ type RoutedOrderActivityFeedPage {
   nextCursor: String
 }
 
+type PartnerRoutingProfile {
+  id: ID!
+  code: String!
+  name: String!
+  partnerType: String!
+  status: String!
+  supportedProductTypes: [String!]!
+  supportedRegions: [String!]!
+  slaDays: Int!
+  routingPriority: Int!
+}
+
+type RoutingPartnerOption {
+  partner: PartnerRoutingProfile!
+  eligible: Boolean!
+  reason: String!
+}
+
+type RoutedOrderRecommendation {
+  candidateId: ID!
+  productTitle: String!
+  candidatePartner: String!
+  productType: String!
+  shipRegion: String!
+  selectedPartner: String!
+  summary: String!
+  options: [RoutingPartnerOption!]!
+}
+
 type RoutedOrder {
   id: ID!
   candidateId: ID!
@@ -139,6 +168,16 @@ input CreateRoutedOrderInput {
   candidateId: ID!
   customerName: String!
   quantity: Int!
+  productType: String!
+  shipRegion: String!
+  preferredPartner: String
+}
+
+input RoutedOrderRecommendationInput {
+  candidateId: ID!
+  productType: String!
+  shipRegion: String!
+  preferredPartner: String
 }
 
 input OpenOrderExceptionInput {
@@ -207,6 +246,9 @@ extend type Query {
   routedOrderActivities(
     input: RoutedOrderActivityFeedInput
   ): RoutedOrderActivityFeedPage!
+  routedOrderRecommendation(
+    input: RoutedOrderRecommendationInput!
+  ): RoutedOrderRecommendation!
 }
 
 extend type Mutation {

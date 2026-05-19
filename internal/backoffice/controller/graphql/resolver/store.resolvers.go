@@ -6,80 +6,32 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/generated/model"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/entity"
-	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 // CreateStore is the resolver for the createStore field.
 func (r *mutationResolver) CreateStore(ctx context.Context, input model.CreateStoreInput) (*model.Store, error) {
-	store, err := r.StoreUsecase.CreateStore(ctx, input.Name, input.Description)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := toolkit.MapStruct[entity.Store, model.Store](*store)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
+	panic(fmt.Errorf("not implemented: CreateStore - createStore"))
 }
 
 // ActivateStore is the resolver for the activateStore field.
 func (r *mutationResolver) ActivateStore(ctx context.Context, id string) (*model.Store, error) {
-	store, err := r.StoreUsecase.UpdateStoreStatus(ctx, id, true)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := toolkit.MapStruct[entity.Store, model.Store](*store)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
+	panic(fmt.Errorf("not implemented: ActivateStore - activateStore"))
 }
 
 // DeactivateStore is the resolver for the deactivateStore field.
 func (r *mutationResolver) DeactivateStore(ctx context.Context, id string) (*model.Store, error) {
-	store, err := r.StoreUsecase.UpdateStoreStatus(ctx, id, false)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := toolkit.MapStruct[entity.Store, model.Store](*store)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
+	panic(fmt.Errorf("not implemented: DeactivateStore - deactivateStore"))
 }
 
 // Stores is the resolver for the stores field.
 func (r *queryResolver) Stores(ctx context.Context) ([]*model.Store, error) {
-	stores, err := r.StoreUsecase.GetAllStores(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	results := make([]*model.Store, 0, len(stores))
-	for _, s := range stores {
-		resp, err := toolkit.MapStruct[entity.Store, model.Store](s)
-		if err != nil {
-			return nil, err
-		}
-		results = append(results, resp)
-	}
-	return results, nil
+	panic(fmt.Errorf("not implemented: Stores - stores"))
 }
 
 // Store is the resolver for the store field.
 func (r *queryResolver) Store(ctx context.Context, id string) (*model.Store, error) {
-	store, err := r.StoreUsecase.GetStoreByID(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := toolkit.MapStruct[entity.Store, model.Store](*store)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
+	panic(fmt.Errorf("not implemented: Store - store"))
 }

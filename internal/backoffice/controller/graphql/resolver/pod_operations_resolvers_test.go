@@ -24,9 +24,12 @@ func TestCreateRoutedOrderMapsInputAndOutput(t *testing.T) {
 		CreateRoutedOrder(mock.Anything, mock.Anything).
 		RunAndReturn(func(_ context.Context, cmd inputport.CreateRoutedOrderCmd) (*entity.RoutedOrder, error) {
 			require.Equal(t, inputport.CreateRoutedOrderCmd{
-				CandidateID:  "cand-1",
-				CustomerName: "Alex POD",
-				Quantity:     3,
+				CandidateID:      "cand-1",
+				CustomerName:     "Alex POD",
+				Quantity:         3,
+				ProductType:      "tshirt",
+				ShipRegion:       "us",
+				PreferredPartner: "Print Partner A",
 			}, cmd)
 			now := time.Date(2026, 5, 15, 10, 0, 0, 0, time.UTC)
 			return &entity.RoutedOrder{
@@ -60,9 +63,12 @@ func TestCreateRoutedOrderMapsInputAndOutput(t *testing.T) {
 	}}
 
 	got, err := resolver.CreateRoutedOrder(context.Background(), model.CreateRoutedOrderInput{
-		CandidateID:  "cand-1",
-		CustomerName: "Alex POD",
-		Quantity:     3,
+		CandidateID:       "cand-1",
+		CustomerName:      "Alex POD",
+		Quantity:          3,
+		ProductType:       "tshirt",
+		ShipRegion:        "us",
+		PreferredPartner:  ptrString("Print Partner A"),
 	})
 	require.NoError(t, err)
 	require.Equal(t, "ord-1", got.ID)
@@ -278,6 +284,68 @@ func TestRoutedOrderActivitiesMapsQueryAndResponse(t *testing.T) {
 	require.Equal(t, 80, got.Total)
 	require.NotNil(t, got.NextCursor)
 	require.Equal(t, "cursor-2", *got.NextCursor)
+}
+
+func TestRoutedOrderRecommendationMapsQueryAndResponse(t *testing.T) {
+	t.Parallel()
+
+	orderUC := inputmocks.NewMockOrderRoutingUsecase(t)
+	productUC := inputmocks.NewMockProductSetupUsecase(t)
+	orderUC.EXPECT().
+		RecommendRoutedOrderPartner(mock.Anything, mock.Anything).
+		RunAndReturn(func(_ context.Context, query inputport.RecommendRoutedOrderPartnerQuery) (*entity.RoutedOrderRecommendation, error) {
+			require.Equal(t, inputport.RecommendRoutedOrderPartnerQuery{
+				CandidateID:      "cand-1",
+				ProductType:      "tshirt",
+				ShipRegion:       "us",
+				PreferredPartner: "Fulfill Fast",
+			}, query)
+			return &entity.RoutedOrderRecommendation{
+				CandidateID:      "cand-1",
+				ProductTitle:     "Vintage Tee",
+				CandidatePartner: "Print Partner A",
+				ProductType:      "tshirt",
+				ShipRegion:       "us",
+				SelectedPartner:  "Fulfill Fast",
+				Summary:          "Preferred partner selected.",
+				Options: []entity.RoutingPartnerOption{
+					{
+						Partner: entity.PartnerRoutingProfile{
+							ID:                    "prt-2",
+							Code:                  "fulfill-fast",
+							Name:                  "Fulfill Fast",
+							PartnerType:           "fulfillment",
+							Status:                "active",
+							SupportedProductTypes: []string{"poster", "tshirt"},
+							SupportedRegions:      []string{"us", "uk"},
+							SLADays:               2,
+							RoutingPriority:       90,
+						},
+						Eligible: true,
+						Reason:   "preferred partner matched the routing request",
+					},
+				},
+			}, nil
+		}).
+		Once()
+
+	resolver := &queryResolver{&Resolver{
+		ProductSetupUsecase: productUC,
+		OrderRoutingUsecase: orderUC,
+	}}
+
+	got, err := resolver.RoutedOrderRecommendation(context.Background(), model.RoutedOrderRecommendationInput{
+		CandidateID:      "cand-1",
+		ProductType:      "tshirt",
+		ShipRegion:       "us",
+		PreferredPartner: ptrString("Fulfill Fast"),
+	})
+	require.NoError(t, err)
+	require.Equal(t, "Fulfill Fast", got.SelectedPartner)
+	require.Equal(t, "Print Partner A", got.CandidatePartner)
+	require.Len(t, got.Options, 1)
+	require.Equal(t, "Fulfill Fast", got.Options[0].Partner.Name)
+	require.Equal(t, 90, got.Options[0].Partner.RoutingPriority)
 }
 
 func ptrString(value string) *string { return &value }

@@ -516,6 +516,11 @@ export default function AdminSettingsPage() {
           title="Manage store access, sessions, and platform controls."
           copy="This area brings together the operational controls behind the backoffice: current sessions, team access, store invites, and platform administration."
         />
+        <div class="flex flex-wrap gap-3">
+          <Button href="/admin/iam" color="dark" size="sm">
+            Open IAM console
+          </Button>
+        </div>
       </Card>
 
       <Show when={pageError()}>

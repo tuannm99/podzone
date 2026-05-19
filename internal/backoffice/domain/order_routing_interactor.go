@@ -3,6 +3,7 @@ package interactor
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -16,13 +17,15 @@ import (
 type OrderRoutingInteractor struct {
 	orders   outputport.OrderRoutingRepository
 	products outputport.ProductSetupRepository
+	partners outputport.PartnerDirectory
 }
 
 func NewOrderRoutingInteractor(
 	orders outputport.OrderRoutingRepository,
 	products outputport.ProductSetupRepository,
+	partners outputport.PartnerDirectory,
 ) inputport.OrderRoutingUsecase {
-	return &OrderRoutingInteractor{orders: orders, products: products}
+	return &OrderRoutingInteractor{orders: orders, products: products, partners: partners}
 }
 
 func (i *OrderRoutingInteractor) ListRoutedOrders(ctx context.Context) ([]entity.RoutedOrder, error) {
@@ -34,6 +37,38 @@ func (i *OrderRoutingInteractor) ListRoutedOrderActivities(
 	query inputport.ListRoutedOrderActivitiesQuery,
 ) (*entity.RoutedOrderActivityFeedPage, error) {
 	return i.orders.ListActivityFeed(ctx, query)
+}
+
+func (i *OrderRoutingInteractor) RecommendRoutedOrderPartner(
+	ctx context.Context,
+	query inputport.RecommendRoutedOrderPartnerQuery,
+) (*entity.RoutedOrderRecommendation, error) {
+	candidateID := strings.TrimSpace(query.CandidateID)
+	if candidateID == "" {
+		return nil, fmt.Errorf("candidate id is required")
+	}
+	candidate, err := i.products.GetCandidateByID(ctx, candidateID)
+	if err != nil {
+		return nil, err
+	}
+	if candidate == nil {
+		return nil, fmt.Errorf("product candidate not found")
+	}
+	tenantID, err := toolkit.GetTenantID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	partners, err := i.partners.ListActivePartners(ctx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	return buildRoutingRecommendation(
+		candidate,
+		partners,
+		normalizeRoutingLabel(query.ProductType),
+		normalizeRoutingLabel(query.ShipRegion),
+		strings.TrimSpace(query.PreferredPartner),
+	), nil
 }
 
 func (i *OrderRoutingInteractor) CreateRoutedOrder(
@@ -51,6 +86,28 @@ func (i *OrderRoutingInteractor) CreateRoutedOrder(
 	if candidate == nil || candidate.Status != entity.ProductSetupCandidateStatusPublishedMock {
 		return nil, fmt.Errorf("published mock product candidate is required")
 	}
+	tenantID, err := toolkit.GetTenantID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	partners, err := i.partners.ListActivePartners(ctx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	recommendation := buildRoutingRecommendation(
+		candidate,
+		partners,
+		normalizeRoutingLabel(cmd.ProductType),
+		normalizeRoutingLabel(cmd.ShipRegion),
+		strings.TrimSpace(cmd.PreferredPartner),
+	)
+	if recommendation.SelectedPartner == "" {
+		return nil, fmt.Errorf(
+			"no eligible active partner found for %s in %s",
+			fallbackRoutingLabel(recommendation.ProductType, "product type"),
+			fallbackRoutingLabel(recommendation.ShipRegion, "target region"),
+		)
+	}
 
 	qty := cmd.Quantity
 	if qty < 1 {
@@ -66,7 +123,7 @@ func (i *OrderRoutingInteractor) CreateRoutedOrder(
 		ID:               fmt.Sprintf("ORD-%s", strings.ToUpper(uuid.NewString()[:8])),
 		CandidateID:      candidate.ID,
 		ProductTitle:     candidate.Title,
-		Partner:          candidate.Partner,
+		Partner:          recommendation.SelectedPartner,
 		Quantity:         qty,
 		Total:            multiplyMoney(candidate.RetailPrice, qty),
 		CustomerName:     customerName,
@@ -93,14 +150,21 @@ func (i *OrderRoutingInteractor) CreateRoutedOrder(
 					"candidate_id", candidate.ID,
 					"quantity", fmt.Sprintf("%d", qty),
 					"status", entity.RoutedOrderStatusQueued,
+					"product_type", recommendation.ProductType,
+					"ship_region", recommendation.ShipRegion,
 				),
 			),
 			newActivity(
 				entity.RoutedOrderActivityTypeSystem,
 				actor,
-				routingTimelineEntry(entity.RoutedOrderStatusQueued, candidate.Partner),
+				routingTimelineEntry(entity.RoutedOrderStatusQueued, recommendation.SelectedPartner),
 				now,
-				activityDetails("status", entity.RoutedOrderStatusQueued, "partner", candidate.Partner),
+				activityDetails(
+					"status", entity.RoutedOrderStatusQueued,
+					"partner", recommendation.SelectedPartner,
+					"routing_summary", recommendation.Summary,
+					"candidate_partner", recommendation.CandidatePartner,
+				),
 			),
 		},
 		CreatedAt: now,
@@ -746,6 +810,153 @@ func fallbackTrackingSuffix(trackingNumber string) string {
 		return ""
 	}
 	return fmt.Sprintf(" (%s)", trackingNumber)
+}
+
+func buildRoutingRecommendation(
+	candidate *entity.ProductSetupCandidate,
+	partners []entity.PartnerRoutingProfile,
+	productType string,
+	shipRegion string,
+	preferredPartner string,
+) *entity.RoutedOrderRecommendation {
+	recommendation := &entity.RoutedOrderRecommendation{
+		CandidateID:      candidate.ID,
+		ProductTitle:     candidate.Title,
+		CandidatePartner: strings.TrimSpace(candidate.Partner),
+		ProductType:      productType,
+		ShipRegion:       shipRegion,
+		Options:          make([]entity.RoutingPartnerOption, 0, len(partners)),
+	}
+
+	for _, partner := range partners {
+		eligible, reason := evaluatePartnerEligibility(partner, productType, shipRegion)
+		recommendation.Options = append(recommendation.Options, entity.RoutingPartnerOption{
+			Partner:  partner,
+			Eligible: eligible,
+			Reason:   reason,
+		})
+	}
+
+	sort.SliceStable(recommendation.Options, func(i, j int) bool {
+		left := recommendation.Options[i]
+		right := recommendation.Options[j]
+		if left.Eligible != right.Eligible {
+			return left.Eligible
+		}
+		if left.Partner.RoutingPriority != right.Partner.RoutingPriority {
+			return left.Partner.RoutingPriority > right.Partner.RoutingPriority
+		}
+		if left.Partner.SLADays != right.Partner.SLADays {
+			return left.Partner.SLADays < right.Partner.SLADays
+		}
+		return strings.ToLower(left.Partner.Name) < strings.ToLower(right.Partner.Name)
+	})
+
+	preferredPartner = strings.TrimSpace(preferredPartner)
+	if preferredPartner != "" {
+		for _, option := range recommendation.Options {
+			if !option.Eligible {
+				continue
+			}
+			if strings.EqualFold(option.Partner.Name, preferredPartner) ||
+				strings.EqualFold(option.Partner.Code, preferredPartner) {
+				recommendation.SelectedPartner = option.Partner.Name
+				recommendation.Summary = fmt.Sprintf(
+					"Preferred partner %s is eligible for %s in %s.",
+					option.Partner.Name,
+					fallbackRoutingLabel(productType, "any product"),
+					fallbackRoutingLabel(shipRegion, "any region"),
+				)
+				return recommendation
+			}
+		}
+		recommendation.Summary = fmt.Sprintf(
+			"Preferred partner %s is not eligible for %s in %s.",
+			preferredPartner,
+			fallbackRoutingLabel(productType, "any product"),
+			fallbackRoutingLabel(shipRegion, "any region"),
+		)
+	}
+
+	candidatePartner := recommendation.CandidatePartner
+	if candidatePartner != "" {
+		for _, option := range recommendation.Options {
+			if option.Eligible && strings.EqualFold(option.Partner.Name, candidatePartner) {
+				recommendation.SelectedPartner = option.Partner.Name
+				recommendation.Summary = fmt.Sprintf(
+					"Candidate default partner %s remains eligible for %s in %s.",
+					option.Partner.Name,
+					fallbackRoutingLabel(productType, "any product"),
+					fallbackRoutingLabel(shipRegion, "any region"),
+				)
+				return recommendation
+			}
+		}
+	}
+
+	for _, option := range recommendation.Options {
+		if option.Eligible {
+			recommendation.SelectedPartner = option.Partner.Name
+			recommendation.Summary = fmt.Sprintf(
+				"Recommended %s based on active capability match, routing priority %d, and %d-day SLA.",
+				option.Partner.Name,
+				option.Partner.RoutingPriority,
+				option.Partner.SLADays,
+			)
+			return recommendation
+		}
+	}
+
+	recommendation.Summary = fmt.Sprintf(
+		"No active partner matches %s in %s.",
+		fallbackRoutingLabel(productType, "the requested product"),
+		fallbackRoutingLabel(shipRegion, "the requested region"),
+	)
+	return recommendation
+}
+
+func evaluatePartnerEligibility(
+	partner entity.PartnerRoutingProfile,
+	productType string,
+	shipRegion string,
+) (bool, string) {
+	if partner.Status != "active" {
+		return false, "partner is inactive"
+	}
+	if len(partner.SupportedProductTypes) > 0 && productType != "" &&
+		!containsNormalized(partner.SupportedProductTypes, productType) {
+		return false, fmt.Sprintf("does not support %s", productType)
+	}
+	if len(partner.SupportedRegions) > 0 && shipRegion != "" &&
+		!containsNormalized(partner.SupportedRegions, shipRegion) {
+		return false, fmt.Sprintf("does not ship to %s", shipRegion)
+	}
+	return true, fmt.Sprintf(
+		"eligible with priority %d and %d-day SLA",
+		partner.RoutingPriority,
+		partner.SLADays,
+	)
+}
+
+func containsNormalized(items []string, expected string) bool {
+	normalizedExpected := normalizeRoutingLabel(expected)
+	for _, item := range items {
+		if normalizeRoutingLabel(item) == normalizedExpected {
+			return true
+		}
+	}
+	return false
+}
+
+func normalizeRoutingLabel(raw string) string {
+	return strings.TrimSpace(strings.ToLower(raw))
+}
+
+func fallbackRoutingLabel(value, fallback string) string {
+	if strings.TrimSpace(value) == "" {
+		return fallback
+	}
+	return value
 }
 
 func multiplyMoney(raw string, qty int) string {

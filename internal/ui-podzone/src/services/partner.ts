@@ -10,6 +10,10 @@ export type PartnerInfo = {
   notes: string;
   partnerType: string;
   status: string;
+  supportedProductTypes: string[];
+  supportedRegions: string[];
+  slaDays: number;
+  routingPriority: number;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -26,6 +30,10 @@ export type CreatePartnerPayload = {
   contactEmail: string;
   notes: string;
   partnerType: string;
+  supportedProductTypes: string[];
+  supportedRegions: string[];
+  slaDays: number;
+  routingPriority: number;
 };
 
 export type UpdatePartnerPayload = {
@@ -35,6 +43,10 @@ export type UpdatePartnerPayload = {
   contactEmail: string;
   notes: string;
   partnerType: string;
+  supportedProductTypes: string[];
+  supportedRegions: string[];
+  slaDays: number;
+  routingPriority: number;
 };
 
 function toFailure(error: unknown, fallback: string): PartnerResult<never> {

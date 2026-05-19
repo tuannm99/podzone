@@ -27,6 +27,10 @@ function formatTimestamp(value?: string) {
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
 }
 
+function formatCapabilityList(items?: string[]) {
+  return items && items.length > 0 ? items.join(', ') : 'Any';
+}
+
 function DetailRow(props: { label: string; value: string }) {
   return (
     <div class="rounded-2xl border border-gray-200 p-4">
@@ -154,6 +158,22 @@ export default function TenantPartnerDetailPage() {
               <DetailRow
                 label="Updated at"
                 value={formatTimestamp(current().updatedAt)}
+              />
+              <DetailRow
+                label="Supported product types"
+                value={formatCapabilityList(current().supportedProductTypes)}
+              />
+              <DetailRow
+                label="Supported regions"
+                value={formatCapabilityList(current().supportedRegions)}
+              />
+              <DetailRow
+                label="SLA days"
+                value={String(current().slaDays || 0)}
+              />
+              <DetailRow
+                label="Routing priority"
+                value={String(current().routingPriority || 0)}
               />
             </div>
 

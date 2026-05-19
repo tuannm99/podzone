@@ -36,3 +36,8 @@ backoffice:
     jwt_key: ''
     grpc_host: 'iam-service'
     grpc_port: '50053'
+  partner:
+    jwt_secret: 'dev-secret'
+    jwt_key: ''
+    grpc_host: 'partner-service'
+    grpc_port: '50054'

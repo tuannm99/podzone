@@ -54,6 +54,10 @@ message Partner {
   string status = 9;
   google.protobuf.Timestamp created_at = 10;
   google.protobuf.Timestamp updated_at = 11;
+  repeated string supported_product_types = 12;
+  repeated string supported_regions = 13;
+  int32 sla_days = 14;
+  int32 routing_priority = 15;
 }
 
 message CreatePartnerRequest {
@@ -64,6 +68,10 @@ message CreatePartnerRequest {
   string contact_email = 5;
   string notes = 6;
   string partner_type = 7;
+  repeated string supported_product_types = 8;
+  repeated string supported_regions = 9;
+  int32 sla_days = 10;
+  int32 routing_priority = 11;
 }
 
 message GetPartnerRequest {
@@ -87,6 +95,10 @@ message UpdatePartnerRequest {
   string contact_email = 4;
   string notes = 5;
   string partner_type = 6;
+  repeated string supported_product_types = 7;
+  repeated string supported_regions = 8;
+  int32 sla_days = 9;
+  int32 routing_priority = 10;
 }
 
 message UpdatePartnerStatusRequest {

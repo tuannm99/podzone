@@ -7,8 +7,9 @@ import (
 )
 
 type Config struct {
-	Auth RPCConfig `mapstructure:"auth"`
-	IAM  RPCConfig `mapstructure:"iam"`
+	Auth    RPCConfig `mapstructure:"auth"`
+	IAM     RPCConfig `mapstructure:"iam"`
+	Partner RPCConfig `mapstructure:"partner"`
 }
 
 type RPCConfig struct {
@@ -50,6 +51,18 @@ func NewConfigFromKoanf(k *koanf.Koanf) (Config, error) {
 	if cfg.IAM.GRPCPort == "" {
 		cfg.IAM.GRPCPort = k.String("backoffice.iam.grpc_port")
 	}
+	if cfg.Partner.JWTSecret == "" {
+		cfg.Partner.JWTSecret = k.String("backoffice.partner.jwt_secret")
+	}
+	if cfg.Partner.JWTKey == "" {
+		cfg.Partner.JWTKey = k.String("backoffice.partner.jwt_key")
+	}
+	if cfg.Partner.GRPCHost == "" {
+		cfg.Partner.GRPCHost = k.String("backoffice.partner.grpc_host")
+	}
+	if cfg.Partner.GRPCPort == "" {
+		cfg.Partner.GRPCPort = k.String("backoffice.partner.grpc_port")
+	}
 	if cfg.Auth.JWTSecret == "" {
 		return cfg, fmt.Errorf("missing config: backoffice.auth.jwt_secret")
 	}
@@ -64,6 +77,12 @@ func NewConfigFromKoanf(k *koanf.Koanf) (Config, error) {
 	}
 	if cfg.IAM.GRPCPort == "" {
 		cfg.IAM.GRPCPort = "50053"
+	}
+	if cfg.Partner.GRPCHost == "" {
+		cfg.Partner.GRPCHost = "localhost"
+	}
+	if cfg.Partner.GRPCPort == "" {
+		cfg.Partner.GRPCPort = "50054"
 	}
 	return cfg, nil
 }

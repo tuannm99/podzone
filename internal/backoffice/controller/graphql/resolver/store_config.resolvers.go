@@ -6,16 +6,17 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/generated/model"
 )
 
 // StoreConfigs is the resolver for the storeConfigs field.
 func (r *queryResolver) StoreConfigs(ctx context.Context) ([]*model.StoreConfig, error) {
-	return nil, errStoreConfigNotImplemented
+	panic(fmt.Errorf("not implemented: StoreConfigs - storeConfigs"))
 }
 
 // StoreConfig is the resolver for the storeConfig field.
 func (r *queryResolver) StoreConfig(ctx context.Context, id string) (*model.StoreConfig, error) {
-	return nil, errStoreConfigNotImplemented
+	panic(fmt.Errorf("not implemented: StoreConfig - storeConfig"))
 }

@@ -265,6 +265,11 @@ export default function AdminHomePage() {
           title="Manage your stores from one control room."
           copy="Create a new store, review where your team has access, and open the right workspace without relying on technical IDs."
         />
+        <div class="flex flex-wrap gap-3">
+          <Button href="/admin/iam" color="dark" size="sm">
+            Open IAM console
+          </Button>
+        </div>
       </Card>
 
       <Show when={tenantError()}>
