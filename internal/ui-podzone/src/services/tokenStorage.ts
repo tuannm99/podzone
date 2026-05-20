@@ -9,6 +9,15 @@ export type StoredUser = {
   [key: string]: unknown;
 };
 
+function parseNumericID(raw: unknown): number | null {
+  if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
+  if (typeof raw === 'string') {
+    const parsed = Number.parseInt(raw, 10);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
 function parseUser(raw: string | null): StoredUser | null {
   if (!raw) return null;
 
@@ -58,6 +67,14 @@ export const tokenStorage = {
 
   getUser(): StoredUser | null {
     return parseUser(localStorage.getItem(USER_KEY));
+  },
+  getUserID(): number | null {
+    const stored = this.getUser();
+    const storedID = parseNumericID(stored?.id);
+    if (storedID != null) return storedID;
+    const token = this.getToken();
+    const payload = parseJwtPayload(token);
+    return parseNumericID(payload?.user_id);
   },
   getActiveTenantID(): string {
     const token = this.getToken();

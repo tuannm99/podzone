@@ -2,8 +2,8 @@
 
 set -eu
 
-SOURCE_FILE="${AUTH_BOOTSTRAP_OUTPUT:-/tmp/podzone-dev-auth.json}"
-TARGET_FILE="${UI_AUTH_BOOTSTRAP_TARGET:-internal/ui-podzone/public/dev-auth-bootstrap.json}"
+SOURCE_FILE="${1:-${AUTH_BOOTSTRAP_OUTPUT:-/tmp/podzone-dev-auth.json}}"
+TARGET_FILE="${2:-${UI_AUTH_BOOTSTRAP_TARGET:-internal/ui-podzone/public/dev-auth-bootstrap.json}}"
 
 if [ ! -f "$SOURCE_FILE" ]; then
   echo "Auth bootstrap bundle not found: $SOURCE_FILE" >&2

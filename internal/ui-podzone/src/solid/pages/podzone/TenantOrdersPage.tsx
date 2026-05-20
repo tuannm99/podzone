@@ -370,6 +370,7 @@ export default function TenantOrdersPage() {
   const [selectedProductType, setSelectedProductType] = createSignal('tshirt');
   const [selectedShipRegion, setSelectedShipRegion] = createSignal('us');
   const [preferredPartner, setPreferredPartner] = createSignal('');
+  const [manualPartnerOverride, setManualPartnerOverride] = createSignal(false);
   const [routingRecommendation, setRoutingRecommendation] =
     createSignal<RoutedOrderRecommendation | null>(null);
   const [selectedExceptionType, setSelectedExceptionType] =
@@ -555,6 +556,19 @@ export default function TenantOrdersPage() {
       return;
     }
     setRoutingRecommendation(result.data);
+  };
+
+  const effectivePreferredPartner = () =>
+    manualPartnerOverride() ? preferredPartner().trim() : '';
+
+  const applyPreferredPartnerOverride = (partnerName: string) => {
+    setManualPartnerOverride(true);
+    setPreferredPartner(partnerName);
+  };
+
+  const resetPreferredPartnerOverride = () => {
+    setManualPartnerOverride(false);
+    setPreferredPartner('');
   };
 
   const matchesQueueView = (order: RoutedOrder, view: QueueView) => {
@@ -873,7 +887,7 @@ export default function TenantOrdersPage() {
       quantity: Math.max(1, Number.parseInt(quantity(), 10) || 1),
       productType: selectedProductType(),
       shipRegion: selectedShipRegion(),
-      preferredPartner: preferredPartner().trim() || undefined,
+      preferredPartner: effectivePreferredPartner() || undefined,
     });
     if (!result.success) {
       setError(result.message);
@@ -882,7 +896,7 @@ export default function TenantOrdersPage() {
     setOrders((current) => [result.data, ...current]);
     setCustomerName('');
     setQuantity('1');
-    setPreferredPartner('');
+    resetPreferredPartnerOverride();
     setMessage(`Created routed order ${result.data.id}.`);
   };
 
@@ -1191,20 +1205,67 @@ export default function TenantOrdersPage() {
                     setSelectedShipRegion(event.currentTarget.value)
                   }
                 />
-                <InputField
-                  label="Preferred partner"
-                  value={preferredPartner()}
-                  placeholder="optional code or name"
-                  onInput={(event) =>
-                    setPreferredPartner(event.currentTarget.value)
+                <Show
+                  when={manualPartnerOverride()}
+                  fallback={
+                    <div class="space-y-2 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-3">
+                      <p class="text-sm font-medium text-gray-700">
+                        Partner routing mode
+                      </p>
+                      <p class="text-xs text-gray-500">
+                        Auto-route is active. The backend will pick the best eligible
+                        partner from capability, priority, and SLA.
+                      </p>
+                      <Button
+                        type="button"
+                        size="xs"
+                        color="alternative"
+                        onClick={() => setManualPartnerOverride(true)}
+                      >
+                        Override partner
+                      </Button>
+                    </div>
                   }
-                />
+                >
+                  <div class="space-y-2">
+                    <InputField
+                      label="Preferred partner override"
+                      value={preferredPartner()}
+                      placeholder="optional code or name"
+                      onInput={(event) =>
+                        setPreferredPartner(event.currentTarget.value)
+                      }
+                    />
+                    <Button
+                      type="button"
+                      size="xs"
+                      color="alternative"
+                      onClick={resetPreferredPartnerOverride}
+                    >
+                      Return to auto-route
+                    </Button>
+                  </div>
+                </Show>
               </div>
               <Show when={routingRecommendation()}>
                 {(recommendation) => (
                   <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
                     <div class="flex flex-wrap items-center gap-2">
                       <Badge content="routing recommendation" color="blue" />
+                      <Badge
+                        content={
+                          manualPartnerOverride()
+                            ? 'manual override'
+                            : 'auto-route active'
+                        }
+                        color={manualPartnerOverride() ? 'yellow' : 'green'}
+                      />
+                      <Show when={recommendation().candidatePartner}>
+                        <Badge
+                          content={`candidate default ${recommendation().candidatePartner}`}
+                          color="dark"
+                        />
+                      </Show>
                       <Show when={recommendation().selectedPartner}>
                         <Badge
                           content={`selected ${recommendation().selectedPartner}`}
@@ -1215,32 +1276,145 @@ export default function TenantOrdersPage() {
                     <p class="mt-2 text-sm text-gray-600">
                       {recommendation().summary}
                     </p>
-                    <div class="mt-3 space-y-2">
-                      <For each={recommendation().options.slice(0, 4)}>
-                        {(option) => (
-                          <div class="rounded-xl bg-white p-3 text-sm text-gray-600">
-                            <div class="flex flex-wrap items-center gap-2">
-                              <Badge
-                                content={option.partner.name}
-                                color={option.eligible ? 'green' : 'dark'}
-                              />
-                              <Badge
-                                content={`priority ${option.partner.routingPriority}`}
-                                color="blue"
-                              />
-                              <Badge
-                                content={`${option.partner.slaDays}d sla`}
-                                color="indigo"
-                              />
-                            </div>
-                            <p class="mt-2">{option.reason}</p>
-                            <p class="mt-1 text-xs text-gray-500">
-                              Products: {option.partner.supportedProductTypes.join(', ') || 'Any'} ·
-                              Regions: {option.partner.supportedRegions.join(', ') || 'Any'}
-                            </p>
-                          </div>
-                        )}
-                      </For>
+                    <Show
+                      when={!manualPartnerOverride() && recommendation().selectedPartner}
+                    >
+                      <InfoAlert>
+                        Auto-route will create the order against{' '}
+                        {recommendation().selectedPartner}. Switch to override only
+                        when you need to force a different eligible partner.
+                      </InfoAlert>
+                    </Show>
+                    <div class="mt-3 space-y-3">
+                      <Show
+                        when={recommendation().options.filter((option) => option.eligible).length > 0}
+                      >
+                        <div class="space-y-2">
+                          <p class="text-sm font-medium text-gray-700">
+                            Eligible partners
+                          </p>
+                          <For
+                            each={recommendation()
+                              .options.filter((option) => option.eligible)
+                              .slice(0, 4)}
+                          >
+                            {(option) => (
+                              <div class="rounded-xl bg-white p-3 text-sm text-gray-600">
+                                <div class="flex flex-wrap items-center gap-2">
+                                  <Badge
+                                    content={option.partner.name}
+                                    color="green"
+                                  />
+                                  <Badge
+                                    content={`priority ${option.partner.routingPriority}`}
+                                    color="blue"
+                                  />
+                                  <Badge
+                                    content={`${option.partner.slaDays}d sla`}
+                                    color="indigo"
+                                  />
+                                  <Show
+                                    when={
+                                      recommendation().selectedPartner ===
+                                      option.partner.name
+                                    }
+                                  >
+                                    <Badge content="recommended" color="green" />
+                                  </Show>
+                                </div>
+                                <p class="mt-2">{option.reason}</p>
+                                <p class="mt-1 text-xs text-gray-500">
+                                  Products:{' '}
+                                  {option.partner.supportedProductTypes.join(', ') || 'Any'} ·
+                                  Regions:{' '}
+                                  {option.partner.supportedRegions.join(', ') || 'Any'}
+                                </p>
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                  <Show
+                                    when={
+                                      recommendation().selectedPartner ===
+                                      option.partner.name
+                                    }
+                                    fallback={
+                                      <Button
+                                        type="button"
+                                        size="xs"
+                                        color="alternative"
+                                        onClick={() =>
+                                          applyPreferredPartnerOverride(
+                                            option.partner.name
+                                          )
+                                        }
+                                      >
+                                        Force this partner
+                                      </Button>
+                                    }
+                                  >
+                                    <Button
+                                      type="button"
+                                      size="xs"
+                                      color="green"
+                                      onClick={resetPreferredPartnerOverride}
+                                    >
+                                      Use auto-route
+                                    </Button>
+                                  </Show>
+                                </div>
+                              </div>
+                            )}
+                          </For>
+                        </div>
+                      </Show>
+                      <Show
+                        when={recommendation().options.some((option) => !option.eligible)}
+                      >
+                        <div class="space-y-2">
+                          <p class="text-sm font-medium text-gray-700">
+                            Blocked by capability
+                          </p>
+                          <For
+                            each={recommendation()
+                              .options.filter((option) => !option.eligible)
+                              .slice(0, 3)}
+                          >
+                            {(option) => (
+                              <div class="rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-gray-600">
+                                <div class="flex flex-wrap items-center gap-2">
+                                  <Badge
+                                    content={option.partner.name}
+                                    color="red"
+                                  />
+                                  <Badge
+                                    content={`priority ${option.partner.routingPriority}`}
+                                    color="dark"
+                                  />
+                                  <Badge
+                                    content={`${option.partner.slaDays}d sla`}
+                                    color="dark"
+                                  />
+                                </div>
+                                <p class="mt-2">{option.reason}</p>
+                                <p class="mt-1 text-xs text-gray-500">
+                                  Products:{' '}
+                                  {option.partner.supportedProductTypes.join(', ') || 'Any'} ·
+                                  Regions:{' '}
+                                  {option.partner.supportedRegions.join(', ') || 'Any'}
+                                </p>
+                              </div>
+                            )}
+                          </For>
+                        </div>
+                      </Show>
+                      <Show
+                        when={
+                          recommendation().options.length === 0
+                        }
+                      >
+                        <EmptyBlock
+                          title="No active partner profiles returned"
+                          copy="Create or activate partner capabilities first so the routing engine can score eligible print and fulfillment partners."
+                        />
+                      </Show>
                     </div>
                   </div>
                 )}
@@ -1254,7 +1428,9 @@ export default function TenantOrdersPage() {
                 }
               />
               <Button type="submit" color="blue">
-                Create routed order
+                {manualPartnerOverride()
+                  ? 'Create routed order with override'
+                  : 'Create routed order via auto-route'}
               </Button>
             </form>
           </Show>

@@ -1,4 +1,4 @@
-.PHONY: all proto swagger build test lint dev down clean help docker-dev docker-dev-infra docker-dev-down mocks dev-backoffice-seed dev-backoffice-sample dev-auth-bootstrap dev-ui-auth-sync dev-pod-sample
+.PHONY: all proto swagger build test lint dev down clean help docker-dev docker-dev-infra docker-dev-down mocks dev-backoffice-seed dev-backoffice-sample dev-auth-bootstrap dev-ui-auth-sync dev-pod-sample dev-pod-up
 
 GO := go
 
@@ -43,42 +43,33 @@ docker-dev-infra:
 docker-dev:
 	docker compose -f deployments/docker/infras.yml -f deployments/docker/services.yml up --build
 
+dev-pod-up:
+	@sh scripts/dev/run_local_pod_dev.sh "$(TENANT_ID)" "$(STORE_NAME)" "$(STORE_SUBDOMAIN)" "$(DEV_USERNAME)" "$(DEV_EMAIL)" "$(DEV_PASSWORD)"
+
 docker-dev-down:
 	docker compose -f deployments/docker/infras.yml -f deployments/docker/services.yml down
 
 dev-backoffice-seed:
-	@TENANT_ID=$(TENANT_ID) \
-	STORE_NAME=$(STORE_NAME) \
-	STORE_SUBDOMAIN=$(STORE_SUBDOMAIN) \
-	CLUSTER_NAME=$(CLUSTER_NAME) \
-	DB_NAME=$(DB_NAME) \
+	@DB_NAME=$(DB_NAME) \
 	SCHEMA_NAME=$(SCHEMA_NAME) \
 	PG_HOST=$(PG_HOST) \
 	PG_PORT=$(PG_PORT) \
 	PG_USER=$(PG_USER) \
 	PG_PASSWORD=$(PG_PASSWORD) \
 	PG_SSL_MODE=$(PG_SSL_MODE) \
-	CONSUL_URL=$(CONSUL_URL) \
-	ONBOARDING_URL=$(ONBOARDING_URL) \
 	CREATE_STORE=$(CREATE_STORE) \
-	sh scripts/dev/seed_backoffice_tenant.sh
+	sh scripts/dev/seed_backoffice_tenant.sh "$(TENANT_ID)" "$(STORE_NAME)" "$(STORE_SUBDOMAIN)" "$(CLUSTER_NAME)" "$(CONSUL_URL)" "$(ONBOARDING_URL)"
 
 dev-backoffice-sample:
-	@TENANT_ID=$(TENANT_ID) \
-	STORE_NAME=$(STORE_NAME) \
-	STORE_SUBDOMAIN=$(STORE_SUBDOMAIN) \
-	CLUSTER_NAME=$(CLUSTER_NAME) \
-	DB_NAME=$(DB_NAME) \
+	@DB_NAME=$(DB_NAME) \
 	SCHEMA_NAME=$(SCHEMA_NAME) \
 	PG_HOST=$(PG_HOST) \
 	PG_PORT=$(PG_PORT) \
 	PG_USER=$(PG_USER) \
 	PG_PASSWORD=$(PG_PASSWORD) \
 	PG_SSL_MODE=$(PG_SSL_MODE) \
-	CONSUL_URL=$(CONSUL_URL) \
-	ONBOARDING_URL=$(ONBOARDING_URL) \
 	CREATE_STORE=$(CREATE_STORE) \
-	sh scripts/dev/seed_backoffice_tenant.sh
+	sh scripts/dev/seed_backoffice_tenant.sh "$(TENANT_ID)" "$(STORE_NAME)" "$(STORE_SUBDOMAIN)" "$(CLUSTER_NAME)" "$(CONSUL_URL)" "$(ONBOARDING_URL)"
 	@TENANT_ID=$(TENANT_ID) \
 	STORE_NAME=$(STORE_NAME) \
 	STORE_SUBDOMAIN=$(STORE_SUBDOMAIN) \
@@ -259,6 +250,7 @@ help:
 	@echo "  make docker-dev                       - Run dockerized dev infra + hot reload services"
 	@echo "  make docker-dev-infra                 - Run only dockerized dev infrastructure"
 	@echo "  make docker-dev-down                  - Stop dockerized dev infra + services"
+	@echo "  make dev-pod-up TENANT_ID=t1          - Start local docker stack and auto-bootstrap tenant/sample/auth"
 	@echo "  make dev-backoffice-seed TENANT_ID=t1 - Seed Consul placement + onboarding connection for one tenant"
 	@echo "  make dev-backoffice-sample TENANT_ID=t1 - Seed placement plus sample POD partners/products/orders"
 	@echo "  make dev-auth-bootstrap TENANT_ID=t1 - Seed user, tenant membership, session, and token bundle"

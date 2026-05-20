@@ -58,7 +58,15 @@ type SwitchTenantPayload = {
 function persistAuth(data: AuthResponseData) {
   if (data.jwtToken) tokenStorage.setToken(data.jwtToken);
   if (data.refreshToken) tokenStorage.setRefreshToken(data.refreshToken);
-  if (data.userInfo) tokenStorage.setUser(data.userInfo);
+  if (data.userInfo) {
+    const existing = tokenStorage.getUserID();
+    tokenStorage.setUser({
+      ...data.userInfo,
+      id:
+        data.userInfo.id ??
+        (existing != null ? String(existing) : undefined),
+    });
+  }
   const activeTenantID = tokenStorage.getActiveTenantID();
   if (activeTenantID) tenantStorage.setTenantID(activeTenantID);
 }
@@ -120,13 +128,14 @@ export async function register(payload: RegisterPayload): Promise<AuthResult> {
 }
 
 function parseStoredUserID(user: StoredUser | null): number | null {
-  if (!user || user.id == null) return null;
-  if (typeof user.id === 'number' && Number.isFinite(user.id)) return user.id;
-  if (typeof user.id === 'string') {
-    const parsed = Number.parseInt(user.id, 10);
-    return Number.isFinite(parsed) ? parsed : null;
+  if (user?.id != null) {
+    if (typeof user.id === 'number' && Number.isFinite(user.id)) return user.id;
+    if (typeof user.id === 'string') {
+      const parsed = Number.parseInt(user.id, 10);
+      if (Number.isFinite(parsed)) return parsed;
+    }
   }
-  return null;
+  return tokenStorage.getUserID();
 }
 
 async function switchTenantRequest(

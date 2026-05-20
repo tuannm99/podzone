@@ -136,6 +136,51 @@ services:
     ports:
       - '8000:8000'
 
+  dev-bootstrap:
+    <<: *go-dev-common
+    container_name: podzone-dev-bootstrap
+    command: ['sh', '/workspace/scripts/dev/bootstrap_dev_stack.sh']
+    environment:
+      TENANT_ID: ${TENANT_ID:-tenant-dev}
+      TENANT_NAME: ${TENANT_NAME:-Demo POD Tenant}
+      TENANT_SLUG: ${TENANT_SLUG:-tenant-dev}
+      STORE_NAME: ${STORE_NAME:-Demo Store}
+      STORE_SUBDOMAIN: ${STORE_SUBDOMAIN:-demo-store}
+      DEV_USERNAME: ${DEV_USERNAME:-devowner}
+      DEV_EMAIL: ${DEV_EMAIL:-devowner@podzone.dev}
+      DEV_PASSWORD: ${DEV_PASSWORD:-DevPass123!}
+      DEV_FULL_NAME: ${DEV_FULL_NAME:-Dev Owner}
+      CLUSTER_NAME: ${CLUSTER_NAME:-pg-default}
+      DB_NAME: ${DB_NAME:-postgres}
+      PG_HOST: pgbouncer
+      PG_PORT: '6432'
+      PG_USER: postgres
+      PG_PASSWORD: postgres
+      PG_SSL_MODE: disable
+      CONSUL_URL: http://consul:8500
+      ONBOARDING_URL: http://onboarding-service:8800
+      JWT_SECRET: ${JWT_SECRET:-dev-secret}
+      JWT_KEY: ${JWT_KEY:-}
+      AUTH_BOOTSTRAP_OUTPUT: /workspace/internal/ui-podzone/public/dev-auth-bootstrap.json
+      UI_AUTH_BOOTSTRAP_TARGET: /workspace/internal/ui-podzone/public/dev-auth-bootstrap.json
+    depends_on:
+      postgres:
+        condition: service_healthy
+      pgbouncer:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
+      onboarding-service:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      iam-service:
+        condition: service_started
+      partner-service:
+        condition: service_started
+      backoffice-service:
+        condition: service_started
+
   grpc-gateway:
     <<: *go-dev-common
     container_name: podzone-grpcgateway-dev
@@ -185,6 +230,8 @@ services:
       grpc-gateway:
         condition: service_started
       backoffice-service:
+        condition: service_started
+      dev-bootstrap:
         condition: service_started
     ports:
       - '3000:3000'

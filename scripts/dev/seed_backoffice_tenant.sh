@@ -1,12 +1,12 @@
 #!/usr/bin/env sh
 set -eu
 
-CONSUL_URL="${CONSUL_URL:-http://localhost:8500}"
-ONBOARDING_URL="${ONBOARDING_URL:-http://localhost:8800}"
-TENANT_ID="${TENANT_ID:-tenant-dev}"
-STORE_NAME="${STORE_NAME:-Demo Store}"
-STORE_SUBDOMAIN="${STORE_SUBDOMAIN:-demo-store}"
-CLUSTER_NAME="${CLUSTER_NAME:-pg-default}"
+TENANT_ID="${1:-${TENANT_ID:-tenant-dev}}"
+STORE_NAME="${2:-${STORE_NAME:-Demo Store}}"
+STORE_SUBDOMAIN="${3:-${STORE_SUBDOMAIN:-demo-store}}"
+CLUSTER_NAME="${4:-${CLUSTER_NAME:-pg-default}}"
+CONSUL_URL="${5:-${CONSUL_URL:-http://localhost:8500}}"
+ONBOARDING_URL="${6:-${ONBOARDING_URL:-http://localhost:8800}}"
 DB_NAME="${DB_NAME:-postgres}"
 SCHEMA_NAME="${SCHEMA_NAME:-t_${TENANT_ID}}"
 PG_HOST="${PG_HOST:-pgbouncer}"
@@ -22,29 +22,34 @@ curl -fsS -X PUT \
   "${CONSUL_URL}/v1/kv/podzone/postgres/clusters/${CLUSTER_NAME}" \
   --data "{\"host\":\"${PG_HOST}\",\"port\":${PG_PORT},\"user\":\"${PG_USER}\",\"password\":\"${PG_PASSWORD}\",\"ssl_mode\":\"${PG_SSL_MODE}\"}" >/dev/null
 
-echo "Publishing tenant placement via onboarding..."
-curl -fsS -X POST \
-  "${ONBOARDING_URL}/onboarding/v1/infras/connections" \
-  -H "Content-Type: application/json" \
-  -H "X-Tenant-ID: ${TENANT_ID}" \
-  -H "X-User: dev-seed" \
+echo "Publishing tenant connection snapshot directly into Consul..."
+curl -fsS -X PUT \
+  "${CONSUL_URL}/v1/kv/podzone/tenants/${TENANT_ID}/connections/postgres/default" \
   --data "{
-    \"infra_type\": \"postgres\",
-    \"name\": \"default\",
-    \"endpoint\": \"postgres://${PG_USER}:***@${PG_HOST}:${PG_PORT}/${DB_NAME}\",
-    \"status\": \"active\",
-    \"meta\": {
-      \"purpose\": \"backoffice\",
-      \"cluster\": \"${CLUSTER_NAME}\"
+    \"tenantID\":\"${TENANT_ID}\",
+    \"infraType\":\"postgres\",
+    \"name\":\"default\",
+    \"endpoint\":\"postgres://${PG_USER}:***@${PG_HOST}:${PG_PORT}/${DB_NAME}\",
+    \"status\":\"active\",
+    \"updatedAt\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+    \"meta\":{
+      \"purpose\":\"backoffice\",
+      \"cluster\":\"${CLUSTER_NAME}\"
     },
-    \"config\": {
-      \"driver\": \"postgres\",
-      \"pool\": \"pgbouncer\"
-    },
-    \"cluster_name\": \"${CLUSTER_NAME}\",
-    \"mode\": \"schema\",
-    \"db_name\": \"${DB_NAME}\",
-    \"schema_name\": \"${SCHEMA_NAME}\"
+    \"config\":{
+      \"driver\":\"postgres\",
+      \"pool\":\"pgbouncer\"
+    }
+  }" >/dev/null
+
+echo "Publishing tenant placement directly into Consul..."
+curl -fsS -X PUT \
+  "${CONSUL_URL}/v1/kv/podzone/tenants/${TENANT_ID}/placement" \
+  --data "{
+    \"cluster_name\":\"${CLUSTER_NAME}\",
+    \"mode\":\"schema\",
+    \"db_name\":\"${DB_NAME}\",
+    \"schema_name\":\"${SCHEMA_NAME}\"
   }" >/dev/null
 
 echo "Waiting for placement to appear in Consul..."
@@ -65,7 +70,7 @@ if [ "$i" -ge "$WAIT_SECONDS" ]; then
   exit 1
 fi
 
-if [ "${CREATE_STORE}" = "true" ]; then
+if [ "${CREATE_STORE}" = "true" ] && [ -n "${ONBOARDING_URL}" ]; then
   echo "Creating onboarding store record..."
   store_status="$(
     curl -sS -o /tmp/podzone-onboarding-store.json -w "%{http_code}" \

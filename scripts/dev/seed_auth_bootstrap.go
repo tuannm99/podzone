@@ -136,10 +136,11 @@ func seedAuth(ctx context.Context, db *sqlx.DB, cfg cfg) (*seedOutput, error) {
 	}
 
 	platformRoleID, err := getRoleID(ctx, tx, iamdomain.RolePlatformOwner)
-	if err == nil {
-		if err := upsertPlatformRole(ctx, tx, userID, platformRoleID, now); err != nil {
-			return nil, err
-		}
+	if err != nil {
+		return nil, fmt.Errorf("load platform owner role: %w", err)
+	}
+	if err := upsertPlatformRole(ctx, tx, userID, platformRoleID, now); err != nil {
+		return nil, err
 	}
 
 	sessionID := uuid.NewString()

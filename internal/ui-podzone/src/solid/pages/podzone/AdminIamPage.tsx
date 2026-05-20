@@ -122,15 +122,6 @@ const platformRoleOptions = [
   { name: 'Platform admin', value: 'platform_admin' },
 ];
 
-function parseUserID(raw: unknown): number {
-  if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
-  if (typeof raw === 'string') {
-    const parsed = Number.parseInt(raw, 10);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-  return 0;
-}
-
 function prettyJSON(value: unknown) {
   return JSON.stringify(value, null, 2);
 }
@@ -183,7 +174,7 @@ function statementSourceLabel(source: string) {
 }
 
 export default function AdminIamPage() {
-  const userID = parseUserID(tokenStorage.getUser()?.id);
+  const userID = tokenStorage.getUserID() || 0;
 
   const [pageError, setPageError] = createSignal('');
   const [pageMessage, setPageMessage] = createSignal('');
