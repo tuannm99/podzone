@@ -82,12 +82,20 @@ export type PartnerRoutingProfile = {
   supportedRegions: string[];
   slaDays: number;
   routingPriority: number;
+  baseFulfillmentCost: string;
+  shippingCostRules: {
+    region: string;
+    cost: string;
+  }[];
 };
 
 export type RoutingPartnerOption = {
   partner: PartnerRoutingProfile;
   eligible: boolean;
   reason: string;
+  estimatedFulfillmentCost: string;
+  estimatedShippingCost: string;
+  estimatedUnitMargin: string;
 };
 
 export type RoutedOrderRecommendation = {
@@ -287,6 +295,9 @@ export async function getRoutedOrderRecommendation(input: {
           options {
             eligible
             reason
+            estimatedFulfillmentCost
+            estimatedShippingCost
+            estimatedUnitMargin
             partner {
               id
               code
@@ -297,6 +308,11 @@ export async function getRoutedOrderRecommendation(input: {
               supportedRegions
               slaDays
               routingPriority
+              baseFulfillmentCost
+              shippingCostRules {
+                region
+                cost
+              }
             }
           }
         }

@@ -30,7 +30,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: elasticsearch
-          image: docker.elastic.co/elasticsearch/elasticsearch:7.17.10
+          image: elasticsearch:8.12.0
           ports:
             - containerPort: 9200
             - containerPort: 9300
@@ -38,7 +38,7 @@ spec:
             - name: discovery.type
               value: single-node
             - name: ES_JAVA_OPTS
-              value: "-Xms192m -Xmx192m"
+              value: '-Xms192m -Xmx192m'
             - name: xpack.security.enabled
               value: 'false'
 

@@ -1,0 +1,574 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1";
+
+message PlatformRoleMembership {
+  uint64 user_id = 1;
+  uint64 role_id = 2;
+  string role_name = 3;
+  string status = 4;
+  string created_at = 5;
+  string updated_at = 6;
+}
+
+message PolicyStatement {
+  uint64 id = 1;
+  uint64 policy_id = 2;
+  string policy_name = 3;
+  string effect = 4;
+  string action_pattern = 5;
+  string resource_pattern = 6;
+  repeated PolicyCondition conditions = 7;
+  string created_at = 8;
+}
+
+message PolicyCondition {
+  string operator = 1;
+  string key = 2;
+  string value = 3;
+}
+
+message Policy {
+  uint64 id = 1;
+  string scope = 2;
+  string name = 3;
+  string description = 4;
+  bool is_system = 5;
+  string default_version = 6;
+  string created_at = 7;
+  string updated_at = 8;
+}
+
+message PolicyVersion {
+  uint64 id = 1;
+  uint64 policy_id = 2;
+  string policy_name = 3;
+  string version = 4;
+  bool is_default = 5;
+  string created_at = 6;
+}
+
+message PolicyAttachment {
+  string attachment_type = 1;
+  string scope = 2;
+  string tenant_id = 3;
+  uint64 role_id = 4;
+  string role_name = 5;
+  uint64 user_id = 6;
+  uint64 group_id = 7;
+  string group_name = 8;
+  string created_at = 9;
+}
+
+message ServiceControlPolicyAttachment {
+  string org_id = 1;
+  uint64 policy_id = 2;
+  string policy_name = 3;
+  string created_at = 4;
+}
+
+message RoleTrustStatement {
+  uint64 id = 1;
+  uint64 role_id = 2;
+  string effect = 3;
+  string principal_type = 4;
+  string principal_pattern = 5;
+  string tenant_pattern = 6;
+  string external_id_pattern = 7;
+  string created_at = 8;
+}
+
+message Group {
+  uint64 id = 1;
+  string scope = 2;
+  string tenant_id = 3;
+  string name = 4;
+  string description = 5;
+  bool is_system = 6;
+  string created_at = 7;
+  string updated_at = 8;
+}
+
+message GroupInlinePolicy {
+  uint64 group_id = 1;
+  string name = 2;
+  string description = 3;
+  repeated PolicyStatement statements = 4;
+  string created_at = 5;
+  string updated_at = 6;
+}
+
+message UserInlinePolicy {
+  string scope = 1;
+  string tenant_id = 2;
+  uint64 user_id = 3;
+  string name = 4;
+  string description = 5;
+  repeated PolicyStatement statements = 6;
+  string created_at = 7;
+  string updated_at = 8;
+}
+
+message PermissionBoundary {
+  string scope = 1;
+  string tenant_id = 2;
+  uint64 user_id = 3;
+  uint64 policy_id = 4;
+  string policy_name = 5;
+  string created_at = 6;
+}
+
+message RolePermissionBoundary {
+  uint64 role_id = 1;
+  string role_name = 2;
+  uint64 policy_id = 3;
+  string policy_name = 4;
+  string created_at = 5;
+}
+
+message AttachServiceControlPolicyRequest {
+  string org_id = 1;
+  string policy_name = 2;
+}
+
+message AttachServiceControlPolicyResponse {}
+
+message DetachServiceControlPolicyRequest {
+  string org_id = 1;
+  string policy_name = 2;
+}
+
+message DetachServiceControlPolicyResponse {}
+
+message ListServiceControlPoliciesRequest {
+  string org_id = 1;
+}
+
+message ListServiceControlPoliciesResponse {
+  repeated Policy policies = 1;
+}
+
+message ListPlatformRolesRequest {
+  uint64 actor_user_id = 1;
+  uint64 target_user_id = 2;
+}
+
+message ListPlatformRolesResponse {
+  repeated PlatformRoleMembership memberships = 1;
+}
+
+message AddPlatformRoleRequest {
+  uint64 actor_user_id = 1;
+  uint64 target_user_id = 2;
+  string role_name = 3;
+}
+
+message AddPlatformRoleResponse {}
+
+message RemovePlatformRoleRequest {
+  uint64 actor_user_id = 1;
+  uint64 target_user_id = 2;
+  string role_name = 3;
+}
+
+message RemovePlatformRoleResponse {}
+
+message CreatePolicyRequest {
+  string scope = 1;
+  string name = 2;
+  string description = 3;
+  repeated PolicyStatement statements = 4;
+}
+
+message CreatePolicyResponse {
+  Policy policy = 1;
+  repeated PolicyStatement statements = 2;
+}
+
+message CreatePolicyVersionRequest {
+  string name = 1;
+  repeated PolicyStatement statements = 2;
+  bool set_as_default = 3;
+}
+
+message CreatePolicyVersionResponse {
+  PolicyVersion policy_version = 1;
+  repeated PolicyStatement statements = 2;
+}
+
+message GetPolicyRequest {
+  string name = 1;
+}
+
+message GetPolicyResponse {
+  Policy policy = 1;
+  repeated PolicyStatement statements = 2;
+}
+
+message ListPolicyVersionsRequest {
+  string name = 1;
+}
+
+message ListPolicyVersionsResponse {
+  repeated PolicyVersion versions = 1;
+}
+
+message SetDefaultPolicyVersionRequest {
+  string name = 1;
+  string version = 2;
+}
+
+message SetDefaultPolicyVersionResponse {}
+
+message DeletePolicyVersionRequest {
+  string name = 1;
+  string version = 2;
+}
+
+message DeletePolicyVersionResponse {}
+
+message ListPoliciesRequest {
+  string scope = 1;
+}
+
+message ListPoliciesResponse {
+  repeated Policy policies = 1;
+}
+
+message ListPolicyAttachmentsRequest {
+  string name = 1;
+}
+
+message ListPolicyAttachmentsResponse {
+  repeated PolicyAttachment attachments = 1;
+}
+
+message DeletePolicyRequest {
+  string name = 1;
+}
+
+message DeletePolicyResponse {}
+
+message PutRoleTrustPolicyRequest {
+  string role_name = 1;
+  repeated RoleTrustStatement statements = 2;
+}
+
+message PutRoleTrustPolicyResponse {}
+
+message GetRoleTrustPolicyRequest {
+  string role_name = 1;
+}
+
+message GetRoleTrustPolicyResponse {
+  repeated RoleTrustStatement statements = 1;
+}
+
+message DeleteRoleTrustPolicyRequest {
+  string role_name = 1;
+}
+
+message DeleteRoleTrustPolicyResponse {}
+
+message CreateGroupRequest {
+  string scope = 1;
+  string tenant_id = 2;
+  string name = 3;
+  string description = 4;
+}
+
+message CreateGroupResponse {
+  Group group = 1;
+}
+
+message ListGroupsRequest {
+  string scope = 1;
+  string tenant_id = 2;
+}
+
+message ListGroupsResponse {
+  repeated Group groups = 1;
+}
+
+message DeleteGroupRequest {
+  uint64 group_id = 1;
+}
+
+message DeleteGroupResponse {}
+
+message AddGroupMemberRequest {
+  uint64 group_id = 1;
+  uint64 user_id = 2;
+}
+
+message AddGroupMemberResponse {}
+
+message ListGroupMembersRequest {
+  uint64 group_id = 1;
+}
+
+message ListGroupMembersResponse {
+  repeated uint64 user_ids = 1;
+}
+
+message RemoveGroupMemberRequest {
+  uint64 group_id = 1;
+  uint64 user_id = 2;
+}
+
+message RemoveGroupMemberResponse {}
+
+message AttachGroupPolicyRequest {
+  uint64 group_id = 1;
+  string policy_name = 2;
+}
+
+message AttachGroupPolicyResponse {}
+
+message ListGroupPoliciesRequest {
+  uint64 group_id = 1;
+}
+
+message ListGroupPoliciesResponse {
+  repeated Policy policies = 1;
+}
+
+message DetachGroupPolicyRequest {
+  uint64 group_id = 1;
+  string policy_name = 2;
+}
+
+message DetachGroupPolicyResponse {}
+
+message PutGroupInlinePolicyRequest {
+  uint64 group_id = 1;
+  string name = 2;
+  string description = 3;
+  repeated PolicyStatement statements = 4;
+}
+
+message PutGroupInlinePolicyResponse {}
+
+message GetGroupInlinePolicyRequest {
+  uint64 group_id = 1;
+  string name = 2;
+}
+
+message GetGroupInlinePolicyResponse {
+  GroupInlinePolicy policy = 1;
+}
+
+message ListGroupInlinePoliciesRequest {
+  uint64 group_id = 1;
+}
+
+message ListGroupInlinePoliciesResponse {
+  repeated GroupInlinePolicy policies = 1;
+}
+
+message DeleteGroupInlinePolicyRequest {
+  uint64 group_id = 1;
+  string name = 2;
+}
+
+message DeleteGroupInlinePolicyResponse {}
+
+message ListPlatformUserPoliciesRequest {
+  uint64 target_user_id = 1;
+}
+
+message ListPlatformUserPoliciesResponse {
+  repeated Policy policies = 1;
+}
+
+message PutPlatformUserInlinePolicyRequest {
+  uint64 target_user_id = 1;
+  string name = 2;
+  string description = 3;
+  repeated PolicyStatement statements = 4;
+}
+
+message PutPlatformUserInlinePolicyResponse {}
+
+message GetPlatformUserInlinePolicyRequest {
+  uint64 target_user_id = 1;
+  string name = 2;
+}
+
+message GetPlatformUserInlinePolicyResponse {
+  UserInlinePolicy policy = 1;
+}
+
+message ListPlatformUserInlinePoliciesRequest {
+  uint64 target_user_id = 1;
+}
+
+message ListPlatformUserInlinePoliciesResponse {
+  repeated UserInlinePolicy policies = 1;
+}
+
+message DeletePlatformUserInlinePolicyRequest {
+  uint64 target_user_id = 1;
+  string name = 2;
+}
+
+message DeletePlatformUserInlinePolicyResponse {}
+
+message AttachPlatformUserPolicyRequest {
+  uint64 target_user_id = 1;
+  string policy_name = 2;
+}
+
+message AttachPlatformUserPolicyResponse {}
+
+message DetachPlatformUserPolicyRequest {
+  uint64 target_user_id = 1;
+  string policy_name = 2;
+}
+
+message DetachPlatformUserPolicyResponse {}
+
+message PutPlatformUserPermissionBoundaryRequest {
+  uint64 target_user_id = 1;
+  string policy_name = 2;
+}
+
+message PutPlatformUserPermissionBoundaryResponse {}
+
+message GetPlatformUserPermissionBoundaryRequest {
+  uint64 target_user_id = 1;
+}
+
+message GetPlatformUserPermissionBoundaryResponse {
+  PermissionBoundary boundary = 1;
+}
+
+message DeletePlatformUserPermissionBoundaryRequest {
+  uint64 target_user_id = 1;
+}
+
+message DeletePlatformUserPermissionBoundaryResponse {}
+
+message CheckPermissionRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+  string permission = 3;
+}
+
+message CheckPlatformPermissionRequest {
+  uint64 user_id = 1;
+  string permission = 2;
+}
+
+message CheckPermissionResponse {
+  bool allowed = 1;
+}
+
+message ListTenantUserPoliciesRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+}
+
+message ListTenantUserPoliciesResponse {
+  repeated Policy policies = 1;
+}
+
+message PutTenantUserInlinePolicyRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+  string name = 3;
+  string description = 4;
+  repeated PolicyStatement statements = 5;
+}
+
+message PutTenantUserInlinePolicyResponse {}
+
+message GetTenantUserInlinePolicyRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+  string name = 3;
+}
+
+message GetTenantUserInlinePolicyResponse {
+  UserInlinePolicy policy = 1;
+}
+
+message ListTenantUserInlinePoliciesRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+}
+
+message ListTenantUserInlinePoliciesResponse {
+  repeated UserInlinePolicy policies = 1;
+}
+
+message DeleteTenantUserInlinePolicyRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+  string name = 3;
+}
+
+message DeleteTenantUserInlinePolicyResponse {}
+
+message AttachTenantUserPolicyRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+  string policy_name = 3;
+}
+
+message AttachTenantUserPolicyResponse {}
+
+message DetachTenantUserPolicyRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+  string policy_name = 3;
+}
+
+message DetachTenantUserPolicyResponse {}
+
+message PutTenantUserPermissionBoundaryRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+  string policy_name = 3;
+}
+
+message PutTenantUserPermissionBoundaryResponse {}
+
+message GetTenantUserPermissionBoundaryRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+}
+
+message GetTenantUserPermissionBoundaryResponse {
+  PermissionBoundary boundary = 1;
+}
+
+message DeleteTenantUserPermissionBoundaryRequest {
+  string tenant_id = 1;
+  uint64 user_id = 2;
+}
+
+message DeleteTenantUserPermissionBoundaryResponse {}
+
+message PutRolePermissionBoundaryRequest {
+  string role_name = 1;
+  string policy_name = 2;
+}
+
+message PutRolePermissionBoundaryResponse {}
+
+message GetRolePermissionBoundaryRequest {
+  string role_name = 1;
+}
+
+message GetRolePermissionBoundaryResponse {
+  RolePermissionBoundary boundary = 1;
+}
+
+message DeleteRolePermissionBoundaryRequest {
+  string role_name = 1;
+}
+
+message DeleteRolePermissionBoundaryResponse {}

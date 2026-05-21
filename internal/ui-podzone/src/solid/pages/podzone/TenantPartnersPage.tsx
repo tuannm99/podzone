@@ -58,6 +58,29 @@ function parseCapabilityList(raw: string) {
     .filter(Boolean);
 }
 
+function joinShippingCostRules(
+  rules: { region: string; cost: string }[] | undefined
+) {
+  return (rules || [])
+    .map((rule) => `${rule.region}:${rule.cost}`)
+    .join(', ');
+}
+
+function parseShippingCostRules(raw: string) {
+  return raw
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((item) => {
+      const [region, ...costParts] = item.split(':');
+      return {
+        region: region.trim().toLowerCase(),
+        cost: costParts.join(':').trim(),
+      };
+    })
+    .filter((item) => item.region && item.cost);
+}
+
 export default function TenantPartnersPage() {
   const params = useParams({ from: '/t/$tenantId/partners' });
 
@@ -77,6 +100,10 @@ export default function TenantPartnersPage() {
   const [supportedRegions, setSupportedRegions] = createSignal('us, eu');
   const [slaDays, setSlaDays] = createSignal('3');
   const [routingPriority, setRoutingPriority] = createSignal('100');
+  const [baseFulfillmentCost, setBaseFulfillmentCost] = createSignal('$8.50');
+  const [shippingCostRules, setShippingCostRules] = createSignal(
+    'us:$4.50, eu:$6.00'
+  );
   const [editingPartnerId, setEditingPartnerId] = createSignal('');
   const [filterPartnerType, setFilterPartnerType] = createSignal('');
   const [filterStatus, setFilterStatus] = createSignal('');
@@ -95,6 +122,8 @@ export default function TenantPartnersPage() {
     setSupportedRegions('us, eu');
     setSlaDays('3');
     setRoutingPriority('100');
+    setBaseFulfillmentCost('$8.50');
+    setShippingCostRules('us:$4.50, eu:$6.00');
   };
 
   const loadPartners = async () => {
@@ -139,6 +168,8 @@ export default function TenantPartnersPage() {
             supportedRegions: parseCapabilityList(supportedRegions()),
             slaDays: Math.max(0, Number.parseInt(slaDays(), 10) || 0),
             routingPriority: Math.max(0, Number.parseInt(routingPriority(), 10) || 0),
+            baseFulfillmentCost: baseFulfillmentCost().trim(),
+            shippingCostRules: parseShippingCostRules(shippingCostRules()),
           })
         : await createPartner({
             tenantId: params().tenantId,
@@ -152,6 +183,8 @@ export default function TenantPartnersPage() {
             supportedRegions: parseCapabilityList(supportedRegions()),
             slaDays: Math.max(0, Number.parseInt(slaDays(), 10) || 0),
             routingPriority: Math.max(0, Number.parseInt(routingPriority(), 10) || 0),
+            baseFulfillmentCost: baseFulfillmentCost().trim(),
+            shippingCostRules: parseShippingCostRules(shippingCostRules()),
           });
       if (!result.success) {
         setError(result.message);
@@ -193,6 +226,8 @@ export default function TenantPartnersPage() {
     setSupportedRegions(joinCapabilityList(partner.supportedRegions || []));
     setSlaDays(String(partner.slaDays || 0));
     setRoutingPriority(String(partner.routingPriority || 0));
+    setBaseFulfillmentCost(partner.baseFulfillmentCost || '');
+    setShippingCostRules(joinShippingCostRules(partner.shippingCostRules));
     setError('');
     setMessage(`Editing print partner ${partner.name}.`);
   };
@@ -310,6 +345,28 @@ export default function TenantPartnersPage() {
                 }
               />
             </div>
+            <div class="grid gap-4 md:grid-cols-2">
+              <InputField
+                label="Base fulfillment cost"
+                value={baseFulfillmentCost()}
+                placeholder="$8.50"
+                onInput={(event) =>
+                  setBaseFulfillmentCost(event.currentTarget.value)
+                }
+              />
+              <InputField
+                label="Shipping cost rules"
+                value={shippingCostRules()}
+                placeholder="us:$4.50, eu:$6.00"
+                onInput={(event) =>
+                  setShippingCostRules(event.currentTarget.value)
+                }
+              />
+            </div>
+            <InfoAlert>
+              Shipping cost rules use `region:cost` pairs separated by commas.
+              Example: `us:$4.50, eu:$6.00, sea:$7.25`.
+            </InfoAlert>
             <TextareaField
               label="Notes"
               value={notes()}
@@ -415,6 +472,12 @@ export default function TenantPartnersPage() {
                         <p class="mt-1 text-sm text-gray-500">
                           Priority {partner.routingPriority || 0} · SLA{' '}
                           {partner.slaDays || 0}d
+                        </p>
+                        <p class="mt-1 text-sm text-gray-500">
+                          Fulfillment {partner.baseFulfillmentCost || 'TBD'} ·
+                          Shipping{' '}
+                          {joinShippingCostRules(partner.shippingCostRules) ||
+                            'No region rules'}
                         </p>
                         <Show when={partner.contactEmail || partner.contactName}>
                           <p class="mt-1 text-sm text-gray-500">

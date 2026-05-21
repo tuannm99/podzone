@@ -23,6 +23,58 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type ShippingCostRule struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Region        string                 `protobuf:"bytes,1,opt,name=region,proto3" json:"region,omitempty"`
+	Cost          string                 `protobuf:"bytes,2,opt,name=cost,proto3" json:"cost,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ShippingCostRule) Reset() {
+	*x = ShippingCostRule{}
+	mi := &file_partner_v1_partner_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ShippingCostRule) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ShippingCostRule) ProtoMessage() {}
+
+func (x *ShippingCostRule) ProtoReflect() protoreflect.Message {
+	mi := &file_partner_v1_partner_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ShippingCostRule.ProtoReflect.Descriptor instead.
+func (*ShippingCostRule) Descriptor() ([]byte, []int) {
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *ShippingCostRule) GetRegion() string {
+	if x != nil {
+		return x.Region
+	}
+	return ""
+}
+
+func (x *ShippingCostRule) GetCost() string {
+	if x != nil {
+		return x.Cost
+	}
+	return ""
+}
+
 type Partner struct {
 	state                 protoimpl.MessageState `protogen:"open.v1"`
 	Id                    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -40,13 +92,15 @@ type Partner struct {
 	SupportedRegions      []string               `protobuf:"bytes,13,rep,name=supported_regions,json=supportedRegions,proto3" json:"supported_regions,omitempty"`
 	SlaDays               int32                  `protobuf:"varint,14,opt,name=sla_days,json=slaDays,proto3" json:"sla_days,omitempty"`
 	RoutingPriority       int32                  `protobuf:"varint,15,opt,name=routing_priority,json=routingPriority,proto3" json:"routing_priority,omitempty"`
+	BaseFulfillmentCost   string                 `protobuf:"bytes,16,opt,name=base_fulfillment_cost,json=baseFulfillmentCost,proto3" json:"base_fulfillment_cost,omitempty"`
+	ShippingCostRules     []*ShippingCostRule    `protobuf:"bytes,17,rep,name=shipping_cost_rules,json=shippingCostRules,proto3" json:"shipping_cost_rules,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
 
 func (x *Partner) Reset() {
 	*x = Partner{}
-	mi := &file_partner_v1_partner_proto_msgTypes[0]
+	mi := &file_partner_v1_partner_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -58,7 +112,7 @@ func (x *Partner) String() string {
 func (*Partner) ProtoMessage() {}
 
 func (x *Partner) ProtoReflect() protoreflect.Message {
-	mi := &file_partner_v1_partner_proto_msgTypes[0]
+	mi := &file_partner_v1_partner_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -71,7 +125,7 @@ func (x *Partner) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Partner.ProtoReflect.Descriptor instead.
 func (*Partner) Descriptor() ([]byte, []int) {
-	return file_partner_v1_partner_proto_rawDescGZIP(), []int{0}
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Partner) GetId() string {
@@ -179,6 +233,20 @@ func (x *Partner) GetRoutingPriority() int32 {
 	return 0
 }
 
+func (x *Partner) GetBaseFulfillmentCost() string {
+	if x != nil {
+		return x.BaseFulfillmentCost
+	}
+	return ""
+}
+
+func (x *Partner) GetShippingCostRules() []*ShippingCostRule {
+	if x != nil {
+		return x.ShippingCostRules
+	}
+	return nil
+}
+
 type CreatePartnerRequest struct {
 	state                 protoimpl.MessageState `protogen:"open.v1"`
 	TenantId              string                 `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
@@ -192,13 +260,15 @@ type CreatePartnerRequest struct {
 	SupportedRegions      []string               `protobuf:"bytes,9,rep,name=supported_regions,json=supportedRegions,proto3" json:"supported_regions,omitempty"`
 	SlaDays               int32                  `protobuf:"varint,10,opt,name=sla_days,json=slaDays,proto3" json:"sla_days,omitempty"`
 	RoutingPriority       int32                  `protobuf:"varint,11,opt,name=routing_priority,json=routingPriority,proto3" json:"routing_priority,omitempty"`
+	BaseFulfillmentCost   string                 `protobuf:"bytes,12,opt,name=base_fulfillment_cost,json=baseFulfillmentCost,proto3" json:"base_fulfillment_cost,omitempty"`
+	ShippingCostRules     []*ShippingCostRule    `protobuf:"bytes,13,rep,name=shipping_cost_rules,json=shippingCostRules,proto3" json:"shipping_cost_rules,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
 
 func (x *CreatePartnerRequest) Reset() {
 	*x = CreatePartnerRequest{}
-	mi := &file_partner_v1_partner_proto_msgTypes[1]
+	mi := &file_partner_v1_partner_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -210,7 +280,7 @@ func (x *CreatePartnerRequest) String() string {
 func (*CreatePartnerRequest) ProtoMessage() {}
 
 func (x *CreatePartnerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_partner_v1_partner_proto_msgTypes[1]
+	mi := &file_partner_v1_partner_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -223,7 +293,7 @@ func (x *CreatePartnerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePartnerRequest.ProtoReflect.Descriptor instead.
 func (*CreatePartnerRequest) Descriptor() ([]byte, []int) {
-	return file_partner_v1_partner_proto_rawDescGZIP(), []int{1}
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *CreatePartnerRequest) GetTenantId() string {
@@ -303,6 +373,20 @@ func (x *CreatePartnerRequest) GetRoutingPriority() int32 {
 	return 0
 }
 
+func (x *CreatePartnerRequest) GetBaseFulfillmentCost() string {
+	if x != nil {
+		return x.BaseFulfillmentCost
+	}
+	return ""
+}
+
+func (x *CreatePartnerRequest) GetShippingCostRules() []*ShippingCostRule {
+	if x != nil {
+		return x.ShippingCostRules
+	}
+	return nil
+}
+
 type GetPartnerRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -312,7 +396,7 @@ type GetPartnerRequest struct {
 
 func (x *GetPartnerRequest) Reset() {
 	*x = GetPartnerRequest{}
-	mi := &file_partner_v1_partner_proto_msgTypes[2]
+	mi := &file_partner_v1_partner_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -324,7 +408,7 @@ func (x *GetPartnerRequest) String() string {
 func (*GetPartnerRequest) ProtoMessage() {}
 
 func (x *GetPartnerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_partner_v1_partner_proto_msgTypes[2]
+	mi := &file_partner_v1_partner_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -337,7 +421,7 @@ func (x *GetPartnerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPartnerRequest.ProtoReflect.Descriptor instead.
 func (*GetPartnerRequest) Descriptor() ([]byte, []int) {
-	return file_partner_v1_partner_proto_rawDescGZIP(), []int{2}
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetPartnerRequest) GetId() string {
@@ -358,7 +442,7 @@ type ListPartnersRequest struct {
 
 func (x *ListPartnersRequest) Reset() {
 	*x = ListPartnersRequest{}
-	mi := &file_partner_v1_partner_proto_msgTypes[3]
+	mi := &file_partner_v1_partner_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -370,7 +454,7 @@ func (x *ListPartnersRequest) String() string {
 func (*ListPartnersRequest) ProtoMessage() {}
 
 func (x *ListPartnersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_partner_v1_partner_proto_msgTypes[3]
+	mi := &file_partner_v1_partner_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -383,7 +467,7 @@ func (x *ListPartnersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPartnersRequest.ProtoReflect.Descriptor instead.
 func (*ListPartnersRequest) Descriptor() ([]byte, []int) {
-	return file_partner_v1_partner_proto_rawDescGZIP(), []int{3}
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ListPartnersRequest) GetTenantId() string {
@@ -416,7 +500,7 @@ type ListPartnersResponse struct {
 
 func (x *ListPartnersResponse) Reset() {
 	*x = ListPartnersResponse{}
-	mi := &file_partner_v1_partner_proto_msgTypes[4]
+	mi := &file_partner_v1_partner_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -428,7 +512,7 @@ func (x *ListPartnersResponse) String() string {
 func (*ListPartnersResponse) ProtoMessage() {}
 
 func (x *ListPartnersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_partner_v1_partner_proto_msgTypes[4]
+	mi := &file_partner_v1_partner_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -441,7 +525,7 @@ func (x *ListPartnersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPartnersResponse.ProtoReflect.Descriptor instead.
 func (*ListPartnersResponse) Descriptor() ([]byte, []int) {
-	return file_partner_v1_partner_proto_rawDescGZIP(), []int{4}
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ListPartnersResponse) GetPartners() []*Partner {
@@ -463,13 +547,15 @@ type UpdatePartnerRequest struct {
 	SupportedRegions      []string               `protobuf:"bytes,8,rep,name=supported_regions,json=supportedRegions,proto3" json:"supported_regions,omitempty"`
 	SlaDays               int32                  `protobuf:"varint,9,opt,name=sla_days,json=slaDays,proto3" json:"sla_days,omitempty"`
 	RoutingPriority       int32                  `protobuf:"varint,10,opt,name=routing_priority,json=routingPriority,proto3" json:"routing_priority,omitempty"`
+	BaseFulfillmentCost   string                 `protobuf:"bytes,11,opt,name=base_fulfillment_cost,json=baseFulfillmentCost,proto3" json:"base_fulfillment_cost,omitempty"`
+	ShippingCostRules     []*ShippingCostRule    `protobuf:"bytes,12,rep,name=shipping_cost_rules,json=shippingCostRules,proto3" json:"shipping_cost_rules,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
 
 func (x *UpdatePartnerRequest) Reset() {
 	*x = UpdatePartnerRequest{}
-	mi := &file_partner_v1_partner_proto_msgTypes[5]
+	mi := &file_partner_v1_partner_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -481,7 +567,7 @@ func (x *UpdatePartnerRequest) String() string {
 func (*UpdatePartnerRequest) ProtoMessage() {}
 
 func (x *UpdatePartnerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_partner_v1_partner_proto_msgTypes[5]
+	mi := &file_partner_v1_partner_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -494,7 +580,7 @@ func (x *UpdatePartnerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePartnerRequest.ProtoReflect.Descriptor instead.
 func (*UpdatePartnerRequest) Descriptor() ([]byte, []int) {
-	return file_partner_v1_partner_proto_rawDescGZIP(), []int{5}
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *UpdatePartnerRequest) GetId() string {
@@ -567,6 +653,20 @@ func (x *UpdatePartnerRequest) GetRoutingPriority() int32 {
 	return 0
 }
 
+func (x *UpdatePartnerRequest) GetBaseFulfillmentCost() string {
+	if x != nil {
+		return x.BaseFulfillmentCost
+	}
+	return ""
+}
+
+func (x *UpdatePartnerRequest) GetShippingCostRules() []*ShippingCostRule {
+	if x != nil {
+		return x.ShippingCostRules
+	}
+	return nil
+}
+
 type UpdatePartnerStatusRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -577,7 +677,7 @@ type UpdatePartnerStatusRequest struct {
 
 func (x *UpdatePartnerStatusRequest) Reset() {
 	*x = UpdatePartnerStatusRequest{}
-	mi := &file_partner_v1_partner_proto_msgTypes[6]
+	mi := &file_partner_v1_partner_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -589,7 +689,7 @@ func (x *UpdatePartnerStatusRequest) String() string {
 func (*UpdatePartnerStatusRequest) ProtoMessage() {}
 
 func (x *UpdatePartnerStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_partner_v1_partner_proto_msgTypes[6]
+	mi := &file_partner_v1_partner_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -602,7 +702,7 @@ func (x *UpdatePartnerStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdatePartnerStatusRequest.ProtoReflect.Descriptor instead.
 func (*UpdatePartnerStatusRequest) Descriptor() ([]byte, []int) {
-	return file_partner_v1_partner_proto_rawDescGZIP(), []int{6}
+	return file_partner_v1_partner_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *UpdatePartnerStatusRequest) GetId() string {
@@ -623,7 +723,10 @@ var File_partner_v1_partner_proto protoreflect.FileDescriptor
 
 const file_partner_v1_partner_proto_rawDesc = "" +
 	"\n" +
-	"\x18partner/v1/partner.proto\x12\apartner\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x98\x04\n" +
+	"\x18partner/v1/partner.proto\x12\apartner\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\">\n" +
+	"\x10ShippingCostRule\x12\x16\n" +
+	"\x06region\x18\x01 \x01(\tR\x06region\x12\x12\n" +
+	"\x04cost\x18\x02 \x01(\tR\x04cost\"\x97\x05\n" +
 	"\aPartner\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\ttenant_id\x18\x02 \x01(\tR\btenantId\x12\x12\n" +
@@ -642,7 +745,9 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\x17supported_product_types\x18\f \x03(\tR\x15supportedProductTypes\x12+\n" +
 	"\x11supported_regions\x18\r \x03(\tR\x10supportedRegions\x12\x19\n" +
 	"\bsla_days\x18\x0e \x01(\x05R\aslaDays\x12)\n" +
-	"\x10routing_priority\x18\x0f \x01(\x05R\x0froutingPriority\"\x87\x03\n" +
+	"\x10routing_priority\x18\x0f \x01(\x05R\x0froutingPriority\x122\n" +
+	"\x15base_fulfillment_cost\x18\x10 \x01(\tR\x13baseFulfillmentCost\x12I\n" +
+	"\x13shipping_cost_rules\x18\x11 \x03(\v2\x19.partner.ShippingCostRuleR\x11shippingCostRules\"\x86\x04\n" +
 	"\x14CreatePartnerRequest\x12\x1b\n" +
 	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\tR\x04code\x12\x12\n" +
@@ -655,7 +760,9 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\x11supported_regions\x18\t \x03(\tR\x10supportedRegions\x12\x19\n" +
 	"\bsla_days\x18\n" +
 	" \x01(\x05R\aslaDays\x12)\n" +
-	"\x10routing_priority\x18\v \x01(\x05R\x0froutingPriority\"#\n" +
+	"\x10routing_priority\x18\v \x01(\x05R\x0froutingPriority\x122\n" +
+	"\x15base_fulfillment_cost\x18\f \x01(\tR\x13baseFulfillmentCost\x12I\n" +
+	"\x13shipping_cost_rules\x18\r \x03(\v2\x19.partner.ShippingCostRuleR\x11shippingCostRules\"#\n" +
 	"\x11GetPartnerRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"m\n" +
 	"\x13ListPartnersRequest\x12\x1b\n" +
@@ -663,7 +770,7 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\x06status\x18\x02 \x01(\tR\x06status\x12!\n" +
 	"\fpartner_type\x18\x03 \x01(\tR\vpartnerType\"D\n" +
 	"\x14ListPartnersResponse\x12,\n" +
-	"\bpartners\x18\x01 \x03(\v2\x10.partner.PartnerR\bpartners\"\xe6\x02\n" +
+	"\bpartners\x18\x01 \x03(\v2\x10.partner.PartnerR\bpartners\"\xe5\x03\n" +
 	"\x14UpdatePartnerRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12!\n" +
@@ -675,7 +782,9 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\x11supported_regions\x18\b \x03(\tR\x10supportedRegions\x12\x19\n" +
 	"\bsla_days\x18\t \x01(\x05R\aslaDays\x12)\n" +
 	"\x10routing_priority\x18\n" +
-	" \x01(\x05R\x0froutingPriority\"D\n" +
+	" \x01(\x05R\x0froutingPriority\x122\n" +
+	"\x15base_fulfillment_cost\x18\v \x01(\tR\x13baseFulfillmentCost\x12I\n" +
+	"\x13shipping_cost_rules\x18\f \x03(\v2\x19.partner.ShippingCostRuleR\x11shippingCostRules\"D\n" +
 	"\x1aUpdatePartnerStatusRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status2\xa0\x04\n" +
@@ -699,36 +808,40 @@ func file_partner_v1_partner_proto_rawDescGZIP() []byte {
 	return file_partner_v1_partner_proto_rawDescData
 }
 
-var file_partner_v1_partner_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_partner_v1_partner_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_partner_v1_partner_proto_goTypes = []any{
-	(*Partner)(nil),                    // 0: partner.Partner
-	(*CreatePartnerRequest)(nil),       // 1: partner.CreatePartnerRequest
-	(*GetPartnerRequest)(nil),          // 2: partner.GetPartnerRequest
-	(*ListPartnersRequest)(nil),        // 3: partner.ListPartnersRequest
-	(*ListPartnersResponse)(nil),       // 4: partner.ListPartnersResponse
-	(*UpdatePartnerRequest)(nil),       // 5: partner.UpdatePartnerRequest
-	(*UpdatePartnerStatusRequest)(nil), // 6: partner.UpdatePartnerStatusRequest
-	(*timestamppb.Timestamp)(nil),      // 7: google.protobuf.Timestamp
+	(*ShippingCostRule)(nil),           // 0: partner.ShippingCostRule
+	(*Partner)(nil),                    // 1: partner.Partner
+	(*CreatePartnerRequest)(nil),       // 2: partner.CreatePartnerRequest
+	(*GetPartnerRequest)(nil),          // 3: partner.GetPartnerRequest
+	(*ListPartnersRequest)(nil),        // 4: partner.ListPartnersRequest
+	(*ListPartnersResponse)(nil),       // 5: partner.ListPartnersResponse
+	(*UpdatePartnerRequest)(nil),       // 6: partner.UpdatePartnerRequest
+	(*UpdatePartnerStatusRequest)(nil), // 7: partner.UpdatePartnerStatusRequest
+	(*timestamppb.Timestamp)(nil),      // 8: google.protobuf.Timestamp
 }
 var file_partner_v1_partner_proto_depIdxs = []int32{
-	7, // 0: partner.Partner.created_at:type_name -> google.protobuf.Timestamp
-	7, // 1: partner.Partner.updated_at:type_name -> google.protobuf.Timestamp
-	0, // 2: partner.ListPartnersResponse.partners:type_name -> partner.Partner
-	1, // 3: partner.PartnerService.CreatePartner:input_type -> partner.CreatePartnerRequest
-	2, // 4: partner.PartnerService.GetPartner:input_type -> partner.GetPartnerRequest
-	3, // 5: partner.PartnerService.ListPartners:input_type -> partner.ListPartnersRequest
-	5, // 6: partner.PartnerService.UpdatePartner:input_type -> partner.UpdatePartnerRequest
-	6, // 7: partner.PartnerService.UpdatePartnerStatus:input_type -> partner.UpdatePartnerStatusRequest
-	0, // 8: partner.PartnerService.CreatePartner:output_type -> partner.Partner
-	0, // 9: partner.PartnerService.GetPartner:output_type -> partner.Partner
-	4, // 10: partner.PartnerService.ListPartners:output_type -> partner.ListPartnersResponse
-	0, // 11: partner.PartnerService.UpdatePartner:output_type -> partner.Partner
-	0, // 12: partner.PartnerService.UpdatePartnerStatus:output_type -> partner.Partner
-	8, // [8:13] is the sub-list for method output_type
-	3, // [3:8] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	8,  // 0: partner.Partner.created_at:type_name -> google.protobuf.Timestamp
+	8,  // 1: partner.Partner.updated_at:type_name -> google.protobuf.Timestamp
+	0,  // 2: partner.Partner.shipping_cost_rules:type_name -> partner.ShippingCostRule
+	0,  // 3: partner.CreatePartnerRequest.shipping_cost_rules:type_name -> partner.ShippingCostRule
+	1,  // 4: partner.ListPartnersResponse.partners:type_name -> partner.Partner
+	0,  // 5: partner.UpdatePartnerRequest.shipping_cost_rules:type_name -> partner.ShippingCostRule
+	2,  // 6: partner.PartnerService.CreatePartner:input_type -> partner.CreatePartnerRequest
+	3,  // 7: partner.PartnerService.GetPartner:input_type -> partner.GetPartnerRequest
+	4,  // 8: partner.PartnerService.ListPartners:input_type -> partner.ListPartnersRequest
+	6,  // 9: partner.PartnerService.UpdatePartner:input_type -> partner.UpdatePartnerRequest
+	7,  // 10: partner.PartnerService.UpdatePartnerStatus:input_type -> partner.UpdatePartnerStatusRequest
+	1,  // 11: partner.PartnerService.CreatePartner:output_type -> partner.Partner
+	1,  // 12: partner.PartnerService.GetPartner:output_type -> partner.Partner
+	5,  // 13: partner.PartnerService.ListPartners:output_type -> partner.ListPartnersResponse
+	1,  // 14: partner.PartnerService.UpdatePartner:output_type -> partner.Partner
+	1,  // 15: partner.PartnerService.UpdatePartnerStatus:output_type -> partner.Partner
+	11, // [11:16] is the sub-list for method output_type
+	6,  // [6:11] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_partner_v1_partner_proto_init() }
@@ -742,7 +855,7 @@ func file_partner_v1_partner_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_partner_v1_partner_proto_rawDesc), len(file_partner_v1_partner_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

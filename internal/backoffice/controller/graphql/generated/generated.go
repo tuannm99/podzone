@@ -66,15 +66,22 @@ type ComplexityRoot struct {
 	}
 
 	PartnerRoutingProfile struct {
+		BaseFulfillmentCost   func(childComplexity int) int
 		Code                  func(childComplexity int) int
 		ID                    func(childComplexity int) int
 		Name                  func(childComplexity int) int
 		PartnerType           func(childComplexity int) int
 		RoutingPriority       func(childComplexity int) int
 		SLADays               func(childComplexity int) int
+		ShippingCostRules     func(childComplexity int) int
 		Status                func(childComplexity int) int
 		SupportedProductTypes func(childComplexity int) int
 		SupportedRegions      func(childComplexity int) int
+	}
+
+	PartnerShippingCostRule struct {
+		Cost   func(childComplexity int) int
+		Region func(childComplexity int) int
 	}
 
 	ProductSetupArtworkChecklist struct {
@@ -212,9 +219,12 @@ type ComplexityRoot struct {
 	}
 
 	RoutingPartnerOption struct {
-		Eligible func(childComplexity int) int
-		Partner  func(childComplexity int) int
-		Reason   func(childComplexity int) int
+		Eligible                 func(childComplexity int) int
+		EstimatedFulfillmentCost func(childComplexity int) int
+		EstimatedShippingCost    func(childComplexity int) int
+		EstimatedUnitMargin      func(childComplexity int) int
+		Partner                  func(childComplexity int) int
+		Reason                   func(childComplexity int) int
 	}
 
 	Store struct {
@@ -450,6 +460,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Mutation.UpdateProductSetupCandidateStatus(childComplexity, args["id"].(string), args["status"].(string)), true
 
+	case "PartnerRoutingProfile.baseFulfillmentCost":
+		if e.complexity.PartnerRoutingProfile.BaseFulfillmentCost == nil {
+			break
+		}
+
+		return e.complexity.PartnerRoutingProfile.BaseFulfillmentCost(childComplexity), true
 	case "PartnerRoutingProfile.code":
 		if e.complexity.PartnerRoutingProfile.Code == nil {
 			break
@@ -486,6 +502,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.PartnerRoutingProfile.SLADays(childComplexity), true
+	case "PartnerRoutingProfile.shippingCostRules":
+		if e.complexity.PartnerRoutingProfile.ShippingCostRules == nil {
+			break
+		}
+
+		return e.complexity.PartnerRoutingProfile.ShippingCostRules(childComplexity), true
 	case "PartnerRoutingProfile.status":
 		if e.complexity.PartnerRoutingProfile.Status == nil {
 			break
@@ -504,6 +526,19 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.PartnerRoutingProfile.SupportedRegions(childComplexity), true
+
+	case "PartnerShippingCostRule.cost":
+		if e.complexity.PartnerShippingCostRule.Cost == nil {
+			break
+		}
+
+		return e.complexity.PartnerShippingCostRule.Cost(childComplexity), true
+	case "PartnerShippingCostRule.region":
+		if e.complexity.PartnerShippingCostRule.Region == nil {
+			break
+		}
+
+		return e.complexity.PartnerShippingCostRule.Region(childComplexity), true
 
 	case "ProductSetupArtworkChecklist.backArtwork":
 		if e.complexity.ProductSetupArtworkChecklist.BackArtwork == nil {
@@ -1131,6 +1166,24 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.RoutingPartnerOption.Eligible(childComplexity), true
+	case "RoutingPartnerOption.estimatedFulfillmentCost":
+		if e.complexity.RoutingPartnerOption.EstimatedFulfillmentCost == nil {
+			break
+		}
+
+		return e.complexity.RoutingPartnerOption.EstimatedFulfillmentCost(childComplexity), true
+	case "RoutingPartnerOption.estimatedShippingCost":
+		if e.complexity.RoutingPartnerOption.EstimatedShippingCost == nil {
+			break
+		}
+
+		return e.complexity.RoutingPartnerOption.EstimatedShippingCost(childComplexity), true
+	case "RoutingPartnerOption.estimatedUnitMargin":
+		if e.complexity.RoutingPartnerOption.EstimatedUnitMargin == nil {
+			break
+		}
+
+		return e.complexity.RoutingPartnerOption.EstimatedUnitMargin(childComplexity), true
 	case "RoutingPartnerOption.partner":
 		if e.complexity.RoutingPartnerOption.Partner == nil {
 			break
@@ -1431,12 +1484,22 @@ type PartnerRoutingProfile {
   supportedRegions: [String!]!
   slaDays: Int!
   routingPriority: Int!
+  baseFulfillmentCost: String!
+  shippingCostRules: [PartnerShippingCostRule!]!
+}
+
+type PartnerShippingCostRule {
+  region: String!
+  cost: String!
 }
 
 type RoutingPartnerOption {
   partner: PartnerRoutingProfile!
   eligible: Boolean!
   reason: String!
+  estimatedFulfillmentCost: String!
+  estimatedShippingCost: String!
+  estimatedUnitMargin: String!
 }
 
 type RoutedOrderRecommendation {
@@ -3563,6 +3626,128 @@ func (ec *executionContext) fieldContext_PartnerRoutingProfile_routingPriority(_
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PartnerRoutingProfile_baseFulfillmentCost(ctx context.Context, field graphql.CollectedField, obj *model.PartnerRoutingProfile) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PartnerRoutingProfile_baseFulfillmentCost,
+		func(ctx context.Context) (any, error) {
+			return obj.BaseFulfillmentCost, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PartnerRoutingProfile_baseFulfillmentCost(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PartnerRoutingProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PartnerRoutingProfile_shippingCostRules(ctx context.Context, field graphql.CollectedField, obj *model.PartnerRoutingProfile) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PartnerRoutingProfile_shippingCostRules,
+		func(ctx context.Context) (any, error) {
+			return obj.ShippingCostRules, nil
+		},
+		nil,
+		ec.marshalNPartnerShippingCostRule2ᚕᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐPartnerShippingCostRuleᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PartnerRoutingProfile_shippingCostRules(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PartnerRoutingProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "region":
+				return ec.fieldContext_PartnerShippingCostRule_region(ctx, field)
+			case "cost":
+				return ec.fieldContext_PartnerShippingCostRule_cost(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PartnerShippingCostRule", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PartnerShippingCostRule_region(ctx context.Context, field graphql.CollectedField, obj *model.PartnerShippingCostRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PartnerShippingCostRule_region,
+		func(ctx context.Context) (any, error) {
+			return obj.Region, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PartnerShippingCostRule_region(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PartnerShippingCostRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PartnerShippingCostRule_cost(ctx context.Context, field graphql.CollectedField, obj *model.PartnerShippingCostRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PartnerShippingCostRule_cost,
+		func(ctx context.Context) (any, error) {
+			return obj.Cost, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PartnerShippingCostRule_cost(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PartnerShippingCostRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -6841,6 +7026,12 @@ func (ec *executionContext) fieldContext_RoutedOrderRecommendation_options(_ con
 				return ec.fieldContext_RoutingPartnerOption_eligible(ctx, field)
 			case "reason":
 				return ec.fieldContext_RoutingPartnerOption_reason(ctx, field)
+			case "estimatedFulfillmentCost":
+				return ec.fieldContext_RoutingPartnerOption_estimatedFulfillmentCost(ctx, field)
+			case "estimatedShippingCost":
+				return ec.fieldContext_RoutingPartnerOption_estimatedShippingCost(ctx, field)
+			case "estimatedUnitMargin":
+				return ec.fieldContext_RoutingPartnerOption_estimatedUnitMargin(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RoutingPartnerOption", field.Name)
 		},
@@ -6890,6 +7081,10 @@ func (ec *executionContext) fieldContext_RoutingPartnerOption_partner(_ context.
 				return ec.fieldContext_PartnerRoutingProfile_slaDays(ctx, field)
 			case "routingPriority":
 				return ec.fieldContext_PartnerRoutingProfile_routingPriority(ctx, field)
+			case "baseFulfillmentCost":
+				return ec.fieldContext_PartnerRoutingProfile_baseFulfillmentCost(ctx, field)
+			case "shippingCostRules":
+				return ec.fieldContext_PartnerRoutingProfile_shippingCostRules(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type PartnerRoutingProfile", field.Name)
 		},
@@ -6943,6 +7138,93 @@ func (ec *executionContext) _RoutingPartnerOption_reason(ctx context.Context, fi
 }
 
 func (ec *executionContext) fieldContext_RoutingPartnerOption_reason(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutingPartnerOption",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutingPartnerOption_estimatedFulfillmentCost(ctx context.Context, field graphql.CollectedField, obj *model.RoutingPartnerOption) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutingPartnerOption_estimatedFulfillmentCost,
+		func(ctx context.Context) (any, error) {
+			return obj.EstimatedFulfillmentCost, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutingPartnerOption_estimatedFulfillmentCost(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutingPartnerOption",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutingPartnerOption_estimatedShippingCost(ctx context.Context, field graphql.CollectedField, obj *model.RoutingPartnerOption) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutingPartnerOption_estimatedShippingCost,
+		func(ctx context.Context) (any, error) {
+			return obj.EstimatedShippingCost, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutingPartnerOption_estimatedShippingCost(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutingPartnerOption",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutingPartnerOption_estimatedUnitMargin(ctx context.Context, field graphql.CollectedField, obj *model.RoutingPartnerOption) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutingPartnerOption_estimatedUnitMargin,
+		func(ctx context.Context) (any, error) {
+			return obj.EstimatedUnitMargin, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutingPartnerOption_estimatedUnitMargin(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "RoutingPartnerOption",
 		Field:      field,
@@ -9717,6 +9999,60 @@ func (ec *executionContext) _PartnerRoutingProfile(ctx context.Context, sel ast.
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "baseFulfillmentCost":
+			out.Values[i] = ec._PartnerRoutingProfile_baseFulfillmentCost(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "shippingCostRules":
+			out.Values[i] = ec._PartnerRoutingProfile_shippingCostRules(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var partnerShippingCostRuleImplementors = []string{"PartnerShippingCostRule"}
+
+func (ec *executionContext) _PartnerShippingCostRule(ctx context.Context, sel ast.SelectionSet, obj *model.PartnerShippingCostRule) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, partnerShippingCostRuleImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PartnerShippingCostRule")
+		case "region":
+			out.Values[i] = ec._PartnerShippingCostRule_region(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "cost":
+			out.Values[i] = ec._PartnerShippingCostRule_cost(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -10798,6 +11134,21 @@ func (ec *executionContext) _RoutingPartnerOption(ctx context.Context, sel ast.S
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "estimatedFulfillmentCost":
+			out.Values[i] = ec._RoutingPartnerOption_estimatedFulfillmentCost(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "estimatedShippingCost":
+			out.Values[i] = ec._RoutingPartnerOption_estimatedShippingCost(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "estimatedUnitMargin":
+			out.Values[i] = ec._RoutingPartnerOption_estimatedUnitMargin(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -11400,6 +11751,60 @@ func (ec *executionContext) marshalNPartnerRoutingProfile2ᚖgithubᚗcomᚋtuan
 		return graphql.Null
 	}
 	return ec._PartnerRoutingProfile(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPartnerShippingCostRule2ᚕᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐPartnerShippingCostRuleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PartnerShippingCostRule) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPartnerShippingCostRule2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐPartnerShippingCostRule(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNPartnerShippingCostRule2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐPartnerShippingCostRule(ctx context.Context, sel ast.SelectionSet, v *model.PartnerShippingCostRule) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PartnerShippingCostRule(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNProductSetupArtworkChecklist2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐProductSetupArtworkChecklist(ctx context.Context, sel ast.SelectionSet, v *model.ProductSetupArtworkChecklist) graphql.Marshaler {

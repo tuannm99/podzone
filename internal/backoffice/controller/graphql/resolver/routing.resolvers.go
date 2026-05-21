@@ -1,0 +1,210 @@
+package resolver
+
+import (
+	"context"
+
+	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/generated/model"
+	"github.com/tuannm99/podzone/internal/backoffice/domain/inputport"
+)
+
+// CreateRoutedOrder is the resolver for the createRoutedOrder field.
+func (r *mutationResolver) CreateRoutedOrder(ctx context.Context, input model.CreateRoutedOrderInput) (*model.RoutedOrder, error) {
+	preferredPartner := ""
+	if input.PreferredPartner != nil {
+		preferredPartner = *input.PreferredPartner
+	}
+	order, err := r.OrderRoutingUsecase.CreateRoutedOrder(ctx, inputport.CreateRoutedOrderCmd{
+		CandidateID:      input.CandidateID,
+		CustomerName:     input.CustomerName,
+		Quantity:         input.Quantity,
+		ProductType:      input.ProductType,
+		ShipRegion:       input.ShipRegion,
+		PreferredPartner: preferredPartner,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return toGraphQLRoutedOrder(*order), nil
+}
+
+// AdvanceRoutedOrder is the resolver for the advanceRoutedOrder field.
+func (r *mutationResolver) AdvanceRoutedOrder(ctx context.Context, id string) (*model.RoutedOrder, error) {
+	order, err := r.OrderRoutingUsecase.AdvanceRoutedOrder(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return toGraphQLRoutedOrder(*order), nil
+}
+
+// OpenOrderException is the resolver for the openOrderException field.
+func (r *mutationResolver) OpenOrderException(ctx context.Context, input model.OpenOrderExceptionInput) (*model.RoutedOrder, error) {
+	order, err := r.OrderRoutingUsecase.OpenOrderException(ctx, inputport.OpenOrderExceptionCmd{
+		OrderID:       input.OrderID,
+		ExceptionType: input.ExceptionType,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return toGraphQLRoutedOrder(*order), nil
+}
+
+// UpdateOrderExceptionStatus is the resolver for the updateOrderExceptionStatus field.
+func (r *mutationResolver) UpdateOrderExceptionStatus(ctx context.Context, input model.UpdateOrderExceptionStatusInput) (*model.RoutedOrder, error) {
+	order, err := r.OrderRoutingUsecase.UpdateOrderExceptionStatus(ctx, inputport.UpdateOrderExceptionStatusCmd{
+		OrderID: input.OrderID,
+		Status:  input.Status,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return toGraphQLRoutedOrder(*order), nil
+}
+
+// UpdateOrderShipment is the resolver for the updateOrderShipment field.
+func (r *mutationResolver) UpdateOrderShipment(ctx context.Context, input model.UpdateOrderShipmentInput) (*model.RoutedOrder, error) {
+	order, err := r.OrderRoutingUsecase.UpdateOrderShipment(ctx, inputport.UpdateOrderShipmentCmd{
+		OrderID:        input.OrderID,
+		ShipmentStatus: input.ShipmentStatus,
+		Carrier:        input.Carrier,
+		TrackingNumber: input.TrackingNumber,
+		TrackingURL:    input.TrackingURL,
+		Notes:          input.Notes,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return toGraphQLRoutedOrder(*order), nil
+}
+
+// UpdateOrderSettlement is the resolver for the updateOrderSettlement field.
+func (r *mutationResolver) UpdateOrderSettlement(ctx context.Context, input model.UpdateOrderSettlementInput) (*model.RoutedOrder, error) {
+	order, err := r.OrderRoutingUsecase.UpdateOrderSettlement(ctx, inputport.UpdateOrderSettlementCmd{
+		OrderID:          input.OrderID,
+		FulfillmentCost:  input.FulfillmentCost,
+		ShippingCost:     input.ShippingCost,
+		SettlementStatus: input.SettlementStatus,
+		Notes:            input.Notes,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return toGraphQLRoutedOrder(*order), nil
+}
+
+// UpdateOrderIssueHandling is the resolver for the updateOrderIssueHandling field.
+func (r *mutationResolver) UpdateOrderIssueHandling(ctx context.Context, input model.UpdateOrderIssueHandlingInput) (*model.RoutedOrder, error) {
+	order, err := r.OrderRoutingUsecase.UpdateOrderIssueHandling(ctx, inputport.UpdateOrderIssueHandlingCmd{
+		OrderID:         input.OrderID,
+		IssueCost:       input.IssueCost,
+		IssueResolution: input.IssueResolution,
+		Notes:           input.Notes,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return toGraphQLRoutedOrder(*order), nil
+}
+
+// UpdateOrderQueueControl is the resolver for the updateOrderQueueControl field.
+func (r *mutationResolver) UpdateOrderQueueControl(ctx context.Context, input model.UpdateOrderQueueControlInput) (*model.RoutedOrder, error) {
+	order, err := r.OrderRoutingUsecase.UpdateOrderQueueControl(ctx, inputport.UpdateOrderQueueControlCmd{
+		OrderID:          input.OrderID,
+		OperatorAssignee: input.OperatorAssignee,
+		ShipmentSlaDueAt: input.ShipmentSLADueAt,
+		IssueSlaDueAt:    input.IssueSLADueAt,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return toGraphQLRoutedOrder(*order), nil
+}
+
+// BulkUpdateRoutedOrders is the resolver for the bulkUpdateRoutedOrders field.
+func (r *mutationResolver) BulkUpdateRoutedOrders(ctx context.Context, input model.BulkUpdateRoutedOrdersInput) ([]*model.RoutedOrder, error) {
+	orders, err := r.OrderRoutingUsecase.BulkUpdateRoutedOrders(ctx, inputport.BulkUpdateRoutedOrdersCmd{
+		OrderIDs:         input.OrderIds,
+		OperatorAssignee: input.OperatorAssignee,
+		ShipmentSlaDueAt: input.ShipmentSLADueAt,
+		SettlementStatus: input.SettlementStatus,
+	})
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*model.RoutedOrder, 0, len(orders))
+	for _, order := range orders {
+		result = append(result, toGraphQLRoutedOrder(order))
+	}
+	return result, nil
+}
+
+// RoutedOrders is the resolver for the routedOrders field.
+func (r *queryResolver) RoutedOrders(ctx context.Context) ([]*model.RoutedOrder, error) {
+	orders, err := r.OrderRoutingUsecase.ListRoutedOrders(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*model.RoutedOrder, 0, len(orders))
+	for _, order := range orders {
+		result = append(result, toGraphQLRoutedOrder(order))
+	}
+	return result, nil
+}
+
+// RoutedOrderActivities is the resolver for the routedOrderActivities field.
+func (r *queryResolver) RoutedOrderActivities(ctx context.Context, input *model.RoutedOrderActivityFeedInput) (*model.RoutedOrderActivityFeedPage, error) {
+	query := inputport.ListRoutedOrderActivitiesQuery{
+		Limit: 50,
+	}
+	if input != nil {
+		if input.ActivityType != nil {
+			query.ActivityType = *input.ActivityType
+		}
+		if input.ActorContains != nil {
+			query.ActorContains = *input.ActorContains
+		}
+		if input.OrderID != nil {
+			query.OrderID = *input.OrderID
+		}
+		if input.Partner != nil {
+			query.Partner = *input.Partner
+		}
+		if input.Assignee != nil {
+			query.Assignee = *input.Assignee
+		}
+		if input.Since != nil {
+			query.Since = input.Since
+		}
+		if input.Limit != nil {
+			query.Limit = *input.Limit
+		}
+		if input.After != nil {
+			query.After = *input.After
+		}
+		if input.IncludeSystem != nil {
+			query.IncludeSystem = *input.IncludeSystem
+		}
+	}
+	page, err := r.OrderRoutingUsecase.ListRoutedOrderActivities(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	return toGraphQLRoutedOrderActivityFeedPage(*page), nil
+}
+
+// RoutedOrderRecommendation is the resolver for the routedOrderRecommendation field.
+func (r *queryResolver) RoutedOrderRecommendation(ctx context.Context, input model.RoutedOrderRecommendationInput) (*model.RoutedOrderRecommendation, error) {
+	preferredPartner := ""
+	if input.PreferredPartner != nil {
+		preferredPartner = *input.PreferredPartner
+	}
+	recommendation, err := r.OrderRoutingUsecase.RecommendRoutedOrderPartner(ctx, inputport.RecommendRoutedOrderPartnerQuery{
+		CandidateID:      input.CandidateID,
+		ProductType:      input.ProductType,
+		ShipRegion:       input.ShipRegion,
+		PreferredPartner: preferredPartner,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return toGraphQLRoutedOrderRecommendation(*recommendation), nil
+}

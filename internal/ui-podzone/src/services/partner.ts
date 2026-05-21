@@ -14,6 +14,11 @@ export type PartnerInfo = {
   supportedRegions: string[];
   slaDays: number;
   routingPriority: number;
+  baseFulfillmentCost: string;
+  shippingCostRules: {
+    region: string;
+    cost: string;
+  }[];
   createdAt?: string;
   updatedAt?: string;
 };
@@ -34,6 +39,11 @@ export type CreatePartnerPayload = {
   supportedRegions: string[];
   slaDays: number;
   routingPriority: number;
+  baseFulfillmentCost: string;
+  shippingCostRules: {
+    region: string;
+    cost: string;
+  }[];
 };
 
 export type UpdatePartnerPayload = {
@@ -47,6 +57,11 @@ export type UpdatePartnerPayload = {
   supportedRegions: string[];
   slaDays: number;
   routingPriority: number;
+  baseFulfillmentCost: string;
+  shippingCostRules: {
+    region: string;
+    cost: string;
+  }[];
 };
 
 function toFailure(error: unknown, fallback: string): PartnerResult<never> {

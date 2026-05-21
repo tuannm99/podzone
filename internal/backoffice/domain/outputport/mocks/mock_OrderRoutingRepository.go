@@ -8,8 +8,8 @@ import (
 	"context"
 
 	mock "github.com/stretchr/testify/mock"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/entity"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/inputport"
+	"github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
+	"github.com/tuannm99/podzone/internal/backoffice/domain/routing/usecase"
 )
 
 // NewMockOrderRoutingRepository creates a new instance of MockOrderRoutingRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -238,7 +238,7 @@ func (_c *MockOrderRoutingRepository_List_Call) RunAndReturn(run func(ctx contex
 }
 
 // ListActivityFeed provides a mock function for the type MockOrderRoutingRepository
-func (_mock *MockOrderRoutingRepository) ListActivityFeed(ctx context.Context, query inputport.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error) {
+func (_mock *MockOrderRoutingRepository) ListActivityFeed(ctx context.Context, query usecase.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error) {
 	ret := _mock.Called(ctx, query)
 
 	if len(ret) == 0 {
@@ -247,17 +247,17 @@ func (_mock *MockOrderRoutingRepository) ListActivityFeed(ctx context.Context, q
 
 	var r0 *entity.RoutedOrderActivityFeedPage
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, usecase.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error)); ok {
 		return returnFunc(ctx, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.ListRoutedOrderActivitiesQuery) *entity.RoutedOrderActivityFeedPage); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, usecase.ListRoutedOrderActivitiesQuery) *entity.RoutedOrderActivityFeedPage); ok {
 		r0 = returnFunc(ctx, query)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*entity.RoutedOrderActivityFeedPage)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, inputport.ListRoutedOrderActivitiesQuery) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, usecase.ListRoutedOrderActivitiesQuery) error); ok {
 		r1 = returnFunc(ctx, query)
 	} else {
 		r1 = ret.Error(1)
@@ -272,20 +272,20 @@ type MockOrderRoutingRepository_ListActivityFeed_Call struct {
 
 // ListActivityFeed is a helper method to define mock.On call
 //   - ctx context.Context
-//   - query inputport.ListRoutedOrderActivitiesQuery
+//   - query usecase.ListRoutedOrderActivitiesQuery
 func (_e *MockOrderRoutingRepository_Expecter) ListActivityFeed(ctx interface{}, query interface{}) *MockOrderRoutingRepository_ListActivityFeed_Call {
 	return &MockOrderRoutingRepository_ListActivityFeed_Call{Call: _e.mock.On("ListActivityFeed", ctx, query)}
 }
 
-func (_c *MockOrderRoutingRepository_ListActivityFeed_Call) Run(run func(ctx context.Context, query inputport.ListRoutedOrderActivitiesQuery)) *MockOrderRoutingRepository_ListActivityFeed_Call {
+func (_c *MockOrderRoutingRepository_ListActivityFeed_Call) Run(run func(ctx context.Context, query usecase.ListRoutedOrderActivitiesQuery)) *MockOrderRoutingRepository_ListActivityFeed_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 inputport.ListRoutedOrderActivitiesQuery
+		var arg1 usecase.ListRoutedOrderActivitiesQuery
 		if args[1] != nil {
-			arg1 = args[1].(inputport.ListRoutedOrderActivitiesQuery)
+			arg1 = args[1].(usecase.ListRoutedOrderActivitiesQuery)
 		}
 		run(
 			arg0,
@@ -300,7 +300,7 @@ func (_c *MockOrderRoutingRepository_ListActivityFeed_Call) Return(routedOrderAc
 	return _c
 }
 
-func (_c *MockOrderRoutingRepository_ListActivityFeed_Call) RunAndReturn(run func(ctx context.Context, query inputport.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error)) *MockOrderRoutingRepository_ListActivityFeed_Call {
+func (_c *MockOrderRoutingRepository_ListActivityFeed_Call) RunAndReturn(run func(ctx context.Context, query usecase.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error)) *MockOrderRoutingRepository_ListActivityFeed_Call {
 	_c.Call.Return(run)
 	return _c
 }

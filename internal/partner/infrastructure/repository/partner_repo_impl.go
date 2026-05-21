@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"strings"
 
@@ -30,8 +31,12 @@ func (r *PartnerRepositoryImpl) Create(
 	ctx context.Context,
 	partner partnerdomain.Partner,
 ) (*partnerdomain.Partner, error) {
+	shippingRulesJSON, err := json.Marshal(partner.ShippingCostRules)
+	if err != nil {
+		return nil, err
+	}
 	query, args, err := sq.Insert("partners").
-		Columns("id", "tenant_id", "code", "name", "contact_name", "contact_email", "notes", "partner_type", "status", "supported_product_types", "supported_regions", "sla_days", "routing_priority", "created_at", "updated_at").
+		Columns("id", "tenant_id", "code", "name", "contact_name", "contact_email", "notes", "partner_type", "status", "supported_product_types", "supported_regions", "sla_days", "routing_priority", "base_fulfillment_cost", "shipping_cost_rules_json", "created_at", "updated_at").
 		Values(
 			partner.ID,
 			partner.TenantID,
@@ -46,10 +51,12 @@ func (r *PartnerRepositoryImpl) Create(
 			partner.SupportedRegions,
 			partner.SLADays,
 			partner.RoutingPriority,
+			partner.BaseFulfillmentCost,
+			shippingRulesJSON,
 			partner.CreatedAt,
 			partner.UpdatedAt,
 		).
-		Suffix("RETURNING id, tenant_id, code, name, contact_name, contact_email, notes, partner_type, status, supported_product_types, supported_regions, sla_days, routing_priority, created_at, updated_at").
+		Suffix("RETURNING id, tenant_id, code, name, contact_name, contact_email, notes, partner_type, status, supported_product_types, supported_regions, sla_days, routing_priority, base_fulfillment_cost, shipping_cost_rules_json, created_at, updated_at").
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
@@ -81,6 +88,8 @@ func (r *PartnerRepositoryImpl) GetByID(ctx context.Context, id string) (*partne
 		"supported_regions",
 		"sla_days",
 		"routing_priority",
+		"base_fulfillment_cost",
+		"shipping_cost_rules_json",
 		"created_at",
 		"updated_at",
 	).From("partners").Where(sq.Eq{"id": id}).PlaceholderFormat(sq.Dollar).ToSql()
@@ -116,6 +125,8 @@ func (r *PartnerRepositoryImpl) List(
 		"supported_regions",
 		"sla_days",
 		"routing_priority",
+		"base_fulfillment_cost",
+		"shipping_cost_rules_json",
 		"created_at",
 		"updated_at",
 	).From("partners").Where(sq.Eq{"tenant_id": queryArg.TenantID}).OrderBy("routing_priority DESC", "created_at DESC")
@@ -146,6 +157,10 @@ func (r *PartnerRepositoryImpl) Update(
 	ctx context.Context,
 	partner partnerdomain.Partner,
 ) (*partnerdomain.Partner, error) {
+	shippingRulesJSON, err := json.Marshal(partner.ShippingCostRules)
+	if err != nil {
+		return nil, err
+	}
 	query, args, err := sq.Update("partners").
 		Set("name", partner.Name).
 		Set("contact_name", partner.ContactName).
@@ -156,9 +171,11 @@ func (r *PartnerRepositoryImpl) Update(
 		Set("supported_regions", partner.SupportedRegions).
 		Set("sla_days", partner.SLADays).
 		Set("routing_priority", partner.RoutingPriority).
+		Set("base_fulfillment_cost", partner.BaseFulfillmentCost).
+		Set("shipping_cost_rules_json", shippingRulesJSON).
 		Set("updated_at", partner.UpdatedAt).
 		Where(sq.Eq{"id": partner.ID}).
-		Suffix("RETURNING id, tenant_id, code, name, contact_name, contact_email, notes, partner_type, status, supported_product_types, supported_regions, sla_days, routing_priority, created_at, updated_at").
+		Suffix("RETURNING id, tenant_id, code, name, contact_name, contact_email, notes, partner_type, status, supported_product_types, supported_regions, sla_days, routing_priority, base_fulfillment_cost, shipping_cost_rules_json, created_at, updated_at").
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
@@ -183,7 +200,7 @@ func (r *PartnerRepositoryImpl) UpdateStatus(
 		Set("status", status).
 		Set("updated_at", sq.Expr("NOW() AT TIME ZONE 'UTC'")).
 		Where(sq.Eq{"id": id}).
-		Suffix("RETURNING id, tenant_id, code, name, contact_name, contact_email, notes, partner_type, status, supported_product_types, supported_regions, sla_days, routing_priority, created_at, updated_at").
+		Suffix("RETURNING id, tenant_id, code, name, contact_name, contact_email, notes, partner_type, status, supported_product_types, supported_regions, sla_days, routing_priority, base_fulfillment_cost, shipping_cost_rules_json, created_at, updated_at").
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {

@@ -1,11 +1,5 @@
 package outputport
 
-import (
-	"context"
+import routingoutputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/outputport"
 
-	"github.com/tuannm99/podzone/internal/backoffice/domain/entity"
-)
-
-type PartnerDirectory interface {
-	ListActivePartners(ctx context.Context, tenantID string) ([]entity.PartnerRoutingProfile, error)
-}
+type PartnerDirectory = routingoutputport.PartnerDirectory

@@ -1,0 +1,90 @@
+type ProductSetupDraft {
+  id: ID!
+  name: String!
+  partner: String!
+  baseCost: String!
+  retailPrice: String!
+  status: String!
+  notes: String!
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+type ProductSetupVariant {
+  id: ID!
+  label: String!
+  color: String!
+  size: String!
+  status: String!
+}
+
+type ProductSetupArtworkChecklist {
+  frontArtwork: Boolean!
+  backArtwork: Boolean!
+  mockupReady: Boolean!
+  printSpecChecked: Boolean!
+}
+
+type ProductSetupCandidate {
+  id: ID!
+  draftId: ID!
+  title: String!
+  sku: String!
+  partner: String!
+  baseCost: String!
+  retailPrice: String!
+  estimatedMargin: String!
+  status: String!
+  channel: String!
+  updatedAt: Time!
+  variants: [ProductSetupVariant!]!
+  artworkChecklist: ProductSetupArtworkChecklist!
+  merchandisingNotes: String!
+}
+
+type ProductSetupSnapshot {
+  drafts: [ProductSetupDraft!]!
+  candidates: [ProductSetupCandidate!]!
+}
+
+input CreateProductSetupDraftInput {
+  name: String!
+  partner: String!
+  baseCost: String!
+  retailPrice: String!
+  status: String!
+  notes: String!
+}
+
+input ProductSetupArtworkChecklistInput {
+  frontArtwork: Boolean!
+  backArtwork: Boolean!
+  mockupReady: Boolean!
+  printSpecChecked: Boolean!
+}
+
+input PromoteProductSetupCandidateInput {
+  draftId: ID!
+  channel: String!
+  variantColor: String!
+  variantSize: String!
+  artworkChecklist: ProductSetupArtworkChecklistInput!
+  merchandisingNotes: String!
+}
+
+extend type Query {
+  productSetupSnapshot: ProductSetupSnapshot!
+}
+
+extend type Mutation {
+  createProductSetupDraft(
+    input: CreateProductSetupDraftInput!
+  ): ProductSetupDraft!
+  promoteProductSetupCandidate(
+    input: PromoteProductSetupCandidateInput!
+  ): ProductSetupCandidate!
+  updateProductSetupCandidateStatus(
+    id: ID!
+    status: String!
+  ): ProductSetupCandidate!
+}

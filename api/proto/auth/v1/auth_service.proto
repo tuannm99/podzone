@@ -1,0 +1,119 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1";
+
+import "auth/v1/auth.proto";
+import "auth/v1/auth_session.proto";
+import "google/api/annotations.proto";
+
+// AuthService owns authentication, session lifecycle, token refresh,
+// OAuth login exchange, and active-tenant switching for an authenticated session.
+service AuthService {
+  rpc GoogleLogin(GoogleLoginRequest) returns (GoogleLoginResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/google/login"
+    };
+  }
+
+  rpc GoogleCallback(GoogleCallbackRequest) returns (GoogleCallbackResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/google/callback"
+    };
+  }
+
+  rpc ExchangeGoogleLogin(ExchangeGoogleLoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/google/exchange"
+      body: "*"
+    };
+  }
+
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/login"
+      body: "*"
+    };
+  }
+
+  rpc Register(RegisterRequest) returns (RegisterResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/register"
+      body: "*"
+    };
+  }
+
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/refresh"
+      body: "*"
+    };
+  }
+
+  rpc Logout(LogoutRequest) returns (LogoutResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/logout"
+      body: "*"
+    };
+  }
+
+  rpc SwitchActiveTenant(SwitchActiveTenantRequest) returns (SwitchActiveTenantResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/tenants:switch"
+      body: "*"
+    };
+  }
+
+  rpc AssumeSessionPolicy(AssumeSessionPolicyRequest) returns (AssumeSessionPolicyResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/sessions:assume-policy"
+      body: "*"
+    };
+  }
+
+  rpc ClearSessionPolicy(ClearSessionPolicyRequest) returns (ClearSessionPolicyResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/sessions:clear-policy"
+      body: "*"
+    };
+  }
+
+  rpc AssumeRole(AssumeRoleRequest) returns (AssumeRoleResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/sessions:assume-role"
+      body: "*"
+    };
+  }
+
+  rpc ClearAssumedRole(ClearAssumedRoleRequest) returns (ClearAssumedRoleResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/sessions:clear-assumed-role"
+      body: "*"
+    };
+  }
+
+  rpc GetSession(GetSessionRequest) returns (GetSessionResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/sessions/{session_id}"
+    };
+  }
+
+  rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/sessions"
+    };
+  }
+
+  rpc RevokeSession(RevokeSessionRequest) returns (RevokeSessionResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/sessions/{session_id}"
+    };
+  }
+
+  rpc ListAuditLogs(ListAuditLogsRequest) returns (ListAuditLogsResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/audit-logs"
+    };
+  }
+}

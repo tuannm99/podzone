@@ -8,7 +8,7 @@ import (
 	"context"
 
 	mock "github.com/stretchr/testify/mock"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/entity"
+	"github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
 )
 
 // NewMockPartnerDirectory creates a new instance of MockPartnerDirectory. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

@@ -5,10 +5,15 @@ import (
 
 	boconfig "github.com/tuannm99/podzone/internal/backoffice/config"
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/resolver"
-	interactor "github.com/tuannm99/podzone/internal/backoffice/domain"
+	backofficecatalog "github.com/tuannm99/podzone/internal/backoffice/domain/catalog"
 	"github.com/tuannm99/podzone/internal/backoffice/domain/inputport"
 	"github.com/tuannm99/podzone/internal/backoffice/domain/outputport"
-	"github.com/tuannm99/podzone/internal/backoffice/infrastructure/repository"
+	backofficerouting "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
+	backofficestore "github.com/tuannm99/podzone/internal/backoffice/domain/store"
+	partnerdirectory "github.com/tuannm99/podzone/internal/backoffice/infrastructure/partnerdirectory"
+	catalogrepo "github.com/tuannm99/podzone/internal/backoffice/infrastructure/repository/catalog"
+	routingrepo "github.com/tuannm99/podzone/internal/backoffice/infrastructure/repository/routing"
+	storerepo "github.com/tuannm99/podzone/internal/backoffice/infrastructure/repository/store"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 )
 
@@ -19,17 +24,17 @@ var Module = fx.Options(
 		boconfig.NewConfigFromKoanf,
 		fx.Annotate(NewTenantAuthorizer, fx.As(new(TenantAuthorizer))),
 		fx.Annotate(NewTenantBootstrapper, fx.As(new(TenantBootstrapper))),
-		fx.Annotate(NewPartnerDirectory, fx.As(new(outputport.PartnerDirectory))),
+		fx.Annotate(partnerdirectory.New, fx.As(new(outputport.PartnerDirectory))),
 
 		// --- Infrastructure layer ---
-		fx.Annotate(repository.NewStoreRepository, fx.As(new(outputport.StoreRepository))),
-		fx.Annotate(repository.NewProductSetupRepository, fx.As(new(outputport.ProductSetupRepository))),
-		fx.Annotate(repository.NewOrderRoutingRepository, fx.As(new(outputport.OrderRoutingRepository))),
+		fx.Annotate(storerepo.New, fx.As(new(outputport.StoreRepository))),
+		fx.Annotate(catalogrepo.New, fx.As(new(outputport.ProductSetupRepository))),
+		fx.Annotate(routingrepo.New, fx.As(new(outputport.OrderRoutingRepository))),
 
 		// --- Domain layer ---
-		fx.Annotate(interactor.NewStoreInteractor, fx.As(new(inputport.StoreUsecase))),
-		fx.Annotate(interactor.NewProductSetupInteractor, fx.As(new(inputport.ProductSetupUsecase))),
-		fx.Annotate(interactor.NewOrderRoutingInteractor, fx.As(new(inputport.OrderRoutingUsecase))),
+		fx.Annotate(backofficestore.NewStoreInteractor, fx.As(new(inputport.StoreUsecase))),
+		fx.Annotate(backofficecatalog.NewProductSetupInteractor, fx.As(new(inputport.ProductSetupUsecase))),
+		fx.Annotate(backofficerouting.NewOrderRoutingInteractor, fx.As(new(inputport.OrderRoutingUsecase))),
 
 		// --- GraphQL resolver root ---
 		resolver.NewResolver,

@@ -31,6 +31,14 @@ function formatCapabilityList(items?: string[]) {
   return items && items.length > 0 ? items.join(', ') : 'Any';
 }
 
+function formatShippingCostRules(
+  items?: { region: string; cost: string }[]
+) {
+  return items && items.length > 0
+    ? items.map((item) => `${item.region}:${item.cost}`).join(', ')
+    : 'No region rules';
+}
+
 function DetailRow(props: { label: string; value: string }) {
   return (
     <div class="rounded-2xl border border-gray-200 p-4">
@@ -174,6 +182,14 @@ export default function TenantPartnerDetailPage() {
               <DetailRow
                 label="Routing priority"
                 value={String(current().routingPriority || 0)}
+              />
+              <DetailRow
+                label="Base fulfillment cost"
+                value={current().baseFulfillmentCost || 'TBD'}
+              />
+              <DetailRow
+                label="Shipping cost rules"
+                value={formatShippingCostRules(current().shippingCostRules)}
               />
             </div>
 

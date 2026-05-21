@@ -1,0 +1,127 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1";
+
+import "auth/v1/auth.proto";
+import "auth/v1/iam_policy.proto";
+
+message Session {
+  string id = 1;
+  uint64 user_id = 2;
+  string active_tenant_id = 3;
+  string status = 4;
+  string created_at = 5;
+  string updated_at = 6;
+  string expires_at = 7;
+  string revoked_at = 8;
+  repeated PolicyStatement session_policy = 9;
+  uint64 assumed_role_id = 10;
+  string assumed_role_scope = 11;
+  string assumed_role_name = 12;
+  string assumed_role_tenant_id = 13;
+  string assumed_role_session_name = 14;
+  string assumed_role_source_identity = 15;
+  string assumed_role_expires_at = 16;
+  map<string, string> session_tags = 17;
+  string assumed_role_service_principal = 18;
+}
+
+message AuditLog {
+  string id = 1;
+  uint64 actor_user_id = 2;
+  string action = 3;
+  string resource_type = 4;
+  string resource_id = 5;
+  string tenant_id = 6;
+  string status = 7;
+  string payload_json = 8;
+  string created_at = 9;
+}
+
+message SwitchActiveTenantRequest {
+  uint64 user_id = 1;
+  string tenant_id = 2;
+  string access_token = 3;
+}
+
+message SwitchActiveTenantResponse {
+  string jwt_token = 1;
+  UserInfo user_info = 2;
+  string refresh_token = 3;
+}
+
+message AssumeSessionPolicyRequest {
+  string access_token = 1;
+  repeated PolicyStatement statements = 2;
+}
+
+message AssumeSessionPolicyResponse {
+  string jwt_token = 1;
+  Session session = 2;
+}
+
+message ClearSessionPolicyRequest {
+  string access_token = 1;
+}
+
+message ClearSessionPolicyResponse {
+  string jwt_token = 1;
+  Session session = 2;
+}
+
+message AssumeRoleRequest {
+  string access_token = 1;
+  string role_name = 2;
+  string tenant_id = 3;
+  repeated PolicyStatement session_policy = 4;
+  string external_id = 5;
+  string session_name = 6;
+  string source_identity = 7;
+  uint32 duration_seconds = 8;
+  string service_principal = 9;
+  map<string, string> session_tags = 10;
+}
+
+message AssumeRoleResponse {
+  string jwt_token = 1;
+  Session session = 2;
+}
+
+message ClearAssumedRoleRequest {
+  string access_token = 1;
+}
+
+message ClearAssumedRoleResponse {
+  string jwt_token = 1;
+  Session session = 2;
+}
+
+message GetSessionRequest {
+  string session_id = 1;
+}
+
+message GetSessionResponse {
+  Session session = 1;
+}
+
+message ListSessionsRequest {}
+
+message ListSessionsResponse {
+  repeated Session sessions = 1;
+}
+
+message RevokeSessionRequest {
+  string session_id = 1;
+}
+
+message RevokeSessionResponse {}
+
+message ListAuditLogsRequest {
+  int32 page_size = 1;
+}
+
+message ListAuditLogsResponse {
+  repeated AuditLog logs = 1;
+}

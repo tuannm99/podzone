@@ -40,8 +40,15 @@ type Partner struct {
 	SupportedRegions      []string
 	SLADays               int32
 	RoutingPriority       int32
+	BaseFulfillmentCost   string
+	ShippingCostRules     []ShippingCostRule
 	CreatedAt             time.Time
 	UpdatedAt             time.Time
+}
+
+type ShippingCostRule struct {
+	Region string
+	Cost   string
 }
 
 type CreatePartnerCmd struct {
@@ -56,6 +63,8 @@ type CreatePartnerCmd struct {
 	SupportedRegions      []string
 	SLADays               int32
 	RoutingPriority       int32
+	BaseFulfillmentCost   string
+	ShippingCostRules     []ShippingCostRule
 }
 
 type UpdatePartnerCmd struct {
@@ -69,6 +78,8 @@ type UpdatePartnerCmd struct {
 	SupportedRegions      []string
 	SLADays               int32
 	RoutingPriority       int32
+	BaseFulfillmentCost   string
+	ShippingCostRules     []ShippingCostRule
 }
 
 type ListPartnersQuery struct {
@@ -114,6 +125,27 @@ func NormalizeCapabilityList(items []string) []string {
 		}
 		seen[normalized] = struct{}{}
 		out = append(out, normalized)
+	}
+	return out
+}
+
+func NormalizeShippingCostRules(items []ShippingCostRule) []ShippingCostRule {
+	seen := make(map[string]struct{}, len(items))
+	out := make([]ShippingCostRule, 0, len(items))
+	for _, item := range items {
+		region := strings.TrimSpace(strings.ToLower(item.Region))
+		cost := strings.TrimSpace(item.Cost)
+		if region == "" || cost == "" {
+			continue
+		}
+		if _, ok := seen[region]; ok {
+			continue
+		}
+		seen[region] = struct{}{}
+		out = append(out, ShippingCostRule{
+			Region: region,
+			Cost:   cost,
+		})
 	}
 	return out
 }

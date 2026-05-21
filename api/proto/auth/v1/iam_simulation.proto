@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1";
+
+import "auth/v1/auth_session.proto";
+import "auth/v1/iam_policy.proto";
+
+message SimulateAccessRequest {
+  string scope = 1;
+  string tenant_id = 2;
+  uint64 user_id = 3;
+  string action = 4;
+  string resource = 5;
+  bool use_assumed_role = 6;
+  Session assumed_role_session = 7;
+  repeated PolicyStatement session_policy = 8;
+  map<string, string> attributes = 9;
+  string service_principal = 10;
+  map<string, string> session_tags = 11;
+}
+
+message SimulateMatchedStatement {
+  string policy_name = 1;
+  string effect = 2;
+  string action_pattern = 3;
+  string resource_pattern = 4;
+  repeated PolicyCondition conditions = 5;
+  string source = 6;
+}
+
+message SimulateAccessResponse {
+  bool allowed = 1;
+  string decision_source = 2;
+  string reason = 3;
+  repeated SimulateMatchedStatement matched_statements = 4;
+  repeated SimulateDecisionLayer layers = 5;
+}
+
+message SimulateDecisionLayer {
+  string layer = 1;
+  bool allowed = 2;
+  string reason = 3;
+  repeated SimulateMatchedStatement matched_statements = 4;
+}

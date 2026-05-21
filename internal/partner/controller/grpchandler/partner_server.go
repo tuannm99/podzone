@@ -40,6 +40,8 @@ func (s *PartnerServer) CreatePartner(
 		SupportedRegions:      req.SupportedRegions,
 		SLADays:               req.SlaDays,
 		RoutingPriority:       req.RoutingPriority,
+		BaseFulfillmentCost:   req.BaseFulfillmentCost,
+		ShippingCostRules:     fromProtoShippingCostRules(req.ShippingCostRules),
 	})
 	if err != nil {
 		return nil, partnerStatusError(err)
@@ -109,6 +111,8 @@ func (s *PartnerServer) UpdatePartner(
 		SupportedRegions:      req.SupportedRegions,
 		SLADays:               req.SlaDays,
 		RoutingPriority:       req.RoutingPriority,
+		BaseFulfillmentCost:   req.BaseFulfillmentCost,
+		ShippingCostRules:     fromProtoShippingCostRules(req.ShippingCostRules),
 	})
 	if err != nil {
 		return nil, partnerStatusError(err)
@@ -157,5 +161,31 @@ func toProtoPartner(in *partnerdomain.Partner) (*pbpartnerv1.Partner, error) {
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
+	out.ShippingCostRules = toProtoShippingCostRules(in.ShippingCostRules)
 	return out, nil
+}
+
+func fromProtoShippingCostRules(items []*pbpartnerv1.ShippingCostRule) []partnerdomain.ShippingCostRule {
+	out := make([]partnerdomain.ShippingCostRule, 0, len(items))
+	for _, item := range items {
+		if item == nil {
+			continue
+		}
+		out = append(out, partnerdomain.ShippingCostRule{
+			Region: item.GetRegion(),
+			Cost:   item.GetCost(),
+		})
+	}
+	return out
+}
+
+func toProtoShippingCostRules(items []partnerdomain.ShippingCostRule) []*pbpartnerv1.ShippingCostRule {
+	out := make([]*pbpartnerv1.ShippingCostRule, 0, len(items))
+	for _, item := range items {
+		out = append(out, &pbpartnerv1.ShippingCostRule{
+			Region: item.Region,
+			Cost:   item.Cost,
+		})
+	}
+	return out
 }

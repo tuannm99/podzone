@@ -42,6 +42,11 @@ service PartnerService {
   }
 }
 
+message ShippingCostRule {
+  string region = 1;
+  string cost = 2;
+}
+
 message Partner {
   string id = 1;
   string tenant_id = 2;
@@ -58,6 +63,8 @@ message Partner {
   repeated string supported_regions = 13;
   int32 sla_days = 14;
   int32 routing_priority = 15;
+  string base_fulfillment_cost = 16;
+  repeated ShippingCostRule shipping_cost_rules = 17;
 }
 
 message CreatePartnerRequest {
@@ -72,6 +79,8 @@ message CreatePartnerRequest {
   repeated string supported_regions = 9;
   int32 sla_days = 10;
   int32 routing_priority = 11;
+  string base_fulfillment_cost = 12;
+  repeated ShippingCostRule shipping_cost_rules = 13;
 }
 
 message GetPartnerRequest {
@@ -99,6 +108,8 @@ message UpdatePartnerRequest {
   repeated string supported_regions = 8;
   int32 sla_days = 9;
   int32 routing_priority = 10;
+  string base_fulfillment_cost = 11;
+  repeated ShippingCostRule shipping_cost_rules = 12;
 }
 
 message UpdatePartnerStatusRequest {

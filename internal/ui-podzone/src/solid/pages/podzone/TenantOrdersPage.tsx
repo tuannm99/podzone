@@ -195,6 +195,18 @@ function shipmentColor(status: string) {
   }
 }
 
+function joinPartnerCapabilityList(items: string[]) {
+  return items.length > 0 ? items.join(', ') : 'Any';
+}
+
+function joinShippingCostRules(
+  items: { region: string; cost: string }[]
+) {
+  return items.length > 0
+    ? items.map((item) => `${item.region}:${item.cost}`).join(', ')
+    : 'No region rules';
+}
+
 function settlementColor(status: string) {
   switch (status) {
     case 'paid':
@@ -1325,10 +1337,36 @@ export default function TenantOrdersPage() {
                                 <p class="mt-2">{option.reason}</p>
                                 <p class="mt-1 text-xs text-gray-500">
                                   Products:{' '}
-                                  {option.partner.supportedProductTypes.join(', ') || 'Any'} ·
+                                  {joinPartnerCapabilityList(
+                                    option.partner.supportedProductTypes
+                                  )} ·
                                   Regions:{' '}
-                                  {option.partner.supportedRegions.join(', ') || 'Any'}
+                                  {joinPartnerCapabilityList(
+                                    option.partner.supportedRegions
+                                  )}
                                 </p>
+                                <p class="mt-1 text-xs text-gray-500">
+                                  Partner base fulfillment:{' '}
+                                  {option.partner.baseFulfillmentCost || 'TBD'} ·
+                                  Region cost rules:{' '}
+                                  {joinShippingCostRules(
+                                    option.partner.shippingCostRules
+                                  )}
+                                </p>
+                                <div class="mt-2 flex flex-wrap gap-2">
+                                  <Badge
+                                    content={`fulfillment ${option.estimatedFulfillmentCost}`}
+                                    color="blue"
+                                  />
+                                  <Badge
+                                    content={`shipping ${option.estimatedShippingCost}`}
+                                    color="indigo"
+                                  />
+                                  <Badge
+                                    content={`unit margin ${option.estimatedUnitMargin}`}
+                                    color="green"
+                                  />
+                                </div>
                                 <div class="mt-3 flex flex-wrap gap-2">
                                   <Show
                                     when={
@@ -1396,9 +1434,21 @@ export default function TenantOrdersPage() {
                                 <p class="mt-2">{option.reason}</p>
                                 <p class="mt-1 text-xs text-gray-500">
                                   Products:{' '}
-                                  {option.partner.supportedProductTypes.join(', ') || 'Any'} ·
+                                  {joinPartnerCapabilityList(
+                                    option.partner.supportedProductTypes
+                                  )} ·
                                   Regions:{' '}
-                                  {option.partner.supportedRegions.join(', ') || 'Any'}
+                                  {joinPartnerCapabilityList(
+                                    option.partner.supportedRegions
+                                  )}
+                                </p>
+                                <p class="mt-1 text-xs text-gray-500">
+                                  Partner base fulfillment:{' '}
+                                  {option.partner.baseFulfillmentCost || 'TBD'} ·
+                                  Region cost rules:{' '}
+                                  {joinShippingCostRules(
+                                    option.partner.shippingCostRules
+                                  )}
                                 </p>
                               </div>
                             )}

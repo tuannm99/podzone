@@ -54,6 +54,8 @@ func (s *partnerService) CreatePartner(ctx context.Context, cmd CreatePartnerCmd
 		SupportedRegions:      NormalizeCapabilityList(cmd.SupportedRegions),
 		SLADays:               normalizeSLADays(cmd.SLADays),
 		RoutingPriority:       normalizeRoutingPriority(cmd.RoutingPriority),
+		BaseFulfillmentCost:   strings.TrimSpace(cmd.BaseFulfillmentCost),
+		ShippingCostRules:     NormalizeShippingCostRules(cmd.ShippingCostRules),
 		CreatedAt:             now,
 		UpdatedAt:             now,
 	})
@@ -115,6 +117,8 @@ func (s *partnerService) UpdatePartner(ctx context.Context, cmd UpdatePartnerCmd
 	current.SupportedRegions = NormalizeCapabilityList(cmd.SupportedRegions)
 	current.SLADays = normalizeSLADays(cmd.SLADays)
 	current.RoutingPriority = normalizeRoutingPriority(cmd.RoutingPriority)
+	current.BaseFulfillmentCost = strings.TrimSpace(cmd.BaseFulfillmentCost)
+	current.ShippingCostRules = NormalizeShippingCostRules(cmd.ShippingCostRules)
 	current.UpdatedAt = time.Now().UTC()
 	return s.repo.Update(ctx, *current)
 }

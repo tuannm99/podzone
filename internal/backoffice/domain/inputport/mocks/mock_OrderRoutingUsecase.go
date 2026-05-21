@@ -8,8 +8,8 @@ import (
 	"context"
 
 	mock "github.com/stretchr/testify/mock"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/entity"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/inputport"
+	"github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
+	"github.com/tuannm99/podzone/internal/backoffice/domain/routing/usecase"
 )
 
 // NewMockOrderRoutingUsecase creates a new instance of MockOrderRoutingUsecase. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -108,7 +108,7 @@ func (_c *MockOrderRoutingUsecase_AdvanceRoutedOrder_Call) RunAndReturn(run func
 }
 
 // BulkUpdateRoutedOrders provides a mock function for the type MockOrderRoutingUsecase
-func (_mock *MockOrderRoutingUsecase) BulkUpdateRoutedOrders(ctx context.Context, cmd inputport.BulkUpdateRoutedOrdersCmd) ([]entity.RoutedOrder, error) {
+func (_mock *MockOrderRoutingUsecase) BulkUpdateRoutedOrders(ctx context.Context, cmd usecase.BulkUpdateRoutedOrdersCmd) ([]entity.RoutedOrder, error) {
 	ret := _mock.Called(ctx, cmd)
 
 	if len(ret) == 0 {
@@ -117,17 +117,17 @@ func (_mock *MockOrderRoutingUsecase) BulkUpdateRoutedOrders(ctx context.Context
 
 	var r0 []entity.RoutedOrder
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.BulkUpdateRoutedOrdersCmd) ([]entity.RoutedOrder, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, usecase.BulkUpdateRoutedOrdersCmd) ([]entity.RoutedOrder, error)); ok {
 		return returnFunc(ctx, cmd)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.BulkUpdateRoutedOrdersCmd) []entity.RoutedOrder); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, usecase.BulkUpdateRoutedOrdersCmd) []entity.RoutedOrder); ok {
 		r0 = returnFunc(ctx, cmd)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]entity.RoutedOrder)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, inputport.BulkUpdateRoutedOrdersCmd) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, usecase.BulkUpdateRoutedOrdersCmd) error); ok {
 		r1 = returnFunc(ctx, cmd)
 	} else {
 		r1 = ret.Error(1)
@@ -142,20 +142,20 @@ type MockOrderRoutingUsecase_BulkUpdateRoutedOrders_Call struct {
 
 // BulkUpdateRoutedOrders is a helper method to define mock.On call
 //   - ctx context.Context
-//   - cmd inputport.BulkUpdateRoutedOrdersCmd
+//   - cmd usecase.BulkUpdateRoutedOrdersCmd
 func (_e *MockOrderRoutingUsecase_Expecter) BulkUpdateRoutedOrders(ctx interface{}, cmd interface{}) *MockOrderRoutingUsecase_BulkUpdateRoutedOrders_Call {
 	return &MockOrderRoutingUsecase_BulkUpdateRoutedOrders_Call{Call: _e.mock.On("BulkUpdateRoutedOrders", ctx, cmd)}
 }
 
-func (_c *MockOrderRoutingUsecase_BulkUpdateRoutedOrders_Call) Run(run func(ctx context.Context, cmd inputport.BulkUpdateRoutedOrdersCmd)) *MockOrderRoutingUsecase_BulkUpdateRoutedOrders_Call {
+func (_c *MockOrderRoutingUsecase_BulkUpdateRoutedOrders_Call) Run(run func(ctx context.Context, cmd usecase.BulkUpdateRoutedOrdersCmd)) *MockOrderRoutingUsecase_BulkUpdateRoutedOrders_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 inputport.BulkUpdateRoutedOrdersCmd
+		var arg1 usecase.BulkUpdateRoutedOrdersCmd
 		if args[1] != nil {
-			arg1 = args[1].(inputport.BulkUpdateRoutedOrdersCmd)
+			arg1 = args[1].(usecase.BulkUpdateRoutedOrdersCmd)
 		}
 		run(
 			arg0,
@@ -170,13 +170,13 @@ func (_c *MockOrderRoutingUsecase_BulkUpdateRoutedOrders_Call) Return(routedOrde
 	return _c
 }
 
-func (_c *MockOrderRoutingUsecase_BulkUpdateRoutedOrders_Call) RunAndReturn(run func(ctx context.Context, cmd inputport.BulkUpdateRoutedOrdersCmd) ([]entity.RoutedOrder, error)) *MockOrderRoutingUsecase_BulkUpdateRoutedOrders_Call {
+func (_c *MockOrderRoutingUsecase_BulkUpdateRoutedOrders_Call) RunAndReturn(run func(ctx context.Context, cmd usecase.BulkUpdateRoutedOrdersCmd) ([]entity.RoutedOrder, error)) *MockOrderRoutingUsecase_BulkUpdateRoutedOrders_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // CreateRoutedOrder provides a mock function for the type MockOrderRoutingUsecase
-func (_mock *MockOrderRoutingUsecase) CreateRoutedOrder(ctx context.Context, cmd inputport.CreateRoutedOrderCmd) (*entity.RoutedOrder, error) {
+func (_mock *MockOrderRoutingUsecase) CreateRoutedOrder(ctx context.Context, cmd usecase.CreateRoutedOrderCmd) (*entity.RoutedOrder, error) {
 	ret := _mock.Called(ctx, cmd)
 
 	if len(ret) == 0 {
@@ -185,17 +185,17 @@ func (_mock *MockOrderRoutingUsecase) CreateRoutedOrder(ctx context.Context, cmd
 
 	var r0 *entity.RoutedOrder
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.CreateRoutedOrderCmd) (*entity.RoutedOrder, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, usecase.CreateRoutedOrderCmd) (*entity.RoutedOrder, error)); ok {
 		return returnFunc(ctx, cmd)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.CreateRoutedOrderCmd) *entity.RoutedOrder); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, usecase.CreateRoutedOrderCmd) *entity.RoutedOrder); ok {
 		r0 = returnFunc(ctx, cmd)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*entity.RoutedOrder)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, inputport.CreateRoutedOrderCmd) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, usecase.CreateRoutedOrderCmd) error); ok {
 		r1 = returnFunc(ctx, cmd)
 	} else {
 		r1 = ret.Error(1)
@@ -210,20 +210,20 @@ type MockOrderRoutingUsecase_CreateRoutedOrder_Call struct {
 
 // CreateRoutedOrder is a helper method to define mock.On call
 //   - ctx context.Context
-//   - cmd inputport.CreateRoutedOrderCmd
+//   - cmd usecase.CreateRoutedOrderCmd
 func (_e *MockOrderRoutingUsecase_Expecter) CreateRoutedOrder(ctx interface{}, cmd interface{}) *MockOrderRoutingUsecase_CreateRoutedOrder_Call {
 	return &MockOrderRoutingUsecase_CreateRoutedOrder_Call{Call: _e.mock.On("CreateRoutedOrder", ctx, cmd)}
 }
 
-func (_c *MockOrderRoutingUsecase_CreateRoutedOrder_Call) Run(run func(ctx context.Context, cmd inputport.CreateRoutedOrderCmd)) *MockOrderRoutingUsecase_CreateRoutedOrder_Call {
+func (_c *MockOrderRoutingUsecase_CreateRoutedOrder_Call) Run(run func(ctx context.Context, cmd usecase.CreateRoutedOrderCmd)) *MockOrderRoutingUsecase_CreateRoutedOrder_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 inputport.CreateRoutedOrderCmd
+		var arg1 usecase.CreateRoutedOrderCmd
 		if args[1] != nil {
-			arg1 = args[1].(inputport.CreateRoutedOrderCmd)
+			arg1 = args[1].(usecase.CreateRoutedOrderCmd)
 		}
 		run(
 			arg0,
@@ -238,13 +238,13 @@ func (_c *MockOrderRoutingUsecase_CreateRoutedOrder_Call) Return(routedOrder *en
 	return _c
 }
 
-func (_c *MockOrderRoutingUsecase_CreateRoutedOrder_Call) RunAndReturn(run func(ctx context.Context, cmd inputport.CreateRoutedOrderCmd) (*entity.RoutedOrder, error)) *MockOrderRoutingUsecase_CreateRoutedOrder_Call {
+func (_c *MockOrderRoutingUsecase_CreateRoutedOrder_Call) RunAndReturn(run func(ctx context.Context, cmd usecase.CreateRoutedOrderCmd) (*entity.RoutedOrder, error)) *MockOrderRoutingUsecase_CreateRoutedOrder_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListRoutedOrderActivities provides a mock function for the type MockOrderRoutingUsecase
-func (_mock *MockOrderRoutingUsecase) ListRoutedOrderActivities(ctx context.Context, query inputport.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error) {
+func (_mock *MockOrderRoutingUsecase) ListRoutedOrderActivities(ctx context.Context, query usecase.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error) {
 	ret := _mock.Called(ctx, query)
 
 	if len(ret) == 0 {
@@ -253,17 +253,17 @@ func (_mock *MockOrderRoutingUsecase) ListRoutedOrderActivities(ctx context.Cont
 
 	var r0 *entity.RoutedOrderActivityFeedPage
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, usecase.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error)); ok {
 		return returnFunc(ctx, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.ListRoutedOrderActivitiesQuery) *entity.RoutedOrderActivityFeedPage); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, usecase.ListRoutedOrderActivitiesQuery) *entity.RoutedOrderActivityFeedPage); ok {
 		r0 = returnFunc(ctx, query)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*entity.RoutedOrderActivityFeedPage)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, inputport.ListRoutedOrderActivitiesQuery) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, usecase.ListRoutedOrderActivitiesQuery) error); ok {
 		r1 = returnFunc(ctx, query)
 	} else {
 		r1 = ret.Error(1)
@@ -278,20 +278,20 @@ type MockOrderRoutingUsecase_ListRoutedOrderActivities_Call struct {
 
 // ListRoutedOrderActivities is a helper method to define mock.On call
 //   - ctx context.Context
-//   - query inputport.ListRoutedOrderActivitiesQuery
+//   - query usecase.ListRoutedOrderActivitiesQuery
 func (_e *MockOrderRoutingUsecase_Expecter) ListRoutedOrderActivities(ctx interface{}, query interface{}) *MockOrderRoutingUsecase_ListRoutedOrderActivities_Call {
 	return &MockOrderRoutingUsecase_ListRoutedOrderActivities_Call{Call: _e.mock.On("ListRoutedOrderActivities", ctx, query)}
 }
 
-func (_c *MockOrderRoutingUsecase_ListRoutedOrderActivities_Call) Run(run func(ctx context.Context, query inputport.ListRoutedOrderActivitiesQuery)) *MockOrderRoutingUsecase_ListRoutedOrderActivities_Call {
+func (_c *MockOrderRoutingUsecase_ListRoutedOrderActivities_Call) Run(run func(ctx context.Context, query usecase.ListRoutedOrderActivitiesQuery)) *MockOrderRoutingUsecase_ListRoutedOrderActivities_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 inputport.ListRoutedOrderActivitiesQuery
+		var arg1 usecase.ListRoutedOrderActivitiesQuery
 		if args[1] != nil {
-			arg1 = args[1].(inputport.ListRoutedOrderActivitiesQuery)
+			arg1 = args[1].(usecase.ListRoutedOrderActivitiesQuery)
 		}
 		run(
 			arg0,
@@ -306,7 +306,7 @@ func (_c *MockOrderRoutingUsecase_ListRoutedOrderActivities_Call) Return(routedO
 	return _c
 }
 
-func (_c *MockOrderRoutingUsecase_ListRoutedOrderActivities_Call) RunAndReturn(run func(ctx context.Context, query inputport.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error)) *MockOrderRoutingUsecase_ListRoutedOrderActivities_Call {
+func (_c *MockOrderRoutingUsecase_ListRoutedOrderActivities_Call) RunAndReturn(run func(ctx context.Context, query usecase.ListRoutedOrderActivitiesQuery) (*entity.RoutedOrderActivityFeedPage, error)) *MockOrderRoutingUsecase_ListRoutedOrderActivities_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -374,7 +374,7 @@ func (_c *MockOrderRoutingUsecase_ListRoutedOrders_Call) RunAndReturn(run func(c
 }
 
 // OpenOrderException provides a mock function for the type MockOrderRoutingUsecase
-func (_mock *MockOrderRoutingUsecase) OpenOrderException(ctx context.Context, cmd inputport.OpenOrderExceptionCmd) (*entity.RoutedOrder, error) {
+func (_mock *MockOrderRoutingUsecase) OpenOrderException(ctx context.Context, cmd usecase.OpenOrderExceptionCmd) (*entity.RoutedOrder, error) {
 	ret := _mock.Called(ctx, cmd)
 
 	if len(ret) == 0 {
@@ -383,17 +383,17 @@ func (_mock *MockOrderRoutingUsecase) OpenOrderException(ctx context.Context, cm
 
 	var r0 *entity.RoutedOrder
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.OpenOrderExceptionCmd) (*entity.RoutedOrder, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, usecase.OpenOrderExceptionCmd) (*entity.RoutedOrder, error)); ok {
 		return returnFunc(ctx, cmd)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.OpenOrderExceptionCmd) *entity.RoutedOrder); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, usecase.OpenOrderExceptionCmd) *entity.RoutedOrder); ok {
 		r0 = returnFunc(ctx, cmd)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*entity.RoutedOrder)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, inputport.OpenOrderExceptionCmd) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, usecase.OpenOrderExceptionCmd) error); ok {
 		r1 = returnFunc(ctx, cmd)
 	} else {
 		r1 = ret.Error(1)
@@ -408,20 +408,20 @@ type MockOrderRoutingUsecase_OpenOrderException_Call struct {
 
 // OpenOrderException is a helper method to define mock.On call
 //   - ctx context.Context
-//   - cmd inputport.OpenOrderExceptionCmd
+//   - cmd usecase.OpenOrderExceptionCmd
 func (_e *MockOrderRoutingUsecase_Expecter) OpenOrderException(ctx interface{}, cmd interface{}) *MockOrderRoutingUsecase_OpenOrderException_Call {
 	return &MockOrderRoutingUsecase_OpenOrderException_Call{Call: _e.mock.On("OpenOrderException", ctx, cmd)}
 }
 
-func (_c *MockOrderRoutingUsecase_OpenOrderException_Call) Run(run func(ctx context.Context, cmd inputport.OpenOrderExceptionCmd)) *MockOrderRoutingUsecase_OpenOrderException_Call {
+func (_c *MockOrderRoutingUsecase_OpenOrderException_Call) Run(run func(ctx context.Context, cmd usecase.OpenOrderExceptionCmd)) *MockOrderRoutingUsecase_OpenOrderException_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 inputport.OpenOrderExceptionCmd
+		var arg1 usecase.OpenOrderExceptionCmd
 		if args[1] != nil {
-			arg1 = args[1].(inputport.OpenOrderExceptionCmd)
+			arg1 = args[1].(usecase.OpenOrderExceptionCmd)
 		}
 		run(
 			arg0,
@@ -436,13 +436,13 @@ func (_c *MockOrderRoutingUsecase_OpenOrderException_Call) Return(routedOrder *e
 	return _c
 }
 
-func (_c *MockOrderRoutingUsecase_OpenOrderException_Call) RunAndReturn(run func(ctx context.Context, cmd inputport.OpenOrderExceptionCmd) (*entity.RoutedOrder, error)) *MockOrderRoutingUsecase_OpenOrderException_Call {
+func (_c *MockOrderRoutingUsecase_OpenOrderException_Call) RunAndReturn(run func(ctx context.Context, cmd usecase.OpenOrderExceptionCmd) (*entity.RoutedOrder, error)) *MockOrderRoutingUsecase_OpenOrderException_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // RecommendRoutedOrderPartner provides a mock function for the type MockOrderRoutingUsecase
-func (_mock *MockOrderRoutingUsecase) RecommendRoutedOrderPartner(ctx context.Context, query inputport.RecommendRoutedOrderPartnerQuery) (*entity.RoutedOrderRecommendation, error) {
+func (_mock *MockOrderRoutingUsecase) RecommendRoutedOrderPartner(ctx context.Context, query usecase.RecommendRoutedOrderPartnerQuery) (*entity.RoutedOrderRecommendation, error) {
 	ret := _mock.Called(ctx, query)
 
 	if len(ret) == 0 {
@@ -451,17 +451,17 @@ func (_mock *MockOrderRoutingUsecase) RecommendRoutedOrderPartner(ctx context.Co
 
 	var r0 *entity.RoutedOrderRecommendation
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.RecommendRoutedOrderPartnerQuery) (*entity.RoutedOrderRecommendation, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, usecase.RecommendRoutedOrderPartnerQuery) (*entity.RoutedOrderRecommendation, error)); ok {
 		return returnFunc(ctx, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.RecommendRoutedOrderPartnerQuery) *entity.RoutedOrderRecommendation); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, usecase.RecommendRoutedOrderPartnerQuery) *entity.RoutedOrderRecommendation); ok {
 		r0 = returnFunc(ctx, query)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*entity.RoutedOrderRecommendation)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, inputport.RecommendRoutedOrderPartnerQuery) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, usecase.RecommendRoutedOrderPartnerQuery) error); ok {
 		r1 = returnFunc(ctx, query)
 	} else {
 		r1 = ret.Error(1)
@@ -476,20 +476,20 @@ type MockOrderRoutingUsecase_RecommendRoutedOrderPartner_Call struct {
 
 // RecommendRoutedOrderPartner is a helper method to define mock.On call
 //   - ctx context.Context
-//   - query inputport.RecommendRoutedOrderPartnerQuery
+//   - query usecase.RecommendRoutedOrderPartnerQuery
 func (_e *MockOrderRoutingUsecase_Expecter) RecommendRoutedOrderPartner(ctx interface{}, query interface{}) *MockOrderRoutingUsecase_RecommendRoutedOrderPartner_Call {
 	return &MockOrderRoutingUsecase_RecommendRoutedOrderPartner_Call{Call: _e.mock.On("RecommendRoutedOrderPartner", ctx, query)}
 }
 
-func (_c *MockOrderRoutingUsecase_RecommendRoutedOrderPartner_Call) Run(run func(ctx context.Context, query inputport.RecommendRoutedOrderPartnerQuery)) *MockOrderRoutingUsecase_RecommendRoutedOrderPartner_Call {
+func (_c *MockOrderRoutingUsecase_RecommendRoutedOrderPartner_Call) Run(run func(ctx context.Context, query usecase.RecommendRoutedOrderPartnerQuery)) *MockOrderRoutingUsecase_RecommendRoutedOrderPartner_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 inputport.RecommendRoutedOrderPartnerQuery
+		var arg1 usecase.RecommendRoutedOrderPartnerQuery
 		if args[1] != nil {
-			arg1 = args[1].(inputport.RecommendRoutedOrderPartnerQuery)
+			arg1 = args[1].(usecase.RecommendRoutedOrderPartnerQuery)
 		}
 		run(
 			arg0,
@@ -504,13 +504,13 @@ func (_c *MockOrderRoutingUsecase_RecommendRoutedOrderPartner_Call) Return(route
 	return _c
 }
 
-func (_c *MockOrderRoutingUsecase_RecommendRoutedOrderPartner_Call) RunAndReturn(run func(ctx context.Context, query inputport.RecommendRoutedOrderPartnerQuery) (*entity.RoutedOrderRecommendation, error)) *MockOrderRoutingUsecase_RecommendRoutedOrderPartner_Call {
+func (_c *MockOrderRoutingUsecase_RecommendRoutedOrderPartner_Call) RunAndReturn(run func(ctx context.Context, query usecase.RecommendRoutedOrderPartnerQuery) (*entity.RoutedOrderRecommendation, error)) *MockOrderRoutingUsecase_RecommendRoutedOrderPartner_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // UpdateOrderExceptionStatus provides a mock function for the type MockOrderRoutingUsecase
-func (_mock *MockOrderRoutingUsecase) UpdateOrderExceptionStatus(ctx context.Context, cmd inputport.UpdateOrderExceptionStatusCmd) (*entity.RoutedOrder, error) {
+func (_mock *MockOrderRoutingUsecase) UpdateOrderExceptionStatus(ctx context.Context, cmd usecase.UpdateOrderExceptionStatusCmd) (*entity.RoutedOrder, error) {
 	ret := _mock.Called(ctx, cmd)
 
 	if len(ret) == 0 {
@@ -519,17 +519,17 @@ func (_mock *MockOrderRoutingUsecase) UpdateOrderExceptionStatus(ctx context.Con
 
 	var r0 *entity.RoutedOrder
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.UpdateOrderExceptionStatusCmd) (*entity.RoutedOrder, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, usecase.UpdateOrderExceptionStatusCmd) (*entity.RoutedOrder, error)); ok {
 		return returnFunc(ctx, cmd)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.UpdateOrderExceptionStatusCmd) *entity.RoutedOrder); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, usecase.UpdateOrderExceptionStatusCmd) *entity.RoutedOrder); ok {
 		r0 = returnFunc(ctx, cmd)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*entity.RoutedOrder)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, inputport.UpdateOrderExceptionStatusCmd) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, usecase.UpdateOrderExceptionStatusCmd) error); ok {
 		r1 = returnFunc(ctx, cmd)
 	} else {
 		r1 = ret.Error(1)
@@ -544,20 +544,20 @@ type MockOrderRoutingUsecase_UpdateOrderExceptionStatus_Call struct {
 
 // UpdateOrderExceptionStatus is a helper method to define mock.On call
 //   - ctx context.Context
-//   - cmd inputport.UpdateOrderExceptionStatusCmd
+//   - cmd usecase.UpdateOrderExceptionStatusCmd
 func (_e *MockOrderRoutingUsecase_Expecter) UpdateOrderExceptionStatus(ctx interface{}, cmd interface{}) *MockOrderRoutingUsecase_UpdateOrderExceptionStatus_Call {
 	return &MockOrderRoutingUsecase_UpdateOrderExceptionStatus_Call{Call: _e.mock.On("UpdateOrderExceptionStatus", ctx, cmd)}
 }
 
-func (_c *MockOrderRoutingUsecase_UpdateOrderExceptionStatus_Call) Run(run func(ctx context.Context, cmd inputport.UpdateOrderExceptionStatusCmd)) *MockOrderRoutingUsecase_UpdateOrderExceptionStatus_Call {
+func (_c *MockOrderRoutingUsecase_UpdateOrderExceptionStatus_Call) Run(run func(ctx context.Context, cmd usecase.UpdateOrderExceptionStatusCmd)) *MockOrderRoutingUsecase_UpdateOrderExceptionStatus_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 inputport.UpdateOrderExceptionStatusCmd
+		var arg1 usecase.UpdateOrderExceptionStatusCmd
 		if args[1] != nil {
-			arg1 = args[1].(inputport.UpdateOrderExceptionStatusCmd)
+			arg1 = args[1].(usecase.UpdateOrderExceptionStatusCmd)
 		}
 		run(
 			arg0,
@@ -572,13 +572,13 @@ func (_c *MockOrderRoutingUsecase_UpdateOrderExceptionStatus_Call) Return(routed
 	return _c
 }
 
-func (_c *MockOrderRoutingUsecase_UpdateOrderExceptionStatus_Call) RunAndReturn(run func(ctx context.Context, cmd inputport.UpdateOrderExceptionStatusCmd) (*entity.RoutedOrder, error)) *MockOrderRoutingUsecase_UpdateOrderExceptionStatus_Call {
+func (_c *MockOrderRoutingUsecase_UpdateOrderExceptionStatus_Call) RunAndReturn(run func(ctx context.Context, cmd usecase.UpdateOrderExceptionStatusCmd) (*entity.RoutedOrder, error)) *MockOrderRoutingUsecase_UpdateOrderExceptionStatus_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // UpdateOrderIssueHandling provides a mock function for the type MockOrderRoutingUsecase
-func (_mock *MockOrderRoutingUsecase) UpdateOrderIssueHandling(ctx context.Context, cmd inputport.UpdateOrderIssueHandlingCmd) (*entity.RoutedOrder, error) {
+func (_mock *MockOrderRoutingUsecase) UpdateOrderIssueHandling(ctx context.Context, cmd usecase.UpdateOrderIssueHandlingCmd) (*entity.RoutedOrder, error) {
 	ret := _mock.Called(ctx, cmd)
 
 	if len(ret) == 0 {
@@ -587,17 +587,17 @@ func (_mock *MockOrderRoutingUsecase) UpdateOrderIssueHandling(ctx context.Conte
 
 	var r0 *entity.RoutedOrder
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.UpdateOrderIssueHandlingCmd) (*entity.RoutedOrder, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, usecase.UpdateOrderIssueHandlingCmd) (*entity.RoutedOrder, error)); ok {
 		return returnFunc(ctx, cmd)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.UpdateOrderIssueHandlingCmd) *entity.RoutedOrder); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, usecase.UpdateOrderIssueHandlingCmd) *entity.RoutedOrder); ok {
 		r0 = returnFunc(ctx, cmd)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*entity.RoutedOrder)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, inputport.UpdateOrderIssueHandlingCmd) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, usecase.UpdateOrderIssueHandlingCmd) error); ok {
 		r1 = returnFunc(ctx, cmd)
 	} else {
 		r1 = ret.Error(1)
@@ -612,20 +612,20 @@ type MockOrderRoutingUsecase_UpdateOrderIssueHandling_Call struct {
 
 // UpdateOrderIssueHandling is a helper method to define mock.On call
 //   - ctx context.Context
-//   - cmd inputport.UpdateOrderIssueHandlingCmd
+//   - cmd usecase.UpdateOrderIssueHandlingCmd
 func (_e *MockOrderRoutingUsecase_Expecter) UpdateOrderIssueHandling(ctx interface{}, cmd interface{}) *MockOrderRoutingUsecase_UpdateOrderIssueHandling_Call {
 	return &MockOrderRoutingUsecase_UpdateOrderIssueHandling_Call{Call: _e.mock.On("UpdateOrderIssueHandling", ctx, cmd)}
 }
 
-func (_c *MockOrderRoutingUsecase_UpdateOrderIssueHandling_Call) Run(run func(ctx context.Context, cmd inputport.UpdateOrderIssueHandlingCmd)) *MockOrderRoutingUsecase_UpdateOrderIssueHandling_Call {
+func (_c *MockOrderRoutingUsecase_UpdateOrderIssueHandling_Call) Run(run func(ctx context.Context, cmd usecase.UpdateOrderIssueHandlingCmd)) *MockOrderRoutingUsecase_UpdateOrderIssueHandling_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 inputport.UpdateOrderIssueHandlingCmd
+		var arg1 usecase.UpdateOrderIssueHandlingCmd
 		if args[1] != nil {
-			arg1 = args[1].(inputport.UpdateOrderIssueHandlingCmd)
+			arg1 = args[1].(usecase.UpdateOrderIssueHandlingCmd)
 		}
 		run(
 			arg0,
@@ -640,13 +640,13 @@ func (_c *MockOrderRoutingUsecase_UpdateOrderIssueHandling_Call) Return(routedOr
 	return _c
 }
 
-func (_c *MockOrderRoutingUsecase_UpdateOrderIssueHandling_Call) RunAndReturn(run func(ctx context.Context, cmd inputport.UpdateOrderIssueHandlingCmd) (*entity.RoutedOrder, error)) *MockOrderRoutingUsecase_UpdateOrderIssueHandling_Call {
+func (_c *MockOrderRoutingUsecase_UpdateOrderIssueHandling_Call) RunAndReturn(run func(ctx context.Context, cmd usecase.UpdateOrderIssueHandlingCmd) (*entity.RoutedOrder, error)) *MockOrderRoutingUsecase_UpdateOrderIssueHandling_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // UpdateOrderQueueControl provides a mock function for the type MockOrderRoutingUsecase
-func (_mock *MockOrderRoutingUsecase) UpdateOrderQueueControl(ctx context.Context, cmd inputport.UpdateOrderQueueControlCmd) (*entity.RoutedOrder, error) {
+func (_mock *MockOrderRoutingUsecase) UpdateOrderQueueControl(ctx context.Context, cmd usecase.UpdateOrderQueueControlCmd) (*entity.RoutedOrder, error) {
 	ret := _mock.Called(ctx, cmd)
 
 	if len(ret) == 0 {
@@ -655,17 +655,17 @@ func (_mock *MockOrderRoutingUsecase) UpdateOrderQueueControl(ctx context.Contex
 
 	var r0 *entity.RoutedOrder
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.UpdateOrderQueueControlCmd) (*entity.RoutedOrder, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, usecase.UpdateOrderQueueControlCmd) (*entity.RoutedOrder, error)); ok {
 		return returnFunc(ctx, cmd)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.UpdateOrderQueueControlCmd) *entity.RoutedOrder); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, usecase.UpdateOrderQueueControlCmd) *entity.RoutedOrder); ok {
 		r0 = returnFunc(ctx, cmd)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*entity.RoutedOrder)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, inputport.UpdateOrderQueueControlCmd) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, usecase.UpdateOrderQueueControlCmd) error); ok {
 		r1 = returnFunc(ctx, cmd)
 	} else {
 		r1 = ret.Error(1)
@@ -680,20 +680,20 @@ type MockOrderRoutingUsecase_UpdateOrderQueueControl_Call struct {
 
 // UpdateOrderQueueControl is a helper method to define mock.On call
 //   - ctx context.Context
-//   - cmd inputport.UpdateOrderQueueControlCmd
+//   - cmd usecase.UpdateOrderQueueControlCmd
 func (_e *MockOrderRoutingUsecase_Expecter) UpdateOrderQueueControl(ctx interface{}, cmd interface{}) *MockOrderRoutingUsecase_UpdateOrderQueueControl_Call {
 	return &MockOrderRoutingUsecase_UpdateOrderQueueControl_Call{Call: _e.mock.On("UpdateOrderQueueControl", ctx, cmd)}
 }
 
-func (_c *MockOrderRoutingUsecase_UpdateOrderQueueControl_Call) Run(run func(ctx context.Context, cmd inputport.UpdateOrderQueueControlCmd)) *MockOrderRoutingUsecase_UpdateOrderQueueControl_Call {
+func (_c *MockOrderRoutingUsecase_UpdateOrderQueueControl_Call) Run(run func(ctx context.Context, cmd usecase.UpdateOrderQueueControlCmd)) *MockOrderRoutingUsecase_UpdateOrderQueueControl_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 inputport.UpdateOrderQueueControlCmd
+		var arg1 usecase.UpdateOrderQueueControlCmd
 		if args[1] != nil {
-			arg1 = args[1].(inputport.UpdateOrderQueueControlCmd)
+			arg1 = args[1].(usecase.UpdateOrderQueueControlCmd)
 		}
 		run(
 			arg0,
@@ -708,13 +708,13 @@ func (_c *MockOrderRoutingUsecase_UpdateOrderQueueControl_Call) Return(routedOrd
 	return _c
 }
 
-func (_c *MockOrderRoutingUsecase_UpdateOrderQueueControl_Call) RunAndReturn(run func(ctx context.Context, cmd inputport.UpdateOrderQueueControlCmd) (*entity.RoutedOrder, error)) *MockOrderRoutingUsecase_UpdateOrderQueueControl_Call {
+func (_c *MockOrderRoutingUsecase_UpdateOrderQueueControl_Call) RunAndReturn(run func(ctx context.Context, cmd usecase.UpdateOrderQueueControlCmd) (*entity.RoutedOrder, error)) *MockOrderRoutingUsecase_UpdateOrderQueueControl_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // UpdateOrderSettlement provides a mock function for the type MockOrderRoutingUsecase
-func (_mock *MockOrderRoutingUsecase) UpdateOrderSettlement(ctx context.Context, cmd inputport.UpdateOrderSettlementCmd) (*entity.RoutedOrder, error) {
+func (_mock *MockOrderRoutingUsecase) UpdateOrderSettlement(ctx context.Context, cmd usecase.UpdateOrderSettlementCmd) (*entity.RoutedOrder, error) {
 	ret := _mock.Called(ctx, cmd)
 
 	if len(ret) == 0 {
@@ -723,17 +723,17 @@ func (_mock *MockOrderRoutingUsecase) UpdateOrderSettlement(ctx context.Context,
 
 	var r0 *entity.RoutedOrder
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.UpdateOrderSettlementCmd) (*entity.RoutedOrder, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, usecase.UpdateOrderSettlementCmd) (*entity.RoutedOrder, error)); ok {
 		return returnFunc(ctx, cmd)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.UpdateOrderSettlementCmd) *entity.RoutedOrder); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, usecase.UpdateOrderSettlementCmd) *entity.RoutedOrder); ok {
 		r0 = returnFunc(ctx, cmd)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*entity.RoutedOrder)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, inputport.UpdateOrderSettlementCmd) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, usecase.UpdateOrderSettlementCmd) error); ok {
 		r1 = returnFunc(ctx, cmd)
 	} else {
 		r1 = ret.Error(1)
@@ -748,20 +748,20 @@ type MockOrderRoutingUsecase_UpdateOrderSettlement_Call struct {
 
 // UpdateOrderSettlement is a helper method to define mock.On call
 //   - ctx context.Context
-//   - cmd inputport.UpdateOrderSettlementCmd
+//   - cmd usecase.UpdateOrderSettlementCmd
 func (_e *MockOrderRoutingUsecase_Expecter) UpdateOrderSettlement(ctx interface{}, cmd interface{}) *MockOrderRoutingUsecase_UpdateOrderSettlement_Call {
 	return &MockOrderRoutingUsecase_UpdateOrderSettlement_Call{Call: _e.mock.On("UpdateOrderSettlement", ctx, cmd)}
 }
 
-func (_c *MockOrderRoutingUsecase_UpdateOrderSettlement_Call) Run(run func(ctx context.Context, cmd inputport.UpdateOrderSettlementCmd)) *MockOrderRoutingUsecase_UpdateOrderSettlement_Call {
+func (_c *MockOrderRoutingUsecase_UpdateOrderSettlement_Call) Run(run func(ctx context.Context, cmd usecase.UpdateOrderSettlementCmd)) *MockOrderRoutingUsecase_UpdateOrderSettlement_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 inputport.UpdateOrderSettlementCmd
+		var arg1 usecase.UpdateOrderSettlementCmd
 		if args[1] != nil {
-			arg1 = args[1].(inputport.UpdateOrderSettlementCmd)
+			arg1 = args[1].(usecase.UpdateOrderSettlementCmd)
 		}
 		run(
 			arg0,
@@ -776,13 +776,13 @@ func (_c *MockOrderRoutingUsecase_UpdateOrderSettlement_Call) Return(routedOrder
 	return _c
 }
 
-func (_c *MockOrderRoutingUsecase_UpdateOrderSettlement_Call) RunAndReturn(run func(ctx context.Context, cmd inputport.UpdateOrderSettlementCmd) (*entity.RoutedOrder, error)) *MockOrderRoutingUsecase_UpdateOrderSettlement_Call {
+func (_c *MockOrderRoutingUsecase_UpdateOrderSettlement_Call) RunAndReturn(run func(ctx context.Context, cmd usecase.UpdateOrderSettlementCmd) (*entity.RoutedOrder, error)) *MockOrderRoutingUsecase_UpdateOrderSettlement_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // UpdateOrderShipment provides a mock function for the type MockOrderRoutingUsecase
-func (_mock *MockOrderRoutingUsecase) UpdateOrderShipment(ctx context.Context, cmd inputport.UpdateOrderShipmentCmd) (*entity.RoutedOrder, error) {
+func (_mock *MockOrderRoutingUsecase) UpdateOrderShipment(ctx context.Context, cmd usecase.UpdateOrderShipmentCmd) (*entity.RoutedOrder, error) {
 	ret := _mock.Called(ctx, cmd)
 
 	if len(ret) == 0 {
@@ -791,17 +791,17 @@ func (_mock *MockOrderRoutingUsecase) UpdateOrderShipment(ctx context.Context, c
 
 	var r0 *entity.RoutedOrder
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.UpdateOrderShipmentCmd) (*entity.RoutedOrder, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, usecase.UpdateOrderShipmentCmd) (*entity.RoutedOrder, error)); ok {
 		return returnFunc(ctx, cmd)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.UpdateOrderShipmentCmd) *entity.RoutedOrder); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, usecase.UpdateOrderShipmentCmd) *entity.RoutedOrder); ok {
 		r0 = returnFunc(ctx, cmd)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*entity.RoutedOrder)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, inputport.UpdateOrderShipmentCmd) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, usecase.UpdateOrderShipmentCmd) error); ok {
 		r1 = returnFunc(ctx, cmd)
 	} else {
 		r1 = ret.Error(1)
@@ -816,20 +816,20 @@ type MockOrderRoutingUsecase_UpdateOrderShipment_Call struct {
 
 // UpdateOrderShipment is a helper method to define mock.On call
 //   - ctx context.Context
-//   - cmd inputport.UpdateOrderShipmentCmd
+//   - cmd usecase.UpdateOrderShipmentCmd
 func (_e *MockOrderRoutingUsecase_Expecter) UpdateOrderShipment(ctx interface{}, cmd interface{}) *MockOrderRoutingUsecase_UpdateOrderShipment_Call {
 	return &MockOrderRoutingUsecase_UpdateOrderShipment_Call{Call: _e.mock.On("UpdateOrderShipment", ctx, cmd)}
 }
 
-func (_c *MockOrderRoutingUsecase_UpdateOrderShipment_Call) Run(run func(ctx context.Context, cmd inputport.UpdateOrderShipmentCmd)) *MockOrderRoutingUsecase_UpdateOrderShipment_Call {
+func (_c *MockOrderRoutingUsecase_UpdateOrderShipment_Call) Run(run func(ctx context.Context, cmd usecase.UpdateOrderShipmentCmd)) *MockOrderRoutingUsecase_UpdateOrderShipment_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 inputport.UpdateOrderShipmentCmd
+		var arg1 usecase.UpdateOrderShipmentCmd
 		if args[1] != nil {
-			arg1 = args[1].(inputport.UpdateOrderShipmentCmd)
+			arg1 = args[1].(usecase.UpdateOrderShipmentCmd)
 		}
 		run(
 			arg0,
@@ -844,7 +844,7 @@ func (_c *MockOrderRoutingUsecase_UpdateOrderShipment_Call) Return(routedOrder *
 	return _c
 }
 
-func (_c *MockOrderRoutingUsecase_UpdateOrderShipment_Call) RunAndReturn(run func(ctx context.Context, cmd inputport.UpdateOrderShipmentCmd) (*entity.RoutedOrder, error)) *MockOrderRoutingUsecase_UpdateOrderShipment_Call {
+func (_c *MockOrderRoutingUsecase_UpdateOrderShipment_Call) RunAndReturn(run func(ctx context.Context, cmd usecase.UpdateOrderShipmentCmd) (*entity.RoutedOrder, error)) *MockOrderRoutingUsecase_UpdateOrderShipment_Call {
 	_c.Call.Return(run)
 	return _c
 }

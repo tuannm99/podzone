@@ -1,0 +1,473 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1";
+
+import "auth/v1/iam_policy.proto";
+import "auth/v1/iam_simulation.proto";
+import "auth/v1/iam_tenant.proto";
+import "google/api/annotations.proto";
+
+// IAMService owns tenant memberships, role bindings, and permission evaluation.
+// It is intentionally separate from AuthService so it can scale and deploy independently.
+service IAMService {
+  rpc CreateTenant(CreateTenantRequest) returns (CreateTenantResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/tenants"
+      body: "*"
+    };
+  }
+
+  rpc CreateOrganization(CreateOrganizationRequest) returns (CreateOrganizationResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/organizations"
+      body: "*"
+    };
+  }
+
+  rpc ListOrganizations(ListOrganizationsRequest) returns (ListOrganizationsResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/organizations"
+    };
+  }
+
+  rpc AttachTenantToOrganization(AttachTenantToOrganizationRequest) returns (AttachTenantToOrganizationResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/organizations/{org_id}/tenants/{tenant_id}"
+      body: "*"
+    };
+  }
+
+  rpc DetachTenantFromOrganization(DetachTenantFromOrganizationRequest) returns (DetachTenantFromOrganizationResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/organizations/{org_id}/tenants/{tenant_id}"
+    };
+  }
+
+  rpc AttachServiceControlPolicy(AttachServiceControlPolicyRequest) returns (AttachServiceControlPolicyResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/organizations/{org_id}/service-control-policies"
+      body: "*"
+    };
+  }
+
+  rpc DetachServiceControlPolicy(DetachServiceControlPolicyRequest) returns (DetachServiceControlPolicyResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/organizations/{org_id}/service-control-policies/{policy_name}"
+    };
+  }
+
+  rpc ListServiceControlPolicies(ListServiceControlPoliciesRequest) returns (ListServiceControlPoliciesResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/organizations/{org_id}/service-control-policies"
+    };
+  }
+
+  rpc AddTenantMember(AddTenantMemberRequest) returns (AddTenantMemberResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/tenants/{tenant_id}/members"
+      body: "*"
+    };
+  }
+
+  rpc AddTenantMemberByIdentity(AddTenantMemberByIdentityRequest) returns (AddTenantMemberByIdentityResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/tenants/{tenant_id}/members:resolve"
+      body: "*"
+    };
+  }
+
+  rpc CreateTenantInvite(CreateTenantInviteRequest) returns (CreateTenantInviteResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/tenants/{tenant_id}/invites"
+      body: "*"
+    };
+  }
+
+  rpc ListTenantInvites(ListTenantInvitesRequest) returns (ListTenantInvitesResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/tenants/{tenant_id}/invites"
+    };
+  }
+
+  rpc RevokeTenantInvite(RevokeTenantInviteRequest) returns (RevokeTenantInviteResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/invites/{invite_id}"
+    };
+  }
+
+  rpc AcceptTenantInvite(AcceptTenantInviteRequest) returns (AcceptTenantInviteResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/invites:accept"
+      body: "*"
+    };
+  }
+
+  rpc GetTenantMembership(GetTenantMembershipRequest) returns (GetTenantMembershipResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}"
+    };
+  }
+
+  rpc CheckPermission(CheckPermissionRequest) returns (CheckPermissionResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/permissions:check"
+      body: "*"
+    };
+  }
+
+  rpc CheckPlatformPermission(CheckPlatformPermissionRequest) returns (CheckPermissionResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/platform-permissions:check"
+      body: "*"
+    };
+  }
+
+  rpc ListUserTenants(ListUserTenantsRequest) returns (ListUserTenantsResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/users/{user_id}/tenants"
+    };
+  }
+
+  rpc ListPlatformRoles(ListPlatformRolesRequest) returns (ListPlatformRolesResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/platform-users/{target_user_id}/roles"
+    };
+  }
+
+  rpc AddPlatformRole(AddPlatformRoleRequest) returns (AddPlatformRoleResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/platform-users/{target_user_id}/roles"
+      body: "*"
+    };
+  }
+
+  rpc CreatePolicy(CreatePolicyRequest) returns (CreatePolicyResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/policies"
+      body: "*"
+    };
+  }
+
+  rpc CreatePolicyVersion(CreatePolicyVersionRequest) returns (CreatePolicyVersionResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/policies/{name}/versions"
+      body: "*"
+    };
+  }
+
+  rpc GetPolicy(GetPolicyRequest) returns (GetPolicyResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/policies/{name}"
+    };
+  }
+
+  rpc ListPolicyVersions(ListPolicyVersionsRequest) returns (ListPolicyVersionsResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/policies/{name}/versions"
+    };
+  }
+
+  rpc SetDefaultPolicyVersion(SetDefaultPolicyVersionRequest) returns (SetDefaultPolicyVersionResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/policies/{name}/versions/{version}:set-default"
+      body: "*"
+    };
+  }
+
+  rpc DeletePolicyVersion(DeletePolicyVersionRequest) returns (DeletePolicyVersionResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/policies/{name}/versions/{version}"
+    };
+  }
+
+  rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/policies"
+    };
+  }
+
+  rpc ListPolicyAttachments(ListPolicyAttachmentsRequest) returns (ListPolicyAttachmentsResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/policies/{name}/attachments"
+    };
+  }
+
+  rpc DeletePolicy(DeletePolicyRequest) returns (DeletePolicyResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/policies/{name}"
+    };
+  }
+
+  rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/groups"
+      body: "*"
+    };
+  }
+
+  rpc ListGroups(ListGroupsRequest) returns (ListGroupsResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/groups"
+    };
+  }
+
+  rpc DeleteGroup(DeleteGroupRequest) returns (DeleteGroupResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/groups/{group_id}"
+    };
+  }
+
+  rpc AddGroupMember(AddGroupMemberRequest) returns (AddGroupMemberResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/groups/{group_id}/members"
+      body: "*"
+    };
+  }
+
+  rpc ListGroupMembers(ListGroupMembersRequest) returns (ListGroupMembersResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/groups/{group_id}/members"
+    };
+  }
+
+  rpc RemoveGroupMember(RemoveGroupMemberRequest) returns (RemoveGroupMemberResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/groups/{group_id}/members/{user_id}"
+    };
+  }
+
+  rpc AttachGroupPolicy(AttachGroupPolicyRequest) returns (AttachGroupPolicyResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/groups/{group_id}/policies"
+      body: "*"
+    };
+  }
+
+  rpc ListGroupPolicies(ListGroupPoliciesRequest) returns (ListGroupPoliciesResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/groups/{group_id}/policies"
+    };
+  }
+
+  rpc DetachGroupPolicy(DetachGroupPolicyRequest) returns (DetachGroupPolicyResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/groups/{group_id}/policies/{policy_name}"
+    };
+  }
+
+  rpc PutGroupInlinePolicy(PutGroupInlinePolicyRequest) returns (PutGroupInlinePolicyResponse) {
+    option (google.api.http) = {
+      put: "/auth/v1/iam/groups/{group_id}/inline-policies/{name}"
+      body: "*"
+    };
+  }
+
+  rpc GetGroupInlinePolicy(GetGroupInlinePolicyRequest) returns (GetGroupInlinePolicyResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/groups/{group_id}/inline-policies/{name}"
+    };
+  }
+
+  rpc ListGroupInlinePolicies(ListGroupInlinePoliciesRequest) returns (ListGroupInlinePoliciesResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/groups/{group_id}/inline-policies"
+    };
+  }
+
+  rpc DeleteGroupInlinePolicy(DeleteGroupInlinePolicyRequest) returns (DeleteGroupInlinePolicyResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/groups/{group_id}/inline-policies/{name}"
+    };
+  }
+
+  rpc PutPlatformUserInlinePolicy(PutPlatformUserInlinePolicyRequest) returns (PutPlatformUserInlinePolicyResponse) {
+    option (google.api.http) = {
+      put: "/auth/v1/iam/platform-users/{target_user_id}/inline-policies/{name}"
+      body: "*"
+    };
+  }
+
+  rpc GetPlatformUserInlinePolicy(GetPlatformUserInlinePolicyRequest) returns (GetPlatformUserInlinePolicyResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/platform-users/{target_user_id}/inline-policies/{name}"
+    };
+  }
+
+  rpc ListPlatformUserInlinePolicies(ListPlatformUserInlinePoliciesRequest) returns (ListPlatformUserInlinePoliciesResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/platform-users/{target_user_id}/inline-policies"
+    };
+  }
+
+  rpc DeletePlatformUserInlinePolicy(DeletePlatformUserInlinePolicyRequest) returns (DeletePlatformUserInlinePolicyResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/platform-users/{target_user_id}/inline-policies/{name}"
+    };
+  }
+
+  rpc ListPlatformUserPolicies(ListPlatformUserPoliciesRequest) returns (ListPlatformUserPoliciesResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/platform-users/{target_user_id}/policies"
+    };
+  }
+
+  rpc AttachPlatformUserPolicy(AttachPlatformUserPolicyRequest) returns (AttachPlatformUserPolicyResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/platform-users/{target_user_id}/policies"
+      body: "*"
+    };
+  }
+
+  rpc DetachPlatformUserPolicy(DetachPlatformUserPolicyRequest) returns (DetachPlatformUserPolicyResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/platform-users/{target_user_id}/policies/{policy_name}"
+    };
+  }
+
+  rpc PutPlatformUserPermissionBoundary(PutPlatformUserPermissionBoundaryRequest) returns (PutPlatformUserPermissionBoundaryResponse) {
+    option (google.api.http) = {
+      put: "/auth/v1/iam/platform-users/{target_user_id}/permission-boundary"
+      body: "*"
+    };
+  }
+
+  rpc GetPlatformUserPermissionBoundary(GetPlatformUserPermissionBoundaryRequest) returns (GetPlatformUserPermissionBoundaryResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/platform-users/{target_user_id}/permission-boundary"
+    };
+  }
+
+  rpc DeletePlatformUserPermissionBoundary(DeletePlatformUserPermissionBoundaryRequest) returns (DeletePlatformUserPermissionBoundaryResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/platform-users/{target_user_id}/permission-boundary"
+    };
+  }
+
+  rpc RemovePlatformRole(RemovePlatformRoleRequest) returns (RemovePlatformRoleResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/platform-users/{target_user_id}/roles/{role_name}"
+    };
+  }
+
+  rpc ListTenantMembers(ListTenantMembersRequest) returns (ListTenantMembersResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/tenants/{tenant_id}/members"
+    };
+  }
+
+  rpc RemoveTenantMember(RemoveTenantMemberRequest) returns (RemoveTenantMemberResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}"
+    };
+  }
+
+  rpc PutTenantUserInlinePolicy(PutTenantUserInlinePolicyRequest) returns (PutTenantUserInlinePolicyResponse) {
+    option (google.api.http) = {
+      put: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/inline-policies/{name}"
+      body: "*"
+    };
+  }
+
+  rpc GetTenantUserInlinePolicy(GetTenantUserInlinePolicyRequest) returns (GetTenantUserInlinePolicyResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/inline-policies/{name}"
+    };
+  }
+
+  rpc ListTenantUserInlinePolicies(ListTenantUserInlinePoliciesRequest) returns (ListTenantUserInlinePoliciesResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/inline-policies"
+    };
+  }
+
+  rpc DeleteTenantUserInlinePolicy(DeleteTenantUserInlinePolicyRequest) returns (DeleteTenantUserInlinePolicyResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/inline-policies/{name}"
+    };
+  }
+
+  rpc ListTenantUserPolicies(ListTenantUserPoliciesRequest) returns (ListTenantUserPoliciesResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/policies"
+    };
+  }
+
+  rpc AttachTenantUserPolicy(AttachTenantUserPolicyRequest) returns (AttachTenantUserPolicyResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/policies"
+      body: "*"
+    };
+  }
+
+  rpc DetachTenantUserPolicy(DetachTenantUserPolicyRequest) returns (DetachTenantUserPolicyResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/policies/{policy_name}"
+    };
+  }
+
+  rpc PutTenantUserPermissionBoundary(PutTenantUserPermissionBoundaryRequest) returns (PutTenantUserPermissionBoundaryResponse) {
+    option (google.api.http) = {
+      put: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/permission-boundary"
+      body: "*"
+    };
+  }
+
+  rpc GetTenantUserPermissionBoundary(GetTenantUserPermissionBoundaryRequest) returns (GetTenantUserPermissionBoundaryResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/permission-boundary"
+    };
+  }
+
+  rpc DeleteTenantUserPermissionBoundary(DeleteTenantUserPermissionBoundaryRequest) returns (DeleteTenantUserPermissionBoundaryResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/tenants/{tenant_id}/members/{user_id}/permission-boundary"
+    };
+  }
+
+  rpc PutRoleTrustPolicy(PutRoleTrustPolicyRequest) returns (PutRoleTrustPolicyResponse) {
+    option (google.api.http) = {
+      put: "/auth/v1/iam/roles/{role_name}/trust-policy"
+      body: "*"
+    };
+  }
+
+  rpc GetRoleTrustPolicy(GetRoleTrustPolicyRequest) returns (GetRoleTrustPolicyResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/roles/{role_name}/trust-policy"
+    };
+  }
+
+  rpc DeleteRoleTrustPolicy(DeleteRoleTrustPolicyRequest) returns (DeleteRoleTrustPolicyResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/roles/{role_name}/trust-policy"
+    };
+  }
+
+  rpc PutRolePermissionBoundary(PutRolePermissionBoundaryRequest) returns (PutRolePermissionBoundaryResponse) {
+    option (google.api.http) = {
+      put: "/auth/v1/iam/roles/{role_name}/permission-boundary"
+      body: "*"
+    };
+  }
+
+  rpc GetRolePermissionBoundary(GetRolePermissionBoundaryRequest) returns (GetRolePermissionBoundaryResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/roles/{role_name}/permission-boundary"
+    };
+  }
+
+  rpc DeleteRolePermissionBoundary(DeleteRolePermissionBoundaryRequest) returns (DeleteRolePermissionBoundaryResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/roles/{role_name}/permission-boundary"
+    };
+  }
+
+  rpc SimulateAccess(SimulateAccessRequest) returns (SimulateAccessResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/access:simulate"
+      body: "*"
+    };
+  }
+}

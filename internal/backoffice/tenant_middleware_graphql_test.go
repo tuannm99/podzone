@@ -22,8 +22,8 @@ import (
 	boconfig "github.com/tuannm99/podzone/internal/backoffice/config"
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/generated"
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/resolver"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/entity"
 	inputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/inputport/mocks"
+	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
 	backofficemocks "github.com/tuannm99/podzone/internal/backoffice/mocks"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -49,14 +49,14 @@ func TestTenantMiddlewareGraphQLInjectsIdentityAndChecksPermission(t *testing.T)
 	bootstrapper.EXPECT().EnsureReady(mock.Anything, "tenant-ops").Return(nil).Once()
 	orderUC.EXPECT().
 		ListRoutedOrders(mock.Anything).
-		RunAndReturn(func(ctx context.Context) ([]entity.RoutedOrder, error) {
+		RunAndReturn(func(ctx context.Context) ([]routingentity.RoutedOrder, error) {
 			tenantID, err := toolkit.GetTenantID(ctx)
 			require.NoError(t, err)
 			userID, err := toolkit.GetUserID(ctx)
 			require.NoError(t, err)
 			require.Equal(t, "tenant-ops", tenantID)
 			require.Equal(t, "12", userID)
-			return []entity.RoutedOrder{
+			return []routingentity.RoutedOrder{
 				{
 					ID:               "ord-1",
 					CandidateID:      "cand-1",
@@ -65,16 +65,16 @@ func TestTenantMiddlewareGraphQLInjectsIdentityAndChecksPermission(t *testing.T)
 					Quantity:         1,
 					Total:            "$20.00",
 					CustomerName:     "Alex",
-					Status:           entity.RoutedOrderStatusQueued,
-					ShipmentStatus:   entity.RoutedOrderShipmentStatusAwaitingLabel,
+					Status:           routingentity.RoutedOrderStatusQueued,
+					ShipmentStatus:   routingentity.RoutedOrderShipmentStatusAwaitingLabel,
 					OperatorAssignee: "unassigned",
 					BaseCostSnapshot: "$8.00",
 					FulfillmentCost:  "$8.00",
 					ShippingCost:     "$0.00",
 					IssueCost:        "$0.00",
-					IssueResolution:  entity.RoutedOrderIssueResolutionMonitor,
+					IssueResolution:  routingentity.RoutedOrderIssueResolutionMonitor,
 					RealizedMargin:   "$12.00",
-					SettlementStatus: entity.RoutedOrderSettlementStatusPending,
+					SettlementStatus: routingentity.RoutedOrderSettlementStatusPending,
 				},
 			}, nil
 		}).

@@ -32,7 +32,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
         - name: consul
-          image: hashicorp/consul:1.18
+          image: hashicorp/consul:latest
           imagePullPolicy: IfNotPresent
           args:
             - 'agent'

@@ -231,6 +231,16 @@
         "routingPriority": {
           "type": "integer",
           "format": "int32"
+        },
+        "baseFulfillmentCost": {
+          "type": "string"
+        },
+        "shippingCostRules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/partnerShippingCostRule"
+          }
         }
       }
     },
@@ -285,6 +295,16 @@
         "routingPriority": {
           "type": "integer",
           "format": "int32"
+        },
+        "baseFulfillmentCost": {
+          "type": "string"
+        },
+        "shippingCostRules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/partnerShippingCostRule"
+          }
         }
       }
     },
@@ -357,6 +377,27 @@
         "routingPriority": {
           "type": "integer",
           "format": "int32"
+        },
+        "baseFulfillmentCost": {
+          "type": "string"
+        },
+        "shippingCostRules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/partnerShippingCostRule"
+          }
+        }
+      }
+    },
+    "partnerShippingCostRule": {
+      "type": "object",
+      "properties": {
+        "region": {
+          "type": "string"
+        },
+        "cost": {
+          "type": "string"
         }
       }
     },

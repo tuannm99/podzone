@@ -45,15 +45,22 @@ type OpenOrderExceptionInput struct {
 }
 
 type PartnerRoutingProfile struct {
-	ID                    string   `json:"id"`
-	Code                  string   `json:"code"`
-	Name                  string   `json:"name"`
-	PartnerType           string   `json:"partnerType"`
-	Status                string   `json:"status"`
-	SupportedProductTypes []string `json:"supportedProductTypes"`
-	SupportedRegions      []string `json:"supportedRegions"`
-	SLADays               int      `json:"slaDays"`
-	RoutingPriority       int      `json:"routingPriority"`
+	ID                    string                     `json:"id"`
+	Code                  string                     `json:"code"`
+	Name                  string                     `json:"name"`
+	PartnerType           string                     `json:"partnerType"`
+	Status                string                     `json:"status"`
+	SupportedProductTypes []string                   `json:"supportedProductTypes"`
+	SupportedRegions      []string                   `json:"supportedRegions"`
+	SLADays               int                        `json:"slaDays"`
+	RoutingPriority       int                        `json:"routingPriority"`
+	BaseFulfillmentCost   string                     `json:"baseFulfillmentCost"`
+	ShippingCostRules     []*PartnerShippingCostRule `json:"shippingCostRules"`
+}
+
+type PartnerShippingCostRule struct {
+	Region string `json:"region"`
+	Cost   string `json:"cost"`
 }
 
 type ProductSetupArtworkChecklist struct {
@@ -218,9 +225,12 @@ type RoutedOrderRecommendationInput struct {
 }
 
 type RoutingPartnerOption struct {
-	Partner  *PartnerRoutingProfile `json:"partner"`
-	Eligible bool                   `json:"eligible"`
-	Reason   string                 `json:"reason"`
+	Partner                  *PartnerRoutingProfile `json:"partner"`
+	Eligible                 bool                   `json:"eligible"`
+	Reason                   string                 `json:"reason"`
+	EstimatedFulfillmentCost string                 `json:"estimatedFulfillmentCost"`
+	EstimatedShippingCost    string                 `json:"estimatedShippingCost"`
+	EstimatedUnitMargin      string                 `json:"estimatedUnitMargin"`
 }
 
 type Store struct {

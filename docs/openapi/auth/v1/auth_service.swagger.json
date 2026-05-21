@@ -1,0 +1,1072 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "auth/v1/auth_service.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "AuthService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/auth/v1/audit-logs": {
+      "get": {
+        "operationId": "AuthService_ListAuditLogs",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authListAuditLogsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/auth/v1/google/callback": {
+      "get": {
+        "operationId": "AuthService_GoogleCallback",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authGoogleCallbackResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "code",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/auth/v1/google/exchange": {
+      "post": {
+        "operationId": "AuthService_ExchangeGoogleLogin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authLoginResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authExchangeGoogleLoginRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/auth/v1/google/login": {
+      "get": {
+        "operationId": "AuthService_GoogleLogin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authGoogleLoginResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "redirectAfterLogin",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/auth/v1/iam/tenants:switch": {
+      "post": {
+        "operationId": "AuthService_SwitchActiveTenant",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authSwitchActiveTenantResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authSwitchActiveTenantRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/auth/v1/login": {
+      "post": {
+        "operationId": "AuthService_Login",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authLoginResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authLoginRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/auth/v1/logout": {
+      "post": {
+        "operationId": "AuthService_Logout",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authLogoutResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authLogoutRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/auth/v1/refresh": {
+      "post": {
+        "operationId": "AuthService_RefreshToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authRefreshTokenResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authRefreshTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/auth/v1/register": {
+      "post": {
+        "operationId": "AuthService_Register",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authRegisterResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authRegisterRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/auth/v1/sessions": {
+      "get": {
+        "operationId": "AuthService_ListSessions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authListSessionsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/auth/v1/sessions/{sessionId}": {
+      "get": {
+        "operationId": "AuthService_GetSession",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authGetSessionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      },
+      "delete": {
+        "operationId": "AuthService_RevokeSession",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authRevokeSessionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/auth/v1/sessions:assume-policy": {
+      "post": {
+        "operationId": "AuthService_AssumeSessionPolicy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authAssumeSessionPolicyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authAssumeSessionPolicyRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/auth/v1/sessions:assume-role": {
+      "post": {
+        "operationId": "AuthService_AssumeRole",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authAssumeRoleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authAssumeRoleRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/auth/v1/sessions:clear-assumed-role": {
+      "post": {
+        "operationId": "AuthService_ClearAssumedRole",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authClearAssumedRoleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authClearAssumedRoleRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/auth/v1/sessions:clear-policy": {
+      "post": {
+        "operationId": "AuthService_ClearSessionPolicy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authClearSessionPolicyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authClearSessionPolicyRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "authAssumeRoleRequest": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "roleName": {
+          "type": "string"
+        },
+        "tenantId": {
+          "type": "string"
+        },
+        "sessionPolicy": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/authPolicyStatement"
+          }
+        },
+        "externalId": {
+          "type": "string"
+        },
+        "sessionName": {
+          "type": "string"
+        },
+        "sourceIdentity": {
+          "type": "string"
+        },
+        "durationSeconds": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "servicePrincipal": {
+          "type": "string"
+        },
+        "sessionTags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "authAssumeRoleResponse": {
+      "type": "object",
+      "properties": {
+        "jwtToken": {
+          "type": "string"
+        },
+        "session": {
+          "$ref": "#/definitions/authSession"
+        }
+      }
+    },
+    "authAssumeSessionPolicyRequest": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "statements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/authPolicyStatement"
+          }
+        }
+      }
+    },
+    "authAssumeSessionPolicyResponse": {
+      "type": "object",
+      "properties": {
+        "jwtToken": {
+          "type": "string"
+        },
+        "session": {
+          "$ref": "#/definitions/authSession"
+        }
+      }
+    },
+    "authAuditLog": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "actorUserId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "action": {
+          "type": "string"
+        },
+        "resourceType": {
+          "type": "string"
+        },
+        "resourceId": {
+          "type": "string"
+        },
+        "tenantId": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "payloadJson": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      }
+    },
+    "authClearAssumedRoleRequest": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        }
+      }
+    },
+    "authClearAssumedRoleResponse": {
+      "type": "object",
+      "properties": {
+        "jwtToken": {
+          "type": "string"
+        },
+        "session": {
+          "$ref": "#/definitions/authSession"
+        }
+      }
+    },
+    "authClearSessionPolicyRequest": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        }
+      }
+    },
+    "authClearSessionPolicyResponse": {
+      "type": "object",
+      "properties": {
+        "jwtToken": {
+          "type": "string"
+        },
+        "session": {
+          "$ref": "#/definitions/authSession"
+        }
+      }
+    },
+    "authExchangeGoogleLoginRequest": {
+      "type": "object",
+      "properties": {
+        "exchangeCode": {
+          "type": "string"
+        }
+      }
+    },
+    "authGetSessionResponse": {
+      "type": "object",
+      "properties": {
+        "session": {
+          "$ref": "#/definitions/authSession"
+        }
+      }
+    },
+    "authGoogleCallbackResponse": {
+      "type": "object",
+      "properties": {
+        "exchangeCode": {
+          "type": "string"
+        },
+        "redirectUrl": {
+          "type": "string"
+        },
+        "userInfo": {
+          "$ref": "#/definitions/authGoogleUserInfo"
+        }
+      }
+    },
+    "authGoogleLoginResponse": {
+      "type": "object",
+      "properties": {
+        "redirectUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "authGoogleUserInfo": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "givenName": {
+          "type": "string"
+        },
+        "familyName": {
+          "type": "string"
+        },
+        "picture": {
+          "type": "string"
+        },
+        "emailVerified": {
+          "type": "boolean"
+        }
+      }
+    },
+    "authListAuditLogsResponse": {
+      "type": "object",
+      "properties": {
+        "logs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/authAuditLog"
+          }
+        }
+      }
+    },
+    "authListSessionsResponse": {
+      "type": "object",
+      "properties": {
+        "sessions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/authSession"
+          }
+        }
+      }
+    },
+    "authLoginRequest": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "authLoginResponse": {
+      "type": "object",
+      "properties": {
+        "jwtToken": {
+          "type": "string"
+        },
+        "userInfo": {
+          "$ref": "#/definitions/authUserInfo"
+        },
+        "refreshToken": {
+          "type": "string"
+        }
+      }
+    },
+    "authLogoutRequest": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        }
+      }
+    },
+    "authLogoutResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "redirectUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "authPolicyCondition": {
+      "type": "object",
+      "properties": {
+        "operator": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "authPolicyStatement": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "policyId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "policyName": {
+          "type": "string"
+        },
+        "effect": {
+          "type": "string"
+        },
+        "actionPattern": {
+          "type": "string"
+        },
+        "resourcePattern": {
+          "type": "string"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/authPolicyCondition"
+          }
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      }
+    },
+    "authRefreshTokenRequest": {
+      "type": "object",
+      "properties": {
+        "refreshToken": {
+          "type": "string"
+        }
+      }
+    },
+    "authRefreshTokenResponse": {
+      "type": "object",
+      "properties": {
+        "jwtToken": {
+          "type": "string"
+        },
+        "userInfo": {
+          "$ref": "#/definitions/authUserInfo"
+        },
+        "refreshToken": {
+          "type": "string"
+        }
+      }
+    },
+    "authRegisterRequest": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        }
+      }
+    },
+    "authRegisterResponse": {
+      "type": "object",
+      "properties": {
+        "jwtToken": {
+          "type": "string"
+        },
+        "userInfo": {
+          "$ref": "#/definitions/authUserInfo"
+        },
+        "refreshToken": {
+          "type": "string"
+        }
+      }
+    },
+    "authRevokeSessionResponse": {
+      "type": "object"
+    },
+    "authSession": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "activeTenantId": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        },
+        "expiresAt": {
+          "type": "string"
+        },
+        "revokedAt": {
+          "type": "string"
+        },
+        "sessionPolicy": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/authPolicyStatement"
+          }
+        },
+        "assumedRoleId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "assumedRoleScope": {
+          "type": "string"
+        },
+        "assumedRoleName": {
+          "type": "string"
+        },
+        "assumedRoleTenantId": {
+          "type": "string"
+        },
+        "assumedRoleSessionName": {
+          "type": "string"
+        },
+        "assumedRoleSourceIdentity": {
+          "type": "string"
+        },
+        "assumedRoleExpiresAt": {
+          "type": "string"
+        },
+        "sessionTags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "assumedRoleServicePrincipal": {
+          "type": "string"
+        }
+      }
+    },
+    "authSwitchActiveTenantRequest": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "tenantId": {
+          "type": "string"
+        },
+        "accessToken": {
+          "type": "string"
+        }
+      }
+    },
+    "authSwitchActiveTenantResponse": {
+      "type": "object",
+      "properties": {
+        "jwtToken": {
+          "type": "string"
+        },
+        "userInfo": {
+          "$ref": "#/definitions/authUserInfo"
+        },
+        "refreshToken": {
+          "type": "string"
+        }
+      }
+    },
+    "authUserInfo": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "email": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "fullName": {
+          "type": "string"
+        },
+        "middleName": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "initialFrom": {
+          "type": "string"
+        },
+        "age": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "dob": {
+          "type": "string"
+        },
+        "emailVerified": {
+          "type": "boolean"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}
