@@ -10,9 +10,10 @@ import (
 
 	"github.com/stretchr/testify/mock"
 
-	catalogentity "github.com/tuannm99/podzone/internal/backoffice/domain/entity"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/inputport"
-	outputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/outputport/mocks"
+	catalogentity "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/entity"
+	catalogoutputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/outputport/mocks"
+	routinginputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport"
+	routingoutputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/routing/outputport/mocks"
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
 )
 
@@ -31,12 +32,12 @@ func (h *testOrderRoutingHarness) mustSeed(order routingentity.RoutedOrder) {
 func newOrderRoutingTestInteractor(
 	t *testing.T,
 	candidates map[string]catalogentity.ProductSetupCandidate,
-) (inputport.OrderRoutingUsecase, *testOrderRoutingHarness, *outputmocks.MockProductSetupRepository, *outputmocks.MockPartnerDirectory) {
+) (routinginputport.OrderRoutingUsecase, *testOrderRoutingHarness, *catalogoutputmocks.MockProductSetupRepository, *routingoutputmocks.MockPartnerDirectory) {
 	t.Helper()
 
-	ordersMock := outputmocks.NewMockOrderRoutingRepository(t)
-	productsMock := outputmocks.NewMockProductSetupRepository(t)
-	partnersMock := outputmocks.NewMockPartnerDirectory(t)
+	ordersMock := routingoutputmocks.NewMockOrderRoutingRepository(t)
+	productsMock := catalogoutputmocks.NewMockProductSetupRepository(t)
+	partnersMock := routingoutputmocks.NewMockPartnerDirectory(t)
 	orderState := newTestOrderRoutingHarness()
 	productState := map[string]catalogentity.ProductSetupCandidate{}
 	for id, candidate := range candidates {
@@ -77,7 +78,7 @@ func newOrderRoutingTestInteractor(
 
 	ordersMock.EXPECT().
 		ListActivityFeed(mock.Anything, mock.Anything).
-		RunAndReturn(func(_ context.Context, query inputport.ListRoutedOrderActivitiesQuery) (*routingentity.RoutedOrderActivityFeedPage, error) {
+		RunAndReturn(func(_ context.Context, query routingentity.RoutedOrderActivityFeedQuery) (*routingentity.RoutedOrderActivityFeedPage, error) {
 			entries := make([]routingentity.RoutedOrderActivityFeedEntry, 0)
 			for _, order := range orderState.orders {
 				if query.OrderID != "" && order.ID != strings.TrimSpace(query.OrderID) {

@@ -155,11 +155,9 @@ func permissionForField(objectName, fieldName string) (string, bool) {
 		switch fieldName {
 		case "stores", "store":
 			return "store:read", true
-		case "storeConfigs", "storeConfig":
-			return "store_config:read", true
 		case "productSetupSnapshot":
 			return "store_config:read", true
-		case "routedOrders":
+		case "routedOrders", "routedOrderActivities", "routedOrderRecommendation":
 			return "store:read", true
 		}
 	case "Mutation":

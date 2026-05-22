@@ -149,3 +149,17 @@ func toGraphQLRoutedOrderRecommendation(recommendation routingentity.RoutedOrder
 		Options:          options,
 	}
 }
+
+func stringOrEmpty(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return *value
+}
+
+func boolOrFalse(value *bool) bool {
+	if value == nil {
+		return false
+	}
+	return *value
+}

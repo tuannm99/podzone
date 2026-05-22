@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	catalogentity "github.com/tuannm99/podzone/internal/backoffice/domain/entity"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/inputport"
+	catalogentity "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/entity"
+	routinginputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport"
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
@@ -28,7 +28,7 @@ func TestCreateRoutedOrderSnapshotsCostsAndMargin(t *testing.T) {
 	})
 
 	ctx := toolkit.WithTenantID(context.Background(), "t_demo")
-	order, err := interactor.CreateRoutedOrder(ctx, inputport.CreateRoutedOrderCmd{
+	order, err := interactor.CreateRoutedOrder(ctx, routinginputport.CreateRoutedOrderCmd{
 		CandidateID:  "cand-1",
 		CustomerName: "Alex POD",
 		Quantity:     2,
@@ -63,7 +63,7 @@ func TestRecommendRoutedOrderPartnerPrefersEligibleRequestedPartner(t *testing.T
 	})
 
 	ctx := toolkit.WithTenantID(context.Background(), "t_demo")
-	recommendation, err := interactor.RecommendRoutedOrderPartner(ctx, inputport.RecommendRoutedOrderPartnerQuery{
+	recommendation, err := interactor.RecommendRoutedOrderPartner(ctx, routinginputport.RecommendRoutedOrderPartnerQuery{
 		CandidateID:      "cand-1",
 		ProductType:      "tshirt",
 		ShipRegion:       "us",
@@ -98,7 +98,7 @@ func TestUpdateOrderSettlementRecalculatesMarginIncludingIssueCost(t *testing.T)
 		Timeline:         []string{"created"},
 	})
 
-	order, err := interactor.UpdateOrderSettlement(context.Background(), inputport.UpdateOrderSettlementCmd{
+	order, err := interactor.UpdateOrderSettlement(context.Background(), routinginputport.UpdateOrderSettlementCmd{
 		OrderID:          "ord-1",
 		FulfillmentCost:  "$12.00",
 		ShippingCost:     "$5.50",
@@ -133,7 +133,7 @@ func TestUpdateOrderIssueHandlingRequiresActiveIssue(t *testing.T) {
 		SettlementStatus: routingentity.RoutedOrderSettlementStatusPending,
 	})
 
-	_, err := interactor.UpdateOrderIssueHandling(context.Background(), inputport.UpdateOrderIssueHandlingCmd{
+	_, err := interactor.UpdateOrderIssueHandling(context.Background(), routinginputport.UpdateOrderIssueHandlingCmd{
 		OrderID:         "ord-no-issue",
 		IssueCost:       "$6.00",
 		IssueResolution: routingentity.RoutedOrderIssueResolutionReprint,
@@ -160,7 +160,7 @@ func TestUpdateOrderIssueHandlingRecalculatesMargin(t *testing.T) {
 		Timeline:         []string{"created"},
 	})
 
-	order, err := interactor.UpdateOrderIssueHandling(context.Background(), inputport.UpdateOrderIssueHandlingCmd{
+	order, err := interactor.UpdateOrderIssueHandling(context.Background(), routinginputport.UpdateOrderIssueHandlingCmd{
 		OrderID:         "ord-issue",
 		IssueCost:       "$6.00",
 		IssueResolution: routingentity.RoutedOrderIssueResolutionReprint,
@@ -189,7 +189,7 @@ func TestUpdateOrderQueueControlNormalizesAssigneeAndPersistsSLA(t *testing.T) {
 		Timeline: []string{"created"},
 	})
 
-	order, err := interactor.UpdateOrderQueueControl(context.Background(), inputport.UpdateOrderQueueControlCmd{
+	order, err := interactor.UpdateOrderQueueControl(context.Background(), routinginputport.UpdateOrderQueueControlCmd{
 		OrderID:          "ord-queue",
 		OperatorAssignee: "  ",
 		ShipmentSlaDueAt: &shipmentSLA,
@@ -224,7 +224,7 @@ func TestBulkUpdateRoutedOrdersUpdatesSelectedOrders(t *testing.T) {
 		Timeline:         []string{"created"},
 	})
 
-	updated, err := interactor.BulkUpdateRoutedOrders(context.Background(), inputport.BulkUpdateRoutedOrdersCmd{
+	updated, err := interactor.BulkUpdateRoutedOrders(context.Background(), routinginputport.BulkUpdateRoutedOrdersCmd{
 		OrderIDs:         []string{"ord-1", " ord-2 "},
 		OperatorAssignee: &assignee,
 		ShipmentSlaDueAt: &shipmentSLA,
@@ -281,7 +281,7 @@ func TestListRoutedOrderActivitiesFiltersAndSorts(t *testing.T) {
 
 	firstPage, err := interactor.ListRoutedOrderActivities(
 		context.Background(),
-		inputport.ListRoutedOrderActivitiesQuery{
+		routingentity.RoutedOrderActivityFeedQuery{
 			ActivityType:  routingentity.RoutedOrderActivityTypeShipmentNote,
 			ActorContains: "user:",
 			Since:         ptrTime(now.Add(-90 * time.Minute)),
@@ -298,7 +298,7 @@ func TestListRoutedOrderActivitiesFiltersAndSorts(t *testing.T) {
 
 	secondPage, err := interactor.ListRoutedOrderActivities(
 		context.Background(),
-		inputport.ListRoutedOrderActivitiesQuery{
+		routingentity.RoutedOrderActivityFeedQuery{
 			ActivityType:  routingentity.RoutedOrderActivityTypeShipmentNote,
 			ActorContains: "user:",
 			Since:         ptrTime(now.Add(-90 * time.Minute)),
@@ -355,7 +355,7 @@ func TestOpenAndResolveOrderException(t *testing.T) {
 		Timeline: []string{"created"},
 	})
 
-	opened, err := interactor.OpenOrderException(context.Background(), inputport.OpenOrderExceptionCmd{
+	opened, err := interactor.OpenOrderException(context.Background(), routinginputport.OpenOrderExceptionCmd{
 		OrderID:       "ord-exception",
 		ExceptionType: "reprint_request",
 	})
@@ -366,7 +366,7 @@ func TestOpenAndResolveOrderException(t *testing.T) {
 
 	resolved, err := interactor.UpdateOrderExceptionStatus(
 		context.Background(),
-		inputport.UpdateOrderExceptionStatusCmd{
+		routinginputport.UpdateOrderExceptionStatusCmd{
 			OrderID: "ord-exception",
 			Status:  routingentity.RoutedOrderExceptionStatusResolved,
 		},
@@ -388,7 +388,7 @@ func TestUpdateOrderShipmentMarksInTransitAndAppendsTracking(t *testing.T) {
 		Timeline:       []string{"created"},
 	})
 
-	order, err := interactor.UpdateOrderShipment(context.Background(), inputport.UpdateOrderShipmentCmd{
+	order, err := interactor.UpdateOrderShipment(context.Background(), routinginputport.UpdateOrderShipmentCmd{
 		OrderID:        "ord-ship",
 		ShipmentStatus: routingentity.RoutedOrderShipmentStatusInTransit,
 		Carrier:        "DHL",
@@ -422,7 +422,7 @@ func TestUpdateOrderShipmentMarksDelivered(t *testing.T) {
 		Timeline:       []string{"created"},
 	})
 
-	order, err := interactor.UpdateOrderShipment(context.Background(), inputport.UpdateOrderShipmentCmd{
+	order, err := interactor.UpdateOrderShipment(context.Background(), routinginputport.UpdateOrderShipmentCmd{
 		OrderID:        "ord-delivered",
 		ShipmentStatus: routingentity.RoutedOrderShipmentStatusDelivered,
 		Notes:          "Delivered to customer",

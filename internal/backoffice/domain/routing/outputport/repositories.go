@@ -4,14 +4,13 @@ import (
 	"context"
 
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
-	routingusecase "github.com/tuannm99/podzone/internal/backoffice/domain/routing/usecase"
 )
 
 type OrderRoutingRepository interface {
 	List(ctx context.Context) ([]routingentity.RoutedOrder, error)
 	ListActivityFeed(
 		ctx context.Context,
-		query routingusecase.ListRoutedOrderActivitiesQuery,
+		query routingentity.RoutedOrderActivityFeedQuery,
 	) (*routingentity.RoutedOrderActivityFeedPage, error)
 	GetByID(ctx context.Context, id string) (*routingentity.RoutedOrder, error)
 	Create(ctx context.Context, order routingentity.RoutedOrder) (*routingentity.RoutedOrder, error)

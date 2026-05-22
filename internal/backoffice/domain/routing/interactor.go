@@ -7,26 +7,27 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	catalogentity "github.com/tuannm99/podzone/internal/backoffice/domain/entity"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/inputport"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/outputport"
+	catalogentity "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/entity"
+	catalogoutputport "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/outputport"
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
+	routinginputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport"
 	routingoutputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/outputport"
-	routingusecase "github.com/tuannm99/podzone/internal/backoffice/domain/routing/usecase"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 type OrderRoutingInteractor struct {
 	orders   routingoutputport.OrderRoutingRepository
-	products outputport.ProductSetupRepository
+	products catalogoutputport.ProductSetupRepository
 	partners routingoutputport.PartnerDirectory
 }
 
+var _ routinginputport.OrderRoutingUsecase = (*OrderRoutingInteractor)(nil)
+
 func NewOrderRoutingInteractor(
-	orders outputport.OrderRoutingRepository,
-	products outputport.ProductSetupRepository,
-	partners outputport.PartnerDirectory,
-) inputport.OrderRoutingUsecase {
+	orders routingoutputport.OrderRoutingRepository,
+	products catalogoutputport.ProductSetupRepository,
+	partners routingoutputport.PartnerDirectory,
+) routinginputport.OrderRoutingUsecase {
 	return &OrderRoutingInteractor{orders: orders, products: products, partners: partners}
 }
 
@@ -36,14 +37,14 @@ func (i *OrderRoutingInteractor) ListRoutedOrders(ctx context.Context) ([]routin
 
 func (i *OrderRoutingInteractor) ListRoutedOrderActivities(
 	ctx context.Context,
-	query routingusecase.ListRoutedOrderActivitiesQuery,
+	query routingentity.RoutedOrderActivityFeedQuery,
 ) (*routingentity.RoutedOrderActivityFeedPage, error) {
 	return i.orders.ListActivityFeed(ctx, query)
 }
 
 func (i *OrderRoutingInteractor) RecommendRoutedOrderPartner(
 	ctx context.Context,
-	query routingusecase.RecommendRoutedOrderPartnerQuery,
+	query routinginputport.RecommendRoutedOrderPartnerQuery,
 ) (*routingentity.RoutedOrderRecommendation, error) {
 	candidateID := strings.TrimSpace(query.CandidateID)
 	if candidateID == "" {
@@ -75,7 +76,7 @@ func (i *OrderRoutingInteractor) RecommendRoutedOrderPartner(
 
 func (i *OrderRoutingInteractor) CreateRoutedOrder(
 	ctx context.Context,
-	cmd routingusecase.CreateRoutedOrderCmd,
+	cmd routinginputport.CreateRoutedOrderCmd,
 ) (*routingentity.RoutedOrder, error) {
 	candidateID := strings.TrimSpace(cmd.CandidateID)
 	if candidateID == "" {

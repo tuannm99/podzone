@@ -2,7 +2,9 @@ package resolver
 
 import (
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/generated"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/inputport"
+	cataloginputport "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/inputport"
+	routinginputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport"
+	storeinputport "github.com/tuannm99/podzone/internal/backoffice/domain/store/inputport"
 )
 
 // This file will not be regenerated automatically.
@@ -10,15 +12,15 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	StoreUsecase        inputport.StoreUsecase
-	ProductSetupUsecase inputport.ProductSetupUsecase
-	OrderRoutingUsecase inputport.OrderRoutingUsecase
+	StoreUsecase        storeinputport.StoreUsecase
+	ProductSetupUsecase cataloginputport.ProductSetupUsecase
+	OrderRoutingUsecase routinginputport.OrderRoutingUsecase
 }
 
 func NewResolver(
-	storeUC inputport.StoreUsecase,
-	productSetupUC inputport.ProductSetupUsecase,
-	orderRoutingUC inputport.OrderRoutingUsecase,
+	storeUC storeinputport.StoreUsecase,
+	productSetupUC cataloginputport.ProductSetupUsecase,
+	orderRoutingUC routinginputport.OrderRoutingUsecase,
 ) *Resolver {
 	return &Resolver{
 		StoreUsecase:        storeUC,

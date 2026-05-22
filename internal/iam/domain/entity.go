@@ -18,14 +18,6 @@ type Tenant struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-type Organization struct {
-	ID        string    `json:"id"`
-	Slug      string    `json:"slug"`
-	Name      string    `json:"name"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-}
-
 type Role struct {
 	ID          uint64    `json:"id"`
 	Scope       string    `json:"scope"`
@@ -235,14 +227,6 @@ type RolePermissionBoundary struct {
 	CreatedAt  time.Time `json:"created_at"`
 }
 
-type ServiceControlPolicyAttachment struct {
-	OrgID      string    `json:"org_id"`
-	OrgName    string    `json:"org_name"`
-	PolicyID   uint64    `json:"policy_id"`
-	PolicyName string    `json:"policy_name"`
-	CreatedAt  time.Time `json:"created_at"`
-}
-
 type AccessRequest struct {
 	TenantID   string            `json:"tenant_id,omitempty"`
 	OrgID      string            `json:"org_id,omitempty"`
@@ -379,9 +363,6 @@ var (
 	ErrDefaultPolicyVersion    = errors.New("iam: default policy version cannot be deleted")
 	ErrInvalidAssumeRole       = errors.New("iam: invalid assume role target")
 	ErrAssumeRoleDenied        = errors.New("iam: assume role denied")
-	ErrOrganizationNotFound    = errors.New("iam: organization not found")
-	ErrInvalidOrganizationName = errors.New("iam: organization name is required")
-	ErrInvalidOrganizationSlug = errors.New("iam: organization slug is required")
 	ErrInvalidServicePrincipal = errors.New("iam: invalid service principal")
 	ErrInvalidPolicyStatement  = errors.New("iam: invalid policy statement")
 )

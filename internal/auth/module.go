@@ -17,14 +17,14 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
 	"github.com/tuannm99/podzone/internal/auth/infrastructure/repository"
 	"github.com/tuannm99/podzone/internal/auth/migrations"
-	iamdomain "github.com/tuannm99/podzone/internal/iam/domain"
-	iamrepo "github.com/tuannm99/podzone/internal/iam/infrastructure/repository"
+	"github.com/tuannm99/podzone/internal/iam/fxmodule"
 	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/pdsql"
 )
 
 var Module = fx.Options(
+	fxmodule.Module,
 	fx.Provide(
 		config.NewAuthConfig,
 
@@ -34,15 +34,6 @@ var Module = fx.Options(
 		fx.Annotate(repository.NewSessionRepositoryImpl, fx.As(new(outputport.SessionRepository))),
 		fx.Annotate(repository.NewRefreshTokenRepositoryImpl, fx.As(new(outputport.RefreshTokenRepository))),
 		fx.Annotate(repository.NewAuditLogRepositoryImpl, fx.As(new(outputport.AuditLogRepository))),
-		fx.Annotate(iamrepo.NewTenantRepository, fx.As(new(iamdomain.TenantRepository))),
-		fx.Annotate(iamrepo.NewRoleRepository, fx.As(new(iamdomain.RoleRepository))),
-		fx.Annotate(iamrepo.NewPolicyRepository, fx.As(new(iamdomain.PolicyRepository))),
-		fx.Annotate(iamrepo.NewGroupRepository, fx.As(new(iamdomain.GroupRepository))),
-		fx.Annotate(iamrepo.NewOrganizationRepository, fx.As(new(iamdomain.OrganizationRepository))),
-		fx.Annotate(iamrepo.NewPlatformMembershipRepository, fx.As(new(iamdomain.PlatformMembershipRepository))),
-		fx.Annotate(iamrepo.NewMembershipRepository, fx.As(new(iamdomain.MembershipRepository))),
-		fx.Annotate(iamrepo.NewInviteRepository, fx.As(new(iamdomain.InviteRepository))),
-		fx.Annotate(iamdomain.NewIAMUsecase, fx.As(new(iamdomain.IAMUsecase))),
 		fx.Annotate(NewTenantAccessChecker, fx.As(new(domain.TenantAccessChecker))),
 
 		fx.Annotate(domain.NewTokenUsecase, fx.As(new(inputport.TokenUsecase))),

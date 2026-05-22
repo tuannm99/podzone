@@ -71,7 +71,8 @@ func isDockerUnavailable(err error) bool {
 	return strings.Contains(msg, "cannot connect to the docker daemon") ||
 		strings.Contains(msg, "no such host") ||
 		strings.Contains(msg, "connection refused") ||
-		strings.Contains(msg, "is the docker daemon running")
+		strings.Contains(msg, "is the docker daemon running") ||
+		strings.Contains(msg, "xdg_runtime_dir")
 }
 
 func PostgresDSN(t *testing.T) string {
@@ -174,6 +175,11 @@ func startPostgres(t *testing.T) {
 	t.Helper()
 	postgresMu.Lock()
 	defer postgresMu.Unlock()
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			errPostgres = fmt.Errorf("docker unavailable: %v", recovered)
+		}
+	}()
 
 	if isContainerRunning(postgresC) {
 		return

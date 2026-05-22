@@ -14,9 +14,8 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/tuannm99/podzone/internal/backoffice/domain/inputport"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/outputport"
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
+	routingoutputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/outputport"
 	"github.com/tuannm99/podzone/internal/backoffice/migrations"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 	"github.com/tuannm99/podzone/pkg/toolkit"
@@ -28,11 +27,13 @@ type OrderRoutingRepositoryImpl struct {
 	mgr pdtenantdb.Manager
 }
 
-func New(mgr pdtenantdb.Manager) outputport.OrderRoutingRepository {
+var _ routingoutputport.OrderRoutingRepository = (*OrderRoutingRepositoryImpl)(nil)
+
+func New(mgr pdtenantdb.Manager) routingoutputport.OrderRoutingRepository {
 	return &OrderRoutingRepositoryImpl{mgr: mgr}
 }
 
-func NewOrderRoutingRepository(mgr pdtenantdb.Manager) outputport.OrderRoutingRepository {
+func NewOrderRoutingRepository(mgr pdtenantdb.Manager) routingoutputport.OrderRoutingRepository {
 	return New(mgr)
 }
 
@@ -228,7 +229,7 @@ func (r *OrderRoutingRepositoryImpl) GetByID(ctx context.Context, id string) (*r
 
 func (r *OrderRoutingRepositoryImpl) ListActivityFeed(
 	ctx context.Context,
-	query inputport.ListRoutedOrderActivitiesQuery,
+	query routingentity.RoutedOrderActivityFeedQuery,
 ) (*routingentity.RoutedOrderActivityFeedPage, error) {
 	limit := query.Limit
 	if limit <= 0 {
@@ -452,7 +453,10 @@ func ensureRoutedOrderTables(ctx context.Context, tx *sqlx.Tx) error {
 	return migrations.ApplyTx(ctx, tx)
 }
 
-func mapRoutedOrderRow(row routedOrderRow, activities []routingentity.RoutedOrderActivity) (routingentity.RoutedOrder, error) {
+func mapRoutedOrderRow(
+	row routedOrderRow,
+	activities []routingentity.RoutedOrderActivity,
+) (routingentity.RoutedOrder, error) {
 	var timeline []string
 	if err := json.Unmarshal([]byte(row.TimelineJSON), &timeline); err != nil {
 		return routingentity.RoutedOrder{}, err

@@ -14,6 +14,8 @@ type RoleRepositoryImpl struct {
 	db *sqlx.DB
 }
 
+var _ iamdomain.RoleRepository = (*RoleRepositoryImpl)(nil)
+
 func NewRoleRepository(p repoParams) iamdomain.RoleRepository {
 	return &RoleRepositoryImpl{db: p.DB}
 }

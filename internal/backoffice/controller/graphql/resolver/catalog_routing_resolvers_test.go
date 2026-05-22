@@ -10,21 +10,22 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/generated/model"
-	catalogentity "github.com/tuannm99/podzone/internal/backoffice/domain/entity"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/inputport"
-	inputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/inputport/mocks"
+	catalogentity "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/entity"
+	cataloginputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/inputport/mocks"
+	routinginputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport"
+	routinginputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport/mocks"
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
 )
 
 func TestCreateRoutedOrderMapsInputAndOutput(t *testing.T) {
 	t.Parallel()
 
-	orderUC := inputmocks.NewMockOrderRoutingUsecase(t)
-	productUC := inputmocks.NewMockProductSetupUsecase(t)
+	orderUC := routinginputmocks.NewMockOrderRoutingUsecase(t)
+	productUC := cataloginputmocks.NewMockProductSetupUsecase(t)
 	orderUC.EXPECT().
 		CreateRoutedOrder(mock.Anything, mock.Anything).
-		RunAndReturn(func(_ context.Context, cmd inputport.CreateRoutedOrderCmd) (*routingentity.RoutedOrder, error) {
-			require.Equal(t, inputport.CreateRoutedOrderCmd{
+		RunAndReturn(func(_ context.Context, cmd routinginputport.CreateRoutedOrderCmd) (*routingentity.RoutedOrder, error) {
+			require.Equal(t, routinginputport.CreateRoutedOrderCmd{
 				CandidateID:      "cand-1",
 				CustomerName:     "Alex POD",
 				Quantity:         3,
@@ -85,11 +86,11 @@ func TestBulkUpdateRoutedOrdersMapsPointersAndList(t *testing.T) {
 	sla := time.Date(2026, 5, 15, 18, 30, 0, 0, time.UTC)
 	owner := "ops.lead"
 	status := routingentity.RoutedOrderSettlementStatusPaid
-	orderUC := inputmocks.NewMockOrderRoutingUsecase(t)
-	productUC := inputmocks.NewMockProductSetupUsecase(t)
+	orderUC := routinginputmocks.NewMockOrderRoutingUsecase(t)
+	productUC := cataloginputmocks.NewMockProductSetupUsecase(t)
 	orderUC.EXPECT().
 		BulkUpdateRoutedOrders(mock.Anything, mock.Anything).
-		RunAndReturn(func(_ context.Context, cmd inputport.BulkUpdateRoutedOrdersCmd) ([]routingentity.RoutedOrder, error) {
+		RunAndReturn(func(_ context.Context, cmd routinginputport.BulkUpdateRoutedOrdersCmd) ([]routingentity.RoutedOrder, error) {
 			require.Equal(t, []string{"ord-1", "ord-2"}, cmd.OrderIDs)
 			require.NotNil(t, cmd.OperatorAssignee)
 			require.Equal(t, owner, *cmd.OperatorAssignee)
@@ -128,8 +129,8 @@ func TestProductSetupSnapshotMapsNestedGraphQLFields(t *testing.T) {
 	t.Parallel()
 
 	now := time.Date(2026, 5, 15, 9, 0, 0, 0, time.UTC)
-	productUC := inputmocks.NewMockProductSetupUsecase(t)
-	orderUC := inputmocks.NewMockOrderRoutingUsecase(t)
+	productUC := cataloginputmocks.NewMockProductSetupUsecase(t)
+	orderUC := routinginputmocks.NewMockOrderRoutingUsecase(t)
 	productUC.EXPECT().GetSnapshot(mock.Anything).Return(&catalogentity.ProductSetupSnapshot{
 		Drafts: []catalogentity.ProductSetupDraft{
 			{
@@ -191,11 +192,11 @@ func TestUpdateOrderShipmentPropagatesUsecaseErrors(t *testing.T) {
 	t.Parallel()
 
 	wantErr := errors.New("invalid shipment status")
-	orderUC := inputmocks.NewMockOrderRoutingUsecase(t)
-	productUC := inputmocks.NewMockProductSetupUsecase(t)
+	orderUC := routinginputmocks.NewMockOrderRoutingUsecase(t)
+	productUC := cataloginputmocks.NewMockProductSetupUsecase(t)
 	orderUC.EXPECT().
 		UpdateOrderShipment(mock.Anything, mock.Anything).
-		RunAndReturn(func(_ context.Context, cmd inputport.UpdateOrderShipmentCmd) (*routingentity.RoutedOrder, error) {
+		RunAndReturn(func(_ context.Context, cmd routinginputport.UpdateOrderShipmentCmd) (*routingentity.RoutedOrder, error) {
 			require.Equal(t, "ord-1", cmd.OrderID)
 			require.Equal(t, "bad-status", cmd.ShipmentStatus)
 			return nil, wantErr
@@ -223,11 +224,11 @@ func TestRoutedOrderActivitiesMapsQueryAndResponse(t *testing.T) {
 	t.Parallel()
 
 	since := time.Date(2026, 5, 15, 0, 0, 0, 0, time.UTC)
-	orderUC := inputmocks.NewMockOrderRoutingUsecase(t)
-	productUC := inputmocks.NewMockProductSetupUsecase(t)
+	orderUC := routinginputmocks.NewMockOrderRoutingUsecase(t)
+	productUC := cataloginputmocks.NewMockProductSetupUsecase(t)
 	orderUC.EXPECT().
 		ListRoutedOrderActivities(mock.Anything, mock.Anything).
-		RunAndReturn(func(_ context.Context, query inputport.ListRoutedOrderActivitiesQuery) (*routingentity.RoutedOrderActivityFeedPage, error) {
+		RunAndReturn(func(_ context.Context, query routingentity.RoutedOrderActivityFeedQuery) (*routingentity.RoutedOrderActivityFeedPage, error) {
 			require.Equal(t, "shipment_note", query.ActivityType)
 			require.Equal(t, "user:12", query.ActorContains)
 			require.Equal(t, "ord-1", query.OrderID)
@@ -290,12 +291,12 @@ func TestRoutedOrderActivitiesMapsQueryAndResponse(t *testing.T) {
 func TestRoutedOrderRecommendationMapsQueryAndResponse(t *testing.T) {
 	t.Parallel()
 
-	orderUC := inputmocks.NewMockOrderRoutingUsecase(t)
-	productUC := inputmocks.NewMockProductSetupUsecase(t)
+	orderUC := routinginputmocks.NewMockOrderRoutingUsecase(t)
+	productUC := cataloginputmocks.NewMockProductSetupUsecase(t)
 	orderUC.EXPECT().
 		RecommendRoutedOrderPartner(mock.Anything, mock.Anything).
-		RunAndReturn(func(_ context.Context, query inputport.RecommendRoutedOrderPartnerQuery) (*routingentity.RoutedOrderRecommendation, error) {
-			require.Equal(t, inputport.RecommendRoutedOrderPartnerQuery{
+		RunAndReturn(func(_ context.Context, query routinginputport.RecommendRoutedOrderPartnerQuery) (*routingentity.RoutedOrderRecommendation, error) {
+			require.Equal(t, routinginputport.RecommendRoutedOrderPartnerQuery{
 				CandidateID:      "cand-1",
 				ProductType:      "tshirt",
 				ShipRegion:       "us",

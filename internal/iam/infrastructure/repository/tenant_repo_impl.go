@@ -21,6 +21,8 @@ type TenantRepositoryImpl struct {
 	db *sqlx.DB
 }
 
+var _ iamdomain.TenantRepository = (*TenantRepositoryImpl)(nil)
+
 func NewTenantRepository(p repoParams) iamdomain.TenantRepository {
 	return &TenantRepositoryImpl{db: p.DB}
 }

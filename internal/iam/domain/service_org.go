@@ -1,0 +1,90 @@
+package domain
+
+import (
+	"context"
+	"strings"
+	"time"
+
+	"github.com/google/uuid"
+)
+
+func (s *iamService) CreateOrganization(ctx context.Context, name string, slug string) (*Organization, error) {
+	name = strings.TrimSpace(name)
+	slug = strings.TrimSpace(slug)
+	if name == "" {
+		return nil, ErrInvalidOrganizationName
+	}
+	if slug == "" {
+		return nil, ErrInvalidOrganizationSlug
+	}
+	now := time.Now().UTC()
+	return s.orgs.Create(ctx, Organization{
+		ID:        uuid.NewString(),
+		Name:      name,
+		Slug:      slug,
+		CreatedAt: now,
+		UpdatedAt: now,
+	})
+}
+
+func (s *iamService) ListOrganizations(ctx context.Context) ([]Organization, error) {
+	return s.orgs.List(ctx)
+}
+
+func (s *iamService) AttachTenantToOrganization(ctx context.Context, tenantID string, orgID string) error {
+	tenantID = strings.TrimSpace(tenantID)
+	orgID = strings.TrimSpace(orgID)
+	if tenantID == "" {
+		return ErrTenantNotFound
+	}
+	if orgID == "" {
+		return ErrOrganizationNotFound
+	}
+	if _, err := s.tenants.GetByID(ctx, tenantID); err != nil {
+		return err
+	}
+	if _, err := s.orgs.GetByID(ctx, orgID); err != nil {
+		return err
+	}
+	return s.tenants.AttachOrganization(ctx, tenantID, orgID)
+}
+
+func (s *iamService) DetachTenantFromOrganization(ctx context.Context, tenantID string) error {
+	tenantID = strings.TrimSpace(tenantID)
+	if tenantID == "" {
+		return ErrTenantNotFound
+	}
+	return s.tenants.DetachOrganization(ctx, tenantID)
+}
+
+func (s *iamService) AttachServiceControlPolicy(ctx context.Context, orgID string, policyName string) error {
+	orgID = strings.TrimSpace(orgID)
+	if orgID == "" {
+		return ErrOrganizationNotFound
+	}
+	policy, err := s.policies.GetPolicyByName(ctx, strings.TrimSpace(policyName))
+	if err != nil {
+		return err
+	}
+	return s.orgs.AttachServiceControlPolicy(ctx, orgID, policy.ID)
+}
+
+func (s *iamService) DetachServiceControlPolicy(ctx context.Context, orgID string, policyName string) error {
+	orgID = strings.TrimSpace(orgID)
+	if orgID == "" {
+		return ErrOrganizationNotFound
+	}
+	policy, err := s.policies.GetPolicyByName(ctx, strings.TrimSpace(policyName))
+	if err != nil {
+		return err
+	}
+	return s.orgs.DetachServiceControlPolicy(ctx, orgID, policy.ID)
+}
+
+func (s *iamService) ListServiceControlPolicies(ctx context.Context, orgID string) ([]Policy, error) {
+	orgID = strings.TrimSpace(orgID)
+	if orgID == "" {
+		return nil, ErrOrganizationNotFound
+	}
+	return s.orgs.ListServiceControlPolicies(ctx, orgID)
+}

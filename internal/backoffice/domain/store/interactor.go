@@ -4,30 +4,31 @@ import (
 	"context"
 	"errors"
 
-	"github.com/tuannm99/podzone/internal/backoffice/domain/entity"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/inputport"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/outputport"
-	"github.com/tuannm99/podzone/internal/backoffice/infrastructure/model"
+	storeentity "github.com/tuannm99/podzone/internal/backoffice/domain/store/entity"
+	storeinputport "github.com/tuannm99/podzone/internal/backoffice/domain/store/inputport"
+	storeoutputport "github.com/tuannm99/podzone/internal/backoffice/domain/store/outputport"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 type StoreInteractor struct {
-	repo outputport.StoreRepository
+	repo storeoutputport.StoreRepository
 }
 
-func NewStoreInteractor(repo outputport.StoreRepository) inputport.StoreUsecase {
+var _ storeinputport.StoreUsecase = (*StoreInteractor)(nil)
+
+func NewStoreInteractor(repo storeoutputport.StoreRepository) storeinputport.StoreUsecase {
 	return &StoreInteractor{repo: repo}
 }
 
-func (i *StoreInteractor) GetAllStores(ctx context.Context) ([]entity.Store, error) {
+func (i *StoreInteractor) GetAllStores(ctx context.Context) ([]storeentity.Store, error) {
 	return i.repo.FindAll(ctx)
 }
 
-func (i *StoreInteractor) GetStoreByID(ctx context.Context, id string) (*entity.Store, error) {
+func (i *StoreInteractor) GetStoreByID(ctx context.Context, id string) (*storeentity.Store, error) {
 	return i.repo.FindByID(ctx, id)
 }
 
-func (i *StoreInteractor) CreateStore(ctx context.Context, name, description string) (*entity.Store, error) {
+func (i *StoreInteractor) CreateStore(ctx context.Context, name, description string) (*storeentity.Store, error) {
 	if name == "" {
 		return nil, errors.New("store name is required")
 	}
@@ -35,26 +36,17 @@ func (i *StoreInteractor) CreateStore(ctx context.Context, name, description str
 	if err != nil {
 		return nil, err
 	}
-	s := model.NewStore(name, description, ownerID)
-	if err := i.repo.Create(ctx, s); err != nil {
+	store := storeentity.NewStore(name, description, ownerID)
+	if err := i.repo.Create(ctx, store); err != nil {
 		return nil, err
 	}
-	return &entity.Store{
-		ID:          s.ID,
-		Name:        s.Name,
-		OwnerID:     s.OwnerID,
-		Description: s.Description,
-		IsActive:    false,
-		Status:      string(s.Status),
-		CreatedAt:   s.CreatedAt,
-		UpdatedAt:   s.UpdatedAt,
-	}, nil
+	return &store, nil
 }
 
-func (i *StoreInteractor) UpdateStoreStatus(ctx context.Context, id string, active bool) (*entity.Store, error) {
-	status := model.StoreStatusInactive
+func (i *StoreInteractor) UpdateStoreStatus(ctx context.Context, id string, active bool) (*storeentity.Store, error) {
+	status := storeentity.StoreStatusInactive
 	if active {
-		status = model.StoreStatusActive
+		status = storeentity.StoreStatusActive
 	}
 	if err := i.repo.UpdateStatus(ctx, id, status); err != nil {
 		return nil, err

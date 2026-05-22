@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 	"testing"
@@ -19,6 +20,9 @@ import (
 )
 
 func TestApplyTxConcurrentForFreshTenant(t *testing.T) {
+	if _, ok := os.LookupEnv("XDG_RUNTIME_DIR"); !ok {
+		t.Skip("docker-backed integration test requires XDG_RUNTIME_DIR")
+	}
 	info := testkit.PostgresInfo(t)
 	tenantID := "tenant-migration-race"
 	schemaName := fmt.Sprintf("t_migration_race_%d", time.Now().UnixNano())

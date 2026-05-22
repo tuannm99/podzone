@@ -15,6 +15,8 @@ type GroupRepositoryImpl struct {
 	db *sqlx.DB
 }
 
+var _ iamdomain.GroupRepository = (*GroupRepositoryImpl)(nil)
+
 func NewGroupRepository(p repoParams) iamdomain.GroupRepository {
 	return &GroupRepositoryImpl{db: p.DB}
 }

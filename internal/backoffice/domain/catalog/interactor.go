@@ -7,20 +7,22 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/entity"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/inputport"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/outputport"
+	catalogentity "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/entity"
+	cataloginputport "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/inputport"
+	catalogoutputport "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/outputport"
 )
 
 type ProductSetupInteractor struct {
-	repo outputport.ProductSetupRepository
+	repo catalogoutputport.ProductSetupRepository
 }
 
-func NewProductSetupInteractor(repo outputport.ProductSetupRepository) inputport.ProductSetupUsecase {
+var _ cataloginputport.ProductSetupUsecase = (*ProductSetupInteractor)(nil)
+
+func NewProductSetupInteractor(repo catalogoutputport.ProductSetupRepository) cataloginputport.ProductSetupUsecase {
 	return &ProductSetupInteractor{repo: repo}
 }
 
-func (i *ProductSetupInteractor) GetSnapshot(ctx context.Context) (*entity.ProductSetupSnapshot, error) {
+func (i *ProductSetupInteractor) GetSnapshot(ctx context.Context) (*catalogentity.ProductSetupSnapshot, error) {
 	drafts, err := i.repo.ListDrafts(ctx)
 	if err != nil {
 		return nil, err
@@ -29,13 +31,13 @@ func (i *ProductSetupInteractor) GetSnapshot(ctx context.Context) (*entity.Produ
 	if err != nil {
 		return nil, err
 	}
-	return &entity.ProductSetupSnapshot{Drafts: drafts, Candidates: candidates}, nil
+	return &catalogentity.ProductSetupSnapshot{Drafts: drafts, Candidates: candidates}, nil
 }
 
 func (i *ProductSetupInteractor) CreateDraft(
 	ctx context.Context,
-	cmd inputport.CreateProductSetupDraftCmd,
-) (*entity.ProductSetupDraft, error) {
+	cmd cataloginputport.CreateProductSetupDraftCmd,
+) (*catalogentity.ProductSetupDraft, error) {
 	name := strings.TrimSpace(cmd.Name)
 	if name == "" {
 		return nil, fmt.Errorf("product name is required")
@@ -47,7 +49,7 @@ func (i *ProductSetupInteractor) CreateDraft(
 	}
 
 	now := time.Now().UTC()
-	draft := entity.ProductSetupDraft{
+	draft := catalogentity.ProductSetupDraft{
 		ID:          uuid.NewString(),
 		Name:        name,
 		Partner:     strings.TrimSpace(cmd.Partner),
@@ -66,8 +68,8 @@ func (i *ProductSetupInteractor) CreateDraft(
 
 func (i *ProductSetupInteractor) PromoteCandidate(
 	ctx context.Context,
-	cmd inputport.PromoteProductSetupCandidateCmd,
-) (*entity.ProductSetupCandidate, error) {
+	cmd cataloginputport.PromoteProductSetupCandidateCmd,
+) (*catalogentity.ProductSetupCandidate, error) {
 	draftID := strings.TrimSpace(cmd.DraftID)
 	if draftID == "" {
 		return nil, fmt.Errorf("draft id is required")
@@ -99,7 +101,7 @@ func (i *ProductSetupInteractor) PromoteCandidate(
 		}
 	}
 
-	candidate := entity.ProductSetupCandidate{
+	candidate := catalogentity.ProductSetupCandidate{
 		ID:              uuid.NewString(),
 		DraftID:         draft.ID,
 		Title:           draft.Name,
@@ -108,10 +110,10 @@ func (i *ProductSetupInteractor) PromoteCandidate(
 		BaseCost:        draft.BaseCost,
 		RetailPrice:     draft.RetailPrice,
 		EstimatedMargin: estimateMargin(draft.BaseCost, draft.RetailPrice),
-		Status:          entity.ProductSetupCandidateStatusReady,
+		Status:          catalogentity.ProductSetupCandidateStatusReady,
 		Channel:         channel,
 		UpdatedAt:       now,
-		Variants: []entity.ProductSetupVariant{
+		Variants: []catalogentity.ProductSetupVariant{
 			{
 				ID:     uuid.NewString(),
 				Label:  fmt.Sprintf("%s / %s", color, size),
@@ -130,7 +132,7 @@ func (i *ProductSetupInteractor) UpdateCandidateStatus(
 	ctx context.Context,
 	id string,
 	status string,
-) (*entity.ProductSetupCandidate, error) {
+) (*catalogentity.ProductSetupCandidate, error) {
 	id = strings.TrimSpace(id)
 	if id == "" {
 		return nil, fmt.Errorf("candidate id is required")
@@ -145,9 +147,9 @@ func (i *ProductSetupInteractor) UpdateCandidateStatus(
 
 func normalizeDraftStatus(raw string) string {
 	switch strings.TrimSpace(raw) {
-	case entity.ProductSetupDraftStatusDraft,
-		entity.ProductSetupDraftStatusReadyForReview,
-		entity.ProductSetupDraftStatusPublishReady:
+	case catalogentity.ProductSetupDraftStatusDraft,
+		catalogentity.ProductSetupDraftStatusReadyForReview,
+		catalogentity.ProductSetupDraftStatusPublishReady:
 		return raw
 	default:
 		return ""
@@ -156,9 +158,9 @@ func normalizeDraftStatus(raw string) string {
 
 func normalizeCandidateStatus(raw string) string {
 	switch strings.TrimSpace(raw) {
-	case entity.ProductSetupCandidateStatusReady,
-		entity.ProductSetupCandidateStatusPublishedMock,
-		entity.ProductSetupCandidateStatusArchived:
+	case catalogentity.ProductSetupCandidateStatusReady,
+		catalogentity.ProductSetupCandidateStatusPublishedMock,
+		catalogentity.ProductSetupCandidateStatusArchived:
 		return raw
 	default:
 		return ""

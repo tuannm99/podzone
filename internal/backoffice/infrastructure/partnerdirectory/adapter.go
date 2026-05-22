@@ -5,14 +5,16 @@ import (
 	"fmt"
 
 	boconfig "github.com/tuannm99/podzone/internal/backoffice/config"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/outputport"
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
+	routingoutputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/outputport"
 	pbpartnerv1 "github.com/tuannm99/podzone/pkg/api/proto/partner/v1"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
+
+var _ routingoutputport.PartnerDirectory = (*Adapter)(nil)
 
 type Adapter struct {
 	client pbpartnerv1.PartnerServiceClient
@@ -28,7 +30,7 @@ type params struct {
 
 func New(
 	p params,
-) (outputport.PartnerDirectory, error) {
+) (routingoutputport.PartnerDirectory, error) {
 	addr := p.Config.Partner.GRPCHost + ":" + p.Config.Partner.GRPCPort
 	conn, err := grpc.NewClient(
 		addr,

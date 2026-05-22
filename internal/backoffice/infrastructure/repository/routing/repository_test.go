@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -12,7 +13,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tuannm99/podzone/internal/backoffice/domain/inputport"
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 	pdtenantdbmocks "github.com/tuannm99/podzone/pkg/pdtenantdb/mocks"
@@ -20,7 +20,15 @@ import (
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
+func skipIfDockerUnavailable(t *testing.T) {
+	t.Helper()
+	if _, ok := os.LookupEnv("XDG_RUNTIME_DIR"); !ok {
+		t.Skip("docker-backed integration test requires XDG_RUNTIME_DIR")
+	}
+}
+
 func TestOrderRoutingRepositoryPersistsTenantScopedOrders(t *testing.T) {
+	skipIfDockerUnavailable(t)
 	info := testkit.PostgresInfo(t)
 	manager := newRepositoryTestManager(t, info, map[string]pdtenantdb.Placement{
 		"tenant-orders-a": {
@@ -134,7 +142,7 @@ func TestOrderRoutingRepositoryPersistsTenantScopedOrders(t *testing.T) {
 	require.Len(t, list, 1)
 	require.Equal(t, "ord-repo-1", list[0].ID)
 
-	feedPage, err := repo.ListActivityFeed(ctxA, inputport.ListRoutedOrderActivitiesQuery{
+	feedPage, err := repo.ListActivityFeed(ctxA, routingentity.RoutedOrderActivityFeedQuery{
 		ActivityType:  "all",
 		Limit:         10,
 		IncludeSystem: true,
@@ -145,7 +153,7 @@ func TestOrderRoutingRepositoryPersistsTenantScopedOrders(t *testing.T) {
 	require.Equal(t, "ord-repo-1", feedPage.Entries[0].OrderID)
 	require.Equal(t, "Print Partner A", feedPage.Entries[0].Partner)
 
-	filteredFeed, err := repo.ListActivityFeed(ctxA, inputport.ListRoutedOrderActivitiesQuery{
+	filteredFeed, err := repo.ListActivityFeed(ctxA, routingentity.RoutedOrderActivityFeedQuery{
 		OrderID:       "ord-repo-1",
 		Partner:       "partner a",
 		Assignee:      "ops.lead",
@@ -180,6 +188,7 @@ func TestOrderRoutingRepositoryPersistsTenantScopedOrders(t *testing.T) {
 }
 
 func TestOrderRoutingRepositoryBackfillsLegacyActivityLogOnLegacyMigration(t *testing.T) {
+	skipIfDockerUnavailable(t)
 	info := testkit.PostgresInfo(t)
 	manager := newRepositoryTestManager(t, info, map[string]pdtenantdb.Placement{
 		"tenant-orders-legacy": {
@@ -321,7 +330,7 @@ func TestOrderRoutingRepositoryBackfillsLegacyActivityLogOnLegacyMigration(t *te
 	require.NoError(t, err)
 
 	repo := NewOrderRoutingRepository(manager)
-	feedPage, err := repo.ListActivityFeed(ctx, inputport.ListRoutedOrderActivitiesQuery{
+	feedPage, err := repo.ListActivityFeed(ctx, routingentity.RoutedOrderActivityFeedQuery{
 		ActivityType:  "all",
 		Limit:         10,
 		IncludeSystem: true,

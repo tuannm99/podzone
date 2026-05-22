@@ -12,6 +12,8 @@ type PlatformMembershipRepositoryImpl struct {
 	db *sqlx.DB
 }
 
+var _ iamdomain.PlatformMembershipRepository = (*PlatformMembershipRepositoryImpl)(nil)
+
 func NewPlatformMembershipRepository(p repoParams) iamdomain.PlatformMembershipRepository {
 	return &PlatformMembershipRepositoryImpl{db: p.DB}
 }

@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	catalogentity "github.com/tuannm99/podzone/internal/backoffice/domain/entity"
+	catalogentity "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/entity"
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
-	routingusecase "github.com/tuannm99/podzone/internal/backoffice/domain/routing/usecase"
+	routinginputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport"
 )
 
 func newActivity(
@@ -173,7 +173,7 @@ func queueControlTimelineEntry(order *routingentity.RoutedOrder) string {
 	)
 }
 
-func bulkUpdateTimelineEntry(order *routingentity.RoutedOrder, cmd routingusecase.BulkUpdateRoutedOrdersCmd) string {
+func bulkUpdateTimelineEntry(order *routingentity.RoutedOrder, cmd routinginputport.BulkUpdateRoutedOrdersCmd) string {
 	parts := make([]string, 0, 3)
 	if cmd.OperatorAssignee != nil {
 		parts = append(parts, fmt.Sprintf("owner %s", order.OperatorAssignee))

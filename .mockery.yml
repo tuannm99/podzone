@@ -1,7 +1,7 @@
 all: false
 pkgname: mocks
 template: testify
-filename: 'mock_{{.InterfaceName}}.go'
+filename: "mock_{{.InterfaceName}}.go"
 formatter: goimports
 force-file-write: true
 
@@ -58,20 +58,40 @@ packages:
       TenantAuthorizer:
       TenantBootstrapper:
 
-  github.com/tuannm99/podzone/internal/backoffice/domain/inputport:
+  github.com/tuannm99/podzone/internal/backoffice/domain/store/inputport:
     config:
-      dir: internal/backoffice/domain/inputport/mocks
+      dir: internal/backoffice/domain/store/inputport/mocks
     interfaces:
       StoreUsecase:
+
+  github.com/tuannm99/podzone/internal/backoffice/domain/catalog/inputport:
+    config:
+      dir: internal/backoffice/domain/catalog/inputport/mocks
+    interfaces:
       ProductSetupUsecase:
+
+  github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport:
+    config:
+      dir: internal/backoffice/domain/routing/inputport/mocks
+    interfaces:
       OrderRoutingUsecase:
 
-  github.com/tuannm99/podzone/internal/backoffice/domain/outputport:
+  github.com/tuannm99/podzone/internal/backoffice/domain/store/outputport:
     config:
-      dir: internal/backoffice/domain/outputport/mocks
+      dir: internal/backoffice/domain/store/outputport/mocks
     interfaces:
       StoreRepository:
+
+  github.com/tuannm99/podzone/internal/backoffice/domain/catalog/outputport:
+    config:
+      dir: internal/backoffice/domain/catalog/outputport/mocks
+    interfaces:
       ProductSetupRepository:
+
+  github.com/tuannm99/podzone/internal/backoffice/domain/routing/outputport:
+    config:
+      dir: internal/backoffice/domain/routing/outputport/mocks
+    interfaces:
       OrderRoutingRepository:
       PartnerDirectory:
 

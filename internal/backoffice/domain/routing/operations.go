@@ -7,13 +7,13 @@ import (
 	"time"
 
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
-	routingusecase "github.com/tuannm99/podzone/internal/backoffice/domain/routing/usecase"
+	routinginputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 func (i *OrderRoutingInteractor) UpdateOrderShipment(
 	ctx context.Context,
-	cmd routingusecase.UpdateOrderShipmentCmd,
+	cmd routinginputport.UpdateOrderShipmentCmd,
 ) (*routingentity.RoutedOrder, error) {
 	order, err := i.orders.GetByID(ctx, strings.TrimSpace(cmd.OrderID))
 	if err != nil {
@@ -109,7 +109,7 @@ func (i *OrderRoutingInteractor) UpdateOrderShipment(
 
 func (i *OrderRoutingInteractor) UpdateOrderQueueControl(
 	ctx context.Context,
-	cmd routingusecase.UpdateOrderQueueControlCmd,
+	cmd routinginputport.UpdateOrderQueueControlCmd,
 ) (*routingentity.RoutedOrder, error) {
 	order, err := i.orders.GetByID(ctx, strings.TrimSpace(cmd.OrderID))
 	if err != nil {
@@ -146,7 +146,7 @@ func (i *OrderRoutingInteractor) UpdateOrderQueueControl(
 
 func (i *OrderRoutingInteractor) BulkUpdateRoutedOrders(
 	ctx context.Context,
-	cmd routingusecase.BulkUpdateRoutedOrdersCmd,
+	cmd routinginputport.BulkUpdateRoutedOrdersCmd,
 ) ([]routingentity.RoutedOrder, error) {
 	if len(cmd.OrderIDs) == 0 {
 		return nil, fmt.Errorf("at least one routed order id is required")
@@ -217,7 +217,7 @@ func (i *OrderRoutingInteractor) BulkUpdateRoutedOrders(
 
 func (i *OrderRoutingInteractor) UpdateOrderSettlement(
 	ctx context.Context,
-	cmd routingusecase.UpdateOrderSettlementCmd,
+	cmd routinginputport.UpdateOrderSettlementCmd,
 ) (*routingentity.RoutedOrder, error) {
 	order, err := i.orders.GetByID(ctx, strings.TrimSpace(cmd.OrderID))
 	if err != nil {
@@ -276,7 +276,7 @@ func (i *OrderRoutingInteractor) UpdateOrderSettlement(
 
 func (i *OrderRoutingInteractor) UpdateOrderIssueHandling(
 	ctx context.Context,
-	cmd routingusecase.UpdateOrderIssueHandlingCmd,
+	cmd routinginputport.UpdateOrderIssueHandlingCmd,
 ) (*routingentity.RoutedOrder, error) {
 	order, err := i.orders.GetByID(ctx, strings.TrimSpace(cmd.OrderID))
 	if err != nil {

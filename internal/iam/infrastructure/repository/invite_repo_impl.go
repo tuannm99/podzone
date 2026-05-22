@@ -14,6 +14,8 @@ type InviteRepositoryImpl struct {
 	db *sqlx.DB
 }
 
+var _ iamdomain.InviteRepository = (*InviteRepositoryImpl)(nil)
+
 func NewInviteRepository(p repoParams) iamdomain.InviteRepository {
 	return &InviteRepositoryImpl{db: p.DB}
 }

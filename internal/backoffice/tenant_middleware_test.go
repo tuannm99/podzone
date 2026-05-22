@@ -63,6 +63,10 @@ func TestPermissionForField(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, "store:read", permission)
 
+	permission, ok = permissionForField("Query", "routedOrderActivities")
+	require.True(t, ok)
+	assert.Equal(t, "store:read", permission)
+
 	permission, ok = permissionForField("Query", "unknown")
 	assert.False(t, ok)
 	assert.Empty(t, permission)

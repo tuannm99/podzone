@@ -2,14 +2,14 @@ package resolver
 
 import (
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/generated/model"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/entity"
+	catalogentity "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/entity"
 )
 
-func toEntityArtworkChecklistInput(input *model.ProductSetupArtworkChecklistInput) entity.ProductSetupArtworkChecklist {
+func toEntityArtworkChecklistInput(input *model.ProductSetupArtworkChecklistInput) catalogentity.ProductSetupArtworkChecklist {
 	if input == nil {
-		return entity.ProductSetupArtworkChecklist{}
+		return catalogentity.ProductSetupArtworkChecklist{}
 	}
-	return entity.ProductSetupArtworkChecklist{
+	return catalogentity.ProductSetupArtworkChecklist{
 		FrontArtwork:     input.FrontArtwork,
 		BackArtwork:      input.BackArtwork,
 		MockupReady:      input.MockupReady,
@@ -17,7 +17,7 @@ func toEntityArtworkChecklistInput(input *model.ProductSetupArtworkChecklistInpu
 	}
 }
 
-func toGraphQLProductSetupSnapshot(snapshot entity.ProductSetupSnapshot) *model.ProductSetupSnapshot {
+func toGraphQLProductSetupSnapshot(snapshot catalogentity.ProductSetupSnapshot) *model.ProductSetupSnapshot {
 	drafts := make([]*model.ProductSetupDraft, 0, len(snapshot.Drafts))
 	for _, draft := range snapshot.Drafts {
 		drafts = append(drafts, toGraphQLProductSetupDraft(draft))
@@ -32,7 +32,7 @@ func toGraphQLProductSetupSnapshot(snapshot entity.ProductSetupSnapshot) *model.
 	}
 }
 
-func toGraphQLProductSetupDraft(draft entity.ProductSetupDraft) *model.ProductSetupDraft {
+func toGraphQLProductSetupDraft(draft catalogentity.ProductSetupDraft) *model.ProductSetupDraft {
 	return &model.ProductSetupDraft{
 		ID:          draft.ID,
 		Name:        draft.Name,
@@ -46,7 +46,7 @@ func toGraphQLProductSetupDraft(draft entity.ProductSetupDraft) *model.ProductSe
 	}
 }
 
-func toGraphQLProductSetupCandidate(candidate entity.ProductSetupCandidate) *model.ProductSetupCandidate {
+func toGraphQLProductSetupCandidate(candidate catalogentity.ProductSetupCandidate) *model.ProductSetupCandidate {
 	variants := make([]*model.ProductSetupVariant, 0, len(candidate.Variants))
 	for _, variant := range candidate.Variants {
 		variants = append(variants, &model.ProductSetupVariant{

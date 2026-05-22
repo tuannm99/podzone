@@ -11,8 +11,8 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/tuannm99/podzone/internal/backoffice/domain/entity"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/outputport"
+	catalogentity "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/entity"
+	catalogoutputport "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/outputport"
 	"github.com/tuannm99/podzone/internal/backoffice/migrations"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 	"github.com/tuannm99/podzone/pkg/toolkit"
@@ -24,7 +24,9 @@ type Repository struct {
 	mgr pdtenantdb.Manager
 }
 
-func New(mgr pdtenantdb.Manager) outputport.ProductSetupRepository {
+var _ catalogoutputport.ProductSetupRepository = (*Repository)(nil)
+
+func New(mgr pdtenantdb.Manager) catalogoutputport.ProductSetupRepository {
 	return &Repository{mgr: mgr}
 }
 
@@ -57,7 +59,7 @@ type productSetupCandidateRow struct {
 	UpdatedAt            time.Time `db:"updated_at"`
 }
 
-func (r *Repository) ListDrafts(ctx context.Context) ([]entity.ProductSetupDraft, error) {
+func (r *Repository) ListDrafts(ctx context.Context) ([]catalogentity.ProductSetupDraft, error) {
 	query, args, err := psql.
 		Select("id", "name", "partner", "base_cost", "retail_price", "status", "notes", "created_at", "updated_at").
 		From("product_setup_drafts").
@@ -77,14 +79,14 @@ func (r *Repository) ListDrafts(ctx context.Context) ([]entity.ProductSetupDraft
 		return nil, err
 	}
 
-	out := make([]entity.ProductSetupDraft, 0, len(rows))
+	out := make([]catalogentity.ProductSetupDraft, 0, len(rows))
 	for _, row := range rows {
-		out = append(out, entity.ProductSetupDraft(row))
+		out = append(out, catalogentity.ProductSetupDraft(row))
 	}
 	return out, nil
 }
 
-func (r *Repository) GetDraftByID(ctx context.Context, id string) (*entity.ProductSetupDraft, error) {
+func (r *Repository) GetDraftByID(ctx context.Context, id string) (*catalogentity.ProductSetupDraft, error) {
 	query, args, err := psql.
 		Select("id", "name", "partner", "base_cost", "retail_price", "status", "notes", "created_at", "updated_at").
 		From("product_setup_drafts").
@@ -110,11 +112,11 @@ func (r *Repository) GetDraftByID(ctx context.Context, id string) (*entity.Produ
 		return nil, err
 	}
 
-	out := entity.ProductSetupDraft(row)
+	out := catalogentity.ProductSetupDraft(row)
 	return &out, nil
 }
 
-func (r *Repository) CreateDraft(ctx context.Context, draft entity.ProductSetupDraft) (*entity.ProductSetupDraft, error) {
+func (r *Repository) CreateDraft(ctx context.Context, draft catalogentity.ProductSetupDraft) (*catalogentity.ProductSetupDraft, error) {
 	query, args, err := psql.
 		Insert("product_setup_drafts").
 		Columns("id", "name", "partner", "base_cost", "retail_price", "status", "notes", "created_at", "updated_at").
@@ -136,7 +138,7 @@ func (r *Repository) CreateDraft(ctx context.Context, draft entity.ProductSetupD
 	return &draft, nil
 }
 
-func (r *Repository) ListCandidates(ctx context.Context) ([]entity.ProductSetupCandidate, error) {
+func (r *Repository) ListCandidates(ctx context.Context) ([]catalogentity.ProductSetupCandidate, error) {
 	query, args, err := psql.
 		Select(
 			"id", "draft_id", "title", "sku", "partner", "base_cost", "retail_price",
@@ -160,7 +162,7 @@ func (r *Repository) ListCandidates(ctx context.Context) ([]entity.ProductSetupC
 		return nil, err
 	}
 
-	out := make([]entity.ProductSetupCandidate, 0, len(rows))
+	out := make([]catalogentity.ProductSetupCandidate, 0, len(rows))
 	for _, row := range rows {
 		mapped, err := mapCandidateRow(row)
 		if err != nil {
@@ -171,7 +173,7 @@ func (r *Repository) ListCandidates(ctx context.Context) ([]entity.ProductSetupC
 	return out, nil
 }
 
-func (r *Repository) GetCandidateByID(ctx context.Context, id string) (*entity.ProductSetupCandidate, error) {
+func (r *Repository) GetCandidateByID(ctx context.Context, id string) (*catalogentity.ProductSetupCandidate, error) {
 	query, args, err := psql.
 		Select(
 			"id", "draft_id", "title", "sku", "partner", "base_cost", "retail_price",
@@ -210,7 +212,7 @@ func (r *Repository) GetCandidateByID(ctx context.Context, id string) (*entity.P
 	return &mapped, nil
 }
 
-func (r *Repository) GetCandidateByDraftID(ctx context.Context, draftID string) (*entity.ProductSetupCandidate, error) {
+func (r *Repository) GetCandidateByDraftID(ctx context.Context, draftID string) (*catalogentity.ProductSetupCandidate, error) {
 	query, args, err := psql.
 		Select(
 			"id", "draft_id", "title", "sku", "partner", "base_cost", "retail_price",
@@ -250,7 +252,7 @@ func (r *Repository) GetCandidateByDraftID(ctx context.Context, draftID string) 
 	return &mapped, nil
 }
 
-func (r *Repository) CreateCandidate(ctx context.Context, candidate entity.ProductSetupCandidate) (*entity.ProductSetupCandidate, error) {
+func (r *Repository) CreateCandidate(ctx context.Context, candidate catalogentity.ProductSetupCandidate) (*catalogentity.ProductSetupCandidate, error) {
 	variantsJSON, err := json.Marshal(candidate.Variants)
 	if err != nil {
 		return nil, err
@@ -281,7 +283,7 @@ func (r *Repository) CreateCandidate(ctx context.Context, candidate entity.Produ
 	return &candidate, nil
 }
 
-func (r *Repository) UpdateCandidateStatus(ctx context.Context, id, status string) (*entity.ProductSetupCandidate, error) {
+func (r *Repository) UpdateCandidateStatus(ctx context.Context, id, status string) (*catalogentity.ProductSetupCandidate, error) {
 	query, args, err := psql.
 		Update("product_setup_candidates").
 		Set("status", status).
@@ -333,16 +335,16 @@ func ensureProductSetupTables(ctx context.Context, tx *sqlx.Tx) error {
 	return migrations.ApplyTx(ctx, tx)
 }
 
-func mapCandidateRow(row productSetupCandidateRow) (entity.ProductSetupCandidate, error) {
-	var variants []entity.ProductSetupVariant
+func mapCandidateRow(row productSetupCandidateRow) (catalogentity.ProductSetupCandidate, error) {
+	var variants []catalogentity.ProductSetupVariant
 	if err := json.Unmarshal([]byte(row.VariantsJSON), &variants); err != nil {
-		return entity.ProductSetupCandidate{}, err
+		return catalogentity.ProductSetupCandidate{}, err
 	}
-	var checklist entity.ProductSetupArtworkChecklist
+	var checklist catalogentity.ProductSetupArtworkChecklist
 	if err := json.Unmarshal([]byte(row.ArtworkChecklistJSON), &checklist); err != nil {
-		return entity.ProductSetupCandidate{}, err
+		return catalogentity.ProductSetupCandidate{}, err
 	}
-	return entity.ProductSetupCandidate{
+	return catalogentity.ProductSetupCandidate{
 		ID:                 row.ID,
 		DraftID:            row.DraftID,
 		Title:              row.Title,

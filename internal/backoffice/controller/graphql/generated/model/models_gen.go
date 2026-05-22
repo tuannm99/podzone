@@ -244,14 +244,6 @@ type Store struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
-type StoreConfig struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	StoreID   string    `json:"store_id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-}
-
 type UpdateOrderExceptionStatusInput struct {
 	OrderID string `json:"orderId"`
 	Status  string `json:"status"`

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
-	routingusecase "github.com/tuannm99/podzone/internal/backoffice/domain/routing/usecase"
+	routinginputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport"
 )
 
 func (i *OrderRoutingInteractor) AdvanceRoutedOrder(
@@ -26,7 +26,7 @@ func (i *OrderRoutingInteractor) AdvanceRoutedOrder(
 		return nil, fmt.Errorf("resolve the active exception before advancing the routed order")
 	}
 
-	nextStatus := order.Status
+	var nextStatus string
 	switch order.Status {
 	case routingentity.RoutedOrderStatusQueued:
 		nextStatus = routingentity.RoutedOrderStatusInProduction
@@ -58,7 +58,7 @@ func (i *OrderRoutingInteractor) AdvanceRoutedOrder(
 
 func (i *OrderRoutingInteractor) OpenOrderException(
 	ctx context.Context,
-	cmd routingusecase.OpenOrderExceptionCmd,
+	cmd routinginputport.OpenOrderExceptionCmd,
 ) (*routingentity.RoutedOrder, error) {
 	order, err := i.orders.GetByID(ctx, strings.TrimSpace(cmd.OrderID))
 	if err != nil {
@@ -98,7 +98,7 @@ func (i *OrderRoutingInteractor) OpenOrderException(
 
 func (i *OrderRoutingInteractor) UpdateOrderExceptionStatus(
 	ctx context.Context,
-	cmd routingusecase.UpdateOrderExceptionStatusCmd,
+	cmd routinginputport.UpdateOrderExceptionStatusCmd,
 ) (*routingentity.RoutedOrder, error) {
 	order, err := i.orders.GetByID(ctx, strings.TrimSpace(cmd.OrderID))
 	if err != nil {

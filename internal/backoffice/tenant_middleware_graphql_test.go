@@ -22,7 +22,8 @@ import (
 	boconfig "github.com/tuannm99/podzone/internal/backoffice/config"
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/generated"
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/resolver"
-	inputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/inputport/mocks"
+	cataloginputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/inputport/mocks"
+	routinginputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport/mocks"
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
 	backofficemocks "github.com/tuannm99/podzone/internal/backoffice/mocks"
 	"github.com/tuannm99/podzone/pkg/toolkit"
@@ -43,7 +44,7 @@ func TestTenantMiddlewareGraphQLInjectsIdentityAndChecksPermission(t *testing.T)
 
 	authz := backofficemocks.NewMockTenantAuthorizer(t)
 	bootstrapper := backofficemocks.NewMockTenantBootstrapper(t)
-	orderUC := inputmocks.NewMockOrderRoutingUsecase(t)
+	orderUC := routinginputmocks.NewMockOrderRoutingUsecase(t)
 	authz.EXPECT().AuthorizeTenant(mock.Anything, "session-1", "12", "tenant-ops").Return(nil).Once()
 	authz.EXPECT().RequirePermission(mock.Anything, "12", "tenant-ops", "store:read").Return(nil).Once()
 	bootstrapper.EXPECT().EnsureReady(mock.Anything, "tenant-ops").Return(nil).Once()
@@ -79,7 +80,7 @@ func TestTenantMiddlewareGraphQLInjectsIdentityAndChecksPermission(t *testing.T)
 			}, nil
 		}).
 		Once()
-	productUC := inputmocks.NewMockProductSetupUsecase(t)
+	productUC := cataloginputmocks.NewMockProductSetupUsecase(t)
 
 	srv := newBackofficeGraphQLTestServer(t, authz, &resolver.Resolver{
 		ProductSetupUsecase: productUC,
@@ -97,8 +98,8 @@ func TestTenantMiddlewareGraphQLInjectsIdentityAndChecksPermission(t *testing.T)
 
 func TestTenantMiddlewareGraphQLRejectsMissingAuthorization(t *testing.T) {
 	srv := newBackofficeGraphQLTestServer(t, backofficemocks.NewMockTenantAuthorizer(t), &resolver.Resolver{
-		ProductSetupUsecase: inputmocks.NewMockProductSetupUsecase(t),
-		OrderRoutingUsecase: inputmocks.NewMockOrderRoutingUsecase(t),
+		ProductSetupUsecase: cataloginputmocks.NewMockProductSetupUsecase(t),
+		OrderRoutingUsecase: routinginputmocks.NewMockOrderRoutingUsecase(t),
 	}, backofficemocks.NewMockTenantBootstrapper(t))
 
 	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "")
@@ -131,8 +132,8 @@ func TestTenantMiddlewareGraphQLRejectsPermissionDenied(t *testing.T) {
 		Once()
 	bootstrapper.EXPECT().EnsureReady(mock.Anything, "tenant-ops").Return(nil).Once()
 	srv := newBackofficeGraphQLTestServer(t, authz, &resolver.Resolver{
-		ProductSetupUsecase: inputmocks.NewMockProductSetupUsecase(t),
-		OrderRoutingUsecase: inputmocks.NewMockOrderRoutingUsecase(t),
+		ProductSetupUsecase: cataloginputmocks.NewMockProductSetupUsecase(t),
+		OrderRoutingUsecase: routinginputmocks.NewMockOrderRoutingUsecase(t),
 	}, bootstrapper)
 
 	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "Bearer "+token)
@@ -161,8 +162,8 @@ func TestTenantMiddlewareGraphQLRejectsBootstrapFailure(t *testing.T) {
 	authz.EXPECT().AuthorizeTenant(mock.Anything, "session-3", "42", "tenant-ops").Return(nil).Once()
 	bootstrapper.EXPECT().EnsureReady(mock.Anything, "tenant-ops").Return(errors.New("tenant bootstrap failed")).Once()
 	srv := newBackofficeGraphQLTestServer(t, authz, &resolver.Resolver{
-		ProductSetupUsecase: inputmocks.NewMockProductSetupUsecase(t),
-		OrderRoutingUsecase: inputmocks.NewMockOrderRoutingUsecase(t),
+		ProductSetupUsecase: cataloginputmocks.NewMockProductSetupUsecase(t),
+		OrderRoutingUsecase: routinginputmocks.NewMockOrderRoutingUsecase(t),
 	}, bootstrapper)
 
 	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "Bearer "+token)

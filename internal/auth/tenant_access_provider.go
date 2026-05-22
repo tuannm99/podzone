@@ -11,6 +11,8 @@ type iamTenantAccessChecker struct {
 	iamUC iamdomain.IAMUsecase
 }
 
+var _ authdomain.TenantAccessChecker = (*iamTenantAccessChecker)(nil)
+
 func NewTenantAccessChecker(iamUC iamdomain.IAMUsecase) authdomain.TenantAccessChecker {
 	return &iamTenantAccessChecker{iamUC: iamUC}
 }

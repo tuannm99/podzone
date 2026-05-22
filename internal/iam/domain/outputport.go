@@ -103,13 +103,3 @@ type InviteRepository interface {
 	MarkAccepted(ctx context.Context, inviteID string, acceptedByUserID uint, acceptedAt time.Time) error
 	MarkRevoked(ctx context.Context, inviteID string, revokedAt time.Time) error
 }
-
-type OrganizationRepository interface {
-	Create(ctx context.Context, org Organization) (*Organization, error)
-	List(ctx context.Context) ([]Organization, error)
-	GetByID(ctx context.Context, orgID string) (*Organization, error)
-	AttachServiceControlPolicy(ctx context.Context, orgID string, policyID uint64) error
-	DetachServiceControlPolicy(ctx context.Context, orgID string, policyID uint64) error
-	ListServiceControlPolicies(ctx context.Context, orgID string) ([]Policy, error)
-	ListServiceControlPolicyStatements(ctx context.Context, orgID string) ([]PolicyStatement, error)
-}

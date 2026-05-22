@@ -13,6 +13,8 @@ type OrganizationRepositoryImpl struct {
 	db *sqlx.DB
 }
 
+var _ iamdomain.OrganizationRepository = (*OrganizationRepositoryImpl)(nil)
+
 func NewOrganizationRepository(p repoParams) iamdomain.OrganizationRepository {
 	return &OrganizationRepositoryImpl{db: p.DB}
 }

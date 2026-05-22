@@ -15,6 +15,8 @@ type PolicyRepositoryImpl struct {
 	db *sqlx.DB
 }
 
+var _ iamdomain.PolicyRepository = (*PolicyRepositoryImpl)(nil)
+
 func NewPolicyRepository(p repoParams) iamdomain.PolicyRepository {
 	return &PolicyRepositoryImpl{db: p.DB}
 }

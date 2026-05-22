@@ -9,9 +9,8 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/tuannm99/podzone/internal/backoffice/domain/entity"
-	"github.com/tuannm99/podzone/internal/backoffice/domain/outputport"
-	"github.com/tuannm99/podzone/internal/backoffice/infrastructure/model"
+	storeentity "github.com/tuannm99/podzone/internal/backoffice/domain/store/entity"
+	storeoutputport "github.com/tuannm99/podzone/internal/backoffice/domain/store/outputport"
 	"github.com/tuannm99/podzone/internal/backoffice/migrations"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 	"github.com/tuannm99/podzone/pkg/toolkit"
@@ -19,15 +18,29 @@ import (
 
 var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
+const storesTable = "stores"
+
+type storeRow struct {
+	ID          string    `db:"id"`
+	Name        string    `db:"name"`
+	Description string    `db:"description"`
+	OwnerID     string    `db:"owner_id"`
+	Status      string    `db:"status"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
+}
+
 type Repository struct {
 	mgr pdtenantdb.Manager
 }
 
-func New(mgr pdtenantdb.Manager) outputport.StoreRepository {
+var _ storeoutputport.StoreRepository = (*Repository)(nil)
+
+func New(mgr pdtenantdb.Manager) storeoutputport.StoreRepository {
 	return &Repository{mgr: mgr}
 }
 
-func (r *Repository) FindAll(ctx context.Context) ([]entity.Store, error) {
+func (r *Repository) FindAll(ctx context.Context) ([]storeentity.Store, error) {
 	ownerID, err := toolkit.GetUserID(ctx)
 	if err != nil {
 		return nil, err
@@ -35,7 +48,7 @@ func (r *Repository) FindAll(ctx context.Context) ([]entity.Store, error) {
 
 	query, args, err := psql.
 		Select("id", "name", "description", "owner_id", "status", "created_at", "updated_at").
-		From(model.Store{}.TableName()).
+		From(storesTable).
 		Where(sq.Eq{"owner_id": ownerID}).
 		OrderBy("created_at DESC").
 		ToSql()
@@ -43,7 +56,7 @@ func (r *Repository) FindAll(ctx context.Context) ([]entity.Store, error) {
 		return nil, err
 	}
 
-	var stores []model.Store
+	var stores []storeRow
 	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
 		if err := ensureStoreTables(ctx, tx); err != nil {
 			return err
@@ -53,14 +66,14 @@ func (r *Repository) FindAll(ctx context.Context) ([]entity.Store, error) {
 		return nil, err
 	}
 
-	res := make([]entity.Store, 0, len(stores))
+	res := make([]storeentity.Store, 0, len(stores))
 	for _, s := range stores {
 		res = append(res, toEntity(s))
 	}
 	return res, nil
 }
 
-func (r *Repository) FindByID(ctx context.Context, id string) (*entity.Store, error) {
+func (r *Repository) FindByID(ctx context.Context, id string) (*storeentity.Store, error) {
 	ownerID, err := toolkit.GetUserID(ctx)
 	if err != nil {
 		return nil, err
@@ -68,14 +81,14 @@ func (r *Repository) FindByID(ctx context.Context, id string) (*entity.Store, er
 
 	query, args, err := psql.
 		Select("id", "name", "description", "owner_id", "status", "created_at", "updated_at").
-		From(model.Store{}.TableName()).
+		From(storesTable).
 		Where(sq.Eq{"id": id, "owner_id": ownerID}).
 		ToSql()
 	if err != nil {
 		return nil, err
 	}
 
-	var s model.Store
+	var s storeRow
 	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
 		if err := ensureStoreTables(ctx, tx); err != nil {
 			return err
@@ -95,11 +108,11 @@ func (r *Repository) FindByID(ctx context.Context, id string) (*entity.Store, er
 	return &out, nil
 }
 
-func (r *Repository) Create(ctx context.Context, s *model.Store) error {
+func (r *Repository) Create(ctx context.Context, store storeentity.Store) error {
 	query, args, err := psql.
-		Insert(s.TableName()).
+		Insert(storesTable).
 		Columns("id", "name", "description", "owner_id", "status", "created_at", "updated_at").
-		Values(s.ID, s.Name, s.Description, s.OwnerID, s.Status, s.CreatedAt, s.UpdatedAt).
+		Values(store.ID, store.Name, store.Description, store.OwnerID, store.Status, store.CreatedAt, store.UpdatedAt).
 		ToSql()
 	if err != nil {
 		return err
@@ -114,16 +127,16 @@ func (r *Repository) Create(ctx context.Context, s *model.Store) error {
 	})
 }
 
-func (r *Repository) UpdateStatus(ctx context.Context, id string, status model.StoreStatus) error {
+func (r *Repository) UpdateStatus(ctx context.Context, id string, status string) error {
 	ownerID, err := toolkit.GetUserID(ctx)
 	if err != nil {
 		return err
 	}
 
 	query, args, err := psql.
-		Update(model.Store{}.TableName()).
+		Update(storesTable).
 		Set("status", status).
-		Set("updated_at", time.Now()).
+		Set("updated_at", time.Now().UTC()).
 		Where(sq.Eq{"id": id, "owner_id": ownerID}).
 		ToSql()
 	if err != nil {
@@ -158,14 +171,14 @@ func ensureStoreTables(ctx context.Context, tx *sqlx.Tx) error {
 	return migrations.ApplyTx(ctx, tx)
 }
 
-func toEntity(s model.Store) entity.Store {
-	return entity.Store{
+func toEntity(s storeRow) storeentity.Store {
+	return storeentity.Store{
 		ID:          s.ID,
 		Name:        s.Name,
 		OwnerID:     s.OwnerID,
-		IsActive:    s.Status == model.StoreStatusActive,
+		IsActive:    s.Status == storeentity.StoreStatusActive,
 		Description: s.Description,
-		Status:      string(s.Status),
+		Status:      s.Status,
 		CreatedAt:   s.CreatedAt,
 		UpdatedAt:   s.UpdatedAt,
 	}
