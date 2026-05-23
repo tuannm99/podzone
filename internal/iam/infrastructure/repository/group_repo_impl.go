@@ -8,20 +8,21 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	iamdomain "github.com/tuannm99/podzone/internal/iam/domain"
+	entity "github.com/tuannm99/podzone/internal/iam/entity"
+	"github.com/tuannm99/podzone/internal/iam/outputport"
 )
 
 type GroupRepositoryImpl struct {
 	db *sqlx.DB
 }
 
-var _ iamdomain.GroupRepository = (*GroupRepositoryImpl)(nil)
+var _ outputport.GroupRepository = (*GroupRepositoryImpl)(nil)
 
-func NewGroupRepository(p repoParams) iamdomain.GroupRepository {
+func NewGroupRepository(p repoParams) outputport.GroupRepository {
 	return &GroupRepositoryImpl{db: p.DB}
 }
 
-func (r *GroupRepositoryImpl) CreateGroup(ctx context.Context, group iamdomain.Group) (*iamdomain.Group, error) {
+func (r *GroupRepositoryImpl) CreateGroup(ctx context.Context, group entity.Group) (*entity.Group, error) {
 	var out groupModel
 	if err := r.db.GetContext(
 		ctx,
@@ -43,7 +44,7 @@ func (r *GroupRepositoryImpl) CreateGroup(ctx context.Context, group iamdomain.G
 	return &entity, nil
 }
 
-func (r *GroupRepositoryImpl) ListGroups(ctx context.Context, scope string, tenantID string) ([]iamdomain.Group, error) {
+func (r *GroupRepositoryImpl) ListGroups(ctx context.Context, scope string, tenantID string) ([]entity.Group, error) {
 	query := `SELECT id, scope, COALESCE(tenant_id, '') AS tenant_id, name, description, is_system, created_at, updated_at FROM iam_groups WHERE 1=1`
 	args := []any{}
 	if scope != "" {
@@ -60,7 +61,7 @@ func (r *GroupRepositoryImpl) ListGroups(ctx context.Context, scope string, tena
 	if err := r.db.SelectContext(ctx, &rows, query, args...); err != nil {
 		return nil, err
 	}
-	out := make([]iamdomain.Group, 0, len(rows))
+	out := make([]entity.Group, 0, len(rows))
 	for _, row := range rows {
 		out = append(out, row.toEntity())
 	}
@@ -78,18 +79,18 @@ func (r *GroupRepositoryImpl) DeleteGroup(ctx context.Context, groupID uint64) e
 		groupID,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return iamdomain.ErrGroupNotFound
+			return entity.ErrGroupNotFound
 		}
 		return err
 	}
 	if group.IsSystem {
-		return iamdomain.ErrImmutableGroup
+		return entity.ErrImmutableGroup
 	}
 	_, err := r.db.ExecContext(ctx, `DELETE FROM iam_groups WHERE id = $1`, groupID)
 	return err
 }
 
-func (r *GroupRepositoryImpl) PutInlinePolicy(ctx context.Context, input iamdomain.PutGroupInlinePolicyInput) error {
+func (r *GroupRepositoryImpl) PutInlinePolicy(ctx context.Context, input entity.PutGroupInlinePolicyInput) error {
 	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return err
@@ -139,7 +140,7 @@ func (r *GroupRepositoryImpl) PutInlinePolicy(ctx context.Context, input iamdoma
 	return tx.Commit()
 }
 
-func (r *GroupRepositoryImpl) GetInlinePolicy(ctx context.Context, groupID uint64, name string) (*iamdomain.GroupInlinePolicy, error) {
+func (r *GroupRepositoryImpl) GetInlinePolicy(ctx context.Context, groupID uint64, name string) (*entity.GroupInlinePolicy, error) {
 	var policy groupInlinePolicyModel
 	if err := r.db.GetContext(
 		ctx,
@@ -151,7 +152,7 @@ func (r *GroupRepositoryImpl) GetInlinePolicy(ctx context.Context, groupID uint6
 		name,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, iamdomain.ErrPolicyNotFound
+			return nil, entity.ErrPolicyNotFound
 		}
 		return nil, err
 	}
@@ -163,7 +164,7 @@ func (r *GroupRepositoryImpl) GetInlinePolicy(ctx context.Context, groupID uint6
 	return &entity, nil
 }
 
-func (r *GroupRepositoryImpl) ListInlinePolicies(ctx context.Context, groupID uint64) ([]iamdomain.GroupInlinePolicy, error) {
+func (r *GroupRepositoryImpl) ListInlinePolicies(ctx context.Context, groupID uint64) ([]entity.GroupInlinePolicy, error) {
 	var policies []groupInlinePolicyModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -176,7 +177,7 @@ func (r *GroupRepositoryImpl) ListInlinePolicies(ctx context.Context, groupID ui
 	); err != nil {
 		return nil, err
 	}
-	out := make([]iamdomain.GroupInlinePolicy, 0, len(policies))
+	out := make([]entity.GroupInlinePolicy, 0, len(policies))
 	for _, policy := range policies {
 		statements, err := r.listInlinePolicyStatements(ctx, groupID, policy.Name)
 		if err != nil {
@@ -254,7 +255,7 @@ func (r *GroupRepositoryImpl) DetachPolicy(ctx context.Context, groupID uint64, 
 	return err
 }
 
-func (r *GroupRepositoryImpl) ListPolicies(ctx context.Context, groupID uint64) ([]iamdomain.Policy, error) {
+func (r *GroupRepositoryImpl) ListPolicies(ctx context.Context, groupID uint64) ([]entity.Policy, error) {
 	var rows []policyModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -271,7 +272,7 @@ func (r *GroupRepositoryImpl) ListPolicies(ctx context.Context, groupID uint64) 
 	return toPolicies(rows), nil
 }
 
-func (r *GroupRepositoryImpl) listInlinePolicyStatements(ctx context.Context, groupID uint64, name string) ([]iamdomain.PolicyStatement, error) {
+func (r *GroupRepositoryImpl) listInlinePolicyStatements(ctx context.Context, groupID uint64, name string) ([]entity.PolicyStatement, error) {
 	var rows []struct {
 		Effect          string    `db:"effect"`
 		ActionPattern   string    `db:"action_pattern"`
@@ -291,9 +292,9 @@ func (r *GroupRepositoryImpl) listInlinePolicyStatements(ctx context.Context, gr
 	); err != nil {
 		return nil, err
 	}
-	out := make([]iamdomain.PolicyStatement, 0, len(rows))
+	out := make([]entity.PolicyStatement, 0, len(rows))
 	for _, row := range rows {
-		out = append(out, iamdomain.PolicyStatement{
+		out = append(out, entity.PolicyStatement{
 			PolicyName:      name,
 			Effect:          row.Effect,
 			ActionPattern:   row.ActionPattern,

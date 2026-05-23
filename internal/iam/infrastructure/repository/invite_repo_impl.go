@@ -7,20 +7,21 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	iamdomain "github.com/tuannm99/podzone/internal/iam/domain"
+	entity "github.com/tuannm99/podzone/internal/iam/entity"
+	"github.com/tuannm99/podzone/internal/iam/outputport"
 )
 
 type InviteRepositoryImpl struct {
 	db *sqlx.DB
 }
 
-var _ iamdomain.InviteRepository = (*InviteRepositoryImpl)(nil)
+var _ outputport.InviteRepository = (*InviteRepositoryImpl)(nil)
 
-func NewInviteRepository(p repoParams) iamdomain.InviteRepository {
+func NewInviteRepository(p repoParams) outputport.InviteRepository {
 	return &InviteRepositoryImpl{db: p.DB}
 }
 
-func (r *InviteRepositoryImpl) Create(ctx context.Context, invite iamdomain.TenantInvite) error {
+func (r *InviteRepositoryImpl) Create(ctx context.Context, invite entity.TenantInvite) error {
 	_, err := r.db.ExecContext(
 		ctx,
 		`INSERT INTO tenant_invites
@@ -45,7 +46,7 @@ func (r *InviteRepositoryImpl) Create(ctx context.Context, invite iamdomain.Tena
 	return err
 }
 
-func (r *InviteRepositoryImpl) GetByID(ctx context.Context, inviteID string) (*iamdomain.TenantInvite, error) {
+func (r *InviteRepositoryImpl) GetByID(ctx context.Context, inviteID string) (*entity.TenantInvite, error) {
 	var out inviteModel
 	if err := r.db.GetContext(ctx, &out, `
 		SELECT ti.id, ti.tenant_id, ti.email, ti.role_id, r.name AS role_name, 
@@ -57,14 +58,14 @@ func (r *InviteRepositoryImpl) GetByID(ctx context.Context, inviteID string) (*i
 		WHERE ti.id = $1
 	`, inviteID); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, iamdomain.ErrInviteNotFound
+			return nil, entity.ErrInviteNotFound
 		}
 		return nil, err
 	}
 	return out.toEntity(), nil
 }
 
-func (r *InviteRepositoryImpl) GetByTokenHash(ctx context.Context, tokenHash string) (*iamdomain.TenantInvite, error) {
+func (r *InviteRepositoryImpl) GetByTokenHash(ctx context.Context, tokenHash string) (*entity.TenantInvite, error) {
 	var out inviteModel
 	if err := r.db.GetContext(ctx, &out, `
 		SELECT ti.id, ti.tenant_id, ti.email, ti.role_id, r.name AS role_name, ti.status, ti.invited_by_user_id,
@@ -74,14 +75,14 @@ func (r *InviteRepositoryImpl) GetByTokenHash(ctx context.Context, tokenHash str
 		WHERE ti.token_hash = $1
 	`, tokenHash); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, iamdomain.ErrInviteNotFound
+			return nil, entity.ErrInviteNotFound
 		}
 		return nil, err
 	}
 	return out.toEntity(), nil
 }
 
-func (r *InviteRepositoryImpl) ListByTenant(ctx context.Context, tenantID string) ([]iamdomain.TenantInvite, error) {
+func (r *InviteRepositoryImpl) ListByTenant(ctx context.Context, tenantID string) ([]entity.TenantInvite, error) {
 	var rows []inviteModel
 	if err := r.db.SelectContext(ctx, &rows, `
 		SELECT ti.id, ti.tenant_id, ti.email, ti.role_id, r.name AS role_name, ti.status, ti.invited_by_user_id,
@@ -93,7 +94,7 @@ func (r *InviteRepositoryImpl) ListByTenant(ctx context.Context, tenantID string
 	`, tenantID); err != nil {
 		return nil, err
 	}
-	out := make([]iamdomain.TenantInvite, 0, len(rows))
+	out := make([]entity.TenantInvite, 0, len(rows))
 	for _, row := range rows {
 		out = append(out, *row.toEntity())
 	}
@@ -110,13 +111,13 @@ func (r *InviteRepositoryImpl) MarkAccepted(
 		UPDATE tenant_invites
 		SET status = $2, accepted_by_user_id = $3, accepted_at = $4, updated_at = $4
 		WHERE id = $1
-	`, inviteID, iamdomain.InviteStatusAccepted, acceptedByUserID, acceptedAt)
+	`, inviteID, entity.InviteStatusAccepted, acceptedByUserID, acceptedAt)
 	if err != nil {
 		return err
 	}
 	rows, _ := res.RowsAffected()
 	if rows == 0 {
-		return iamdomain.ErrInviteNotFound
+		return entity.ErrInviteNotFound
 	}
 	return nil
 }
@@ -126,13 +127,13 @@ func (r *InviteRepositoryImpl) MarkRevoked(ctx context.Context, inviteID string,
 		UPDATE tenant_invites
 		SET status = $2, revoked_at = $3, updated_at = $3
 		WHERE id = $1
-	`, inviteID, iamdomain.InviteStatusRevoked, revokedAt)
+	`, inviteID, entity.InviteStatusRevoked, revokedAt)
 	if err != nil {
 		return err
 	}
 	rows, _ := res.RowsAffected()
 	if rows == 0 {
-		return iamdomain.ErrInviteNotFound
+		return entity.ErrInviteNotFound
 	}
 	return nil
 }

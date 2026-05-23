@@ -69,9 +69,11 @@ func isDockerUnavailable(err error) bool {
 	}
 	msg := strings.ToLower(err.Error())
 	return strings.Contains(msg, "cannot connect to the docker daemon") ||
+		strings.Contains(msg, "permission denied while trying to connect to the docker daemon") ||
 		strings.Contains(msg, "no such host") ||
 		strings.Contains(msg, "connection refused") ||
 		strings.Contains(msg, "is the docker daemon running") ||
+		strings.Contains(msg, "operation not permitted") ||
 		strings.Contains(msg, "xdg_runtime_dir")
 }
 
@@ -247,19 +249,37 @@ func RedisClient(t *testing.T) *redis.Client {
 	t.Helper()
 	addr := RedisAddr(t)
 	client := redis.NewClient(&redis.Options{Addr: addr})
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	if err := client.Ping(ctx).Err(); err != nil {
-		t.Fatalf("ping redis: %v", err)
+	var lastErr error
+	for attempt := 0; attempt < 5; attempt++ {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		lastErr = client.Ping(ctx).Err()
+		cancel()
+		if lastErr == nil {
+			t.Cleanup(func() { _ = client.Close() })
+			return client
+		}
+		if isDockerUnavailable(lastErr) {
+			t.Skipf("docker unavailable: %v", lastErr)
+		}
+		if strings.Contains(strings.ToLower(lastErr.Error()), "connection reset by peer") {
+			time.Sleep(300 * time.Millisecond)
+			continue
+		}
+		break
 	}
-	t.Cleanup(func() { _ = client.Close() })
-	return client
+	t.Fatalf("ping redis: %v", lastErr)
+	return nil
 }
 
 func startRedis(t *testing.T) {
 	t.Helper()
 	redisMu.Lock()
 	defer redisMu.Unlock()
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			errRedis = fmt.Errorf("docker unavailable: %v", recovered)
+		}
+	}()
 
 	if isContainerRunning(redisC) {
 		return
@@ -333,6 +353,11 @@ func startMongo(t *testing.T) {
 	t.Helper()
 	mongoMu.Lock()
 	defer mongoMu.Unlock()
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			errMongo = fmt.Errorf("docker unavailable: %v", recovered)
+		}
+	}()
 
 	if isContainerRunning(mongoC) {
 		return
@@ -404,6 +429,11 @@ func startElasticsearch(t *testing.T) {
 	t.Helper()
 	esMu.Lock()
 	defer esMu.Unlock()
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			errES = fmt.Errorf("docker unavailable: %v", recovered)
+		}
+	}()
 
 	if isContainerRunning(esC) {
 		return

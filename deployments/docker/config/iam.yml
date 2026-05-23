@@ -5,10 +5,28 @@ logger:
   env: 'dev'
 
 sql:
-  auth:
-    uri: postgres://postgres:postgres@postgres:5432/auth?sslmode=disable
+  iam:
+    uri: postgres://postgres:postgres@postgres:5432/iam?sslmode=disable
     provider: postgres
-    should_run_migration: false
+    should_run_migration: true
+
+kafka:
+  iam:
+    brokers:
+      - kafka:9092
+    client_id: podzone-iam
+    version: 3.7.0
+    required_acks: all
+    compression: zstd
+    auto_create_topics: false
+    consumer_group_prefix: podzone.iam
+    sasl:
+      enabled: false
+      mechanism: ''
+      username: ''
+      password: ''
+    tls:
+      enabled: false
 
 grpc:
   port: 50053

@@ -14,8 +14,10 @@ func init() {
 }
 
 func TestNewAuthConfig(t *testing.T) {
-	cfg := NewAuthConfig()
+	cfg := NewAuthConfig(nil)
 	require.Equal(t, "my_jwt", cfg.JWTSecret)
 	require.Equal(t, "my_key", cfg.JWTKey)
 	require.Equal(t, "redirect", cfg.AppRedirectURL)
+	require.Equal(t, "localhost", cfg.IAM.GRPCHost)
+	require.Equal(t, "50053", cfg.IAM.GRPCPort)
 }

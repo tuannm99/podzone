@@ -1,8 +1,8 @@
 logger:
-  app_name: "podzone_admin_partner"
-  provider: "zap"
-  level: "debug"
-  env: "dev"
+  app_name: 'podzone_admin_partner'
+  provider: 'zap'
+  level: 'debug'
+  env: 'dev'
 
 sql:
   partner:
@@ -22,9 +22,27 @@ partner:
     grpc_host: iam-service
     grpc_port: '50053'
 
+kafka:
+  partner:
+    brokers:
+      - kafka:9092
+    client_id: podzone-partner
+    version: 3.7.0
+    required_acks: all
+    compression: zstd
+    auto_create_topics: false
+    consumer_group_prefix: podzone.partner
+    sasl:
+      enabled: false
+      mechanism: ''
+      username: ''
+      password: ''
+    tls:
+      enabled: false
+
 grpc:
   port: 50054
 
 pprof:
   enable: false
-  addr: "127.0.0.1:6060"
+  addr: '127.0.0.1:6060'

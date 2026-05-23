@@ -4,18 +4,20 @@ import (
 	"github.com/joho/godotenv"
 	"go.uber.org/fx"
 
-	"github.com/tuannm99/podzone/internal/iam"
+	"github.com/tuannm99/podzone/internal/iam/server"
 	"github.com/tuannm99/podzone/pkg/pdconfig"
 	"github.com/tuannm99/podzone/pkg/pdglobalmiddleware"
 	"github.com/tuannm99/podzone/pkg/pdgrpc"
+	"github.com/tuannm99/podzone/pkg/pdkafka"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/pdpprof"
 	"github.com/tuannm99/podzone/pkg/pdsql"
 )
 
 var connOpts = fx.Options(
-	pdsql.ModuleFor("auth"),
-	iam.ServerModule,
+	pdsql.ModuleFor("iam"),
+	pdkafka.ModuleFor("iam"),
+	server.Module,
 )
 
 func main() {

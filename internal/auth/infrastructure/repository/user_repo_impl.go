@@ -25,7 +25,20 @@ type UserRepoParams struct {
 	DB     *sqlx.DB `name:"sql-auth"`
 }
 
+type IAMUserRepoParams struct {
+	fx.In
+	Logger pdlog.Logger
+	DB     *sqlx.DB `name:"sql-iam"`
+}
+
 func NewUserRepositoryImpl(p UserRepoParams) *UserRepositoryImpl {
+	return &UserRepositoryImpl{
+		logger: p.Logger,
+		db:     p.DB,
+	}
+}
+
+func NewIAMUserRepositoryImpl(p IAMUserRepoParams) *UserRepositoryImpl {
 	return &UserRepositoryImpl{
 		logger: p.Logger,
 		db:     p.DB,

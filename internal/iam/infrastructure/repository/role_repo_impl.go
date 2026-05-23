@@ -7,20 +7,21 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	iamdomain "github.com/tuannm99/podzone/internal/iam/domain"
+	entity "github.com/tuannm99/podzone/internal/iam/entity"
+	"github.com/tuannm99/podzone/internal/iam/outputport"
 )
 
 type RoleRepositoryImpl struct {
 	db *sqlx.DB
 }
 
-var _ iamdomain.RoleRepository = (*RoleRepositoryImpl)(nil)
+var _ outputport.RoleRepository = (*RoleRepositoryImpl)(nil)
 
-func NewRoleRepository(p repoParams) iamdomain.RoleRepository {
+func NewRoleRepository(p repoParams) outputport.RoleRepository {
 	return &RoleRepositoryImpl{db: p.DB}
 }
 
-func (r *RoleRepositoryImpl) GetByName(ctx context.Context, name string) (*iamdomain.Role, error) {
+func (r *RoleRepositoryImpl) GetByName(ctx context.Context, name string) (*entity.Role, error) {
 	var out roleModel
 	if err := r.db.GetContext(
 		ctx,
@@ -29,11 +30,11 @@ func (r *RoleRepositoryImpl) GetByName(ctx context.Context, name string) (*iamdo
 		name,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, iamdomain.ErrRoleNotFound
+			return nil, entity.ErrRoleNotFound
 		}
 		return nil, err
 	}
-	return &iamdomain.Role{
+	return &entity.Role{
 		ID:          out.ID,
 		Scope:       out.Scope,
 		Name:        out.Name,
@@ -64,7 +65,7 @@ func (r *RoleRepositoryImpl) RoleHasPermission(ctx context.Context, roleID uint6
 func (r *RoleRepositoryImpl) PutTrustPolicy(
 	ctx context.Context,
 	roleID uint64,
-	statements []iamdomain.RoleTrustStatement,
+	statements []entity.RoleTrustStatement,
 ) error {
 	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
@@ -95,7 +96,7 @@ func (r *RoleRepositoryImpl) PutTrustPolicy(
 	return tx.Commit()
 }
 
-func (r *RoleRepositoryImpl) GetTrustPolicy(ctx context.Context, roleID uint64) ([]iamdomain.RoleTrustStatement, error) {
+func (r *RoleRepositoryImpl) GetTrustPolicy(ctx context.Context, roleID uint64) ([]entity.RoleTrustStatement, error) {
 	rows := make([]roleTrustStatementModel, 0)
 	if err := r.db.SelectContext(
 		ctx,
@@ -108,7 +109,7 @@ func (r *RoleRepositoryImpl) GetTrustPolicy(ctx context.Context, roleID uint64) 
 	); err != nil {
 		return nil, err
 	}
-	out := make([]iamdomain.RoleTrustStatement, 0, len(rows))
+	out := make([]entity.RoleTrustStatement, 0, len(rows))
 	for _, row := range rows {
 		out = append(out, row.toEntity())
 	}
@@ -133,7 +134,7 @@ func (r *RoleRepositoryImpl) PutPermissionBoundary(ctx context.Context, roleID u
 	return err
 }
 
-func (r *RoleRepositoryImpl) GetPermissionBoundary(ctx context.Context, roleID uint64) (*iamdomain.RolePermissionBoundary, error) {
+func (r *RoleRepositoryImpl) GetPermissionBoundary(ctx context.Context, roleID uint64) (*entity.RolePermissionBoundary, error) {
 	var row struct {
 		RoleID     uint64    `db:"role_id"`
 		RoleName   string    `db:"role_name"`
@@ -156,7 +157,7 @@ func (r *RoleRepositoryImpl) GetPermissionBoundary(ctx context.Context, roleID u
 		}
 		return nil, err
 	}
-	return &iamdomain.RolePermissionBoundary{
+	return &entity.RolePermissionBoundary{
 		RoleID:     row.RoleID,
 		RoleName:   row.RoleName,
 		PolicyID:   row.PolicyID,
@@ -165,7 +166,7 @@ func (r *RoleRepositoryImpl) GetPermissionBoundary(ctx context.Context, roleID u
 	}, nil
 }
 
-func (r *RoleRepositoryImpl) GetPermissionBoundaryStatements(ctx context.Context, roleID uint64) ([]iamdomain.PolicyStatement, error) {
+func (r *RoleRepositoryImpl) GetPermissionBoundaryStatements(ctx context.Context, roleID uint64) ([]entity.PolicyStatement, error) {
 	rows := make([]policyStatementModel, 0)
 	if err := r.db.SelectContext(
 		ctx,

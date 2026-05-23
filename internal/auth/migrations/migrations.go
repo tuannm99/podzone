@@ -9,9 +9,9 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
-// this comment below for ensuring goose know where ./sql dir is
+// this comment below for ensuring goose know where ./authsql dir is
 //
-//go:embed sql/*.sql
+//go:embed authsql/*.sql
 var MigrationsFS embed.FS
 
 func Apply(ctx context.Context, db *sql.DB, dialect string) error {
@@ -19,7 +19,7 @@ func Apply(ctx context.Context, db *sql.DB, dialect string) error {
 		return fmt.Errorf("goose.SetDialect: %w", err)
 	}
 	goose.SetBaseFS(MigrationsFS)
-	if err := goose.UpContext(ctx, db, "sql"); err != nil {
+	if err := goose.UpContext(ctx, db, "authsql"); err != nil {
 		return fmt.Errorf("goose.Up: %w", err)
 	}
 	return nil

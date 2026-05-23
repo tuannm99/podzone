@@ -25,9 +25,11 @@ var File_auth_v1_iam_service_proto protoreflect.FileDescriptor
 
 const file_auth_v1_iam_service_proto_rawDesc = "" +
 	"\n" +
-	"\x19auth/v1/iam_service.proto\x12\x04auth\x1a\x18auth/v1/iam_policy.proto\x1a\x1cauth/v1/iam_simulation.proto\x1a\x18auth/v1/iam_tenant.proto\x1a\x1cgoogle/api/annotations.proto2\x84Y\n" +
+	"\x19auth/v1/iam_service.proto\x12\x04auth\x1a\x18auth/v1/iam_policy.proto\x1a\x1cauth/v1/iam_simulation.proto\x1a\x18auth/v1/iam_tenant.proto\x1a\x1cgoogle/api/annotations.proto2\xf0Y\n" +
 	"\n" +
-	"IAMService\x12f\n" +
+	"IAMService\x12j\n" +
+	"\n" +
+	"AssumeRole\x12\x1a.auth.IAMAssumeRoleRequest\x1a\x1b.auth.IAMAssumeRoleResponse\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/auth/v1/iam/assume-role\x12f\n" +
 	"\fCreateTenant\x12\x19.auth.CreateTenantRequest\x1a\x1a.auth.CreateTenantResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/auth/v1/iam/tenants\x12~\n" +
 	"\x12CreateOrganization\x12\x1f.auth.CreateOrganizationRequest\x1a .auth.CreateOrganizationResponse\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/auth/v1/iam/organizations\x12x\n" +
 	"\x11ListOrganizations\x12\x1e.auth.ListOrganizationsRequest\x1a\x1f.auth.ListOrganizationsResponse\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/auth/v1/iam/organizations\x12\xb3\x01\n" +
@@ -103,297 +105,301 @@ const file_auth_v1_iam_service_proto_rawDesc = "" +
 	"\x0eSimulateAccess\x12\x1b.auth.SimulateAccessRequest\x1a\x1c.auth.SimulateAccessResponse\"'\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/auth/v1/iam/access:simulateB<Z:github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1b\x06proto3"
 
 var file_auth_v1_iam_service_proto_goTypes = []any{
-	(*CreateTenantRequest)(nil),                          // 0: auth.CreateTenantRequest
-	(*CreateOrganizationRequest)(nil),                    // 1: auth.CreateOrganizationRequest
-	(*ListOrganizationsRequest)(nil),                     // 2: auth.ListOrganizationsRequest
-	(*AttachTenantToOrganizationRequest)(nil),            // 3: auth.AttachTenantToOrganizationRequest
-	(*DetachTenantFromOrganizationRequest)(nil),          // 4: auth.DetachTenantFromOrganizationRequest
-	(*AttachServiceControlPolicyRequest)(nil),            // 5: auth.AttachServiceControlPolicyRequest
-	(*DetachServiceControlPolicyRequest)(nil),            // 6: auth.DetachServiceControlPolicyRequest
-	(*ListServiceControlPoliciesRequest)(nil),            // 7: auth.ListServiceControlPoliciesRequest
-	(*AddTenantMemberRequest)(nil),                       // 8: auth.AddTenantMemberRequest
-	(*AddTenantMemberByIdentityRequest)(nil),             // 9: auth.AddTenantMemberByIdentityRequest
-	(*CreateTenantInviteRequest)(nil),                    // 10: auth.CreateTenantInviteRequest
-	(*ListTenantInvitesRequest)(nil),                     // 11: auth.ListTenantInvitesRequest
-	(*RevokeTenantInviteRequest)(nil),                    // 12: auth.RevokeTenantInviteRequest
-	(*AcceptTenantInviteRequest)(nil),                    // 13: auth.AcceptTenantInviteRequest
-	(*GetTenantMembershipRequest)(nil),                   // 14: auth.GetTenantMembershipRequest
-	(*CheckPermissionRequest)(nil),                       // 15: auth.CheckPermissionRequest
-	(*CheckPlatformPermissionRequest)(nil),               // 16: auth.CheckPlatformPermissionRequest
-	(*ListUserTenantsRequest)(nil),                       // 17: auth.ListUserTenantsRequest
-	(*ListPlatformRolesRequest)(nil),                     // 18: auth.ListPlatformRolesRequest
-	(*AddPlatformRoleRequest)(nil),                       // 19: auth.AddPlatformRoleRequest
-	(*CreatePolicyRequest)(nil),                          // 20: auth.CreatePolicyRequest
-	(*CreatePolicyVersionRequest)(nil),                   // 21: auth.CreatePolicyVersionRequest
-	(*GetPolicyRequest)(nil),                             // 22: auth.GetPolicyRequest
-	(*ListPolicyVersionsRequest)(nil),                    // 23: auth.ListPolicyVersionsRequest
-	(*SetDefaultPolicyVersionRequest)(nil),               // 24: auth.SetDefaultPolicyVersionRequest
-	(*DeletePolicyVersionRequest)(nil),                   // 25: auth.DeletePolicyVersionRequest
-	(*ListPoliciesRequest)(nil),                          // 26: auth.ListPoliciesRequest
-	(*ListPolicyAttachmentsRequest)(nil),                 // 27: auth.ListPolicyAttachmentsRequest
-	(*DeletePolicyRequest)(nil),                          // 28: auth.DeletePolicyRequest
-	(*CreateGroupRequest)(nil),                           // 29: auth.CreateGroupRequest
-	(*ListGroupsRequest)(nil),                            // 30: auth.ListGroupsRequest
-	(*DeleteGroupRequest)(nil),                           // 31: auth.DeleteGroupRequest
-	(*AddGroupMemberRequest)(nil),                        // 32: auth.AddGroupMemberRequest
-	(*ListGroupMembersRequest)(nil),                      // 33: auth.ListGroupMembersRequest
-	(*RemoveGroupMemberRequest)(nil),                     // 34: auth.RemoveGroupMemberRequest
-	(*AttachGroupPolicyRequest)(nil),                     // 35: auth.AttachGroupPolicyRequest
-	(*ListGroupPoliciesRequest)(nil),                     // 36: auth.ListGroupPoliciesRequest
-	(*DetachGroupPolicyRequest)(nil),                     // 37: auth.DetachGroupPolicyRequest
-	(*PutGroupInlinePolicyRequest)(nil),                  // 38: auth.PutGroupInlinePolicyRequest
-	(*GetGroupInlinePolicyRequest)(nil),                  // 39: auth.GetGroupInlinePolicyRequest
-	(*ListGroupInlinePoliciesRequest)(nil),               // 40: auth.ListGroupInlinePoliciesRequest
-	(*DeleteGroupInlinePolicyRequest)(nil),               // 41: auth.DeleteGroupInlinePolicyRequest
-	(*PutPlatformUserInlinePolicyRequest)(nil),           // 42: auth.PutPlatformUserInlinePolicyRequest
-	(*GetPlatformUserInlinePolicyRequest)(nil),           // 43: auth.GetPlatformUserInlinePolicyRequest
-	(*ListPlatformUserInlinePoliciesRequest)(nil),        // 44: auth.ListPlatformUserInlinePoliciesRequest
-	(*DeletePlatformUserInlinePolicyRequest)(nil),        // 45: auth.DeletePlatformUserInlinePolicyRequest
-	(*ListPlatformUserPoliciesRequest)(nil),              // 46: auth.ListPlatformUserPoliciesRequest
-	(*AttachPlatformUserPolicyRequest)(nil),              // 47: auth.AttachPlatformUserPolicyRequest
-	(*DetachPlatformUserPolicyRequest)(nil),              // 48: auth.DetachPlatformUserPolicyRequest
-	(*PutPlatformUserPermissionBoundaryRequest)(nil),     // 49: auth.PutPlatformUserPermissionBoundaryRequest
-	(*GetPlatformUserPermissionBoundaryRequest)(nil),     // 50: auth.GetPlatformUserPermissionBoundaryRequest
-	(*DeletePlatformUserPermissionBoundaryRequest)(nil),  // 51: auth.DeletePlatformUserPermissionBoundaryRequest
-	(*RemovePlatformRoleRequest)(nil),                    // 52: auth.RemovePlatformRoleRequest
-	(*ListTenantMembersRequest)(nil),                     // 53: auth.ListTenantMembersRequest
-	(*RemoveTenantMemberRequest)(nil),                    // 54: auth.RemoveTenantMemberRequest
-	(*PutTenantUserInlinePolicyRequest)(nil),             // 55: auth.PutTenantUserInlinePolicyRequest
-	(*GetTenantUserInlinePolicyRequest)(nil),             // 56: auth.GetTenantUserInlinePolicyRequest
-	(*ListTenantUserInlinePoliciesRequest)(nil),          // 57: auth.ListTenantUserInlinePoliciesRequest
-	(*DeleteTenantUserInlinePolicyRequest)(nil),          // 58: auth.DeleteTenantUserInlinePolicyRequest
-	(*ListTenantUserPoliciesRequest)(nil),                // 59: auth.ListTenantUserPoliciesRequest
-	(*AttachTenantUserPolicyRequest)(nil),                // 60: auth.AttachTenantUserPolicyRequest
-	(*DetachTenantUserPolicyRequest)(nil),                // 61: auth.DetachTenantUserPolicyRequest
-	(*PutTenantUserPermissionBoundaryRequest)(nil),       // 62: auth.PutTenantUserPermissionBoundaryRequest
-	(*GetTenantUserPermissionBoundaryRequest)(nil),       // 63: auth.GetTenantUserPermissionBoundaryRequest
-	(*DeleteTenantUserPermissionBoundaryRequest)(nil),    // 64: auth.DeleteTenantUserPermissionBoundaryRequest
-	(*PutRoleTrustPolicyRequest)(nil),                    // 65: auth.PutRoleTrustPolicyRequest
-	(*GetRoleTrustPolicyRequest)(nil),                    // 66: auth.GetRoleTrustPolicyRequest
-	(*DeleteRoleTrustPolicyRequest)(nil),                 // 67: auth.DeleteRoleTrustPolicyRequest
-	(*PutRolePermissionBoundaryRequest)(nil),             // 68: auth.PutRolePermissionBoundaryRequest
-	(*GetRolePermissionBoundaryRequest)(nil),             // 69: auth.GetRolePermissionBoundaryRequest
-	(*DeleteRolePermissionBoundaryRequest)(nil),          // 70: auth.DeleteRolePermissionBoundaryRequest
-	(*SimulateAccessRequest)(nil),                        // 71: auth.SimulateAccessRequest
-	(*CreateTenantResponse)(nil),                         // 72: auth.CreateTenantResponse
-	(*CreateOrganizationResponse)(nil),                   // 73: auth.CreateOrganizationResponse
-	(*ListOrganizationsResponse)(nil),                    // 74: auth.ListOrganizationsResponse
-	(*AttachTenantToOrganizationResponse)(nil),           // 75: auth.AttachTenantToOrganizationResponse
-	(*DetachTenantFromOrganizationResponse)(nil),         // 76: auth.DetachTenantFromOrganizationResponse
-	(*AttachServiceControlPolicyResponse)(nil),           // 77: auth.AttachServiceControlPolicyResponse
-	(*DetachServiceControlPolicyResponse)(nil),           // 78: auth.DetachServiceControlPolicyResponse
-	(*ListServiceControlPoliciesResponse)(nil),           // 79: auth.ListServiceControlPoliciesResponse
-	(*AddTenantMemberResponse)(nil),                      // 80: auth.AddTenantMemberResponse
-	(*AddTenantMemberByIdentityResponse)(nil),            // 81: auth.AddTenantMemberByIdentityResponse
-	(*CreateTenantInviteResponse)(nil),                   // 82: auth.CreateTenantInviteResponse
-	(*ListTenantInvitesResponse)(nil),                    // 83: auth.ListTenantInvitesResponse
-	(*RevokeTenantInviteResponse)(nil),                   // 84: auth.RevokeTenantInviteResponse
-	(*AcceptTenantInviteResponse)(nil),                   // 85: auth.AcceptTenantInviteResponse
-	(*GetTenantMembershipResponse)(nil),                  // 86: auth.GetTenantMembershipResponse
-	(*CheckPermissionResponse)(nil),                      // 87: auth.CheckPermissionResponse
-	(*ListUserTenantsResponse)(nil),                      // 88: auth.ListUserTenantsResponse
-	(*ListPlatformRolesResponse)(nil),                    // 89: auth.ListPlatformRolesResponse
-	(*AddPlatformRoleResponse)(nil),                      // 90: auth.AddPlatformRoleResponse
-	(*CreatePolicyResponse)(nil),                         // 91: auth.CreatePolicyResponse
-	(*CreatePolicyVersionResponse)(nil),                  // 92: auth.CreatePolicyVersionResponse
-	(*GetPolicyResponse)(nil),                            // 93: auth.GetPolicyResponse
-	(*ListPolicyVersionsResponse)(nil),                   // 94: auth.ListPolicyVersionsResponse
-	(*SetDefaultPolicyVersionResponse)(nil),              // 95: auth.SetDefaultPolicyVersionResponse
-	(*DeletePolicyVersionResponse)(nil),                  // 96: auth.DeletePolicyVersionResponse
-	(*ListPoliciesResponse)(nil),                         // 97: auth.ListPoliciesResponse
-	(*ListPolicyAttachmentsResponse)(nil),                // 98: auth.ListPolicyAttachmentsResponse
-	(*DeletePolicyResponse)(nil),                         // 99: auth.DeletePolicyResponse
-	(*CreateGroupResponse)(nil),                          // 100: auth.CreateGroupResponse
-	(*ListGroupsResponse)(nil),                           // 101: auth.ListGroupsResponse
-	(*DeleteGroupResponse)(nil),                          // 102: auth.DeleteGroupResponse
-	(*AddGroupMemberResponse)(nil),                       // 103: auth.AddGroupMemberResponse
-	(*ListGroupMembersResponse)(nil),                     // 104: auth.ListGroupMembersResponse
-	(*RemoveGroupMemberResponse)(nil),                    // 105: auth.RemoveGroupMemberResponse
-	(*AttachGroupPolicyResponse)(nil),                    // 106: auth.AttachGroupPolicyResponse
-	(*ListGroupPoliciesResponse)(nil),                    // 107: auth.ListGroupPoliciesResponse
-	(*DetachGroupPolicyResponse)(nil),                    // 108: auth.DetachGroupPolicyResponse
-	(*PutGroupInlinePolicyResponse)(nil),                 // 109: auth.PutGroupInlinePolicyResponse
-	(*GetGroupInlinePolicyResponse)(nil),                 // 110: auth.GetGroupInlinePolicyResponse
-	(*ListGroupInlinePoliciesResponse)(nil),              // 111: auth.ListGroupInlinePoliciesResponse
-	(*DeleteGroupInlinePolicyResponse)(nil),              // 112: auth.DeleteGroupInlinePolicyResponse
-	(*PutPlatformUserInlinePolicyResponse)(nil),          // 113: auth.PutPlatformUserInlinePolicyResponse
-	(*GetPlatformUserInlinePolicyResponse)(nil),          // 114: auth.GetPlatformUserInlinePolicyResponse
-	(*ListPlatformUserInlinePoliciesResponse)(nil),       // 115: auth.ListPlatformUserInlinePoliciesResponse
-	(*DeletePlatformUserInlinePolicyResponse)(nil),       // 116: auth.DeletePlatformUserInlinePolicyResponse
-	(*ListPlatformUserPoliciesResponse)(nil),             // 117: auth.ListPlatformUserPoliciesResponse
-	(*AttachPlatformUserPolicyResponse)(nil),             // 118: auth.AttachPlatformUserPolicyResponse
-	(*DetachPlatformUserPolicyResponse)(nil),             // 119: auth.DetachPlatformUserPolicyResponse
-	(*PutPlatformUserPermissionBoundaryResponse)(nil),    // 120: auth.PutPlatformUserPermissionBoundaryResponse
-	(*GetPlatformUserPermissionBoundaryResponse)(nil),    // 121: auth.GetPlatformUserPermissionBoundaryResponse
-	(*DeletePlatformUserPermissionBoundaryResponse)(nil), // 122: auth.DeletePlatformUserPermissionBoundaryResponse
-	(*RemovePlatformRoleResponse)(nil),                   // 123: auth.RemovePlatformRoleResponse
-	(*ListTenantMembersResponse)(nil),                    // 124: auth.ListTenantMembersResponse
-	(*RemoveTenantMemberResponse)(nil),                   // 125: auth.RemoveTenantMemberResponse
-	(*PutTenantUserInlinePolicyResponse)(nil),            // 126: auth.PutTenantUserInlinePolicyResponse
-	(*GetTenantUserInlinePolicyResponse)(nil),            // 127: auth.GetTenantUserInlinePolicyResponse
-	(*ListTenantUserInlinePoliciesResponse)(nil),         // 128: auth.ListTenantUserInlinePoliciesResponse
-	(*DeleteTenantUserInlinePolicyResponse)(nil),         // 129: auth.DeleteTenantUserInlinePolicyResponse
-	(*ListTenantUserPoliciesResponse)(nil),               // 130: auth.ListTenantUserPoliciesResponse
-	(*AttachTenantUserPolicyResponse)(nil),               // 131: auth.AttachTenantUserPolicyResponse
-	(*DetachTenantUserPolicyResponse)(nil),               // 132: auth.DetachTenantUserPolicyResponse
-	(*PutTenantUserPermissionBoundaryResponse)(nil),      // 133: auth.PutTenantUserPermissionBoundaryResponse
-	(*GetTenantUserPermissionBoundaryResponse)(nil),      // 134: auth.GetTenantUserPermissionBoundaryResponse
-	(*DeleteTenantUserPermissionBoundaryResponse)(nil),   // 135: auth.DeleteTenantUserPermissionBoundaryResponse
-	(*PutRoleTrustPolicyResponse)(nil),                   // 136: auth.PutRoleTrustPolicyResponse
-	(*GetRoleTrustPolicyResponse)(nil),                   // 137: auth.GetRoleTrustPolicyResponse
-	(*DeleteRoleTrustPolicyResponse)(nil),                // 138: auth.DeleteRoleTrustPolicyResponse
-	(*PutRolePermissionBoundaryResponse)(nil),            // 139: auth.PutRolePermissionBoundaryResponse
-	(*GetRolePermissionBoundaryResponse)(nil),            // 140: auth.GetRolePermissionBoundaryResponse
-	(*DeleteRolePermissionBoundaryResponse)(nil),         // 141: auth.DeleteRolePermissionBoundaryResponse
-	(*SimulateAccessResponse)(nil),                       // 142: auth.SimulateAccessResponse
+	(*IAMAssumeRoleRequest)(nil),                         // 0: auth.IAMAssumeRoleRequest
+	(*CreateTenantRequest)(nil),                          // 1: auth.CreateTenantRequest
+	(*CreateOrganizationRequest)(nil),                    // 2: auth.CreateOrganizationRequest
+	(*ListOrganizationsRequest)(nil),                     // 3: auth.ListOrganizationsRequest
+	(*AttachTenantToOrganizationRequest)(nil),            // 4: auth.AttachTenantToOrganizationRequest
+	(*DetachTenantFromOrganizationRequest)(nil),          // 5: auth.DetachTenantFromOrganizationRequest
+	(*AttachServiceControlPolicyRequest)(nil),            // 6: auth.AttachServiceControlPolicyRequest
+	(*DetachServiceControlPolicyRequest)(nil),            // 7: auth.DetachServiceControlPolicyRequest
+	(*ListServiceControlPoliciesRequest)(nil),            // 8: auth.ListServiceControlPoliciesRequest
+	(*AddTenantMemberRequest)(nil),                       // 9: auth.AddTenantMemberRequest
+	(*AddTenantMemberByIdentityRequest)(nil),             // 10: auth.AddTenantMemberByIdentityRequest
+	(*CreateTenantInviteRequest)(nil),                    // 11: auth.CreateTenantInviteRequest
+	(*ListTenantInvitesRequest)(nil),                     // 12: auth.ListTenantInvitesRequest
+	(*RevokeTenantInviteRequest)(nil),                    // 13: auth.RevokeTenantInviteRequest
+	(*AcceptTenantInviteRequest)(nil),                    // 14: auth.AcceptTenantInviteRequest
+	(*GetTenantMembershipRequest)(nil),                   // 15: auth.GetTenantMembershipRequest
+	(*CheckPermissionRequest)(nil),                       // 16: auth.CheckPermissionRequest
+	(*CheckPlatformPermissionRequest)(nil),               // 17: auth.CheckPlatformPermissionRequest
+	(*ListUserTenantsRequest)(nil),                       // 18: auth.ListUserTenantsRequest
+	(*ListPlatformRolesRequest)(nil),                     // 19: auth.ListPlatformRolesRequest
+	(*AddPlatformRoleRequest)(nil),                       // 20: auth.AddPlatformRoleRequest
+	(*CreatePolicyRequest)(nil),                          // 21: auth.CreatePolicyRequest
+	(*CreatePolicyVersionRequest)(nil),                   // 22: auth.CreatePolicyVersionRequest
+	(*GetPolicyRequest)(nil),                             // 23: auth.GetPolicyRequest
+	(*ListPolicyVersionsRequest)(nil),                    // 24: auth.ListPolicyVersionsRequest
+	(*SetDefaultPolicyVersionRequest)(nil),               // 25: auth.SetDefaultPolicyVersionRequest
+	(*DeletePolicyVersionRequest)(nil),                   // 26: auth.DeletePolicyVersionRequest
+	(*ListPoliciesRequest)(nil),                          // 27: auth.ListPoliciesRequest
+	(*ListPolicyAttachmentsRequest)(nil),                 // 28: auth.ListPolicyAttachmentsRequest
+	(*DeletePolicyRequest)(nil),                          // 29: auth.DeletePolicyRequest
+	(*CreateGroupRequest)(nil),                           // 30: auth.CreateGroupRequest
+	(*ListGroupsRequest)(nil),                            // 31: auth.ListGroupsRequest
+	(*DeleteGroupRequest)(nil),                           // 32: auth.DeleteGroupRequest
+	(*AddGroupMemberRequest)(nil),                        // 33: auth.AddGroupMemberRequest
+	(*ListGroupMembersRequest)(nil),                      // 34: auth.ListGroupMembersRequest
+	(*RemoveGroupMemberRequest)(nil),                     // 35: auth.RemoveGroupMemberRequest
+	(*AttachGroupPolicyRequest)(nil),                     // 36: auth.AttachGroupPolicyRequest
+	(*ListGroupPoliciesRequest)(nil),                     // 37: auth.ListGroupPoliciesRequest
+	(*DetachGroupPolicyRequest)(nil),                     // 38: auth.DetachGroupPolicyRequest
+	(*PutGroupInlinePolicyRequest)(nil),                  // 39: auth.PutGroupInlinePolicyRequest
+	(*GetGroupInlinePolicyRequest)(nil),                  // 40: auth.GetGroupInlinePolicyRequest
+	(*ListGroupInlinePoliciesRequest)(nil),               // 41: auth.ListGroupInlinePoliciesRequest
+	(*DeleteGroupInlinePolicyRequest)(nil),               // 42: auth.DeleteGroupInlinePolicyRequest
+	(*PutPlatformUserInlinePolicyRequest)(nil),           // 43: auth.PutPlatformUserInlinePolicyRequest
+	(*GetPlatformUserInlinePolicyRequest)(nil),           // 44: auth.GetPlatformUserInlinePolicyRequest
+	(*ListPlatformUserInlinePoliciesRequest)(nil),        // 45: auth.ListPlatformUserInlinePoliciesRequest
+	(*DeletePlatformUserInlinePolicyRequest)(nil),        // 46: auth.DeletePlatformUserInlinePolicyRequest
+	(*ListPlatformUserPoliciesRequest)(nil),              // 47: auth.ListPlatformUserPoliciesRequest
+	(*AttachPlatformUserPolicyRequest)(nil),              // 48: auth.AttachPlatformUserPolicyRequest
+	(*DetachPlatformUserPolicyRequest)(nil),              // 49: auth.DetachPlatformUserPolicyRequest
+	(*PutPlatformUserPermissionBoundaryRequest)(nil),     // 50: auth.PutPlatformUserPermissionBoundaryRequest
+	(*GetPlatformUserPermissionBoundaryRequest)(nil),     // 51: auth.GetPlatformUserPermissionBoundaryRequest
+	(*DeletePlatformUserPermissionBoundaryRequest)(nil),  // 52: auth.DeletePlatformUserPermissionBoundaryRequest
+	(*RemovePlatformRoleRequest)(nil),                    // 53: auth.RemovePlatformRoleRequest
+	(*ListTenantMembersRequest)(nil),                     // 54: auth.ListTenantMembersRequest
+	(*RemoveTenantMemberRequest)(nil),                    // 55: auth.RemoveTenantMemberRequest
+	(*PutTenantUserInlinePolicyRequest)(nil),             // 56: auth.PutTenantUserInlinePolicyRequest
+	(*GetTenantUserInlinePolicyRequest)(nil),             // 57: auth.GetTenantUserInlinePolicyRequest
+	(*ListTenantUserInlinePoliciesRequest)(nil),          // 58: auth.ListTenantUserInlinePoliciesRequest
+	(*DeleteTenantUserInlinePolicyRequest)(nil),          // 59: auth.DeleteTenantUserInlinePolicyRequest
+	(*ListTenantUserPoliciesRequest)(nil),                // 60: auth.ListTenantUserPoliciesRequest
+	(*AttachTenantUserPolicyRequest)(nil),                // 61: auth.AttachTenantUserPolicyRequest
+	(*DetachTenantUserPolicyRequest)(nil),                // 62: auth.DetachTenantUserPolicyRequest
+	(*PutTenantUserPermissionBoundaryRequest)(nil),       // 63: auth.PutTenantUserPermissionBoundaryRequest
+	(*GetTenantUserPermissionBoundaryRequest)(nil),       // 64: auth.GetTenantUserPermissionBoundaryRequest
+	(*DeleteTenantUserPermissionBoundaryRequest)(nil),    // 65: auth.DeleteTenantUserPermissionBoundaryRequest
+	(*PutRoleTrustPolicyRequest)(nil),                    // 66: auth.PutRoleTrustPolicyRequest
+	(*GetRoleTrustPolicyRequest)(nil),                    // 67: auth.GetRoleTrustPolicyRequest
+	(*DeleteRoleTrustPolicyRequest)(nil),                 // 68: auth.DeleteRoleTrustPolicyRequest
+	(*PutRolePermissionBoundaryRequest)(nil),             // 69: auth.PutRolePermissionBoundaryRequest
+	(*GetRolePermissionBoundaryRequest)(nil),             // 70: auth.GetRolePermissionBoundaryRequest
+	(*DeleteRolePermissionBoundaryRequest)(nil),          // 71: auth.DeleteRolePermissionBoundaryRequest
+	(*SimulateAccessRequest)(nil),                        // 72: auth.SimulateAccessRequest
+	(*IAMAssumeRoleResponse)(nil),                        // 73: auth.IAMAssumeRoleResponse
+	(*CreateTenantResponse)(nil),                         // 74: auth.CreateTenantResponse
+	(*CreateOrganizationResponse)(nil),                   // 75: auth.CreateOrganizationResponse
+	(*ListOrganizationsResponse)(nil),                    // 76: auth.ListOrganizationsResponse
+	(*AttachTenantToOrganizationResponse)(nil),           // 77: auth.AttachTenantToOrganizationResponse
+	(*DetachTenantFromOrganizationResponse)(nil),         // 78: auth.DetachTenantFromOrganizationResponse
+	(*AttachServiceControlPolicyResponse)(nil),           // 79: auth.AttachServiceControlPolicyResponse
+	(*DetachServiceControlPolicyResponse)(nil),           // 80: auth.DetachServiceControlPolicyResponse
+	(*ListServiceControlPoliciesResponse)(nil),           // 81: auth.ListServiceControlPoliciesResponse
+	(*AddTenantMemberResponse)(nil),                      // 82: auth.AddTenantMemberResponse
+	(*AddTenantMemberByIdentityResponse)(nil),            // 83: auth.AddTenantMemberByIdentityResponse
+	(*CreateTenantInviteResponse)(nil),                   // 84: auth.CreateTenantInviteResponse
+	(*ListTenantInvitesResponse)(nil),                    // 85: auth.ListTenantInvitesResponse
+	(*RevokeTenantInviteResponse)(nil),                   // 86: auth.RevokeTenantInviteResponse
+	(*AcceptTenantInviteResponse)(nil),                   // 87: auth.AcceptTenantInviteResponse
+	(*GetTenantMembershipResponse)(nil),                  // 88: auth.GetTenantMembershipResponse
+	(*CheckPermissionResponse)(nil),                      // 89: auth.CheckPermissionResponse
+	(*ListUserTenantsResponse)(nil),                      // 90: auth.ListUserTenantsResponse
+	(*ListPlatformRolesResponse)(nil),                    // 91: auth.ListPlatformRolesResponse
+	(*AddPlatformRoleResponse)(nil),                      // 92: auth.AddPlatformRoleResponse
+	(*CreatePolicyResponse)(nil),                         // 93: auth.CreatePolicyResponse
+	(*CreatePolicyVersionResponse)(nil),                  // 94: auth.CreatePolicyVersionResponse
+	(*GetPolicyResponse)(nil),                            // 95: auth.GetPolicyResponse
+	(*ListPolicyVersionsResponse)(nil),                   // 96: auth.ListPolicyVersionsResponse
+	(*SetDefaultPolicyVersionResponse)(nil),              // 97: auth.SetDefaultPolicyVersionResponse
+	(*DeletePolicyVersionResponse)(nil),                  // 98: auth.DeletePolicyVersionResponse
+	(*ListPoliciesResponse)(nil),                         // 99: auth.ListPoliciesResponse
+	(*ListPolicyAttachmentsResponse)(nil),                // 100: auth.ListPolicyAttachmentsResponse
+	(*DeletePolicyResponse)(nil),                         // 101: auth.DeletePolicyResponse
+	(*CreateGroupResponse)(nil),                          // 102: auth.CreateGroupResponse
+	(*ListGroupsResponse)(nil),                           // 103: auth.ListGroupsResponse
+	(*DeleteGroupResponse)(nil),                          // 104: auth.DeleteGroupResponse
+	(*AddGroupMemberResponse)(nil),                       // 105: auth.AddGroupMemberResponse
+	(*ListGroupMembersResponse)(nil),                     // 106: auth.ListGroupMembersResponse
+	(*RemoveGroupMemberResponse)(nil),                    // 107: auth.RemoveGroupMemberResponse
+	(*AttachGroupPolicyResponse)(nil),                    // 108: auth.AttachGroupPolicyResponse
+	(*ListGroupPoliciesResponse)(nil),                    // 109: auth.ListGroupPoliciesResponse
+	(*DetachGroupPolicyResponse)(nil),                    // 110: auth.DetachGroupPolicyResponse
+	(*PutGroupInlinePolicyResponse)(nil),                 // 111: auth.PutGroupInlinePolicyResponse
+	(*GetGroupInlinePolicyResponse)(nil),                 // 112: auth.GetGroupInlinePolicyResponse
+	(*ListGroupInlinePoliciesResponse)(nil),              // 113: auth.ListGroupInlinePoliciesResponse
+	(*DeleteGroupInlinePolicyResponse)(nil),              // 114: auth.DeleteGroupInlinePolicyResponse
+	(*PutPlatformUserInlinePolicyResponse)(nil),          // 115: auth.PutPlatformUserInlinePolicyResponse
+	(*GetPlatformUserInlinePolicyResponse)(nil),          // 116: auth.GetPlatformUserInlinePolicyResponse
+	(*ListPlatformUserInlinePoliciesResponse)(nil),       // 117: auth.ListPlatformUserInlinePoliciesResponse
+	(*DeletePlatformUserInlinePolicyResponse)(nil),       // 118: auth.DeletePlatformUserInlinePolicyResponse
+	(*ListPlatformUserPoliciesResponse)(nil),             // 119: auth.ListPlatformUserPoliciesResponse
+	(*AttachPlatformUserPolicyResponse)(nil),             // 120: auth.AttachPlatformUserPolicyResponse
+	(*DetachPlatformUserPolicyResponse)(nil),             // 121: auth.DetachPlatformUserPolicyResponse
+	(*PutPlatformUserPermissionBoundaryResponse)(nil),    // 122: auth.PutPlatformUserPermissionBoundaryResponse
+	(*GetPlatformUserPermissionBoundaryResponse)(nil),    // 123: auth.GetPlatformUserPermissionBoundaryResponse
+	(*DeletePlatformUserPermissionBoundaryResponse)(nil), // 124: auth.DeletePlatformUserPermissionBoundaryResponse
+	(*RemovePlatformRoleResponse)(nil),                   // 125: auth.RemovePlatformRoleResponse
+	(*ListTenantMembersResponse)(nil),                    // 126: auth.ListTenantMembersResponse
+	(*RemoveTenantMemberResponse)(nil),                   // 127: auth.RemoveTenantMemberResponse
+	(*PutTenantUserInlinePolicyResponse)(nil),            // 128: auth.PutTenantUserInlinePolicyResponse
+	(*GetTenantUserInlinePolicyResponse)(nil),            // 129: auth.GetTenantUserInlinePolicyResponse
+	(*ListTenantUserInlinePoliciesResponse)(nil),         // 130: auth.ListTenantUserInlinePoliciesResponse
+	(*DeleteTenantUserInlinePolicyResponse)(nil),         // 131: auth.DeleteTenantUserInlinePolicyResponse
+	(*ListTenantUserPoliciesResponse)(nil),               // 132: auth.ListTenantUserPoliciesResponse
+	(*AttachTenantUserPolicyResponse)(nil),               // 133: auth.AttachTenantUserPolicyResponse
+	(*DetachTenantUserPolicyResponse)(nil),               // 134: auth.DetachTenantUserPolicyResponse
+	(*PutTenantUserPermissionBoundaryResponse)(nil),      // 135: auth.PutTenantUserPermissionBoundaryResponse
+	(*GetTenantUserPermissionBoundaryResponse)(nil),      // 136: auth.GetTenantUserPermissionBoundaryResponse
+	(*DeleteTenantUserPermissionBoundaryResponse)(nil),   // 137: auth.DeleteTenantUserPermissionBoundaryResponse
+	(*PutRoleTrustPolicyResponse)(nil),                   // 138: auth.PutRoleTrustPolicyResponse
+	(*GetRoleTrustPolicyResponse)(nil),                   // 139: auth.GetRoleTrustPolicyResponse
+	(*DeleteRoleTrustPolicyResponse)(nil),                // 140: auth.DeleteRoleTrustPolicyResponse
+	(*PutRolePermissionBoundaryResponse)(nil),            // 141: auth.PutRolePermissionBoundaryResponse
+	(*GetRolePermissionBoundaryResponse)(nil),            // 142: auth.GetRolePermissionBoundaryResponse
+	(*DeleteRolePermissionBoundaryResponse)(nil),         // 143: auth.DeleteRolePermissionBoundaryResponse
+	(*SimulateAccessResponse)(nil),                       // 144: auth.SimulateAccessResponse
 }
 var file_auth_v1_iam_service_proto_depIdxs = []int32{
-	0,   // 0: auth.IAMService.CreateTenant:input_type -> auth.CreateTenantRequest
-	1,   // 1: auth.IAMService.CreateOrganization:input_type -> auth.CreateOrganizationRequest
-	2,   // 2: auth.IAMService.ListOrganizations:input_type -> auth.ListOrganizationsRequest
-	3,   // 3: auth.IAMService.AttachTenantToOrganization:input_type -> auth.AttachTenantToOrganizationRequest
-	4,   // 4: auth.IAMService.DetachTenantFromOrganization:input_type -> auth.DetachTenantFromOrganizationRequest
-	5,   // 5: auth.IAMService.AttachServiceControlPolicy:input_type -> auth.AttachServiceControlPolicyRequest
-	6,   // 6: auth.IAMService.DetachServiceControlPolicy:input_type -> auth.DetachServiceControlPolicyRequest
-	7,   // 7: auth.IAMService.ListServiceControlPolicies:input_type -> auth.ListServiceControlPoliciesRequest
-	8,   // 8: auth.IAMService.AddTenantMember:input_type -> auth.AddTenantMemberRequest
-	9,   // 9: auth.IAMService.AddTenantMemberByIdentity:input_type -> auth.AddTenantMemberByIdentityRequest
-	10,  // 10: auth.IAMService.CreateTenantInvite:input_type -> auth.CreateTenantInviteRequest
-	11,  // 11: auth.IAMService.ListTenantInvites:input_type -> auth.ListTenantInvitesRequest
-	12,  // 12: auth.IAMService.RevokeTenantInvite:input_type -> auth.RevokeTenantInviteRequest
-	13,  // 13: auth.IAMService.AcceptTenantInvite:input_type -> auth.AcceptTenantInviteRequest
-	14,  // 14: auth.IAMService.GetTenantMembership:input_type -> auth.GetTenantMembershipRequest
-	15,  // 15: auth.IAMService.CheckPermission:input_type -> auth.CheckPermissionRequest
-	16,  // 16: auth.IAMService.CheckPlatformPermission:input_type -> auth.CheckPlatformPermissionRequest
-	17,  // 17: auth.IAMService.ListUserTenants:input_type -> auth.ListUserTenantsRequest
-	18,  // 18: auth.IAMService.ListPlatformRoles:input_type -> auth.ListPlatformRolesRequest
-	19,  // 19: auth.IAMService.AddPlatformRole:input_type -> auth.AddPlatformRoleRequest
-	20,  // 20: auth.IAMService.CreatePolicy:input_type -> auth.CreatePolicyRequest
-	21,  // 21: auth.IAMService.CreatePolicyVersion:input_type -> auth.CreatePolicyVersionRequest
-	22,  // 22: auth.IAMService.GetPolicy:input_type -> auth.GetPolicyRequest
-	23,  // 23: auth.IAMService.ListPolicyVersions:input_type -> auth.ListPolicyVersionsRequest
-	24,  // 24: auth.IAMService.SetDefaultPolicyVersion:input_type -> auth.SetDefaultPolicyVersionRequest
-	25,  // 25: auth.IAMService.DeletePolicyVersion:input_type -> auth.DeletePolicyVersionRequest
-	26,  // 26: auth.IAMService.ListPolicies:input_type -> auth.ListPoliciesRequest
-	27,  // 27: auth.IAMService.ListPolicyAttachments:input_type -> auth.ListPolicyAttachmentsRequest
-	28,  // 28: auth.IAMService.DeletePolicy:input_type -> auth.DeletePolicyRequest
-	29,  // 29: auth.IAMService.CreateGroup:input_type -> auth.CreateGroupRequest
-	30,  // 30: auth.IAMService.ListGroups:input_type -> auth.ListGroupsRequest
-	31,  // 31: auth.IAMService.DeleteGroup:input_type -> auth.DeleteGroupRequest
-	32,  // 32: auth.IAMService.AddGroupMember:input_type -> auth.AddGroupMemberRequest
-	33,  // 33: auth.IAMService.ListGroupMembers:input_type -> auth.ListGroupMembersRequest
-	34,  // 34: auth.IAMService.RemoveGroupMember:input_type -> auth.RemoveGroupMemberRequest
-	35,  // 35: auth.IAMService.AttachGroupPolicy:input_type -> auth.AttachGroupPolicyRequest
-	36,  // 36: auth.IAMService.ListGroupPolicies:input_type -> auth.ListGroupPoliciesRequest
-	37,  // 37: auth.IAMService.DetachGroupPolicy:input_type -> auth.DetachGroupPolicyRequest
-	38,  // 38: auth.IAMService.PutGroupInlinePolicy:input_type -> auth.PutGroupInlinePolicyRequest
-	39,  // 39: auth.IAMService.GetGroupInlinePolicy:input_type -> auth.GetGroupInlinePolicyRequest
-	40,  // 40: auth.IAMService.ListGroupInlinePolicies:input_type -> auth.ListGroupInlinePoliciesRequest
-	41,  // 41: auth.IAMService.DeleteGroupInlinePolicy:input_type -> auth.DeleteGroupInlinePolicyRequest
-	42,  // 42: auth.IAMService.PutPlatformUserInlinePolicy:input_type -> auth.PutPlatformUserInlinePolicyRequest
-	43,  // 43: auth.IAMService.GetPlatformUserInlinePolicy:input_type -> auth.GetPlatformUserInlinePolicyRequest
-	44,  // 44: auth.IAMService.ListPlatformUserInlinePolicies:input_type -> auth.ListPlatformUserInlinePoliciesRequest
-	45,  // 45: auth.IAMService.DeletePlatformUserInlinePolicy:input_type -> auth.DeletePlatformUserInlinePolicyRequest
-	46,  // 46: auth.IAMService.ListPlatformUserPolicies:input_type -> auth.ListPlatformUserPoliciesRequest
-	47,  // 47: auth.IAMService.AttachPlatformUserPolicy:input_type -> auth.AttachPlatformUserPolicyRequest
-	48,  // 48: auth.IAMService.DetachPlatformUserPolicy:input_type -> auth.DetachPlatformUserPolicyRequest
-	49,  // 49: auth.IAMService.PutPlatformUserPermissionBoundary:input_type -> auth.PutPlatformUserPermissionBoundaryRequest
-	50,  // 50: auth.IAMService.GetPlatformUserPermissionBoundary:input_type -> auth.GetPlatformUserPermissionBoundaryRequest
-	51,  // 51: auth.IAMService.DeletePlatformUserPermissionBoundary:input_type -> auth.DeletePlatformUserPermissionBoundaryRequest
-	52,  // 52: auth.IAMService.RemovePlatformRole:input_type -> auth.RemovePlatformRoleRequest
-	53,  // 53: auth.IAMService.ListTenantMembers:input_type -> auth.ListTenantMembersRequest
-	54,  // 54: auth.IAMService.RemoveTenantMember:input_type -> auth.RemoveTenantMemberRequest
-	55,  // 55: auth.IAMService.PutTenantUserInlinePolicy:input_type -> auth.PutTenantUserInlinePolicyRequest
-	56,  // 56: auth.IAMService.GetTenantUserInlinePolicy:input_type -> auth.GetTenantUserInlinePolicyRequest
-	57,  // 57: auth.IAMService.ListTenantUserInlinePolicies:input_type -> auth.ListTenantUserInlinePoliciesRequest
-	58,  // 58: auth.IAMService.DeleteTenantUserInlinePolicy:input_type -> auth.DeleteTenantUserInlinePolicyRequest
-	59,  // 59: auth.IAMService.ListTenantUserPolicies:input_type -> auth.ListTenantUserPoliciesRequest
-	60,  // 60: auth.IAMService.AttachTenantUserPolicy:input_type -> auth.AttachTenantUserPolicyRequest
-	61,  // 61: auth.IAMService.DetachTenantUserPolicy:input_type -> auth.DetachTenantUserPolicyRequest
-	62,  // 62: auth.IAMService.PutTenantUserPermissionBoundary:input_type -> auth.PutTenantUserPermissionBoundaryRequest
-	63,  // 63: auth.IAMService.GetTenantUserPermissionBoundary:input_type -> auth.GetTenantUserPermissionBoundaryRequest
-	64,  // 64: auth.IAMService.DeleteTenantUserPermissionBoundary:input_type -> auth.DeleteTenantUserPermissionBoundaryRequest
-	65,  // 65: auth.IAMService.PutRoleTrustPolicy:input_type -> auth.PutRoleTrustPolicyRequest
-	66,  // 66: auth.IAMService.GetRoleTrustPolicy:input_type -> auth.GetRoleTrustPolicyRequest
-	67,  // 67: auth.IAMService.DeleteRoleTrustPolicy:input_type -> auth.DeleteRoleTrustPolicyRequest
-	68,  // 68: auth.IAMService.PutRolePermissionBoundary:input_type -> auth.PutRolePermissionBoundaryRequest
-	69,  // 69: auth.IAMService.GetRolePermissionBoundary:input_type -> auth.GetRolePermissionBoundaryRequest
-	70,  // 70: auth.IAMService.DeleteRolePermissionBoundary:input_type -> auth.DeleteRolePermissionBoundaryRequest
-	71,  // 71: auth.IAMService.SimulateAccess:input_type -> auth.SimulateAccessRequest
-	72,  // 72: auth.IAMService.CreateTenant:output_type -> auth.CreateTenantResponse
-	73,  // 73: auth.IAMService.CreateOrganization:output_type -> auth.CreateOrganizationResponse
-	74,  // 74: auth.IAMService.ListOrganizations:output_type -> auth.ListOrganizationsResponse
-	75,  // 75: auth.IAMService.AttachTenantToOrganization:output_type -> auth.AttachTenantToOrganizationResponse
-	76,  // 76: auth.IAMService.DetachTenantFromOrganization:output_type -> auth.DetachTenantFromOrganizationResponse
-	77,  // 77: auth.IAMService.AttachServiceControlPolicy:output_type -> auth.AttachServiceControlPolicyResponse
-	78,  // 78: auth.IAMService.DetachServiceControlPolicy:output_type -> auth.DetachServiceControlPolicyResponse
-	79,  // 79: auth.IAMService.ListServiceControlPolicies:output_type -> auth.ListServiceControlPoliciesResponse
-	80,  // 80: auth.IAMService.AddTenantMember:output_type -> auth.AddTenantMemberResponse
-	81,  // 81: auth.IAMService.AddTenantMemberByIdentity:output_type -> auth.AddTenantMemberByIdentityResponse
-	82,  // 82: auth.IAMService.CreateTenantInvite:output_type -> auth.CreateTenantInviteResponse
-	83,  // 83: auth.IAMService.ListTenantInvites:output_type -> auth.ListTenantInvitesResponse
-	84,  // 84: auth.IAMService.RevokeTenantInvite:output_type -> auth.RevokeTenantInviteResponse
-	85,  // 85: auth.IAMService.AcceptTenantInvite:output_type -> auth.AcceptTenantInviteResponse
-	86,  // 86: auth.IAMService.GetTenantMembership:output_type -> auth.GetTenantMembershipResponse
-	87,  // 87: auth.IAMService.CheckPermission:output_type -> auth.CheckPermissionResponse
-	87,  // 88: auth.IAMService.CheckPlatformPermission:output_type -> auth.CheckPermissionResponse
-	88,  // 89: auth.IAMService.ListUserTenants:output_type -> auth.ListUserTenantsResponse
-	89,  // 90: auth.IAMService.ListPlatformRoles:output_type -> auth.ListPlatformRolesResponse
-	90,  // 91: auth.IAMService.AddPlatformRole:output_type -> auth.AddPlatformRoleResponse
-	91,  // 92: auth.IAMService.CreatePolicy:output_type -> auth.CreatePolicyResponse
-	92,  // 93: auth.IAMService.CreatePolicyVersion:output_type -> auth.CreatePolicyVersionResponse
-	93,  // 94: auth.IAMService.GetPolicy:output_type -> auth.GetPolicyResponse
-	94,  // 95: auth.IAMService.ListPolicyVersions:output_type -> auth.ListPolicyVersionsResponse
-	95,  // 96: auth.IAMService.SetDefaultPolicyVersion:output_type -> auth.SetDefaultPolicyVersionResponse
-	96,  // 97: auth.IAMService.DeletePolicyVersion:output_type -> auth.DeletePolicyVersionResponse
-	97,  // 98: auth.IAMService.ListPolicies:output_type -> auth.ListPoliciesResponse
-	98,  // 99: auth.IAMService.ListPolicyAttachments:output_type -> auth.ListPolicyAttachmentsResponse
-	99,  // 100: auth.IAMService.DeletePolicy:output_type -> auth.DeletePolicyResponse
-	100, // 101: auth.IAMService.CreateGroup:output_type -> auth.CreateGroupResponse
-	101, // 102: auth.IAMService.ListGroups:output_type -> auth.ListGroupsResponse
-	102, // 103: auth.IAMService.DeleteGroup:output_type -> auth.DeleteGroupResponse
-	103, // 104: auth.IAMService.AddGroupMember:output_type -> auth.AddGroupMemberResponse
-	104, // 105: auth.IAMService.ListGroupMembers:output_type -> auth.ListGroupMembersResponse
-	105, // 106: auth.IAMService.RemoveGroupMember:output_type -> auth.RemoveGroupMemberResponse
-	106, // 107: auth.IAMService.AttachGroupPolicy:output_type -> auth.AttachGroupPolicyResponse
-	107, // 108: auth.IAMService.ListGroupPolicies:output_type -> auth.ListGroupPoliciesResponse
-	108, // 109: auth.IAMService.DetachGroupPolicy:output_type -> auth.DetachGroupPolicyResponse
-	109, // 110: auth.IAMService.PutGroupInlinePolicy:output_type -> auth.PutGroupInlinePolicyResponse
-	110, // 111: auth.IAMService.GetGroupInlinePolicy:output_type -> auth.GetGroupInlinePolicyResponse
-	111, // 112: auth.IAMService.ListGroupInlinePolicies:output_type -> auth.ListGroupInlinePoliciesResponse
-	112, // 113: auth.IAMService.DeleteGroupInlinePolicy:output_type -> auth.DeleteGroupInlinePolicyResponse
-	113, // 114: auth.IAMService.PutPlatformUserInlinePolicy:output_type -> auth.PutPlatformUserInlinePolicyResponse
-	114, // 115: auth.IAMService.GetPlatformUserInlinePolicy:output_type -> auth.GetPlatformUserInlinePolicyResponse
-	115, // 116: auth.IAMService.ListPlatformUserInlinePolicies:output_type -> auth.ListPlatformUserInlinePoliciesResponse
-	116, // 117: auth.IAMService.DeletePlatformUserInlinePolicy:output_type -> auth.DeletePlatformUserInlinePolicyResponse
-	117, // 118: auth.IAMService.ListPlatformUserPolicies:output_type -> auth.ListPlatformUserPoliciesResponse
-	118, // 119: auth.IAMService.AttachPlatformUserPolicy:output_type -> auth.AttachPlatformUserPolicyResponse
-	119, // 120: auth.IAMService.DetachPlatformUserPolicy:output_type -> auth.DetachPlatformUserPolicyResponse
-	120, // 121: auth.IAMService.PutPlatformUserPermissionBoundary:output_type -> auth.PutPlatformUserPermissionBoundaryResponse
-	121, // 122: auth.IAMService.GetPlatformUserPermissionBoundary:output_type -> auth.GetPlatformUserPermissionBoundaryResponse
-	122, // 123: auth.IAMService.DeletePlatformUserPermissionBoundary:output_type -> auth.DeletePlatformUserPermissionBoundaryResponse
-	123, // 124: auth.IAMService.RemovePlatformRole:output_type -> auth.RemovePlatformRoleResponse
-	124, // 125: auth.IAMService.ListTenantMembers:output_type -> auth.ListTenantMembersResponse
-	125, // 126: auth.IAMService.RemoveTenantMember:output_type -> auth.RemoveTenantMemberResponse
-	126, // 127: auth.IAMService.PutTenantUserInlinePolicy:output_type -> auth.PutTenantUserInlinePolicyResponse
-	127, // 128: auth.IAMService.GetTenantUserInlinePolicy:output_type -> auth.GetTenantUserInlinePolicyResponse
-	128, // 129: auth.IAMService.ListTenantUserInlinePolicies:output_type -> auth.ListTenantUserInlinePoliciesResponse
-	129, // 130: auth.IAMService.DeleteTenantUserInlinePolicy:output_type -> auth.DeleteTenantUserInlinePolicyResponse
-	130, // 131: auth.IAMService.ListTenantUserPolicies:output_type -> auth.ListTenantUserPoliciesResponse
-	131, // 132: auth.IAMService.AttachTenantUserPolicy:output_type -> auth.AttachTenantUserPolicyResponse
-	132, // 133: auth.IAMService.DetachTenantUserPolicy:output_type -> auth.DetachTenantUserPolicyResponse
-	133, // 134: auth.IAMService.PutTenantUserPermissionBoundary:output_type -> auth.PutTenantUserPermissionBoundaryResponse
-	134, // 135: auth.IAMService.GetTenantUserPermissionBoundary:output_type -> auth.GetTenantUserPermissionBoundaryResponse
-	135, // 136: auth.IAMService.DeleteTenantUserPermissionBoundary:output_type -> auth.DeleteTenantUserPermissionBoundaryResponse
-	136, // 137: auth.IAMService.PutRoleTrustPolicy:output_type -> auth.PutRoleTrustPolicyResponse
-	137, // 138: auth.IAMService.GetRoleTrustPolicy:output_type -> auth.GetRoleTrustPolicyResponse
-	138, // 139: auth.IAMService.DeleteRoleTrustPolicy:output_type -> auth.DeleteRoleTrustPolicyResponse
-	139, // 140: auth.IAMService.PutRolePermissionBoundary:output_type -> auth.PutRolePermissionBoundaryResponse
-	140, // 141: auth.IAMService.GetRolePermissionBoundary:output_type -> auth.GetRolePermissionBoundaryResponse
-	141, // 142: auth.IAMService.DeleteRolePermissionBoundary:output_type -> auth.DeleteRolePermissionBoundaryResponse
-	142, // 143: auth.IAMService.SimulateAccess:output_type -> auth.SimulateAccessResponse
-	72,  // [72:144] is the sub-list for method output_type
-	0,   // [0:72] is the sub-list for method input_type
+	0,   // 0: auth.IAMService.AssumeRole:input_type -> auth.IAMAssumeRoleRequest
+	1,   // 1: auth.IAMService.CreateTenant:input_type -> auth.CreateTenantRequest
+	2,   // 2: auth.IAMService.CreateOrganization:input_type -> auth.CreateOrganizationRequest
+	3,   // 3: auth.IAMService.ListOrganizations:input_type -> auth.ListOrganizationsRequest
+	4,   // 4: auth.IAMService.AttachTenantToOrganization:input_type -> auth.AttachTenantToOrganizationRequest
+	5,   // 5: auth.IAMService.DetachTenantFromOrganization:input_type -> auth.DetachTenantFromOrganizationRequest
+	6,   // 6: auth.IAMService.AttachServiceControlPolicy:input_type -> auth.AttachServiceControlPolicyRequest
+	7,   // 7: auth.IAMService.DetachServiceControlPolicy:input_type -> auth.DetachServiceControlPolicyRequest
+	8,   // 8: auth.IAMService.ListServiceControlPolicies:input_type -> auth.ListServiceControlPoliciesRequest
+	9,   // 9: auth.IAMService.AddTenantMember:input_type -> auth.AddTenantMemberRequest
+	10,  // 10: auth.IAMService.AddTenantMemberByIdentity:input_type -> auth.AddTenantMemberByIdentityRequest
+	11,  // 11: auth.IAMService.CreateTenantInvite:input_type -> auth.CreateTenantInviteRequest
+	12,  // 12: auth.IAMService.ListTenantInvites:input_type -> auth.ListTenantInvitesRequest
+	13,  // 13: auth.IAMService.RevokeTenantInvite:input_type -> auth.RevokeTenantInviteRequest
+	14,  // 14: auth.IAMService.AcceptTenantInvite:input_type -> auth.AcceptTenantInviteRequest
+	15,  // 15: auth.IAMService.GetTenantMembership:input_type -> auth.GetTenantMembershipRequest
+	16,  // 16: auth.IAMService.CheckPermission:input_type -> auth.CheckPermissionRequest
+	17,  // 17: auth.IAMService.CheckPlatformPermission:input_type -> auth.CheckPlatformPermissionRequest
+	18,  // 18: auth.IAMService.ListUserTenants:input_type -> auth.ListUserTenantsRequest
+	19,  // 19: auth.IAMService.ListPlatformRoles:input_type -> auth.ListPlatformRolesRequest
+	20,  // 20: auth.IAMService.AddPlatformRole:input_type -> auth.AddPlatformRoleRequest
+	21,  // 21: auth.IAMService.CreatePolicy:input_type -> auth.CreatePolicyRequest
+	22,  // 22: auth.IAMService.CreatePolicyVersion:input_type -> auth.CreatePolicyVersionRequest
+	23,  // 23: auth.IAMService.GetPolicy:input_type -> auth.GetPolicyRequest
+	24,  // 24: auth.IAMService.ListPolicyVersions:input_type -> auth.ListPolicyVersionsRequest
+	25,  // 25: auth.IAMService.SetDefaultPolicyVersion:input_type -> auth.SetDefaultPolicyVersionRequest
+	26,  // 26: auth.IAMService.DeletePolicyVersion:input_type -> auth.DeletePolicyVersionRequest
+	27,  // 27: auth.IAMService.ListPolicies:input_type -> auth.ListPoliciesRequest
+	28,  // 28: auth.IAMService.ListPolicyAttachments:input_type -> auth.ListPolicyAttachmentsRequest
+	29,  // 29: auth.IAMService.DeletePolicy:input_type -> auth.DeletePolicyRequest
+	30,  // 30: auth.IAMService.CreateGroup:input_type -> auth.CreateGroupRequest
+	31,  // 31: auth.IAMService.ListGroups:input_type -> auth.ListGroupsRequest
+	32,  // 32: auth.IAMService.DeleteGroup:input_type -> auth.DeleteGroupRequest
+	33,  // 33: auth.IAMService.AddGroupMember:input_type -> auth.AddGroupMemberRequest
+	34,  // 34: auth.IAMService.ListGroupMembers:input_type -> auth.ListGroupMembersRequest
+	35,  // 35: auth.IAMService.RemoveGroupMember:input_type -> auth.RemoveGroupMemberRequest
+	36,  // 36: auth.IAMService.AttachGroupPolicy:input_type -> auth.AttachGroupPolicyRequest
+	37,  // 37: auth.IAMService.ListGroupPolicies:input_type -> auth.ListGroupPoliciesRequest
+	38,  // 38: auth.IAMService.DetachGroupPolicy:input_type -> auth.DetachGroupPolicyRequest
+	39,  // 39: auth.IAMService.PutGroupInlinePolicy:input_type -> auth.PutGroupInlinePolicyRequest
+	40,  // 40: auth.IAMService.GetGroupInlinePolicy:input_type -> auth.GetGroupInlinePolicyRequest
+	41,  // 41: auth.IAMService.ListGroupInlinePolicies:input_type -> auth.ListGroupInlinePoliciesRequest
+	42,  // 42: auth.IAMService.DeleteGroupInlinePolicy:input_type -> auth.DeleteGroupInlinePolicyRequest
+	43,  // 43: auth.IAMService.PutPlatformUserInlinePolicy:input_type -> auth.PutPlatformUserInlinePolicyRequest
+	44,  // 44: auth.IAMService.GetPlatformUserInlinePolicy:input_type -> auth.GetPlatformUserInlinePolicyRequest
+	45,  // 45: auth.IAMService.ListPlatformUserInlinePolicies:input_type -> auth.ListPlatformUserInlinePoliciesRequest
+	46,  // 46: auth.IAMService.DeletePlatformUserInlinePolicy:input_type -> auth.DeletePlatformUserInlinePolicyRequest
+	47,  // 47: auth.IAMService.ListPlatformUserPolicies:input_type -> auth.ListPlatformUserPoliciesRequest
+	48,  // 48: auth.IAMService.AttachPlatformUserPolicy:input_type -> auth.AttachPlatformUserPolicyRequest
+	49,  // 49: auth.IAMService.DetachPlatformUserPolicy:input_type -> auth.DetachPlatformUserPolicyRequest
+	50,  // 50: auth.IAMService.PutPlatformUserPermissionBoundary:input_type -> auth.PutPlatformUserPermissionBoundaryRequest
+	51,  // 51: auth.IAMService.GetPlatformUserPermissionBoundary:input_type -> auth.GetPlatformUserPermissionBoundaryRequest
+	52,  // 52: auth.IAMService.DeletePlatformUserPermissionBoundary:input_type -> auth.DeletePlatformUserPermissionBoundaryRequest
+	53,  // 53: auth.IAMService.RemovePlatformRole:input_type -> auth.RemovePlatformRoleRequest
+	54,  // 54: auth.IAMService.ListTenantMembers:input_type -> auth.ListTenantMembersRequest
+	55,  // 55: auth.IAMService.RemoveTenantMember:input_type -> auth.RemoveTenantMemberRequest
+	56,  // 56: auth.IAMService.PutTenantUserInlinePolicy:input_type -> auth.PutTenantUserInlinePolicyRequest
+	57,  // 57: auth.IAMService.GetTenantUserInlinePolicy:input_type -> auth.GetTenantUserInlinePolicyRequest
+	58,  // 58: auth.IAMService.ListTenantUserInlinePolicies:input_type -> auth.ListTenantUserInlinePoliciesRequest
+	59,  // 59: auth.IAMService.DeleteTenantUserInlinePolicy:input_type -> auth.DeleteTenantUserInlinePolicyRequest
+	60,  // 60: auth.IAMService.ListTenantUserPolicies:input_type -> auth.ListTenantUserPoliciesRequest
+	61,  // 61: auth.IAMService.AttachTenantUserPolicy:input_type -> auth.AttachTenantUserPolicyRequest
+	62,  // 62: auth.IAMService.DetachTenantUserPolicy:input_type -> auth.DetachTenantUserPolicyRequest
+	63,  // 63: auth.IAMService.PutTenantUserPermissionBoundary:input_type -> auth.PutTenantUserPermissionBoundaryRequest
+	64,  // 64: auth.IAMService.GetTenantUserPermissionBoundary:input_type -> auth.GetTenantUserPermissionBoundaryRequest
+	65,  // 65: auth.IAMService.DeleteTenantUserPermissionBoundary:input_type -> auth.DeleteTenantUserPermissionBoundaryRequest
+	66,  // 66: auth.IAMService.PutRoleTrustPolicy:input_type -> auth.PutRoleTrustPolicyRequest
+	67,  // 67: auth.IAMService.GetRoleTrustPolicy:input_type -> auth.GetRoleTrustPolicyRequest
+	68,  // 68: auth.IAMService.DeleteRoleTrustPolicy:input_type -> auth.DeleteRoleTrustPolicyRequest
+	69,  // 69: auth.IAMService.PutRolePermissionBoundary:input_type -> auth.PutRolePermissionBoundaryRequest
+	70,  // 70: auth.IAMService.GetRolePermissionBoundary:input_type -> auth.GetRolePermissionBoundaryRequest
+	71,  // 71: auth.IAMService.DeleteRolePermissionBoundary:input_type -> auth.DeleteRolePermissionBoundaryRequest
+	72,  // 72: auth.IAMService.SimulateAccess:input_type -> auth.SimulateAccessRequest
+	73,  // 73: auth.IAMService.AssumeRole:output_type -> auth.IAMAssumeRoleResponse
+	74,  // 74: auth.IAMService.CreateTenant:output_type -> auth.CreateTenantResponse
+	75,  // 75: auth.IAMService.CreateOrganization:output_type -> auth.CreateOrganizationResponse
+	76,  // 76: auth.IAMService.ListOrganizations:output_type -> auth.ListOrganizationsResponse
+	77,  // 77: auth.IAMService.AttachTenantToOrganization:output_type -> auth.AttachTenantToOrganizationResponse
+	78,  // 78: auth.IAMService.DetachTenantFromOrganization:output_type -> auth.DetachTenantFromOrganizationResponse
+	79,  // 79: auth.IAMService.AttachServiceControlPolicy:output_type -> auth.AttachServiceControlPolicyResponse
+	80,  // 80: auth.IAMService.DetachServiceControlPolicy:output_type -> auth.DetachServiceControlPolicyResponse
+	81,  // 81: auth.IAMService.ListServiceControlPolicies:output_type -> auth.ListServiceControlPoliciesResponse
+	82,  // 82: auth.IAMService.AddTenantMember:output_type -> auth.AddTenantMemberResponse
+	83,  // 83: auth.IAMService.AddTenantMemberByIdentity:output_type -> auth.AddTenantMemberByIdentityResponse
+	84,  // 84: auth.IAMService.CreateTenantInvite:output_type -> auth.CreateTenantInviteResponse
+	85,  // 85: auth.IAMService.ListTenantInvites:output_type -> auth.ListTenantInvitesResponse
+	86,  // 86: auth.IAMService.RevokeTenantInvite:output_type -> auth.RevokeTenantInviteResponse
+	87,  // 87: auth.IAMService.AcceptTenantInvite:output_type -> auth.AcceptTenantInviteResponse
+	88,  // 88: auth.IAMService.GetTenantMembership:output_type -> auth.GetTenantMembershipResponse
+	89,  // 89: auth.IAMService.CheckPermission:output_type -> auth.CheckPermissionResponse
+	89,  // 90: auth.IAMService.CheckPlatformPermission:output_type -> auth.CheckPermissionResponse
+	90,  // 91: auth.IAMService.ListUserTenants:output_type -> auth.ListUserTenantsResponse
+	91,  // 92: auth.IAMService.ListPlatformRoles:output_type -> auth.ListPlatformRolesResponse
+	92,  // 93: auth.IAMService.AddPlatformRole:output_type -> auth.AddPlatformRoleResponse
+	93,  // 94: auth.IAMService.CreatePolicy:output_type -> auth.CreatePolicyResponse
+	94,  // 95: auth.IAMService.CreatePolicyVersion:output_type -> auth.CreatePolicyVersionResponse
+	95,  // 96: auth.IAMService.GetPolicy:output_type -> auth.GetPolicyResponse
+	96,  // 97: auth.IAMService.ListPolicyVersions:output_type -> auth.ListPolicyVersionsResponse
+	97,  // 98: auth.IAMService.SetDefaultPolicyVersion:output_type -> auth.SetDefaultPolicyVersionResponse
+	98,  // 99: auth.IAMService.DeletePolicyVersion:output_type -> auth.DeletePolicyVersionResponse
+	99,  // 100: auth.IAMService.ListPolicies:output_type -> auth.ListPoliciesResponse
+	100, // 101: auth.IAMService.ListPolicyAttachments:output_type -> auth.ListPolicyAttachmentsResponse
+	101, // 102: auth.IAMService.DeletePolicy:output_type -> auth.DeletePolicyResponse
+	102, // 103: auth.IAMService.CreateGroup:output_type -> auth.CreateGroupResponse
+	103, // 104: auth.IAMService.ListGroups:output_type -> auth.ListGroupsResponse
+	104, // 105: auth.IAMService.DeleteGroup:output_type -> auth.DeleteGroupResponse
+	105, // 106: auth.IAMService.AddGroupMember:output_type -> auth.AddGroupMemberResponse
+	106, // 107: auth.IAMService.ListGroupMembers:output_type -> auth.ListGroupMembersResponse
+	107, // 108: auth.IAMService.RemoveGroupMember:output_type -> auth.RemoveGroupMemberResponse
+	108, // 109: auth.IAMService.AttachGroupPolicy:output_type -> auth.AttachGroupPolicyResponse
+	109, // 110: auth.IAMService.ListGroupPolicies:output_type -> auth.ListGroupPoliciesResponse
+	110, // 111: auth.IAMService.DetachGroupPolicy:output_type -> auth.DetachGroupPolicyResponse
+	111, // 112: auth.IAMService.PutGroupInlinePolicy:output_type -> auth.PutGroupInlinePolicyResponse
+	112, // 113: auth.IAMService.GetGroupInlinePolicy:output_type -> auth.GetGroupInlinePolicyResponse
+	113, // 114: auth.IAMService.ListGroupInlinePolicies:output_type -> auth.ListGroupInlinePoliciesResponse
+	114, // 115: auth.IAMService.DeleteGroupInlinePolicy:output_type -> auth.DeleteGroupInlinePolicyResponse
+	115, // 116: auth.IAMService.PutPlatformUserInlinePolicy:output_type -> auth.PutPlatformUserInlinePolicyResponse
+	116, // 117: auth.IAMService.GetPlatformUserInlinePolicy:output_type -> auth.GetPlatformUserInlinePolicyResponse
+	117, // 118: auth.IAMService.ListPlatformUserInlinePolicies:output_type -> auth.ListPlatformUserInlinePoliciesResponse
+	118, // 119: auth.IAMService.DeletePlatformUserInlinePolicy:output_type -> auth.DeletePlatformUserInlinePolicyResponse
+	119, // 120: auth.IAMService.ListPlatformUserPolicies:output_type -> auth.ListPlatformUserPoliciesResponse
+	120, // 121: auth.IAMService.AttachPlatformUserPolicy:output_type -> auth.AttachPlatformUserPolicyResponse
+	121, // 122: auth.IAMService.DetachPlatformUserPolicy:output_type -> auth.DetachPlatformUserPolicyResponse
+	122, // 123: auth.IAMService.PutPlatformUserPermissionBoundary:output_type -> auth.PutPlatformUserPermissionBoundaryResponse
+	123, // 124: auth.IAMService.GetPlatformUserPermissionBoundary:output_type -> auth.GetPlatformUserPermissionBoundaryResponse
+	124, // 125: auth.IAMService.DeletePlatformUserPermissionBoundary:output_type -> auth.DeletePlatformUserPermissionBoundaryResponse
+	125, // 126: auth.IAMService.RemovePlatformRole:output_type -> auth.RemovePlatformRoleResponse
+	126, // 127: auth.IAMService.ListTenantMembers:output_type -> auth.ListTenantMembersResponse
+	127, // 128: auth.IAMService.RemoveTenantMember:output_type -> auth.RemoveTenantMemberResponse
+	128, // 129: auth.IAMService.PutTenantUserInlinePolicy:output_type -> auth.PutTenantUserInlinePolicyResponse
+	129, // 130: auth.IAMService.GetTenantUserInlinePolicy:output_type -> auth.GetTenantUserInlinePolicyResponse
+	130, // 131: auth.IAMService.ListTenantUserInlinePolicies:output_type -> auth.ListTenantUserInlinePoliciesResponse
+	131, // 132: auth.IAMService.DeleteTenantUserInlinePolicy:output_type -> auth.DeleteTenantUserInlinePolicyResponse
+	132, // 133: auth.IAMService.ListTenantUserPolicies:output_type -> auth.ListTenantUserPoliciesResponse
+	133, // 134: auth.IAMService.AttachTenantUserPolicy:output_type -> auth.AttachTenantUserPolicyResponse
+	134, // 135: auth.IAMService.DetachTenantUserPolicy:output_type -> auth.DetachTenantUserPolicyResponse
+	135, // 136: auth.IAMService.PutTenantUserPermissionBoundary:output_type -> auth.PutTenantUserPermissionBoundaryResponse
+	136, // 137: auth.IAMService.GetTenantUserPermissionBoundary:output_type -> auth.GetTenantUserPermissionBoundaryResponse
+	137, // 138: auth.IAMService.DeleteTenantUserPermissionBoundary:output_type -> auth.DeleteTenantUserPermissionBoundaryResponse
+	138, // 139: auth.IAMService.PutRoleTrustPolicy:output_type -> auth.PutRoleTrustPolicyResponse
+	139, // 140: auth.IAMService.GetRoleTrustPolicy:output_type -> auth.GetRoleTrustPolicyResponse
+	140, // 141: auth.IAMService.DeleteRoleTrustPolicy:output_type -> auth.DeleteRoleTrustPolicyResponse
+	141, // 142: auth.IAMService.PutRolePermissionBoundary:output_type -> auth.PutRolePermissionBoundaryResponse
+	142, // 143: auth.IAMService.GetRolePermissionBoundary:output_type -> auth.GetRolePermissionBoundaryResponse
+	143, // 144: auth.IAMService.DeleteRolePermissionBoundary:output_type -> auth.DeleteRolePermissionBoundaryResponse
+	144, // 145: auth.IAMService.SimulateAccess:output_type -> auth.SimulateAccessResponse
+	73,  // [73:146] is the sub-list for method output_type
+	0,   // [0:73] is the sub-list for method input_type
 	0,   // [0:0] is the sub-list for extension type_name
 	0,   // [0:0] is the sub-list for extension extendee
 	0,   // [0:0] is the sub-list for field type_name

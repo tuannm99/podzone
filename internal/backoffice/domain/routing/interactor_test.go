@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	catalogentity "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/entity"
-	routinginputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport"
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
+	routinginputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
@@ -63,12 +63,15 @@ func TestRecommendRoutedOrderPartnerPrefersEligibleRequestedPartner(t *testing.T
 	})
 
 	ctx := toolkit.WithTenantID(context.Background(), "t_demo")
-	recommendation, err := interactor.RecommendRoutedOrderPartner(ctx, routinginputport.RecommendRoutedOrderPartnerQuery{
-		CandidateID:      "cand-1",
-		ProductType:      "tshirt",
-		ShipRegion:       "us",
-		PreferredPartner: "Fulfill Fast",
-	})
+	recommendation, err := interactor.RecommendRoutedOrderPartner(
+		ctx,
+		routinginputport.RecommendRoutedOrderPartnerQuery{
+			CandidateID:      "cand-1",
+			ProductType:      "tshirt",
+			ShipRegion:       "us",
+			PreferredPartner: "Fulfill Fast",
+		},
+	)
 	require.NoError(t, err)
 	require.Equal(t, "cand-1", recommendation.CandidateID)
 	require.Equal(t, "Fulfill Fast", recommendation.SelectedPartner)
@@ -116,7 +119,10 @@ func TestUpdateOrderSettlementRecalculatesMarginIncludingIssueCost(t *testing.T)
 	require.Equal(t, routingentity.RoutedOrderActivityTypeSettlementNote, got.Type)
 	require.Equal(t, "Supplier invoice matched", got.Message)
 	require.Equal(t, "system", got.Actor)
-	require.True(t, hasActivityDetail(got.Details, "settlement_status", routingentity.RoutedOrderSettlementStatusReconciled))
+	require.True(
+		t,
+		hasActivityDetail(got.Details, "settlement_status", routingentity.RoutedOrderSettlementStatusReconciled),
+	)
 }
 
 func TestUpdateOrderIssueHandlingRequiresActiveIssue(t *testing.T) {
@@ -160,12 +166,15 @@ func TestUpdateOrderIssueHandlingRecalculatesMargin(t *testing.T) {
 		Timeline:         []string{"created"},
 	})
 
-	order, err := interactor.UpdateOrderIssueHandling(context.Background(), routinginputport.UpdateOrderIssueHandlingCmd{
-		OrderID:         "ord-issue",
-		IssueCost:       "$6.00",
-		IssueResolution: routingentity.RoutedOrderIssueResolutionReprint,
-		Notes:           "Reprint approved",
-	})
+	order, err := interactor.UpdateOrderIssueHandling(
+		context.Background(),
+		routinginputport.UpdateOrderIssueHandlingCmd{
+			OrderID:         "ord-issue",
+			IssueCost:       "$6.00",
+			IssueResolution: routingentity.RoutedOrderIssueResolutionReprint,
+			Notes:           "Reprint approved",
+		},
+	)
 	require.NoError(t, err)
 	require.Equal(t, "$6.00", order.IssueCost)
 	require.Equal(t, routingentity.RoutedOrderIssueResolutionReprint, order.IssueResolution)

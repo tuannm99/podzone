@@ -41,3 +41,21 @@ backoffice:
     jwt_key: ''
     grpc_host: 'partner-service'
     grpc_port: '50054'
+
+kafka:
+  backoffice:
+    brokers:
+      - kafka:9092
+    client_id: podzone-backoffice
+    version: 3.7.0
+    required_acks: all
+    compression: zstd
+    auto_create_topics: false
+    consumer_group_prefix: podzone.backoffice
+    sasl:
+      enabled: false
+      mechanism: ''
+      username: ''
+      password: ''
+    tls:
+      enabled: false

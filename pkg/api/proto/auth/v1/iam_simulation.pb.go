@@ -373,6 +373,266 @@ func (x *SimulateDecisionLayer) GetMatchedStatements() []*SimulateMatchedStateme
 	return nil
 }
 
+type IAMAssumeRoleRequest struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	AccessToken      string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	RoleName         string                 `protobuf:"bytes,2,opt,name=role_name,json=roleName,proto3" json:"role_name,omitempty"`
+	TenantId         string                 `protobuf:"bytes,3,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
+	ExternalId       string                 `protobuf:"bytes,4,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
+	SessionName      string                 `protobuf:"bytes,5,opt,name=session_name,json=sessionName,proto3" json:"session_name,omitempty"`
+	SourceIdentity   string                 `protobuf:"bytes,6,opt,name=source_identity,json=sourceIdentity,proto3" json:"source_identity,omitempty"`
+	DurationSeconds  uint32                 `protobuf:"varint,7,opt,name=duration_seconds,json=durationSeconds,proto3" json:"duration_seconds,omitempty"`
+	ServicePrincipal string                 `protobuf:"bytes,8,opt,name=service_principal,json=servicePrincipal,proto3" json:"service_principal,omitempty"`
+	SessionTags      map[string]string      `protobuf:"bytes,9,rep,name=session_tags,json=sessionTags,proto3" json:"session_tags,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *IAMAssumeRoleRequest) Reset() {
+	*x = IAMAssumeRoleRequest{}
+	mi := &file_auth_v1_iam_simulation_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IAMAssumeRoleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IAMAssumeRoleRequest) ProtoMessage() {}
+
+func (x *IAMAssumeRoleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_iam_simulation_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IAMAssumeRoleRequest.ProtoReflect.Descriptor instead.
+func (*IAMAssumeRoleRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_iam_simulation_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *IAMAssumeRoleRequest) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *IAMAssumeRoleRequest) GetRoleName() string {
+	if x != nil {
+		return x.RoleName
+	}
+	return ""
+}
+
+func (x *IAMAssumeRoleRequest) GetTenantId() string {
+	if x != nil {
+		return x.TenantId
+	}
+	return ""
+}
+
+func (x *IAMAssumeRoleRequest) GetExternalId() string {
+	if x != nil {
+		return x.ExternalId
+	}
+	return ""
+}
+
+func (x *IAMAssumeRoleRequest) GetSessionName() string {
+	if x != nil {
+		return x.SessionName
+	}
+	return ""
+}
+
+func (x *IAMAssumeRoleRequest) GetSourceIdentity() string {
+	if x != nil {
+		return x.SourceIdentity
+	}
+	return ""
+}
+
+func (x *IAMAssumeRoleRequest) GetDurationSeconds() uint32 {
+	if x != nil {
+		return x.DurationSeconds
+	}
+	return 0
+}
+
+func (x *IAMAssumeRoleRequest) GetServicePrincipal() string {
+	if x != nil {
+		return x.ServicePrincipal
+	}
+	return ""
+}
+
+func (x *IAMAssumeRoleRequest) GetSessionTags() map[string]string {
+	if x != nil {
+		return x.SessionTags
+	}
+	return nil
+}
+
+type IAMAssumedRole struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	RoleId           uint64                 `protobuf:"varint,1,opt,name=role_id,json=roleId,proto3" json:"role_id,omitempty"`
+	RoleScope        string                 `protobuf:"bytes,2,opt,name=role_scope,json=roleScope,proto3" json:"role_scope,omitempty"`
+	RoleName         string                 `protobuf:"bytes,3,opt,name=role_name,json=roleName,proto3" json:"role_name,omitempty"`
+	TenantId         string                 `protobuf:"bytes,4,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
+	ServicePrincipal string                 `protobuf:"bytes,5,opt,name=service_principal,json=servicePrincipal,proto3" json:"service_principal,omitempty"`
+	SessionName      string                 `protobuf:"bytes,6,opt,name=session_name,json=sessionName,proto3" json:"session_name,omitempty"`
+	SourceIdentity   string                 `protobuf:"bytes,7,opt,name=source_identity,json=sourceIdentity,proto3" json:"source_identity,omitempty"`
+	SessionTags      map[string]string      `protobuf:"bytes,8,rep,name=session_tags,json=sessionTags,proto3" json:"session_tags,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	ExpiresAt        string                 `protobuf:"bytes,9,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *IAMAssumedRole) Reset() {
+	*x = IAMAssumedRole{}
+	mi := &file_auth_v1_iam_simulation_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IAMAssumedRole) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IAMAssumedRole) ProtoMessage() {}
+
+func (x *IAMAssumedRole) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_iam_simulation_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IAMAssumedRole.ProtoReflect.Descriptor instead.
+func (*IAMAssumedRole) Descriptor() ([]byte, []int) {
+	return file_auth_v1_iam_simulation_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *IAMAssumedRole) GetRoleId() uint64 {
+	if x != nil {
+		return x.RoleId
+	}
+	return 0
+}
+
+func (x *IAMAssumedRole) GetRoleScope() string {
+	if x != nil {
+		return x.RoleScope
+	}
+	return ""
+}
+
+func (x *IAMAssumedRole) GetRoleName() string {
+	if x != nil {
+		return x.RoleName
+	}
+	return ""
+}
+
+func (x *IAMAssumedRole) GetTenantId() string {
+	if x != nil {
+		return x.TenantId
+	}
+	return ""
+}
+
+func (x *IAMAssumedRole) GetServicePrincipal() string {
+	if x != nil {
+		return x.ServicePrincipal
+	}
+	return ""
+}
+
+func (x *IAMAssumedRole) GetSessionName() string {
+	if x != nil {
+		return x.SessionName
+	}
+	return ""
+}
+
+func (x *IAMAssumedRole) GetSourceIdentity() string {
+	if x != nil {
+		return x.SourceIdentity
+	}
+	return ""
+}
+
+func (x *IAMAssumedRole) GetSessionTags() map[string]string {
+	if x != nil {
+		return x.SessionTags
+	}
+	return nil
+}
+
+func (x *IAMAssumedRole) GetExpiresAt() string {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return ""
+}
+
+type IAMAssumeRoleResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AssumedRole   *IAMAssumedRole        `protobuf:"bytes,1,opt,name=assumed_role,json=assumedRole,proto3" json:"assumed_role,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IAMAssumeRoleResponse) Reset() {
+	*x = IAMAssumeRoleResponse{}
+	mi := &file_auth_v1_iam_simulation_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IAMAssumeRoleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IAMAssumeRoleResponse) ProtoMessage() {}
+
+func (x *IAMAssumeRoleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_iam_simulation_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IAMAssumeRoleResponse.ProtoReflect.Descriptor instead.
+func (*IAMAssumeRoleResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_iam_simulation_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *IAMAssumeRoleResponse) GetAssumedRole() *IAMAssumedRole {
+	if x != nil {
+		return x.AssumedRole
+	}
+	return nil
+}
+
 var File_auth_v1_iam_simulation_proto protoreflect.FileDescriptor
 
 const file_auth_v1_iam_simulation_proto_rawDesc = "" +
@@ -419,7 +679,38 @@ const file_auth_v1_iam_simulation_proto_rawDesc = "" +
 	"\x05layer\x18\x01 \x01(\tR\x05layer\x12\x18\n" +
 	"\aallowed\x18\x02 \x01(\bR\aallowed\x12\x16\n" +
 	"\x06reason\x18\x03 \x01(\tR\x06reason\x12M\n" +
-	"\x12matched_statements\x18\x04 \x03(\v2\x1e.auth.SimulateMatchedStatementR\x11matchedStatementsB<Z:github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1b\x06proto3"
+	"\x12matched_statements\x18\x04 \x03(\v2\x1e.auth.SimulateMatchedStatementR\x11matchedStatements\"\xc8\x03\n" +
+	"\x14IAMAssumeRoleRequest\x12!\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1b\n" +
+	"\trole_name\x18\x02 \x01(\tR\broleName\x12\x1b\n" +
+	"\ttenant_id\x18\x03 \x01(\tR\btenantId\x12\x1f\n" +
+	"\vexternal_id\x18\x04 \x01(\tR\n" +
+	"externalId\x12!\n" +
+	"\fsession_name\x18\x05 \x01(\tR\vsessionName\x12'\n" +
+	"\x0fsource_identity\x18\x06 \x01(\tR\x0esourceIdentity\x12)\n" +
+	"\x10duration_seconds\x18\a \x01(\rR\x0fdurationSeconds\x12+\n" +
+	"\x11service_principal\x18\b \x01(\tR\x10servicePrincipal\x12N\n" +
+	"\fsession_tags\x18\t \x03(\v2+.auth.IAMAssumeRoleRequest.SessionTagsEntryR\vsessionTags\x1a>\n" +
+	"\x10SessionTagsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xa4\x03\n" +
+	"\x0eIAMAssumedRole\x12\x17\n" +
+	"\arole_id\x18\x01 \x01(\x04R\x06roleId\x12\x1d\n" +
+	"\n" +
+	"role_scope\x18\x02 \x01(\tR\troleScope\x12\x1b\n" +
+	"\trole_name\x18\x03 \x01(\tR\broleName\x12\x1b\n" +
+	"\ttenant_id\x18\x04 \x01(\tR\btenantId\x12+\n" +
+	"\x11service_principal\x18\x05 \x01(\tR\x10servicePrincipal\x12!\n" +
+	"\fsession_name\x18\x06 \x01(\tR\vsessionName\x12'\n" +
+	"\x0fsource_identity\x18\a \x01(\tR\x0esourceIdentity\x12H\n" +
+	"\fsession_tags\x18\b \x03(\v2%.auth.IAMAssumedRole.SessionTagsEntryR\vsessionTags\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\t \x01(\tR\texpiresAt\x1a>\n" +
+	"\x10SessionTagsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"P\n" +
+	"\x15IAMAssumeRoleResponse\x127\n" +
+	"\fassumed_role\x18\x01 \x01(\v2\x14.auth.IAMAssumedRoleR\vassumedRoleB<Z:github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1b\x06proto3"
 
 var (
 	file_auth_v1_iam_simulation_proto_rawDescOnce sync.Once
@@ -433,32 +724,40 @@ func file_auth_v1_iam_simulation_proto_rawDescGZIP() []byte {
 	return file_auth_v1_iam_simulation_proto_rawDescData
 }
 
-var file_auth_v1_iam_simulation_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_auth_v1_iam_simulation_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_auth_v1_iam_simulation_proto_goTypes = []any{
 	(*SimulateAccessRequest)(nil),    // 0: auth.SimulateAccessRequest
 	(*SimulateMatchedStatement)(nil), // 1: auth.SimulateMatchedStatement
 	(*SimulateAccessResponse)(nil),   // 2: auth.SimulateAccessResponse
 	(*SimulateDecisionLayer)(nil),    // 3: auth.SimulateDecisionLayer
-	nil,                              // 4: auth.SimulateAccessRequest.AttributesEntry
-	nil,                              // 5: auth.SimulateAccessRequest.SessionTagsEntry
-	(*Session)(nil),                  // 6: auth.Session
-	(*PolicyStatement)(nil),          // 7: auth.PolicyStatement
-	(*PolicyCondition)(nil),          // 8: auth.PolicyCondition
+	(*IAMAssumeRoleRequest)(nil),     // 4: auth.IAMAssumeRoleRequest
+	(*IAMAssumedRole)(nil),           // 5: auth.IAMAssumedRole
+	(*IAMAssumeRoleResponse)(nil),    // 6: auth.IAMAssumeRoleResponse
+	nil,                              // 7: auth.SimulateAccessRequest.AttributesEntry
+	nil,                              // 8: auth.SimulateAccessRequest.SessionTagsEntry
+	nil,                              // 9: auth.IAMAssumeRoleRequest.SessionTagsEntry
+	nil,                              // 10: auth.IAMAssumedRole.SessionTagsEntry
+	(*Session)(nil),                  // 11: auth.Session
+	(*PolicyStatement)(nil),          // 12: auth.PolicyStatement
+	(*PolicyCondition)(nil),          // 13: auth.PolicyCondition
 }
 var file_auth_v1_iam_simulation_proto_depIdxs = []int32{
-	6, // 0: auth.SimulateAccessRequest.assumed_role_session:type_name -> auth.Session
-	7, // 1: auth.SimulateAccessRequest.session_policy:type_name -> auth.PolicyStatement
-	4, // 2: auth.SimulateAccessRequest.attributes:type_name -> auth.SimulateAccessRequest.AttributesEntry
-	5, // 3: auth.SimulateAccessRequest.session_tags:type_name -> auth.SimulateAccessRequest.SessionTagsEntry
-	8, // 4: auth.SimulateMatchedStatement.conditions:type_name -> auth.PolicyCondition
-	1, // 5: auth.SimulateAccessResponse.matched_statements:type_name -> auth.SimulateMatchedStatement
-	3, // 6: auth.SimulateAccessResponse.layers:type_name -> auth.SimulateDecisionLayer
-	1, // 7: auth.SimulateDecisionLayer.matched_statements:type_name -> auth.SimulateMatchedStatement
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	11, // 0: auth.SimulateAccessRequest.assumed_role_session:type_name -> auth.Session
+	12, // 1: auth.SimulateAccessRequest.session_policy:type_name -> auth.PolicyStatement
+	7,  // 2: auth.SimulateAccessRequest.attributes:type_name -> auth.SimulateAccessRequest.AttributesEntry
+	8,  // 3: auth.SimulateAccessRequest.session_tags:type_name -> auth.SimulateAccessRequest.SessionTagsEntry
+	13, // 4: auth.SimulateMatchedStatement.conditions:type_name -> auth.PolicyCondition
+	1,  // 5: auth.SimulateAccessResponse.matched_statements:type_name -> auth.SimulateMatchedStatement
+	3,  // 6: auth.SimulateAccessResponse.layers:type_name -> auth.SimulateDecisionLayer
+	1,  // 7: auth.SimulateDecisionLayer.matched_statements:type_name -> auth.SimulateMatchedStatement
+	9,  // 8: auth.IAMAssumeRoleRequest.session_tags:type_name -> auth.IAMAssumeRoleRequest.SessionTagsEntry
+	10, // 9: auth.IAMAssumedRole.session_tags:type_name -> auth.IAMAssumedRole.SessionTagsEntry
+	5,  // 10: auth.IAMAssumeRoleResponse.assumed_role:type_name -> auth.IAMAssumedRole
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_auth_v1_iam_simulation_proto_init() }
@@ -474,7 +773,7 @@ func file_auth_v1_iam_simulation_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_v1_iam_simulation_proto_rawDesc), len(file_auth_v1_iam_simulation_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

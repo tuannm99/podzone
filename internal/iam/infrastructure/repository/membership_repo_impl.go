@@ -6,20 +6,21 @@ import (
 	"errors"
 
 	"github.com/jmoiron/sqlx"
-	iamdomain "github.com/tuannm99/podzone/internal/iam/domain"
+	entity "github.com/tuannm99/podzone/internal/iam/entity"
+	"github.com/tuannm99/podzone/internal/iam/outputport"
 )
 
 type MembershipRepositoryImpl struct {
 	db *sqlx.DB
 }
 
-var _ iamdomain.MembershipRepository = (*MembershipRepositoryImpl)(nil)
+var _ outputport.MembershipRepository = (*MembershipRepositoryImpl)(nil)
 
-func NewMembershipRepository(p repoParams) iamdomain.MembershipRepository {
+func NewMembershipRepository(p repoParams) outputport.MembershipRepository {
 	return &MembershipRepositoryImpl{db: p.DB}
 }
 
-func (r *MembershipRepositoryImpl) Upsert(ctx context.Context, membership iamdomain.Membership) error {
+func (r *MembershipRepositoryImpl) Upsert(ctx context.Context, membership entity.Membership) error {
 	_, err := r.db.ExecContext(
 		ctx,
 		`INSERT INTO tenant_memberships (tenant_id, user_id, role_id, status, created_at, updated_at)
@@ -42,7 +43,7 @@ func (r *MembershipRepositoryImpl) GetByTenantAndUser(
 	ctx context.Context,
 	tenantID string,
 	userID uint,
-) (*iamdomain.Membership, error) {
+) (*entity.Membership, error) {
 	var out membershipModel
 	err := r.db.GetContext(
 		ctx,
@@ -56,11 +57,11 @@ func (r *MembershipRepositoryImpl) GetByTenantAndUser(
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, iamdomain.ErrMembershipNotFound
+			return nil, entity.ErrMembershipNotFound
 		}
 		return nil, err
 	}
-	return &iamdomain.Membership{
+	return &entity.Membership{
 		TenantID:  out.TenantID,
 		UserID:    out.UserID,
 		RoleID:    out.RoleID,
@@ -71,7 +72,7 @@ func (r *MembershipRepositoryImpl) GetByTenantAndUser(
 	}, nil
 }
 
-func (r *MembershipRepositoryImpl) ListByTenant(ctx context.Context, tenantID string) ([]iamdomain.Membership, error) {
+func (r *MembershipRepositoryImpl) ListByTenant(ctx context.Context, tenantID string) ([]entity.Membership, error) {
 	var rows []membershipModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -85,9 +86,9 @@ func (r *MembershipRepositoryImpl) ListByTenant(ctx context.Context, tenantID st
 	); err != nil {
 		return nil, err
 	}
-	out := make([]iamdomain.Membership, 0, len(rows))
+	out := make([]entity.Membership, 0, len(rows))
 	for _, row := range rows {
-		out = append(out, iamdomain.Membership{
+		out = append(out, entity.Membership{
 			TenantID:  row.TenantID,
 			UserID:    row.UserID,
 			RoleID:    row.RoleID,
@@ -100,7 +101,7 @@ func (r *MembershipRepositoryImpl) ListByTenant(ctx context.Context, tenantID st
 	return out, nil
 }
 
-func (r *MembershipRepositoryImpl) ListByUser(ctx context.Context, userID uint) ([]iamdomain.Membership, error) {
+func (r *MembershipRepositoryImpl) ListByUser(ctx context.Context, userID uint) ([]entity.Membership, error) {
 	var rows []membershipModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -114,9 +115,9 @@ func (r *MembershipRepositoryImpl) ListByUser(ctx context.Context, userID uint) 
 	); err != nil {
 		return nil, err
 	}
-	out := make([]iamdomain.Membership, 0, len(rows))
+	out := make([]entity.Membership, 0, len(rows))
 	for _, row := range rows {
-		out = append(out, iamdomain.Membership{
+		out = append(out, entity.Membership{
 			TenantID:  row.TenantID,
 			UserID:    row.UserID,
 			RoleID:    row.RoleID,
@@ -141,7 +142,7 @@ func (r *MembershipRepositoryImpl) Delete(ctx context.Context, tenantID string, 
 	}
 	rows, _ := res.RowsAffected()
 	if rows == 0 {
-		return iamdomain.ErrMembershipNotFound
+		return entity.ErrMembershipNotFound
 	}
 	return nil
 }

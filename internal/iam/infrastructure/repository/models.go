@@ -3,7 +3,7 @@ package repository
 import (
 	"time"
 
-	iamdomain "github.com/tuannm99/podzone/internal/iam/domain"
+	entity "github.com/tuannm99/podzone/internal/iam/entity"
 )
 
 type tenantModel struct {
@@ -160,8 +160,8 @@ type inviteModel struct {
 	RevokedAt        *time.Time `db:"revoked_at"`
 }
 
-func (m inviteModel) toEntity() *iamdomain.TenantInvite {
-	return &iamdomain.TenantInvite{
+func (m inviteModel) toEntity() *entity.TenantInvite {
+	return &entity.TenantInvite{
 		ID:               m.ID,
 		TenantID:         m.TenantID,
 		Email:            m.Email,
@@ -179,8 +179,8 @@ func (m inviteModel) toEntity() *iamdomain.TenantInvite {
 	}
 }
 
-func (m policyStatementModel) toEntity() iamdomain.PolicyStatement {
-	return iamdomain.PolicyStatement{
+func (m policyStatementModel) toEntity() entity.PolicyStatement {
+	return entity.PolicyStatement{
 		ID:              m.ID,
 		PolicyID:        m.PolicyID,
 		PolicyName:      m.PolicyName,
@@ -192,8 +192,8 @@ func (m policyStatementModel) toEntity() iamdomain.PolicyStatement {
 	}
 }
 
-func (m policyAttachmentModel) toEntity() iamdomain.PolicyAttachment {
-	return iamdomain.PolicyAttachment{
+func (m policyAttachmentModel) toEntity() entity.PolicyAttachment {
+	return entity.PolicyAttachment{
 		AttachmentType: m.AttachmentType,
 		Scope:          m.Scope,
 		TenantID:       m.TenantID,
@@ -206,8 +206,8 @@ func (m policyAttachmentModel) toEntity() iamdomain.PolicyAttachment {
 	}
 }
 
-func (m permissionBoundaryModel) toEntity() *iamdomain.PermissionBoundary {
-	return &iamdomain.PermissionBoundary{
+func (m permissionBoundaryModel) toEntity() *entity.PermissionBoundary {
+	return &entity.PermissionBoundary{
 		Scope:      m.Scope,
 		TenantID:   m.TenantID,
 		UserID:     m.UserID,
@@ -217,8 +217,8 @@ func (m permissionBoundaryModel) toEntity() *iamdomain.PermissionBoundary {
 	}
 }
 
-func (m policyModel) toEntity() iamdomain.Policy {
-	return iamdomain.Policy{
+func (m policyModel) toEntity() entity.Policy {
+	return entity.Policy{
 		ID:             m.ID,
 		Scope:          m.Scope,
 		Name:           m.Name,
@@ -230,8 +230,8 @@ func (m policyModel) toEntity() iamdomain.Policy {
 	}
 }
 
-func (m policyVersionModel) toEntity() iamdomain.PolicyVersion {
-	return iamdomain.PolicyVersion{
+func (m policyVersionModel) toEntity() entity.PolicyVersion {
+	return entity.PolicyVersion{
 		ID:         m.ID,
 		PolicyID:   m.PolicyID,
 		PolicyName: m.PolicyName,
@@ -241,8 +241,8 @@ func (m policyVersionModel) toEntity() iamdomain.PolicyVersion {
 	}
 }
 
-func (m groupModel) toEntity() iamdomain.Group {
-	return iamdomain.Group{
+func (m groupModel) toEntity() entity.Group {
+	return entity.Group{
 		ID:          m.ID,
 		Scope:       m.Scope,
 		TenantID:    m.TenantID,
@@ -254,8 +254,8 @@ func (m groupModel) toEntity() iamdomain.Group {
 	}
 }
 
-func (m groupInlinePolicyModel) toEntity(statements []iamdomain.PolicyStatement) iamdomain.GroupInlinePolicy {
-	return iamdomain.GroupInlinePolicy{
+func (m groupInlinePolicyModel) toEntity(statements []entity.PolicyStatement) entity.GroupInlinePolicy {
+	return entity.GroupInlinePolicy{
 		GroupID:     m.GroupID,
 		Name:        m.Name,
 		Description: m.Description,
@@ -265,8 +265,8 @@ func (m groupInlinePolicyModel) toEntity(statements []iamdomain.PolicyStatement)
 	}
 }
 
-func (m userInlinePolicyModel) toEntity(statements []iamdomain.PolicyStatement) iamdomain.UserInlinePolicy {
-	return iamdomain.UserInlinePolicy{
+func (m userInlinePolicyModel) toEntity(statements []entity.PolicyStatement) entity.UserInlinePolicy {
+	return entity.UserInlinePolicy{
 		Scope:       m.Scope,
 		TenantID:    m.TenantID,
 		UserID:      m.UserID,
@@ -278,8 +278,8 @@ func (m userInlinePolicyModel) toEntity(statements []iamdomain.PolicyStatement) 
 	}
 }
 
-func (m roleTrustStatementModel) toEntity() iamdomain.RoleTrustStatement {
-	return iamdomain.RoleTrustStatement{
+func (m roleTrustStatementModel) toEntity() entity.RoleTrustStatement {
+	return entity.RoleTrustStatement{
 		ID:                m.ID,
 		RoleID:            m.RoleID,
 		Effect:            m.Effect,

@@ -20,6 +20,10 @@ func NewAuditLogRepositoryImpl(p UserRepoParams) *AuditLogRepositoryImpl {
 	return &AuditLogRepositoryImpl{db: p.DB}
 }
 
+func NewIAMAuditLogRepositoryImpl(p IAMUserRepoParams) *AuditLogRepositoryImpl {
+	return &AuditLogRepositoryImpl{db: p.DB}
+}
+
 func (r *AuditLogRepositoryImpl) Create(ctx context.Context, log entity.AuditLog) error {
 	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
 		Insert("auth_audit_logs").

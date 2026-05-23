@@ -6,20 +6,21 @@ import (
 	"errors"
 
 	"github.com/jmoiron/sqlx"
-	iamdomain "github.com/tuannm99/podzone/internal/iam/domain"
+	entity "github.com/tuannm99/podzone/internal/iam/entity"
+	"github.com/tuannm99/podzone/internal/iam/outputport"
 )
 
 type OrganizationRepositoryImpl struct {
 	db *sqlx.DB
 }
 
-var _ iamdomain.OrganizationRepository = (*OrganizationRepositoryImpl)(nil)
+var _ outputport.OrganizationRepository = (*OrganizationRepositoryImpl)(nil)
 
-func NewOrganizationRepository(p repoParams) iamdomain.OrganizationRepository {
+func NewOrganizationRepository(p repoParams) outputport.OrganizationRepository {
 	return &OrganizationRepositoryImpl{db: p.DB}
 }
 
-func (r *OrganizationRepositoryImpl) Create(ctx context.Context, org iamdomain.Organization) (*iamdomain.Organization, error) {
+func (r *OrganizationRepositoryImpl) Create(ctx context.Context, org entity.Organization) (*entity.Organization, error) {
 	var out organizationModel
 	if err := r.db.GetContext(
 		ctx,
@@ -31,7 +32,7 @@ func (r *OrganizationRepositoryImpl) Create(ctx context.Context, org iamdomain.O
 	); err != nil {
 		return nil, err
 	}
-	return &iamdomain.Organization{
+	return &entity.Organization{
 		ID:        out.ID,
 		Slug:      out.Slug,
 		Name:      out.Name,
@@ -40,14 +41,14 @@ func (r *OrganizationRepositoryImpl) Create(ctx context.Context, org iamdomain.O
 	}, nil
 }
 
-func (r *OrganizationRepositoryImpl) List(ctx context.Context) ([]iamdomain.Organization, error) {
+func (r *OrganizationRepositoryImpl) List(ctx context.Context) ([]entity.Organization, error) {
 	var rows []organizationModel
 	if err := r.db.SelectContext(ctx, &rows, `SELECT id, slug, name, created_at, updated_at FROM iam_organizations ORDER BY created_at ASC, id ASC`); err != nil {
 		return nil, err
 	}
-	out := make([]iamdomain.Organization, 0, len(rows))
+	out := make([]entity.Organization, 0, len(rows))
 	for _, row := range rows {
-		out = append(out, iamdomain.Organization{
+		out = append(out, entity.Organization{
 			ID:        row.ID,
 			Slug:      row.Slug,
 			Name:      row.Name,
@@ -58,15 +59,15 @@ func (r *OrganizationRepositoryImpl) List(ctx context.Context) ([]iamdomain.Orga
 	return out, nil
 }
 
-func (r *OrganizationRepositoryImpl) GetByID(ctx context.Context, orgID string) (*iamdomain.Organization, error) {
+func (r *OrganizationRepositoryImpl) GetByID(ctx context.Context, orgID string) (*entity.Organization, error) {
 	var row organizationModel
 	if err := r.db.GetContext(ctx, &row, `SELECT id, slug, name, created_at, updated_at FROM iam_organizations WHERE id = $1`, orgID); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, iamdomain.ErrOrganizationNotFound
+			return nil, entity.ErrOrganizationNotFound
 		}
 		return nil, err
 	}
-	return &iamdomain.Organization{
+	return &entity.Organization{
 		ID:        row.ID,
 		Slug:      row.Slug,
 		Name:      row.Name,
@@ -90,7 +91,7 @@ func (r *OrganizationRepositoryImpl) DetachServiceControlPolicy(ctx context.Cont
 	return err
 }
 
-func (r *OrganizationRepositoryImpl) ListServiceControlPolicies(ctx context.Context, orgID string) ([]iamdomain.Policy, error) {
+func (r *OrganizationRepositoryImpl) ListServiceControlPolicies(ctx context.Context, orgID string) ([]entity.Policy, error) {
 	var rows []policyModel
 	if err := r.db.SelectContext(ctx, &rows,
 		`SELECT p.id, p.scope, p.name, p.description, p.is_system, p.default_version, p.created_at, p.updated_at
@@ -102,14 +103,14 @@ func (r *OrganizationRepositoryImpl) ListServiceControlPolicies(ctx context.Cont
 	); err != nil {
 		return nil, err
 	}
-	out := make([]iamdomain.Policy, 0, len(rows))
+	out := make([]entity.Policy, 0, len(rows))
 	for _, row := range rows {
 		out = append(out, row.toEntity())
 	}
 	return out, nil
 }
 
-func (r *OrganizationRepositoryImpl) ListServiceControlPolicyStatements(ctx context.Context, orgID string) ([]iamdomain.PolicyStatement, error) {
+func (r *OrganizationRepositoryImpl) ListServiceControlPolicyStatements(ctx context.Context, orgID string) ([]entity.PolicyStatement, error) {
 	var rows []policyStatementModel
 	if err := r.db.SelectContext(ctx, &rows,
 		`SELECT ps.id, ps.policy_id, p.name AS policy_name, ps.effect, ps.action_pattern, ps.resource_pattern, ps.conditions_json, ps.created_at

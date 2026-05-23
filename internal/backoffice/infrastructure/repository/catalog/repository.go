@@ -116,7 +116,10 @@ func (r *Repository) GetDraftByID(ctx context.Context, id string) (*catalogentit
 	return &out, nil
 }
 
-func (r *Repository) CreateDraft(ctx context.Context, draft catalogentity.ProductSetupDraft) (*catalogentity.ProductSetupDraft, error) {
+func (r *Repository) CreateDraft(
+	ctx context.Context,
+	draft catalogentity.ProductSetupDraft,
+) (*catalogentity.ProductSetupDraft, error) {
 	query, args, err := psql.
 		Insert("product_setup_drafts").
 		Columns("id", "name", "partner", "base_cost", "retail_price", "status", "notes", "created_at", "updated_at").
@@ -212,7 +215,10 @@ func (r *Repository) GetCandidateByID(ctx context.Context, id string) (*cataloge
 	return &mapped, nil
 }
 
-func (r *Repository) GetCandidateByDraftID(ctx context.Context, draftID string) (*catalogentity.ProductSetupCandidate, error) {
+func (r *Repository) GetCandidateByDraftID(
+	ctx context.Context,
+	draftID string,
+) (*catalogentity.ProductSetupCandidate, error) {
 	query, args, err := psql.
 		Select(
 			"id", "draft_id", "title", "sku", "partner", "base_cost", "retail_price",
@@ -252,7 +258,10 @@ func (r *Repository) GetCandidateByDraftID(ctx context.Context, draftID string) 
 	return &mapped, nil
 }
 
-func (r *Repository) CreateCandidate(ctx context.Context, candidate catalogentity.ProductSetupCandidate) (*catalogentity.ProductSetupCandidate, error) {
+func (r *Repository) CreateCandidate(
+	ctx context.Context,
+	candidate catalogentity.ProductSetupCandidate,
+) (*catalogentity.ProductSetupCandidate, error) {
 	variantsJSON, err := json.Marshal(candidate.Variants)
 	if err != nil {
 		return nil, err
@@ -283,7 +292,10 @@ func (r *Repository) CreateCandidate(ctx context.Context, candidate catalogentit
 	return &candidate, nil
 }
 
-func (r *Repository) UpdateCandidateStatus(ctx context.Context, id, status string) (*catalogentity.ProductSetupCandidate, error) {
+func (r *Repository) UpdateCandidateStatus(
+	ctx context.Context,
+	id, status string,
+) (*catalogentity.ProductSetupCandidate, error) {
 	query, args, err := psql.
 		Update("product_setup_candidates").
 		Set("status", status).

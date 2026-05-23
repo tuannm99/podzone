@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
         - name: kafka
-          image: apache/kafka:4.1.1
+          image: apache/kafka:4.1.2
           ports:
             - name: internal
               containerPort: 9092

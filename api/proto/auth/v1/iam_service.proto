@@ -12,6 +12,13 @@ import "google/api/annotations.proto";
 // IAMService owns tenant memberships, role bindings, and permission evaluation.
 // It is intentionally separate from AuthService so it can scale and deploy independently.
 service IAMService {
+  rpc AssumeRole(IAMAssumeRoleRequest) returns (IAMAssumeRoleResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/assume-role"
+      body: "*"
+    };
+  }
+
   rpc CreateTenant(CreateTenantRequest) returns (CreateTenantResponse) {
     option (google.api.http) = {
       post: "/auth/v1/iam/tenants"

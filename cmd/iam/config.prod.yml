@@ -10,6 +10,24 @@ sql:
     provider: postgres
     should_run_migration: false
 
+kafka:
+  iam:
+    brokers:
+      - kafka:9092
+    client_id: podzone-iam
+    version: 3.7.0
+    required_acks: all
+    compression: zstd
+    auto_create_topics: false
+    consumer_group_prefix: podzone.iam
+    sasl:
+      enabled: false
+      mechanism: ''
+      username: ''
+      password: ''
+    tls:
+      enabled: false
+
 grpc:
   port: 50053
 

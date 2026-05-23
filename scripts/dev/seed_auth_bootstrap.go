@@ -18,7 +18,7 @@ import (
 	authconfig "github.com/tuannm99/podzone/internal/auth/config"
 	authdomain "github.com/tuannm99/podzone/internal/auth/domain"
 	authentity "github.com/tuannm99/podzone/internal/auth/domain/entity"
-	iamdomain "github.com/tuannm99/podzone/internal/iam/domain"
+	iamdomain "github.com/tuannm99/podzone/internal/iam/entity"
 )
 
 type cfg struct {

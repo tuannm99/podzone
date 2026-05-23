@@ -44,12 +44,8 @@ packages:
       SessionRepository:
       RefreshTokenRepository:
       AuditLogRepository:
-
-  github.com/tuannm99/podzone/internal/auth/domain:
-    config:
-      dir: internal/auth/domain/mocks
-    interfaces:
       TenantAccessChecker:
+      RoleAssumer:
 
   github.com/tuannm99/podzone/internal/backoffice:
     config:
@@ -95,9 +91,9 @@ packages:
       OrderRoutingRepository:
       PartnerDirectory:
 
-  github.com/tuannm99/podzone/internal/iam/domain:
+  github.com/tuannm99/podzone/internal/iam/outputport:
     config:
-      dir: internal/iam/domain/mocks
+      dir: internal/iam/outputport/mocks
     interfaces:
       TenantRepository:
       OrganizationRepository:
@@ -107,6 +103,12 @@ packages:
       PlatformMembershipRepository:
       MembershipRepository:
       InviteRepository:
+      OutboxRepository:
+
+  github.com/tuannm99/podzone/internal/iam/inputport:
+    config:
+      dir: internal/iam/inputport/mocks
+    interfaces:
       IAMUsecase:
 
   github.com/tuannm99/podzone/internal/partner/domain:

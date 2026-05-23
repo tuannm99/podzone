@@ -5,16 +5,17 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	iamdomain "github.com/tuannm99/podzone/internal/iam/domain"
+	entity "github.com/tuannm99/podzone/internal/iam/entity"
+	"github.com/tuannm99/podzone/internal/iam/outputport"
 )
 
 type PlatformMembershipRepositoryImpl struct {
 	db *sqlx.DB
 }
 
-var _ iamdomain.PlatformMembershipRepository = (*PlatformMembershipRepositoryImpl)(nil)
+var _ outputport.PlatformMembershipRepository = (*PlatformMembershipRepositoryImpl)(nil)
 
-func NewPlatformMembershipRepository(p repoParams) iamdomain.PlatformMembershipRepository {
+func NewPlatformMembershipRepository(p repoParams) outputport.PlatformMembershipRepository {
 	return &PlatformMembershipRepositoryImpl{db: p.DB}
 }
 
@@ -61,7 +62,7 @@ func (r *PlatformMembershipRepositoryImpl) ListRoleIDsByUser(ctx context.Context
 func (r *PlatformMembershipRepositoryImpl) ListByUser(
 	ctx context.Context,
 	userID uint,
-) ([]iamdomain.PlatformMembership, error) {
+) ([]entity.PlatformMembership, error) {
 	var rows []struct {
 		UserID    uint      `db:"user_id"`
 		RoleID    uint64    `db:"role_id"`
@@ -82,9 +83,9 @@ func (r *PlatformMembershipRepositoryImpl) ListByUser(
 	); err != nil {
 		return nil, err
 	}
-	out := make([]iamdomain.PlatformMembership, 0, len(rows))
+	out := make([]entity.PlatformMembership, 0, len(rows))
 	for _, row := range rows {
-		out = append(out, iamdomain.PlatformMembership{
+		out = append(out, entity.PlatformMembership{
 			UserID:    row.UserID,
 			RoleID:    row.RoleID,
 			RoleName:  row.RoleName,
@@ -108,7 +109,7 @@ func (r *PlatformMembershipRepositoryImpl) Delete(ctx context.Context, userID ui
 	}
 	rows, _ := res.RowsAffected()
 	if rows == 0 {
-		return iamdomain.ErrMembershipNotFound
+		return entity.ErrMembershipNotFound
 	}
 	return nil
 }

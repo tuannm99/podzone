@@ -15,16 +15,15 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/domain"
 	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
+	"github.com/tuannm99/podzone/internal/auth/infrastructure/iamclient"
 	"github.com/tuannm99/podzone/internal/auth/infrastructure/repository"
 	"github.com/tuannm99/podzone/internal/auth/migrations"
-	"github.com/tuannm99/podzone/internal/iam/fxmodule"
 	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/pdsql"
 )
 
 var Module = fx.Options(
-	fxmodule.Module,
 	fx.Provide(
 		config.NewAuthConfig,
 
@@ -34,7 +33,8 @@ var Module = fx.Options(
 		fx.Annotate(repository.NewSessionRepositoryImpl, fx.As(new(outputport.SessionRepository))),
 		fx.Annotate(repository.NewRefreshTokenRepositoryImpl, fx.As(new(outputport.RefreshTokenRepository))),
 		fx.Annotate(repository.NewAuditLogRepositoryImpl, fx.As(new(outputport.AuditLogRepository))),
-		fx.Annotate(NewTenantAccessChecker, fx.As(new(domain.TenantAccessChecker))),
+		fx.Annotate(iamclient.NewTenantAccessChecker, fx.As(new(outputport.TenantAccessChecker))),
+		fx.Annotate(iamclient.NewRoleAssumer, fx.As(new(outputport.RoleAssumer))),
 
 		fx.Annotate(domain.NewTokenUsecase, fx.As(new(inputport.TokenUsecase))),
 		fx.Annotate(domain.NewUserUsecase, fx.As(new(inputport.UserUsecase))),

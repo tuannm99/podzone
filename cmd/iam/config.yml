@@ -1,8 +1,8 @@
 logger:
-  app_name: "podzone_admin_iam"
-  provider: "zap"
-  level: "debug"
-  env: "dev"
+  app_name: 'podzone_admin_iam'
+  provider: 'zap'
+  level: 'debug'
+  env: 'dev'
 
 sql:
   auth:
@@ -10,9 +10,27 @@ sql:
     provider: postgres
     should_run_migration: false
 
+kafka:
+  iam:
+    brokers:
+      - kafka:9092
+    client_id: podzone-iam
+    version: 3.7.0
+    required_acks: all
+    compression: zstd
+    auto_create_topics: false
+    consumer_group_prefix: podzone.iam
+    sasl:
+      enabled: false
+      mechanism: ''
+      username: ''
+      password: ''
+    tls:
+      enabled: false
+
 grpc:
   port: 50053
 
 pprof:
   enable: false
-  addr: "127.0.0.1:6060"
+  addr: '127.0.0.1:6060'

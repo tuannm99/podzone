@@ -8,24 +8,25 @@ import (
 	"strconv"
 
 	"github.com/jmoiron/sqlx"
-	iamdomain "github.com/tuannm99/podzone/internal/iam/domain"
+	entity "github.com/tuannm99/podzone/internal/iam/entity"
+	"github.com/tuannm99/podzone/internal/iam/outputport"
 )
 
 type PolicyRepositoryImpl struct {
 	db *sqlx.DB
 }
 
-var _ iamdomain.PolicyRepository = (*PolicyRepositoryImpl)(nil)
+var _ outputport.PolicyRepository = (*PolicyRepositoryImpl)(nil)
 
-func NewPolicyRepository(p repoParams) iamdomain.PolicyRepository {
+func NewPolicyRepository(p repoParams) outputport.PolicyRepository {
 	return &PolicyRepositoryImpl{db: p.DB}
 }
 
 func (r *PolicyRepositoryImpl) CreatePolicy(
 	ctx context.Context,
-	policy iamdomain.Policy,
-	statements []iamdomain.PolicyStatement,
-) (*iamdomain.Policy, []iamdomain.PolicyStatement, error) {
+	policy entity.Policy,
+	statements []entity.PolicyStatement,
+) (*entity.Policy, []entity.PolicyStatement, error) {
 	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, nil, err
@@ -59,7 +60,7 @@ func (r *PolicyRepositoryImpl) CreatePolicy(
 		return nil, nil, err
 	}
 
-	outStatements := make([]iamdomain.PolicyStatement, 0, len(statements))
+	outStatements := make([]entity.PolicyStatement, 0, len(statements))
 	for _, statement := range statements {
 		var createdStatement policyStatementModel
 		if err := tx.GetContext(
@@ -102,7 +103,7 @@ func (r *PolicyRepositoryImpl) CreatePolicy(
 	return &entity, outStatements, nil
 }
 
-func (r *PolicyRepositoryImpl) GetPolicyByName(ctx context.Context, name string) (*iamdomain.Policy, error) {
+func (r *PolicyRepositoryImpl) GetPolicyByName(ctx context.Context, name string) (*entity.Policy, error) {
 	var out policyModel
 	if err := r.db.GetContext(
 		ctx,
@@ -112,7 +113,7 @@ func (r *PolicyRepositoryImpl) GetPolicyByName(ctx context.Context, name string)
 		name,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, iamdomain.ErrRoleNotFound
+			return nil, entity.ErrRoleNotFound
 		}
 		return nil, err
 	}
@@ -120,7 +121,7 @@ func (r *PolicyRepositoryImpl) GetPolicyByName(ctx context.Context, name string)
 	return &entity, nil
 }
 
-func (r *PolicyRepositoryImpl) GetPolicyStatements(ctx context.Context, policyID uint64) ([]iamdomain.PolicyStatement, error) {
+func (r *PolicyRepositoryImpl) GetPolicyStatements(ctx context.Context, policyID uint64) ([]entity.PolicyStatement, error) {
 	var rows []policyStatementModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -137,7 +138,7 @@ func (r *PolicyRepositoryImpl) GetPolicyStatements(ctx context.Context, policyID
 	return toPolicyStatements(rows), nil
 }
 
-func (r *PolicyRepositoryImpl) ListPolicies(ctx context.Context, scope string) ([]iamdomain.Policy, error) {
+func (r *PolicyRepositoryImpl) ListPolicies(ctx context.Context, scope string) ([]entity.Policy, error) {
 	query := `SELECT id, scope, name, description, is_system, created_at, updated_at FROM iam_policies`
 	query = `SELECT id, scope, name, description, is_system, default_version, created_at, updated_at FROM iam_policies`
 	args := []any{}
@@ -151,14 +152,14 @@ func (r *PolicyRepositoryImpl) ListPolicies(ctx context.Context, scope string) (
 	if err := r.db.SelectContext(ctx, &rows, query, args...); err != nil {
 		return nil, err
 	}
-	out := make([]iamdomain.Policy, 0, len(rows))
+	out := make([]entity.Policy, 0, len(rows))
 	for _, row := range rows {
 		out = append(out, row.toEntity())
 	}
 	return out, nil
 }
 
-func (r *PolicyRepositoryImpl) ListPolicyAttachments(ctx context.Context, policyID uint64) ([]iamdomain.PolicyAttachment, error) {
+func (r *PolicyRepositoryImpl) ListPolicyAttachments(ctx context.Context, policyID uint64) ([]entity.PolicyAttachment, error) {
 	var rows []policyAttachmentModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -277,7 +278,7 @@ func (r *PolicyRepositoryImpl) ListPolicyAttachments(ctx context.Context, policy
 	); err != nil {
 		return nil, err
 	}
-	out := make([]iamdomain.PolicyAttachment, 0, len(rows))
+	out := make([]entity.PolicyAttachment, 0, len(rows))
 	for _, row := range rows {
 		out = append(out, row.toEntity())
 	}
@@ -301,12 +302,12 @@ func (r *PolicyRepositoryImpl) DeletePolicy(ctx context.Context, policyID uint64
 		policyID,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return iamdomain.ErrPolicyNotFound
+			return entity.ErrPolicyNotFound
 		}
 		return err
 	}
 	if policy.IsSystem {
-		return iamdomain.ErrImmutablePolicy
+		return entity.ErrImmutablePolicy
 	}
 
 	var attachmentCount int
@@ -327,7 +328,7 @@ func (r *PolicyRepositoryImpl) DeletePolicy(ctx context.Context, policyID uint64
 		return err
 	}
 	if attachmentCount > 0 {
-		return iamdomain.ErrPolicyInUse
+		return entity.ErrPolicyInUse
 	}
 
 	if _, err := tx.ExecContext(ctx, `DELETE FROM iam_policies WHERE id = $1`, policyID); err != nil {
@@ -340,9 +341,9 @@ func (r *PolicyRepositoryImpl) CreatePolicyVersion(
 	ctx context.Context,
 	policyID uint64,
 	policyName string,
-	statements []iamdomain.PolicyStatement,
+	statements []entity.PolicyStatement,
 	setAsDefault bool,
-) (*iamdomain.PolicyVersion, []iamdomain.PolicyStatement, error) {
+) (*entity.PolicyVersion, []entity.PolicyStatement, error) {
 	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, nil, err
@@ -379,7 +380,7 @@ func (r *PolicyRepositoryImpl) CreatePolicyVersion(
 		return nil, nil, err
 	}
 
-	outStatements := make([]iamdomain.PolicyStatement, 0, len(statements))
+	outStatements := make([]entity.PolicyStatement, 0, len(statements))
 	for i, statement := range statements {
 		if _, err := tx.ExecContext(
 			ctx,
@@ -396,7 +397,7 @@ func (r *PolicyRepositoryImpl) CreatePolicyVersion(
 		); err != nil {
 			return nil, nil, err
 		}
-		outStatements = append(outStatements, iamdomain.PolicyStatement{
+		outStatements = append(outStatements, entity.PolicyStatement{
 			PolicyID:        policyID,
 			PolicyName:      policyName,
 			Effect:          statement.Effect,
@@ -417,7 +418,7 @@ func (r *PolicyRepositoryImpl) CreatePolicyVersion(
 	return &entity, outStatements, nil
 }
 
-func (r *PolicyRepositoryImpl) ListPolicyVersions(ctx context.Context, policyID uint64, policyName string) ([]iamdomain.PolicyVersion, error) {
+func (r *PolicyRepositoryImpl) ListPolicyVersions(ctx context.Context, policyID uint64, policyName string) ([]entity.PolicyVersion, error) {
 	var rows []policyVersionModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -431,7 +432,7 @@ func (r *PolicyRepositoryImpl) ListPolicyVersions(ctx context.Context, policyID 
 	); err != nil {
 		return nil, err
 	}
-	out := make([]iamdomain.PolicyVersion, 0, len(rows))
+	out := make([]entity.PolicyVersion, 0, len(rows))
 	for _, row := range rows {
 		out = append(out, row.toEntity())
 	}
@@ -459,12 +460,12 @@ func (r *PolicyRepositoryImpl) DeletePolicyVersion(ctx context.Context, policyID
 		version,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return iamdomain.ErrPolicyVersionNotFound
+			return entity.ErrPolicyVersionNotFound
 		}
 		return err
 	}
 	if row.IsDefault {
-		return iamdomain.ErrDefaultPolicyVersion
+		return entity.ErrDefaultPolicyVersion
 	}
 	if _, err := tx.ExecContext(ctx, `DELETE FROM iam_policy_versions WHERE policy_id = $1 AND version = $2`, policyID, version); err != nil {
 		return err
@@ -490,7 +491,7 @@ func (r *PolicyRepositoryImpl) SetDefaultPolicyVersion(ctx context.Context, poli
 		return err
 	}
 	if affected == 0 {
-		return iamdomain.ErrPolicyNotFound
+		return entity.ErrPolicyNotFound
 	}
 	if err := r.syncDefaultPolicyVersionTx(ctx, tx, policyID, version); err != nil {
 		return err
@@ -501,7 +502,7 @@ func (r *PolicyRepositoryImpl) SetDefaultPolicyVersion(ctx context.Context, poli
 func (r *PolicyRepositoryImpl) ListRoleStatements(
 	ctx context.Context,
 	roleID uint64,
-) ([]iamdomain.PolicyStatement, error) {
+) ([]entity.PolicyStatement, error) {
 	var rows []policyStatementModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -522,7 +523,7 @@ func (r *PolicyRepositoryImpl) ListRoleStatements(
 func (r *PolicyRepositoryImpl) ListPlatformUserStatements(
 	ctx context.Context,
 	userID uint,
-) ([]iamdomain.PolicyStatement, error) {
+) ([]entity.PolicyStatement, error) {
 	var rows []policyStatementModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -567,7 +568,7 @@ func (r *PolicyRepositoryImpl) PutPlatformUserPermissionBoundary(
 func (r *PolicyRepositoryImpl) GetPlatformUserPermissionBoundary(
 	ctx context.Context,
 	userID uint,
-) (*iamdomain.PermissionBoundary, error) {
+) (*entity.PermissionBoundary, error) {
 	var row permissionBoundaryModel
 	if err := r.db.GetContext(
 		ctx,
@@ -589,7 +590,7 @@ func (r *PolicyRepositoryImpl) GetPlatformUserPermissionBoundary(
 func (r *PolicyRepositoryImpl) GetPlatformUserPermissionBoundaryStatements(
 	ctx context.Context,
 	userID uint,
-) ([]iamdomain.PolicyStatement, error) {
+) ([]entity.PolicyStatement, error) {
 	var rows []policyStatementModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -616,7 +617,7 @@ func (r *PolicyRepositoryImpl) ListTenantUserStatements(
 	ctx context.Context,
 	tenantID string,
 	userID uint,
-) ([]iamdomain.PolicyStatement, error) {
+) ([]entity.PolicyStatement, error) {
 	var rows []policyStatementModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -665,7 +666,7 @@ func (r *PolicyRepositoryImpl) GetTenantUserPermissionBoundary(
 	ctx context.Context,
 	tenantID string,
 	userID uint,
-) (*iamdomain.PermissionBoundary, error) {
+) (*entity.PermissionBoundary, error) {
 	var row permissionBoundaryModel
 	if err := r.db.GetContext(
 		ctx,
@@ -689,7 +690,7 @@ func (r *PolicyRepositoryImpl) GetTenantUserPermissionBoundaryStatements(
 	ctx context.Context,
 	tenantID string,
 	userID uint,
-) ([]iamdomain.PolicyStatement, error) {
+) ([]entity.PolicyStatement, error) {
 	var rows []policyStatementModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -749,7 +750,7 @@ func itoa(v int) string {
 func (r *PolicyRepositoryImpl) ListPlatformGroupStatements(
 	ctx context.Context,
 	userID uint,
-) ([]iamdomain.PolicyStatement, error) {
+) ([]entity.PolicyStatement, error) {
 	var rows []policyStatementModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -782,7 +783,7 @@ func (r *PolicyRepositoryImpl) ListTenantGroupStatements(
 	ctx context.Context,
 	tenantID string,
 	userID uint,
-) ([]iamdomain.PolicyStatement, error) {
+) ([]entity.PolicyStatement, error) {
 	var rows []policyStatementModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -835,7 +836,7 @@ func (r *PolicyRepositoryImpl) DetachPlatformUserPolicy(ctx context.Context, use
 	return err
 }
 
-func (r *PolicyRepositoryImpl) ListPlatformUserPolicies(ctx context.Context, userID uint) ([]iamdomain.Policy, error) {
+func (r *PolicyRepositoryImpl) ListPlatformUserPolicies(ctx context.Context, userID uint) ([]entity.Policy, error) {
 	var rows []policyModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -852,20 +853,20 @@ func (r *PolicyRepositoryImpl) ListPlatformUserPolicies(ctx context.Context, use
 	return toPolicies(rows), nil
 }
 
-func (r *PolicyRepositoryImpl) PutPlatformUserInlinePolicy(ctx context.Context, input iamdomain.PutPlatformUserInlinePolicyInput) error {
+func (r *PolicyRepositoryImpl) PutPlatformUserInlinePolicy(ctx context.Context, input entity.PutPlatformUserInlinePolicyInput) error {
 	return r.putUserInlinePolicy(ctx, userInlinePolicyModel{
-		Scope:       iamdomain.PolicyScopePlatform,
+		Scope:       entity.PolicyScopePlatform,
 		UserID:      input.UserID,
 		Name:        input.Name,
 		Description: input.Description,
 	}, input.Statements)
 }
 
-func (r *PolicyRepositoryImpl) GetPlatformUserInlinePolicy(ctx context.Context, userID uint, name string) (*iamdomain.UserInlinePolicy, error) {
+func (r *PolicyRepositoryImpl) GetPlatformUserInlinePolicy(ctx context.Context, userID uint, name string) (*entity.UserInlinePolicy, error) {
 	return r.getPlatformUserInlinePolicy(ctx, userID, name)
 }
 
-func (r *PolicyRepositoryImpl) ListPlatformUserInlinePolicies(ctx context.Context, userID uint) ([]iamdomain.UserInlinePolicy, error) {
+func (r *PolicyRepositoryImpl) ListPlatformUserInlinePolicies(ctx context.Context, userID uint) ([]entity.UserInlinePolicy, error) {
 	return r.listPlatformUserInlinePolicies(ctx, userID)
 }
 
@@ -904,7 +905,7 @@ func (r *PolicyRepositoryImpl) DetachTenantUserPolicy(ctx context.Context, tenan
 	return err
 }
 
-func (r *PolicyRepositoryImpl) ListTenantUserPolicies(ctx context.Context, tenantID string, userID uint) ([]iamdomain.Policy, error) {
+func (r *PolicyRepositoryImpl) ListTenantUserPolicies(ctx context.Context, tenantID string, userID uint) ([]entity.Policy, error) {
 	var rows []policyModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -922,9 +923,9 @@ func (r *PolicyRepositoryImpl) ListTenantUserPolicies(ctx context.Context, tenan
 	return toPolicies(rows), nil
 }
 
-func (r *PolicyRepositoryImpl) PutTenantUserInlinePolicy(ctx context.Context, input iamdomain.PutTenantUserInlinePolicyInput) error {
+func (r *PolicyRepositoryImpl) PutTenantUserInlinePolicy(ctx context.Context, input entity.PutTenantUserInlinePolicyInput) error {
 	return r.putUserInlinePolicy(ctx, userInlinePolicyModel{
-		Scope:       iamdomain.PolicyScopeTenant,
+		Scope:       entity.PolicyScopeTenant,
 		TenantID:    input.TenantID,
 		UserID:      input.UserID,
 		Name:        input.Name,
@@ -932,11 +933,11 @@ func (r *PolicyRepositoryImpl) PutTenantUserInlinePolicy(ctx context.Context, in
 	}, input.Statements)
 }
 
-func (r *PolicyRepositoryImpl) GetTenantUserInlinePolicy(ctx context.Context, tenantID string, userID uint, name string) (*iamdomain.UserInlinePolicy, error) {
+func (r *PolicyRepositoryImpl) GetTenantUserInlinePolicy(ctx context.Context, tenantID string, userID uint, name string) (*entity.UserInlinePolicy, error) {
 	return r.getTenantUserInlinePolicy(ctx, tenantID, userID, name)
 }
 
-func (r *PolicyRepositoryImpl) ListTenantUserInlinePolicies(ctx context.Context, tenantID string, userID uint) ([]iamdomain.UserInlinePolicy, error) {
+func (r *PolicyRepositoryImpl) ListTenantUserInlinePolicies(ctx context.Context, tenantID string, userID uint) ([]entity.UserInlinePolicy, error) {
 	return r.listTenantUserInlinePolicies(ctx, tenantID, userID)
 }
 
@@ -951,14 +952,14 @@ func (r *PolicyRepositoryImpl) DeleteTenantUserInlinePolicy(ctx context.Context,
 	return err
 }
 
-func (r *PolicyRepositoryImpl) putUserInlinePolicy(ctx context.Context, policy userInlinePolicyModel, statements []iamdomain.PolicyStatement) error {
+func (r *PolicyRepositoryImpl) putUserInlinePolicy(ctx context.Context, policy userInlinePolicyModel, statements []entity.PolicyStatement) error {
 	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	if policy.Scope == iamdomain.PolicyScopePlatform {
+	if policy.Scope == entity.PolicyScopePlatform {
 		if _, err := tx.ExecContext(
 			ctx,
 			`INSERT INTO iam_platform_user_inline_policies (user_id, name, description, created_at, updated_at)
@@ -1041,7 +1042,7 @@ func (r *PolicyRepositoryImpl) putUserInlinePolicy(ctx context.Context, policy u
 	return tx.Commit()
 }
 
-func (r *PolicyRepositoryImpl) getPlatformUserInlinePolicy(ctx context.Context, userID uint, name string) (*iamdomain.UserInlinePolicy, error) {
+func (r *PolicyRepositoryImpl) getPlatformUserInlinePolicy(ctx context.Context, userID uint, name string) (*entity.UserInlinePolicy, error) {
 	var policy userInlinePolicyModel
 	if err := r.db.GetContext(
 		ctx,
@@ -1053,7 +1054,7 @@ func (r *PolicyRepositoryImpl) getPlatformUserInlinePolicy(ctx context.Context, 
 		name,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, iamdomain.ErrPolicyNotFound
+			return nil, entity.ErrPolicyNotFound
 		}
 		return nil, err
 	}
@@ -1065,7 +1066,7 @@ func (r *PolicyRepositoryImpl) getPlatformUserInlinePolicy(ctx context.Context, 
 	return &entity, nil
 }
 
-func (r *PolicyRepositoryImpl) listPlatformUserInlinePolicies(ctx context.Context, userID uint) ([]iamdomain.UserInlinePolicy, error) {
+func (r *PolicyRepositoryImpl) listPlatformUserInlinePolicies(ctx context.Context, userID uint) ([]entity.UserInlinePolicy, error) {
 	var policies []userInlinePolicyModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -1078,7 +1079,7 @@ func (r *PolicyRepositoryImpl) listPlatformUserInlinePolicies(ctx context.Contex
 	); err != nil {
 		return nil, err
 	}
-	out := make([]iamdomain.UserInlinePolicy, 0, len(policies))
+	out := make([]entity.UserInlinePolicy, 0, len(policies))
 	for _, policy := range policies {
 		statements, err := r.listPlatformUserInlinePolicyStatements(ctx, userID, policy.Name)
 		if err != nil {
@@ -1089,7 +1090,7 @@ func (r *PolicyRepositoryImpl) listPlatformUserInlinePolicies(ctx context.Contex
 	return out, nil
 }
 
-func (r *PolicyRepositoryImpl) getTenantUserInlinePolicy(ctx context.Context, tenantID string, userID uint, name string) (*iamdomain.UserInlinePolicy, error) {
+func (r *PolicyRepositoryImpl) getTenantUserInlinePolicy(ctx context.Context, tenantID string, userID uint, name string) (*entity.UserInlinePolicy, error) {
 	var policy userInlinePolicyModel
 	if err := r.db.GetContext(
 		ctx,
@@ -1102,7 +1103,7 @@ func (r *PolicyRepositoryImpl) getTenantUserInlinePolicy(ctx context.Context, te
 		name,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, iamdomain.ErrPolicyNotFound
+			return nil, entity.ErrPolicyNotFound
 		}
 		return nil, err
 	}
@@ -1114,7 +1115,7 @@ func (r *PolicyRepositoryImpl) getTenantUserInlinePolicy(ctx context.Context, te
 	return &entity, nil
 }
 
-func (r *PolicyRepositoryImpl) listTenantUserInlinePolicies(ctx context.Context, tenantID string, userID uint) ([]iamdomain.UserInlinePolicy, error) {
+func (r *PolicyRepositoryImpl) listTenantUserInlinePolicies(ctx context.Context, tenantID string, userID uint) ([]entity.UserInlinePolicy, error) {
 	var policies []userInlinePolicyModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -1128,7 +1129,7 @@ func (r *PolicyRepositoryImpl) listTenantUserInlinePolicies(ctx context.Context,
 	); err != nil {
 		return nil, err
 	}
-	out := make([]iamdomain.UserInlinePolicy, 0, len(policies))
+	out := make([]entity.UserInlinePolicy, 0, len(policies))
 	for _, policy := range policies {
 		statements, err := r.listTenantUserInlinePolicyStatements(ctx, tenantID, userID, policy.Name)
 		if err != nil {
@@ -1139,7 +1140,7 @@ func (r *PolicyRepositoryImpl) listTenantUserInlinePolicies(ctx context.Context,
 	return out, nil
 }
 
-func (r *PolicyRepositoryImpl) listPlatformUserInlinePolicyStatements(ctx context.Context, userID uint, name string) ([]iamdomain.PolicyStatement, error) {
+func (r *PolicyRepositoryImpl) listPlatformUserInlinePolicyStatements(ctx context.Context, userID uint, name string) ([]entity.PolicyStatement, error) {
 	var rows []policyStatementModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -1156,7 +1157,7 @@ func (r *PolicyRepositoryImpl) listPlatformUserInlinePolicyStatements(ctx contex
 	return toPolicyStatements(rows), nil
 }
 
-func (r *PolicyRepositoryImpl) listTenantUserInlinePolicyStatements(ctx context.Context, tenantID string, userID uint, name string) ([]iamdomain.PolicyStatement, error) {
+func (r *PolicyRepositoryImpl) listTenantUserInlinePolicyStatements(ctx context.Context, tenantID string, userID uint, name string) ([]entity.PolicyStatement, error) {
 	var rows []policyStatementModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -1174,15 +1175,15 @@ func (r *PolicyRepositoryImpl) listTenantUserInlinePolicyStatements(ctx context.
 	return toPolicyStatements(rows), nil
 }
 
-func toPolicyStatements(rows []policyStatementModel) []iamdomain.PolicyStatement {
-	out := make([]iamdomain.PolicyStatement, 0, len(rows))
+func toPolicyStatements(rows []policyStatementModel) []entity.PolicyStatement {
+	out := make([]entity.PolicyStatement, 0, len(rows))
 	for _, row := range rows {
 		out = append(out, row.toEntity())
 	}
 	return out
 }
 
-func mustMarshalPolicyConditions(items []iamdomain.PolicyCondition) string {
+func mustMarshalPolicyConditions(items []entity.PolicyCondition) string {
 	if len(items) == 0 {
 		return "[]"
 	}
@@ -1193,19 +1194,19 @@ func mustMarshalPolicyConditions(items []iamdomain.PolicyCondition) string {
 	return string(data)
 }
 
-func parsePolicyConditionsJSON(raw string) []iamdomain.PolicyCondition {
+func parsePolicyConditionsJSON(raw string) []entity.PolicyCondition {
 	if raw == "" {
 		return nil
 	}
-	out := make([]iamdomain.PolicyCondition, 0)
+	out := make([]entity.PolicyCondition, 0)
 	if err := json.Unmarshal([]byte(raw), &out); err != nil {
 		return nil
 	}
 	return out
 }
 
-func toPolicies(rows []policyModel) []iamdomain.Policy {
-	out := make([]iamdomain.Policy, 0, len(rows))
+func toPolicies(rows []policyModel) []entity.Policy {
+	out := make([]entity.Policy, 0, len(rows))
 	for _, row := range rows {
 		out = append(out, row.toEntity())
 	}

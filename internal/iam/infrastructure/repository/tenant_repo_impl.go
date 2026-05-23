@@ -9,25 +9,26 @@ import (
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/fx"
 
-	iamdomain "github.com/tuannm99/podzone/internal/iam/domain"
+	entity "github.com/tuannm99/podzone/internal/iam/entity"
+	"github.com/tuannm99/podzone/internal/iam/outputport"
 )
 
 type repoParams struct {
 	fx.In
-	DB *sqlx.DB `name:"sql-auth"`
+	DB *sqlx.DB `name:"sql-iam"`
 }
 
 type TenantRepositoryImpl struct {
 	db *sqlx.DB
 }
 
-var _ iamdomain.TenantRepository = (*TenantRepositoryImpl)(nil)
+var _ outputport.TenantRepository = (*TenantRepositoryImpl)(nil)
 
-func NewTenantRepository(p repoParams) iamdomain.TenantRepository {
+func NewTenantRepository(p repoParams) outputport.TenantRepository {
 	return &TenantRepositoryImpl{db: p.DB}
 }
 
-func (r *TenantRepositoryImpl) Create(ctx context.Context, tenant iamdomain.Tenant) (*iamdomain.Tenant, error) {
+func (r *TenantRepositoryImpl) Create(ctx context.Context, tenant entity.Tenant) (*entity.Tenant, error) {
 	var out tenantModel
 	err := r.db.GetContext(
 		ctx,
@@ -44,11 +45,11 @@ func (r *TenantRepositoryImpl) Create(ctx context.Context, tenant iamdomain.Tena
 	)
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "unique constraint") {
-			return nil, iamdomain.ErrTenantSlugTaken
+			return nil, entity.ErrTenantSlugTaken
 		}
 		return nil, err
 	}
-	return &iamdomain.Tenant{
+	return &entity.Tenant{
 		ID:        out.ID,
 		Slug:      out.Slug,
 		Name:      out.Name,
@@ -58,15 +59,15 @@ func (r *TenantRepositoryImpl) Create(ctx context.Context, tenant iamdomain.Tena
 	}, nil
 }
 
-func (r *TenantRepositoryImpl) GetByID(ctx context.Context, tenantID string) (*iamdomain.Tenant, error) {
+func (r *TenantRepositoryImpl) GetByID(ctx context.Context, tenantID string) (*entity.Tenant, error) {
 	var out tenantModel
 	if err := r.db.GetContext(ctx, &out, `SELECT id, slug, name, org_id, created_at, updated_at FROM tenants WHERE id = $1`, tenantID); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, iamdomain.ErrTenantNotFound
+			return nil, entity.ErrTenantNotFound
 		}
 		return nil, err
 	}
-	return &iamdomain.Tenant{
+	return &entity.Tenant{
 		ID:        out.ID,
 		Slug:      out.Slug,
 		Name:      out.Name,

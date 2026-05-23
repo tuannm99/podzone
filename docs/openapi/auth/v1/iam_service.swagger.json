@@ -48,6 +48,38 @@
         ]
       }
     },
+    "/auth/v1/iam/assume-role": {
+      "post": {
+        "operationId": "IAMService_AssumeRole",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/authIAMAssumeRoleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/authIAMAssumeRoleRequest"
+            }
+          }
+        ],
+        "tags": [
+          "IAMService"
+        ]
+      }
+    },
     "/auth/v1/iam/groups": {
       "get": {
         "operationId": "IAMService_ListGroups",
@@ -3117,6 +3149,86 @@
           "type": "string"
         },
         "updatedAt": {
+          "type": "string"
+        }
+      }
+    },
+    "authIAMAssumeRoleRequest": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "roleName": {
+          "type": "string"
+        },
+        "tenantId": {
+          "type": "string"
+        },
+        "externalId": {
+          "type": "string"
+        },
+        "sessionName": {
+          "type": "string"
+        },
+        "sourceIdentity": {
+          "type": "string"
+        },
+        "durationSeconds": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "servicePrincipal": {
+          "type": "string"
+        },
+        "sessionTags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "authIAMAssumeRoleResponse": {
+      "type": "object",
+      "properties": {
+        "assumedRole": {
+          "$ref": "#/definitions/authIAMAssumedRole"
+        }
+      }
+    },
+    "authIAMAssumedRole": {
+      "type": "object",
+      "properties": {
+        "roleId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "roleScope": {
+          "type": "string"
+        },
+        "roleName": {
+          "type": "string"
+        },
+        "tenantId": {
+          "type": "string"
+        },
+        "servicePrincipal": {
+          "type": "string"
+        },
+        "sessionName": {
+          "type": "string"
+        },
+        "sourceIdentity": {
+          "type": "string"
+        },
+        "sessionTags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "expiresAt": {
           "type": "string"
         }
       }

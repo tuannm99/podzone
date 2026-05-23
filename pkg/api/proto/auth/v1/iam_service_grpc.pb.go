@@ -19,6 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	IAMService_AssumeRole_FullMethodName                           = "/auth.IAMService/AssumeRole"
 	IAMService_CreateTenant_FullMethodName                         = "/auth.IAMService/CreateTenant"
 	IAMService_CreateOrganization_FullMethodName                   = "/auth.IAMService/CreateOrganization"
 	IAMService_ListOrganizations_FullMethodName                    = "/auth.IAMService/ListOrganizations"
@@ -100,6 +101,7 @@ const (
 // IAMService owns tenant memberships, role bindings, and permission evaluation.
 // It is intentionally separate from AuthService so it can scale and deploy independently.
 type IAMServiceClient interface {
+	AssumeRole(ctx context.Context, in *IAMAssumeRoleRequest, opts ...grpc.CallOption) (*IAMAssumeRoleResponse, error)
 	CreateTenant(ctx context.Context, in *CreateTenantRequest, opts ...grpc.CallOption) (*CreateTenantResponse, error)
 	CreateOrganization(ctx context.Context, in *CreateOrganizationRequest, opts ...grpc.CallOption) (*CreateOrganizationResponse, error)
 	ListOrganizations(ctx context.Context, in *ListOrganizationsRequest, opts ...grpc.CallOption) (*ListOrganizationsResponse, error)
@@ -180,6 +182,16 @@ type iAMServiceClient struct {
 
 func NewIAMServiceClient(cc grpc.ClientConnInterface) IAMServiceClient {
 	return &iAMServiceClient{cc}
+}
+
+func (c *iAMServiceClient) AssumeRole(ctx context.Context, in *IAMAssumeRoleRequest, opts ...grpc.CallOption) (*IAMAssumeRoleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(IAMAssumeRoleResponse)
+	err := c.cc.Invoke(ctx, IAMService_AssumeRole_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *iAMServiceClient) CreateTenant(ctx context.Context, in *CreateTenantRequest, opts ...grpc.CallOption) (*CreateTenantResponse, error) {
@@ -909,6 +921,7 @@ func (c *iAMServiceClient) SimulateAccess(ctx context.Context, in *SimulateAcces
 // IAMService owns tenant memberships, role bindings, and permission evaluation.
 // It is intentionally separate from AuthService so it can scale and deploy independently.
 type IAMServiceServer interface {
+	AssumeRole(context.Context, *IAMAssumeRoleRequest) (*IAMAssumeRoleResponse, error)
 	CreateTenant(context.Context, *CreateTenantRequest) (*CreateTenantResponse, error)
 	CreateOrganization(context.Context, *CreateOrganizationRequest) (*CreateOrganizationResponse, error)
 	ListOrganizations(context.Context, *ListOrganizationsRequest) (*ListOrganizationsResponse, error)
@@ -991,6 +1004,9 @@ type IAMServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedIAMServiceServer struct{}
 
+func (UnimplementedIAMServiceServer) AssumeRole(context.Context, *IAMAssumeRoleRequest) (*IAMAssumeRoleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AssumeRole not implemented")
+}
 func (UnimplementedIAMServiceServer) CreateTenant(context.Context, *CreateTenantRequest) (*CreateTenantResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateTenant not implemented")
 }
@@ -1226,6 +1242,24 @@ func RegisterIAMServiceServer(s grpc.ServiceRegistrar, srv IAMServiceServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&IAMService_ServiceDesc, srv)
+}
+
+func _IAMService_AssumeRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IAMAssumeRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).AssumeRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_AssumeRole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).AssumeRole(ctx, req.(*IAMAssumeRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _IAMService_CreateTenant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -2531,6 +2565,10 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "auth.IAMService",
 	HandlerType: (*IAMServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "AssumeRole",
+			Handler:    _IAMService_AssumeRole_Handler,
+		},
 		{
 			MethodName: "CreateTenant",
 			Handler:    _IAMService_CreateTenant_Handler,

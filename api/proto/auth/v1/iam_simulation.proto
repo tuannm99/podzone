@@ -44,3 +44,31 @@ message SimulateDecisionLayer {
   string reason = 3;
   repeated SimulateMatchedStatement matched_statements = 4;
 }
+
+message IAMAssumeRoleRequest {
+  string access_token = 1;
+  string role_name = 2;
+  string tenant_id = 3;
+  string external_id = 4;
+  string session_name = 5;
+  string source_identity = 6;
+  uint32 duration_seconds = 7;
+  string service_principal = 8;
+  map<string, string> session_tags = 9;
+}
+
+message IAMAssumedRole {
+  uint64 role_id = 1;
+  string role_scope = 2;
+  string role_name = 3;
+  string tenant_id = 4;
+  string service_principal = 5;
+  string session_name = 6;
+  string source_identity = 7;
+  map<string, string> session_tags = 8;
+  string expires_at = 9;
+}
+
+message IAMAssumeRoleResponse {
+  IAMAssumedRole assumed_role = 1;
+}

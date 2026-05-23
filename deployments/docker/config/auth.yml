@@ -4,6 +4,11 @@ logger:
   level: 'debug'
   env: 'dev'
 
+auth:
+  iam:
+    grpc_host: iam-service
+    grpc_port: '50053'
+
 redis:
   auth:
     uri: redis://redis:6379/0
@@ -13,6 +18,24 @@ sql:
     uri: postgres://postgres:postgres@postgres:5432/auth?sslmode=disable
     provider: postgres
     should_run_migration: true
+
+kafka:
+  auth:
+    brokers:
+      - kafka:9092
+    client_id: podzone-auth
+    version: 3.7.0
+    required_acks: all
+    compression: zstd
+    auto_create_topics: false
+    consumer_group_prefix: podzone.auth
+    sasl:
+      enabled: false
+      mechanism: ''
+      username: ''
+      password: ''
+    tls:
+      enabled: false
 
 grpc:
   port: 50051
