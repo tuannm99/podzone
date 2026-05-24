@@ -55,6 +55,7 @@ type ComplexityRoot struct {
 		CreateRoutedOrder                 func(childComplexity int, input model.CreateRoutedOrderInput) int
 		CreateStore                       func(childComplexity int, input model.CreateStoreInput) int
 		DeactivateStore                   func(childComplexity int, id string) int
+		ForceRerouteBlockedOrder          func(childComplexity int, input model.ForceRerouteBlockedOrderInput) int
 		OpenOrderException                func(childComplexity int, input model.OpenOrderExceptionInput) int
 		PromoteProductSetupCandidate      func(childComplexity int, input model.PromoteProductSetupCandidateInput) int
 		UpdateOrderExceptionStatus        func(childComplexity int, input model.UpdateOrderExceptionStatusInput) int
@@ -162,6 +163,8 @@ type ComplexityRoot struct {
 		ProductTitle           func(childComplexity int) int
 		Quantity               func(childComplexity int) int
 		RealizedMargin         func(childComplexity int) int
+		RoutingBlockCode       func(childComplexity int) int
+		RoutingBlockReason     func(childComplexity int) int
 		SettlementNotes        func(childComplexity int) int
 		SettlementStatus       func(childComplexity int) int
 		ShipmentCarrier        func(childComplexity int) int
@@ -206,14 +209,16 @@ type ComplexityRoot struct {
 	}
 
 	RoutedOrderRecommendation struct {
-		CandidateID      func(childComplexity int) int
-		CandidatePartner func(childComplexity int) int
-		Options          func(childComplexity int) int
-		ProductTitle     func(childComplexity int) int
-		ProductType      func(childComplexity int) int
-		SelectedPartner  func(childComplexity int) int
-		ShipRegion       func(childComplexity int) int
-		Summary          func(childComplexity int) int
+		BlockedReason     func(childComplexity int) int
+		BlockedReasonCode func(childComplexity int) int
+		CandidateID       func(childComplexity int) int
+		CandidatePartner  func(childComplexity int) int
+		Options           func(childComplexity int) int
+		ProductTitle      func(childComplexity int) int
+		ProductType       func(childComplexity int) int
+		SelectedPartner   func(childComplexity int) int
+		ShipRegion        func(childComplexity int) int
+		Summary           func(childComplexity int) int
 	}
 
 	RoutingPartnerOption struct {
@@ -242,6 +247,7 @@ type MutationResolver interface {
 	PromoteProductSetupCandidate(ctx context.Context, input model.PromoteProductSetupCandidateInput) (*model.ProductSetupCandidate, error)
 	UpdateProductSetupCandidateStatus(ctx context.Context, id string, status string) (*model.ProductSetupCandidate, error)
 	CreateRoutedOrder(ctx context.Context, input model.CreateRoutedOrderInput) (*model.RoutedOrder, error)
+	ForceRerouteBlockedOrder(ctx context.Context, input model.ForceRerouteBlockedOrderInput) (*model.RoutedOrder, error)
 	AdvanceRoutedOrder(ctx context.Context, id string) (*model.RoutedOrder, error)
 	OpenOrderException(ctx context.Context, input model.OpenOrderExceptionInput) (*model.RoutedOrder, error)
 	UpdateOrderExceptionStatus(ctx context.Context, input model.UpdateOrderExceptionStatusInput) (*model.RoutedOrder, error)
@@ -359,6 +365,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.DeactivateStore(childComplexity, args["id"].(string)), true
+	case "Mutation.forceRerouteBlockedOrder":
+		if e.complexity.Mutation.ForceRerouteBlockedOrder == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_forceRerouteBlockedOrder_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ForceRerouteBlockedOrder(childComplexity, args["input"].(model.ForceRerouteBlockedOrderInput)), true
 	case "Mutation.openOrderException":
 		if e.complexity.Mutation.OpenOrderException == nil {
 			break
@@ -903,6 +920,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.RoutedOrder.RealizedMargin(childComplexity), true
+	case "RoutedOrder.routingBlockCode":
+		if e.complexity.RoutedOrder.RoutingBlockCode == nil {
+			break
+		}
+
+		return e.complexity.RoutedOrder.RoutingBlockCode(childComplexity), true
+	case "RoutedOrder.routingBlockReason":
+		if e.complexity.RoutedOrder.RoutingBlockReason == nil {
+			break
+		}
+
+		return e.complexity.RoutedOrder.RoutingBlockReason(childComplexity), true
 	case "RoutedOrder.settlementNotes":
 		if e.complexity.RoutedOrder.SettlementNotes == nil {
 			break
@@ -1082,6 +1111,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.RoutedOrderActivityFeedPage.Total(childComplexity), true
 
+	case "RoutedOrderRecommendation.blockedReason":
+		if e.complexity.RoutedOrderRecommendation.BlockedReason == nil {
+			break
+		}
+
+		return e.complexity.RoutedOrderRecommendation.BlockedReason(childComplexity), true
+	case "RoutedOrderRecommendation.blockedReasonCode":
+		if e.complexity.RoutedOrderRecommendation.BlockedReasonCode == nil {
+			break
+		}
+
+		return e.complexity.RoutedOrderRecommendation.BlockedReasonCode(childComplexity), true
 	case "RoutedOrderRecommendation.candidateId":
 		if e.complexity.RoutedOrderRecommendation.CandidateID == nil {
 			break
@@ -1229,6 +1270,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCreateProductSetupDraftInput,
 		ec.unmarshalInputCreateRoutedOrderInput,
 		ec.unmarshalInputCreateStoreInput,
+		ec.unmarshalInputForceRerouteBlockedOrderInput,
 		ec.unmarshalInputOpenOrderExceptionInput,
 		ec.unmarshalInputProductSetupArtworkChecklistInput,
 		ec.unmarshalInputPromoteProductSetupCandidateInput,
@@ -1491,6 +1533,8 @@ type RoutedOrderRecommendation {
   productType: String!
   shipRegion: String!
   selectedPartner: String!
+  blockedReasonCode: String!
+  blockedReason: String!
   summary: String!
   options: [RoutingPartnerOption!]!
 }
@@ -1516,6 +1560,8 @@ type RoutedOrder {
   operatorAssignee: String!
   shipmentSlaDueAt: Time
   issueSlaDueAt: Time
+  routingBlockCode: String!
+  routingBlockReason: String!
   baseCostSnapshot: String!
   fulfillmentCost: String!
   shippingCost: String!
@@ -1550,6 +1596,11 @@ input RoutedOrderRecommendationInput {
 input OpenOrderExceptionInput {
   orderId: ID!
   exceptionType: String!
+}
+
+input ForceRerouteBlockedOrderInput {
+  orderId: ID!
+  preferredPartner: String!
 }
 
 input UpdateOrderExceptionStatusInput {
@@ -1619,6 +1670,7 @@ extend type Query {
 
 extend type Mutation {
   createRoutedOrder(input: CreateRoutedOrderInput!): RoutedOrder!
+  forceRerouteBlockedOrder(input: ForceRerouteBlockedOrderInput!): RoutedOrder!
   advanceRoutedOrder(id: ID!): RoutedOrder!
   openOrderException(input: OpenOrderExceptionInput!): RoutedOrder!
   updateOrderExceptionStatus(
@@ -1739,6 +1791,17 @@ func (ec *executionContext) field_Mutation_deactivateStore_args(ctx context.Cont
 		return nil, err
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_forceRerouteBlockedOrder_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNForceRerouteBlockedOrderInput2githubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐForceRerouteBlockedOrderInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -2199,6 +2262,10 @@ func (ec *executionContext) fieldContext_Mutation_createRoutedOrder(ctx context.
 				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
 			case "issueSlaDueAt":
 				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
+			case "routingBlockCode":
+				return ec.fieldContext_RoutedOrder_routingBlockCode(ctx, field)
+			case "routingBlockReason":
+				return ec.fieldContext_RoutedOrder_routingBlockReason(ctx, field)
 			case "baseCostSnapshot":
 				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
 			case "fulfillmentCost":
@@ -2237,6 +2304,119 @@ func (ec *executionContext) fieldContext_Mutation_createRoutedOrder(ctx context.
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createRoutedOrder_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_forceRerouteBlockedOrder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Mutation_forceRerouteBlockedOrder,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Mutation().ForceRerouteBlockedOrder(ctx, fc.Args["input"].(model.ForceRerouteBlockedOrderInput))
+		},
+		nil,
+		ec.marshalNRoutedOrder2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐRoutedOrder,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Mutation_forceRerouteBlockedOrder(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_RoutedOrder_id(ctx, field)
+			case "candidateId":
+				return ec.fieldContext_RoutedOrder_candidateId(ctx, field)
+			case "productTitle":
+				return ec.fieldContext_RoutedOrder_productTitle(ctx, field)
+			case "partner":
+				return ec.fieldContext_RoutedOrder_partner(ctx, field)
+			case "quantity":
+				return ec.fieldContext_RoutedOrder_quantity(ctx, field)
+			case "total":
+				return ec.fieldContext_RoutedOrder_total(ctx, field)
+			case "customerName":
+				return ec.fieldContext_RoutedOrder_customerName(ctx, field)
+			case "status":
+				return ec.fieldContext_RoutedOrder_status(ctx, field)
+			case "timeline":
+				return ec.fieldContext_RoutedOrder_timeline(ctx, field)
+			case "activityLog":
+				return ec.fieldContext_RoutedOrder_activityLog(ctx, field)
+			case "exceptionType":
+				return ec.fieldContext_RoutedOrder_exceptionType(ctx, field)
+			case "exceptionStatus":
+				return ec.fieldContext_RoutedOrder_exceptionStatus(ctx, field)
+			case "shipmentStatus":
+				return ec.fieldContext_RoutedOrder_shipmentStatus(ctx, field)
+			case "shipmentCarrier":
+				return ec.fieldContext_RoutedOrder_shipmentCarrier(ctx, field)
+			case "shipmentTrackingNumber":
+				return ec.fieldContext_RoutedOrder_shipmentTrackingNumber(ctx, field)
+			case "shipmentTrackingUrl":
+				return ec.fieldContext_RoutedOrder_shipmentTrackingUrl(ctx, field)
+			case "shipmentNotes":
+				return ec.fieldContext_RoutedOrder_shipmentNotes(ctx, field)
+			case "operatorAssignee":
+				return ec.fieldContext_RoutedOrder_operatorAssignee(ctx, field)
+			case "shipmentSlaDueAt":
+				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
+			case "issueSlaDueAt":
+				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
+			case "routingBlockCode":
+				return ec.fieldContext_RoutedOrder_routingBlockCode(ctx, field)
+			case "routingBlockReason":
+				return ec.fieldContext_RoutedOrder_routingBlockReason(ctx, field)
+			case "baseCostSnapshot":
+				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
+			case "fulfillmentCost":
+				return ec.fieldContext_RoutedOrder_fulfillmentCost(ctx, field)
+			case "shippingCost":
+				return ec.fieldContext_RoutedOrder_shippingCost(ctx, field)
+			case "issueCost":
+				return ec.fieldContext_RoutedOrder_issueCost(ctx, field)
+			case "issueResolution":
+				return ec.fieldContext_RoutedOrder_issueResolution(ctx, field)
+			case "issueNotes":
+				return ec.fieldContext_RoutedOrder_issueNotes(ctx, field)
+			case "realizedMargin":
+				return ec.fieldContext_RoutedOrder_realizedMargin(ctx, field)
+			case "settlementStatus":
+				return ec.fieldContext_RoutedOrder_settlementStatus(ctx, field)
+			case "settlementNotes":
+				return ec.fieldContext_RoutedOrder_settlementNotes(ctx, field)
+			case "shippedAt":
+				return ec.fieldContext_RoutedOrder_shippedAt(ctx, field)
+			case "deliveredAt":
+				return ec.fieldContext_RoutedOrder_deliveredAt(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_RoutedOrder_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_RoutedOrder_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RoutedOrder", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_forceRerouteBlockedOrder_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -2308,6 +2488,10 @@ func (ec *executionContext) fieldContext_Mutation_advanceRoutedOrder(ctx context
 				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
 			case "issueSlaDueAt":
 				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
+			case "routingBlockCode":
+				return ec.fieldContext_RoutedOrder_routingBlockCode(ctx, field)
+			case "routingBlockReason":
+				return ec.fieldContext_RoutedOrder_routingBlockReason(ctx, field)
 			case "baseCostSnapshot":
 				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
 			case "fulfillmentCost":
@@ -2417,6 +2601,10 @@ func (ec *executionContext) fieldContext_Mutation_openOrderException(ctx context
 				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
 			case "issueSlaDueAt":
 				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
+			case "routingBlockCode":
+				return ec.fieldContext_RoutedOrder_routingBlockCode(ctx, field)
+			case "routingBlockReason":
+				return ec.fieldContext_RoutedOrder_routingBlockReason(ctx, field)
 			case "baseCostSnapshot":
 				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
 			case "fulfillmentCost":
@@ -2526,6 +2714,10 @@ func (ec *executionContext) fieldContext_Mutation_updateOrderExceptionStatus(ctx
 				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
 			case "issueSlaDueAt":
 				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
+			case "routingBlockCode":
+				return ec.fieldContext_RoutedOrder_routingBlockCode(ctx, field)
+			case "routingBlockReason":
+				return ec.fieldContext_RoutedOrder_routingBlockReason(ctx, field)
 			case "baseCostSnapshot":
 				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
 			case "fulfillmentCost":
@@ -2635,6 +2827,10 @@ func (ec *executionContext) fieldContext_Mutation_updateOrderShipment(ctx contex
 				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
 			case "issueSlaDueAt":
 				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
+			case "routingBlockCode":
+				return ec.fieldContext_RoutedOrder_routingBlockCode(ctx, field)
+			case "routingBlockReason":
+				return ec.fieldContext_RoutedOrder_routingBlockReason(ctx, field)
 			case "baseCostSnapshot":
 				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
 			case "fulfillmentCost":
@@ -2744,6 +2940,10 @@ func (ec *executionContext) fieldContext_Mutation_updateOrderSettlement(ctx cont
 				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
 			case "issueSlaDueAt":
 				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
+			case "routingBlockCode":
+				return ec.fieldContext_RoutedOrder_routingBlockCode(ctx, field)
+			case "routingBlockReason":
+				return ec.fieldContext_RoutedOrder_routingBlockReason(ctx, field)
 			case "baseCostSnapshot":
 				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
 			case "fulfillmentCost":
@@ -2853,6 +3053,10 @@ func (ec *executionContext) fieldContext_Mutation_updateOrderIssueHandling(ctx c
 				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
 			case "issueSlaDueAt":
 				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
+			case "routingBlockCode":
+				return ec.fieldContext_RoutedOrder_routingBlockCode(ctx, field)
+			case "routingBlockReason":
+				return ec.fieldContext_RoutedOrder_routingBlockReason(ctx, field)
 			case "baseCostSnapshot":
 				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
 			case "fulfillmentCost":
@@ -2962,6 +3166,10 @@ func (ec *executionContext) fieldContext_Mutation_updateOrderQueueControl(ctx co
 				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
 			case "issueSlaDueAt":
 				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
+			case "routingBlockCode":
+				return ec.fieldContext_RoutedOrder_routingBlockCode(ctx, field)
+			case "routingBlockReason":
+				return ec.fieldContext_RoutedOrder_routingBlockReason(ctx, field)
 			case "baseCostSnapshot":
 				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
 			case "fulfillmentCost":
@@ -3071,6 +3279,10 @@ func (ec *executionContext) fieldContext_Mutation_bulkUpdateRoutedOrders(ctx con
 				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
 			case "issueSlaDueAt":
 				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
+			case "routingBlockCode":
+				return ec.fieldContext_RoutedOrder_routingBlockCode(ctx, field)
+			case "routingBlockReason":
+				return ec.fieldContext_RoutedOrder_routingBlockReason(ctx, field)
 			case "baseCostSnapshot":
 				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
 			case "fulfillmentCost":
@@ -4832,6 +5044,10 @@ func (ec *executionContext) fieldContext_Query_routedOrders(_ context.Context, f
 				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
 			case "issueSlaDueAt":
 				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
+			case "routingBlockCode":
+				return ec.fieldContext_RoutedOrder_routingBlockCode(ctx, field)
+			case "routingBlockReason":
+				return ec.fieldContext_RoutedOrder_routingBlockReason(ctx, field)
 			case "baseCostSnapshot":
 				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
 			case "fulfillmentCost":
@@ -4951,6 +5167,10 @@ func (ec *executionContext) fieldContext_Query_routedOrderRecommendation(ctx con
 				return ec.fieldContext_RoutedOrderRecommendation_shipRegion(ctx, field)
 			case "selectedPartner":
 				return ec.fieldContext_RoutedOrderRecommendation_selectedPartner(ctx, field)
+			case "blockedReasonCode":
+				return ec.fieldContext_RoutedOrderRecommendation_blockedReasonCode(ctx, field)
+			case "blockedReason":
+				return ec.fieldContext_RoutedOrderRecommendation_blockedReason(ctx, field)
 			case "summary":
 				return ec.fieldContext_RoutedOrderRecommendation_summary(ctx, field)
 			case "options":
@@ -5774,6 +5994,64 @@ func (ec *executionContext) fieldContext_RoutedOrder_issueSlaDueAt(_ context.Con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutedOrder_routingBlockCode(ctx context.Context, field graphql.CollectedField, obj *model.RoutedOrder) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutedOrder_routingBlockCode,
+		func(ctx context.Context) (any, error) {
+			return obj.RoutingBlockCode, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutedOrder_routingBlockCode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutedOrder",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutedOrder_routingBlockReason(ctx context.Context, field graphql.CollectedField, obj *model.RoutedOrder) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutedOrder_routingBlockReason,
+		func(ctx context.Context) (any, error) {
+			return obj.RoutingBlockReason, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutedOrder_routingBlockReason(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutedOrder",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -6783,6 +7061,64 @@ func (ec *executionContext) _RoutedOrderRecommendation_selectedPartner(ctx conte
 }
 
 func (ec *executionContext) fieldContext_RoutedOrderRecommendation_selectedPartner(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutedOrderRecommendation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutedOrderRecommendation_blockedReasonCode(ctx context.Context, field graphql.CollectedField, obj *model.RoutedOrderRecommendation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutedOrderRecommendation_blockedReasonCode,
+		func(ctx context.Context) (any, error) {
+			return obj.BlockedReasonCode, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutedOrderRecommendation_blockedReasonCode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutedOrderRecommendation",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutedOrderRecommendation_blockedReason(ctx context.Context, field graphql.CollectedField, obj *model.RoutedOrderRecommendation) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutedOrderRecommendation_blockedReason,
+		func(ctx context.Context) (any, error) {
+			return obj.BlockedReason, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutedOrderRecommendation_blockedReason(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "RoutedOrderRecommendation",
 		Field:      field,
@@ -8949,6 +9285,40 @@ func (ec *executionContext) unmarshalInputCreateStoreInput(ctx context.Context, 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputForceRerouteBlockedOrderInput(ctx context.Context, obj any) (model.ForceRerouteBlockedOrderInput, error) {
+	var it model.ForceRerouteBlockedOrderInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"orderId", "preferredPartner"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "orderId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("orderId"))
+			data, err := ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.OrderID = data
+		case "preferredPartner":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("preferredPartner"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PreferredPartner = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputOpenOrderExceptionInput(ctx context.Context, obj any) (model.OpenOrderExceptionInput, error) {
 	var it model.OpenOrderExceptionInput
 	asMap := map[string]any{}
@@ -9522,6 +9892,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "createRoutedOrder":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createRoutedOrder(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "forceRerouteBlockedOrder":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_forceRerouteBlockedOrder(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -10383,6 +10760,16 @@ func (ec *executionContext) _RoutedOrder(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._RoutedOrder_shipmentSlaDueAt(ctx, field, obj)
 		case "issueSlaDueAt":
 			out.Values[i] = ec._RoutedOrder_issueSlaDueAt(ctx, field, obj)
+		case "routingBlockCode":
+			out.Values[i] = ec._RoutedOrder_routingBlockCode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "routingBlockReason":
+			out.Values[i] = ec._RoutedOrder_routingBlockReason(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "baseCostSnapshot":
 			out.Values[i] = ec._RoutedOrder_baseCostSnapshot(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -10711,6 +11098,16 @@ func (ec *executionContext) _RoutedOrderRecommendation(ctx context.Context, sel 
 			}
 		case "selectedPartner":
 			out.Values[i] = ec._RoutedOrderRecommendation_selectedPartner(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "blockedReasonCode":
+			out.Values[i] = ec._RoutedOrderRecommendation_blockedReasonCode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "blockedReason":
+			out.Values[i] = ec._RoutedOrderRecommendation_blockedReason(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -11253,6 +11650,11 @@ func (ec *executionContext) unmarshalNCreateRoutedOrderInput2githubᚗcomᚋtuan
 
 func (ec *executionContext) unmarshalNCreateStoreInput2githubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐCreateStoreInput(ctx context.Context, v any) (model.CreateStoreInput, error) {
 	res, err := ec.unmarshalInputCreateStoreInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNForceRerouteBlockedOrderInput2githubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐForceRerouteBlockedOrderInput(ctx context.Context, v any) (model.ForceRerouteBlockedOrderInput, error) {
+	res, err := ec.unmarshalInputForceRerouteBlockedOrderInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 

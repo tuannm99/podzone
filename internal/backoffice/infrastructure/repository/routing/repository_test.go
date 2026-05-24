@@ -94,6 +94,8 @@ func TestOrderRoutingRepositoryPersistsTenantScopedOrders(t *testing.T) {
 		OperatorAssignee:       "ops.lead",
 		ShipmentSlaDueAt:       &shipmentSLA,
 		IssueSlaDueAt:          &issueSLA,
+		RoutingBlockCode:       "",
+		RoutingBlockReason:     "",
 		BaseCostSnapshot:       "$16.00",
 		FulfillmentCost:        "$18.00",
 		ShippingCost:           "$5.50",
@@ -122,6 +124,8 @@ func TestOrderRoutingRepositoryPersistsTenantScopedOrders(t *testing.T) {
 	require.True(t, got.ShipmentSlaDueAt.Equal(shipmentSLA))
 	require.NotNil(t, got.IssueSlaDueAt)
 	require.True(t, got.IssueSlaDueAt.Equal(issueSLA))
+	require.Equal(t, "", got.RoutingBlockCode)
+	require.Equal(t, "", got.RoutingBlockReason)
 	require.NotNil(t, got.ShippedAt)
 	require.True(t, got.ShippedAt.Equal(shippedAt))
 	require.NotNil(t, got.DeliveredAt)

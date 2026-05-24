@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/generated/model"
 )
@@ -57,7 +58,7 @@ func (r *queryResolver) Store(ctx context.Context, id string) (*model.Store, err
 		return nil, err
 	}
 	if store == nil {
-		return nil, nil
+		return nil, fmt.Errorf("store not found")
 	}
 	return toGraphQLStore(*store), nil
 }

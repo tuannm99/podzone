@@ -57,6 +57,8 @@ type routedOrderRow struct {
 	OperatorAssignee       string       `db:"operator_assignee"`
 	ShipmentSlaDueAt       sql.NullTime `db:"shipment_sla_due_at"`
 	IssueSlaDueAt          sql.NullTime `db:"issue_sla_due_at"`
+	RoutingBlockCode       string       `db:"routing_block_code"`
+	RoutingBlockReason     string       `db:"routing_block_reason"`
 	BaseCostSnapshot       string       `db:"base_cost_snapshot"`
 	FulfillmentCost        string       `db:"fulfillment_cost"`
 	ShippingCost           string       `db:"shipping_cost"`
@@ -107,6 +109,8 @@ func (r *OrderRoutingRepositoryImpl) List(ctx context.Context) ([]routingentity.
 			"operator_assignee",
 			"shipment_sla_due_at",
 			"issue_sla_due_at",
+			"routing_block_code",
+			"routing_block_reason",
 			"base_cost_snapshot",
 			"fulfillment_cost",
 			"shipping_cost",
@@ -177,6 +181,8 @@ func (r *OrderRoutingRepositoryImpl) GetByID(ctx context.Context, id string) (*r
 			"operator_assignee",
 			"shipment_sla_due_at",
 			"issue_sla_due_at",
+			"routing_block_code",
+			"routing_block_reason",
 			"base_cost_snapshot",
 			"fulfillment_cost",
 			"shipping_cost",
@@ -347,8 +353,8 @@ func (r *OrderRoutingRepositoryImpl) Create(
 	}
 	query, args, err := psql.
 		Insert("routed_orders").
-		Columns("id", "candidate_id", "product_title", "partner", "quantity", "total", "customer_name", "status", "timeline_json", "exception_type", "exception_status", "shipment_status", "shipment_carrier", "shipment_tracking_number", "shipment_tracking_url", "shipment_notes", "operator_assignee", "shipment_sla_due_at", "issue_sla_due_at", "base_cost_snapshot", "fulfillment_cost", "shipping_cost", "issue_cost", "issue_resolution", "issue_notes", "realized_margin", "settlement_status", "settlement_notes", "shipped_at", "delivered_at", "created_at", "updated_at").
-		Values(order.ID, order.CandidateID, order.ProductTitle, order.Partner, order.Quantity, order.Total, order.CustomerName, order.Status, string(timelineJSON), order.ExceptionType, order.ExceptionStatus, order.ShipmentStatus, order.ShipmentCarrier, order.ShipmentTrackingNumber, order.ShipmentTrackingURL, order.ShipmentNotes, order.OperatorAssignee, order.ShipmentSlaDueAt, order.IssueSlaDueAt, order.BaseCostSnapshot, order.FulfillmentCost, order.ShippingCost, order.IssueCost, order.IssueResolution, order.IssueNotes, order.RealizedMargin, order.SettlementStatus, order.SettlementNotes, order.ShippedAt, order.DeliveredAt, order.CreatedAt, order.UpdatedAt).
+		Columns("id", "candidate_id", "product_title", "partner", "quantity", "total", "customer_name", "status", "timeline_json", "exception_type", "exception_status", "shipment_status", "shipment_carrier", "shipment_tracking_number", "shipment_tracking_url", "shipment_notes", "operator_assignee", "shipment_sla_due_at", "issue_sla_due_at", "routing_block_code", "routing_block_reason", "base_cost_snapshot", "fulfillment_cost", "shipping_cost", "issue_cost", "issue_resolution", "issue_notes", "realized_margin", "settlement_status", "settlement_notes", "shipped_at", "delivered_at", "created_at", "updated_at").
+		Values(order.ID, order.CandidateID, order.ProductTitle, order.Partner, order.Quantity, order.Total, order.CustomerName, order.Status, string(timelineJSON), order.ExceptionType, order.ExceptionStatus, order.ShipmentStatus, order.ShipmentCarrier, order.ShipmentTrackingNumber, order.ShipmentTrackingURL, order.ShipmentNotes, order.OperatorAssignee, order.ShipmentSlaDueAt, order.IssueSlaDueAt, order.RoutingBlockCode, order.RoutingBlockReason, order.BaseCostSnapshot, order.FulfillmentCost, order.ShippingCost, order.IssueCost, order.IssueResolution, order.IssueNotes, order.RealizedMargin, order.SettlementStatus, order.SettlementNotes, order.ShippedAt, order.DeliveredAt, order.CreatedAt, order.UpdatedAt).
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -395,6 +401,8 @@ func (r *OrderRoutingRepositoryImpl) Update(
 		Set("operator_assignee", order.OperatorAssignee).
 		Set("shipment_sla_due_at", order.ShipmentSlaDueAt).
 		Set("issue_sla_due_at", order.IssueSlaDueAt).
+		Set("routing_block_code", order.RoutingBlockCode).
+		Set("routing_block_reason", order.RoutingBlockReason).
 		Set("base_cost_snapshot", order.BaseCostSnapshot).
 		Set("fulfillment_cost", order.FulfillmentCost).
 		Set("shipping_cost", order.ShippingCost).
@@ -498,6 +506,8 @@ func mapRoutedOrderRow(
 		OperatorAssignee:       row.OperatorAssignee,
 		ShipmentSlaDueAt:       shipmentSlaDueAt,
 		IssueSlaDueAt:          issueSlaDueAt,
+		RoutingBlockCode:       row.RoutingBlockCode,
+		RoutingBlockReason:     row.RoutingBlockReason,
 		BaseCostSnapshot:       row.BaseCostSnapshot,
 		FulfillmentCost:        row.FulfillmentCost,
 		ShippingCost:           row.ShippingCost,

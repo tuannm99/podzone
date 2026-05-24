@@ -171,6 +171,7 @@ func permissionForField(objectName, fieldName string) (string, bool) {
 		case "createProductSetupDraft", "promoteProductSetupCandidate", "updateProductSetupCandidateStatus":
 			return "store_config:update", true
 		case "createRoutedOrder",
+			"forceRerouteBlockedOrder",
 			"advanceRoutedOrder",
 			"openOrderException",
 			"updateOrderExceptionStatus",

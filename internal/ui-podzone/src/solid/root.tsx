@@ -27,10 +27,7 @@ export default function Root() {
       </Show>
 
       <main class="pb-8">
-        <Show
-          when={!isAuthRoute()}
-          fallback={<Outlet />}
-        >
+        <Show when={!isAuthRoute()} fallback={<Outlet />}>
           <Container class="mt-3">
             <div class="grid min-h-0 grid-cols-1 gap-0 xl:grid-cols-[minmax(0,1fr)]">
               <Outlet />

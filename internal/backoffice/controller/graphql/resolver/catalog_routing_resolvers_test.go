@@ -12,9 +12,9 @@ import (
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/generated/model"
 	catalogentity "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/entity"
 	cataloginputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/inputport/mocks"
+	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
 	routinginputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport"
 	routinginputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport/mocks"
-	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
 )
 
 func TestCreateRoutedOrderMapsInputAndOutput(t *testing.T) {
@@ -123,6 +123,57 @@ func TestBulkUpdateRoutedOrdersMapsPointersAndList(t *testing.T) {
 	require.NotNil(t, got[0].ShipmentSLADueAt)
 	require.True(t, got[0].ShipmentSLADueAt.Equal(sla))
 	require.Equal(t, status, got[0].SettlementStatus)
+}
+
+func TestForceRerouteBlockedOrderMapsInputAndOutput(t *testing.T) {
+	t.Parallel()
+
+	orderUC := routinginputmocks.NewMockOrderRoutingUsecase(t)
+	productUC := cataloginputmocks.NewMockProductSetupUsecase(t)
+	orderUC.EXPECT().
+		ForceRerouteBlockedOrder(mock.Anything, mock.Anything).
+		RunAndReturn(func(_ context.Context, cmd routinginputport.ForceRerouteBlockedOrderCmd) (*routingentity.RoutedOrder, error) {
+			require.Equal(t, routinginputport.ForceRerouteBlockedOrderCmd{
+				OrderID:          "ord-1",
+				PreferredPartner: "Fulfill Fast",
+			}, cmd)
+			now := time.Date(2026, 5, 15, 10, 0, 0, 0, time.UTC)
+			return &routingentity.RoutedOrder{
+				ID:                 "ord-1",
+				CandidateID:        "cand-1",
+				ProductTitle:       "Poster",
+				Partner:            "Fulfill Fast",
+				Quantity:           1,
+				Total:              "$8.00",
+				CustomerName:       "Blocked Customer",
+				Status:             routingentity.RoutedOrderStatusQueued,
+				ShipmentStatus:     routingentity.RoutedOrderShipmentStatusAwaitingLabel,
+				OperatorAssignee:   "unassigned",
+				RoutingBlockCode:   "",
+				RoutingBlockReason: "",
+				FulfillmentCost:    "$7.00",
+				ShippingCost:       "$2.00",
+				RealizedMargin:     "$-1.00",
+				SettlementStatus:   routingentity.RoutedOrderSettlementStatusPending,
+				CreatedAt:          now,
+				UpdatedAt:          now,
+			}, nil
+		}).
+		Once()
+
+	resolver := &mutationResolver{&Resolver{
+		ProductSetupUsecase: productUC,
+		OrderRoutingUsecase: orderUC,
+	}}
+
+	got, err := resolver.ForceRerouteBlockedOrder(context.Background(), model.ForceRerouteBlockedOrderInput{
+		OrderID:          "ord-1",
+		PreferredPartner: "Fulfill Fast",
+	})
+	require.NoError(t, err)
+	require.Equal(t, "ord-1", got.ID)
+	require.Equal(t, "Fulfill Fast", got.Partner)
+	require.Equal(t, routingentity.RoutedOrderStatusQueued, got.Status)
 }
 
 func TestProductSetupSnapshotMapsNestedGraphQLFields(t *testing.T) {
@@ -303,13 +354,15 @@ func TestRoutedOrderRecommendationMapsQueryAndResponse(t *testing.T) {
 				PreferredPartner: "Fulfill Fast",
 			}, query)
 			return &routingentity.RoutedOrderRecommendation{
-				CandidateID:      "cand-1",
-				ProductTitle:     "Vintage Tee",
-				CandidatePartner: "Print Partner A",
-				ProductType:      "tshirt",
-				ShipRegion:       "us",
-				SelectedPartner:  "Fulfill Fast",
-				Summary:          "Preferred partner selected.",
+				CandidateID:       "cand-1",
+				ProductTitle:      "Vintage Tee",
+				CandidatePartner:  "Print Partner A",
+				ProductType:       "tshirt",
+				ShipRegion:        "us",
+				SelectedPartner:   "Fulfill Fast",
+				BlockedReasonCode: "",
+				BlockedReason:     "",
+				Summary:           "Preferred partner selected.",
 				Options: []routingentity.RoutingPartnerOption{
 					{
 						Partner: routingentity.PartnerRoutingProfile{
@@ -345,6 +398,7 @@ func TestRoutedOrderRecommendationMapsQueryAndResponse(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "Fulfill Fast", got.SelectedPartner)
 	require.Equal(t, "Print Partner A", got.CandidatePartner)
+	require.Equal(t, "", got.BlockedReasonCode)
 	require.Len(t, got.Options, 1)
 	require.Equal(t, "Fulfill Fast", got.Options[0].Partner.Name)
 	require.Equal(t, 90, got.Options[0].Partner.RoutingPriority)

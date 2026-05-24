@@ -40,7 +40,9 @@ func TestCreateRoutedOrderSnapshotsCostsAndMargin(t *testing.T) {
 	require.Equal(t, routingentity.RoutedOrderShipmentStatusAwaitingLabel, order.ShipmentStatus)
 	require.Equal(t, "unassigned", order.OperatorAssignee)
 	require.Equal(t, "$16.00", order.BaseCostSnapshot)
-	require.Equal(t, "$16.00", order.FulfillmentCost)
+	require.Equal(t, "Fulfill Fast", order.Partner)
+	require.Equal(t, "$14.00", order.FulfillmentCost)
+	require.Equal(t, "$2.00", order.ShippingCost)
 	require.Equal(t, "$40.00", order.Total)
 	require.Equal(t, "$24.00", order.RealizedMargin)
 	require.Equal(t, routingentity.RoutedOrderSettlementStatusPending, order.SettlementStatus)
@@ -85,6 +87,168 @@ func TestRecommendRoutedOrderPartnerPrefersEligibleRequestedPartner(t *testing.T
 		}
 	}
 	require.True(t, foundPreferred)
+}
+
+func TestRecommendRoutedOrderPartnerPrefersHigherMarginOverCandidateDefault(t *testing.T) {
+	t.Parallel()
+
+	interactor, _, _, _ := newOrderRoutingTestInteractor(t, map[string]catalogentity.ProductSetupCandidate{
+		"cand-1": {
+			ID:          "cand-1",
+			Title:       "Vintage Tee",
+			Partner:     "Print Partner A",
+			BaseCost:    "$8.00",
+			RetailPrice: "$20.00",
+			Status:      catalogentity.ProductSetupCandidateStatusPublishedMock,
+		},
+	})
+
+	ctx := toolkit.WithTenantID(context.Background(), "t_demo")
+	recommendation, err := interactor.RecommendRoutedOrderPartner(
+		ctx,
+		routinginputport.RecommendRoutedOrderPartnerQuery{
+			CandidateID: "cand-1",
+			ProductType: "tshirt",
+			ShipRegion:  "us",
+		},
+	)
+	require.NoError(t, err)
+	require.Equal(t, "Fulfill Fast", recommendation.SelectedPartner)
+	require.Contains(t, recommendation.Summary, "over candidate default Print Partner A")
+	require.Equal(t, "Fulfill Fast", recommendation.Options[0].Partner.Name)
+	require.Equal(t, "$11.00", recommendation.Options[0].EstimatedUnitMargin)
+}
+
+func TestRecommendRoutedOrderPartnerDoesNotAutoSelectNegativeMarginOption(t *testing.T) {
+	t.Parallel()
+
+	interactor, _, _, _ := newOrderRoutingTestInteractor(t, map[string]catalogentity.ProductSetupCandidate{
+		"cand-1": {
+			ID:          "cand-1",
+			Title:       "Poster",
+			Partner:     "Print Partner A",
+			BaseCost:    "$8.00",
+			RetailPrice: "$8.00",
+			Status:      catalogentity.ProductSetupCandidateStatusPublishedMock,
+		},
+	})
+
+	ctx := toolkit.WithTenantID(context.Background(), "t_demo")
+	recommendation, err := interactor.RecommendRoutedOrderPartner(
+		ctx,
+		routinginputport.RecommendRoutedOrderPartnerQuery{
+			CandidateID: "cand-1",
+			ProductType: "tshirt",
+			ShipRegion:  "us",
+		},
+	)
+	require.NoError(t, err)
+	require.Empty(t, recommendation.SelectedPartner)
+	require.Contains(t, recommendation.Summary, "negative expected margin")
+	require.Len(t, recommendation.Options, 2)
+	require.Equal(t, "Fulfill Fast", recommendation.Options[0].Partner.Name)
+	require.Equal(t, "$-1.00", recommendation.Options[0].EstimatedUnitMargin)
+	require.Equal(t, "Print Partner A", recommendation.Options[1].Partner.Name)
+	require.Equal(t, "$-5.00", recommendation.Options[1].EstimatedUnitMargin)
+	require.Equal(t, "negative_margin", recommendation.BlockedReasonCode)
+	require.NotEmpty(t, recommendation.BlockedReason)
+}
+
+func TestCreateRoutedOrderCreatesBlockedQueueItemWhenNoViablePartner(t *testing.T) {
+	t.Parallel()
+
+	interactor, _, _, _ := newOrderRoutingTestInteractor(t, map[string]catalogentity.ProductSetupCandidate{
+		"cand-1": {
+			ID:          "cand-1",
+			Title:       "Poster",
+			Partner:     "Print Partner A",
+			BaseCost:    "$8.00",
+			RetailPrice: "$8.00",
+			Status:      catalogentity.ProductSetupCandidateStatusPublishedMock,
+		},
+	})
+
+	ctx := toolkit.WithTenantID(context.Background(), "t_demo")
+	order, err := interactor.CreateRoutedOrder(ctx, routinginputport.CreateRoutedOrderCmd{
+		CandidateID:  "cand-1",
+		CustomerName: "Blocked Customer",
+		Quantity:     1,
+		ProductType:  "tshirt",
+		ShipRegion:   "us",
+	})
+	require.NoError(t, err)
+	require.Equal(t, routingentity.RoutedOrderStatusRoutingBlocked, order.Status)
+	require.Empty(t, order.Partner)
+	require.Equal(t, "negative_margin", order.RoutingBlockCode)
+	require.NotEmpty(t, order.RoutingBlockReason)
+	require.Contains(t, order.Timeline[len(order.Timeline)-1], "Routing blocked")
+	lastActivity := order.ActivityLog[len(order.ActivityLog)-1]
+	require.True(t, hasActivityDetail(lastActivity.Details, "routing_block_code", "negative_margin"))
+}
+
+func TestForceRerouteBlockedOrderClearsBlockAndQueuesOrder(t *testing.T) {
+	t.Parallel()
+
+	interactor, orders, _, _ := newOrderRoutingTestInteractor(t, map[string]catalogentity.ProductSetupCandidate{
+		"cand-1": {
+			ID:          "cand-1",
+			Title:       "Poster",
+			Partner:     "Print Partner A",
+			BaseCost:    "$8.00",
+			RetailPrice: "$8.00",
+			Status:      catalogentity.ProductSetupCandidateStatusPublishedMock,
+		},
+	})
+	orders.mustSeed(routingentity.RoutedOrder{
+		ID:                 "ord-blocked-reroute",
+		CandidateID:        "cand-1",
+		ProductTitle:       "Poster",
+		Quantity:           1,
+		Total:              "$8.00",
+		CustomerName:       "Blocked Customer",
+		Status:             routingentity.RoutedOrderStatusRoutingBlocked,
+		ShipmentStatus:     routingentity.RoutedOrderShipmentStatusAwaitingLabel,
+		OperatorAssignee:   "unassigned",
+		RoutingBlockCode:   "negative_margin",
+		RoutingBlockReason: "all eligible partners have negative expected margin",
+		BaseCostSnapshot:   "$8.00",
+		FulfillmentCost:    "TBD",
+		ShippingCost:       "TBD",
+		IssueCost:          "$0.00",
+		IssueResolution:    routingentity.RoutedOrderIssueResolutionMonitor,
+		RealizedMargin:     "TBD",
+		SettlementStatus:   routingentity.RoutedOrderSettlementStatusPending,
+		Timeline:           []string{"created", "Routing blocked: all eligible partners have negative expected margin"},
+		ActivityLog: []routingentity.RoutedOrderActivity{
+			{
+				Type:      routingentity.RoutedOrderActivityTypeSystem,
+				Actor:     "system",
+				Message:   "Order created for Poster",
+				CreatedAt: time.Date(2026, 5, 15, 8, 0, 0, 0, time.UTC),
+				Details: []routingentity.RoutedOrderActivityDetail{
+					{Key: "product_type", Value: "poster"},
+					{Key: "ship_region", Value: "us"},
+				},
+			},
+		},
+	})
+
+	ctx := toolkit.WithTenantID(context.Background(), "t_demo")
+	order, err := interactor.ForceRerouteBlockedOrder(ctx, routinginputport.ForceRerouteBlockedOrderCmd{
+		OrderID:          "ord-blocked-reroute",
+		PreferredPartner: "Fulfill Fast",
+	})
+	require.NoError(t, err)
+	require.Equal(t, routingentity.RoutedOrderStatusQueued, order.Status)
+	require.Equal(t, "Fulfill Fast", order.Partner)
+	require.Equal(t, "", order.RoutingBlockCode)
+	require.Equal(t, "", order.RoutingBlockReason)
+	require.Equal(t, "$7.00", order.FulfillmentCost)
+	require.Equal(t, "$2.00", order.ShippingCost)
+	require.Equal(t, "$-1.00", order.RealizedMargin)
+	require.Contains(t, order.Timeline[len(order.Timeline)-1], "Routing unblocked")
+	lastActivity := order.ActivityLog[len(order.ActivityLog)-1]
+	require.True(t, hasActivityDetail(lastActivity.Details, "manual_reroute", "true"))
 }
 
 func TestUpdateOrderSettlementRecalculatesMarginIncludingIssueCost(t *testing.T) {
@@ -336,6 +500,22 @@ func TestAdvanceRoutedOrderBlocksWhenExceptionActive(t *testing.T) {
 	_, err := interactor.AdvanceRoutedOrder(context.Background(), "ord-blocked")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "resolve the active exception")
+}
+
+func TestAdvanceRoutedOrderBlocksWhenRoutingBlocked(t *testing.T) {
+	t.Parallel()
+
+	interactor, orders, _, _ := newOrderRoutingTestInteractor(t, nil)
+	orders.mustSeed(routingentity.RoutedOrder{
+		ID:                 "ord-routing-blocked",
+		Status:             routingentity.RoutedOrderStatusRoutingBlocked,
+		RoutingBlockCode:   "negative_margin",
+		RoutingBlockReason: "all eligible partners have negative expected margin",
+	})
+
+	_, err := interactor.AdvanceRoutedOrder(context.Background(), "ord-routing-blocked")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "resolve the routing block")
 }
 
 func TestAdvanceRoutedOrderTransitionsQueuedToProduction(t *testing.T) {

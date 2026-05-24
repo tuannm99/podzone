@@ -27,6 +27,9 @@ type PromoteProductSetupCandidateCmd struct {
 type ProductSetupUsecase interface {
 	GetSnapshot(ctx context.Context) (*catalogentity.ProductSetupSnapshot, error)
 	CreateDraft(ctx context.Context, cmd CreateProductSetupDraftCmd) (*catalogentity.ProductSetupDraft, error)
-	PromoteCandidate(ctx context.Context, cmd PromoteProductSetupCandidateCmd) (*catalogentity.ProductSetupCandidate, error)
+	PromoteCandidate(
+		ctx context.Context,
+		cmd PromoteProductSetupCandidateCmd,
+	) (*catalogentity.ProductSetupCandidate, error)
 	UpdateCandidateStatus(ctx context.Context, id, status string) (*catalogentity.ProductSetupCandidate, error)
 }

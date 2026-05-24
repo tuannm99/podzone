@@ -29,12 +29,14 @@ type RoutingPartnerOption struct {
 }
 
 type RoutedOrderRecommendation struct {
-	CandidateID      string                 `json:"candidateId"`
-	ProductTitle     string                 `json:"productTitle"`
-	CandidatePartner string                 `json:"candidatePartner"`
-	ProductType      string                 `json:"productType"`
-	ShipRegion       string                 `json:"shipRegion"`
-	SelectedPartner  string                 `json:"selectedPartner"`
-	Summary          string                 `json:"summary"`
-	Options          []RoutingPartnerOption `json:"options"`
+	CandidateID       string                 `json:"candidateId"`
+	ProductTitle      string                 `json:"productTitle"`
+	CandidatePartner  string                 `json:"candidatePartner"`
+	ProductType       string                 `json:"productType"`
+	ShipRegion        string                 `json:"shipRegion"`
+	SelectedPartner   string                 `json:"selectedPartner"`
+	BlockedReasonCode string                 `json:"blockedReasonCode"`
+	BlockedReason     string                 `json:"blockedReason"`
+	Summary           string                 `json:"summary"`
+	Options           []RoutingPartnerOption `json:"options"`
 }

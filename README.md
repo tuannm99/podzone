@@ -75,7 +75,19 @@ This is a Go monorepo containing a collection of microservices for an e-commerce
 
 ## 🏗️ Architecture Overview
 
-- TODO
+- Architecture docs live under [docs/architecture](./docs/architecture/README.md)
+- C4 views:
+  - [System Context](./docs/architecture/system-context.md)
+  - [Containers](./docs/architecture/containers.md)
+  - [Modules](./docs/architecture/modules.md)
+  - [Frontend and Edge](./docs/architecture/frontend-edge.md)
+  - [Transport and Contracts](./docs/architecture/transport-contracts.md)
+  - [Data Ownership](./docs/architecture/data-ownership.md)
+  - [Code Map](./docs/architecture/code-map.md)
+  - [Deployment](./docs/architecture/deployment.md)
+  - [Bounded Contexts](./docs/architecture/bounded-contexts.md)
+  - [Platform Runtime](./docs/architecture/platform-runtime.md)
+  - [Sequences](./docs/architecture/sequences.md)
 
 ## 🔧 Additional Considerations
 

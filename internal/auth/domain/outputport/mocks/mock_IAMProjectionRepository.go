@@ -8,6 +8,7 @@ import (
 	"context"
 
 	mock "github.com/stretchr/testify/mock"
+	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
 )
 
 // NewMockIAMProjectionRepository creates a new instance of MockIAMProjectionRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -35,6 +36,80 @@ type MockIAMProjectionRepository_Expecter struct {
 
 func (_m *MockIAMProjectionRepository) EXPECT() *MockIAMProjectionRepository_Expecter {
 	return &MockIAMProjectionRepository_Expecter{mock: &_m.Mock}
+}
+
+// GetTenantMembership provides a mock function for the type MockIAMProjectionRepository
+func (_mock *MockIAMProjectionRepository) GetTenantMembership(ctx context.Context, tenantID string, userID uint) (*outputport.TenantMembershipProjection, error) {
+	ret := _mock.Called(ctx, tenantID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTenantMembership")
+	}
+
+	var r0 *outputport.TenantMembershipProjection
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) (*outputport.TenantMembershipProjection, error)); ok {
+		return returnFunc(ctx, tenantID, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) *outputport.TenantMembershipProjection); ok {
+		r0 = returnFunc(ctx, tenantID, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*outputport.TenantMembershipProjection)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint) error); ok {
+		r1 = returnFunc(ctx, tenantID, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMProjectionRepository_GetTenantMembership_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTenantMembership'
+type MockIAMProjectionRepository_GetTenantMembership_Call struct {
+	*mock.Call
+}
+
+// GetTenantMembership is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - userID uint
+func (_e *MockIAMProjectionRepository_Expecter) GetTenantMembership(ctx interface{}, tenantID interface{}, userID interface{}) *MockIAMProjectionRepository_GetTenantMembership_Call {
+	return &MockIAMProjectionRepository_GetTenantMembership_Call{Call: _e.mock.On("GetTenantMembership", ctx, tenantID, userID)}
+}
+
+func (_c *MockIAMProjectionRepository_GetTenantMembership_Call) Run(run func(ctx context.Context, tenantID string, userID uint)) *MockIAMProjectionRepository_GetTenantMembership_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMProjectionRepository_GetTenantMembership_Call) Return(tenantMembershipProjection *outputport.TenantMembershipProjection, err error) *MockIAMProjectionRepository_GetTenantMembership_Call {
+	_c.Call.Return(tenantMembershipProjection, err)
+	return _c
+}
+
+func (_c *MockIAMProjectionRepository_GetTenantMembership_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint) (*outputport.TenantMembershipProjection, error)) *MockIAMProjectionRepository_GetTenantMembership_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // UpsertTenant provides a mock function for the type MockIAMProjectionRepository

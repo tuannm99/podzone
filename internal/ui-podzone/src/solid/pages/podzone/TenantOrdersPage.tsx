@@ -4,6 +4,7 @@ import {
   advanceRoutedOrder,
   bulkUpdateRoutedOrders,
   createRoutedOrder,
+  forceRerouteBlockedOrder,
   getRoutedOrderRecommendation,
   getRoutedOrders,
   openRoutedOrderException,
@@ -38,6 +39,7 @@ import { SectionLead } from '../../components/common/SectionLead';
 import { SectionTitle } from '../../components/common/SectionTitle';
 
 const routeStatuses = [
+  { name: 'Routing blocked', value: 'routing_blocked' },
   { name: 'Queued', value: 'queued' },
   { name: 'In production', value: 'in_production' },
   { name: 'Shipped', value: 'shipped' },
@@ -123,6 +125,10 @@ type QueueDraft = {
   issueSlaDueAt: string;
 };
 
+type RerouteDraft = {
+  preferredPartner: string;
+};
+
 type QueueView =
   | 'all'
   | 'my_queue'
@@ -158,6 +164,8 @@ type SavedBulkTemplate = {
 
 function statusColor(status: string) {
   switch (status) {
+    case 'routing_blocked':
+      return 'red';
     case 'shipped':
       return 'green';
     case 'in_production':
@@ -199,9 +207,7 @@ function joinPartnerCapabilityList(items: string[]) {
   return items.length > 0 ? items.join(', ') : 'Any';
 }
 
-function joinShippingCostRules(
-  items: { region: string; cost: string }[]
-) {
+function joinShippingCostRules(items: { region: string; cost: string }[]) {
   return items.length > 0
     ? items.map((item) => `${item.region}:${item.cost}`).join(', ')
     : 'No region rules';
@@ -245,7 +251,10 @@ function formatActivityActor(actor: string) {
   return normalized;
 }
 
-function formatActivitySummary(order: RoutedOrder, activities: RoutedOrder['activityLog']) {
+function formatActivitySummary(
+  order: RoutedOrder,
+  activities: RoutedOrder['activityLog']
+) {
   const header = [
     `Order ${order.id}`,
     `Product: ${order.productTitle}`,
@@ -300,11 +309,7 @@ function formatStoreActivitySummary(
       .join(' ');
   });
 
-  return [
-    `Store activity feed for ${tenantId}`,
-    '',
-    ...lines,
-  ].join('\n');
+  return [`Store activity feed for ${tenantId}`, '', ...lines].join('\n');
 }
 
 function toLocalDateTimeValue(value?: string) {
@@ -388,7 +393,8 @@ export default function TenantOrdersPage() {
   const [selectedExceptionType, setSelectedExceptionType] =
     createSignal('artwork_issue');
   const [activeQueueView, setActiveQueueView] = createSignal<QueueView>('all');
-  const [activeQueueSort, setActiveQueueSort] = createSignal<QueueSort>('priority');
+  const [activeQueueSort, setActiveQueueSort] =
+    createSignal<QueueSort>('priority');
   const [activityFilter, setActivityFilter] =
     createSignal<ActivityFilter>('notes');
   const [hideSystemActivity, setHideSystemActivity] = createSignal(true);
@@ -412,12 +418,15 @@ export default function TenantOrdersPage() {
   const [settlementDrafts, setSettlementDrafts] = createSignal<
     Record<string, SettlementDraft>
   >({});
-  const [issueDrafts, setIssueDrafts] = createSignal<Record<string, IssueDraft>>(
-    {}
-  );
-  const [queueDrafts, setQueueDrafts] = createSignal<Record<string, QueueDraft>>(
-    {}
-  );
+  const [issueDrafts, setIssueDrafts] = createSignal<
+    Record<string, IssueDraft>
+  >({});
+  const [queueDrafts, setQueueDrafts] = createSignal<
+    Record<string, QueueDraft>
+  >({});
+  const [rerouteDrafts, setRerouteDrafts] = createSignal<
+    Record<string, RerouteDraft>
+  >({});
   const [message, setMessage] = createSignal('');
   const [error, setError] = createSignal('');
 
@@ -432,7 +441,8 @@ export default function TenantOrdersPage() {
 
   const settlementDraftFor = (order: RoutedOrder): SettlementDraft =>
     settlementDrafts()[order.id] || {
-      fulfillmentCost: order.fulfillmentCost || order.baseCostSnapshot || '$0.00',
+      fulfillmentCost:
+        order.fulfillmentCost || order.baseCostSnapshot || '$0.00',
       shippingCost: order.shippingCost || '$0.00',
       settlementStatus: order.settlementStatus || 'pending',
       settlementNotes: order.settlementNotes || '',
@@ -452,7 +462,15 @@ export default function TenantOrdersPage() {
       issueSlaDueAt: toLocalDateTimeValue(order.issueSlaDueAt),
     };
 
-  const patchShipmentDraft = (orderId: string, patch: Partial<ShipmentDraft>) => {
+  const rerouteDraftFor = (order: RoutedOrder): RerouteDraft =>
+    rerouteDrafts()[order.id] || {
+      preferredPartner: order.partner || '',
+    };
+
+  const patchShipmentDraft = (
+    orderId: string,
+    patch: Partial<ShipmentDraft>
+  ) => {
     setShipmentDrafts((current) => ({
       ...current,
       [orderId]: {
@@ -514,6 +532,21 @@ export default function TenantOrdersPage() {
     }));
   };
 
+  const patchRerouteDraft = (
+    orderId: string,
+    patch: Partial<RerouteDraft>
+  ) => {
+    setRerouteDrafts((current) => ({
+      ...current,
+      [orderId]: {
+        ...(current[orderId] || {
+          preferredPartner: '',
+        }),
+        ...patch,
+      },
+    }));
+  };
+
   const loadCandidates = async () => {
     const result = await getProductSetupSnapshot();
     if (!result.success) {
@@ -541,8 +574,7 @@ export default function TenantOrdersPage() {
     if (!operatorLens().trim()) {
       const firstAssigned = result.data.orders.find(
         (order) =>
-          order.operatorAssignee &&
-          order.operatorAssignee !== 'unassigned'
+          order.operatorAssignee && order.operatorAssignee !== 'unassigned'
       );
       if (firstAssigned) {
         setOperatorLens(firstAssigned.operatorAssignee);
@@ -635,25 +667,28 @@ export default function TenantOrdersPage() {
     if (shipmentOverdue || issueOverdue) {
       return 0;
     }
-    if (order.shipmentStatus === 'delivery_issue') {
+    if (order.status === 'routing_blocked') {
       return 1;
     }
-    if (order.settlementStatus === 'disputed') {
+    if (order.shipmentStatus === 'delivery_issue') {
       return 2;
+    }
+    if (order.settlementStatus === 'disputed') {
+      return 3;
     }
     if (
       order.exceptionStatus === 'open' ||
       order.exceptionStatus === 'escalated'
     ) {
-      return 3;
-    }
-    if (order.status === 'in_production') {
       return 4;
     }
-    if (order.settlementStatus === 'pending') {
+    if (order.status === 'in_production') {
       return 5;
     }
-    return 6;
+    if (order.settlementStatus === 'pending') {
+      return 6;
+    }
+    return 7;
   };
 
   const sortedOrders = () => {
@@ -661,7 +696,8 @@ export default function TenantOrdersPage() {
     if (activeQueueSort() === 'newest') {
       return ranked.sort(
         (a, b) =>
-          new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+          new Date(b.createdAt || 0).getTime() -
+          new Date(a.createdAt || 0).getTime()
       );
     }
     return ranked.sort((a, b) => {
@@ -669,14 +705,19 @@ export default function TenantOrdersPage() {
       if (priorityDelta !== 0) {
         return priorityDelta;
       }
-      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      return (
+        new Date(b.createdAt || 0).getTime() -
+        new Date(a.createdAt || 0).getTime()
+      );
     });
   };
 
   const queueViewCount = (view: QueueView) =>
     orders().filter((order) => matchesQueueView(order, view)).length;
 
-  const matchesActivityFilter = (activity: RoutedOrder['activityLog'][number]) => {
+  const matchesActivityFilter = (
+    activity: RoutedOrder['activityLog'][number]
+  ) => {
     const selectedFilter = activityFilter();
     if (selectedFilter === 'notes') {
       return activity.type !== 'system';
@@ -713,14 +754,12 @@ export default function TenantOrdersPage() {
   const storeActivityFeed = () =>
     sortedOrders()
       .flatMap((order) =>
-        order.activityLog
-          .filter(matchesActivityFilter)
-          .map((activity) => ({
-            orderId: order.id,
-            productTitle: order.productTitle,
-            operatorAssignee: order.operatorAssignee,
-            activity,
-          }))
+        order.activityLog.filter(matchesActivityFilter).map((activity) => ({
+          orderId: order.id,
+          productTitle: order.productTitle,
+          operatorAssignee: order.operatorAssignee,
+          activity,
+        }))
       )
       .sort(
         (a, b) =>
@@ -740,7 +779,10 @@ export default function TenantOrdersPage() {
   };
 
   const copyStoreActivityFeed = async () => {
-    const summary = formatStoreActivitySummary(params().tenantId, storeActivityFeed());
+    const summary = formatStoreActivitySummary(
+      params().tenantId,
+      storeActivityFeed()
+    );
     try {
       await navigator.clipboard.writeText(summary);
       setMessage(`Copied store activity feed for ${params().tenantId}.`);
@@ -750,7 +792,9 @@ export default function TenantOrdersPage() {
   };
 
   const loadSavedPresets = () => {
-    const raw = window.localStorage.getItem(queuePresetStorageKey(params().tenantId));
+    const raw = window.localStorage.getItem(
+      queuePresetStorageKey(params().tenantId)
+    );
     if (!raw) {
       setSavedPresets([]);
       return;
@@ -821,7 +865,9 @@ export default function TenantOrdersPage() {
   };
 
   const deleteQueuePreset = (name: string) => {
-    persistSavedPresets(savedPresets().filter((preset) => preset.name !== name));
+    persistSavedPresets(
+      savedPresets().filter((preset) => preset.name !== name)
+    );
     setMessage(`Deleted queue preset ${name}.`);
   };
 
@@ -888,7 +934,9 @@ export default function TenantOrdersPage() {
       (item) => item.id === selectedCandidateId()
     );
     if (!candidate) {
-      setMessage('Publish a mock product candidate first before routing orders.');
+      setMessage(
+        'Publish a mock product candidate first before routing orders.'
+      );
       return;
     }
 
@@ -938,7 +986,9 @@ export default function TenantOrdersPage() {
     setOrders((current) =>
       current.map((order) => (order.id === orderId ? result.data : order))
     );
-    setMessage(`Raised ${selectedExceptionType().replaceAll('_', ' ')} on ${orderId}.`);
+    setMessage(
+      `Raised ${selectedExceptionType().replaceAll('_', ' ')} on ${orderId}.`
+    );
   };
 
   const updateExceptionStatus = async (orderId: string, nextStatus: string) => {
@@ -1064,6 +1114,33 @@ export default function TenantOrdersPage() {
     setMessage(`Updated queue ownership on ${order.id}.`);
   };
 
+  const rerouteBlockedOrder = async (order: RoutedOrder) => {
+    setError('');
+    const preferredPartner = rerouteDraftFor(order).preferredPartner.trim();
+    if (!preferredPartner) {
+      setMessage('Choose a partner before rerouting a blocked order.');
+      return;
+    }
+    const result = await forceRerouteBlockedOrder({
+      orderId: order.id,
+      preferredPartner,
+    });
+    if (!result.success) {
+      setError(result.message);
+      return;
+    }
+    setOrders((current) =>
+      current.map((item) => (item.id === order.id ? result.data : item))
+    );
+    setRerouteDrafts((current) => ({
+      ...current,
+      [order.id]: {
+        preferredPartner: result.data.partner,
+      },
+    }));
+    setMessage(`Forced reroute for ${order.id} to ${result.data.partner}.`);
+  };
+
   const applyBulkUpdate = async () => {
     setError('');
     if (selectedOrderIDs().length === 0) {
@@ -1094,9 +1171,7 @@ export default function TenantOrdersPage() {
     }
 
     const byID = new Map(result.data.map((order) => [order.id, order]));
-    setOrders((current) =>
-      current.map((order) => byID.get(order.id) || order)
-    );
+    setOrders((current) => current.map((order) => byID.get(order.id) || order));
     setMessage(`Applied bulk update to ${result.data.length} routed orders.`);
     setSelectedOrderIDs([]);
     setBulkDraft({
@@ -1155,7 +1230,9 @@ export default function TenantOrdersPage() {
       </Show>
 
       <InfoAlert>
-        Orders and published product candidates now come from backend store data. Shipment and settlement control both stay manual on this board so the store team can manage POD execution directly.
+        Orders and published product candidates now come from backend store
+        data. Shipment and settlement control both stay manual on this board so
+        the store team can manage POD execution directly.
       </InfoAlert>
 
       <div class="grid gap-6 lg:grid-cols-[0.96fr_1.04fr]">
@@ -1191,7 +1268,9 @@ export default function TenantOrdersPage() {
                   label="Customer name"
                   value={customerName()}
                   placeholder="Nguyen Minh"
-                  onInput={(event) => setCustomerName(event.currentTarget.value)}
+                  onInput={(event) =>
+                    setCustomerName(event.currentTarget.value)
+                  }
                 />
                 <InputField
                   label="Quantity"
@@ -1225,8 +1304,8 @@ export default function TenantOrdersPage() {
                         Partner routing mode
                       </p>
                       <p class="text-xs text-gray-500">
-                        Auto-route is active. The backend will pick the best eligible
-                        partner from capability, priority, and SLA.
+                        Auto-route is active. The backend will pick the best
+                        eligible partner from capability, priority, and SLA.
                       </p>
                       <Button
                         type="button"
@@ -1289,17 +1368,39 @@ export default function TenantOrdersPage() {
                       {recommendation().summary}
                     </p>
                     <Show
-                      when={!manualPartnerOverride() && recommendation().selectedPartner}
+                      when={
+                        !recommendation().selectedPartner &&
+                        recommendation().blockedReason
+                      }
+                    >
+                      <ErrorAlert>
+                        Routing blocked: {recommendation().blockedReason}
+                        <Show when={recommendation().blockedReasonCode}>
+                          {' '}
+                          ({recommendation().blockedReasonCode})
+                        </Show>
+                      </ErrorAlert>
+                    </Show>
+                    <Show
+                      when={
+                        !manualPartnerOverride() &&
+                        recommendation().selectedPartner
+                      }
                     >
                       <InfoAlert>
                         Auto-route will create the order against{' '}
-                        {recommendation().selectedPartner}. Switch to override only
-                        when you need to force a different eligible partner.
+                        {recommendation().selectedPartner}. Switch to override
+                        only when you need to force a different eligible
+                        partner.
                       </InfoAlert>
                     </Show>
                     <div class="mt-3 space-y-3">
                       <Show
-                        when={recommendation().options.filter((option) => option.eligible).length > 0}
+                        when={
+                          recommendation().options.filter(
+                            (option) => option.eligible
+                          ).length > 0
+                        }
                       >
                         <div class="space-y-2">
                           <p class="text-sm font-medium text-gray-700">
@@ -1331,7 +1432,10 @@ export default function TenantOrdersPage() {
                                       option.partner.name
                                     }
                                   >
-                                    <Badge content="recommended" color="green" />
+                                    <Badge
+                                      content="recommended"
+                                      color="green"
+                                    />
                                   </Show>
                                 </div>
                                 <p class="mt-2">{option.reason}</p>
@@ -1339,16 +1443,16 @@ export default function TenantOrdersPage() {
                                   Products:{' '}
                                   {joinPartnerCapabilityList(
                                     option.partner.supportedProductTypes
-                                  )} ·
-                                  Regions:{' '}
+                                  )}{' '}
+                                  · Regions:{' '}
                                   {joinPartnerCapabilityList(
                                     option.partner.supportedRegions
                                   )}
                                 </p>
                                 <p class="mt-1 text-xs text-gray-500">
                                   Partner base fulfillment:{' '}
-                                  {option.partner.baseFulfillmentCost || 'TBD'} ·
-                                  Region cost rules:{' '}
+                                  {option.partner.baseFulfillmentCost || 'TBD'}{' '}
+                                  · Region cost rules:{' '}
                                   {joinShippingCostRules(
                                     option.partner.shippingCostRules
                                   )}
@@ -1404,7 +1508,9 @@ export default function TenantOrdersPage() {
                         </div>
                       </Show>
                       <Show
-                        when={recommendation().options.some((option) => !option.eligible)}
+                        when={recommendation().options.some(
+                          (option) => !option.eligible
+                        )}
                       >
                         <div class="space-y-2">
                           <p class="text-sm font-medium text-gray-700">
@@ -1436,16 +1542,16 @@ export default function TenantOrdersPage() {
                                   Products:{' '}
                                   {joinPartnerCapabilityList(
                                     option.partner.supportedProductTypes
-                                  )} ·
-                                  Regions:{' '}
+                                  )}{' '}
+                                  · Regions:{' '}
                                   {joinPartnerCapabilityList(
                                     option.partner.supportedRegions
                                   )}
                                 </p>
                                 <p class="mt-1 text-xs text-gray-500">
                                   Partner base fulfillment:{' '}
-                                  {option.partner.baseFulfillmentCost || 'TBD'} ·
-                                  Region cost rules:{' '}
+                                  {option.partner.baseFulfillmentCost || 'TBD'}{' '}
+                                  · Region cost rules:{' '}
                                   {joinShippingCostRules(
                                     option.partner.shippingCostRules
                                   )}
@@ -1455,11 +1561,7 @@ export default function TenantOrdersPage() {
                           </For>
                         </div>
                       </Show>
-                      <Show
-                        when={
-                          recommendation().options.length === 0
-                        }
-                      >
+                      <Show when={recommendation().options.length === 0}>
                         <EmptyBlock
                           title="No active partner profiles returned"
                           copy="Create or activate partner capabilities first so the routing engine can score eligible print and fulfillment partners."
@@ -1514,7 +1616,9 @@ export default function TenantOrdersPage() {
                   <Button
                     type="button"
                     size="xs"
-                    color={activeQueueView() === 'my_queue' ? 'blue' : 'alternative'}
+                    color={
+                      activeQueueView() === 'my_queue' ? 'blue' : 'alternative'
+                    }
                     onClick={() => setActiveQueueView('my_queue')}
                   >
                     My queue · {queueViewCount('my_queue')}
@@ -1522,7 +1626,9 @@ export default function TenantOrdersPage() {
                   <Button
                     type="button"
                     size="xs"
-                    color={activeQueueView() === 'overdue' ? 'red' : 'alternative'}
+                    color={
+                      activeQueueView() === 'overdue' ? 'red' : 'alternative'
+                    }
                     onClick={() => setActiveQueueView('overdue')}
                   >
                     Overdue · {queueViewCount('overdue')}
@@ -1559,7 +1665,9 @@ export default function TenantOrdersPage() {
               <Button
                 type="button"
                 size="xs"
-                color={activeQueueSort() === 'priority' ? 'dark' : 'alternative'}
+                color={
+                  activeQueueSort() === 'priority' ? 'dark' : 'alternative'
+                }
                 onClick={() => setActiveQueueSort('priority')}
               >
                 Priority first
@@ -1630,11 +1738,10 @@ export default function TenantOrdersPage() {
             <div class="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
               <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p class="text-sm font-semibold text-gray-900">
-                    Bulk ops
-                  </p>
+                  <p class="text-sm font-semibold text-gray-900">Bulk ops</p>
                   <p class="text-sm text-gray-500">
-                    Selected {selectedOrderIDs().length} order(s) in the current queue workflow.
+                    Selected {selectedOrderIDs().length} order(s) in the current
+                    queue workflow.
                   </p>
                 </div>
                 <div class="flex flex-wrap gap-2">
@@ -1692,7 +1799,8 @@ export default function TenantOrdersPage() {
                   onChange={(event) =>
                     setBulkDraft((current) => ({
                       ...current,
-                      shipmentSlaMode: event.currentTarget.value as ShipmentSlaMode,
+                      shipmentSlaMode: event.currentTarget
+                        .value as ShipmentSlaMode,
                       shipmentSlaDueAt: event.currentTarget.value
                         ? toLocalDateTimeValue(
                             resolveShipmentSla(
@@ -1754,7 +1862,9 @@ export default function TenantOrdersPage() {
                               <button
                                 type="button"
                                 class="text-xs font-semibold text-red-600"
-                                onClick={() => deleteBulkTemplate(template.name)}
+                                onClick={() =>
+                                  deleteBulkTemplate(template.name)
+                                }
                               >
                                 remove
                               </button>
@@ -1814,7 +1924,8 @@ export default function TenantOrdersPage() {
                       Store activity feed
                     </p>
                     <p class="text-sm text-slate-500">
-                      Latest activity across the current queue slice for store {params().tenantId}.
+                      Latest activity across the current queue slice for store{' '}
+                      {params().tenantId}.
                     </p>
                   </div>
                   <Button
@@ -1841,7 +1952,8 @@ export default function TenantOrdersPage() {
                     when={storeActivityFeed().length > 0}
                     fallback={
                       <div class="rounded-xl border border-dashed border-slate-200 bg-white p-3 text-sm text-slate-500">
-                        No store activity matches the current queue and activity filters.
+                        No store activity matches the current queue and activity
+                        filters.
                       </div>
                     }
                   >
@@ -1851,7 +1963,10 @@ export default function TenantOrdersPage() {
                           <div class="flex flex-wrap items-center justify-between gap-2">
                             <div class="flex flex-wrap items-center gap-2">
                               <Badge
-                                content={entry.activity.type.replaceAll('_', ' ')}
+                                content={entry.activity.type.replaceAll(
+                                  '_',
+                                  ' '
+                                )}
                                 color={activityColor(entry.activity.type)}
                               />
                               <p class="text-xs font-semibold text-slate-700">
@@ -1866,8 +1981,12 @@ export default function TenantOrdersPage() {
                             </p>
                           </div>
                           <div class="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                            <span>{formatActivityActor(entry.activity.actor)}</span>
-                            <span>owner {entry.operatorAssignee || 'unassigned'}</span>
+                            <span>
+                              {formatActivityActor(entry.activity.actor)}
+                            </span>
+                            <span>
+                              owner {entry.operatorAssignee || 'unassigned'}
+                            </span>
                           </div>
                           <p class="mt-2 text-sm text-slate-700">
                             {entry.activity.message}
@@ -1877,7 +1996,8 @@ export default function TenantOrdersPage() {
                               <For each={entry.activity.details}>
                                 {(detail) => (
                                   <span class="rounded-full bg-slate-50 px-2 py-1 text-[11px] font-medium text-slate-600 ring-1 ring-slate-200">
-                                    {detail.key.replaceAll('_', ' ')}: {detail.value}
+                                    {detail.key.replaceAll('_', ' ')}:{' '}
+                                    {detail.value}
                                   </span>
                                 )}
                               </For>
@@ -1907,18 +2027,20 @@ export default function TenantOrdersPage() {
                           />
                         </label>
                         <div>
-                        <p class="text-base font-semibold text-gray-900">
-                          {order.id}
-                        </p>
-                        <p class="mt-1 text-sm text-gray-500">
-                          {order.productTitle} · {order.partner}
-                        </p>
-                        <p class="mt-1 text-sm text-gray-500">
-                          customer {order.customerName} · qty {order.quantity} · total {order.total}
-                        </p>
-                        <p class="mt-1 text-sm text-gray-500">
-                          owner {order.operatorAssignee || 'unassigned'}
-                        </p>
+                          <p class="text-base font-semibold text-gray-900">
+                            {order.id}
+                          </p>
+                          <p class="mt-1 text-sm text-gray-500">
+                            {order.productTitle} ·{' '}
+                            {order.partner || 'partner pending'}
+                          </p>
+                          <p class="mt-1 text-sm text-gray-500">
+                            customer {order.customerName} · qty {order.quantity}{' '}
+                            · total {order.total}
+                          </p>
+                          <p class="mt-1 text-sm text-gray-500">
+                            owner {order.operatorAssignee || 'unassigned'}
+                          </p>
                         </div>
                       </div>
                       <div class="flex flex-wrap items-center gap-2">
@@ -1938,6 +2060,12 @@ export default function TenantOrdersPage() {
                             color={exceptionColor(order.exceptionStatus)}
                           />
                         </Show>
+                        <Show when={order.routingBlockCode}>
+                          <Badge
+                            content={`blocked ${order.routingBlockCode.replaceAll('_', ' ')}`}
+                            color="red"
+                          />
+                        </Show>
                         <Badge
                           content={order.shipmentStatus.replaceAll('_', ' ')}
                           color={shipmentColor(order.shipmentStatus)}
@@ -1951,6 +2079,7 @@ export default function TenantOrdersPage() {
                           size="xs"
                           color="green"
                           disabled={
+                            order.status === 'routing_blocked' ||
                             order.status === 'shipped' ||
                             order.exceptionStatus === 'open' ||
                             order.exceptionStatus === 'escalated'
@@ -1975,6 +2104,11 @@ export default function TenantOrdersPage() {
                         >
                           Raise issue
                         </Button>
+                        <Show when={order.routingBlockReason}>
+                          <p class="w-full text-sm text-rose-700">
+                            Routing blocked: {order.routingBlockReason}
+                          </p>
+                        </Show>
                         <Show when={order.exceptionStatus === 'open'}>
                           <Button
                             type="button"
@@ -2009,6 +2143,41 @@ export default function TenantOrdersPage() {
                           {order.exceptionType.replaceAll('_', ' ')} ·{' '}
                           {order.exceptionStatus || 'draft'}
                         </p>
+                      </div>
+                    </Show>
+
+                    <Show when={order.status === 'routing_blocked'}>
+                      <div class="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3">
+                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-rose-700">
+                          Manual reroute
+                        </p>
+                        <p class="mt-2 text-sm text-rose-900">
+                          Pick an eligible partner to clear the routing block
+                          and move the order back into the queued lane.
+                        </p>
+                        <div class="mt-3 flex flex-col gap-3 md:flex-row md:items-end">
+                          <div class="flex-1">
+                            <InputField
+                              label="Preferred partner"
+                              value={rerouteDraftFor(order).preferredPartner}
+                              placeholder="partner code or name"
+                              onInput={(event) =>
+                                patchRerouteDraft(order.id, {
+                                  preferredPartner: event.currentTarget.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            color="red"
+                            onClick={() => {
+                              rerouteBlockedOrder(order);
+                            }}
+                          >
+                            Force reroute
+                          </Button>
+                        </div>
                       </div>
                     </Show>
 
@@ -2066,13 +2235,17 @@ export default function TenantOrdersPage() {
                         <Show when={order.shipmentSlaDueAt}>
                           <Badge
                             content={`shipment SLA ${isOverdue(order.shipmentSlaDueAt) ? 'overdue' : 'set'}`}
-                            color={isOverdue(order.shipmentSlaDueAt) ? 'red' : 'blue'}
+                            color={
+                              isOverdue(order.shipmentSlaDueAt) ? 'red' : 'blue'
+                            }
                           />
                         </Show>
                         <Show when={order.issueSlaDueAt}>
                           <Badge
                             content={`issue SLA ${isOverdue(order.issueSlaDueAt) ? 'overdue' : 'set'}`}
-                            color={isOverdue(order.issueSlaDueAt) ? 'red' : 'blue'}
+                            color={
+                              isOverdue(order.issueSlaDueAt) ? 'red' : 'blue'
+                            }
                           />
                         </Show>
                       </div>
@@ -2133,7 +2306,10 @@ export default function TenantOrdersPage() {
                           >
                             Save issue handling
                           </Button>
-                          <Badge content={`cost ${order.issueCost}`} color="red" />
+                          <Badge
+                            content={`cost ${order.issueCost}`}
+                            color="red"
+                          />
                           <Badge
                             content={order.issueResolution.replaceAll('_', ' ')}
                             color="yellow"
@@ -2299,7 +2475,12 @@ export default function TenantOrdersPage() {
                         >
                           Save shipment state
                         </Button>
-                        <Show when={order.shipmentCarrier || order.shipmentTrackingNumber}>
+                        <Show
+                          when={
+                            order.shipmentCarrier ||
+                            order.shipmentTrackingNumber
+                          }
+                        >
                           <Badge
                             content={`${order.shipmentCarrier || 'manual carrier'} ${order.shipmentTrackingNumber || ''}`.trim()}
                             color="indigo"
@@ -2337,7 +2518,9 @@ export default function TenantOrdersPage() {
                                 value: option.value,
                               }))}
                               onChange={(event) =>
-                                setActivityFilter(event.currentTarget.value as ActivityFilter)
+                                setActivityFilter(
+                                  event.currentTarget.value as ActivityFilter
+                                )
                               }
                             />
                           </div>
@@ -2374,47 +2557,54 @@ export default function TenantOrdersPage() {
                             <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-3 text-sm text-slate-500">
                               <Show
                                 when={hiddenSystemActivityCountFor(order) > 0}
-                                fallback={'No activity matches the current filter.'}
+                                fallback={
+                                  'No activity matches the current filter.'
+                                }
                               >
-                                {hiddenSystemActivityCountFor(order)} system updates are hidden.
+                                {hiddenSystemActivityCountFor(order)} system
+                                updates are hidden.
                               </Show>
                             </div>
                           }
                         >
-                        <For each={filteredActivityLogFor(order)}>
-                          {(activity) => (
-                            <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                              <div class="flex flex-wrap items-center justify-between gap-2">
-                                <div class="flex flex-wrap items-center gap-2">
-                                  <Badge
-                                    content={activity.type.replaceAll('_', ' ')}
-                                    color={activityColor(activity.type)}
-                                  />
-                                  <p class="text-xs font-medium text-slate-500">
-                                    {formatActivityActor(activity.actor)}
+                          <For each={filteredActivityLogFor(order)}>
+                            {(activity) => (
+                              <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                  <div class="flex flex-wrap items-center gap-2">
+                                    <Badge
+                                      content={activity.type.replaceAll(
+                                        '_',
+                                        ' '
+                                      )}
+                                      color={activityColor(activity.type)}
+                                    />
+                                    <p class="text-xs font-medium text-slate-500">
+                                      {formatActivityActor(activity.actor)}
+                                    </p>
+                                  </div>
+                                  <p class="text-xs text-slate-500">
+                                    {formatActivityTime(activity.createdAt)}
                                   </p>
                                 </div>
-                                <p class="text-xs text-slate-500">
-                                  {formatActivityTime(activity.createdAt)}
+                                <p class="mt-2 text-sm text-slate-700">
+                                  {activity.message}
                                 </p>
+                                <Show when={activity.details.length}>
+                                  <div class="mt-2 flex flex-wrap gap-2">
+                                    <For each={activity.details}>
+                                      {(detail) => (
+                                        <span class="rounded-full bg-white px-2 py-1 text-[11px] font-medium text-slate-600 ring-1 ring-slate-200">
+                                          {detail.key.replaceAll('_', ' ')}:{' '}
+                                          {detail.value}
+                                        </span>
+                                      )}
+                                    </For>
+                                  </div>
+                                </Show>
                               </div>
-                              <p class="mt-2 text-sm text-slate-700">
-                                {activity.message}
-                              </p>
-                              <Show when={activity.details.length}>
-                                <div class="mt-2 flex flex-wrap gap-2">
-                                  <For each={activity.details}>
-                                    {(detail) => (
-                                      <span class="rounded-full bg-white px-2 py-1 text-[11px] font-medium text-slate-600 ring-1 ring-slate-200">
-                                        {detail.key.replaceAll('_', ' ')}: {detail.value}
-                                      </span>
-                                    )}
-                                  </For>
-                                </div>
-                              </Show>
-                            </div>
-                          )}
-                        </For>
+                            )}
+                          </For>
                         </Show>
                       </div>
                     </div>
@@ -2457,7 +2647,11 @@ export default function TenantOrdersPage() {
             {(stage) => (
               <Badge
                 content={`Issue ${stage.name}`}
-                color={stage.value === 'reprint' || stage.value === 'refund' ? 'red' : 'yellow'}
+                color={
+                  stage.value === 'reprint' || stage.value === 'refund'
+                    ? 'red'
+                    : 'yellow'
+                }
               />
             )}
           </For>

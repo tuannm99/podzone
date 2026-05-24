@@ -121,7 +121,10 @@ func (r *PolicyRepositoryImpl) GetPolicyByName(ctx context.Context, name string)
 	return &entity, nil
 }
 
-func (r *PolicyRepositoryImpl) GetPolicyStatements(ctx context.Context, policyID uint64) ([]entity.PolicyStatement, error) {
+func (r *PolicyRepositoryImpl) GetPolicyStatements(
+	ctx context.Context,
+	policyID uint64,
+) ([]entity.PolicyStatement, error) {
 	var rows []policyStatementModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -159,7 +162,10 @@ func (r *PolicyRepositoryImpl) ListPolicies(ctx context.Context, scope string) (
 	return out, nil
 }
 
-func (r *PolicyRepositoryImpl) ListPolicyAttachments(ctx context.Context, policyID uint64) ([]entity.PolicyAttachment, error) {
+func (r *PolicyRepositoryImpl) ListPolicyAttachments(
+	ctx context.Context,
+	policyID uint64,
+) ([]entity.PolicyAttachment, error) {
 	var rows []policyAttachmentModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -418,7 +424,11 @@ func (r *PolicyRepositoryImpl) CreatePolicyVersion(
 	return &entity, outStatements, nil
 }
 
-func (r *PolicyRepositoryImpl) ListPolicyVersions(ctx context.Context, policyID uint64, policyName string) ([]entity.PolicyVersion, error) {
+func (r *PolicyRepositoryImpl) ListPolicyVersions(
+	ctx context.Context,
+	policyID uint64,
+	policyName string,
+) ([]entity.PolicyVersion, error) {
 	var rows []policyVersionModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -482,7 +492,12 @@ func (r *PolicyRepositoryImpl) SetDefaultPolicyVersion(ctx context.Context, poli
 	if _, err := tx.ExecContext(ctx, `UPDATE iam_policy_versions SET is_default = FALSE WHERE policy_id = $1`, policyID); err != nil {
 		return err
 	}
-	res, err := tx.ExecContext(ctx, `UPDATE iam_policy_versions SET is_default = TRUE WHERE policy_id = $1 AND version = $2`, policyID, version)
+	res, err := tx.ExecContext(
+		ctx,
+		`UPDATE iam_policy_versions SET is_default = TRUE WHERE policy_id = $1 AND version = $2`,
+		policyID,
+		version,
+	)
 	if err != nil {
 		return err
 	}
@@ -714,7 +729,12 @@ func (r *PolicyRepositoryImpl) DeleteTenantUserPermissionBoundary(
 	tenantID string,
 	userID uint,
 ) error {
-	_, err := r.db.ExecContext(ctx, `DELETE FROM iam_tenant_user_permission_boundaries WHERE tenant_id = $1 AND user_id = $2`, tenantID, userID)
+	_, err := r.db.ExecContext(
+		ctx,
+		`DELETE FROM iam_tenant_user_permission_boundaries WHERE tenant_id = $1 AND user_id = $2`,
+		tenantID,
+		userID,
+	)
 	return err
 }
 
@@ -853,7 +873,10 @@ func (r *PolicyRepositoryImpl) ListPlatformUserPolicies(ctx context.Context, use
 	return toPolicies(rows), nil
 }
 
-func (r *PolicyRepositoryImpl) PutPlatformUserInlinePolicy(ctx context.Context, input entity.PutPlatformUserInlinePolicyInput) error {
+func (r *PolicyRepositoryImpl) PutPlatformUserInlinePolicy(
+	ctx context.Context,
+	input entity.PutPlatformUserInlinePolicyInput,
+) error {
 	return r.putUserInlinePolicy(ctx, userInlinePolicyModel{
 		Scope:       entity.PolicyScopePlatform,
 		UserID:      input.UserID,
@@ -862,11 +885,18 @@ func (r *PolicyRepositoryImpl) PutPlatformUserInlinePolicy(ctx context.Context, 
 	}, input.Statements)
 }
 
-func (r *PolicyRepositoryImpl) GetPlatformUserInlinePolicy(ctx context.Context, userID uint, name string) (*entity.UserInlinePolicy, error) {
+func (r *PolicyRepositoryImpl) GetPlatformUserInlinePolicy(
+	ctx context.Context,
+	userID uint,
+	name string,
+) (*entity.UserInlinePolicy, error) {
 	return r.getPlatformUserInlinePolicy(ctx, userID, name)
 }
 
-func (r *PolicyRepositoryImpl) ListPlatformUserInlinePolicies(ctx context.Context, userID uint) ([]entity.UserInlinePolicy, error) {
+func (r *PolicyRepositoryImpl) ListPlatformUserInlinePolicies(
+	ctx context.Context,
+	userID uint,
+) ([]entity.UserInlinePolicy, error) {
 	return r.listPlatformUserInlinePolicies(ctx, userID)
 }
 
@@ -880,7 +910,12 @@ func (r *PolicyRepositoryImpl) DeletePlatformUserInlinePolicy(ctx context.Contex
 	return err
 }
 
-func (r *PolicyRepositoryImpl) AttachTenantUserPolicy(ctx context.Context, tenantID string, userID uint, policyID uint64) error {
+func (r *PolicyRepositoryImpl) AttachTenantUserPolicy(
+	ctx context.Context,
+	tenantID string,
+	userID uint,
+	policyID uint64,
+) error {
 	_, err := r.db.ExecContext(
 		ctx,
 		`INSERT INTO iam_tenant_user_policy_attachments (tenant_id, user_id, policy_id, created_at)
@@ -893,7 +928,12 @@ func (r *PolicyRepositoryImpl) AttachTenantUserPolicy(ctx context.Context, tenan
 	return err
 }
 
-func (r *PolicyRepositoryImpl) DetachTenantUserPolicy(ctx context.Context, tenantID string, userID uint, policyID uint64) error {
+func (r *PolicyRepositoryImpl) DetachTenantUserPolicy(
+	ctx context.Context,
+	tenantID string,
+	userID uint,
+	policyID uint64,
+) error {
 	_, err := r.db.ExecContext(
 		ctx,
 		`DELETE FROM iam_tenant_user_policy_attachments
@@ -905,7 +945,11 @@ func (r *PolicyRepositoryImpl) DetachTenantUserPolicy(ctx context.Context, tenan
 	return err
 }
 
-func (r *PolicyRepositoryImpl) ListTenantUserPolicies(ctx context.Context, tenantID string, userID uint) ([]entity.Policy, error) {
+func (r *PolicyRepositoryImpl) ListTenantUserPolicies(
+	ctx context.Context,
+	tenantID string,
+	userID uint,
+) ([]entity.Policy, error) {
 	var rows []policyModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -923,7 +967,10 @@ func (r *PolicyRepositoryImpl) ListTenantUserPolicies(ctx context.Context, tenan
 	return toPolicies(rows), nil
 }
 
-func (r *PolicyRepositoryImpl) PutTenantUserInlinePolicy(ctx context.Context, input entity.PutTenantUserInlinePolicyInput) error {
+func (r *PolicyRepositoryImpl) PutTenantUserInlinePolicy(
+	ctx context.Context,
+	input entity.PutTenantUserInlinePolicyInput,
+) error {
 	return r.putUserInlinePolicy(ctx, userInlinePolicyModel{
 		Scope:       entity.PolicyScopeTenant,
 		TenantID:    input.TenantID,
@@ -933,15 +980,29 @@ func (r *PolicyRepositoryImpl) PutTenantUserInlinePolicy(ctx context.Context, in
 	}, input.Statements)
 }
 
-func (r *PolicyRepositoryImpl) GetTenantUserInlinePolicy(ctx context.Context, tenantID string, userID uint, name string) (*entity.UserInlinePolicy, error) {
+func (r *PolicyRepositoryImpl) GetTenantUserInlinePolicy(
+	ctx context.Context,
+	tenantID string,
+	userID uint,
+	name string,
+) (*entity.UserInlinePolicy, error) {
 	return r.getTenantUserInlinePolicy(ctx, tenantID, userID, name)
 }
 
-func (r *PolicyRepositoryImpl) ListTenantUserInlinePolicies(ctx context.Context, tenantID string, userID uint) ([]entity.UserInlinePolicy, error) {
+func (r *PolicyRepositoryImpl) ListTenantUserInlinePolicies(
+	ctx context.Context,
+	tenantID string,
+	userID uint,
+) ([]entity.UserInlinePolicy, error) {
 	return r.listTenantUserInlinePolicies(ctx, tenantID, userID)
 }
 
-func (r *PolicyRepositoryImpl) DeleteTenantUserInlinePolicy(ctx context.Context, tenantID string, userID uint, name string) error {
+func (r *PolicyRepositoryImpl) DeleteTenantUserInlinePolicy(
+	ctx context.Context,
+	tenantID string,
+	userID uint,
+	name string,
+) error {
 	_, err := r.db.ExecContext(
 		ctx,
 		`DELETE FROM iam_tenant_user_inline_policies WHERE tenant_id = $1 AND user_id = $2 AND name = $3`,
@@ -952,7 +1013,11 @@ func (r *PolicyRepositoryImpl) DeleteTenantUserInlinePolicy(ctx context.Context,
 	return err
 }
 
-func (r *PolicyRepositoryImpl) putUserInlinePolicy(ctx context.Context, policy userInlinePolicyModel, statements []entity.PolicyStatement) error {
+func (r *PolicyRepositoryImpl) putUserInlinePolicy(
+	ctx context.Context,
+	policy userInlinePolicyModel,
+	statements []entity.PolicyStatement,
+) error {
 	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return err
@@ -1042,7 +1107,11 @@ func (r *PolicyRepositoryImpl) putUserInlinePolicy(ctx context.Context, policy u
 	return tx.Commit()
 }
 
-func (r *PolicyRepositoryImpl) getPlatformUserInlinePolicy(ctx context.Context, userID uint, name string) (*entity.UserInlinePolicy, error) {
+func (r *PolicyRepositoryImpl) getPlatformUserInlinePolicy(
+	ctx context.Context,
+	userID uint,
+	name string,
+) (*entity.UserInlinePolicy, error) {
 	var policy userInlinePolicyModel
 	if err := r.db.GetContext(
 		ctx,
@@ -1066,7 +1135,10 @@ func (r *PolicyRepositoryImpl) getPlatformUserInlinePolicy(ctx context.Context, 
 	return &entity, nil
 }
 
-func (r *PolicyRepositoryImpl) listPlatformUserInlinePolicies(ctx context.Context, userID uint) ([]entity.UserInlinePolicy, error) {
+func (r *PolicyRepositoryImpl) listPlatformUserInlinePolicies(
+	ctx context.Context,
+	userID uint,
+) ([]entity.UserInlinePolicy, error) {
 	var policies []userInlinePolicyModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -1090,7 +1162,12 @@ func (r *PolicyRepositoryImpl) listPlatformUserInlinePolicies(ctx context.Contex
 	return out, nil
 }
 
-func (r *PolicyRepositoryImpl) getTenantUserInlinePolicy(ctx context.Context, tenantID string, userID uint, name string) (*entity.UserInlinePolicy, error) {
+func (r *PolicyRepositoryImpl) getTenantUserInlinePolicy(
+	ctx context.Context,
+	tenantID string,
+	userID uint,
+	name string,
+) (*entity.UserInlinePolicy, error) {
 	var policy userInlinePolicyModel
 	if err := r.db.GetContext(
 		ctx,
@@ -1115,7 +1192,11 @@ func (r *PolicyRepositoryImpl) getTenantUserInlinePolicy(ctx context.Context, te
 	return &entity, nil
 }
 
-func (r *PolicyRepositoryImpl) listTenantUserInlinePolicies(ctx context.Context, tenantID string, userID uint) ([]entity.UserInlinePolicy, error) {
+func (r *PolicyRepositoryImpl) listTenantUserInlinePolicies(
+	ctx context.Context,
+	tenantID string,
+	userID uint,
+) ([]entity.UserInlinePolicy, error) {
 	var policies []userInlinePolicyModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -1140,7 +1221,11 @@ func (r *PolicyRepositoryImpl) listTenantUserInlinePolicies(ctx context.Context,
 	return out, nil
 }
 
-func (r *PolicyRepositoryImpl) listPlatformUserInlinePolicyStatements(ctx context.Context, userID uint, name string) ([]entity.PolicyStatement, error) {
+func (r *PolicyRepositoryImpl) listPlatformUserInlinePolicyStatements(
+	ctx context.Context,
+	userID uint,
+	name string,
+) ([]entity.PolicyStatement, error) {
 	var rows []policyStatementModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -1157,7 +1242,12 @@ func (r *PolicyRepositoryImpl) listPlatformUserInlinePolicyStatements(ctx contex
 	return toPolicyStatements(rows), nil
 }
 
-func (r *PolicyRepositoryImpl) listTenantUserInlinePolicyStatements(ctx context.Context, tenantID string, userID uint, name string) ([]entity.PolicyStatement, error) {
+func (r *PolicyRepositoryImpl) listTenantUserInlinePolicyStatements(
+	ctx context.Context,
+	tenantID string,
+	userID uint,
+	name string,
+) ([]entity.PolicyStatement, error) {
 	var rows []policyStatementModel
 	if err := r.db.SelectContext(
 		ctx,

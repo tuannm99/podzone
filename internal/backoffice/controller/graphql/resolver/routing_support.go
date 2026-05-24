@@ -44,6 +44,8 @@ func toGraphQLRoutedOrder(order routingentity.RoutedOrder) *model.RoutedOrder {
 		OperatorAssignee:       order.OperatorAssignee,
 		ShipmentSLADueAt:       order.ShipmentSlaDueAt,
 		IssueSLADueAt:          order.IssueSlaDueAt,
+		RoutingBlockCode:       order.RoutingBlockCode,
+		RoutingBlockReason:     order.RoutingBlockReason,
 		BaseCostSnapshot:       order.BaseCostSnapshot,
 		FulfillmentCost:        order.FulfillmentCost,
 		ShippingCost:           order.ShippingCost,
@@ -77,7 +79,9 @@ func toGraphQLRoutedOrderActivity(activity routingentity.RoutedOrderActivity) *m
 	}
 }
 
-func toGraphQLRoutedOrderActivityFeedEntry(entry routingentity.RoutedOrderActivityFeedEntry) *model.RoutedOrderActivityFeedEntry {
+func toGraphQLRoutedOrderActivityFeedEntry(
+	entry routingentity.RoutedOrderActivityFeedEntry,
+) *model.RoutedOrderActivityFeedEntry {
 	return &model.RoutedOrderActivityFeedEntry{
 		OrderID:          entry.OrderID,
 		ProductTitle:     entry.ProductTitle,
@@ -87,7 +91,9 @@ func toGraphQLRoutedOrderActivityFeedEntry(entry routingentity.RoutedOrderActivi
 	}
 }
 
-func toGraphQLRoutedOrderActivityFeedPage(page routingentity.RoutedOrderActivityFeedPage) *model.RoutedOrderActivityFeedPage {
+func toGraphQLRoutedOrderActivityFeedPage(
+	page routingentity.RoutedOrderActivityFeedPage,
+) *model.RoutedOrderActivityFeedPage {
 	entries := make([]*model.RoutedOrderActivityFeedEntry, 0, len(page.Entries))
 	for _, entry := range page.Entries {
 		entries = append(entries, toGraphQLRoutedOrderActivityFeedEntry(entry))
@@ -133,20 +139,24 @@ func toGraphQLRoutingPartnerOption(option routingentity.RoutingPartnerOption) *m
 	}
 }
 
-func toGraphQLRoutedOrderRecommendation(recommendation routingentity.RoutedOrderRecommendation) *model.RoutedOrderRecommendation {
+func toGraphQLRoutedOrderRecommendation(
+	recommendation routingentity.RoutedOrderRecommendation,
+) *model.RoutedOrderRecommendation {
 	options := make([]*model.RoutingPartnerOption, 0, len(recommendation.Options))
 	for _, option := range recommendation.Options {
 		options = append(options, toGraphQLRoutingPartnerOption(option))
 	}
 	return &model.RoutedOrderRecommendation{
-		CandidateID:      recommendation.CandidateID,
-		ProductTitle:     recommendation.ProductTitle,
-		CandidatePartner: recommendation.CandidatePartner,
-		ProductType:      recommendation.ProductType,
-		ShipRegion:       recommendation.ShipRegion,
-		SelectedPartner:  recommendation.SelectedPartner,
-		Summary:          recommendation.Summary,
-		Options:          options,
+		CandidateID:       recommendation.CandidateID,
+		ProductTitle:      recommendation.ProductTitle,
+		CandidatePartner:  recommendation.CandidatePartner,
+		ProductType:       recommendation.ProductType,
+		ShipRegion:        recommendation.ShipRegion,
+		SelectedPartner:   recommendation.SelectedPartner,
+		BlockedReasonCode: recommendation.BlockedReasonCode,
+		BlockedReason:     recommendation.BlockedReason,
+		Summary:           recommendation.Summary,
+		Options:           options,
 	}
 }
 

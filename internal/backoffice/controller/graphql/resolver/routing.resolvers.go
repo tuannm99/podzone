@@ -32,6 +32,18 @@ func (r *mutationResolver) CreateRoutedOrder(ctx context.Context, input model.Cr
 	return toGraphQLRoutedOrder(*order), nil
 }
 
+// ForceRerouteBlockedOrder is the resolver for the forceRerouteBlockedOrder field.
+func (r *mutationResolver) ForceRerouteBlockedOrder(ctx context.Context, input model.ForceRerouteBlockedOrderInput) (*model.RoutedOrder, error) {
+	order, err := r.OrderRoutingUsecase.ForceRerouteBlockedOrder(ctx, routinginputport.ForceRerouteBlockedOrderCmd{
+		OrderID:          input.OrderID,
+		PreferredPartner: input.PreferredPartner,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return toGraphQLRoutedOrder(*order), nil
+}
+
 // AdvanceRoutedOrder is the resolver for the advanceRoutedOrder field.
 func (r *mutationResolver) AdvanceRoutedOrder(ctx context.Context, id string) (*model.RoutedOrder, error) {
 	order, err := r.OrderRoutingUsecase.AdvanceRoutedOrder(ctx, id)

@@ -1,0 +1,3 @@
+ALTER TABLE routed_orders
+	ADD COLUMN IF NOT EXISTS routing_block_code TEXT NOT NULL DEFAULT '',
+	ADD COLUMN IF NOT EXISTS routing_block_reason TEXT NOT NULL DEFAULT '';

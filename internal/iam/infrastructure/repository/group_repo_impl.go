@@ -159,7 +159,11 @@ func (r *GroupRepositoryImpl) PutInlinePolicy(ctx context.Context, input entity.
 	return tx.Commit()
 }
 
-func (r *GroupRepositoryImpl) GetInlinePolicy(ctx context.Context, groupID uint64, name string) (*entity.GroupInlinePolicy, error) {
+func (r *GroupRepositoryImpl) GetInlinePolicy(
+	ctx context.Context,
+	groupID uint64,
+	name string,
+) (*entity.GroupInlinePolicy, error) {
 	var policy groupInlinePolicyModel
 	if err := r.db.GetContext(
 		ctx,
@@ -183,7 +187,10 @@ func (r *GroupRepositoryImpl) GetInlinePolicy(ctx context.Context, groupID uint6
 	return &entity, nil
 }
 
-func (r *GroupRepositoryImpl) ListInlinePolicies(ctx context.Context, groupID uint64) ([]entity.GroupInlinePolicy, error) {
+func (r *GroupRepositoryImpl) ListInlinePolicies(
+	ctx context.Context,
+	groupID uint64,
+) ([]entity.GroupInlinePolicy, error) {
 	var policies []groupInlinePolicyModel
 	if err := r.db.SelectContext(
 		ctx,
@@ -291,7 +298,11 @@ func (r *GroupRepositoryImpl) ListPolicies(ctx context.Context, groupID uint64) 
 	return toPolicies(rows), nil
 }
 
-func (r *GroupRepositoryImpl) listInlinePolicyStatements(ctx context.Context, groupID uint64, name string) ([]entity.PolicyStatement, error) {
+func (r *GroupRepositoryImpl) listInlinePolicyStatements(
+	ctx context.Context,
+	groupID uint64,
+	name string,
+) ([]entity.PolicyStatement, error) {
 	var rows []struct {
 		Effect          string    `db:"effect"`
 		ActionPattern   string    `db:"action_pattern"`

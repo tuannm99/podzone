@@ -134,7 +134,10 @@ func (r *RoleRepositoryImpl) PutPermissionBoundary(ctx context.Context, roleID u
 	return err
 }
 
-func (r *RoleRepositoryImpl) GetPermissionBoundary(ctx context.Context, roleID uint64) (*entity.RolePermissionBoundary, error) {
+func (r *RoleRepositoryImpl) GetPermissionBoundary(
+	ctx context.Context,
+	roleID uint64,
+) (*entity.RolePermissionBoundary, error) {
 	var row struct {
 		RoleID     uint64    `db:"role_id"`
 		RoleName   string    `db:"role_name"`
@@ -166,7 +169,10 @@ func (r *RoleRepositoryImpl) GetPermissionBoundary(ctx context.Context, roleID u
 	}, nil
 }
 
-func (r *RoleRepositoryImpl) GetPermissionBoundaryStatements(ctx context.Context, roleID uint64) ([]entity.PolicyStatement, error) {
+func (r *RoleRepositoryImpl) GetPermissionBoundaryStatements(
+	ctx context.Context,
+	roleID uint64,
+) ([]entity.PolicyStatement, error) {
 	rows := make([]policyStatementModel, 0)
 	if err := r.db.SelectContext(
 		ctx,

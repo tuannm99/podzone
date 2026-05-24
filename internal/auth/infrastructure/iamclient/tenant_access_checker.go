@@ -17,16 +17,18 @@ import (
 )
 
 type TenantAccessChecker struct {
-	client pbauthv1.IAMServiceClient
+	client     pbauthv1.IAMServiceClient
+	projection outputport.IAMProjectionRepository
 }
 
 var _ outputport.TenantAccessChecker = (*TenantAccessChecker)(nil)
 
 type TenantAccessCheckerParams struct {
 	fx.In
-	Lifecycle fx.Lifecycle
-	Logger    pdlog.Logger
-	Config    config.AuthConfig
+	Lifecycle  fx.Lifecycle
+	Logger     pdlog.Logger
+	Config     config.AuthConfig
+	Projection outputport.IAMProjectionRepository `optional:"true"`
 }
 
 func NewTenantAccessChecker(p TenantAccessCheckerParams) (outputport.TenantAccessChecker, error) {
@@ -41,10 +43,26 @@ func NewTenantAccessChecker(p TenantAccessCheckerParams) (outputport.TenantAcces
 			return conn.Close()
 		},
 	})
-	return &TenantAccessChecker{client: pbauthv1.NewIAMServiceClient(conn)}, nil
+	return &TenantAccessChecker{
+		client:     pbauthv1.NewIAMServiceClient(conn),
+		projection: p.Projection,
+	}, nil
 }
 
 func (c *TenantAccessChecker) EnsureActiveMembership(ctx context.Context, tenantID string, userID uint) error {
+	if c.projection != nil {
+		membership, err := c.projection.GetTenantMembership(ctx, tenantID, userID)
+		if err != nil {
+			return err
+		}
+		if membership != nil {
+			if membership.Status != iamentity.MembershipStatusActive {
+				return iamentity.ErrInactiveMembership
+			}
+			return nil
+		}
+	}
+
 	resp, err := c.client.GetTenantMembership(ctx, &pbauthv1.GetTenantMembershipRequest{
 		TenantId: tenantID,
 		UserId:   uint64(userID),

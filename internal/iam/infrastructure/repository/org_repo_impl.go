@@ -20,7 +20,10 @@ func NewOrganizationRepository(p repoParams) outputport.OrganizationRepository {
 	return &OrganizationRepositoryImpl{db: p.DB}
 }
 
-func (r *OrganizationRepositoryImpl) Create(ctx context.Context, org entity.Organization) (*entity.Organization, error) {
+func (r *OrganizationRepositoryImpl) Create(
+	ctx context.Context,
+	org entity.Organization,
+) (*entity.Organization, error) {
 	var out organizationModel
 	if err := r.db.GetContext(
 		ctx,
@@ -76,7 +79,11 @@ func (r *OrganizationRepositoryImpl) GetByID(ctx context.Context, orgID string) 
 	}, nil
 }
 
-func (r *OrganizationRepositoryImpl) AttachServiceControlPolicy(ctx context.Context, orgID string, policyID uint64) error {
+func (r *OrganizationRepositoryImpl) AttachServiceControlPolicy(
+	ctx context.Context,
+	orgID string,
+	policyID uint64,
+) error {
 	_, err := r.db.ExecContext(ctx,
 		`INSERT INTO iam_org_service_control_policies (org_id, policy_id, created_at)
 		 VALUES ($1, $2, now())
@@ -86,12 +93,24 @@ func (r *OrganizationRepositoryImpl) AttachServiceControlPolicy(ctx context.Cont
 	return err
 }
 
-func (r *OrganizationRepositoryImpl) DetachServiceControlPolicy(ctx context.Context, orgID string, policyID uint64) error {
-	_, err := r.db.ExecContext(ctx, `DELETE FROM iam_org_service_control_policies WHERE org_id = $1 AND policy_id = $2`, orgID, policyID)
+func (r *OrganizationRepositoryImpl) DetachServiceControlPolicy(
+	ctx context.Context,
+	orgID string,
+	policyID uint64,
+) error {
+	_, err := r.db.ExecContext(
+		ctx,
+		`DELETE FROM iam_org_service_control_policies WHERE org_id = $1 AND policy_id = $2`,
+		orgID,
+		policyID,
+	)
 	return err
 }
 
-func (r *OrganizationRepositoryImpl) ListServiceControlPolicies(ctx context.Context, orgID string) ([]entity.Policy, error) {
+func (r *OrganizationRepositoryImpl) ListServiceControlPolicies(
+	ctx context.Context,
+	orgID string,
+) ([]entity.Policy, error) {
 	var rows []policyModel
 	if err := r.db.SelectContext(ctx, &rows,
 		`SELECT p.id, p.scope, p.name, p.description, p.is_system, p.default_version, p.created_at, p.updated_at
@@ -110,7 +129,10 @@ func (r *OrganizationRepositoryImpl) ListServiceControlPolicies(ctx context.Cont
 	return out, nil
 }
 
-func (r *OrganizationRepositoryImpl) ListServiceControlPolicyStatements(ctx context.Context, orgID string) ([]entity.PolicyStatement, error) {
+func (r *OrganizationRepositoryImpl) ListServiceControlPolicyStatements(
+	ctx context.Context,
+	orgID string,
+) ([]entity.PolicyStatement, error) {
 	var rows []policyStatementModel
 	if err := r.db.SelectContext(ctx, &rows,
 		`SELECT ps.id, ps.policy_id, p.name AS policy_name, ps.effect, ps.action_pattern, ps.resource_pattern, ps.conditions_json, ps.created_at

@@ -53,14 +53,10 @@ func reuseEnabled() bool {
 
 func registerCleanup(t *testing.T, c testcontainers.Container) {
 	t.Helper()
-	if c == nil || reuseEnabled() {
-		return
-	}
-	t.Cleanup(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		_ = c.Terminate(ctx)
-	})
+	// Containers in this package are process-wide singletons, so terminating them
+	// in per-test cleanup causes flakiness when later tests reuse the cached DSN/client.
+	// We intentionally keep them alive for the whole test process.
+	_ = c
 }
 
 func isDockerUnavailable(err error) bool {

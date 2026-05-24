@@ -25,12 +25,12 @@ var testIAMCfg = config.AuthConfig{
 }
 
 type iamUsecaseMockConfig struct {
-	createTenantFunc      func(ctx context.Context, ownerUserID uint, cmd iamentity.CreateTenantCmd) (*iamentity.Tenant, error)
-	getMembershipFunc     func(ctx context.Context, tenantID string, userID uint) (*iamentity.Membership, error)
-	checkPermissionFunc   func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error)
-	listUserTenantsFunc   func(ctx context.Context, userID uint) ([]iamentity.Membership, error)
-	createPolicyFunc      func(ctx context.Context, input iamentity.CreatePolicyInput) (*iamentity.Policy, []iamentity.PolicyStatement, error)
-	assumeRoleFunc        func(ctx context.Context, input iamentity.AssumeRoleInput) (*iamentity.AssumedRole, error)
+	createTenantFunc              func(ctx context.Context, ownerUserID uint, cmd iamentity.CreateTenantCmd) (*iamentity.Tenant, error)
+	getMembershipFunc             func(ctx context.Context, tenantID string, userID uint) (*iamentity.Membership, error)
+	checkPermissionFunc           func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error)
+	listUserTenantsFunc           func(ctx context.Context, userID uint) ([]iamentity.Membership, error)
+	createPolicyFunc              func(ctx context.Context, input iamentity.CreatePolicyInput) (*iamentity.Policy, []iamentity.PolicyStatement, error)
+	assumeRoleFunc                func(ctx context.Context, input iamentity.AssumeRoleInput) (*iamentity.AssumedRole, error)
 	requirePlatformPermissionFunc func(ctx context.Context, userID uint, permission string) error
 }
 
@@ -38,13 +38,22 @@ func newIAMUsecaseMock(t *testing.T, cfg iamUsecaseMockConfig) *iammocks.MockIAM
 	t.Helper()
 	iamUC := iammocks.NewMockIAMUsecase(t)
 	if cfg.createTenantFunc != nil {
-		iamUC.EXPECT().CreateTenant(mock.Anything, mock.Anything, mock.Anything).RunAndReturn(cfg.createTenantFunc).Maybe()
+		iamUC.EXPECT().
+			CreateTenant(mock.Anything, mock.Anything, mock.Anything).
+			RunAndReturn(cfg.createTenantFunc).
+			Maybe()
 	}
 	if cfg.getMembershipFunc != nil {
-		iamUC.EXPECT().GetMembership(mock.Anything, mock.Anything, mock.Anything).RunAndReturn(cfg.getMembershipFunc).Maybe()
+		iamUC.EXPECT().
+			GetMembership(mock.Anything, mock.Anything, mock.Anything).
+			RunAndReturn(cfg.getMembershipFunc).
+			Maybe()
 	}
 	if cfg.checkPermissionFunc != nil {
-		iamUC.EXPECT().CheckPermission(mock.Anything, mock.Anything, mock.Anything, mock.Anything).RunAndReturn(cfg.checkPermissionFunc).Maybe()
+		iamUC.EXPECT().
+			CheckPermission(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+			RunAndReturn(cfg.checkPermissionFunc).
+			Maybe()
 	}
 	if cfg.listUserTenantsFunc != nil {
 		iamUC.EXPECT().ListUserTenants(mock.Anything, mock.Anything).RunAndReturn(cfg.listUserTenantsFunc).Maybe()
@@ -56,7 +65,10 @@ func newIAMUsecaseMock(t *testing.T, cfg iamUsecaseMockConfig) *iammocks.MockIAM
 		iamUC.EXPECT().AssumeRole(mock.Anything, mock.Anything).RunAndReturn(cfg.assumeRoleFunc).Maybe()
 	}
 	if cfg.requirePlatformPermissionFunc != nil {
-		iamUC.EXPECT().RequirePlatformPermission(mock.Anything, mock.Anything, mock.Anything).RunAndReturn(cfg.requirePlatformPermissionFunc).Maybe()
+		iamUC.EXPECT().
+			RequirePlatformPermission(mock.Anything, mock.Anything, mock.Anything).
+			RunAndReturn(cfg.requirePlatformPermissionFunc).
+			Maybe()
 	}
 	return iamUC
 }

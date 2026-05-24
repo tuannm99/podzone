@@ -3,11 +3,7 @@ package pdkafka
 import (
 	"github.com/IBM/sarama"
 	"go.uber.org/fx"
-
-	"github.com/tuannm99/podzone/pkg/pdlog"
 )
-
-var _ = pdlog.NopLogger{}
 
 func ModuleFor(name string) fx.Option {
 	if name == "" {

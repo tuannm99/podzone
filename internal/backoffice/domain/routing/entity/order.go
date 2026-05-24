@@ -3,9 +3,10 @@ package entity
 import "time"
 
 const (
-	RoutedOrderStatusQueued       = "queued"
-	RoutedOrderStatusInProduction = "in_production"
-	RoutedOrderStatusShipped      = "shipped"
+	RoutedOrderStatusQueued         = "queued"
+	RoutedOrderStatusRoutingBlocked = "routing_blocked"
+	RoutedOrderStatusInProduction   = "in_production"
+	RoutedOrderStatusShipped        = "shipped"
 
 	RoutedOrderExceptionStatusOpen      = "open"
 	RoutedOrderExceptionStatusEscalated = "escalated"
@@ -82,6 +83,8 @@ type RoutedOrder struct {
 	OperatorAssignee       string                `json:"operatorAssignee"`
 	ShipmentSlaDueAt       *time.Time            `json:"shipmentSlaDueAt,omitempty"`
 	IssueSlaDueAt          *time.Time            `json:"issueSlaDueAt,omitempty"`
+	RoutingBlockCode       string                `json:"routingBlockCode"`
+	RoutingBlockReason     string                `json:"routingBlockReason"`
 	BaseCostSnapshot       string                `json:"baseCostSnapshot"`
 	FulfillmentCost        string                `json:"fulfillmentCost"`
 	ShippingCost           string                `json:"shippingCost"`

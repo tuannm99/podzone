@@ -28,6 +28,11 @@ type OpenOrderExceptionCmd struct {
 	ExceptionType string
 }
 
+type ForceRerouteBlockedOrderCmd struct {
+	OrderID          string
+	PreferredPartner string
+}
+
 type UpdateOrderExceptionStatusCmd struct {
 	OrderID string
 	Status  string
@@ -82,6 +87,7 @@ type OrderRoutingUsecase interface {
 		query RecommendRoutedOrderPartnerQuery,
 	) (*routingentity.RoutedOrderRecommendation, error)
 	CreateRoutedOrder(ctx context.Context, cmd CreateRoutedOrderCmd) (*routingentity.RoutedOrder, error)
+	ForceRerouteBlockedOrder(ctx context.Context, cmd ForceRerouteBlockedOrderCmd) (*routingentity.RoutedOrder, error)
 	AdvanceRoutedOrder(ctx context.Context, orderID string) (*routingentity.RoutedOrder, error)
 	OpenOrderException(ctx context.Context, cmd OpenOrderExceptionCmd) (*routingentity.RoutedOrder, error)
 	UpdateOrderExceptionStatus(

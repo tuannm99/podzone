@@ -104,13 +104,7 @@ func (i *OrderRoutingInteractor) CreateRoutedOrder(
 		normalizeRoutingLabel(cmd.ShipRegion),
 		strings.TrimSpace(cmd.PreferredPartner),
 	)
-	if recommendation.SelectedPartner == "" {
-		return nil, fmt.Errorf(
-			"no eligible active partner found for %s in %s",
-			fallbackRoutingLabel(recommendation.ProductType, "product type"),
-			fallbackRoutingLabel(recommendation.ShipRegion, "target region"),
-		)
-	}
+	selectedOption := findSelectedRoutingOption(recommendation)
 
 	qty := cmd.Quantity
 	if qty < 1 {
@@ -122,26 +116,53 @@ func (i *OrderRoutingInteractor) CreateRoutedOrder(
 	}
 	now := time.Now().UTC()
 	actor := activityActorFromContext(ctx)
+	status := routingentity.RoutedOrderStatusQueued
+	partner := recommendation.SelectedPartner
+	timelineEntry := routingTimelineEntry(routingentity.RoutedOrderStatusQueued, recommendation.SelectedPartner)
+	routingBlockCode := ""
+	routingBlockReason := ""
+	fulfillmentCost := "TBD"
+	shippingCost := "TBD"
+	estimatedMargin := "TBD"
+	if selectedOption != nil {
+		fulfillmentCost = multiplyMoney(selectedOption.EstimatedFulfillmentCost, qty)
+		shippingCost = selectedOption.EstimatedShippingCost
+		estimatedMargin = calculateMargin(
+			multiplyMoney(candidate.RetailPrice, qty),
+			fulfillmentCost,
+			shippingCost,
+			"$0.00",
+		)
+	}
+	if recommendation.SelectedPartner == "" {
+		status = routingentity.RoutedOrderStatusRoutingBlocked
+		partner = ""
+		timelineEntry = fmt.Sprintf("Routing blocked: %s", recommendation.BlockedReason)
+		routingBlockCode = recommendation.BlockedReasonCode
+		routingBlockReason = recommendation.BlockedReason
+	}
 	order := routingentity.RoutedOrder{
-		ID:               fmt.Sprintf("ORD-%s", strings.ToUpper(uuid.NewString()[:8])),
-		CandidateID:      candidate.ID,
-		ProductTitle:     candidate.Title,
-		Partner:          recommendation.SelectedPartner,
-		Quantity:         qty,
-		Total:            multiplyMoney(candidate.RetailPrice, qty),
-		CustomerName:     customerName,
-		Status:           routingentity.RoutedOrderStatusQueued,
-		ShipmentStatus:   routingentity.RoutedOrderShipmentStatusAwaitingLabel,
-		OperatorAssignee: "unassigned",
-		BaseCostSnapshot: multiplyMoney(candidate.BaseCost, qty),
-		FulfillmentCost:  multiplyMoney(candidate.BaseCost, qty),
-		ShippingCost:     "$0.00",
-		IssueCost:        "$0.00",
-		IssueResolution:  routingentity.RoutedOrderIssueResolutionMonitor,
-		SettlementStatus: routingentity.RoutedOrderSettlementStatusPending,
+		ID:                 fmt.Sprintf("ORD-%s", strings.ToUpper(uuid.NewString()[:8])),
+		CandidateID:        candidate.ID,
+		ProductTitle:       candidate.Title,
+		Partner:            partner,
+		Quantity:           qty,
+		Total:              multiplyMoney(candidate.RetailPrice, qty),
+		CustomerName:       customerName,
+		Status:             status,
+		ShipmentStatus:     routingentity.RoutedOrderShipmentStatusAwaitingLabel,
+		OperatorAssignee:   "unassigned",
+		RoutingBlockCode:   routingBlockCode,
+		RoutingBlockReason: routingBlockReason,
+		BaseCostSnapshot:   multiplyMoney(candidate.BaseCost, qty),
+		FulfillmentCost:    fulfillmentCost,
+		ShippingCost:       shippingCost,
+		IssueCost:          "$0.00",
+		IssueResolution:    routingentity.RoutedOrderIssueResolutionMonitor,
+		SettlementStatus:   routingentity.RoutedOrderSettlementStatusPending,
 		Timeline: []string{
 			fmt.Sprintf("Order created for %s", candidate.Title),
-			routingTimelineEntry(routingentity.RoutedOrderStatusQueued, candidate.Partner),
+			timelineEntry,
 		},
 		ActivityLog: []routingentity.RoutedOrderActivity{
 			newActivity(
@@ -152,7 +173,7 @@ func (i *OrderRoutingInteractor) CreateRoutedOrder(
 				activityDetails(
 					"candidate_id", candidate.ID,
 					"quantity", fmt.Sprintf("%d", qty),
-					"status", routingentity.RoutedOrderStatusQueued,
+					"status", status,
 					"product_type", recommendation.ProductType,
 					"ship_region", recommendation.ShipRegion,
 				),
@@ -160,13 +181,16 @@ func (i *OrderRoutingInteractor) CreateRoutedOrder(
 			newActivity(
 				routingentity.RoutedOrderActivityTypeSystem,
 				actor,
-				routingTimelineEntry(routingentity.RoutedOrderStatusQueued, recommendation.SelectedPartner),
+				timelineEntry,
 				now,
 				activityDetails(
-					"status", routingentity.RoutedOrderStatusQueued,
-					"partner", recommendation.SelectedPartner,
+					"status", status,
+					"partner", partner,
 					"routing_summary", recommendation.Summary,
 					"candidate_partner", recommendation.CandidatePartner,
+					"estimated_unit_margin", estimatedMargin,
+					"routing_block_code", routingBlockCode,
+					"routing_block_reason", routingBlockReason,
 				),
 			),
 		},
@@ -175,4 +199,121 @@ func (i *OrderRoutingInteractor) CreateRoutedOrder(
 	}
 	order.RealizedMargin = calculateMargin(order.Total, order.FulfillmentCost, order.ShippingCost, order.IssueCost)
 	return i.orders.Create(ctx, order)
+}
+
+func (i *OrderRoutingInteractor) ForceRerouteBlockedOrder(
+	ctx context.Context,
+	cmd routinginputport.ForceRerouteBlockedOrderCmd,
+) (*routingentity.RoutedOrder, error) {
+	order, err := i.orders.GetByID(ctx, strings.TrimSpace(cmd.OrderID))
+	if err != nil {
+		return nil, err
+	}
+	if order == nil {
+		return nil, fmt.Errorf("routed order not found")
+	}
+	if order.Status != routingentity.RoutedOrderStatusRoutingBlocked {
+		return nil, fmt.Errorf("routed order is not in routing_blocked status")
+	}
+	preferredPartner := strings.TrimSpace(cmd.PreferredPartner)
+	if preferredPartner == "" {
+		return nil, fmt.Errorf("preferred partner is required")
+	}
+
+	candidate, err := i.products.GetCandidateByID(ctx, strings.TrimSpace(order.CandidateID))
+	if err != nil {
+		return nil, err
+	}
+	if candidate == nil {
+		return nil, fmt.Errorf("product candidate not found")
+	}
+	tenantID, err := toolkit.GetTenantID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	partners, err := i.partners.ListActivePartners(ctx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	recommendation := buildRoutingRecommendation(
+		candidate,
+		partners,
+		normalizeRoutingLabel(orderRoutingLabel(order, candidate)),
+		normalizeRoutingLabel(shipRegionFromOrder(order)),
+		preferredPartner,
+	)
+	if recommendation.SelectedPartner == "" {
+		return nil, fmt.Errorf("preferred partner %s is not eligible for reroute", preferredPartner)
+	}
+	selectedOption := findSelectedRoutingOption(recommendation)
+	if selectedOption == nil {
+		return nil, fmt.Errorf("selected routing option not found")
+	}
+
+	now := time.Now().UTC()
+	order.Status = routingentity.RoutedOrderStatusQueued
+	order.Partner = recommendation.SelectedPartner
+	order.RoutingBlockCode = ""
+	order.RoutingBlockReason = ""
+	order.FulfillmentCost = multiplyMoney(selectedOption.EstimatedFulfillmentCost, order.Quantity)
+	order.ShippingCost = selectedOption.EstimatedShippingCost
+	order.RealizedMargin = calculateMargin(order.Total, order.FulfillmentCost, order.ShippingCost, order.IssueCost)
+	entry := fmt.Sprintf("Routing unblocked: manually rerouted to %s", recommendation.SelectedPartner)
+	order.Timeline = append(order.Timeline, entry)
+	order.ActivityLog = append(order.ActivityLog, newActivity(
+		routingentity.RoutedOrderActivityTypeSystem,
+		activityActorFromContext(ctx),
+		entry,
+		now,
+		activityDetails(
+			"status", routingentity.RoutedOrderStatusQueued,
+			"partner", recommendation.SelectedPartner,
+			"routing_summary", recommendation.Summary,
+			"estimated_unit_margin", selectedOption.EstimatedUnitMargin,
+			"manual_reroute", "true",
+		),
+	))
+	order.UpdatedAt = now
+	return i.orders.Update(ctx, *order)
+}
+
+func orderRoutingLabel(order *routingentity.RoutedOrder, candidate *catalogentity.ProductSetupCandidate) string {
+	for _, activity := range order.ActivityLog {
+		for _, detail := range activity.Details {
+			if detail.Key == "product_type" && strings.TrimSpace(detail.Value) != "" {
+				return detail.Value
+			}
+		}
+	}
+	if candidate != nil {
+		return inferProductType(candidate.Title)
+	}
+	return ""
+}
+
+func shipRegionFromOrder(order *routingentity.RoutedOrder) string {
+	for _, activity := range order.ActivityLog {
+		for _, detail := range activity.Details {
+			if detail.Key == "ship_region" && strings.TrimSpace(detail.Value) != "" {
+				return detail.Value
+			}
+		}
+	}
+	return ""
+}
+
+func inferProductType(title string) string {
+	normalized := strings.ToLower(strings.TrimSpace(title))
+	switch {
+	case strings.Contains(normalized, "hoodie"):
+		return "hoodie"
+	case strings.Contains(normalized, "poster"):
+		return "poster"
+	case strings.Contains(normalized, "tote"):
+		return "tote"
+	case strings.Contains(normalized, "tee"), strings.Contains(normalized, "shirt"):
+		return "tshirt"
+	default:
+		return ""
+	}
 }

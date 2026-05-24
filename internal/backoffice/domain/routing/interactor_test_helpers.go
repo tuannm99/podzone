@@ -54,6 +54,11 @@ func newOrderRoutingTestInteractor(
 			SupportedRegions:      []string{"us", "eu"},
 			SLADays:               3,
 			RoutingPriority:       100,
+			BaseFulfillmentCost:   "$9.00",
+			ShippingCostRules: []routingentity.PartnerShippingCostRule{
+				{Region: "us", Cost: "$4.00"},
+				{Region: "eu", Cost: "$5.50"},
+			},
 		},
 		{
 			ID:                    "prt-2",
@@ -65,6 +70,11 @@ func newOrderRoutingTestInteractor(
 			SupportedRegions:      []string{"us", "uk"},
 			SLADays:               2,
 			RoutingPriority:       90,
+			BaseFulfillmentCost:   "$7.00",
+			ShippingCostRules: []routingentity.PartnerShippingCostRule{
+				{Region: "us", Cost: "$2.00"},
+				{Region: "uk", Cost: "$3.50"},
+			},
 		},
 	}
 

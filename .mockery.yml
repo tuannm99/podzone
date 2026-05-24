@@ -26,6 +26,24 @@ packages:
       PlacementResolver:
       ClusterRegistry:
 
+  github.com/tuannm99/podzone/pkg/pdkafka:
+    config:
+      dir: pkg/pdkafka/mocks
+    interfaces:
+      Admin:
+      Producer:
+      ConsumerGroupFactory:
+      ConsumerGroupRunner:
+
+  github.com/tuannm99/podzone/pkg/messaging:
+    config:
+      dir: pkg/messaging/mocks
+    interfaces:
+      Publisher:
+      Consumer:
+      Handler:
+      OutboxStore:
+
   github.com/tuannm99/podzone/internal/auth/domain/inputport:
     config:
       dir: internal/auth/domain/inputport/mocks

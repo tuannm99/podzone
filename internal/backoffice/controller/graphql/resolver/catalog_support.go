@@ -5,7 +5,9 @@ import (
 	catalogentity "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/entity"
 )
 
-func toEntityArtworkChecklistInput(input *model.ProductSetupArtworkChecklistInput) catalogentity.ProductSetupArtworkChecklist {
+func toEntityArtworkChecklistInput(
+	input *model.ProductSetupArtworkChecklistInput,
+) catalogentity.ProductSetupArtworkChecklist {
 	if input == nil {
 		return catalogentity.ProductSetupArtworkChecklist{}
 	}

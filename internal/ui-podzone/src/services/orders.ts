@@ -30,6 +30,8 @@ export type RoutedOrder = {
   operatorAssignee: string;
   shipmentSlaDueAt?: string;
   issueSlaDueAt?: string;
+  routingBlockCode: string;
+  routingBlockReason: string;
   baseCostSnapshot: string;
   fulfillmentCost: string;
   shippingCost: string;
@@ -105,6 +107,8 @@ export type RoutedOrderRecommendation = {
   productType: string;
   shipRegion: string;
   selectedPartner: string;
+  blockedReasonCode: string;
+  blockedReason: string;
   summary: string;
   options: RoutingPartnerOption[];
 };
@@ -134,6 +138,11 @@ type UpdateRoutedOrderQueueControlPayload = {
   operatorAssignee: string;
   shipmentSlaDueAt?: string;
   issueSlaDueAt?: string;
+};
+
+type ForceRerouteBlockedOrderPayload = {
+  orderId: string;
+  preferredPartner: string;
 };
 
 type BulkUpdateRoutedOrdersPayload = {
@@ -185,6 +194,8 @@ const routedOrderFields = `
   operatorAssignee
   shipmentSlaDueAt
   issueSlaDueAt
+  routingBlockCode
+  routingBlockReason
   baseCostSnapshot
   fulfillmentCost
   shippingCost
@@ -291,6 +302,8 @@ export async function getRoutedOrderRecommendation(input: {
           productType
           shipRegion
           selectedPartner
+          blockedReasonCode
+          blockedReason
           summary
           options {
             eligible
@@ -343,6 +356,27 @@ ${routedOrderFields}
     return { success: false, message: result.message };
   }
   return { success: true, data: result.data.advanceRoutedOrder };
+}
+
+export async function forceRerouteBlockedOrder(
+  payload: ForceRerouteBlockedOrderPayload
+): Promise<OrdersResult<RoutedOrder>> {
+  const result = await postBackofficeGraphQL<{
+    forceRerouteBlockedOrder: RoutedOrder;
+  }>(
+    `
+      mutation ForceRerouteBlockedOrder($input: ForceRerouteBlockedOrderInput!) {
+        forceRerouteBlockedOrder(input: $input) {
+${routedOrderFields}
+        }
+      }
+    `,
+    { input: payload }
+  );
+  if (!result.success) {
+    return { success: false, message: result.message };
+  }
+  return { success: true, data: result.data.forceRerouteBlockedOrder };
 }
 
 export async function openRoutedOrderException(

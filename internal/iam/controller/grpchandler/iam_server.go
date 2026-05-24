@@ -178,10 +178,18 @@ func (s *IAMServer) AttachTenantToOrganization(
 	if err := s.iamUC.AttachTenantToOrganization(ctx, req.TenantId, req.OrgId); err != nil {
 		return nil, iamStatusError(err)
 	}
-	s.recordAudit(ctx, actorUserID, "organization.tenant.attached", "organization_tenant", req.OrgId+":"+req.TenantId, req.TenantId, map[string]any{
-		"org_id":    req.OrgId,
-		"tenant_id": req.TenantId,
-	})
+	s.recordAudit(
+		ctx,
+		actorUserID,
+		"organization.tenant.attached",
+		"organization_tenant",
+		req.OrgId+":"+req.TenantId,
+		req.TenantId,
+		map[string]any{
+			"org_id":    req.OrgId,
+			"tenant_id": req.TenantId,
+		},
+	)
 	return &pbauthv1.AttachTenantToOrganizationResponse{}, nil
 }
 
@@ -199,10 +207,18 @@ func (s *IAMServer) DetachTenantFromOrganization(
 	if err := s.iamUC.DetachTenantFromOrganization(ctx, req.TenantId); err != nil {
 		return nil, iamStatusError(err)
 	}
-	s.recordAudit(ctx, actorUserID, "organization.tenant.detached", "organization_tenant", req.OrgId+":"+req.TenantId, req.TenantId, map[string]any{
-		"org_id":    req.OrgId,
-		"tenant_id": req.TenantId,
-	})
+	s.recordAudit(
+		ctx,
+		actorUserID,
+		"organization.tenant.detached",
+		"organization_tenant",
+		req.OrgId+":"+req.TenantId,
+		req.TenantId,
+		map[string]any{
+			"org_id":    req.OrgId,
+			"tenant_id": req.TenantId,
+		},
+	)
 	return &pbauthv1.DetachTenantFromOrganizationResponse{}, nil
 }
 
@@ -220,10 +236,18 @@ func (s *IAMServer) AttachServiceControlPolicy(
 	if err := s.iamUC.AttachServiceControlPolicy(ctx, req.OrgId, req.PolicyName); err != nil {
 		return nil, iamStatusError(err)
 	}
-	s.recordAudit(ctx, actorUserID, "organization.scp.attached", "organization_policy", req.OrgId+":"+req.PolicyName, "", map[string]any{
-		"org_id":      req.OrgId,
-		"policy_name": req.PolicyName,
-	})
+	s.recordAudit(
+		ctx,
+		actorUserID,
+		"organization.scp.attached",
+		"organization_policy",
+		req.OrgId+":"+req.PolicyName,
+		"",
+		map[string]any{
+			"org_id":      req.OrgId,
+			"policy_name": req.PolicyName,
+		},
+	)
 	return &pbauthv1.AttachServiceControlPolicyResponse{}, nil
 }
 
@@ -241,10 +265,18 @@ func (s *IAMServer) DetachServiceControlPolicy(
 	if err := s.iamUC.DetachServiceControlPolicy(ctx, req.OrgId, req.PolicyName); err != nil {
 		return nil, iamStatusError(err)
 	}
-	s.recordAudit(ctx, actorUserID, "organization.scp.detached", "organization_policy", req.OrgId+":"+req.PolicyName, "", map[string]any{
-		"org_id":      req.OrgId,
-		"policy_name": req.PolicyName,
-	})
+	s.recordAudit(
+		ctx,
+		actorUserID,
+		"organization.scp.detached",
+		"organization_policy",
+		req.OrgId+":"+req.PolicyName,
+		"",
+		map[string]any{
+			"org_id":      req.OrgId,
+			"policy_name": req.PolicyName,
+		},
+	)
 	return &pbauthv1.DetachServiceControlPolicyResponse{}, nil
 }
 
@@ -737,9 +769,17 @@ func (s *IAMServer) SetDefaultPolicyVersion(
 	if err := s.iamUC.SetDefaultPolicyVersion(ctx, req.Name, req.Version); err != nil {
 		return nil, iamStatusError(err)
 	}
-	s.recordAudit(ctx, actorUserID, "iam.policy.version.set_default", "iam_policy_version", req.Name, "", map[string]any{
-		"version": req.Version,
-	})
+	s.recordAudit(
+		ctx,
+		actorUserID,
+		"iam.policy.version.set_default",
+		"iam_policy_version",
+		req.Name,
+		"",
+		map[string]any{
+			"version": req.Version,
+		},
+	)
 	return &pbauthv1.SetDefaultPolicyVersionResponse{}, nil
 }
 
@@ -943,9 +983,17 @@ func (s *IAMServer) DeleteGroup(
 	if err := s.iamUC.DeleteGroup(ctx, req.GroupId); err != nil {
 		return nil, iamStatusError(err)
 	}
-	s.recordAudit(ctx, actorUserID, "iam.group.deleted", "iam_group", fmt.Sprintf("%d", req.GroupId), "", map[string]any{
-		"group_id": req.GroupId,
-	})
+	s.recordAudit(
+		ctx,
+		actorUserID,
+		"iam.group.deleted",
+		"iam_group",
+		fmt.Sprintf("%d", req.GroupId),
+		"",
+		map[string]any{
+			"group_id": req.GroupId,
+		},
+	)
 	return &pbauthv1.DeleteGroupResponse{}, nil
 }
 
@@ -1279,10 +1327,18 @@ func (s *IAMServer) AttachPlatformUserPolicy(
 	if err := s.iamUC.AttachPlatformUserPolicy(ctx, targetUserID, req.PolicyName); err != nil {
 		return nil, iamStatusError(err)
 	}
-	s.recordAudit(ctx, actorUserID, "iam.platform_user_policy.attached", "iam_policy_attachment", req.PolicyName, "", map[string]any{
-		"target_user_id": targetUserID,
-		"policy_name":    req.PolicyName,
-	})
+	s.recordAudit(
+		ctx,
+		actorUserID,
+		"iam.platform_user_policy.attached",
+		"iam_policy_attachment",
+		req.PolicyName,
+		"",
+		map[string]any{
+			"target_user_id": targetUserID,
+			"policy_name":    req.PolicyName,
+		},
+	)
 	return &pbauthv1.AttachPlatformUserPolicyResponse{}, nil
 }
 
@@ -1304,10 +1360,18 @@ func (s *IAMServer) DetachPlatformUserPolicy(
 	if err := s.iamUC.DetachPlatformUserPolicy(ctx, targetUserID, req.PolicyName); err != nil {
 		return nil, iamStatusError(err)
 	}
-	s.recordAudit(ctx, actorUserID, "iam.platform_user_policy.detached", "iam_policy_attachment", req.PolicyName, "", map[string]any{
-		"target_user_id": targetUserID,
-		"policy_name":    req.PolicyName,
-	})
+	s.recordAudit(
+		ctx,
+		actorUserID,
+		"iam.platform_user_policy.detached",
+		"iam_policy_attachment",
+		req.PolicyName,
+		"",
+		map[string]any{
+			"target_user_id": targetUserID,
+			"policy_name":    req.PolicyName,
+		},
+	)
 	return &pbauthv1.DetachPlatformUserPolicyResponse{}, nil
 }
 
@@ -1329,10 +1393,18 @@ func (s *IAMServer) PutPlatformUserPermissionBoundary(
 	if err := s.iamUC.PutPlatformUserPermissionBoundary(ctx, targetUserID, req.PolicyName); err != nil {
 		return nil, iamStatusError(err)
 	}
-	s.recordAudit(ctx, actorUserID, "iam.platform_user_boundary.put", "iam_permission_boundary", req.PolicyName, "", map[string]any{
-		"target_user_id": targetUserID,
-		"policy_name":    req.PolicyName,
-	})
+	s.recordAudit(
+		ctx,
+		actorUserID,
+		"iam.platform_user_boundary.put",
+		"iam_permission_boundary",
+		req.PolicyName,
+		"",
+		map[string]any{
+			"target_user_id": targetUserID,
+			"policy_name":    req.PolicyName,
+		},
+	)
 	return &pbauthv1.PutPlatformUserPermissionBoundaryResponse{}, nil
 }
 
@@ -1376,9 +1448,17 @@ func (s *IAMServer) DeletePlatformUserPermissionBoundary(
 	if err := s.iamUC.DeletePlatformUserPermissionBoundary(ctx, targetUserID); err != nil {
 		return nil, iamStatusError(err)
 	}
-	s.recordAudit(ctx, actorUserID, "iam.platform_user_boundary.deleted", "iam_permission_boundary", fmt.Sprintf("%d", targetUserID), "", map[string]any{
-		"target_user_id": targetUserID,
-	})
+	s.recordAudit(
+		ctx,
+		actorUserID,
+		"iam.platform_user_boundary.deleted",
+		"iam_permission_boundary",
+		fmt.Sprintf("%d", targetUserID),
+		"",
+		map[string]any{
+			"target_user_id": targetUserID,
+		},
+	)
 	return &pbauthv1.DeletePlatformUserPermissionBoundaryResponse{}, nil
 }
 
@@ -1606,11 +1686,19 @@ func (s *IAMServer) AttachTenantUserPolicy(
 	if err := s.iamUC.AttachTenantUserPolicy(ctx, req.TenantId, userID, req.PolicyName); err != nil {
 		return nil, iamStatusError(err)
 	}
-	s.recordAudit(ctx, actorUserID, "iam.tenant_user_policy.attached", "iam_policy_attachment", req.PolicyName, req.TenantId, map[string]any{
-		"user_id":     userID,
-		"tenant_id":   req.TenantId,
-		"policy_name": req.PolicyName,
-	})
+	s.recordAudit(
+		ctx,
+		actorUserID,
+		"iam.tenant_user_policy.attached",
+		"iam_policy_attachment",
+		req.PolicyName,
+		req.TenantId,
+		map[string]any{
+			"user_id":     userID,
+			"tenant_id":   req.TenantId,
+			"policy_name": req.PolicyName,
+		},
+	)
 	return &pbauthv1.AttachTenantUserPolicyResponse{}, nil
 }
 
@@ -1632,11 +1720,19 @@ func (s *IAMServer) DetachTenantUserPolicy(
 	if err := s.iamUC.DetachTenantUserPolicy(ctx, req.TenantId, userID, req.PolicyName); err != nil {
 		return nil, iamStatusError(err)
 	}
-	s.recordAudit(ctx, actorUserID, "iam.tenant_user_policy.detached", "iam_policy_attachment", req.PolicyName, req.TenantId, map[string]any{
-		"user_id":     userID,
-		"tenant_id":   req.TenantId,
-		"policy_name": req.PolicyName,
-	})
+	s.recordAudit(
+		ctx,
+		actorUserID,
+		"iam.tenant_user_policy.detached",
+		"iam_policy_attachment",
+		req.PolicyName,
+		req.TenantId,
+		map[string]any{
+			"user_id":     userID,
+			"tenant_id":   req.TenantId,
+			"policy_name": req.PolicyName,
+		},
+	)
 	return &pbauthv1.DetachTenantUserPolicyResponse{}, nil
 }
 
@@ -1658,11 +1754,19 @@ func (s *IAMServer) PutTenantUserPermissionBoundary(
 	if err := s.iamUC.PutTenantUserPermissionBoundary(ctx, req.TenantId, userID, req.PolicyName); err != nil {
 		return nil, iamStatusError(err)
 	}
-	s.recordAudit(ctx, actorUserID, "iam.tenant_user_boundary.put", "iam_permission_boundary", req.PolicyName, req.TenantId, map[string]any{
-		"user_id":     userID,
-		"tenant_id":   req.TenantId,
-		"policy_name": req.PolicyName,
-	})
+	s.recordAudit(
+		ctx,
+		actorUserID,
+		"iam.tenant_user_boundary.put",
+		"iam_permission_boundary",
+		req.PolicyName,
+		req.TenantId,
+		map[string]any{
+			"user_id":     userID,
+			"tenant_id":   req.TenantId,
+			"policy_name": req.PolicyName,
+		},
+	)
 	return &pbauthv1.PutTenantUserPermissionBoundaryResponse{}, nil
 }
 
@@ -1706,10 +1810,18 @@ func (s *IAMServer) DeleteTenantUserPermissionBoundary(
 	if err := s.iamUC.DeleteTenantUserPermissionBoundary(ctx, req.TenantId, userID); err != nil {
 		return nil, iamStatusError(err)
 	}
-	s.recordAudit(ctx, actorUserID, "iam.tenant_user_boundary.deleted", "iam_permission_boundary", fmt.Sprintf("%s:%d", req.TenantId, userID), req.TenantId, map[string]any{
-		"user_id":   userID,
-		"tenant_id": req.TenantId,
-	})
+	s.recordAudit(
+		ctx,
+		actorUserID,
+		"iam.tenant_user_boundary.deleted",
+		"iam_permission_boundary",
+		fmt.Sprintf("%s:%d", req.TenantId, userID),
+		req.TenantId,
+		map[string]any{
+			"user_id":   userID,
+			"tenant_id": req.TenantId,
+		},
+	)
 	return &pbauthv1.DeleteTenantUserPermissionBoundaryResponse{}, nil
 }
 
@@ -1727,9 +1839,17 @@ func (s *IAMServer) PutRolePermissionBoundary(
 	if err := s.iamUC.PutRolePermissionBoundary(ctx, req.RoleName, req.PolicyName); err != nil {
 		return nil, iamStatusError(err)
 	}
-	s.recordAudit(ctx, actorUserID, "iam.role_boundary.put", "iam_role_permission_boundary", req.RoleName, "", map[string]any{
-		"policy_name": req.PolicyName,
-	})
+	s.recordAudit(
+		ctx,
+		actorUserID,
+		"iam.role_boundary.put",
+		"iam_role_permission_boundary",
+		req.RoleName,
+		"",
+		map[string]any{
+			"policy_name": req.PolicyName,
+		},
+	)
 	return &pbauthv1.PutRolePermissionBoundaryResponse{}, nil
 }
 

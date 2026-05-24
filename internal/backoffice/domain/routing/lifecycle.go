@@ -28,6 +28,8 @@ func (i *OrderRoutingInteractor) AdvanceRoutedOrder(
 
 	var nextStatus string
 	switch order.Status {
+	case routingentity.RoutedOrderStatusRoutingBlocked:
+		return nil, fmt.Errorf("resolve the routing block before advancing the routed order")
 	case routingentity.RoutedOrderStatusQueued:
 		nextStatus = routingentity.RoutedOrderStatusInProduction
 	case routingentity.RoutedOrderStatusInProduction:

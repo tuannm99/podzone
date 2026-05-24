@@ -104,17 +104,14 @@ func TestConsumerGroupFactory_NewRequiresGroupID(t *testing.T) {
 	assert.Nil(t, group)
 }
 
-func TestToRecordHeaders(t *testing.T) {
-	headers := ToRecordHeaders(map[string]string{
-		"tenant_id": "t1",
-		"type":      "tenant.created",
-	})
+func TestNewSyncProducerFromConfigRejectsNilConfig(t *testing.T) {
+	producer, err := NewSyncProducerFromConfig(nil, sarama.NewConfig())
+	require.Error(t, err)
+	assert.Nil(t, producer)
+}
 
-	require.Len(t, headers, 2)
-	values := map[string]string{}
-	for _, item := range headers {
-		values[string(item.Key)] = string(item.Value)
-	}
-	assert.Equal(t, "t1", values["tenant_id"])
-	assert.Equal(t, "tenant.created", values["type"])
+func TestNewClusterAdminFromConfigRejectsNilConfig(t *testing.T) {
+	admin, err := NewClusterAdminFromConfig(nil, sarama.NewConfig())
+	require.Error(t, err)
+	assert.Nil(t, admin)
 }

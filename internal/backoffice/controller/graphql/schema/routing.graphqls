@@ -60,6 +60,8 @@ type RoutedOrderRecommendation {
   productType: String!
   shipRegion: String!
   selectedPartner: String!
+  blockedReasonCode: String!
+  blockedReason: String!
   summary: String!
   options: [RoutingPartnerOption!]!
 }
@@ -85,6 +87,8 @@ type RoutedOrder {
   operatorAssignee: String!
   shipmentSlaDueAt: Time
   issueSlaDueAt: Time
+  routingBlockCode: String!
+  routingBlockReason: String!
   baseCostSnapshot: String!
   fulfillmentCost: String!
   shippingCost: String!
@@ -119,6 +123,11 @@ input RoutedOrderRecommendationInput {
 input OpenOrderExceptionInput {
   orderId: ID!
   exceptionType: String!
+}
+
+input ForceRerouteBlockedOrderInput {
+  orderId: ID!
+  preferredPartner: String!
 }
 
 input UpdateOrderExceptionStatusInput {
@@ -188,6 +197,7 @@ extend type Query {
 
 extend type Mutation {
   createRoutedOrder(input: CreateRoutedOrderInput!): RoutedOrder!
+  forceRerouteBlockedOrder(input: ForceRerouteBlockedOrderInput!): RoutedOrder!
   advanceRoutedOrder(id: ID!): RoutedOrder!
   openOrderException(input: OpenOrderExceptionInput!): RoutedOrder!
   updateOrderExceptionStatus(

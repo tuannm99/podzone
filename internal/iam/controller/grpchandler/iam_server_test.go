@@ -18,7 +18,12 @@ func TestCreateTenant_OK(t *testing.T) {
 			return &iamentity.Tenant{ID: "tenant-1", Name: cmd.Name, Slug: cmd.Slug}, nil
 		},
 		getMembershipFunc: func(ctx context.Context, tenantID string, userID uint) (*iamentity.Membership, error) {
-			return &iamentity.Membership{TenantID: tenantID, UserID: userID, RoleName: iamentity.RoleTenantOwner, Status: iamentity.MembershipStatusActive}, nil
+			return &iamentity.Membership{
+				TenantID: tenantID,
+				UserID:   userID,
+				RoleName: iamentity.RoleTenantOwner,
+				Status:   iamentity.MembershipStatusActive,
+			}, nil
 		},
 	}))
 
@@ -76,7 +81,12 @@ func TestCreatePolicy_OK(t *testing.T) {
 func TestGetTenantMembership_OK(t *testing.T) {
 	srv := newIAMServerForTest(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
 		getMembershipFunc: func(ctx context.Context, tenantID string, userID uint) (*iamentity.Membership, error) {
-			return &iamentity.Membership{TenantID: tenantID, UserID: userID, RoleName: iamentity.RoleTenantAdmin, Status: iamentity.MembershipStatusActive}, nil
+			return &iamentity.Membership{
+				TenantID: tenantID,
+				UserID:   userID,
+				RoleName: iamentity.RoleTenantAdmin,
+				Status:   iamentity.MembershipStatusActive,
+			}, nil
 		},
 	}))
 
@@ -94,7 +104,12 @@ func TestListUserTenants_OK(t *testing.T) {
 	srv := newIAMServerForTest(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
 		listUserTenantsFunc: func(ctx context.Context, userID uint) ([]iamentity.Membership, error) {
 			return []iamentity.Membership{
-				{TenantID: "tenant-1", UserID: userID, RoleName: iamentity.RoleTenantAdmin, Status: iamentity.MembershipStatusActive},
+				{
+					TenantID: "tenant-1",
+					UserID:   userID,
+					RoleName: iamentity.RoleTenantAdmin,
+					Status:   iamentity.MembershipStatusActive,
+				},
 			}, nil
 		},
 	}))

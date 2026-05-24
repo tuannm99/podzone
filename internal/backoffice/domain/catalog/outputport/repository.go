@@ -13,6 +13,9 @@ type ProductSetupRepository interface {
 	ListCandidates(ctx context.Context) ([]catalogentity.ProductSetupCandidate, error)
 	GetCandidateByID(ctx context.Context, id string) (*catalogentity.ProductSetupCandidate, error)
 	GetCandidateByDraftID(ctx context.Context, draftID string) (*catalogentity.ProductSetupCandidate, error)
-	CreateCandidate(ctx context.Context, candidate catalogentity.ProductSetupCandidate) (*catalogentity.ProductSetupCandidate, error)
+	CreateCandidate(
+		ctx context.Context,
+		candidate catalogentity.ProductSetupCandidate,
+	) (*catalogentity.ProductSetupCandidate, error)
 	UpdateCandidateStatus(ctx context.Context, id, status string) (*catalogentity.ProductSetupCandidate, error)
 }

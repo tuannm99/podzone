@@ -36,6 +36,11 @@ type CreateStoreInput struct {
 	Description string `json:"description"`
 }
 
+type ForceRerouteBlockedOrderInput struct {
+	OrderID          string `json:"orderId"`
+	PreferredPartner string `json:"preferredPartner"`
+}
+
 type Mutation struct {
 }
 
@@ -152,6 +157,8 @@ type RoutedOrder struct {
 	OperatorAssignee       string                 `json:"operatorAssignee"`
 	ShipmentSLADueAt       *time.Time             `json:"shipmentSlaDueAt,omitempty"`
 	IssueSLADueAt          *time.Time             `json:"issueSlaDueAt,omitempty"`
+	RoutingBlockCode       string                 `json:"routingBlockCode"`
+	RoutingBlockReason     string                 `json:"routingBlockReason"`
 	BaseCostSnapshot       string                 `json:"baseCostSnapshot"`
 	FulfillmentCost        string                 `json:"fulfillmentCost"`
 	ShippingCost           string                 `json:"shippingCost"`
@@ -207,14 +214,16 @@ type RoutedOrderActivityFeedPage struct {
 }
 
 type RoutedOrderRecommendation struct {
-	CandidateID      string                  `json:"candidateId"`
-	ProductTitle     string                  `json:"productTitle"`
-	CandidatePartner string                  `json:"candidatePartner"`
-	ProductType      string                  `json:"productType"`
-	ShipRegion       string                  `json:"shipRegion"`
-	SelectedPartner  string                  `json:"selectedPartner"`
-	Summary          string                  `json:"summary"`
-	Options          []*RoutingPartnerOption `json:"options"`
+	CandidateID       string                  `json:"candidateId"`
+	ProductTitle      string                  `json:"productTitle"`
+	CandidatePartner  string                  `json:"candidatePartner"`
+	ProductType       string                  `json:"productType"`
+	ShipRegion        string                  `json:"shipRegion"`
+	SelectedPartner   string                  `json:"selectedPartner"`
+	BlockedReasonCode string                  `json:"blockedReasonCode"`
+	BlockedReason     string                  `json:"blockedReason"`
+	Summary           string                  `json:"summary"`
+	Options           []*RoutingPartnerOption `json:"options"`
 }
 
 type RoutedOrderRecommendationInput struct {
