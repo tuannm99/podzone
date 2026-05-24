@@ -6,8 +6,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	. "github.com/tuannm99/podzone/internal/iam/entity"
 )
 
 func evaluatePolicyStatements(

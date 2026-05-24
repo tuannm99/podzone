@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-
-	. "github.com/tuannm99/podzone/internal/iam/entity"
 )
 
 func (s *interactor) CheckPermission(

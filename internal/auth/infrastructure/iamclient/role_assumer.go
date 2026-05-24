@@ -42,7 +42,10 @@ func NewRoleAssumer(p RoleAssumerParams) (outputport.RoleAssumer, error) {
 	return &RoleAssumer{client: pbauthv1.NewIAMServiceClient(conn)}, nil
 }
 
-func (r *RoleAssumer) AssumeRole(ctx context.Context, input outputport.AssumeRoleInput) (*outputport.AssumedRole, error) {
+func (r *RoleAssumer) AssumeRole(
+	ctx context.Context,
+	input outputport.AssumeRoleInput,
+) (*outputport.AssumedRole, error) {
 	resp, err := r.client.AssumeRole(ctx, &pbauthv1.IAMAssumeRoleRequest{
 		AccessToken:      input.AccessToken,
 		RoleName:         input.RoleName,

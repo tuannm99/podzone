@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
-	. "github.com/tuannm99/podzone/internal/iam/entity"
 )
 
 func (s *interactor) CreateGroup(ctx context.Context, input CreateGroupInput) (*Group, error) {
@@ -131,7 +129,28 @@ func (s *interactor) AttachGroupPolicy(ctx context.Context, groupID uint64, poli
 	if err != nil {
 		return err
 	}
-	return s.groups.AttachPolicy(ctx, groupID, policy.ID)
+	group, err := s.groups.GetByID(ctx, groupID)
+	if err != nil {
+		return err
+	}
+	if err := s.groups.AttachPolicy(ctx, groupID, policy.ID); err != nil {
+		return err
+	}
+	now := time.Now().UTC()
+	record, err := newIAMEventOutboxRecord(now, "policy.attached", group.TenantID, group.Name, group.Name, map[string]any{
+		"tenant_id":        group.TenantID,
+		"group_id":         group.ID,
+		"group_name":       group.Name,
+		"policy_id":        policy.ID,
+		"policy_name":      policy.Name,
+		"policy_scope":     policy.Scope,
+		"attachment_type":  "group",
+		"attachment_scope": group.Scope,
+	})
+	if err != nil {
+		return err
+	}
+	return s.appendOutboxRecord(ctx, now, record)
 }
 
 func (s *interactor) DetachGroupPolicy(ctx context.Context, groupID uint64, policyName string) error {

@@ -2,7 +2,6 @@ package interactor
 
 import (
 	"context"
-	"encoding/json"
 	"strings"
 	"time"
 
@@ -102,7 +101,7 @@ func (s *interactor) CreateTenant(
 		if err != nil {
 			return nil, err
 		}
-		if err := s.outbox.Append(ctx, nil, record); err != nil {
+		if err := s.appendOutboxRecord(ctx, now, record); err != nil {
 			return nil, err
 		}
 	}
@@ -115,35 +114,12 @@ func newTenantCreatedOutboxRecord(
 	ownerUserID uint,
 	now time.Time,
 ) (messaging.OutboxRecord, error) {
-	payload, err := json.Marshal(map[string]any{
+	return newIAMEventOutboxRecord(now, "tenant.created", tenant.ID, tenant.ID, tenant.ID, map[string]any{
 		"tenant_id":     tenant.ID,
 		"tenant_slug":   tenant.Slug,
 		"tenant_name":   tenant.Name,
 		"owner_user_id": ownerUserID,
 	})
-	if err != nil {
-		return messaging.OutboxRecord{}, err
-	}
-	return messaging.OutboxRecord{
-		ID:         uuid.NewString(),
-		Topic:      messaging.Topic("iam", "events"),
-		MessageKey: tenant.ID,
-		Envelope: messaging.Envelope{
-			ID:            uuid.NewString(),
-			Type:          "tenant.created",
-			Source:        "iam",
-			TenantID:      tenant.ID,
-			EntityID:      tenant.ID,
-			OccurredAt:    now,
-			SchemaVersion: 1,
-			Payload:       payload,
-		},
-		Status:        "pending",
-		Attempts:      0,
-		NextAttemptAt: now,
-		CreatedAt:     now,
-		UpdatedAt:     now,
-	}, nil
 }
 
 func (s *interactor) AssumeRole(ctx context.Context, input entity.AssumeRoleInput) (*entity.AssumedRole, error) {

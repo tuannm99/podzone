@@ -44,6 +44,25 @@ func (r *GroupRepositoryImpl) CreateGroup(ctx context.Context, group entity.Grou
 	return &entity, nil
 }
 
+func (r *GroupRepositoryImpl) GetByID(ctx context.Context, groupID uint64) (*entity.Group, error) {
+	var out groupModel
+	if err := r.db.GetContext(
+		ctx,
+		&out,
+		`SELECT id, scope, COALESCE(tenant_id, '') AS tenant_id, name, description, is_system, created_at, updated_at
+		 FROM iam_groups
+		 WHERE id = $1`,
+		groupID,
+	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, entity.ErrGroupNotFound
+		}
+		return nil, err
+	}
+	group := out.toEntity()
+	return &group, nil
+}
+
 func (r *GroupRepositoryImpl) ListGroups(ctx context.Context, scope string, tenantID string) ([]entity.Group, error) {
 	query := `SELECT id, scope, COALESCE(tenant_id, '') AS tenant_id, name, description, is_system, created_at, updated_at FROM iam_groups WHERE 1=1`
 	args := []any{}

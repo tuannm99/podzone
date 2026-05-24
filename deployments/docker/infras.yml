@@ -95,11 +95,10 @@ services:
     volumes:
       - podzone_mongo_data:/data/db
     healthcheck:
-      test:
-        [
+      test: [
           'CMD-SHELL',
           'echo "db.runCommand({ ping: 1 }).ok" | mongosh
-            mongodb://podzone:podzone123@127.0.0.1:27017/admin --quiet',
+          mongodb://podzone:podzone123@127.0.0.1:27017/admin --quiet',
         ]
       interval: 10s
       timeout: 5s

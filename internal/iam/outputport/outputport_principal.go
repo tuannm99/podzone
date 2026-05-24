@@ -8,6 +8,7 @@ import (
 
 type GroupRepository interface {
 	CreateGroup(ctx context.Context, group entity.Group) (*entity.Group, error)
+	GetByID(ctx context.Context, groupID uint64) (*entity.Group, error)
 	ListGroups(ctx context.Context, scope string, tenantID string) ([]entity.Group, error)
 	DeleteGroup(ctx context.Context, groupID uint64) error
 	PutInlinePolicy(ctx context.Context, input entity.PutGroupInlinePolicyInput) error

@@ -549,6 +549,17 @@ func configureGroupRepoMocks(groupRepo *outputportmocks.MockGroupRepository, sta
 		}).
 		Maybe()
 	groupRepo.EXPECT().
+		GetByID(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, groupID uint64) (*entity.Group, error) {
+			group, ok := state.groupsByID[groupID]
+			if !ok {
+				return nil, entity.ErrGroupNotFound
+			}
+			copyGroup := group
+			return &copyGroup, nil
+		}).
+		Maybe()
+	groupRepo.EXPECT().
 		DeleteGroup(mock.Anything, mock.Anything).
 		RunAndReturn(func(ctx context.Context, groupID uint64) error {
 			group, ok := state.groupsByID[groupID]

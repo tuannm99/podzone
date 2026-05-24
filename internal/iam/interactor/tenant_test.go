@@ -2,6 +2,7 @@ package interactor_test
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -57,6 +58,26 @@ func TestIAMService_CreateAndAcceptInvite(t *testing.T) {
 	require.Equal(t, entity.InviteStatusAccepted, storedInvite.Status)
 	require.NotNil(t, storedInvite.AcceptedByUserID)
 	require.Equal(t, uint(11), *storedInvite.AcceptedByUserID)
+}
+
+func TestIAMService_AddMember_AppendsOutboxEvent(t *testing.T) {
+	t.Parallel()
+
+	svc, state := newIAMTestUsecase(t)
+	tenant := entity.Tenant{ID: "tenant-1", Name: "Tenant One", Slug: "tenant-one"}
+	state.tenants[tenant.ID] = tenant
+	state.roleByName[entity.RoleTenantViewer] = entity.Role{ID: 3, Name: entity.RoleTenantViewer}
+
+	require.NoError(t, svc.AddMember(context.Background(), tenant.ID, 11, entity.RoleTenantViewer))
+	require.Len(t, state.outboxRecords, 1)
+	require.Equal(t, "tenant.member.added", state.outboxRecords[0].Envelope.Type)
+	require.Equal(t, tenant.ID, state.outboxRecords[0].Envelope.TenantID)
+
+	var payload map[string]any
+	require.NoError(t, json.Unmarshal(state.outboxRecords[0].Envelope.Payload, &payload))
+	require.Equal(t, tenant.ID, payload["tenant_id"])
+	require.Equal(t, float64(11), payload["user_id"])
+	require.Equal(t, entity.RoleTenantViewer, payload["role_name"])
 }
 
 func TestIAMService_AcceptInvite_EmailMismatch(t *testing.T) {

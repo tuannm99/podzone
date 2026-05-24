@@ -415,6 +415,74 @@ func (_c *MockGroupRepository_DetachPolicy_Call) RunAndReturn(run func(ctx conte
 	return _c
 }
 
+// GetByID provides a mock function for the type MockGroupRepository
+func (_mock *MockGroupRepository) GetByID(ctx context.Context, groupID uint64) (*entity.Group, error) {
+	ret := _mock.Called(ctx, groupID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByID")
+	}
+
+	var r0 *entity.Group
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) (*entity.Group, error)); ok {
+		return returnFunc(ctx, groupID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) *entity.Group); ok {
+		r0 = returnFunc(ctx, groupID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.Group)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
+		r1 = returnFunc(ctx, groupID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockGroupRepository_GetByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetByID'
+type MockGroupRepository_GetByID_Call struct {
+	*mock.Call
+}
+
+// GetByID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID uint64
+func (_e *MockGroupRepository_Expecter) GetByID(ctx interface{}, groupID interface{}) *MockGroupRepository_GetByID_Call {
+	return &MockGroupRepository_GetByID_Call{Call: _e.mock.On("GetByID", ctx, groupID)}
+}
+
+func (_c *MockGroupRepository_GetByID_Call) Run(run func(ctx context.Context, groupID uint64)) *MockGroupRepository_GetByID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockGroupRepository_GetByID_Call) Return(group *entity.Group, err error) *MockGroupRepository_GetByID_Call {
+	_c.Call.Return(group, err)
+	return _c
+}
+
+func (_c *MockGroupRepository_GetByID_Call) RunAndReturn(run func(ctx context.Context, groupID uint64) (*entity.Group, error)) *MockGroupRepository_GetByID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetInlinePolicy provides a mock function for the type MockGroupRepository
 func (_mock *MockGroupRepository) GetInlinePolicy(ctx context.Context, groupID uint64, name string) (*entity.GroupInlinePolicy, error) {
 	ret := _mock.Called(ctx, groupID, name)

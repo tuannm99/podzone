@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
-	. "github.com/tuannm99/podzone/internal/iam/entity"
 )
 
 func (s *interactor) CreatePolicy(

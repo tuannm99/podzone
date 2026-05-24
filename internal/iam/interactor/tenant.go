@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	. "github.com/tuannm99/podzone/internal/iam/entity"
 )
 
 func (s *interactor) AddMember(ctx context.Context, tenantID string, userID uint, roleName string) error {
@@ -31,7 +30,7 @@ func (s *interactor) AddMember(ctx context.Context, tenantID string, userID uint
 	}
 
 	now := time.Now().UTC()
-	return s.memberships.Upsert(ctx, Membership{
+	membership := Membership{
 		TenantID:  tenantID,
 		UserID:    userID,
 		RoleID:    role.ID,
@@ -39,7 +38,20 @@ func (s *interactor) AddMember(ctx context.Context, tenantID string, userID uint
 		Status:    MembershipStatusActive,
 		CreatedAt: now,
 		UpdatedAt: now,
+	}
+	if err := s.memberships.Upsert(ctx, membership); err != nil {
+		return err
+	}
+	record, err := newIAMEventOutboxRecord(now, "tenant.member.added", tenantID, tenantID, tenantID, map[string]any{
+		"tenant_id": tenantID,
+		"user_id":   userID,
+		"role_name": role.Name,
+		"status":    membership.Status,
 	})
+	if err != nil {
+		return err
+	}
+	return s.appendOutboxRecord(ctx, now, record)
 }
 
 func (s *interactor) PutTenantUserInlinePolicy(ctx context.Context, input PutTenantUserInlinePolicyInput) error {
@@ -139,7 +151,23 @@ func (s *interactor) AttachTenantUserPolicy(
 	if err != nil {
 		return err
 	}
-	return s.policies.AttachTenantUserPolicy(ctx, tenantID, userID, policy.ID)
+	if err := s.policies.AttachTenantUserPolicy(ctx, tenantID, userID, policy.ID); err != nil {
+		return err
+	}
+	now := time.Now().UTC()
+	record, err := newIAMEventOutboxRecord(now, "policy.attached", tenantID, tenantID, tenantID, map[string]any{
+		"tenant_id":        tenantID,
+		"user_id":          userID,
+		"policy_id":        policy.ID,
+		"policy_name":      policy.Name,
+		"policy_scope":     policy.Scope,
+		"attachment_type":  "tenant_user",
+		"attachment_scope": PolicyScopeTenant,
+	})
+	if err != nil {
+		return err
+	}
+	return s.appendOutboxRecord(ctx, now, record)
 }
 
 func (s *interactor) DetachTenantUserPolicy(

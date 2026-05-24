@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
-	. "github.com/tuannm99/podzone/internal/iam/entity"
 )
 
 func (s *interactor) CheckPlatformPermission(ctx context.Context, userID uint, permission string) (bool, error) {
@@ -218,7 +216,22 @@ func (s *interactor) AttachPlatformUserPolicy(ctx context.Context, userID uint, 
 	if err != nil {
 		return err
 	}
-	return s.policies.AttachPlatformUserPolicy(ctx, userID, policy.ID)
+	if err := s.policies.AttachPlatformUserPolicy(ctx, userID, policy.ID); err != nil {
+		return err
+	}
+	now := time.Now().UTC()
+	record, err := newIAMEventOutboxRecord(now, "policy.attached", "", policy.Name, policy.Name, map[string]any{
+		"user_id":          userID,
+		"policy_id":        policy.ID,
+		"policy_name":      policy.Name,
+		"policy_scope":     policy.Scope,
+		"attachment_type":  "platform_user",
+		"attachment_scope": PolicyScopePlatform,
+	})
+	if err != nil {
+		return err
+	}
+	return s.appendOutboxRecord(ctx, now, record)
 }
 
 func (s *interactor) DetachPlatformUserPolicy(ctx context.Context, userID uint, policyName string) error {

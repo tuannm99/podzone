@@ -2,6 +2,7 @@ package interactor_test
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -82,6 +83,20 @@ func TestIAMService_AttachAndListDirectPolicies(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, tenantPolicies, 1)
 	require.Equal(t, "tenant/custom", tenantPolicies[0].Name)
+	require.Len(t, state.outboxRecords, 2)
+	require.Equal(t, "policy.attached", state.outboxRecords[0].Envelope.Type)
+	require.Equal(t, "policy.attached", state.outboxRecords[1].Envelope.Type)
+
+	var platformPayload map[string]any
+	require.NoError(t, json.Unmarshal(state.outboxRecords[0].Envelope.Payload, &platformPayload))
+	require.Equal(t, "platform_user", platformPayload["attachment_type"])
+	require.Equal(t, "managed/platform_owner", platformPayload["policy_name"])
+
+	var tenantPayload map[string]any
+	require.NoError(t, json.Unmarshal(state.outboxRecords[1].Envelope.Payload, &tenantPayload))
+	require.Equal(t, "tenant_user", tenantPayload["attachment_type"])
+	require.Equal(t, "tenant/custom", tenantPayload["policy_name"])
+	require.Equal(t, "t1", tenantPayload["tenant_id"])
 }
 
 func TestIAMService_GroupPoliciesAffectPermission(t *testing.T) {
@@ -124,7 +139,15 @@ func TestIAMService_GroupPoliciesAffectPermission(t *testing.T) {
 	require.NotNil(t, group)
 	require.NoError(t, svc.AddGroupMember(context.Background(), group.ID, 9))
 	require.NoError(t, svc.AttachGroupPolicy(context.Background(), group.ID, "tenant/orders_editor"))
+	require.Len(t, state.outboxRecords, 1)
+	require.Equal(t, "policy.attached", state.outboxRecords[0].Envelope.Type)
 	require.NoError(t, svc.RequirePermission(context.Background(), "t1", 9, "order:update"))
+
+	var payload map[string]any
+	require.NoError(t, json.Unmarshal(state.outboxRecords[0].Envelope.Payload, &payload))
+	require.Equal(t, "group", payload["attachment_type"])
+	require.Equal(t, "tenant/orders_editor", payload["policy_name"])
+	require.Equal(t, "ops-team", payload["group_name"])
 }
 
 func TestIAMService_DeleteGroup(t *testing.T) {

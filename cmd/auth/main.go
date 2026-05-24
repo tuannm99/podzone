@@ -7,19 +7,23 @@ import (
 	"github.com/tuannm99/podzone/pkg/pdconfig"
 	"github.com/tuannm99/podzone/pkg/pdglobalmiddleware"
 	"github.com/tuannm99/podzone/pkg/pdgrpc"
+	"github.com/tuannm99/podzone/pkg/pdkafka"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/pdpprof"
 	"github.com/tuannm99/podzone/pkg/pdredis"
 	"github.com/tuannm99/podzone/pkg/pdsql"
 
 	"github.com/tuannm99/podzone/internal/auth"
+	authiamprojection "github.com/tuannm99/podzone/internal/auth/projection/iam"
 )
 
 var connOpts = fx.Options(
 	pdsql.ModuleFor("auth"),
 	pdredis.ModuleFor("auth"),
+	pdkafka.ModuleFor("auth"),
 
 	auth.Module,
+	authiamprojection.Module,
 )
 
 func main() {

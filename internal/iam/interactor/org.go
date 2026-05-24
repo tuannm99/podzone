@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	. "github.com/tuannm99/podzone/internal/iam/entity"
 )
 
 func (s *interactor) CreateOrganization(ctx context.Context, name string, slug string) (*Organization, error) {

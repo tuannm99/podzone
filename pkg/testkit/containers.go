@@ -144,12 +144,26 @@ func PostgresInfo(t *testing.T) PostgresConnInfo {
 func PostgresDB(t *testing.T) *sqlx.DB {
 	t.Helper()
 	dsn := PostgresDSN(t)
-	db, err := sqlx.Connect("postgres", dsn)
-	if err != nil {
-		t.Fatalf("connect postgres: %v", err)
+	var (
+		db  *sqlx.DB
+		err error
+	)
+	for attempt := 0; attempt < 8; attempt++ {
+		db, err = sqlx.Open("postgres", dsn)
+		if err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			err = db.PingContext(ctx)
+			cancel()
+			if err == nil {
+				t.Cleanup(func() { _ = db.Close() })
+				return db
+			}
+			_ = db.Close()
+		}
+		time.Sleep(time.Duration(attempt+1) * 250 * time.Millisecond)
 	}
-	t.Cleanup(func() { _ = db.Close() })
-	return db
+	t.Fatalf("connect postgres: %v", err)
+	return nil
 }
 
 func EnsurePostgresDB(t *testing.T, dbName string) {
