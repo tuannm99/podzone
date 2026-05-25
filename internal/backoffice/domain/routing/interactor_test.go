@@ -249,6 +249,9 @@ func TestForceRerouteBlockedOrderClearsBlockAndQueuesOrder(t *testing.T) {
 	require.Contains(t, order.Timeline[len(order.Timeline)-1], "Routing unblocked")
 	lastActivity := order.ActivityLog[len(order.ActivityLog)-1]
 	require.True(t, hasActivityDetail(lastActivity.Details, "manual_reroute", "true"))
+	require.True(t, hasActivityDetail(lastActivity.Details, "partner", "Fulfill Fast"))
+	require.True(t, hasActivityDetail(lastActivity.Details, "previous_routing_block_code", "negative_margin"))
+	require.True(t, hasActivityDetail(lastActivity.Details, "previous_routing_block_reason", "all eligible partners have negative expected margin"))
 }
 
 func TestUpdateOrderSettlementRecalculatesMarginIncludingIssueCost(t *testing.T) {

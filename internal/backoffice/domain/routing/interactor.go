@@ -251,6 +251,9 @@ func (i *OrderRoutingInteractor) ForceRerouteBlockedOrder(
 	}
 
 	now := time.Now().UTC()
+	previousPartner := order.Partner
+	previousBlockCode := order.RoutingBlockCode
+	previousBlockReason := order.RoutingBlockReason
 	order.Status = routingentity.RoutedOrderStatusQueued
 	order.Partner = recommendation.SelectedPartner
 	order.RoutingBlockCode = ""
@@ -267,7 +270,10 @@ func (i *OrderRoutingInteractor) ForceRerouteBlockedOrder(
 		now,
 		activityDetails(
 			"status", routingentity.RoutedOrderStatusQueued,
+			"previous_partner", previousPartner,
 			"partner", recommendation.SelectedPartner,
+			"previous_routing_block_code", previousBlockCode,
+			"previous_routing_block_reason", previousBlockReason,
 			"routing_summary", recommendation.Summary,
 			"estimated_unit_margin", selectedOption.EstimatedUnitMargin,
 			"manual_reroute", "true",

@@ -37,7 +37,10 @@ func (w *Worker) Run(ctx context.Context) {
 	}
 }
 
-func NewConsumerGroupRunner(factory pdkafka.ConsumerGroupFactory, cfg *pdkafka.Config) (pdkafka.ConsumerGroupRunner, error) {
+func NewConsumerGroupRunner(
+	factory pdkafka.ConsumerGroupFactory,
+	cfg *pdkafka.Config,
+) (pdkafka.ConsumerGroupRunner, error) {
 	groupID := cfg.ConsumerGroupPrefix + ".iam-projection"
 	group, err := factory.New(groupID)
 	if err != nil {

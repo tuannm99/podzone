@@ -29,27 +29,36 @@ import {
 import { PageShell } from '../../components/common/PageShell';
 import {
   Badge,
-  Button,
   Card,
-  InputField,
-  SelectField,
-  TextareaField,
 } from '../../components/common/Primitives';
 import { SectionLead } from '../../components/common/SectionLead';
 import { SectionTitle } from '../../components/common/SectionTitle';
+import { TenantOrdersInsightsProvider } from './orders/context';
+import { OrdersInsightsPanel } from './orders/OrdersInsightsPanel';
+import { StoreActivityFeedPanel } from './orders/StoreActivityFeedPanel';
+import {
+  TenantOrdersComposerProvider,
+} from './orders/composer-context';
+import { CreateRoutedOrderPanel } from './orders/CreateRoutedOrderPanel';
+import { TenantOrdersBoardProvider } from './orders/board-context';
+import { QueueToolbarPanel } from './orders/QueueToolbarPanel';
+import { BulkOpsPanel } from './orders/BulkOpsPanel';
+import { OrderCard } from './orders/OrderCard';
+import {
+  anomalyFlagsFor,
+  formatActivitySummary,
+  formatStoreActivitySummary,
+  hasFinanceAttention,
+  parseMoneyValue,
+  type PartnerFinanceSummaryItem,
+  type StoreActivityFeedEntry,
+} from './orders/utils';
 
 const routeStatuses = [
   { name: 'Routing blocked', value: 'routing_blocked' },
   { name: 'Queued', value: 'queued' },
   { name: 'In production', value: 'in_production' },
   { name: 'Shipped', value: 'shipped' },
-];
-
-const exceptionOptions = [
-  { name: 'Artwork issue', value: 'artwork_issue' },
-  { name: 'Partner delay', value: 'partner_delay' },
-  { name: 'Address hold', value: 'address_hold' },
-  { name: 'Reprint request', value: 'reprint_request' },
 ];
 
 const shipmentOptions = [
@@ -73,20 +82,6 @@ const issueResolutionOptions = [
   { name: 'Refund', value: 'refund' },
   { name: 'Carrier claim', value: 'carrier_claim' },
   { name: 'Address retry', value: 'address_retry' },
-];
-
-const productTypeOptions = [
-  { name: 'T-shirt', value: 'tshirt' },
-  { name: 'Hoodie', value: 'hoodie' },
-  { name: 'Tote', value: 'tote' },
-  { name: 'Poster', value: 'poster' },
-];
-
-const shipRegionOptions = [
-  { name: 'US', value: 'us' },
-  { name: 'EU', value: 'eu' },
-  { name: 'UK', value: 'uk' },
-  { name: 'SEA', value: 'sea' },
 ];
 
 const activityFilterOptions = [
@@ -134,7 +129,8 @@ type QueueView =
   | 'my_queue'
   | 'overdue'
   | 'delivery_issues'
-  | 'settlement_pending';
+  | 'settlement_pending'
+  | 'finance_review';
 
 type QueueSort = 'priority' | 'newest';
 type ActivityFilter = (typeof activityFilterOptions)[number]['value'];
@@ -203,16 +199,6 @@ function shipmentColor(status: string) {
   }
 }
 
-function joinPartnerCapabilityList(items: string[]) {
-  return items.length > 0 ? items.join(', ') : 'Any';
-}
-
-function joinShippingCostRules(items: { region: string; cost: string }[]) {
-  return items.length > 0
-    ? items.map((item) => `${item.region}:${item.cost}`).join(', ')
-    : 'No region rules';
-}
-
 function settlementColor(status: string) {
   switch (status) {
     case 'paid':
@@ -239,78 +225,6 @@ function activityColor(type: string) {
   }
 }
 
-function formatActivityTime(value: string) {
-  return new Date(value).toLocaleString();
-}
-
-function formatActivityActor(actor: string) {
-  const normalized = actor.trim();
-  if (!normalized) {
-    return 'system';
-  }
-  return normalized;
-}
-
-function formatActivitySummary(
-  order: RoutedOrder,
-  activities: RoutedOrder['activityLog']
-) {
-  const header = [
-    `Order ${order.id}`,
-    `Product: ${order.productTitle}`,
-    `Operator: ${order.operatorAssignee || 'unassigned'}`,
-    `Route status: ${order.status}`,
-    `Shipment: ${order.shipmentStatus}`,
-    `Settlement: ${order.settlementStatus}`,
-  ];
-
-  const activityLines = activities.map((activity) => {
-    const details = activity.details
-      .map((detail) => `${detail.key}=${detail.value}`)
-      .join(', ');
-    return [
-      `[${formatActivityTime(activity.createdAt)}]`,
-      activity.type,
-      `by ${formatActivityActor(activity.actor)}`,
-      activity.message,
-      details ? `(${details})` : '',
-    ]
-      .filter(Boolean)
-      .join(' ');
-  });
-
-  return [...header, '', 'Recent activity:', ...activityLines].join('\n');
-}
-
-function formatStoreActivitySummary(
-  tenantId: string,
-  entries: {
-    orderId: string;
-    productTitle: string;
-    operatorAssignee: string;
-    activity: RoutedOrder['activityLog'][number];
-  }[]
-) {
-  const lines = entries.map((entry) => {
-    const details = entry.activity.details
-      .map((detail) => `${detail.key}=${detail.value}`)
-      .join(', ');
-    return [
-      `[${formatActivityTime(entry.activity.createdAt)}]`,
-      entry.orderId,
-      `(${entry.productTitle})`,
-      `owner ${entry.operatorAssignee || 'unassigned'}`,
-      entry.activity.type,
-      `by ${formatActivityActor(entry.activity.actor)}`,
-      entry.activity.message,
-      details ? `(${details})` : '',
-    ]
-      .filter(Boolean)
-      .join(' ');
-  });
-
-  return [`Store activity feed for ${tenantId}`, '', ...lines].join('\n');
-}
 
 function toLocalDateTimeValue(value?: string) {
   if (!value) {
@@ -341,7 +255,8 @@ function isQueueView(value: string): value is QueueView {
     value === 'my_queue' ||
     value === 'overdue' ||
     value === 'delivery_issues' ||
-    value === 'settlement_pending'
+    value === 'settlement_pending' ||
+    value === 'finance_review'
   );
 }
 
@@ -644,6 +559,8 @@ export default function TenantOrdersPage() {
           order.settlementStatus === 'pending' ||
           order.settlementStatus === 'disputed'
         );
+      case 'finance_review':
+        return hasFinanceAttention(order);
       default:
         return true;
     }
@@ -715,6 +632,118 @@ export default function TenantOrdersPage() {
   const queueViewCount = (view: QueueView) =>
     orders().filter((order) => matchesQueueView(order, view)).length;
 
+  const blockedOrders = () =>
+    orders().filter((order) => order.status === 'routing_blocked');
+
+  const blockedReasonSummary = () => {
+    const counts = new Map<string, number>();
+    for (const order of blockedOrders()) {
+      const key = order.routingBlockCode || 'unknown';
+      counts.set(key, (counts.get(key) || 0) + 1);
+    }
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([code, count]) => ({ code, count }));
+  };
+
+  const forcedRerouteSummary = () => {
+    const counts = new Map<string, number>();
+    for (const order of orders()) {
+      for (const activity of order.activityLog) {
+        const manualReroute = activity.details.some(
+          (detail) =>
+            detail.key === 'manual_reroute' && detail.value === 'true'
+        );
+        if (!manualReroute) {
+          continue;
+        }
+        const partner =
+          activity.details.find((detail) => detail.key === 'partner')?.value ||
+          order.partner ||
+          'unknown';
+        counts.set(partner, (counts.get(partner) || 0) + 1);
+      }
+    }
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([partner, count]) => ({ partner, count }));
+  };
+
+  const reconciliationOrders = () =>
+    [...orders()]
+      .filter(hasFinanceAttention)
+      .sort((a, b) => {
+        const aDisputed = a.settlementStatus === 'disputed' ? 0 : 1;
+        const bDisputed = b.settlementStatus === 'disputed' ? 0 : 1;
+        if (aDisputed !== bDisputed) {
+          return aDisputed - bDisputed;
+        }
+        const aAnomaly = anomalyFlagsFor(a).length;
+        const bAnomaly = anomalyFlagsFor(b).length;
+        if (aAnomaly !== bAnomaly) {
+          return bAnomaly - aAnomaly;
+        }
+        return (
+          new Date(a.createdAt || 0).getTime() -
+          new Date(b.createdAt || 0).getTime()
+        );
+      });
+
+  const partnerFinanceSummary = () => {
+    const summary = new Map<string, PartnerFinanceSummaryItem>();
+
+    for (const order of orders()) {
+      const partner = order.partner || 'partner pending';
+      const current = summary.get(partner) || {
+        partner,
+        orders: 0,
+        pending: 0,
+        disputed: 0,
+        paid: 0,
+        blocked: 0,
+        forcedReroutes: 0,
+        realizedMargin: 0,
+      };
+      current.orders += 1;
+      if (order.settlementStatus === 'pending') {
+        current.pending += 1;
+      }
+      if (order.settlementStatus === 'disputed') {
+        current.disputed += 1;
+      }
+      if (order.settlementStatus === 'paid') {
+        current.paid += 1;
+      }
+      if (order.status === 'routing_blocked') {
+        current.blocked += 1;
+      }
+      const margin = parseMoneyValue(order.realizedMargin);
+      if (margin !== null) {
+        current.realizedMargin += margin;
+      }
+      for (const activity of order.activityLog) {
+        const manualReroute = activity.details.some(
+          (detail) =>
+            detail.key === 'manual_reroute' && detail.value === 'true'
+        );
+        if (manualReroute) {
+          current.forcedReroutes += 1;
+        }
+      }
+      summary.set(partner, current);
+    }
+
+    return [...summary.values()].sort((a, b) => {
+      if (b.disputed !== a.disputed) {
+        return b.disputed - a.disputed;
+      }
+      if (b.pending !== a.pending) {
+        return b.pending - a.pending;
+      }
+      return a.partner.localeCompare(b.partner);
+    });
+  };
+
   const matchesActivityFilter = (
     activity: RoutedOrder['activityLog'][number]
   ) => {
@@ -759,7 +788,7 @@ export default function TenantOrdersPage() {
           productTitle: order.productTitle,
           operatorAssignee: order.operatorAssignee,
           activity,
-        }))
+        }) satisfies StoreActivityFeedEntry)
       )
       .sort(
         (a, b) =>
@@ -789,6 +818,17 @@ export default function TenantOrdersPage() {
     } catch {
       setError('Could not copy store activity feed to clipboard.');
     }
+  };
+
+  const insightsContextValue = {
+    tenantId: params().tenantId,
+    blockedOrders,
+    blockedReasonSummary,
+    forcedRerouteSummary,
+    reconciliationOrders,
+    partnerFinanceSummary,
+    storeActivityFeed,
+    copyStoreActivityFeed,
   };
 
   const loadSavedPresets = () => {
@@ -958,6 +998,30 @@ export default function TenantOrdersPage() {
     setQuantity('1');
     resetPreferredPartnerOverride();
     setMessage(`Created routed order ${result.data.id}.`);
+  };
+
+  const composerContextValue = {
+    availableCandidates,
+    selectedCandidateId,
+    setSelectedCandidateId,
+    customerName,
+    setCustomerName,
+    quantity,
+    setQuantity,
+    selectedProductType,
+    setSelectedProductType,
+    selectedShipRegion,
+    setSelectedShipRegion,
+    preferredPartner,
+    setPreferredPartner,
+    manualPartnerOverride,
+    setManualPartnerOverride,
+    routingRecommendation,
+    selectedExceptionType,
+    setSelectedExceptionType,
+    applyPreferredPartnerOverride,
+    resetPreferredPartnerOverride,
+    createMockOrder,
   };
 
   const advanceOrder = async (orderId: string) => {
@@ -1182,6 +1246,45 @@ export default function TenantOrdersPage() {
     });
   };
 
+  const applyRelativeShipmentSla = (mode: ShipmentSlaMode) => {
+    setBulkDraft((current) => ({
+      ...current,
+      shipmentSlaMode: mode,
+      shipmentSlaDueAt: mode
+        ? toLocalDateTimeValue(resolveShipmentSla(mode))
+        : current.shipmentSlaDueAt,
+    }));
+  };
+
+  const boardContextValue = {
+    activeQueueView,
+    setActiveQueueView,
+    activeQueueSort,
+    setActiveQueueSort,
+    operatorLens,
+    setOperatorLens,
+    queueViewCount,
+    savedPresets,
+    presetName,
+    setPresetName,
+    saveQueuePreset,
+    applyQueuePreset,
+    deleteQueuePreset,
+    selectedOrderIDs,
+    selectVisibleOrders,
+    clearSelectedOrders,
+    bulkDraft,
+    setBulkDraft,
+    applyRelativeShipmentSla,
+    savedBulkTemplates,
+    bulkTemplateName,
+    setBulkTemplateName,
+    saveBulkTemplate,
+    applyBulkTemplate,
+    deleteBulkTemplate,
+    applyBulkUpdate,
+  };
+
   createEffect(() => {
     tenantStorage.setTenantID(params().tenantId);
     loadSavedPresets();
@@ -1237,355 +1340,9 @@ export default function TenantOrdersPage() {
 
       <div class="grid gap-6 lg:grid-cols-[0.96fr_1.04fr]">
         <Card class="space-y-4">
-          <SectionTitle
-            title="Create routed order"
-            subtitle="Use a published mock product candidate as the source, then send the order into the backend-backed POD routing flow."
-          />
-
-          <Show
-            when={availableCandidates().length > 0}
-            fallback={
-              <EmptyBlock
-                title="No published mock products yet"
-                copy="Go to Product setup, promote a draft, and mock publish it from the backend-backed setup workflow before testing order routing."
-              />
-            }
-          >
-            <form class="space-y-4" onSubmit={createMockOrder}>
-              <SelectField
-                label="Published mock product"
-                value={selectedCandidateId()}
-                options={availableCandidates().map((candidate) => ({
-                  name: `${candidate.title} · ${candidate.partner}`,
-                  value: candidate.id,
-                }))}
-                onChange={(event) =>
-                  setSelectedCandidateId(event.currentTarget.value)
-                }
-              />
-              <div class="grid gap-4 md:grid-cols-2">
-                <InputField
-                  label="Customer name"
-                  value={customerName()}
-                  placeholder="Nguyen Minh"
-                  onInput={(event) =>
-                    setCustomerName(event.currentTarget.value)
-                  }
-                />
-                <InputField
-                  label="Quantity"
-                  value={quantity()}
-                  placeholder="1"
-                  onInput={(event) => setQuantity(event.currentTarget.value)}
-                />
-              </div>
-              <div class="grid gap-4 md:grid-cols-3">
-                <SelectField
-                  label="Product type"
-                  value={selectedProductType()}
-                  options={productTypeOptions}
-                  onChange={(event) =>
-                    setSelectedProductType(event.currentTarget.value)
-                  }
-                />
-                <SelectField
-                  label="Ship region"
-                  value={selectedShipRegion()}
-                  options={shipRegionOptions}
-                  onChange={(event) =>
-                    setSelectedShipRegion(event.currentTarget.value)
-                  }
-                />
-                <Show
-                  when={manualPartnerOverride()}
-                  fallback={
-                    <div class="space-y-2 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-3">
-                      <p class="text-sm font-medium text-gray-700">
-                        Partner routing mode
-                      </p>
-                      <p class="text-xs text-gray-500">
-                        Auto-route is active. The backend will pick the best
-                        eligible partner from capability, priority, and SLA.
-                      </p>
-                      <Button
-                        type="button"
-                        size="xs"
-                        color="alternative"
-                        onClick={() => setManualPartnerOverride(true)}
-                      >
-                        Override partner
-                      </Button>
-                    </div>
-                  }
-                >
-                  <div class="space-y-2">
-                    <InputField
-                      label="Preferred partner override"
-                      value={preferredPartner()}
-                      placeholder="optional code or name"
-                      onInput={(event) =>
-                        setPreferredPartner(event.currentTarget.value)
-                      }
-                    />
-                    <Button
-                      type="button"
-                      size="xs"
-                      color="alternative"
-                      onClick={resetPreferredPartnerOverride}
-                    >
-                      Return to auto-route
-                    </Button>
-                  </div>
-                </Show>
-              </div>
-              <Show when={routingRecommendation()}>
-                {(recommendation) => (
-                  <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-                    <div class="flex flex-wrap items-center gap-2">
-                      <Badge content="routing recommendation" color="blue" />
-                      <Badge
-                        content={
-                          manualPartnerOverride()
-                            ? 'manual override'
-                            : 'auto-route active'
-                        }
-                        color={manualPartnerOverride() ? 'yellow' : 'green'}
-                      />
-                      <Show when={recommendation().candidatePartner}>
-                        <Badge
-                          content={`candidate default ${recommendation().candidatePartner}`}
-                          color="dark"
-                        />
-                      </Show>
-                      <Show when={recommendation().selectedPartner}>
-                        <Badge
-                          content={`selected ${recommendation().selectedPartner}`}
-                          color="green"
-                        />
-                      </Show>
-                    </div>
-                    <p class="mt-2 text-sm text-gray-600">
-                      {recommendation().summary}
-                    </p>
-                    <Show
-                      when={
-                        !recommendation().selectedPartner &&
-                        recommendation().blockedReason
-                      }
-                    >
-                      <ErrorAlert>
-                        Routing blocked: {recommendation().blockedReason}
-                        <Show when={recommendation().blockedReasonCode}>
-                          {' '}
-                          ({recommendation().blockedReasonCode})
-                        </Show>
-                      </ErrorAlert>
-                    </Show>
-                    <Show
-                      when={
-                        !manualPartnerOverride() &&
-                        recommendation().selectedPartner
-                      }
-                    >
-                      <InfoAlert>
-                        Auto-route will create the order against{' '}
-                        {recommendation().selectedPartner}. Switch to override
-                        only when you need to force a different eligible
-                        partner.
-                      </InfoAlert>
-                    </Show>
-                    <div class="mt-3 space-y-3">
-                      <Show
-                        when={
-                          recommendation().options.filter(
-                            (option) => option.eligible
-                          ).length > 0
-                        }
-                      >
-                        <div class="space-y-2">
-                          <p class="text-sm font-medium text-gray-700">
-                            Eligible partners
-                          </p>
-                          <For
-                            each={recommendation()
-                              .options.filter((option) => option.eligible)
-                              .slice(0, 4)}
-                          >
-                            {(option) => (
-                              <div class="rounded-xl bg-white p-3 text-sm text-gray-600">
-                                <div class="flex flex-wrap items-center gap-2">
-                                  <Badge
-                                    content={option.partner.name}
-                                    color="green"
-                                  />
-                                  <Badge
-                                    content={`priority ${option.partner.routingPriority}`}
-                                    color="blue"
-                                  />
-                                  <Badge
-                                    content={`${option.partner.slaDays}d sla`}
-                                    color="indigo"
-                                  />
-                                  <Show
-                                    when={
-                                      recommendation().selectedPartner ===
-                                      option.partner.name
-                                    }
-                                  >
-                                    <Badge
-                                      content="recommended"
-                                      color="green"
-                                    />
-                                  </Show>
-                                </div>
-                                <p class="mt-2">{option.reason}</p>
-                                <p class="mt-1 text-xs text-gray-500">
-                                  Products:{' '}
-                                  {joinPartnerCapabilityList(
-                                    option.partner.supportedProductTypes
-                                  )}{' '}
-                                  · Regions:{' '}
-                                  {joinPartnerCapabilityList(
-                                    option.partner.supportedRegions
-                                  )}
-                                </p>
-                                <p class="mt-1 text-xs text-gray-500">
-                                  Partner base fulfillment:{' '}
-                                  {option.partner.baseFulfillmentCost || 'TBD'}{' '}
-                                  · Region cost rules:{' '}
-                                  {joinShippingCostRules(
-                                    option.partner.shippingCostRules
-                                  )}
-                                </p>
-                                <div class="mt-2 flex flex-wrap gap-2">
-                                  <Badge
-                                    content={`fulfillment ${option.estimatedFulfillmentCost}`}
-                                    color="blue"
-                                  />
-                                  <Badge
-                                    content={`shipping ${option.estimatedShippingCost}`}
-                                    color="indigo"
-                                  />
-                                  <Badge
-                                    content={`unit margin ${option.estimatedUnitMargin}`}
-                                    color="green"
-                                  />
-                                </div>
-                                <div class="mt-3 flex flex-wrap gap-2">
-                                  <Show
-                                    when={
-                                      recommendation().selectedPartner ===
-                                      option.partner.name
-                                    }
-                                    fallback={
-                                      <Button
-                                        type="button"
-                                        size="xs"
-                                        color="alternative"
-                                        onClick={() =>
-                                          applyPreferredPartnerOverride(
-                                            option.partner.name
-                                          )
-                                        }
-                                      >
-                                        Force this partner
-                                      </Button>
-                                    }
-                                  >
-                                    <Button
-                                      type="button"
-                                      size="xs"
-                                      color="green"
-                                      onClick={resetPreferredPartnerOverride}
-                                    >
-                                      Use auto-route
-                                    </Button>
-                                  </Show>
-                                </div>
-                              </div>
-                            )}
-                          </For>
-                        </div>
-                      </Show>
-                      <Show
-                        when={recommendation().options.some(
-                          (option) => !option.eligible
-                        )}
-                      >
-                        <div class="space-y-2">
-                          <p class="text-sm font-medium text-gray-700">
-                            Blocked by capability
-                          </p>
-                          <For
-                            each={recommendation()
-                              .options.filter((option) => !option.eligible)
-                              .slice(0, 3)}
-                          >
-                            {(option) => (
-                              <div class="rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-gray-600">
-                                <div class="flex flex-wrap items-center gap-2">
-                                  <Badge
-                                    content={option.partner.name}
-                                    color="red"
-                                  />
-                                  <Badge
-                                    content={`priority ${option.partner.routingPriority}`}
-                                    color="dark"
-                                  />
-                                  <Badge
-                                    content={`${option.partner.slaDays}d sla`}
-                                    color="dark"
-                                  />
-                                </div>
-                                <p class="mt-2">{option.reason}</p>
-                                <p class="mt-1 text-xs text-gray-500">
-                                  Products:{' '}
-                                  {joinPartnerCapabilityList(
-                                    option.partner.supportedProductTypes
-                                  )}{' '}
-                                  · Regions:{' '}
-                                  {joinPartnerCapabilityList(
-                                    option.partner.supportedRegions
-                                  )}
-                                </p>
-                                <p class="mt-1 text-xs text-gray-500">
-                                  Partner base fulfillment:{' '}
-                                  {option.partner.baseFulfillmentCost || 'TBD'}{' '}
-                                  · Region cost rules:{' '}
-                                  {joinShippingCostRules(
-                                    option.partner.shippingCostRules
-                                  )}
-                                </p>
-                              </div>
-                            )}
-                          </For>
-                        </div>
-                      </Show>
-                      <Show when={recommendation().options.length === 0}>
-                        <EmptyBlock
-                          title="No active partner profiles returned"
-                          copy="Create or activate partner capabilities first so the routing engine can score eligible print and fulfillment partners."
-                        />
-                      </Show>
-                    </div>
-                  </div>
-                )}
-              </Show>
-              <SelectField
-                label="Default exception scenario"
-                value={selectedExceptionType()}
-                options={exceptionOptions}
-                onChange={(event) =>
-                  setSelectedExceptionType(event.currentTarget.value)
-                }
-              />
-              <Button type="submit" color="blue">
-                {manualPartnerOverride()
-                  ? 'Create routed order with override'
-                  : 'Create routed order via auto-route'}
-              </Button>
-            </form>
-          </Show>
+          <TenantOrdersComposerProvider value={composerContextValue}>
+            <CreateRoutedOrderPanel />
+          </TenantOrdersComposerProvider>
         </Card>
 
         <Card class="space-y-4">
@@ -1595,308 +1352,13 @@ export default function TenantOrdersPage() {
           />
 
           <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-            <div class="grid gap-4 md:grid-cols-[0.7fr_1.3fr]">
-              <InputField
-                label="Operator lens"
-                value={operatorLens()}
-                placeholder="linh.nguyen"
-                onInput={(event) => setOperatorLens(event.currentTarget.value)}
-              />
-              <div class="space-y-2">
-                <p class="text-sm font-medium text-gray-700">Queue views</p>
-                <div class="flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    size="xs"
-                    color={activeQueueView() === 'all' ? 'blue' : 'alternative'}
-                    onClick={() => setActiveQueueView('all')}
-                  >
-                    All · {queueViewCount('all')}
-                  </Button>
-                  <Button
-                    type="button"
-                    size="xs"
-                    color={
-                      activeQueueView() === 'my_queue' ? 'blue' : 'alternative'
-                    }
-                    onClick={() => setActiveQueueView('my_queue')}
-                  >
-                    My queue · {queueViewCount('my_queue')}
-                  </Button>
-                  <Button
-                    type="button"
-                    size="xs"
-                    color={
-                      activeQueueView() === 'overdue' ? 'red' : 'alternative'
-                    }
-                    onClick={() => setActiveQueueView('overdue')}
-                  >
-                    Overdue · {queueViewCount('overdue')}
-                  </Button>
-                  <Button
-                    type="button"
-                    size="xs"
-                    color={
-                      activeQueueView() === 'delivery_issues'
-                        ? 'red'
-                        : 'alternative'
-                    }
-                    onClick={() => setActiveQueueView('delivery_issues')}
-                  >
-                    Delivery issues · {queueViewCount('delivery_issues')}
-                  </Button>
-                  <Button
-                    type="button"
-                    size="xs"
-                    color={
-                      activeQueueView() === 'settlement_pending'
-                        ? 'green'
-                        : 'alternative'
-                    }
-                    onClick={() => setActiveQueueView('settlement_pending')}
-                  >
-                    Settlement pending · {queueViewCount('settlement_pending')}
-                  </Button>
-                </div>
-              </div>
-            </div>
-            <div class="mt-4 flex flex-wrap items-center gap-2">
-              <span class="text-sm font-medium text-gray-700">Sort</span>
-              <Button
-                type="button"
-                size="xs"
-                color={
-                  activeQueueSort() === 'priority' ? 'dark' : 'alternative'
-                }
-                onClick={() => setActiveQueueSort('priority')}
-              >
-                Priority first
-              </Button>
-              <Button
-                type="button"
-                size="xs"
-                color={activeQueueSort() === 'newest' ? 'dark' : 'alternative'}
-                onClick={() => setActiveQueueSort('newest')}
-              >
-                Newest
-              </Button>
-            </div>
-            <div class="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
-              <div class="grid gap-4 md:grid-cols-[0.8fr_1.2fr]">
-                <InputField
-                  label="Save queue preset"
-                  value={presetName()}
-                  placeholder="Linh overdue"
-                  onInput={(event) => setPresetName(event.currentTarget.value)}
-                />
-                <div class="space-y-2">
-                  <p class="text-sm font-medium text-gray-700">Saved presets</p>
-                  <div class="flex flex-wrap gap-2">
-                    <Show
-                      when={savedPresets().length > 0}
-                      fallback={
-                        <p class="text-sm text-gray-500">
-                          No saved presets for this store yet.
-                        </p>
-                      }
-                    >
-                      <For each={savedPresets()}>
-                        {(preset) => (
-                          <div class="flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-2 py-1">
-                            <button
-                              type="button"
-                              class="text-sm font-medium text-gray-700"
-                              onClick={() => applyQueuePreset(preset)}
-                            >
-                              {preset.name}
-                            </button>
-                            <button
-                              type="button"
-                              class="text-xs font-semibold text-red-600"
-                              onClick={() => deleteQueuePreset(preset.name)}
-                            >
-                              remove
-                            </button>
-                          </div>
-                        )}
-                      </For>
-                    </Show>
-                  </div>
-                </div>
-              </div>
-              <div class="mt-4">
-                <Button
-                  type="button"
-                  size="sm"
-                  color="green"
-                  onClick={saveQueuePreset}
-                >
-                  Save current queue view
-                </Button>
-              </div>
-            </div>
-            <div class="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
-              <div class="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p class="text-sm font-semibold text-gray-900">Bulk ops</p>
-                  <p class="text-sm text-gray-500">
-                    Selected {selectedOrderIDs().length} order(s) in the current
-                    queue workflow.
-                  </p>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    size="xs"
-                    color="alternative"
-                    onClick={selectVisibleOrders}
-                  >
-                    Select visible
-                  </Button>
-                  <Button
-                    type="button"
-                    size="xs"
-                    color="light"
-                    onClick={clearSelectedOrders}
-                  >
-                    Clear
-                  </Button>
-                </div>
-              </div>
-              <div class="mt-4 grid gap-4 md:grid-cols-3">
-                <InputField
-                  label="Bulk owner"
-                  value={bulkDraft().operatorAssignee}
-                  placeholder="linh.nguyen"
-                  onInput={(event) =>
-                    setBulkDraft((current) => ({
-                      ...current,
-                      operatorAssignee: event.currentTarget.value,
-                    }))
-                  }
-                />
-                <InputField
-                  label="Bulk shipment SLA"
-                  type="datetime-local"
-                  value={bulkDraft().shipmentSlaDueAt}
-                  onInput={(event) =>
-                    setBulkDraft((current) => ({
-                      ...current,
-                      shipmentSlaDueAt: event.currentTarget.value,
-                      shipmentSlaMode: '',
-                    }))
-                  }
-                />
-                <SelectField
-                  label="Relative SLA"
-                  value={bulkDraft().shipmentSlaMode}
-                  options={[
-                    { name: 'No preset', value: '' },
-                    { name: '+2h', value: 'plus_2h' },
-                    { name: '+4h', value: 'plus_4h' },
-                    { name: 'End of day', value: 'end_of_day' },
-                  ]}
-                  onChange={(event) =>
-                    setBulkDraft((current) => ({
-                      ...current,
-                      shipmentSlaMode: event.currentTarget
-                        .value as ShipmentSlaMode,
-                      shipmentSlaDueAt: event.currentTarget.value
-                        ? toLocalDateTimeValue(
-                            resolveShipmentSla(
-                              event.currentTarget.value as ShipmentSlaMode
-                            )
-                          )
-                        : current.shipmentSlaDueAt,
-                    }))
-                  }
-                />
-                <SelectField
-                  label="Bulk settlement status"
-                  value={bulkDraft().settlementStatus}
-                  options={[
-                    { name: 'No change', value: '' },
-                    ...settlementOptions,
-                  ]}
-                  onChange={(event) =>
-                    setBulkDraft((current) => ({
-                      ...current,
-                      settlementStatus: event.currentTarget.value,
-                    }))
-                  }
-                />
-              </div>
-              <div class="mt-4 rounded-2xl border border-gray-200 bg-gray-50 p-4">
-                <div class="grid gap-4 md:grid-cols-[0.8fr_1.2fr]">
-                  <InputField
-                    label="Save bulk template"
-                    value={bulkTemplateName()}
-                    placeholder="Carrier claim follow-up"
-                    onInput={(event) =>
-                      setBulkTemplateName(event.currentTarget.value)
-                    }
-                  />
-                  <div class="space-y-2">
-                    <p class="text-sm font-medium text-gray-700">
-                      Saved bulk templates
-                    </p>
-                    <div class="flex flex-wrap gap-2">
-                      <Show
-                        when={savedBulkTemplates().length > 0}
-                        fallback={
-                          <p class="text-sm text-gray-500">
-                            No saved bulk templates for this store yet.
-                          </p>
-                        }
-                      >
-                        <For each={savedBulkTemplates()}>
-                          {(template) => (
-                            <div class="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-2 py-1">
-                              <button
-                                type="button"
-                                class="text-sm font-medium text-gray-700"
-                                onClick={() => applyBulkTemplate(template)}
-                              >
-                                {template.name}
-                              </button>
-                              <button
-                                type="button"
-                                class="text-xs font-semibold text-red-600"
-                                onClick={() =>
-                                  deleteBulkTemplate(template.name)
-                                }
-                              >
-                                remove
-                              </button>
-                            </div>
-                          )}
-                        </For>
-                      </Show>
-                    </div>
-                  </div>
-                </div>
-                <div class="mt-4">
-                  <Button
-                    type="button"
-                    size="xs"
-                    color="green"
-                    onClick={saveBulkTemplate}
-                  >
-                    Save current bulk template
-                  </Button>
-                </div>
-              </div>
-              <div class="mt-4">
-                <Button
-                  type="button"
-                  size="sm"
-                  color="dark"
-                  onClick={applyBulkUpdate}
-                >
-                  Apply bulk update
-                </Button>
-              </div>
-            </div>
+            <TenantOrdersBoardProvider value={boardContextValue}>
+              <QueueToolbarPanel />
+              <BulkOpsPanel />
+            </TenantOrdersBoardProvider>
+            <TenantOrdersInsightsProvider value={insightsContextValue}>
+              <OrdersInsightsPanel />
+            </TenantOrdersInsightsProvider>
           </div>
 
           <Show
@@ -1917,698 +1379,66 @@ export default function TenantOrdersPage() {
             }
           >
             <div class="space-y-3">
-              <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p class="text-sm font-semibold text-slate-900">
-                      Store activity feed
-                    </p>
-                    <p class="text-sm text-slate-500">
-                      Latest activity across the current queue slice for store{' '}
-                      {params().tenantId}.
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    size="xs"
-                    color="light"
-                    onClick={() => {
-                      void copyStoreActivityFeed();
-                    }}
-                  >
-                    Copy feed
-                  </Button>
-                  <Button
-                    type="button"
-                    size="xs"
-                    color="alternative"
-                    href={`/t/${params().tenantId}/orders/audit`}
-                  >
-                    Open full audit
-                  </Button>
-                </div>
-                <div class="mt-4 space-y-3">
-                  <Show
-                    when={storeActivityFeed().length > 0}
-                    fallback={
-                      <div class="rounded-xl border border-dashed border-slate-200 bg-white p-3 text-sm text-slate-500">
-                        No store activity matches the current queue and activity
-                        filters.
-                      </div>
-                    }
-                  >
-                    <For each={storeActivityFeed()}>
-                      {(entry) => (
-                        <div class="rounded-xl border border-slate-200 bg-white p-3">
-                          <div class="flex flex-wrap items-center justify-between gap-2">
-                            <div class="flex flex-wrap items-center gap-2">
-                              <Badge
-                                content={entry.activity.type.replaceAll(
-                                  '_',
-                                  ' '
-                                )}
-                                color={activityColor(entry.activity.type)}
-                              />
-                              <p class="text-xs font-semibold text-slate-700">
-                                {entry.orderId}
-                              </p>
-                              <p class="text-xs text-slate-500">
-                                {entry.productTitle}
-                              </p>
-                            </div>
-                            <p class="text-xs text-slate-500">
-                              {formatActivityTime(entry.activity.createdAt)}
-                            </p>
-                          </div>
-                          <div class="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                            <span>
-                              {formatActivityActor(entry.activity.actor)}
-                            </span>
-                            <span>
-                              owner {entry.operatorAssignee || 'unassigned'}
-                            </span>
-                          </div>
-                          <p class="mt-2 text-sm text-slate-700">
-                            {entry.activity.message}
-                          </p>
-                          <Show when={entry.activity.details.length}>
-                            <div class="mt-2 flex flex-wrap gap-2">
-                              <For each={entry.activity.details}>
-                                {(detail) => (
-                                  <span class="rounded-full bg-slate-50 px-2 py-1 text-[11px] font-medium text-slate-600 ring-1 ring-slate-200">
-                                    {detail.key.replaceAll('_', ' ')}:{' '}
-                                    {detail.value}
-                                  </span>
-                                )}
-                              </For>
-                            </div>
-                          </Show>
-                        </div>
-                      )}
-                    </For>
-                  </Show>
-                </div>
-              </div>
+              <TenantOrdersInsightsProvider value={insightsContextValue}>
+                <StoreActivityFeedPanel />
+              </TenantOrdersInsightsProvider>
               <For each={sortedOrders()}>
                 {(order) => (
-                  <div class="rounded-2xl border border-gray-200 bg-white p-4">
-                    <div class="flex flex-wrap items-center justify-between gap-3">
-                      <div class="flex items-start gap-3">
-                        <label class="mt-1">
-                          <input
-                            type="checkbox"
-                            checked={isSelected(order.id)}
-                            onChange={(event) =>
-                              toggleOrderSelection(
-                                order.id,
-                                event.currentTarget.checked
-                              )
-                            }
-                          />
-                        </label>
-                        <div>
-                          <p class="text-base font-semibold text-gray-900">
-                            {order.id}
-                          </p>
-                          <p class="mt-1 text-sm text-gray-500">
-                            {order.productTitle} ·{' '}
-                            {order.partner || 'partner pending'}
-                          </p>
-                          <p class="mt-1 text-sm text-gray-500">
-                            customer {order.customerName} · qty {order.quantity}{' '}
-                            · total {order.total}
-                          </p>
-                          <p class="mt-1 text-sm text-gray-500">
-                            owner {order.operatorAssignee || 'unassigned'}
-                          </p>
-                        </div>
-                      </div>
-                      <div class="flex flex-wrap items-center gap-2">
-                        <Show when={activeQueueSort() === 'priority'}>
-                          <Badge
-                            content={`priority ${priorityScoreFor(order) + 1}`}
-                            color={priorityScoreFor(order) < 3 ? 'red' : 'dark'}
-                          />
-                        </Show>
-                        <Badge
-                          content={order.status.replaceAll('_', ' ')}
-                          color={statusColor(order.status)}
-                        />
-                        <Show when={order.exceptionStatus}>
-                          <Badge
-                            content={`${order.exceptionStatus} issue`}
-                            color={exceptionColor(order.exceptionStatus)}
-                          />
-                        </Show>
-                        <Show when={order.routingBlockCode}>
-                          <Badge
-                            content={`blocked ${order.routingBlockCode.replaceAll('_', ' ')}`}
-                            color="red"
-                          />
-                        </Show>
-                        <Badge
-                          content={order.shipmentStatus.replaceAll('_', ' ')}
-                          color={shipmentColor(order.shipmentStatus)}
-                        />
-                        <Badge
-                          content={order.settlementStatus.replaceAll('_', ' ')}
-                          color={settlementColor(order.settlementStatus)}
-                        />
-                        <Button
-                          type="button"
-                          size="xs"
-                          color="green"
-                          disabled={
-                            order.status === 'routing_blocked' ||
-                            order.status === 'shipped' ||
-                            order.exceptionStatus === 'open' ||
-                            order.exceptionStatus === 'escalated'
-                          }
-                          onClick={() => {
-                            advanceOrder(order.id);
-                          }}
-                        >
-                          Advance route
-                        </Button>
-                        <Button
-                          type="button"
-                          size="xs"
-                          color="alternative"
-                          disabled={
-                            order.exceptionStatus === 'open' ||
-                            order.exceptionStatus === 'resolved'
-                          }
-                          onClick={() => {
-                            raiseException(order.id);
-                          }}
-                        >
-                          Raise issue
-                        </Button>
-                        <Show when={order.routingBlockReason}>
-                          <p class="w-full text-sm text-rose-700">
-                            Routing blocked: {order.routingBlockReason}
-                          </p>
-                        </Show>
-                        <Show when={order.exceptionStatus === 'open'}>
-                          <Button
-                            type="button"
-                            size="xs"
-                            color="blue"
-                            onClick={() => {
-                              updateExceptionStatus(order.id, 'escalated');
-                            }}
-                          >
-                            Escalate
-                          </Button>
-                          <Button
-                            type="button"
-                            size="xs"
-                            color="light"
-                            onClick={() => {
-                              updateExceptionStatus(order.id, 'resolved');
-                            }}
-                          >
-                            Resolve
-                          </Button>
-                        </Show>
-                      </div>
-                    </div>
-
-                    <Show when={order.exceptionType}>
-                      <div class="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
-                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-amber-700">
-                          Exception
-                        </p>
-                        <p class="mt-2 text-sm text-amber-900">
-                          {order.exceptionType.replaceAll('_', ' ')} ·{' '}
-                          {order.exceptionStatus || 'draft'}
-                        </p>
-                      </div>
-                    </Show>
-
-                    <Show when={order.status === 'routing_blocked'}>
-                      <div class="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3">
-                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-rose-700">
-                          Manual reroute
-                        </p>
-                        <p class="mt-2 text-sm text-rose-900">
-                          Pick an eligible partner to clear the routing block
-                          and move the order back into the queued lane.
-                        </p>
-                        <div class="mt-3 flex flex-col gap-3 md:flex-row md:items-end">
-                          <div class="flex-1">
-                            <InputField
-                              label="Preferred partner"
-                              value={rerouteDraftFor(order).preferredPartner}
-                              placeholder="partner code or name"
-                              onInput={(event) =>
-                                patchRerouteDraft(order.id, {
-                                  preferredPartner: event.currentTarget.value,
-                                })
-                              }
-                            />
-                          </div>
-                          <Button
-                            type="button"
-                            color="red"
-                            onClick={() => {
-                              rerouteBlockedOrder(order);
-                            }}
-                          >
-                            Force reroute
-                          </Button>
-                        </div>
-                      </div>
-                    </Show>
-
-                    <div class="mt-3 rounded-xl border border-sky-200 bg-sky-50 p-3">
-                      <p class="text-xs font-semibold uppercase tracking-[0.16em] text-sky-700">
-                        Queue ownership
-                      </p>
-                      <div class="mt-3 grid gap-4 md:grid-cols-2">
-                        <InputField
-                          label="Operator assignee"
-                          value={queueDraftFor(order).operatorAssignee}
-                          placeholder="linh.nguyen"
-                          onInput={(event) =>
-                            patchQueueDraft(order.id, {
-                              operatorAssignee: event.currentTarget.value,
-                            })
-                          }
-                        />
-                        <InputField
-                          label="Shipment SLA due"
-                          type="datetime-local"
-                          value={queueDraftFor(order).shipmentSlaDueAt}
-                          onInput={(event) =>
-                            patchQueueDraft(order.id, {
-                              shipmentSlaDueAt: event.currentTarget.value,
-                            })
-                          }
-                        />
-                        <InputField
-                          label="Issue SLA due"
-                          type="datetime-local"
-                          value={queueDraftFor(order).issueSlaDueAt}
-                          onInput={(event) =>
-                            patchQueueDraft(order.id, {
-                              issueSlaDueAt: event.currentTarget.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div class="mt-3 flex flex-wrap items-center gap-2">
-                        <Button
-                          type="button"
-                          size="xs"
-                          color="blue"
-                          onClick={() => {
-                            saveQueueControl(order);
-                          }}
-                        >
-                          Save queue control
-                        </Button>
-                        <Badge
-                          content={`owner ${order.operatorAssignee || 'unassigned'}`}
-                          color="indigo"
-                        />
-                        <Show when={order.shipmentSlaDueAt}>
-                          <Badge
-                            content={`shipment SLA ${isOverdue(order.shipmentSlaDueAt) ? 'overdue' : 'set'}`}
-                            color={
-                              isOverdue(order.shipmentSlaDueAt) ? 'red' : 'blue'
-                            }
-                          />
-                        </Show>
-                        <Show when={order.issueSlaDueAt}>
-                          <Badge
-                            content={`issue SLA ${isOverdue(order.issueSlaDueAt) ? 'overdue' : 'set'}`}
-                            color={
-                              isOverdue(order.issueSlaDueAt) ? 'red' : 'blue'
-                            }
-                          />
-                        </Show>
-                      </div>
-                    </div>
-
-                    <Show
-                      when={
-                        order.exceptionType ||
-                        order.shipmentStatus === 'delivery_issue'
-                      }
-                    >
-                      <div class="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3">
-                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-rose-700">
-                          Issue cost handling
-                        </p>
-                        <div class="mt-3 grid gap-4 md:grid-cols-2">
-                          <InputField
-                            label="Issue cost"
-                            value={issueDraftFor(order).issueCost}
-                            placeholder="$6.00"
-                            onInput={(event) =>
-                              patchIssueDraft(order.id, {
-                                issueCost: event.currentTarget.value,
-                              })
-                            }
-                          />
-                          <SelectField
-                            label="Resolution path"
-                            value={issueDraftFor(order).issueResolution}
-                            options={issueResolutionOptions}
-                            onChange={(event) =>
-                              patchIssueDraft(order.id, {
-                                issueResolution: event.currentTarget.value,
-                              })
-                            }
-                          />
-                        </div>
-                        <div class="mt-4">
-                          <TextareaField
-                            label="Issue notes"
-                            value={issueDraftFor(order).issueNotes}
-                            rows={3}
-                            onInput={(event) =>
-                              patchIssueDraft(order.id, {
-                                issueNotes: event.currentTarget.value,
-                              })
-                            }
-                          />
-                        </div>
-                        <div class="mt-3 flex flex-wrap items-center gap-2">
-                          <Button
-                            type="button"
-                            size="xs"
-                            color="red"
-                            onClick={() => {
-                              saveIssueHandling(order);
-                            }}
-                          >
-                            Save issue handling
-                          </Button>
-                          <Badge
-                            content={`cost ${order.issueCost}`}
-                            color="red"
-                          />
-                          <Badge
-                            content={order.issueResolution.replaceAll('_', ' ')}
-                            color="yellow"
-                          />
-                        </div>
-                      </div>
-                    </Show>
-
-                    <div class="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
-                      <p class="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
-                        Settlement readiness
-                      </p>
-                      <div class="mt-3 grid gap-3 md:grid-cols-2">
-                        <div class="rounded-xl border border-emerald-200 bg-white p-3">
-                          <p class="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
-                            Base cost snapshot
-                          </p>
-                          <p class="mt-2 text-sm font-semibold text-gray-900">
-                            {order.baseCostSnapshot}
-                          </p>
-                        </div>
-                        <div class="rounded-xl border border-emerald-200 bg-white p-3">
-                          <p class="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
-                            Realized margin
-                          </p>
-                          <p class="mt-2 text-sm font-semibold text-gray-900">
-                            {order.realizedMargin}
-                          </p>
-                        </div>
-                      </div>
-                      <div class="mt-3 grid gap-4 md:grid-cols-2">
-                        <InputField
-                          label="Fulfillment cost"
-                          value={settlementDraftFor(order).fulfillmentCost}
-                          placeholder="$9.50"
-                          onInput={(event) =>
-                            patchSettlementDraft(order.id, {
-                              fulfillmentCost: event.currentTarget.value,
-                            })
-                          }
-                        />
-                        <InputField
-                          label="Shipping cost"
-                          value={settlementDraftFor(order).shippingCost}
-                          placeholder="$4.25"
-                          onInput={(event) =>
-                            patchSettlementDraft(order.id, {
-                              shippingCost: event.currentTarget.value,
-                            })
-                          }
-                        />
-                        <SelectField
-                          label="Settlement status"
-                          value={settlementDraftFor(order).settlementStatus}
-                          options={settlementOptions}
-                          onChange={(event) =>
-                            patchSettlementDraft(order.id, {
-                              settlementStatus: event.currentTarget.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div class="mt-4">
-                        <TextareaField
-                          label="Settlement notes"
-                          value={settlementDraftFor(order).settlementNotes}
-                          rows={3}
-                          onInput={(event) =>
-                            patchSettlementDraft(order.id, {
-                              settlementNotes: event.currentTarget.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div class="mt-3 flex flex-wrap items-center gap-2">
-                        <Button
-                          type="button"
-                          size="xs"
-                          color="green"
-                          onClick={() => {
-                            saveSettlement(order);
-                          }}
-                        >
-                          Save settlement state
-                        </Button>
-                        <Badge
-                          content={`margin ${order.realizedMargin}`}
-                          color="green"
-                        />
-                        <Badge
-                          content={`settlement ${order.settlementStatus.replaceAll('_', ' ')}`}
-                          color={settlementColor(order.settlementStatus)}
-                        />
-                      </div>
-                    </div>
-
-                    <div class="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
-                      <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-600">
-                        Manual shipment control
-                      </p>
-                      <div class="mt-3 grid gap-4 md:grid-cols-2">
-                        <SelectField
-                          label="Shipment status"
-                          value={shipmentDraftFor(order).shipmentStatus}
-                          options={shipmentOptions}
-                          onChange={(event) =>
-                            patchShipmentDraft(order.id, {
-                              shipmentStatus: event.currentTarget.value,
-                            })
-                          }
-                        />
-                        <InputField
-                          label="Carrier"
-                          value={shipmentDraftFor(order).shipmentCarrier}
-                          placeholder="UPS"
-                          onInput={(event) =>
-                            patchShipmentDraft(order.id, {
-                              shipmentCarrier: event.currentTarget.value,
-                            })
-                          }
-                        />
-                        <InputField
-                          label="Tracking number"
-                          value={shipmentDraftFor(order).shipmentTrackingNumber}
-                          placeholder="1Z999..."
-                          onInput={(event) =>
-                            patchShipmentDraft(order.id, {
-                              shipmentTrackingNumber: event.currentTarget.value,
-                            })
-                          }
-                        />
-                        <InputField
-                          label="Tracking URL"
-                          value={shipmentDraftFor(order).shipmentTrackingUrl}
-                          placeholder="https://tracking.example/..."
-                          onInput={(event) =>
-                            patchShipmentDraft(order.id, {
-                              shipmentTrackingUrl: event.currentTarget.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div class="mt-4">
-                        <TextareaField
-                          label="Shipment notes"
-                          value={shipmentDraftFor(order).shipmentNotes}
-                          rows={3}
-                          onInput={(event) =>
-                            patchShipmentDraft(order.id, {
-                              shipmentNotes: event.currentTarget.value,
-                            })
-                          }
-                        />
-                      </div>
-                      <div class="mt-3 flex flex-wrap items-center gap-2">
-                        <Button
-                          type="button"
-                          size="xs"
-                          color="blue"
-                          onClick={() => {
-                            saveShipment(order);
-                          }}
-                        >
-                          Save shipment state
-                        </Button>
-                        <Show
-                          when={
-                            order.shipmentCarrier ||
-                            order.shipmentTrackingNumber
-                          }
-                        >
-                          <Badge
-                            content={`${order.shipmentCarrier || 'manual carrier'} ${order.shipmentTrackingNumber || ''}`.trim()}
-                            color="indigo"
-                          />
-                        </Show>
-                        <Show when={order.deliveredAt}>
-                          <Badge content="Delivered confirmed" color="green" />
-                        </Show>
-                      </div>
-                    </div>
-
-                    <div class="mt-3 rounded-xl bg-gray-50 p-3">
-                      <p class="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
-                        Timeline
-                      </p>
-                      <div class="mt-2 space-y-1 text-sm text-gray-600">
-                        <For each={order.timeline}>
-                          {(entry) => <p>{entry}</p>}
-                        </For>
-                      </div>
-                    </div>
-
-                    <div class="mt-3 rounded-xl border border-slate-200 bg-white p-3">
-                      <div class="flex flex-wrap items-center justify-between gap-3">
-                        <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-600">
-                          Activity log
-                        </p>
-                        <div class="flex flex-wrap items-center gap-2">
-                          <div class="min-w-[11rem]">
-                            <SelectField
-                              label=""
-                              value={activityFilter()}
-                              options={activityFilterOptions.map((option) => ({
-                                name: option.name,
-                                value: option.value,
-                              }))}
-                              onChange={(event) =>
-                                setActivityFilter(
-                                  event.currentTarget.value as ActivityFilter
-                                )
-                              }
-                            />
-                          </div>
-                          <Show when={activityFilter() === 'all'}>
-                            <Button
-                              type="button"
-                              size="xs"
-                              color={hideSystemActivity() ? 'dark' : 'light'}
-                              onClick={() =>
-                                setHideSystemActivity((current) => !current)
-                              }
-                            >
-                              {hideSystemActivity()
-                                ? 'Show system'
-                                : 'Hide system'}
-                            </Button>
-                          </Show>
-                          <Button
-                            type="button"
-                            size="xs"
-                            color="light"
-                            onClick={() => {
-                              void copyActivitySummary(order);
-                            }}
-                          >
-                            Copy summary
-                          </Button>
-                        </div>
-                      </div>
-                      <div class="mt-3 space-y-3">
-                        <Show
-                          when={filteredActivityLogFor(order).length > 0}
-                          fallback={
-                            <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-3 text-sm text-slate-500">
-                              <Show
-                                when={hiddenSystemActivityCountFor(order) > 0}
-                                fallback={
-                                  'No activity matches the current filter.'
-                                }
-                              >
-                                {hiddenSystemActivityCountFor(order)} system
-                                updates are hidden.
-                              </Show>
-                            </div>
-                          }
-                        >
-                          <For each={filteredActivityLogFor(order)}>
-                            {(activity) => (
-                              <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                                <div class="flex flex-wrap items-center justify-between gap-2">
-                                  <div class="flex flex-wrap items-center gap-2">
-                                    <Badge
-                                      content={activity.type.replaceAll(
-                                        '_',
-                                        ' '
-                                      )}
-                                      color={activityColor(activity.type)}
-                                    />
-                                    <p class="text-xs font-medium text-slate-500">
-                                      {formatActivityActor(activity.actor)}
-                                    </p>
-                                  </div>
-                                  <p class="text-xs text-slate-500">
-                                    {formatActivityTime(activity.createdAt)}
-                                  </p>
-                                </div>
-                                <p class="mt-2 text-sm text-slate-700">
-                                  {activity.message}
-                                </p>
-                                <Show when={activity.details.length}>
-                                  <div class="mt-2 flex flex-wrap gap-2">
-                                    <For each={activity.details}>
-                                      {(detail) => (
-                                        <span class="rounded-full bg-white px-2 py-1 text-[11px] font-medium text-slate-600 ring-1 ring-slate-200">
-                                          {detail.key.replaceAll('_', ' ')}:{' '}
-                                          {detail.value}
-                                        </span>
-                                      )}
-                                    </For>
-                                  </div>
-                                </Show>
-                              </div>
-                            )}
-                          </For>
-                        </Show>
-                      </div>
-                    </div>
-                  </div>
+                  <OrderCard
+                    order={order}
+                    selected={isSelected(order.id)}
+                    actions={{
+                      toggleSelected: (checked) =>
+                        toggleOrderSelection(order.id, checked),
+                      advanceOrder,
+                      raiseException,
+                      updateExceptionStatus,
+                      rerouteBlockedOrder,
+                      saveQueueControl,
+                      saveIssueHandling,
+                      saveSettlement,
+                      saveShipment,
+                      copyActivitySummary,
+                      queueDraftFor,
+                      patchQueueDraft,
+                      issueDraftFor,
+                      patchIssueDraft,
+                      settlementDraftFor,
+                      patchSettlementDraft,
+                      shipmentDraftFor,
+                      patchShipmentDraft,
+                      rerouteDraftFor,
+                      patchRerouteDraft,
+                    }}
+                    helpers={{
+                      queueSort: activeQueueSort(),
+                      priorityScoreFor,
+                      statusColor,
+                      exceptionColor,
+                      shipmentColor,
+                      settlementColor,
+                      activityColor,
+                      isOverdue,
+                      filteredActivityLogFor,
+                      hiddenSystemActivityCountFor,
+                    }}
+                    ui={{
+                      activityFilter: activityFilter(),
+                      setActivityFilter,
+                      hideSystemActivity: hideSystemActivity(),
+                      toggleHideSystemActivity: () =>
+                        setHideSystemActivity((current) => !current),
+                      activityFilterOptions: activityFilterOptions.map(
+                        (option) => ({
+                          name: option.name,
+                          value: option.value,
+                        })
+                      ),
+                      shipmentOptions,
+                      settlementOptions,
+                      issueResolutionOptions,
+                    }}
+                  />
                 )}
               </For>
             </div>

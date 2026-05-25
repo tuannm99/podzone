@@ -423,7 +423,7 @@ export default function TenantHomePage() {
           <Button href={`/t/${params().tenantId}/orders`} color="blue">
             {openExceptionCount() > 0 ? 'Review active issues' : 'Review routing board'}
           </Button>
-          <Button href={`/t/${params().tenantId}/orders`} color="alternative">
+          <Button href={`/t/${params().tenantId}/orders/finance`} color="alternative">
             {pendingSettlementCount() > 0 ? 'Review settlement queue' : 'Create first routed order'}
           </Button>
           <Button href={`/t/${params().tenantId}/partners`} color="light">
@@ -459,6 +459,12 @@ export default function TenantHomePage() {
             color={pendingSettlementCount() > 0 ? 'green' : 'alternative'}
           >
             Settlement follow-up
+          </Button>
+          <Button
+            href={`/t/${params().tenantId}/orders/finance`}
+            color={disputedSettlementCount() > 0 ? 'red' : 'alternative'}
+          >
+            Finance review
           </Button>
           <Button
             href={buildOrdersHref(params().tenantId, 'all', 'priority')}
