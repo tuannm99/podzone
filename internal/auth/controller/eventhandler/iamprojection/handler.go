@@ -1,4 +1,4 @@
-package iam
+package iamprojection
 
 import (
 	"context"
@@ -28,9 +28,18 @@ func (h *Handler) Handle(ctx context.Context, msg messaging.Envelope) error {
 			TenantName string `json:"tenant_name"`
 		}
 		if err := json.Unmarshal(msg.Payload, &payload); err != nil {
-			return fmt.Errorf("decode tenant.created payload: %w", err)
+			return messaging.DeadLetterError(
+				fmt.Errorf("decode tenant.created payload: %w", err),
+				"invalid tenant.created payload",
+			)
 		}
-		return h.repo.UpsertTenant(ctx, payload.TenantID, payload.TenantSlug, payload.TenantName)
+		if err := h.repo.UpsertTenant(ctx, payload.TenantID, payload.TenantSlug, payload.TenantName); err != nil {
+			return messaging.RetryableError(
+				fmt.Errorf("project tenant.created: %w", err),
+				"projection store unavailable",
+			)
+		}
+		return nil
 	case "tenant.member.added":
 		var payload struct {
 			TenantID string `json:"tenant_id"`
@@ -39,9 +48,18 @@ func (h *Handler) Handle(ctx context.Context, msg messaging.Envelope) error {
 			Status   string `json:"status"`
 		}
 		if err := json.Unmarshal(msg.Payload, &payload); err != nil {
-			return fmt.Errorf("decode tenant.member.added payload: %w", err)
+			return messaging.DeadLetterError(
+				fmt.Errorf("decode tenant.member.added payload: %w", err),
+				"invalid tenant.member.added payload",
+			)
 		}
-		return h.repo.UpsertTenantMembership(ctx, payload.TenantID, payload.UserID, payload.RoleName, payload.Status)
+		if err := h.repo.UpsertTenantMembership(ctx, payload.TenantID, payload.UserID, payload.RoleName, payload.Status); err != nil {
+			return messaging.RetryableError(
+				fmt.Errorf("project tenant.member.added: %w", err),
+				"projection store unavailable",
+			)
+		}
+		return nil
 	default:
 		return nil
 	}

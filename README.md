@@ -85,6 +85,8 @@ This is a Go monorepo containing a collection of microservices for an e-commerce
   - [Data Ownership](./docs/architecture/data-ownership.md)
   - [Code Map](./docs/architecture/code-map.md)
   - [Deployment](./docs/architecture/deployment.md)
+  - [Async Messaging](./docs/architecture/async-messaging.md)
+  - [Gateway Bootstrap](./docs/architecture/gateway-bootstrap.md)
   - [Bounded Contexts](./docs/architecture/bounded-contexts.md)
   - [Platform Runtime](./docs/architecture/platform-runtime.md)
   - [Sequences](./docs/architecture/sequences.md)

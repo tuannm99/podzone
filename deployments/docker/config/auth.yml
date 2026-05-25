@@ -9,6 +9,34 @@ auth:
     grpc_host: iam-service
     grpc_port: '50053'
 
+messaging:
+  auth:
+    consumers:
+      iam_projection:
+        enabled: true
+        max_attempts: 5
+        base_delay: 1s
+        observability:
+          enabled: true
+          log_handled: false
+          log_retries: true
+          log_dead_letters: true
+          log_drops: true
+        idempotency:
+          enabled: true
+          consumer_name: auth.iam-projection
+          table_name: message_inbox
+  kafka:
+    auth:
+      topics:
+        enabled: true
+        main_topics:
+          - podzone.iam.events
+        retry_attempts: [1, 2, 3, 4, 5]
+        create_dead_letter: true
+        default_partitions: 3
+        default_replication: 1
+
 redis:
   auth:
     uri: redis://redis:6379/0

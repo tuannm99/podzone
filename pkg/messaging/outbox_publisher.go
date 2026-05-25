@@ -2,6 +2,7 @@ package messaging
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 )
@@ -10,6 +11,8 @@ type TransactionalOutboxPublisher struct {
 	store OutboxStore
 	now   func() time.Time
 }
+
+var ErrNilOutboxStore = errors.New("messaging: nil outbox store")
 
 func NewTransactionalOutboxPublisher(store OutboxStore, now func() time.Time) *TransactionalOutboxPublisher {
 	if now == nil {
@@ -28,9 +31,13 @@ func (p *TransactionalOutboxPublisher) Publish(
 	key string,
 	msg Envelope,
 ) error {
+	if p == nil || p.store == nil {
+		return ErrNilOutboxStore
+	}
 	if err := msg.Validate(); err != nil {
 		return err
 	}
+	now := p.now()
 	record := OutboxRecord{
 		ID:            msg.ID,
 		Topic:         topic,
@@ -38,9 +45,9 @@ func (p *TransactionalOutboxPublisher) Publish(
 		Envelope:      msg.Clone(),
 		Status:        "pending",
 		Attempts:      0,
-		NextAttemptAt: p.now(),
-		CreatedAt:     p.now(),
-		UpdatedAt:     p.now(),
+		NextAttemptAt: now,
+		CreatedAt:     now,
+		UpdatedAt:     now,
 	}
 	if err := p.store.Append(ctx, tx, record); err != nil {
 		return fmt.Errorf("append outbox record: %w", err)

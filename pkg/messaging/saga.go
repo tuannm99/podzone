@@ -5,12 +5,6 @@ import (
 	"fmt"
 )
 
-type SagaStep interface {
-	Name() string
-	Execute(ctx context.Context, msg Envelope) error
-	Compensate(ctx context.Context, msg Envelope) error
-}
-
 type Saga struct {
 	steps []SagaStep
 }

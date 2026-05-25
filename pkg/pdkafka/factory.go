@@ -8,10 +8,6 @@ import (
 	"github.com/IBM/sarama"
 )
 
-type ConsumerGroupFactory interface {
-	New(groupID string) (sarama.ConsumerGroup, error)
-}
-
 type consumerGroupFactory struct {
 	brokers []string
 	config  *sarama.Config
@@ -28,36 +24,63 @@ func NewSaramaConfig(cfg *Config) (*sarama.Config, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("nil kafka config")
 	}
+	normalized := *cfg
+	if normalized.Version == "" {
+		normalized.Version = "3.7.0"
+	}
+	if normalized.RequiredAcks == "" {
+		normalized.RequiredAcks = RequiredAcksAll
+	}
+	if normalized.Compression == "" {
+		normalized.Compression = CompressionZSTD
+	}
+	if normalized.ProducerIdempotent == nil {
+		v := true
+		normalized.ProducerIdempotent = &v
+	}
+	if normalized.ProducerRetryMax <= 0 {
+		normalized.ProducerRetryMax = 5
+	}
+	if normalized.NetMaxOpenRequests <= 0 {
+		normalized.NetMaxOpenRequests = 1
+	}
+	if normalized.RebalanceStrategy == "" {
+		normalized.RebalanceStrategy = "range"
+	}
 
-	version, err := sarama.ParseKafkaVersion(cfg.Version)
+	version, err := sarama.ParseKafkaVersion(normalized.Version)
 	if err != nil {
 		return nil, fmt.Errorf("parse kafka version %q: %w", cfg.Version, err)
 	}
 
 	scfg := sarama.NewConfig()
 	scfg.Version = version
-	scfg.ClientID = cfg.ClientID
+	scfg.ClientID = normalized.ClientID
 	scfg.Metadata.Full = true
-	scfg.Metadata.AllowAutoTopicCreation = cfg.AutoCreateTopics
+	scfg.Metadata.AllowAutoTopicCreation = normalized.AutoCreateTopics
 
 	scfg.Producer.Return.Successes = true
 	scfg.Producer.Return.Errors = true
-	scfg.Producer.Idempotent = true
-	scfg.Producer.Retry.Max = 5
+	scfg.Producer.Idempotent = normalized.ProducerIdempotent != nil && *normalized.ProducerIdempotent
+	scfg.Producer.Retry.Max = normalized.ProducerRetryMax
 	scfg.Producer.Partitioner = sarama.NewHashPartitioner
-	scfg.Producer.RequiredAcks = mapRequiredAcks(cfg.RequiredAcks)
-	scfg.Producer.Compression = mapCompression(cfg.Compression)
-	scfg.Net.MaxOpenRequests = 1
+	scfg.Producer.RequiredAcks = mapRequiredAcks(normalized.RequiredAcks)
+	scfg.Producer.Compression = mapCompression(normalized.Compression)
+	scfg.Net.MaxOpenRequests = normalized.NetMaxOpenRequests
 
 	scfg.Consumer.Return.Errors = true
-	scfg.Consumer.Group.Rebalance.Strategy = sarama.NewBalanceStrategyRange()
+	strategy, err := mapRebalanceStrategy(normalized.RebalanceStrategy)
+	if err != nil {
+		return nil, err
+	}
+	scfg.Consumer.Group.Rebalance.Strategy = strategy
 	scfg.Consumer.Offsets.Initial = sarama.OffsetNewest
 
-	if cfg.SASL.Enabled {
+	if normalized.SASL.Enabled {
 		scfg.Net.SASL.Enable = true
-		scfg.Net.SASL.User = cfg.SASL.Username
-		scfg.Net.SASL.Password = cfg.SASL.Password
-		switch strings.ToUpper(cfg.SASL.Mechanism) {
+		scfg.Net.SASL.User = normalized.SASL.Username
+		scfg.Net.SASL.Password = normalized.SASL.Password
+		switch strings.ToUpper(normalized.SASL.Mechanism) {
 		case "SCRAM-SHA-256":
 			scfg.Net.SASL.Mechanism = sarama.SASLTypeSCRAMSHA256
 		case "SCRAM-SHA-512":
@@ -65,11 +88,11 @@ func NewSaramaConfig(cfg *Config) (*sarama.Config, error) {
 		case "PLAIN", "":
 			scfg.Net.SASL.Mechanism = sarama.SASLTypePlaintext
 		default:
-			return nil, fmt.Errorf("unsupported kafka sasl mechanism %q", cfg.SASL.Mechanism)
+			return nil, fmt.Errorf("unsupported kafka sasl mechanism %q", normalized.SASL.Mechanism)
 		}
 	}
 
-	if cfg.TLS.Enabled {
+	if normalized.TLS.Enabled {
 		scfg.Net.TLS.Enable = true
 		scfg.Net.TLS.Config = &tls.Config{MinVersion: tls.VersionTLS12}
 	}
@@ -121,5 +144,18 @@ func mapCompression(v Compression) sarama.CompressionCodec {
 		return sarama.CompressionZSTD
 	default:
 		return sarama.CompressionNone
+	}
+}
+
+func mapRebalanceStrategy(raw string) (sarama.BalanceStrategy, error) {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case "", "range":
+		return sarama.NewBalanceStrategyRange(), nil
+	case "round_robin", "roundrobin":
+		return sarama.NewBalanceStrategyRoundRobin(), nil
+	case "sticky":
+		return sarama.NewBalanceStrategySticky(), nil
+	default:
+		return nil, fmt.Errorf("unsupported kafka rebalance strategy %q", raw)
 	}
 }

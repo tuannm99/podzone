@@ -14,7 +14,7 @@ import (
 	"github.com/tuannm99/podzone/pkg/pdsql"
 
 	"github.com/tuannm99/podzone/internal/auth"
-	authiamprojection "github.com/tuannm99/podzone/internal/auth/projection/iam"
+	authiamprojection "github.com/tuannm99/podzone/internal/auth/infrastructure/messaging/iamprojection"
 )
 
 var connOpts = fx.Options(

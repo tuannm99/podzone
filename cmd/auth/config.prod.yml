@@ -4,6 +4,39 @@ logger:
   level: 'debug'
   env: 'dev'
 
+auth:
+  iam:
+    grpc_host: '${IAM_GRPC_HOST}'
+    grpc_port: '${IAM_GRPC_PORT}'
+
+messaging:
+  auth:
+    consumers:
+      iam_projection:
+        enabled: true
+        max_attempts: 5
+        base_delay: 1s
+        observability:
+          enabled: false
+          log_handled: false
+          log_retries: true
+          log_dead_letters: true
+          log_drops: false
+        idempotency:
+          enabled: true
+          consumer_name: auth.iam-projection
+          table_name: message_inbox
+  kafka:
+    auth:
+      topics:
+        enabled: false
+        main_topics:
+          - podzone.iam.events
+        retry_attempts: [1, 2, 3, 4, 5]
+        create_dead_letter: true
+        default_partitions: 3
+        default_replication: 1
+
 redis:
   auth:
     uri: '${REDIS_AUTH_DSN}'
@@ -13,6 +46,21 @@ sql:
     uri: '${PG_AUTH_DSN}'
     provider: postgres
     should_run_migration: false
+
+kafka:
+  auth:
+    brokers:
+      - '${KAFKA_BOOTSTRAP_SERVERS}'
+    client_id: podzone-auth
+    version: 3.7.0
+    required_acks: all
+    compression: zstd
+    auto_create_topics: false
+    consumer_group_prefix: podzone.auth
+    sasl:
+      enabled: false
+    tls:
+      enabled: false
 
 grpc:
   port: 50051

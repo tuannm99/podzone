@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/knadh/koanf/v2"
+	"github.com/tuannm99/podzone/pkg/messaging"
 )
 
 type (
@@ -34,19 +35,25 @@ type TLSConfig struct {
 }
 
 type Config struct {
-	Brokers             []string     `koanf:"brokers"               mapstructure:"brokers"`
-	ClientID            string       `koanf:"client_id"             mapstructure:"client_id"`
-	Version             string       `koanf:"version"               mapstructure:"version"`
-	RequiredAcks        RequiredAcks `koanf:"required_acks"         mapstructure:"required_acks"`
-	Compression         Compression  `koanf:"compression"           mapstructure:"compression"`
-	AutoCreateTopics    bool         `koanf:"auto_create_topics"    mapstructure:"auto_create_topics"`
-	ConsumerGroupPrefix string       `koanf:"consumer_group_prefix" mapstructure:"consumer_group_prefix"`
-	SASL                SASLConfig   `koanf:"sasl"                  mapstructure:"sasl"`
-	TLS                 TLSConfig    `koanf:"tls"                   mapstructure:"tls"`
+	Brokers             []string                       `koanf:"brokers"               mapstructure:"brokers"`
+	ClientID            string                         `koanf:"client_id"             mapstructure:"client_id"`
+	Version             string                         `koanf:"version"               mapstructure:"version"`
+	RequiredAcks        RequiredAcks                   `koanf:"required_acks"         mapstructure:"required_acks"`
+	Compression         Compression                    `koanf:"compression"           mapstructure:"compression"`
+	AutoCreateTopics    bool                           `koanf:"auto_create_topics"    mapstructure:"auto_create_topics"`
+	ConsumerGroupPrefix string                         `koanf:"consumer_group_prefix" mapstructure:"consumer_group_prefix"`
+	Topics              messaging.TopicBootstrapConfig `koanf:"topics"       mapstructure:"topics"`
+	ProducerIdempotent  *bool                          `koanf:"producer_idempotent"   mapstructure:"producer_idempotent"`
+	ProducerRetryMax    int                            `koanf:"producer_retry_max"    mapstructure:"producer_retry_max"`
+	NetMaxOpenRequests  int                            `koanf:"net_max_open_requests" mapstructure:"net_max_open_requests"`
+	RebalanceStrategy   string                         `koanf:"rebalance_strategy"    mapstructure:"rebalance_strategy"`
+	SASL                SASLConfig                     `koanf:"sasl"                  mapstructure:"sasl"`
+	TLS                 TLSConfig                      `koanf:"tls"                   mapstructure:"tls"`
 }
 
 func GetConfigFromKoanf(name string, k *koanf.Koanf) (*Config, error) {
 	base := "kafka." + name
+	messagingTopicsPath := "messaging.kafka." + name + ".topics"
 
 	var cfg Config
 	if err := k.Unmarshal(base, &cfg); err != nil {
@@ -70,5 +77,24 @@ func GetConfigFromKoanf(name string, k *koanf.Koanf) (*Config, error) {
 	if cfg.Compression == "" {
 		cfg.Compression = CompressionZSTD
 	}
+	if cfg.ProducerIdempotent == nil {
+		v := true
+		cfg.ProducerIdempotent = &v
+	}
+	if cfg.ProducerRetryMax <= 0 {
+		cfg.ProducerRetryMax = 5
+	}
+	if cfg.NetMaxOpenRequests <= 0 {
+		cfg.NetMaxOpenRequests = 1
+	}
+	if cfg.RebalanceStrategy == "" {
+		cfg.RebalanceStrategy = "range"
+	}
+	if k != nil {
+		topicsCfg := cfg.Topics
+		_ = k.Unmarshal(messagingTopicsPath, &topicsCfg)
+		cfg.Topics = topicsCfg
+	}
+	cfg.Topics = cfg.Topics.Normalize()
 	return &cfg, nil
 }

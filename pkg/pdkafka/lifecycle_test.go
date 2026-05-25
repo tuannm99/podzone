@@ -30,12 +30,34 @@ func (f *fakeProducer) Close() error {
 
 type fakeAdmin struct {
 	describeErr error
+	createErr   error
+	topics      map[string]sarama.TopicDetail
 	closeErr    error
 	closed      bool
 }
 
 func (f *fakeAdmin) DescribeCluster() ([]*sarama.Broker, int32, error) {
 	return nil, 7, f.describeErr
+}
+
+func (f *fakeAdmin) CreateTopic(topic string, detail *sarama.TopicDetail, validateOnly bool) error {
+	if f.createErr != nil {
+		return f.createErr
+	}
+	if f.topics == nil {
+		f.topics = map[string]sarama.TopicDetail{}
+	}
+	if detail != nil {
+		f.topics[topic] = *detail
+	}
+	return nil
+}
+
+func (f *fakeAdmin) ListTopics() (map[string]sarama.TopicDetail, error) {
+	if f.topics == nil {
+		return map[string]sarama.TopicDetail{}, nil
+	}
+	return f.topics, nil
 }
 
 func (f *fakeAdmin) Close() error {

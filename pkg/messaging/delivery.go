@@ -3,6 +3,7 @@ package messaging
 import (
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -13,6 +14,7 @@ const (
 	HeaderDeadLetterReason = "podzone.dead_letter_reason"
 	HeaderRedriveCount     = "podzone.redrive_count"
 	HeaderConsumerName     = "podzone.consumer_name"
+	HeaderNextAttemptAt    = "podzone.next_attempt_at"
 )
 
 type DeliveryMetadata struct {
@@ -23,6 +25,7 @@ type DeliveryMetadata struct {
 	DeadLetterReason string
 	RedriveCount     int
 	ConsumerName     string
+	NextAttemptAt    time.Time
 }
 
 func ReadDeliveryMetadata(env Envelope) DeliveryMetadata {
@@ -38,6 +41,7 @@ func ReadDeliveryMetadata(env Envelope) DeliveryMetadata {
 		DeadLetterReason: strings.TrimSpace(headers[HeaderDeadLetterReason]),
 		RedriveCount:     parseHeaderInt(headers[HeaderRedriveCount]),
 		ConsumerName:     strings.TrimSpace(headers[HeaderConsumerName]),
+		NextAttemptAt:    parseHeaderTime(headers[HeaderNextAttemptAt]),
 	}
 }
 
@@ -53,6 +57,7 @@ func WithDeliveryMetadata(env Envelope, metadata DeliveryMetadata) Envelope {
 	setHeaderValue(clone.Headers, HeaderDeadLetterReason, metadata.DeadLetterReason)
 	setHeaderInt(clone.Headers, HeaderRedriveCount, metadata.RedriveCount)
 	setHeaderValue(clone.Headers, HeaderConsumerName, metadata.ConsumerName)
+	setHeaderTime(clone.Headers, HeaderNextAttemptAt, metadata.NextAttemptAt)
 	return clone
 }
 
@@ -93,4 +98,24 @@ func setHeaderValue(headers map[string]string, key string, value string) {
 		return
 	}
 	headers[key] = trimmed
+}
+
+func parseHeaderTime(raw string) time.Time {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
+		return time.Time{}
+	}
+	parsed, err := time.Parse(time.RFC3339Nano, trimmed)
+	if err != nil {
+		return time.Time{}
+	}
+	return parsed
+}
+
+func setHeaderTime(headers map[string]string, key string, value time.Time) {
+	if value.IsZero() {
+		delete(headers, key)
+		return
+	}
+	headers[key] = value.UTC().Format(time.RFC3339Nano)
 }

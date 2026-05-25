@@ -24,6 +24,10 @@ func registerLifecycle(lc fx.Lifecycle, producer Producer, admin Admin, log pdlo
 				"client_id",
 				cfg.ClientID,
 			)
+			if err := BootstrapTopics(admin, cfg); err != nil {
+				log.Error("Kafka topic bootstrap failed", "error", err, "client_id", cfg.ClientID)
+				return err
+			}
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {

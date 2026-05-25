@@ -110,4 +110,28 @@ flowchart LR
 
 - Local runtime mirrors the target service split with simplified single-node infrastructure.
 - `APISIX` fronts both GraphQL and HTTP/gRPC-gateway surfaces.
+- Local Docker now includes a one-shot `apisix-init` seed step for routes, services, shared plugins, and a JWT edge probe route.
 - Kafka is the single async backbone target for service integration.
+- Production follow-up should move APISIX bootstrap into:
+  - Kubernetes Job / Helm hook
+  - Terraform-managed Admin API resources
+  - environment-specific route/plugin manifests
+- Projection workers can remain sidecar-like inside a service binary today, then move to dedicated deployments later if consumer scaling diverges from gRPC/API scaling.
+
+## Kubernetes Direction
+
+- Each service keeps its own Deployment and DB binding.
+- Projection or outbox workers can stay in the same Deployment first.
+- Split them into separate Deployments when:
+  - consumer throughput diverges from API throughput
+  - retry/DLT workloads need independent scaling
+  - operational ownership differs
+
+## Terraform / AWS Future
+
+- Keep service runtime bootstrap declarative enough to migrate later into:
+  - MSK topics and ACLs
+  - RDS per-service databases
+  - ECS/EKS service modules
+  - APISIX or alternative gateway Admin API seed resources
+- The current Docker seed scripts should be treated as the local equivalent of future infra bootstrap modules, not as the final production mechanism.

@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/IBM/sarama"
@@ -17,11 +18,19 @@ type Publisher struct {
 
 var _ messaging.Publisher = (*Publisher)(nil)
 
+var ErrNilProducer = errors.New("messaging kafka: nil producer")
+
 func NewPublisher(producer pdkafka.Producer) *Publisher {
 	return &Publisher{producer: producer}
 }
 
 func (p *Publisher) Publish(ctx context.Context, topic string, key string, msg messaging.Envelope) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if p == nil || p.producer == nil {
+		return ErrNilProducer
+	}
 	if err := msg.Validate(); err != nil {
 		return err
 	}
@@ -43,6 +52,12 @@ func (p *Publisher) Publish(ctx context.Context, topic string, key string, msg m
 }
 
 func (p *Publisher) PublishBatch(ctx context.Context, topic string, msgs []messaging.PublishRequest) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if p == nil || p.producer == nil {
+		return ErrNilProducer
+	}
 	producerMessages := make([]*sarama.ProducerMessage, 0, len(msgs))
 	for _, item := range msgs {
 		if err := item.Msg.Validate(); err != nil {

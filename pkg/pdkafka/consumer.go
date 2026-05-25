@@ -6,11 +6,6 @@ import (
 	"github.com/IBM/sarama"
 )
 
-type ConsumerGroupRunner interface {
-	Run(ctx context.Context, topics []string, handler sarama.ConsumerGroupHandler) error
-	Close() error
-}
-
 type consumerGroupRunner struct {
 	group sarama.ConsumerGroup
 }

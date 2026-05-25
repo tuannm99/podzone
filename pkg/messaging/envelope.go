@@ -26,6 +26,8 @@ var (
 	ErrEmptyEnvelopeType    = errors.New("messaging: envelope type is required")
 	ErrEmptyEnvelopeSource  = errors.New("messaging: envelope source is required")
 	ErrEmptyEnvelopePayload = errors.New("messaging: envelope payload is required")
+	ErrEmptyOccurredAt      = errors.New("messaging: envelope occurred_at is required")
+	ErrInvalidSchemaVersion = errors.New("messaging: envelope schema_version must be positive")
 )
 
 func (e Envelope) Validate() error {
@@ -38,6 +40,10 @@ func (e Envelope) Validate() error {
 		return ErrEmptyEnvelopeSource
 	case len(e.Payload) == 0:
 		return ErrEmptyEnvelopePayload
+	case e.OccurredAt.IsZero():
+		return ErrEmptyOccurredAt
+	case e.SchemaVersion <= 0:
+		return ErrInvalidSchemaVersion
 	default:
 		return nil
 	}

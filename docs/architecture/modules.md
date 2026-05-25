@@ -9,7 +9,8 @@ flowchart LR
     IAMClient["infrastructure/iamclient"]
     IAMService["IAMService gRPC"]
     AuthRepo["infrastructure/repository"]
-    Projection["projection/iam"]
+    ProjectionHandler["controller/eventhandler/iamprojection"]
+    ProjectionRuntime["infrastructure/messaging/iamprojection"]
     AuthDB["auth DB"]
     Redis["redis"]
     Kafka["kafka"]
@@ -20,15 +21,17 @@ flowchart LR
     IAMClient -->|"gRPC"| IAMService
     AuthRepo --> AuthDB
     AuthRepo --> Redis
-    Projection --> Kafka
-    Projection --> AuthDB
+    ProjectionRuntime --> Kafka
+    ProjectionRuntime --> ProjectionHandler
+    ProjectionHandler --> AuthDB
 ```
 
 ### Main modules
 
 - `domain`: login, register, refresh token, switch tenant, session policy, assume-role session state
 - `infrastructure/iamclient`: synchronous calls to `IAMService`
-- `projection/iam`: Kafka consumer that materializes a small IAM read model locally
+- `controller/eventhandler/iamprojection`: inbound Kafka event handler for IAM-derived projection updates
+- `infrastructure/messaging/iamprojection`: consumer runtime, inbox/idempotency wiring, and worker lifecycle
 
 ## IAM Service
 
@@ -169,6 +172,7 @@ flowchart LR
 ### Main modules
 
 - `internal/gateway`: APISIX runtime config
+- `deployments/docker/apisix-init`: local seed for APISIX services, routes, and sample JWT edge plugin
 - `internal/grpcgateway`: service registration and HTTP translation
 - `pkg/api/proto`: generated contracts shared by transport layers
 

@@ -4,9 +4,21 @@ logger:
   level: 'debug'
   env: 'dev'
 
+messaging:
+  kafka:
+    iam:
+      topics:
+        enabled: false
+        main_topics:
+          - podzone.iam.events
+        retry_attempts: [1, 2, 3, 4, 5]
+        create_dead_letter: true
+        default_partitions: 3
+        default_replication: 1
+
 sql:
-  auth:
-    uri: '${PG_AUTH_DSN}'
+  iam:
+    uri: '${PG_IAM_DSN}'
     provider: postgres
     should_run_migration: false
 

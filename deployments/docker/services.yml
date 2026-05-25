@@ -244,6 +244,25 @@ services:
     ports:
       - '3000:3000'
 
+  apisix-init:
+    image: curlimages/curl:8.12.1
+    container_name: podzone-apisix-init
+    command: ['sh', '/seed/seed.sh']
+    volumes:
+      - ./apisix-init/seed.sh:/seed/seed.sh:ro
+    environment:
+      APISIX_ADMIN_URL: http://apisix:9180/apisix/admin
+      APISIX_ADMIN_KEY: edd1c9f034335f136f87ad84b625c8f1
+    depends_on:
+      apisix:
+        condition: service_started
+      grpc-gateway:
+        condition: service_started
+      backoffice-service:
+        condition: service_started
+      ui-podzone:
+        condition: service_started
+
 volumes:
   podzone_go_mod_cache:
   podzone_go_build_cache:

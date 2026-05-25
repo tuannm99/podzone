@@ -19,6 +19,8 @@ This section documents the current Podzone architecture using a lightweight C4 s
 - [Data Ownership](./data-ownership.md)
 - [Code Map](./code-map.md)
 - [Deployment](./deployment.md)
+- [Async Messaging](./async-messaging.md)
+- [Gateway Bootstrap](./gateway-bootstrap.md)
 - [Bounded Contexts](./bounded-contexts.md)
 - [Platform Runtime](./platform-runtime.md)
 - [Sequences](./sequences.md)

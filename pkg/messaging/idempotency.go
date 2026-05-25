@@ -15,12 +15,6 @@ const (
 	InboxDecisionInProgress InboxDecision = "in_progress"
 )
 
-type InboxStore interface {
-	Begin(ctx context.Context, consumerName string, messageID string, now time.Time) (InboxDecision, error)
-	Complete(ctx context.Context, consumerName string, messageID string, processedAt time.Time) error
-	Fail(ctx context.Context, consumerName string, messageID string, errText string, failedAt time.Time) error
-}
-
 var ErrInboxConsumerNameRequired = errors.New("messaging: inbox consumer name is required")
 
 func IdempotentConsumer(store InboxStore, consumerName string, now func() time.Time) Middleware {

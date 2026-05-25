@@ -20,6 +20,7 @@ type ConsumerOptions struct {
 	Classifier       messaging.ErrorClassifier
 	Middlewares      []messaging.Middleware
 	ConsumerName     string
+	Observer         messaging.Observer
 	Now              func() time.Time
 }
 
@@ -104,15 +105,39 @@ func (h *consumerGroupHandler) consumeMessage(
 	if err != nil {
 		return err
 	}
+	if err := h.waitUntilReady(session.Context(), env); err != nil {
+		return err
+	}
 	if h.handler == nil {
+		h.observe(session.Context(), msg, env, messaging.FailureActionDrop, "no_handler", nil)
 		session.MarkMessage(msg, "")
 		return nil
 	}
 	if err := h.handler.Handle(session.Context(), env); err != nil {
 		return h.handleFailure(session, msg, env, err)
 	}
+	h.observe(session.Context(), msg, env, messaging.FailureActionReturn, "handled", nil)
 	session.MarkMessage(msg, "")
 	return nil
+}
+
+func (h *consumerGroupHandler) waitUntilReady(ctx context.Context, env messaging.Envelope) error {
+	metadata := messaging.ReadDeliveryMetadata(env)
+	if metadata.NextAttemptAt.IsZero() {
+		return nil
+	}
+	delay := time.Until(metadata.NextAttemptAt)
+	if delay <= 0 {
+		return nil
+	}
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
 }
 
 func (h *consumerGroupHandler) decodeEnvelope(msg *sarama.ConsumerMessage) (messaging.Envelope, error) {
@@ -149,6 +174,7 @@ func (h *consumerGroupHandler) handleFailure(
 	classification := classifier.Classify(session.Context(), env, err)
 	switch classification.Action {
 	case messaging.FailureActionDrop:
+		h.observe(session.Context(), msg, env, classification.Action, classification.Reason, classification.Err)
 		session.MarkMessage(msg, "")
 		return nil
 	case messaging.FailureActionRetry:
@@ -175,6 +201,10 @@ func (h *consumerGroupHandler) publishRetry(
 	metadata := messaging.ReadDeliveryMetadata(env)
 	nextAttempt := metadata.Attempt + 1
 	policy := h.opts.RetryPolicy.Normalize()
+	now := h.opts.Now
+	if now == nil {
+		now = func() time.Time { return time.Now().UTC() }
+	}
 	if policy.Exhausted(nextAttempt) {
 		return h.publishDeadLetter(session, msg, env, messaging.FailureClassification{
 			Action: messaging.FailureActionDeadLetter,
@@ -183,16 +213,19 @@ func (h *consumerGroupHandler) publishRetry(
 		})
 	}
 
+	original := originalTopic(metadata.OriginalTopic, msg.Topic)
 	metadata.Attempt = nextAttempt
 	metadata.MaxAttempts = policy.MaxAttempts
-	metadata.OriginalTopic = originalTopic(metadata.OriginalTopic, msg.Topic)
+	metadata.OriginalTopic = original
 	metadata.LastError = errorText(classification.Err)
 	metadata.ConsumerName = h.opts.ConsumerName
+	metadata.NextAttemptAt = now().Add(policy.NextDelay(nextAttempt))
 	retryEnv := messaging.WithDeliveryMetadata(env, metadata)
-	retryTopic := h.opts.TopicStrategy.RetryTopic(msg.Topic, nextAttempt)
+	retryTopic := h.opts.TopicStrategy.RetryTopic(original, nextAttempt)
 	if err := h.opts.Publisher.Publish(session.Context(), retryTopic, msgKey(msg), retryEnv); err != nil {
 		return fmt.Errorf("publish retry message: %w", err)
 	}
+	h.observe(session.Context(), msg, retryEnv, messaging.FailureActionRetry, classification.Reason, classification.Err)
 	session.MarkMessage(msg, "")
 	return nil
 }
@@ -207,20 +240,52 @@ func (h *consumerGroupHandler) publishDeadLetter(
 		return classification.Err
 	}
 	metadata := messaging.ReadDeliveryMetadata(env)
-	metadata.OriginalTopic = originalTopic(metadata.OriginalTopic, msg.Topic)
+	original := originalTopic(metadata.OriginalTopic, msg.Topic)
+	metadata.OriginalTopic = original
 	metadata.LastError = errorText(classification.Err)
 	metadata.DeadLetterReason = classification.Reason
 	metadata.ConsumerName = h.opts.ConsumerName
+	metadata.NextAttemptAt = time.Time{}
 	deadEnv := messaging.WithDeliveryMetadata(env, metadata)
-	deadTopic := h.opts.DeadLetterPolicy.TopicFor(msg.Topic)
+	deadTopic := h.opts.DeadLetterPolicy.TopicFor(original)
 	if deadTopic == "" {
-		deadTopic = h.opts.TopicStrategy.DeadLetterTopic(msg.Topic)
+		deadTopic = h.opts.TopicStrategy.DeadLetterTopic(original)
 	}
 	if err := h.opts.Publisher.Publish(session.Context(), deadTopic, msgKey(msg), deadEnv); err != nil {
 		return fmt.Errorf("publish dead letter message: %w", err)
 	}
+	h.observe(
+		session.Context(),
+		msg,
+		deadEnv,
+		messaging.FailureActionDeadLetter,
+		classification.Reason,
+		classification.Err,
+	)
 	session.MarkMessage(msg, "")
 	return nil
+}
+
+func (h *consumerGroupHandler) observe(
+	ctx context.Context,
+	msg *sarama.ConsumerMessage,
+	env messaging.Envelope,
+	action messaging.FailureAction,
+	reason string,
+	err error,
+) {
+	if h.opts.Observer == nil {
+		return
+	}
+	h.opts.Observer.Observe(ctx, messaging.DeliveryEvent{
+		ConsumerName: h.opts.ConsumerName,
+		Topic:        msg.Topic,
+		Key:          msgKey(msg),
+		Envelope:     env,
+		Action:       action,
+		Reason:       reason,
+		Err:          err,
+	})
 }
 
 func originalTopic(existing string, fallback string) string {

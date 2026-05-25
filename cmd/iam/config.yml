@@ -4,9 +4,21 @@ logger:
   level: 'debug'
   env: 'dev'
 
+messaging:
+  kafka:
+    iam:
+      topics:
+        enabled: true
+        main_topics:
+          - podzone.iam.events
+        retry_attempts: [1, 2, 3, 4, 5]
+        create_dead_letter: true
+        default_partitions: 3
+        default_replication: 1
+
 sql:
-  auth:
-    uri: postgres://postgres:postgres@postgres:6432/auth?sslmode=disable
+  iam:
+    uri: postgres://postgres:postgres@postgres:6432/iam?sslmode=disable
     provider: postgres
     should_run_migration: false
 

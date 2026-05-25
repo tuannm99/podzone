@@ -22,10 +22,6 @@ type FailureClassification struct {
 	Err    error
 }
 
-type ErrorClassifier interface {
-	Classify(ctx context.Context, msg Envelope, err error) FailureClassification
-}
-
 type ErrorClassifierFunc func(ctx context.Context, msg Envelope, err error) FailureClassification
 
 func (f ErrorClassifierFunc) Classify(ctx context.Context, msg Envelope, err error) FailureClassification {
