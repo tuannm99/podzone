@@ -14,6 +14,20 @@ import (
 	"github.com/tuannm99/podzone/pkg/messaging"
 )
 
+func validConsumerEnvelope() messaging.Envelope {
+	return messaging.Envelope{
+		ID:            "evt_1",
+		Type:          "tenant.created",
+		Source:        "iam",
+		OccurredAt:    time.Now().UTC(),
+		SchemaVersion: 1,
+		Headers: map[string]string{
+			"tenant_id": "t1",
+		},
+		Payload: json.RawMessage(`{"tenant_id":"t1"}`),
+	}
+}
+
 type fakeRunner struct {
 	topics  []string
 	handler sarama.ConsumerGroupHandler
@@ -36,6 +50,27 @@ type fakeHandler struct {
 func (f *fakeHandler) Handle(ctx context.Context, msg messaging.Envelope) error {
 	f.handled = append(f.handled, msg)
 	return f.err
+}
+
+type fakeConsumerPublisher struct {
+	requests []messaging.PublishRequest
+	err      error
+}
+
+func (f *fakeConsumerPublisher) Publish(ctx context.Context, topic string, key string, msg messaging.Envelope) error {
+	if f.err != nil {
+		return f.err
+	}
+	f.requests = append(f.requests, messaging.PublishRequest{Topic: topic, Key: key, Msg: msg})
+	return nil
+}
+
+func (f *fakeConsumerPublisher) PublishBatch(ctx context.Context, topic string, msgs []messaging.PublishRequest) error {
+	if f.err != nil {
+		return f.err
+	}
+	f.requests = append(f.requests, msgs...)
+	return nil
 }
 
 type fakeSession struct {
@@ -102,7 +137,7 @@ func TestConsumerGroupHandlerConsumeClaim(t *testing.T) {
 
 func TestConsumerGroupHandlerConsumeClaim_HandlerError(t *testing.T) {
 	handler := &fakeHandler{err: errors.New("boom")}
-	cgh := &consumerGroupHandler{handler: handler}
+	cgh := &consumerGroupHandler{handler: handler, opts: ConsumerOptions{}}
 
 	payload, err := json.Marshal(messaging.Envelope{
 		ID:            "evt_1",
@@ -124,4 +159,89 @@ func TestConsumerGroupHandlerConsumeClaim_HandlerError(t *testing.T) {
 	err = cgh.ConsumeClaim(session, claim)
 	require.Error(t, err)
 	assert.Equal(t, 0, session.marked)
+}
+
+func TestConsumerGroupHandlerConsumeClaim_RetryablePublishesRetry(t *testing.T) {
+	handler := &fakeHandler{err: messaging.RetryableError(errors.New("transient"), "retry later")}
+	publisher := &fakeConsumerPublisher{}
+	cgh := &consumerGroupHandler{
+		handler: handler,
+		opts: ConsumerOptions{
+			Publisher:     publisher,
+			RetryPolicy:   messaging.RetryPolicy{MaxAttempts: 3, BaseDelay: time.Second},
+			Classifier:    messaging.DefaultErrorClassifier(),
+			TopicStrategy: messaging.DefaultTopicStrategy(),
+			ConsumerName:  "auth.iam-projection",
+		},
+	}
+
+	payload, err := json.Marshal(validConsumerEnvelope())
+	require.NoError(t, err)
+
+	msgCh := make(chan *sarama.ConsumerMessage, 1)
+	msgCh <- &sarama.ConsumerMessage{
+		Topic: "podzone.iam.events",
+		Key:   []byte("t1"),
+		Value: payload,
+	}
+	close(msgCh)
+
+	session := &fakeSession{ctx: context.Background()}
+	claim := &fakeClaim{messages: msgCh}
+
+	require.NoError(t, cgh.ConsumeClaim(session, claim))
+	require.Len(t, publisher.requests, 1)
+	assert.Equal(t, "podzone.iam.events.retry.1", publisher.requests[0].Topic)
+	assert.Equal(t, 1, messaging.ReadDeliveryMetadata(publisher.requests[0].Msg).Attempt)
+	assert.Equal(t, 1, session.marked)
+}
+
+func TestConsumerGroupHandlerConsumeClaim_PermanentPublishesDeadLetter(t *testing.T) {
+	handler := &fakeHandler{err: messaging.DeadLetterError(errors.New("invalid"), "bad payload")}
+	publisher := &fakeConsumerPublisher{}
+	cgh := &consumerGroupHandler{
+		handler: handler,
+		opts: ConsumerOptions{
+			Publisher:        publisher,
+			DeadLetterPolicy: messaging.DeadLetterPolicy{Strategy: messaging.DefaultTopicStrategy()},
+			Classifier:       messaging.DefaultErrorClassifier(),
+			TopicStrategy:    messaging.DefaultTopicStrategy(),
+			ConsumerName:     "auth.iam-projection",
+		},
+	}
+
+	payload, err := json.Marshal(validConsumerEnvelope())
+	require.NoError(t, err)
+
+	msgCh := make(chan *sarama.ConsumerMessage, 1)
+	msgCh <- &sarama.ConsumerMessage{
+		Topic: "podzone.iam.events",
+		Key:   []byte("t1"),
+		Value: payload,
+	}
+	close(msgCh)
+
+	session := &fakeSession{ctx: context.Background()}
+	claim := &fakeClaim{messages: msgCh}
+
+	require.NoError(t, cgh.ConsumeClaim(session, claim))
+	require.Len(t, publisher.requests, 1)
+	assert.Equal(t, "podzone.iam.events.dlt", publisher.requests[0].Topic)
+	assert.Equal(t, "bad payload", messaging.ReadDeliveryMetadata(publisher.requests[0].Msg).DeadLetterReason)
+	assert.Equal(t, 1, session.marked)
+}
+
+func TestConsumerGroupHandlerDecodeEnvelopeMergesRecordHeaders(t *testing.T) {
+	cgh := &consumerGroupHandler{opts: ConsumerOptions{}}
+	payload, err := json.Marshal(validConsumerEnvelope())
+	require.NoError(t, err)
+
+	env, err := cgh.decodeEnvelope(&sarama.ConsumerMessage{
+		Value: payload,
+		Headers: []*sarama.RecordHeader{
+			{Key: []byte(messaging.HeaderAttempt), Value: []byte("2")},
+		},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, 2, messaging.ReadDeliveryMetadata(env).Attempt)
 }

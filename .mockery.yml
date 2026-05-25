@@ -43,6 +43,8 @@ packages:
       Consumer:
       Handler:
       OutboxStore:
+      InboxStore:
+      ErrorClassifier:
 
   github.com/tuannm99/podzone/internal/auth/domain/inputport:
     config:

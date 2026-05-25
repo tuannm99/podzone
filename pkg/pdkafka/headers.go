@@ -15,3 +15,20 @@ func ToRecordHeaders(headers map[string]string) []sarama.RecordHeader {
 	}
 	return out
 }
+
+func FromRecordHeaders(headers []*sarama.RecordHeader) map[string]string {
+	if len(headers) == 0 {
+		return nil
+	}
+	out := make(map[string]string, len(headers))
+	for _, header := range headers {
+		if header == nil {
+			continue
+		}
+		out[string(header.Key)] = string(header.Value)
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
+}
