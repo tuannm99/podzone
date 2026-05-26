@@ -16,9 +16,11 @@ flowchart TB
     end
 
     subgraph Services
-        AUTH["Auth gRPC :50051"]
+        AUTH["Auth API gRPC :50051"]
+        AUTHW["Auth Worker"]
         CATALOG["Catalog gRPC :50052"]
-        IAM["IAM gRPC :50053"]
+        IAM["IAM API gRPC :50053"]
+        IAMW["IAM Worker"]
         PARTNER["Partner gRPC :50054"]
     end
 
@@ -48,9 +50,12 @@ flowchart TB
 
     AUTH --> PG
     AUTH --> REDIS
-    AUTH --> KAFKA
+    AUTHW --> PG
+    AUTHW --> KAFKA
     IAM --> PG
-    IAM --> KAFKA
+    IAM --> AUTH
+    IAMW --> PG
+    IAMW --> KAFKA
     CATALOG --> PG
     PARTNER --> PG
     PARTNER --> KAFKA
@@ -68,7 +73,9 @@ flowchart LR
     UI["Seller Portal"]
     Gateway["gRPC Gateway"]
     Auth["Auth Service"]
+    AuthWorker["Auth Projection Worker"]
     IAM["IAM Service"]
+    IAMWorker["IAM Outbox Worker"]
     Backoffice["Backoffice Service"]
     Partner["Partner Service"]
     Catalog["Catalog Service"]
@@ -94,9 +101,12 @@ flowchart LR
 
     Auth --> SQL
     Auth --> Redis
-    Auth --> Kafka
+    AuthWorker --> SQL
+    AuthWorker --> Kafka
     IAM --> SQL
-    IAM --> Kafka
+    IAM --> Auth
+    IAMWorker --> SQL
+    IAMWorker --> Kafka
     Partner --> SQL
     Partner --> Kafka
     Catalog --> SQL
@@ -116,16 +126,14 @@ flowchart LR
   - Kubernetes Job / Helm hook
   - Terraform-managed Admin API resources
   - environment-specific route/plugin manifests
-- Projection workers can remain sidecar-like inside a service binary today, then move to dedicated deployments later if consumer scaling diverges from gRPC/API scaling.
+- `auth` and `iam` now run separate API and worker binaries in local Docker.
+- Projection and outbox workers no longer share the gRPC server runtime by default.
 
 ## Kubernetes Direction
 
 - Each service keeps its own Deployment and DB binding.
-- Projection or outbox workers can stay in the same Deployment first.
-- Split them into separate Deployments when:
-  - consumer throughput diverges from API throughput
-  - retry/DLT workloads need independent scaling
-  - operational ownership differs
+- `auth-api`, `auth-worker`, `iam-api`, and `iam-worker` should be modeled as separate Deployments or ECS services.
+- Shared code can still live in one repo and one bounded context, but runtime scaling is now independent.
 
 ## Terraform / AWS Future
 

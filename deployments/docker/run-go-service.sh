@@ -13,9 +13,17 @@ case "$service" in
     build_cmd='go build -o ./bin/auth ./cmd/auth/main.go'
     build_bin='./bin/auth'
     ;;
+  auth-worker)
+    build_cmd='go build -o ./bin/auth-worker ./cmd/auth-worker/main.go'
+    build_bin='./bin/auth-worker'
+    ;;
   iam)
     build_cmd='go build -o ./bin/iam ./cmd/iam/main.go'
     build_bin='./bin/iam'
+    ;;
+  iam-worker)
+    build_cmd='go build -o ./bin/iam-worker ./cmd/iam-worker/main.go'
+    build_bin='./bin/iam-worker'
     ;;
   catalog)
     build_cmd='go build -o ./bin/catalog ./cmd/catalog/main.go'

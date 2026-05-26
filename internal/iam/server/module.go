@@ -12,14 +12,9 @@ import (
 	iamrepo "github.com/tuannm99/podzone/internal/iam/infrastructure/repository"
 	iammigrations "github.com/tuannm99/podzone/internal/iam/migrations"
 	"github.com/tuannm99/podzone/internal/iam/outputport"
-	iamworker "github.com/tuannm99/podzone/internal/iam/worker"
 	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
-	"github.com/tuannm99/podzone/pkg/messaging"
-	messagingkafka "github.com/tuannm99/podzone/pkg/messaging/kafka"
-	"github.com/tuannm99/podzone/pkg/pdkafka"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/pdsql"
-	"github.com/tuannm99/podzone/pkg/pdworker"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
 )
@@ -31,23 +26,10 @@ var Module = fx.Options(
 		fx.Annotate(iamrepo.NewAuditLogRepository, fx.As(new(outputport.AuditLogRepository))),
 		fx.Annotate(authclient.NewUserDirectory, fx.As(new(outputport.UserDirectory))),
 		iamgrpchandler.NewIAMServer,
-		fx.Annotate(
-			func(producer pdkafka.Producer) messaging.Publisher {
-				return messagingkafka.NewPublisher(producer)
-			},
-			fx.ParamTags(`name:"kafka-iam-producer"`),
-		),
-		func(store messaging.OutboxStore, publisher messaging.Publisher) *messagingkafka.Relay {
-			return messagingkafka.NewRelay(store, publisher, 100)
-		},
-		iamworker.NewOutboxWorker,
 	),
 	fx.Invoke(
 		RegisterGRPCServer,
 		RegisterMigration,
-		func(lc fx.Lifecycle, logger pdlog.Logger, w *iamworker.OutboxWorker) {
-			pdworker.StartWorker(lc, logger, w)
-		},
 	),
 )
 

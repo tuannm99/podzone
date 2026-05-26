@@ -78,7 +78,7 @@ func TestRegisterMigration_Disabled(t *testing.T) {
 
 	app := fxtest.New(
 		t,
-		Module,
+		ServerModule,
 		sqlOpt,
 		rdbOpt,
 		fx.Supply(

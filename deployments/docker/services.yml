@@ -32,10 +32,23 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-      kafka:
-        condition: service_healthy
     ports:
       - '50051:50051'
+
+  auth-worker:
+    <<: *go-dev-common
+    container_name: podzone-auth-worker-dev
+    command: ['sh', 'deployments/docker/run-go-service.sh']
+    environment:
+      GO_SERVICE: auth-worker
+      GOMODCACHE: /go/pkg/mod
+      GOCACHE: /root/.cache/go-build
+      CONFIG_PATH: deployments/docker/config/auth.yml
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
 
   iam-service:
     <<: *go-dev-common
@@ -51,10 +64,25 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      kafka:
-        condition: service_healthy
+      auth-service:
+        condition: service_started
     ports:
       - '50053:50053'
+
+  iam-worker:
+    <<: *go-dev-common
+    container_name: podzone-iam-worker-dev
+    command: ['sh', 'deployments/docker/run-go-service.sh']
+    environment:
+      GO_SERVICE: iam-worker
+      GOMODCACHE: /go/pkg/mod
+      GOCACHE: /root/.cache/go-build
+      CONFIG_PATH: deployments/docker/config/iam.yml
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
 
   catalog-service:
     <<: *go-dev-common
@@ -137,7 +165,11 @@ services:
         condition: service_healthy
       auth-service:
         condition: service_started
+      auth-worker:
+        condition: service_started
       iam-service:
+        condition: service_started
+      iam-worker:
         condition: service_started
       partner-service:
         condition: service_started
@@ -182,7 +214,11 @@ services:
         condition: service_started
       auth-service:
         condition: service_started
+      auth-worker:
+        condition: service_started
       iam-service:
+        condition: service_started
+      iam-worker:
         condition: service_started
       partner-service:
         condition: service_started

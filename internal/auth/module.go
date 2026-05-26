@@ -8,17 +8,14 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/knadh/koanf/v2"
 	"go.uber.org/fx"
-	"google.golang.org/grpc"
 
 	"github.com/tuannm99/podzone/internal/auth/config"
-	"github.com/tuannm99/podzone/internal/auth/controller/grpchandler"
 	"github.com/tuannm99/podzone/internal/auth/domain"
 	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
 	"github.com/tuannm99/podzone/internal/auth/infrastructure/iamclient"
 	"github.com/tuannm99/podzone/internal/auth/infrastructure/repository"
 	"github.com/tuannm99/podzone/internal/auth/migrations"
-	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/pdsql"
 )
@@ -39,19 +36,8 @@ var Module = fx.Options(
 		fx.Annotate(domain.NewTokenUsecase, fx.As(new(inputport.TokenUsecase))),
 		fx.Annotate(domain.NewUserUsecase, fx.As(new(inputport.UserUsecase))),
 		fx.Annotate(domain.NewAuthUsecase, fx.As(new(inputport.AuthUsecase))),
-
-		grpchandler.NewAuthServer,
-	),
-	fx.Invoke(
-		RegisterGRPCServer,
-		RegisterMigration,
 	),
 )
-
-func RegisterGRPCServer(server *grpc.Server, authServer *grpchandler.AuthServer, logger pdlog.Logger) {
-	logger.Info("Registering Auth GRPC handler")
-	pbauthv1.RegisterAuthServiceServer(server, authServer)
-}
 
 type MigrateParams struct {
 	fx.In

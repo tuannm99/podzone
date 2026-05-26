@@ -11,16 +11,20 @@ flowchart LR
     AuthRepo["infrastructure/repository"]
     ProjectionHandler["controller/eventhandler/iamprojection"]
     ProjectionRuntime["infrastructure/messaging/iamprojection"]
+    AuthAPI["cmd/auth"]
+    AuthWorker["cmd/auth-worker"]
     AuthDB["auth DB"]
     Redis["redis"]
     Kafka["kafka"]
 
+    AuthAPI --> AuthServer
     AuthServer --> AuthDomain
     AuthDomain --> AuthRepo
     AuthDomain --> IAMClient
     IAMClient -->|"gRPC"| IAMService
     AuthRepo --> AuthDB
     AuthRepo --> Redis
+    AuthWorker --> ProjectionRuntime
     ProjectionRuntime --> Kafka
     ProjectionRuntime --> ProjectionHandler
     ProjectionHandler --> AuthDB
@@ -32,6 +36,8 @@ flowchart LR
 - `infrastructure/iamclient`: synchronous calls to `IAMService`
 - `controller/eventhandler/iamprojection`: inbound Kafka event handler for IAM-derived projection updates
 - `infrastructure/messaging/iamprojection`: consumer runtime, inbox/idempotency wiring, and worker lifecycle
+- `cmd/auth`: Auth API runtime
+- `cmd/auth-worker`: projection-only runtime
 
 ## IAM Service
 
@@ -41,12 +47,16 @@ flowchart LR
     IAMInteractor["interactor"]
     IAMRepo["infrastructure/repository"]
     OutboxWorker["worker/outbox"]
+    IAMAPI["cmd/iam"]
+    IAMWorker["cmd/iam-worker"]
     IAMDB["iam DB"]
     Kafka["kafka"]
 
+    IAMAPI --> IAMServer
     IAMServer --> IAMInteractor
     IAMInteractor --> IAMRepo
     IAMRepo --> IAMDB
+    IAMWorker --> OutboxWorker
     IAMInteractor -->|"append outbox"| IAMDB
     OutboxWorker -->|"poll outbox"| IAMDB
     OutboxWorker -->|"publish"| Kafka
@@ -58,6 +68,8 @@ flowchart LR
 - `inputport`: IAM usecase contracts
 - `outputport`: repository and outbox contracts
 - `interactor`: policy lifecycle, authz evaluation, groups, tenants, org/SCP, assume-role
+- `cmd/iam`: IAM API runtime
+- `cmd/iam-worker`: outbox publisher runtime
 
 ## Backoffice Service
 
