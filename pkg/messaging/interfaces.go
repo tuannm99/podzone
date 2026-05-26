@@ -18,6 +18,11 @@ type Handler interface {
 	Handle(ctx context.Context, msg Envelope) error
 }
 
+type TypedHandler interface {
+	MessageType() string
+	Handle(ctx context.Context, msg Envelope) error
+}
+
 type Observer interface {
 	// Implementations can add logs, distributed tracing, metrics, or error tracking.
 	Observe(ctx context.Context, event DeliveryEvent)

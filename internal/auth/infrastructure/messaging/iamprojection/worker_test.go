@@ -26,7 +26,11 @@ func (f *fakeConsumerGroupFactory) New(groupID string) (sarama.ConsumerGroup, er
 
 type fakeSaramaConsumerGroup struct{}
 
-func (f *fakeSaramaConsumerGroup) Consume(ctx context.Context, topics []string, handler sarama.ConsumerGroupHandler) error {
+func (f *fakeSaramaConsumerGroup) Consume(
+	ctx context.Context,
+	topics []string,
+	handler sarama.ConsumerGroupHandler,
+) error {
 	return nil
 }
 func (f *fakeSaramaConsumerGroup) Errors() <-chan error      { return nil }

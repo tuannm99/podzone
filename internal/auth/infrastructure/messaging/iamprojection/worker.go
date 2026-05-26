@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	controller "github.com/tuannm99/podzone/internal/auth/controller/eventhandler/iamprojection"
 	"github.com/tuannm99/podzone/pkg/messaging"
 	messagingkafka "github.com/tuannm99/podzone/pkg/messaging/kafka"
 	"github.com/tuannm99/podzone/pkg/pdkafka"
@@ -25,7 +24,7 @@ func NewWorker(
 	inbox messaging.InboxStore,
 	observer messaging.Observer,
 	cfg messaging.ConsumerRuntimeConfig,
-	handler *controller.Handler,
+	handler messaging.Handler,
 ) *Worker {
 	middlewares := make([]messaging.Middleware, 0, 1)
 	if cfg.Idempotency.Enabled {

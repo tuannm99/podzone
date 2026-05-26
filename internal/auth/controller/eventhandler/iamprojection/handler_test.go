@@ -16,17 +16,19 @@ import (
 
 func TestHandler_HandleUnknownEvent_NoOp(t *testing.T) {
 	repo := mocks.NewMockIAMProjectionRepository(t)
-	handler := NewHandler(repo)
+	handler, err := NewHandler(repo)
+	require.NoError(t, err)
 
-	err := handler.Handle(context.Background(), messaging.Envelope{Type: "unknown.event"})
+	err = handler.Handle(context.Background(), messaging.Envelope{Type: "unknown.event"})
 	require.NoError(t, err)
 }
 
 func TestHandler_HandleTenantCreated_InvalidPayloadDeadLetters(t *testing.T) {
 	repo := mocks.NewMockIAMProjectionRepository(t)
-	handler := NewHandler(repo)
+	handler, err := NewHandler(repo)
+	require.NoError(t, err)
 
-	err := handler.Handle(context.Background(), messaging.Envelope{
+	err = handler.Handle(context.Background(), messaging.Envelope{
 		Type:    "tenant.created",
 		Payload: []byte("{"),
 	})
@@ -39,7 +41,8 @@ func TestHandler_HandleTenantCreated_InvalidPayloadDeadLetters(t *testing.T) {
 
 func TestHandler_HandleTenantCreated_RepositoryFailureRetries(t *testing.T) {
 	repo := mocks.NewMockIAMProjectionRepository(t)
-	handler := NewHandler(repo)
+	handler, err := NewHandler(repo)
+	require.NoError(t, err)
 
 	repo.EXPECT().
 		UpsertTenant(mock.Anything, "tenant-1", "tenant-1", "Tenant One").
@@ -51,7 +54,7 @@ func TestHandler_HandleTenantCreated_RepositoryFailureRetries(t *testing.T) {
 		"tenant_slug": "tenant-1",
 		"tenant_name": "Tenant One",
 	})
-	err := handler.Handle(context.Background(), messaging.Envelope{
+	err = handler.Handle(context.Background(), messaging.Envelope{
 		Type:    "tenant.created",
 		Payload: payload,
 	})
