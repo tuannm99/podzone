@@ -30,6 +30,8 @@ The goal is not to restate implementation details. The goal is to clarify:
   Interpretation of the current partner implementation inside a POD-first partner model.
 - [08-partner-refactor-plan.md](./08-partner-refactor-plan.md)
   Migration plan for evolving the current supplier implementation into a broader partner model.
+- [09-backoffice-multitenancy.md](./09-backoffice-multitenancy.md)
+  Business requirements for turning Backoffice into a true tenant-and-store scoped operating surface.
 
 ## How to read these docs
 

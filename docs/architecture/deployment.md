@@ -70,6 +70,9 @@ flowchart TB
 ```mermaid
 flowchart LR
     Ingress["Ingress / API Gateway"]
+    Router["Tenant Routing Layer"]
+    BOPoolA["Backoffice Pool A"]
+    BOPoolB["Backoffice Pool B"]
     UI["Seller Portal"]
     Gateway["gRPC Gateway"]
     Auth["Auth Service"]
@@ -88,13 +91,18 @@ flowchart LR
 
     UI --> Ingress
     Ingress --> Gateway
-    Ingress --> Backoffice
+    Ingress --> Router
+    Router --> BOPoolA
+    Router --> BOPoolB
     Ingress --> Onboarding
 
     Gateway --> Auth
     Gateway --> IAM
     Gateway --> Partner
     Gateway --> Catalog
+
+    BOPoolA --> Backoffice
+    BOPoolB --> Backoffice
 
     Backoffice --> IAM
     Backoffice --> Partner
@@ -116,6 +124,29 @@ flowchart LR
     Onboarding --> Consul
 ```
 
+## Backoffice Tenant Routing Model
+
+```mermaid
+flowchart TB
+    Browser["Browser / Seller UI"]
+    Edge["Ingress / Gateway / LB"]
+    PoolPlacement["Tenant -> Backoffice Pool Placement"]
+    BOPool["Backoffice Runtime Pool"]
+    TenantRuntime["Backoffice Tenancy Runtime"]
+    DBPlacement["Tenant -> DB Placement"]
+    StoreScope["Store-scoped Operation"]
+    TenantDB["Tenant DB / Schema"]
+
+    Browser --> Edge
+    Edge --> PoolPlacement
+    PoolPlacement --> BOPool
+    BOPool --> TenantRuntime
+    TenantRuntime --> DBPlacement
+    DBPlacement --> TenantDB
+    TenantRuntime --> StoreScope
+    StoreScope --> TenantDB
+```
+
 ## Notes
 
 - Local runtime mirrors the target service split with simplified single-node infrastructure.
@@ -128,12 +159,20 @@ flowchart LR
   - environment-specific route/plugin manifests
 - `auth` and `iam` now run separate API and worker binaries in local Docker.
 - Projection and outbox workers no longer share the gRPC server runtime by default.
+- `Backoffice` should be treated as stateless API capacity inside tenant-assigned runtime pools.
+- Tenant-to-runtime-pool routing belongs to edge/runtime placement, not to business handlers.
+- Tenant-to-database placement belongs to `pdtenantdb` and application runtime placement resolution.
 
 ## Kubernetes Direction
 
 - Each service keeps its own Deployment and DB binding.
 - `auth-api`, `auth-worker`, `iam-api`, and `iam-worker` should be modeled as separate Deployments or ECS services.
 - Shared code can still live in one repo and one bounded context, but runtime scaling is now independent.
+- `backoffice` should support sharded runtime pools where:
+  - ingress routes tenant traffic into the correct pool
+  - multiple pods can exist within one pool
+  - pod count can scale independently from tenant placement metadata
+- tenant placement metadata should remain externalized so scale-in and rescheduling do not require application rebinding.
 
 ## Terraform / AWS Future
 

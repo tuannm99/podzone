@@ -41,6 +41,34 @@ flowchart LR
 - `pkg/pdtenantdb`: tenant placement and multi-tenant DB resolution
 - `pkg/pdworker`: long-running worker lifecycle abstraction
 
+## Tenant Runtime Routing
+
+```mermaid
+sequenceDiagram
+    participant Edge as Edge / LB
+    participant Pool as Backoffice Pool
+    participant RT as Backoffice Tenancy Runtime
+    participant Place as pdtenantdb PlacementResolver
+    participant Repo as Repository
+    participant DB as Tenant DB / Schema
+
+    Edge->>Pool: route request using tenant placement
+    Pool->>RT: resolve tenant + store runtime scope
+    RT->>Place: resolve tenant placement
+    Place-->>RT: cluster/db/schema
+    RT-->>Pool: runtime scope ready
+    Pool->>Repo: execute store-scoped operation
+    Repo->>Place: resolve tenant placement (via manager)
+    Place-->>Repo: cluster/db/schema
+    Repo->>DB: query in tenant placement
+```
+
+Notes:
+
+- edge/runtime routing decides which backoffice runtime pool receives tenant traffic
+- application runtime placement decides which DB/schema receives tenant traffic
+- store scope lives inside the resolved tenant placement
+
 ## Data and Event Backbone
 
 ```mermaid
