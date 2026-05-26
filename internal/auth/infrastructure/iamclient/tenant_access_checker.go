@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/tuannm99/podzone/internal/auth/config"
+	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
-	iamentity "github.com/tuannm99/podzone/internal/iam/entity"
 	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
@@ -56,8 +56,8 @@ func (c *TenantAccessChecker) EnsureActiveMembership(ctx context.Context, tenant
 			return err
 		}
 		if membership != nil {
-			if membership.Status != iamentity.MembershipStatusActive {
-				return iamentity.ErrInactiveMembership
+			if membership.Status != entity.MembershipStatusActive {
+				return entity.ErrInactiveMembership
 			}
 			return nil
 		}
@@ -69,16 +69,16 @@ func (c *TenantAccessChecker) EnsureActiveMembership(ctx context.Context, tenant
 	})
 	if err != nil {
 		if status.Code(err) == codes.NotFound {
-			return iamentity.ErrMembershipNotFound
+			return entity.ErrMembershipNotFound
 		}
 		return err
 	}
 	membership := resp.GetMembership()
 	if membership == nil {
-		return iamentity.ErrMembershipNotFound
+		return entity.ErrMembershipNotFound
 	}
-	if membership.Status != iamentity.MembershipStatusActive {
-		return iamentity.ErrInactiveMembership
+	if membership.Status != entity.MembershipStatusActive {
+		return entity.ErrInactiveMembership
 	}
 	return nil
 }

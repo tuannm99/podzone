@@ -5,12 +5,13 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	authconfig "github.com/tuannm99/podzone/internal/auth/config"
-	authoutputport "github.com/tuannm99/podzone/internal/auth/domain/outputport"
-	authrepo "github.com/tuannm99/podzone/internal/auth/infrastructure/repository"
 	"github.com/tuannm99/podzone/internal/iam"
+	iamconfig "github.com/tuannm99/podzone/internal/iam/config"
 	iamgrpchandler "github.com/tuannm99/podzone/internal/iam/controller/grpchandler"
+	"github.com/tuannm99/podzone/internal/iam/infrastructure/authclient"
+	iamrepo "github.com/tuannm99/podzone/internal/iam/infrastructure/repository"
 	iammigrations "github.com/tuannm99/podzone/internal/iam/migrations"
+	"github.com/tuannm99/podzone/internal/iam/outputport"
 	iamworker "github.com/tuannm99/podzone/internal/iam/worker"
 	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
 	"github.com/tuannm99/podzone/pkg/messaging"
@@ -26,9 +27,9 @@ import (
 var Module = fx.Options(
 	iam.Module,
 	fx.Provide(
-		authconfig.NewAuthConfig,
-		fx.Annotate(authrepo.NewIAMAuditLogRepositoryImpl, fx.As(new(authoutputport.AuditLogRepository))),
-		fx.Annotate(authrepo.NewIAMUserRepositoryImpl, fx.As(new(authoutputport.UserRepository))),
+		iamconfig.NewServerConfig,
+		fx.Annotate(iamrepo.NewAuditLogRepository, fx.As(new(outputport.AuditLogRepository))),
+		fx.Annotate(authclient.NewUserDirectory, fx.As(new(outputport.UserDirectory))),
 		iamgrpchandler.NewIAMServer,
 		fx.Annotate(
 			func(producer pdkafka.Producer) messaging.Publisher {

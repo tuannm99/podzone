@@ -5,26 +5,28 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/tuannm99/podzone/internal/iam/entity"
 )
 
 func (s *interactor) CreatePolicy(
 	ctx context.Context,
-	input CreatePolicyInput,
-) (*Policy, []PolicyStatement, error) {
+	input entity.CreatePolicyInput,
+) (*entity.Policy, []entity.PolicyStatement, error) {
 	scope := strings.TrimSpace(input.Scope)
 	if scope == "" {
-		scope = PolicyScopeTenant
+		scope = entity.PolicyScopeTenant
 	}
 	name := strings.TrimSpace(input.Name)
 	if name == "" {
-		return nil, nil, ErrInvalidRoleName
+		return nil, nil, entity.ErrInvalidRoleName
 	}
 	if len(input.Statements) == 0 {
 		return nil, nil, fmt.Errorf("iam: at least one policy statement is required")
 	}
 
 	now := time.Now().UTC()
-	policy := Policy{
+	policy := entity.Policy{
 		Scope:       scope,
 		Name:        name,
 		Description: strings.TrimSpace(input.Description),
@@ -32,7 +34,7 @@ func (s *interactor) CreatePolicy(
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
-	statements := make([]PolicyStatement, 0, len(input.Statements))
+	statements := make([]entity.PolicyStatement, 0, len(input.Statements))
 	for _, statement := range input.Statements {
 		normalized, err := normalizePolicyStatement(statement, now)
 		if err != nil {
@@ -46,11 +48,11 @@ func (s *interactor) CreatePolicy(
 
 func (s *interactor) CreatePolicyVersion(
 	ctx context.Context,
-	input CreatePolicyVersionInput,
-) (*PolicyVersion, []PolicyStatement, error) {
+	input entity.CreatePolicyVersionInput,
+) (*entity.PolicyVersion, []entity.PolicyStatement, error) {
 	name := strings.TrimSpace(input.PolicyName)
 	if name == "" {
-		return nil, nil, ErrInvalidPolicyName
+		return nil, nil, entity.ErrInvalidPolicyName
 	}
 	if len(input.Statements) == 0 {
 		return nil, nil, fmt.Errorf("iam: at least one policy statement is required")
@@ -60,7 +62,7 @@ func (s *interactor) CreatePolicyVersion(
 		return nil, nil, err
 	}
 	now := time.Now().UTC()
-	statements := make([]PolicyStatement, 0, len(input.Statements))
+	statements := make([]entity.PolicyStatement, 0, len(input.Statements))
 	for _, statement := range input.Statements {
 		normalized, normErr := normalizePolicyStatement(statement, now)
 		if normErr != nil {
@@ -74,11 +76,11 @@ func (s *interactor) CreatePolicyVersion(
 func (s *interactor) DeletePolicyVersion(ctx context.Context, name string, version string) error {
 	name = strings.TrimSpace(name)
 	if name == "" {
-		return ErrInvalidPolicyName
+		return entity.ErrInvalidPolicyName
 	}
 	version = strings.TrimSpace(version)
 	if version == "" {
-		return ErrPolicyVersionNotFound
+		return entity.ErrPolicyVersionNotFound
 	}
 	policy, err := s.policies.GetPolicyByName(ctx, name)
 	if err != nil {
@@ -87,11 +89,11 @@ func (s *interactor) DeletePolicyVersion(ctx context.Context, name string, versi
 	return s.policies.DeletePolicyVersion(ctx, policy.ID, version)
 }
 
-func (s *interactor) ListPolicies(ctx context.Context, scope string) ([]Policy, error) {
+func (s *interactor) ListPolicies(ctx context.Context, scope string) ([]entity.Policy, error) {
 	return s.policies.ListPolicies(ctx, strings.TrimSpace(scope))
 }
 
-func (s *interactor) GetPolicy(ctx context.Context, name string) (*Policy, []PolicyStatement, error) {
+func (s *interactor) GetPolicy(ctx context.Context, name string) (*entity.Policy, []entity.PolicyStatement, error) {
 	policy, err := s.policies.GetPolicyByName(ctx, strings.TrimSpace(name))
 	if err != nil {
 		return nil, nil, err
@@ -103,7 +105,7 @@ func (s *interactor) GetPolicy(ctx context.Context, name string) (*Policy, []Pol
 	return policy, statements, nil
 }
 
-func (s *interactor) ListPolicyVersions(ctx context.Context, name string) ([]PolicyVersion, error) {
+func (s *interactor) ListPolicyVersions(ctx context.Context, name string) ([]entity.PolicyVersion, error) {
 	policy, err := s.policies.GetPolicyByName(ctx, strings.TrimSpace(name))
 	if err != nil {
 		return nil, err
@@ -118,12 +120,12 @@ func (s *interactor) SetDefaultPolicyVersion(ctx context.Context, name string, v
 	}
 	version = strings.TrimSpace(version)
 	if version == "" {
-		return ErrInvalidPolicyName
+		return entity.ErrInvalidPolicyName
 	}
 	return s.policies.SetDefaultPolicyVersion(ctx, policy.ID, version)
 }
 
-func (s *interactor) ListPolicyAttachments(ctx context.Context, name string) ([]PolicyAttachment, error) {
+func (s *interactor) ListPolicyAttachments(ctx context.Context, name string) ([]entity.PolicyAttachment, error) {
 	policy, err := s.policies.GetPolicyByName(ctx, strings.TrimSpace(name))
 	if err != nil {
 		return nil, err
@@ -139,7 +141,7 @@ func (s *interactor) DeletePolicy(ctx context.Context, name string) error {
 	return s.policies.DeletePolicy(ctx, policy.ID)
 }
 
-func (s *interactor) PutRoleTrustPolicy(ctx context.Context, input PutRoleTrustPolicyInput) error {
+func (s *interactor) PutRoleTrustPolicy(ctx context.Context, input entity.PutRoleTrustPolicyInput) error {
 	role, err := s.roles.GetByName(ctx, strings.TrimSpace(input.RoleName))
 	if err != nil {
 		return err
@@ -148,22 +150,22 @@ func (s *interactor) PutRoleTrustPolicy(ctx context.Context, input PutRoleTrustP
 		return fmt.Errorf("iam: at least one trust statement is required")
 	}
 	now := time.Now().UTC()
-	statements := make([]RoleTrustStatement, 0, len(input.Statements))
+	statements := make([]entity.RoleTrustStatement, 0, len(input.Statements))
 	for _, statement := range input.Statements {
 		effect := strings.ToLower(strings.TrimSpace(statement.Effect))
 		if effect == "" {
-			effect = PolicyEffectAllow
+			effect = entity.PolicyEffectAllow
 		}
 		principalType := strings.TrimSpace(statement.PrincipalType)
 		principalPattern := strings.TrimSpace(statement.PrincipalPattern)
 		if principalType == "" || principalPattern == "" {
-			return ErrInvalidAssumeRole
+			return entity.ErrInvalidAssumeRole
 		}
 		tenantPattern := strings.TrimSpace(statement.TenantPattern)
 		if tenantPattern == "" {
 			tenantPattern = "*"
 		}
-		statements = append(statements, RoleTrustStatement{
+		statements = append(statements, entity.RoleTrustStatement{
 			RoleID:            role.ID,
 			Effect:            effect,
 			PrincipalType:     principalType,
@@ -176,7 +178,7 @@ func (s *interactor) PutRoleTrustPolicy(ctx context.Context, input PutRoleTrustP
 	return s.roles.PutTrustPolicy(ctx, role.ID, statements)
 }
 
-func (s *interactor) GetRoleTrustPolicy(ctx context.Context, roleName string) ([]RoleTrustStatement, error) {
+func (s *interactor) GetRoleTrustPolicy(ctx context.Context, roleName string) ([]entity.RoleTrustStatement, error) {
 	role, err := s.roles.GetByName(ctx, strings.TrimSpace(roleName))
 	if err != nil {
 		return nil, err
@@ -202,12 +204,12 @@ func (s *interactor) PutRolePermissionBoundary(ctx context.Context, roleName str
 		return err
 	}
 	if role.Scope != policy.Scope {
-		return ErrPermissionDenied
+		return entity.ErrPermissionDenied
 	}
 	return s.roles.PutPermissionBoundary(ctx, role.ID, policy.ID)
 }
 
-func (s *interactor) GetRolePermissionBoundary(ctx context.Context, roleName string) (*RolePermissionBoundary, error) {
+func (s *interactor) GetRolePermissionBoundary(ctx context.Context, roleName string) (*entity.RolePermissionBoundary, error) {
 	role, err := s.roles.GetByName(ctx, strings.TrimSpace(roleName))
 	if err != nil {
 		return nil, err

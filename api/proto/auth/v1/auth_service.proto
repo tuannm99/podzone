@@ -116,4 +116,23 @@ service AuthService {
       get: "/auth/v1/audit-logs"
     };
   }
+
+  rpc GetUserByIdentity(GetUserByIdentityRequest) returns (GetUserByIdentityResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/users:by-identity"
+    };
+  }
+
+  rpc EnsureUserByEmail(EnsureUserByEmailRequest) returns (EnsureUserByEmailResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/users:ensure-by-email"
+      body: "*"
+    };
+  }
+
+  rpc GetUserByID(GetUserByIDRequest) returns (GetUserByIDResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/users/{user_id}"
+    };
+  }
 }

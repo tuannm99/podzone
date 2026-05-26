@@ -2,10 +2,11 @@ package grpchandler
 
 import (
 	"context"
+	"strconv"
 	"time"
 
-	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
-	"github.com/tuannm99/podzone/pkg/toolkit"
+	authmapper "github.com/tuannm99/podzone/internal/auth/controller/mapper"
+	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -33,11 +34,7 @@ func (s *AuthServer) GoogleCallback(
 	if err != nil {
 		return nil, err
 	}
-	resp, err := toolkit.MapStruct[inputport.GoogleCallbackResult, pbauthv1.GoogleCallbackResponse](*callbackResp)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-	return resp, nil
+	return authmapper.ToPBGoogleCallbackResponse(callbackResp), nil
 }
 
 func (s *AuthServer) ExchangeGoogleLogin(
@@ -48,7 +45,7 @@ func (s *AuthServer) ExchangeGoogleLogin(
 	if err != nil {
 		return nil, authStatusError(err)
 	}
-	resp, err := toolkit.MapStruct[inputport.AuthResult, pbauthv1.LoginResponse](*authResp)
+	resp, err := authmapper.ToPBLoginResponse(authResp)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -71,7 +68,7 @@ func (s *AuthServer) Login(ctx context.Context, req *pbauthv1.LoginRequest) (*pb
 	if err != nil {
 		return nil, err
 	}
-	resp, err := toolkit.MapStruct[inputport.AuthResult, pbauthv1.LoginResponse](*loginResp)
+	resp, err := authmapper.ToPBLoginResponse(loginResp)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -79,7 +76,7 @@ func (s *AuthServer) Login(ctx context.Context, req *pbauthv1.LoginRequest) (*pb
 }
 
 func (s *AuthServer) Register(ctx context.Context, req *pbauthv1.RegisterRequest) (*pbauthv1.RegisterResponse, error) {
-	registerCmd, err := toolkit.MapStruct[*pbauthv1.RegisterRequest, inputport.RegisterCmd](req)
+	registerCmd, err := authmapper.ToRegisterCmd(req)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -87,7 +84,7 @@ func (s *AuthServer) Register(ctx context.Context, req *pbauthv1.RegisterRequest
 	if err != nil {
 		return nil, err
 	}
-	resp, err := toolkit.MapStruct[inputport.AuthResult, pbauthv1.RegisterResponse](*registerResp)
+	resp, err := authmapper.ToPBRegisterResponse(registerResp)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -115,7 +112,7 @@ func (s *AuthServer) SwitchActiveTenant(
 		return nil, authStatusError(err)
 	}
 
-	resp, err := toolkit.MapStruct[inputport.AuthResult, pbauthv1.SwitchActiveTenantResponse](*authResp)
+	resp, err := authmapper.ToPBSwitchActiveTenantResponse(authResp)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -137,7 +134,7 @@ func (s *AuthServer) AssumeSessionPolicy(
 		ctx,
 		actorUserID,
 		req.AccessToken,
-		fromProtoSessionPolicyStatements(req.Statements),
+		authmapper.FromPBSessionPolicyStatements(req.Statements),
 	)
 	if err != nil {
 		return nil, authStatusError(err)
@@ -148,7 +145,7 @@ func (s *AuthServer) AssumeSessionPolicy(
 	}
 	return &pbauthv1.AssumeSessionPolicyResponse{
 		JwtToken: authResp.JwtToken,
-		Session:  toProtoSession(session),
+		Session:  authmapper.ToPBSession(session),
 	}, nil
 }
 
@@ -170,7 +167,7 @@ func (s *AuthServer) ClearSessionPolicy(
 	}
 	return &pbauthv1.ClearSessionPolicyResponse{
 		JwtToken: authResp.JwtToken,
-		Session:  toProtoSession(session),
+		Session:  authmapper.ToPBSession(session),
 	}, nil
 }
 
@@ -188,7 +185,7 @@ func (s *AuthServer) AssumeRole(
 		req.AccessToken,
 		req.RoleName,
 		req.TenantId,
-		fromProtoSessionPolicyStatements(req.SessionPolicy),
+		authmapper.FromPBSessionPolicyStatements(req.SessionPolicy),
 		req.ExternalId,
 		req.SessionName,
 		req.SourceIdentity,
@@ -205,7 +202,7 @@ func (s *AuthServer) AssumeRole(
 	}
 	return &pbauthv1.AssumeRoleResponse{
 		JwtToken: authResp.JwtToken,
-		Session:  toProtoSession(session),
+		Session:  authmapper.ToPBSession(session),
 	}, nil
 }
 
@@ -227,7 +224,7 @@ func (s *AuthServer) ClearAssumedRole(
 	}
 	return &pbauthv1.ClearAssumedRoleResponse{
 		JwtToken: authResp.JwtToken,
-		Session:  toProtoSession(session),
+		Session:  authmapper.ToPBSession(session),
 	}, nil
 }
 
@@ -239,7 +236,7 @@ func (s *AuthServer) GetSession(
 	if err != nil {
 		return nil, authStatusError(err)
 	}
-	return &pbauthv1.GetSessionResponse{Session: toProtoSession(session)}, nil
+	return &pbauthv1.GetSessionResponse{Session: authmapper.ToPBSession(session)}, nil
 }
 
 func (s *AuthServer) ListSessions(
@@ -257,7 +254,7 @@ func (s *AuthServer) ListSessions(
 	out := make([]*pbauthv1.Session, 0, len(items))
 	for i := range items {
 		item := items[i]
-		out = append(out, toProtoSession(&item))
+		out = append(out, authmapper.ToPBSession(&item))
 	}
 	return &pbauthv1.ListSessionsResponse{Sessions: out}, nil
 }
@@ -311,7 +308,7 @@ func (s *AuthServer) ListAuditLogs(
 	out := make([]*pbauthv1.AuditLog, 0, len(items))
 	for i := range items {
 		item := items[i]
-		out = append(out, toProtoAuditLog(&item))
+		out = append(out, authmapper.ToPBAuditLog(&item))
 	}
 	return &pbauthv1.ListAuditLogsResponse{Logs: out}, nil
 }
@@ -324,9 +321,61 @@ func (s *AuthServer) RefreshToken(
 	if err != nil {
 		return nil, authStatusError(err)
 	}
-	resp, err := toolkit.MapStruct[inputport.AuthResult, pbauthv1.RefreshTokenResponse](*authResp)
+	resp, err := authmapper.ToPBRefreshTokenResponse(authResp)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return resp, nil
+}
+
+func (s *AuthServer) GetUserByIdentity(
+	ctx context.Context,
+	req *pbauthv1.GetUserByIdentityRequest,
+) (*pbauthv1.GetUserByIdentityResponse, error) {
+	user, err := s.userRepo.GetByUsernameOrEmail(req.Identity)
+	if err != nil {
+		return nil, authStatusError(err)
+	}
+	return &pbauthv1.GetUserByIdentityResponse{
+		UserInfo: authmapper.ToPBUserInfo(user),
+	}, nil
+}
+
+func (s *AuthServer) EnsureUserByEmail(
+	ctx context.Context,
+	req *pbauthv1.EnsureUserByEmailRequest,
+) (*pbauthv1.EnsureUserByEmailResponse, error) {
+	user, err := s.userRepo.GetByUsernameOrEmail(req.Email)
+	created := false
+	if err != nil {
+		if err != entity.ErrUserNotFound {
+			return nil, authStatusError(err)
+		}
+		user, err = s.userRepo.CreateByEmailIfNotExisted(req.Email)
+		if err != nil {
+			return nil, authStatusError(err)
+		}
+		created = true
+	}
+	return &pbauthv1.EnsureUserByEmailResponse{
+		UserInfo: authmapper.ToPBUserInfo(user),
+		Created:  created,
+	}, nil
+}
+
+func (s *AuthServer) GetUserByID(
+	ctx context.Context,
+	req *pbauthv1.GetUserByIDRequest,
+) (*pbauthv1.GetUserByIDResponse, error) {
+	userID, err := toUint(req.UserId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	user, err := s.userRepo.GetByID(strconv.FormatUint(uint64(userID), 10))
+	if err != nil {
+		return nil, authStatusError(err)
+	}
+	return &pbauthv1.GetUserByIDResponse{
+		UserInfo: authmapper.ToPBUserInfo(user),
+	}, nil
 }

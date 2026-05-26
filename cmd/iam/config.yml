@@ -4,6 +4,14 @@ logger:
   level: 'debug'
   env: 'dev'
 
+iam:
+  authn:
+    jwt_secret: secret
+    jwt_key: app-key
+  auth:
+    grpc_host: localhost
+    grpc_port: 50052
+
 messaging:
   kafka:
     iam:

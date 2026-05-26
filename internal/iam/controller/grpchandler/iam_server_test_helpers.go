@@ -5,22 +5,24 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/tuannm99/podzone/internal/auth/config"
-	authdomain "github.com/tuannm99/podzone/internal/auth/domain"
-	authentity "github.com/tuannm99/podzone/internal/auth/domain/entity"
-	authoutputmocks "github.com/tuannm99/podzone/internal/auth/domain/outputport/mocks"
+	iamconfig "github.com/tuannm99/podzone/internal/iam/config"
 	iamentity "github.com/tuannm99/podzone/internal/iam/entity"
 	iaminputport "github.com/tuannm99/podzone/internal/iam/inputport"
 	iammocks "github.com/tuannm99/podzone/internal/iam/inputport/mocks"
+	iamoutputmocks "github.com/tuannm99/podzone/internal/iam/outputport/mocks"
+	"github.com/tuannm99/podzone/pkg/pdauthn"
 )
 
-var testIAMCfg = config.AuthConfig{
-	JWTSecret:      "secret",
-	JWTKey:         "app-key",
+var testIAMServerCfg = iamconfig.ServerConfig{
+	Authn: pdauthn.Config{
+		JWTSecret: "secret",
+		JWTKey:    "app-key",
+	},
 	AppRedirectURL: "https://app.example.com/auth/google/callback",
 }
 
@@ -75,28 +77,39 @@ func newIAMUsecaseMock(t *testing.T, cfg iamUsecaseMockConfig) *iammocks.MockIAM
 
 func newIAMServerForTest(t *testing.T, iamUC iaminputport.IAMUsecase) *IAMServer {
 	t.Helper()
-	auditRepo := authoutputmocks.NewMockAuditLogRepository(t)
+	auditRepo := iamoutputmocks.NewMockAuditLogRepository(t)
 	auditRepo.EXPECT().Create(mock.Anything, mock.Anything).Return(nil).Maybe()
+	userDirectory := iamoutputmocks.NewMockUserDirectory(t)
 	return NewIAMServer(
 		iamUC,
 		auditRepo,
-		authoutputmocks.NewMockUserRepository(t),
-		testIAMCfg,
+		userDirectory,
+		testIAMServerCfg,
 	)
 }
 
 func authContextForIAMUser(t *testing.T, userID uint) context.Context {
 	t.Helper()
-	token, err := authdomain.NewTokenUsecase(testIAMCfg).
-		CreateJwtTokenForSession(authentity.User{Id: userID}, "", "session-test")
-	require.NoError(t, err)
-	return metadata.NewIncomingContext(context.Background(), metadata.Pairs("authorization", "Bearer "+token))
+	return metadata.NewIncomingContext(
+		context.Background(),
+		metadata.Pairs("authorization", "Bearer "+rawAccessTokenForIAMUser(t, userID)),
+	)
 }
 
 func rawAccessTokenForIAMUser(t *testing.T, userID uint) string {
 	t.Helper()
-	token, err := authdomain.NewTokenUsecase(testIAMCfg).
-		CreateJwtTokenForSession(authentity.User{Id: userID}, "", "session-test")
+	claims := pdauthn.Claims{
+		UserID:    userID,
+		Key:       testIAMServerCfg.Authn.JWTKey,
+		SessionID: "session-test",
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: nowPlusHour().Unix(),
+			IssuedAt:  time.Now().UTC().Unix(),
+		},
+	}
+	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(
+		[]byte(testIAMServerCfg.Authn.JWTSecret),
+	)
 	require.NoError(t, err)
 	return token
 }

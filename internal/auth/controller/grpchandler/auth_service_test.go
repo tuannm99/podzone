@@ -14,7 +14,7 @@ import (
 )
 
 func TestGoogleLogin_OK(t *testing.T) {
-	srv, authUC, _, _ := newAuthServer(t)
+	srv, authUC, _, _, _ := newAuthServer(t)
 	authUC.EXPECT().GenerateOAuthURL(mock.Anything).Return("https://accounts.google.com/auth?state=xyz", nil)
 
 	res, err := srv.GoogleLogin(context.Background(), &pbauthv1.GoogleLoginRequest{})
@@ -24,7 +24,7 @@ func TestGoogleLogin_OK(t *testing.T) {
 }
 
 func TestLogin_OK(t *testing.T) {
-	srv, authUC, _, _ := newAuthServer(t)
+	srv, authUC, _, _, _ := newAuthServer(t)
 	authUC.EXPECT().Login(mock.Anything, "neo", "TheOne!").Return(&inputport.AuthResult{
 		JwtToken: "jwt-token",
 		UserInfo: entity.User{Id: 7, Username: "neo", Email: "neo@mx.io"},
@@ -41,7 +41,7 @@ func TestLogin_OK(t *testing.T) {
 }
 
 func TestSwitchActiveTenant_OK(t *testing.T) {
-	srv, authUC, _, auditRepo := newAuthServer(t)
+	srv, authUC, _, auditRepo, _ := newAuthServer(t)
 	expectAuditMaybe(auditRepo)
 	authUC.EXPECT().
 		SwitchActiveTenant(mock.Anything, uint(7), "tenant-1", "access-token").
@@ -61,7 +61,7 @@ func TestSwitchActiveTenant_OK(t *testing.T) {
 }
 
 func TestAssumeSessionPolicy_OK(t *testing.T) {
-	srv, authUC, sessionRepo, _ := newAuthServer(t)
+	srv, authUC, sessionRepo, _, _ := newAuthServer(t)
 	sessionRepo.EXPECT().GetByID(mock.Anything, "session-1").Return(sessionWithID("session-1", 7), nil)
 	accessToken := accessTokenForSession(t, entity.User{Id: 7}, "", "session-1")
 	authUC.EXPECT().
@@ -82,7 +82,7 @@ func TestAssumeSessionPolicy_OK(t *testing.T) {
 }
 
 func TestRefreshToken_OK(t *testing.T) {
-	srv, authUC, _, _ := newAuthServer(t)
+	srv, authUC, _, _, _ := newAuthServer(t)
 	authUC.EXPECT().RefreshAccessToken(mock.Anything, "refresh-token").Return(&inputport.AuthResult{
 		JwtToken:     "jwt-refreshed",
 		RefreshToken: "refresh-next",
@@ -97,7 +97,7 @@ func TestRefreshToken_OK(t *testing.T) {
 }
 
 func TestGetSession_OK(t *testing.T) {
-	srv, _, sessionRepo, _ := newAuthServer(t)
+	srv, _, sessionRepo, _, _ := newAuthServer(t)
 	session := sessionWithID("session-1", 7)
 	sessionRepo.EXPECT().GetByID(mock.Anything, "session-1").Return(session, nil)
 
@@ -106,4 +106,56 @@ func TestGetSession_OK(t *testing.T) {
 	require.NotNil(t, res)
 	assert.Equal(t, "session-1", res.Session.Id)
 	assert.Equal(t, uint64(7), res.Session.UserId)
+}
+
+func TestGetUserByIdentity_OK(t *testing.T) {
+	srv, _, _, _, userRepo := newAuthServer(t)
+	userRepo.EXPECT().GetByUsernameOrEmail("neo@mx.io").Return(&entity.User{
+		Id:       7,
+		Username: "neo",
+		Email:    "neo@mx.io",
+	}, nil)
+
+	res, err := srv.GetUserByIdentity(context.Background(), &pbauthv1.GetUserByIdentityRequest{
+		Identity: "neo@mx.io",
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.NotNil(t, res.UserInfo)
+	assert.EqualValues(t, 7, res.UserInfo.Id)
+	assert.Equal(t, "neo", res.UserInfo.Username)
+}
+
+func TestEnsureUserByEmail_OK(t *testing.T) {
+	srv, _, _, _, userRepo := newAuthServer(t)
+	userRepo.EXPECT().GetByUsernameOrEmail("neo@mx.io").Return(nil, entity.ErrUserNotFound)
+	userRepo.EXPECT().CreateByEmailIfNotExisted("neo@mx.io").Return(&entity.User{
+		Id:    9,
+		Email: "neo@mx.io",
+	}, nil)
+
+	res, err := srv.EnsureUserByEmail(context.Background(), &pbauthv1.EnsureUserByEmailRequest{
+		Email: "neo@mx.io",
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.NotNil(t, res.UserInfo)
+	assert.EqualValues(t, 9, res.UserInfo.Id)
+	assert.Equal(t, "neo@mx.io", res.UserInfo.Email)
+	assert.True(t, res.Created)
+}
+
+func TestGetUserByID_OK(t *testing.T) {
+	srv, _, _, _, userRepo := newAuthServer(t)
+	userRepo.EXPECT().GetByID("7").Return(&entity.User{
+		Id:       7,
+		Username: "neo",
+		Email:    "neo@mx.io",
+	}, nil)
+
+	res, err := srv.GetUserByID(context.Background(), &pbauthv1.GetUserByIDRequest{UserId: 7})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	require.NotNil(t, res.UserInfo)
+	assert.Equal(t, "neo@mx.io", res.UserInfo.Email)
 }

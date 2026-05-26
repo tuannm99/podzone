@@ -80,6 +80,69 @@ func (_c *MockAdmin_Close_Call) RunAndReturn(run func() error) *MockAdmin_Close_
 	return _c
 }
 
+// CreateTopic provides a mock function for the type MockAdmin
+func (_mock *MockAdmin) CreateTopic(topic string, detail *sarama.TopicDetail, validateOnly bool) error {
+	ret := _mock.Called(topic, detail, validateOnly)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateTopic")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(string, *sarama.TopicDetail, bool) error); ok {
+		r0 = returnFunc(topic, detail, validateOnly)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockAdmin_CreateTopic_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateTopic'
+type MockAdmin_CreateTopic_Call struct {
+	*mock.Call
+}
+
+// CreateTopic is a helper method to define mock.On call
+//   - topic string
+//   - detail *sarama.TopicDetail
+//   - validateOnly bool
+func (_e *MockAdmin_Expecter) CreateTopic(topic interface{}, detail interface{}, validateOnly interface{}) *MockAdmin_CreateTopic_Call {
+	return &MockAdmin_CreateTopic_Call{Call: _e.mock.On("CreateTopic", topic, detail, validateOnly)}
+}
+
+func (_c *MockAdmin_CreateTopic_Call) Run(run func(topic string, detail *sarama.TopicDetail, validateOnly bool)) *MockAdmin_CreateTopic_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 *sarama.TopicDetail
+		if args[1] != nil {
+			arg1 = args[1].(*sarama.TopicDetail)
+		}
+		var arg2 bool
+		if args[2] != nil {
+			arg2 = args[2].(bool)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockAdmin_CreateTopic_Call) Return(err error) *MockAdmin_CreateTopic_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockAdmin_CreateTopic_Call) RunAndReturn(run func(topic string, detail *sarama.TopicDetail, validateOnly bool) error) *MockAdmin_CreateTopic_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DescribeCluster provides a mock function for the type MockAdmin
 func (_mock *MockAdmin) DescribeCluster() ([]*sarama.Broker, int32, error) {
 	ret := _mock.Called()
@@ -137,6 +200,61 @@ func (_c *MockAdmin_DescribeCluster_Call) Return(brokers []*sarama.Broker, contr
 }
 
 func (_c *MockAdmin_DescribeCluster_Call) RunAndReturn(run func() ([]*sarama.Broker, int32, error)) *MockAdmin_DescribeCluster_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListTopics provides a mock function for the type MockAdmin
+func (_mock *MockAdmin) ListTopics() (map[string]sarama.TopicDetail, error) {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListTopics")
+	}
+
+	var r0 map[string]sarama.TopicDetail
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func() (map[string]sarama.TopicDetail, error)); ok {
+		return returnFunc()
+	}
+	if returnFunc, ok := ret.Get(0).(func() map[string]sarama.TopicDetail); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]sarama.TopicDetail)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func() error); ok {
+		r1 = returnFunc()
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockAdmin_ListTopics_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListTopics'
+type MockAdmin_ListTopics_Call struct {
+	*mock.Call
+}
+
+// ListTopics is a helper method to define mock.On call
+func (_e *MockAdmin_Expecter) ListTopics() *MockAdmin_ListTopics_Call {
+	return &MockAdmin_ListTopics_Call{Call: _e.mock.On("ListTopics")}
+}
+
+func (_c *MockAdmin_ListTopics_Call) Run(run func()) *MockAdmin_ListTopics_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockAdmin_ListTopics_Call) Return(stringToTopicDetail map[string]sarama.TopicDetail, err error) *MockAdmin_ListTopics_Call {
+	_c.Call.Return(stringToTopicDetail, err)
+	return _c
+}
+
+func (_c *MockAdmin_ListTopics_Call) RunAndReturn(run func() (map[string]sarama.TopicDetail, error)) *MockAdmin_ListTopics_Call {
 	_c.Call.Return(run)
 	return _c
 }

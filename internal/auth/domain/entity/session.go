@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"time"
+
+	"github.com/tuannm99/podzone/pkg/pdauthn"
 )
 
 const (
@@ -33,18 +35,9 @@ type Session struct {
 	RevokedAt                   *time.Time               `json:"revoked_at"`
 }
 
-type SessionPolicyStatement struct {
-	Effect          string                   `json:"effect"`
-	ActionPattern   string                   `json:"action_pattern"`
-	ResourcePattern string                   `json:"resource_pattern"`
-	Conditions      []SessionPolicyCondition `json:"conditions,omitempty"`
-}
+type SessionPolicyStatement = pdauthn.PolicyStatement
 
-type SessionPolicyCondition struct {
-	Operator string `json:"operator"`
-	Key      string `json:"key"`
-	Value    string `json:"value"`
-}
+type SessionPolicyCondition = pdauthn.PolicyCondition
 
 type RefreshToken struct {
 	ID                string     `json:"id"`

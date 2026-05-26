@@ -7,9 +7,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
 	outputportmocks "github.com/tuannm99/podzone/internal/auth/domain/outputport/mocks"
-	iamentity "github.com/tuannm99/podzone/internal/iam/entity"
 )
 
 func TestTenantAccessCheckerEnsureActiveMembership_UsesProjectionFirst(t *testing.T) {
@@ -20,7 +20,7 @@ func TestTenantAccessCheckerEnsureActiveMembership_UsesProjectionFirst(t *testin
 			TenantID: "t1",
 			UserID:   7,
 			RoleName: "tenant_viewer",
-			Status:   iamentity.MembershipStatusActive,
+			Status:   entity.MembershipStatusActive,
 		}, nil).
 		Once()
 
@@ -41,5 +41,5 @@ func TestTenantAccessCheckerEnsureActiveMembership_ProjectionInactive(t *testing
 		Once()
 
 	checker := &TenantAccessChecker{projection: projection}
-	require.ErrorIs(t, checker.EnsureActiveMembership(context.Background(), "t1", 7), iamentity.ErrInactiveMembership)
+	require.ErrorIs(t, checker.EnsureActiveMembership(context.Background(), "t1", 7), entity.ErrInactiveMembership)
 }

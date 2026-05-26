@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS iam_role_policy_attachments (
 );
 
 CREATE TABLE IF NOT EXISTS iam_user_policy_attachments (
-  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id BIGINT NOT NULL,
   scope TEXT NOT NULL,
   policy_id BIGINT NOT NULL REFERENCES iam_policies(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS iam_user_policy_attachments (
 
 CREATE TABLE IF NOT EXISTS iam_tenant_user_policy_attachments (
   tenant_id TEXT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id BIGINT NOT NULL,
   policy_id BIGINT NOT NULL REFERENCES iam_policies(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (tenant_id, user_id, policy_id)

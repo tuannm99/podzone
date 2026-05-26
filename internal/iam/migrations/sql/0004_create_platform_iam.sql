@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS user_platform_roles (
-  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id BIGINT NOT NULL,
   role_id BIGINT NOT NULL REFERENCES iam_roles(id) ON DELETE CASCADE,
   status TEXT NOT NULL DEFAULT 'active',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -40,21 +40,10 @@ JOIN iam_permissions p ON p.name IN (
 WHERE r.name = 'platform_admin'
 ON CONFLICT DO NOTHING;
 
-INSERT INTO user_platform_roles (user_id, role_id, status, created_at, updated_at)
-SELECT u.id, r.id, 'active', now(), now()
-FROM users u
-JOIN iam_roles r ON r.name = 'platform_owner'
-WHERE u.id = (SELECT id FROM users ORDER BY id ASC LIMIT 1)
-ON CONFLICT (user_id, role_id) DO NOTHING;
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DELETE FROM user_platform_roles
-WHERE role_id IN (
-  SELECT id FROM iam_roles WHERE name IN ('platform_owner', 'platform_admin')
-);
-
 DELETE FROM iam_role_permissions
 WHERE role_id IN (
   SELECT id FROM iam_roles WHERE name IN ('platform_owner', 'platform_admin')

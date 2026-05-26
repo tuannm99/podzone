@@ -18,7 +18,6 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
-	iamdomain "github.com/tuannm99/podzone/internal/iam/entity"
 )
 
 func initMock() (
@@ -58,7 +57,7 @@ func newUC(
 		sr,
 		ur,
 		func(ctx context.Context, tenantID string, userID uint) error {
-			return iamdomain.ErrMembershipNotFound
+			return entity.ErrMembershipNotFound
 		},
 	)
 	return uc

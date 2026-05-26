@@ -7,6 +7,7 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/config"
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
+	"github.com/tuannm99/podzone/pkg/pdauthn"
 )
 
 var _ inputport.TokenUsecase = (*tokenUCImpl)(nil)
@@ -57,7 +58,7 @@ func (t *tokenUCImpl) CreateJwtTokenForSessionState(
 	if session.AssumedRoleExpiresAt != nil && session.AssumedRoleExpiresAt.Before(expiresAt) {
 		expiresAt = *session.AssumedRoleExpiresAt
 	}
-	claims := entity.JWTClaims{
+	claims := pdauthn.Claims{
 		UserID:                      user.Id,
 		Email:                       user.Email,
 		Username:                    user.Username,

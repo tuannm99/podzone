@@ -116,6 +116,8 @@ packages:
     config:
       dir: internal/iam/outputport/mocks
     interfaces:
+      AuditLogRepository:
+      UserDirectory:
       TenantRepository:
       OrganizationRepository:
       RoleRepository:

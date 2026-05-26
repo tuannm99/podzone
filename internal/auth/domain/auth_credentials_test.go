@@ -14,7 +14,6 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
 	inputmocks "github.com/tuannm99/podzone/internal/auth/domain/inputport/mocks"
 	outputmocks "github.com/tuannm99/podzone/internal/auth/domain/outputport/mocks"
-	iamdomain "github.com/tuannm99/podzone/internal/iam/entity"
 )
 
 func TestLogin_Success(t *testing.T) {
@@ -134,12 +133,12 @@ func TestSwitchActiveTenant_InactiveMembership(t *testing.T) {
 		sr,
 		ur,
 		func(ctx context.Context, tenantID string, userID uint) error {
-			return iamdomain.ErrInactiveMembership
+			return entity.ErrInactiveMembership
 		},
 	)
 
 	resp, err := uc.SwitchActiveTenant(ctx, 5, "tenant-1", "access-token")
-	require.ErrorIs(t, err, iamdomain.ErrInactiveMembership)
+	require.ErrorIs(t, err, entity.ErrInactiveMembership)
 	assert.Nil(t, resp)
 }
 

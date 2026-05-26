@@ -7,18 +7,19 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/tuannm99/podzone/internal/iam/entity"
 )
 
 func (s *interactor) AddMember(ctx context.Context, tenantID string, userID uint, roleName string) error {
 	if strings.TrimSpace(tenantID) == "" {
-		return ErrTenantNotFound
+		return entity.ErrTenantNotFound
 	}
 	if userID == 0 {
-		return ErrInvalidUserID
+		return entity.ErrInvalidUserID
 	}
 	roleName = strings.TrimSpace(roleName)
 	if roleName == "" {
-		return ErrInvalidRoleName
+		return entity.ErrInvalidRoleName
 	}
 
 	if _, err := s.tenants.GetByID(ctx, tenantID); err != nil {
@@ -30,12 +31,12 @@ func (s *interactor) AddMember(ctx context.Context, tenantID string, userID uint
 	}
 
 	now := time.Now().UTC()
-	membership := Membership{
+	membership := entity.Membership{
 		TenantID:  tenantID,
 		UserID:    userID,
 		RoleID:    role.ID,
 		RoleName:  role.Name,
-		Status:    MembershipStatusActive,
+		Status:    entity.MembershipStatusActive,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
@@ -54,21 +55,21 @@ func (s *interactor) AddMember(ctx context.Context, tenantID string, userID uint
 	return s.appendOutboxRecord(ctx, now, record)
 }
 
-func (s *interactor) PutTenantUserInlinePolicy(ctx context.Context, input PutTenantUserInlinePolicyInput) error {
+func (s *interactor) PutTenantUserInlinePolicy(ctx context.Context, input entity.PutTenantUserInlinePolicyInput) error {
 	if strings.TrimSpace(input.TenantID) == "" {
-		return ErrTenantNotFound
+		return entity.ErrTenantNotFound
 	}
 	if input.UserID == 0 {
-		return ErrInvalidUserID
+		return entity.ErrInvalidUserID
 	}
 	if strings.TrimSpace(input.Name) == "" {
-		return ErrInvalidPolicyName
+		return entity.ErrInvalidPolicyName
 	}
 	if len(input.Statements) == 0 {
 		return fmt.Errorf("iam: at least one policy statement is required")
 	}
 	now := time.Now().UTC()
-	statements := make([]PolicyStatement, 0, len(input.Statements))
+	statements := make([]entity.PolicyStatement, 0, len(input.Statements))
 	for _, statement := range input.Statements {
 		normalized, err := normalizePolicyStatement(statement, now)
 		if err != nil {
@@ -76,7 +77,7 @@ func (s *interactor) PutTenantUserInlinePolicy(ctx context.Context, input PutTen
 		}
 		statements = append(statements, normalized)
 	}
-	return s.policies.PutTenantUserInlinePolicy(ctx, PutTenantUserInlinePolicyInput{
+	return s.policies.PutTenantUserInlinePolicy(ctx, entity.PutTenantUserInlinePolicyInput{
 		TenantID:    strings.TrimSpace(input.TenantID),
 		UserID:      input.UserID,
 		Name:        strings.TrimSpace(input.Name),
@@ -90,15 +91,15 @@ func (s *interactor) GetTenantUserInlinePolicy(
 	tenantID string,
 	userID uint,
 	name string,
-) (*UserInlinePolicy, error) {
+) (*entity.UserInlinePolicy, error) {
 	if strings.TrimSpace(tenantID) == "" {
-		return nil, ErrTenantNotFound
+		return nil, entity.ErrTenantNotFound
 	}
 	if userID == 0 {
-		return nil, ErrInvalidUserID
+		return nil, entity.ErrInvalidUserID
 	}
 	if strings.TrimSpace(name) == "" {
-		return nil, ErrInvalidPolicyName
+		return nil, entity.ErrInvalidPolicyName
 	}
 	return s.policies.GetTenantUserInlinePolicy(ctx, strings.TrimSpace(tenantID), userID, strings.TrimSpace(name))
 }
@@ -107,12 +108,12 @@ func (s *interactor) ListTenantUserInlinePolicies(
 	ctx context.Context,
 	tenantID string,
 	userID uint,
-) ([]UserInlinePolicy, error) {
+) ([]entity.UserInlinePolicy, error) {
 	if strings.TrimSpace(tenantID) == "" {
-		return nil, ErrTenantNotFound
+		return nil, entity.ErrTenantNotFound
 	}
 	if userID == 0 {
-		return nil, ErrInvalidUserID
+		return nil, entity.ErrInvalidUserID
 	}
 	return s.policies.ListTenantUserInlinePolicies(ctx, strings.TrimSpace(tenantID), userID)
 }
@@ -124,13 +125,13 @@ func (s *interactor) DeleteTenantUserInlinePolicy(
 	name string,
 ) error {
 	if strings.TrimSpace(tenantID) == "" {
-		return ErrTenantNotFound
+		return entity.ErrTenantNotFound
 	}
 	if userID == 0 {
-		return ErrInvalidUserID
+		return entity.ErrInvalidUserID
 	}
 	if strings.TrimSpace(name) == "" {
-		return ErrInvalidPolicyName
+		return entity.ErrInvalidPolicyName
 	}
 	return s.policies.DeleteTenantUserInlinePolicy(ctx, strings.TrimSpace(tenantID), userID, strings.TrimSpace(name))
 }
@@ -142,10 +143,10 @@ func (s *interactor) AttachTenantUserPolicy(
 	policyName string,
 ) error {
 	if strings.TrimSpace(tenantID) == "" {
-		return ErrTenantNotFound
+		return entity.ErrTenantNotFound
 	}
 	if userID == 0 {
-		return ErrInvalidUserID
+		return entity.ErrInvalidUserID
 	}
 	policy, err := s.policies.GetPolicyByName(ctx, strings.TrimSpace(policyName))
 	if err != nil {
@@ -162,7 +163,7 @@ func (s *interactor) AttachTenantUserPolicy(
 		"policy_name":      policy.Name,
 		"policy_scope":     policy.Scope,
 		"attachment_type":  "tenant_user",
-		"attachment_scope": PolicyScopeTenant,
+		"attachment_scope": entity.PolicyScopeTenant,
 	})
 	if err != nil {
 		return err
@@ -177,10 +178,10 @@ func (s *interactor) DetachTenantUserPolicy(
 	policyName string,
 ) error {
 	if strings.TrimSpace(tenantID) == "" {
-		return ErrTenantNotFound
+		return entity.ErrTenantNotFound
 	}
 	if userID == 0 {
-		return ErrInvalidUserID
+		return entity.ErrInvalidUserID
 	}
 	policy, err := s.policies.GetPolicyByName(ctx, strings.TrimSpace(policyName))
 	if err != nil {
@@ -189,12 +190,12 @@ func (s *interactor) DetachTenantUserPolicy(
 	return s.policies.DetachTenantUserPolicy(ctx, tenantID, userID, policy.ID)
 }
 
-func (s *interactor) ListTenantUserPolicies(ctx context.Context, tenantID string, userID uint) ([]Policy, error) {
+func (s *interactor) ListTenantUserPolicies(ctx context.Context, tenantID string, userID uint) ([]entity.Policy, error) {
 	if strings.TrimSpace(tenantID) == "" {
-		return nil, ErrTenantNotFound
+		return nil, entity.ErrTenantNotFound
 	}
 	if userID == 0 {
-		return nil, ErrInvalidUserID
+		return nil, entity.ErrInvalidUserID
 	}
 	return s.policies.ListTenantUserPolicies(ctx, tenantID, userID)
 }
@@ -207,17 +208,17 @@ func (s *interactor) PutTenantUserPermissionBoundary(
 ) error {
 	tenantID = strings.TrimSpace(tenantID)
 	if tenantID == "" {
-		return ErrTenantNotFound
+		return entity.ErrTenantNotFound
 	}
 	if userID == 0 {
-		return ErrInvalidUserID
+		return entity.ErrInvalidUserID
 	}
 	policy, err := s.policies.GetPolicyByName(ctx, strings.TrimSpace(policyName))
 	if err != nil {
 		return err
 	}
-	if policy.Scope != PolicyScopeTenant {
-		return ErrPermissionDenied
+	if policy.Scope != entity.PolicyScopeTenant {
+		return entity.ErrPermissionDenied
 	}
 	return s.policies.PutTenantUserPermissionBoundary(ctx, tenantID, userID, policy.ID)
 }
@@ -226,13 +227,13 @@ func (s *interactor) GetTenantUserPermissionBoundary(
 	ctx context.Context,
 	tenantID string,
 	userID uint,
-) (*PermissionBoundary, error) {
+) (*entity.PermissionBoundary, error) {
 	tenantID = strings.TrimSpace(tenantID)
 	if tenantID == "" {
-		return nil, ErrTenantNotFound
+		return nil, entity.ErrTenantNotFound
 	}
 	if userID == 0 {
-		return nil, ErrInvalidUserID
+		return nil, entity.ErrInvalidUserID
 	}
 	return s.policies.GetTenantUserPermissionBoundary(ctx, tenantID, userID)
 }
@@ -244,10 +245,10 @@ func (s *interactor) DeleteTenantUserPermissionBoundary(
 ) error {
 	tenantID = strings.TrimSpace(tenantID)
 	if tenantID == "" {
-		return ErrTenantNotFound
+		return entity.ErrTenantNotFound
 	}
 	if userID == 0 {
-		return ErrInvalidUserID
+		return entity.ErrInvalidUserID
 	}
 	return s.policies.DeleteTenantUserPermissionBoundary(ctx, tenantID, userID)
 }
@@ -256,20 +257,20 @@ func (s *interactor) CreateInvite(
 	ctx context.Context,
 	tenantID, email, roleName string,
 	invitedByUserID uint,
-) (*TenantInvite, string, error) {
+) (*entity.TenantInvite, string, error) {
 	if strings.TrimSpace(tenantID) == "" {
-		return nil, "", ErrTenantNotFound
+		return nil, "", entity.ErrTenantNotFound
 	}
 	if invitedByUserID == 0 {
-		return nil, "", ErrInvalidUserID
+		return nil, "", entity.ErrInvalidUserID
 	}
-	email = NormalizeInviteEmail(email)
+	email = entity.NormalizeInviteEmail(email)
 	if email == "" {
-		return nil, "", ErrInvalidInviteEmail
+		return nil, "", entity.ErrInvalidInviteEmail
 	}
 	roleName = strings.TrimSpace(roleName)
 	if roleName == "" {
-		return nil, "", ErrInvalidRoleName
+		return nil, "", entity.ErrInvalidRoleName
 	}
 	if _, err := s.tenants.GetByID(ctx, tenantID); err != nil {
 		return nil, "", err
@@ -278,20 +279,20 @@ func (s *interactor) CreateInvite(
 	if err != nil {
 		return nil, "", err
 	}
-	rawToken, err := NewInviteToken()
+	rawToken, err := entity.NewInviteToken()
 	if err != nil {
 		return nil, "", err
 	}
 	now := time.Now().UTC()
-	invite := TenantInvite{
+	invite := entity.TenantInvite{
 		ID:              uuid.NewString(),
 		TenantID:        tenantID,
 		Email:           email,
 		RoleID:          role.ID,
 		RoleName:        role.Name,
-		Status:          InviteStatusPending,
+		Status:          entity.InviteStatusPending,
 		InvitedByUserID: invitedByUserID,
-		TokenHash:       HashInviteToken(rawToken),
+		TokenHash:       entity.HashInviteToken(rawToken),
 		CreatedAt:       now,
 		UpdatedAt:       now,
 		ExpiresAt:       now.Add(7 * 24 * time.Hour),
@@ -302,16 +303,16 @@ func (s *interactor) CreateInvite(
 	return &invite, rawToken, nil
 }
 
-func (s *interactor) ListTenantInvites(ctx context.Context, tenantID string) ([]TenantInvite, error) {
+func (s *interactor) ListTenantInvites(ctx context.Context, tenantID string) ([]entity.TenantInvite, error) {
 	if strings.TrimSpace(tenantID) == "" {
-		return nil, ErrTenantNotFound
+		return nil, entity.ErrTenantNotFound
 	}
 	return s.invites.ListByTenant(ctx, tenantID)
 }
 
-func (s *interactor) GetInvite(ctx context.Context, inviteID string) (*TenantInvite, error) {
+func (s *interactor) GetInvite(ctx context.Context, inviteID string) (*entity.TenantInvite, error) {
 	if strings.TrimSpace(inviteID) == "" {
-		return nil, ErrInviteNotFound
+		return nil, entity.ErrInviteNotFound
 	}
 	return s.invites.GetByID(ctx, inviteID)
 }
@@ -321,11 +322,11 @@ func (s *interactor) RevokeInvite(ctx context.Context, inviteID string) error {
 	if err != nil {
 		return err
 	}
-	if invite.Status == InviteStatusAccepted {
-		return ErrInviteAccepted
+	if invite.Status == entity.InviteStatusAccepted {
+		return entity.ErrInviteAccepted
 	}
-	if invite.Status == InviteStatusRevoked {
-		return ErrInviteRevoked
+	if invite.Status == entity.InviteStatusRevoked {
+		return entity.ErrInviteRevoked
 	}
 	return s.invites.MarkRevoked(ctx, inviteID, time.Now().UTC())
 }
@@ -335,42 +336,42 @@ func (s *interactor) AcceptInvite(
 	inviteToken string,
 	userID uint,
 	email string,
-) (*Membership, error) {
+) (*entity.Membership, error) {
 	if userID == 0 {
-		return nil, ErrInvalidUserID
+		return nil, entity.ErrInvalidUserID
 	}
-	email = NormalizeInviteEmail(email)
+	email = entity.NormalizeInviteEmail(email)
 	if email == "" {
-		return nil, ErrInvalidInviteEmail
+		return nil, entity.ErrInvalidInviteEmail
 	}
-	tokenHash := HashInviteToken(inviteToken)
+	tokenHash := entity.HashInviteToken(inviteToken)
 	if tokenHash == "" {
-		return nil, ErrInvalidInviteToken
+		return nil, entity.ErrInvalidInviteToken
 	}
 	invite, err := s.invites.GetByTokenHash(ctx, tokenHash)
 	if err != nil {
 		return nil, err
 	}
-	if invite.Status == InviteStatusRevoked {
-		return nil, ErrInviteRevoked
+	if invite.Status == entity.InviteStatusRevoked {
+		return nil, entity.ErrInviteRevoked
 	}
-	if invite.Status == InviteStatusAccepted {
-		return nil, ErrInviteAccepted
+	if invite.Status == entity.InviteStatusAccepted {
+		return nil, entity.ErrInviteAccepted
 	}
 	now := time.Now().UTC()
 	if now.After(invite.ExpiresAt) {
-		return nil, ErrInviteExpired
+		return nil, entity.ErrInviteExpired
 	}
-	if NormalizeInviteEmail(invite.Email) != email {
-		return nil, ErrInviteEmailMismatch
+	if entity.NormalizeInviteEmail(invite.Email) != email {
+		return nil, entity.ErrInviteEmailMismatch
 	}
 
-	membership := Membership{
+	membership := entity.Membership{
 		TenantID:  invite.TenantID,
 		UserID:    userID,
 		RoleID:    invite.RoleID,
 		RoleName:  invite.RoleName,
-		Status:    MembershipStatusActive,
+		Status:    entity.MembershipStatusActive,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
@@ -383,33 +384,33 @@ func (s *interactor) AcceptInvite(
 	return &membership, nil
 }
 
-func (s *interactor) GetMembership(ctx context.Context, tenantID string, userID uint) (*Membership, error) {
+func (s *interactor) GetMembership(ctx context.Context, tenantID string, userID uint) (*entity.Membership, error) {
 	if userID == 0 {
-		return nil, ErrInvalidUserID
+		return nil, entity.ErrInvalidUserID
 	}
 	return s.memberships.GetByTenantAndUser(ctx, tenantID, userID)
 }
 
-func (s *interactor) ListUserTenants(ctx context.Context, userID uint) ([]Membership, error) {
+func (s *interactor) ListUserTenants(ctx context.Context, userID uint) ([]entity.Membership, error) {
 	if userID == 0 {
-		return nil, ErrInvalidUserID
+		return nil, entity.ErrInvalidUserID
 	}
 	return s.memberships.ListByUser(ctx, userID)
 }
 
-func (s *interactor) ListTenantMembers(ctx context.Context, tenantID string) ([]Membership, error) {
+func (s *interactor) ListTenantMembers(ctx context.Context, tenantID string) ([]entity.Membership, error) {
 	if strings.TrimSpace(tenantID) == "" {
-		return nil, ErrTenantNotFound
+		return nil, entity.ErrTenantNotFound
 	}
 	return s.memberships.ListByTenant(ctx, tenantID)
 }
 
 func (s *interactor) RemoveMember(ctx context.Context, tenantID string, userID uint) error {
 	if strings.TrimSpace(tenantID) == "" {
-		return ErrTenantNotFound
+		return entity.ErrTenantNotFound
 	}
 	if userID == 0 {
-		return ErrInvalidUserID
+		return entity.ErrInvalidUserID
 	}
 	return s.memberships.Delete(ctx, tenantID, userID)
 }

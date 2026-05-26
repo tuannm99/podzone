@@ -6,19 +6,20 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/tuannm99/podzone/internal/iam/entity"
 )
 
-func (s *interactor) CreateOrganization(ctx context.Context, name string, slug string) (*Organization, error) {
+func (s *interactor) CreateOrganization(ctx context.Context, name string, slug string) (*entity.Organization, error) {
 	name = strings.TrimSpace(name)
 	slug = strings.TrimSpace(slug)
 	if name == "" {
-		return nil, ErrInvalidOrganizationName
+		return nil, entity.ErrInvalidOrganizationName
 	}
 	if slug == "" {
-		return nil, ErrInvalidOrganizationSlug
+		return nil, entity.ErrInvalidOrganizationSlug
 	}
 	now := time.Now().UTC()
-	return s.orgs.Create(ctx, Organization{
+	return s.orgs.Create(ctx, entity.Organization{
 		ID:        uuid.NewString(),
 		Name:      name,
 		Slug:      slug,
@@ -27,7 +28,7 @@ func (s *interactor) CreateOrganization(ctx context.Context, name string, slug s
 	})
 }
 
-func (s *interactor) ListOrganizations(ctx context.Context) ([]Organization, error) {
+func (s *interactor) ListOrganizations(ctx context.Context) ([]entity.Organization, error) {
 	return s.orgs.List(ctx)
 }
 
@@ -35,10 +36,10 @@ func (s *interactor) AttachTenantToOrganization(ctx context.Context, tenantID st
 	tenantID = strings.TrimSpace(tenantID)
 	orgID = strings.TrimSpace(orgID)
 	if tenantID == "" {
-		return ErrTenantNotFound
+		return entity.ErrTenantNotFound
 	}
 	if orgID == "" {
-		return ErrOrganizationNotFound
+		return entity.ErrOrganizationNotFound
 	}
 	if _, err := s.tenants.GetByID(ctx, tenantID); err != nil {
 		return err
@@ -52,7 +53,7 @@ func (s *interactor) AttachTenantToOrganization(ctx context.Context, tenantID st
 func (s *interactor) DetachTenantFromOrganization(ctx context.Context, tenantID string) error {
 	tenantID = strings.TrimSpace(tenantID)
 	if tenantID == "" {
-		return ErrTenantNotFound
+		return entity.ErrTenantNotFound
 	}
 	return s.tenants.DetachOrganization(ctx, tenantID)
 }
@@ -60,7 +61,7 @@ func (s *interactor) DetachTenantFromOrganization(ctx context.Context, tenantID 
 func (s *interactor) AttachServiceControlPolicy(ctx context.Context, orgID string, policyName string) error {
 	orgID = strings.TrimSpace(orgID)
 	if orgID == "" {
-		return ErrOrganizationNotFound
+		return entity.ErrOrganizationNotFound
 	}
 	policy, err := s.policies.GetPolicyByName(ctx, strings.TrimSpace(policyName))
 	if err != nil {
@@ -72,7 +73,7 @@ func (s *interactor) AttachServiceControlPolicy(ctx context.Context, orgID strin
 func (s *interactor) DetachServiceControlPolicy(ctx context.Context, orgID string, policyName string) error {
 	orgID = strings.TrimSpace(orgID)
 	if orgID == "" {
-		return ErrOrganizationNotFound
+		return entity.ErrOrganizationNotFound
 	}
 	policy, err := s.policies.GetPolicyByName(ctx, strings.TrimSpace(policyName))
 	if err != nil {
@@ -81,10 +82,10 @@ func (s *interactor) DetachServiceControlPolicy(ctx context.Context, orgID strin
 	return s.orgs.DetachServiceControlPolicy(ctx, orgID, policy.ID)
 }
 
-func (s *interactor) ListServiceControlPolicies(ctx context.Context, orgID string) ([]Policy, error) {
+func (s *interactor) ListServiceControlPolicies(ctx context.Context, orgID string) ([]entity.Policy, error) {
 	orgID = strings.TrimSpace(orgID)
 	if orgID == "" {
-		return nil, ErrOrganizationNotFound
+		return nil, entity.ErrOrganizationNotFound
 	}
 	return s.orgs.ListServiceControlPolicies(ctx, orgID)
 }

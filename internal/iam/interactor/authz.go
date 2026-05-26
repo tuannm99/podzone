@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"strings"
+
+	"github.com/tuannm99/podzone/internal/iam/entity"
 )
 
 func (s *interactor) CheckPermission(
@@ -12,11 +14,11 @@ func (s *interactor) CheckPermission(
 	userID uint,
 	permission string,
 ) (bool, error) {
-	if assumedRole, ok := GetAssumedRole(ctx); ok {
-		if assumedRole.RoleScope == PolicyScopeTenant && assumedRole.TenantID != strings.TrimSpace(tenantID) {
+	if assumedRole, ok := entity.GetAssumedRole(ctx); ok {
+		if assumedRole.RoleScope == entity.PolicyScopeTenant && assumedRole.TenantID != strings.TrimSpace(tenantID) {
 			return false, nil
 		}
-		return s.evaluateAssumedRolePermission(ctx, AccessRequest{
+		return s.evaluateAssumedRolePermission(ctx, entity.AccessRequest{
 			TenantID:   tenantID,
 			UserID:     userID,
 			Action:     permission,
@@ -32,10 +34,10 @@ func (s *interactor) CheckPermission(
 	if err != nil {
 		return false, err
 	}
-	if membership.Status != MembershipStatusActive {
-		return false, ErrInactiveMembership
+	if membership.Status != entity.MembershipStatusActive {
+		return false, entity.ErrInactiveMembership
 	}
-	request := AccessRequest{
+	request := entity.AccessRequest{
 		TenantID:   tenantID,
 		OrgID:      tenant.OrgID,
 		UserID:     userID,
@@ -66,7 +68,7 @@ func (s *interactor) CheckPermission(
 		if !s.evaluateOrganizationSCP(ctx, request, tenant.OrgID) {
 			return false, nil
 		}
-		sessionStatements := GetSessionPolicyStatements(ctx)
+		sessionStatements := entity.GetSessionPolicyStatements(ctx)
 		if len(sessionStatements) > 0 {
 			return evaluatePolicyStatements(request, sessionStatements), nil
 		}
@@ -89,7 +91,7 @@ tenantRoleEvaluation:
 			if !s.evaluateOrganizationSCP(ctx, request, tenant.OrgID) {
 				return false, nil
 			}
-			sessionStatements := GetSessionPolicyStatements(ctx)
+			sessionStatements := entity.GetSessionPolicyStatements(ctx)
 			if len(sessionStatements) > 0 {
 				return evaluatePolicyStatements(request, sessionStatements), nil
 			}
@@ -109,7 +111,7 @@ tenantRoleEvaluation:
 	if !s.evaluateOrganizationSCP(ctx, request, tenant.OrgID) {
 		return false, nil
 	}
-	sessionStatements := GetSessionPolicyStatements(ctx)
+	sessionStatements := entity.GetSessionPolicyStatements(ctx)
 	if len(sessionStatements) > 0 {
 		return evaluatePolicyStatements(request, sessionStatements), nil
 	}
@@ -122,26 +124,26 @@ func (s *interactor) RequirePermission(ctx context.Context, tenantID string, use
 		return err
 	}
 	if !allowed {
-		return ErrPermissionDenied
+		return entity.ErrPermissionDenied
 	}
 	return nil
 }
 
-func (s *interactor) SimulateAccess(ctx context.Context, input SimulateAccessInput) (*SimulateAccessResult, error) {
+func (s *interactor) SimulateAccess(ctx context.Context, input entity.SimulateAccessInput) (*entity.SimulateAccessResult, error) {
 	scope := strings.TrimSpace(input.Scope)
 	if scope == "" {
-		scope = PolicyScopeTenant
+		scope = entity.PolicyScopeTenant
 	}
-	request := AccessRequest{
+	request := entity.AccessRequest{
 		TenantID:   strings.TrimSpace(input.TenantID),
 		UserID:     input.UserID,
 		Action:     strings.TrimSpace(input.Action),
 		Resource:   strings.TrimSpace(input.Resource),
 		Attributes: input.Attributes,
 	}
-	result := SimulateAccessResult{}
+	result := entity.SimulateAccessResult{}
 
-	if scope == PolicyScopeTenant && request.TenantID != "" {
+	if scope == entity.PolicyScopeTenant && request.TenantID != "" {
 		tenant, err := s.tenants.GetByID(ctx, request.TenantID)
 		if err != nil {
 			return nil, err
@@ -184,7 +186,7 @@ func (s *interactor) SimulateAccess(ctx context.Context, input SimulateAccessInp
 			identity.DecisionSource = sessionResult.DecisionSource
 			identity.Reason = sessionResult.Reason
 		}
-		if scope == PolicyScopeTenant && request.OrgID != "" {
+		if scope == entity.PolicyScopeTenant && request.OrgID != "" {
 			scpResult, err := s.explainOrganizationSCP(ctx, request, request.OrgID)
 			if err != nil {
 				return nil, err
@@ -202,10 +204,10 @@ func (s *interactor) SimulateAccess(ctx context.Context, input SimulateAccessInp
 		return &identity, nil
 	}
 
-	var statements []PolicyStatement
+	var statements []entity.PolicyStatement
 	var err error
 	switch scope {
-	case PolicyScopePlatform:
+	case entity.PolicyScopePlatform:
 		statements, err = s.policies.ListPlatformUserStatements(ctx, input.UserID)
 		if err != nil {
 			return nil, err
@@ -253,7 +255,7 @@ func (s *interactor) SimulateAccess(ctx context.Context, input SimulateAccessInp
 		return &identity, nil
 	}
 
-	if scope == PolicyScopePlatform {
+	if scope == entity.PolicyScopePlatform {
 		boundaryStatements, boundaryErr := s.policies.GetPlatformUserPermissionBoundaryStatements(ctx, input.UserID)
 		if boundaryErr != nil {
 			return nil, boundaryErr
@@ -313,7 +315,7 @@ func (s *interactor) SimulateAccess(ctx context.Context, input SimulateAccessInp
 
 func (s *interactor) evaluateAssumedRolePermission(
 	ctx context.Context,
-	request AccessRequest,
+	request entity.AccessRequest,
 	roleID uint64,
 	permission string,
 ) (bool, error) {
@@ -329,7 +331,7 @@ func (s *interactor) evaluateAssumedRolePermission(
 		if !s.evaluateRoleBoundary(ctx, request, roleID) {
 			return false, nil
 		}
-		sessionStatements := GetSessionPolicyStatements(ctx)
+		sessionStatements := entity.GetSessionPolicyStatements(ctx)
 		if len(sessionStatements) > 0 {
 			return evaluatePolicyStatements(request, sessionStatements), nil
 		}
@@ -342,14 +344,14 @@ func (s *interactor) evaluateAssumedRolePermission(
 	if !s.evaluateRoleBoundary(ctx, request, roleID) {
 		return false, nil
 	}
-	sessionStatements := GetSessionPolicyStatements(ctx)
+	sessionStatements := entity.GetSessionPolicyStatements(ctx)
 	if len(sessionStatements) > 0 {
 		return evaluatePolicyStatements(request, sessionStatements), nil
 	}
 	return true, nil
 }
 
-func (s *interactor) evaluatePlatformUserBoundary(ctx context.Context, request AccessRequest, userID uint) bool {
+func (s *interactor) evaluatePlatformUserBoundary(ctx context.Context, request entity.AccessRequest, userID uint) bool {
 	statements, err := s.policies.GetPlatformUserPermissionBoundaryStatements(ctx, userID)
 	if err != nil {
 		return false
@@ -360,7 +362,7 @@ func (s *interactor) evaluatePlatformUserBoundary(ctx context.Context, request A
 	return evaluatePolicyStatements(request, statements)
 }
 
-func (s *interactor) evaluateTenantUserBoundary(ctx context.Context, request AccessRequest, tenantID string, userID uint) bool {
+func (s *interactor) evaluateTenantUserBoundary(ctx context.Context, request entity.AccessRequest, tenantID string, userID uint) bool {
 	statements, err := s.policies.GetTenantUserPermissionBoundaryStatements(ctx, tenantID, userID)
 	if err != nil {
 		return false
@@ -371,7 +373,7 @@ func (s *interactor) evaluateTenantUserBoundary(ctx context.Context, request Acc
 	return evaluatePolicyStatements(request, statements)
 }
 
-func (s *interactor) evaluateRoleBoundary(ctx context.Context, request AccessRequest, roleID uint64) bool {
+func (s *interactor) evaluateRoleBoundary(ctx context.Context, request entity.AccessRequest, roleID uint64) bool {
 	statements, err := s.roles.GetPermissionBoundaryStatements(ctx, roleID)
 	if err != nil {
 		return false
@@ -382,7 +384,7 @@ func (s *interactor) evaluateRoleBoundary(ctx context.Context, request AccessReq
 	return evaluatePolicyStatements(request, statements)
 }
 
-func (s *interactor) evaluateOrganizationSCP(ctx context.Context, request AccessRequest, orgID string) bool {
+func (s *interactor) evaluateOrganizationSCP(ctx context.Context, request entity.AccessRequest, orgID string) bool {
 	orgID = strings.TrimSpace(orgID)
 	if orgID == "" {
 		return true
@@ -397,7 +399,7 @@ func (s *interactor) evaluateOrganizationSCP(ctx context.Context, request Access
 	return evaluatePolicyStatements(request, statements)
 }
 
-func (s *interactor) explainOrganizationSCP(ctx context.Context, request AccessRequest, orgID string) (*SimulateAccessResult, error) {
+func (s *interactor) explainOrganizationSCP(ctx context.Context, request entity.AccessRequest, orgID string) (*entity.SimulateAccessResult, error) {
 	orgID = strings.TrimSpace(orgID)
 	if orgID == "" {
 		return nil, nil
@@ -413,8 +415,8 @@ func (s *interactor) explainOrganizationSCP(ctx context.Context, request AccessR
 	return &result, nil
 }
 
-func decisionLayerFromResult(layer string, result SimulateAccessResult) SimulateDecisionLayer {
-	return SimulateDecisionLayer{
+func decisionLayerFromResult(layer string, result entity.SimulateAccessResult) entity.SimulateDecisionLayer {
+	return entity.SimulateDecisionLayer{
 		Layer:             layer,
 		Allowed:           result.Allowed,
 		Reason:            result.Reason,
@@ -428,14 +430,14 @@ func (s *interactor) canAssumeRole(
 	tenantID string,
 	externalID string,
 	servicePrincipal string,
-	statements []RoleTrustStatement,
+	statements []entity.RoleTrustStatement,
 ) bool {
 	if len(statements) == 0 {
 		return false
 	}
 
 	platformMemberships, _ := s.platformMemberships.ListByUser(ctx, userID)
-	var tenantMembership *Membership
+	var tenantMembership *entity.Membership
 	if tenantID != "" {
 		tenantMembership, _ = s.memberships.GetByTenantAndUser(ctx, tenantID, userID)
 	}
@@ -445,10 +447,10 @@ func (s *interactor) canAssumeRole(
 		if !matchesTrustStatement(statement, userID, tenantID, externalID, servicePrincipal, platformMemberships, tenantMembership) {
 			continue
 		}
-		if statement.Effect == PolicyEffectDeny {
+		if statement.Effect == entity.PolicyEffectDeny {
 			return false
 		}
-		if statement.Effect == PolicyEffectAllow {
+		if statement.Effect == entity.PolicyEffectAllow {
 			allowed = true
 		}
 	}
@@ -456,13 +458,13 @@ func (s *interactor) canAssumeRole(
 }
 
 func matchesTrustStatement(
-	statement RoleTrustStatement,
+	statement entity.RoleTrustStatement,
 	userID uint,
 	tenantID string,
 	externalID string,
 	servicePrincipal string,
-	platformMemberships []PlatformMembership,
-	tenantMembership *Membership,
+	platformMemberships []entity.PlatformMembership,
+	tenantMembership *entity.Membership,
 ) bool {
 	if !matchesPattern(statement.TenantPattern, tenantID) {
 		return false
@@ -471,18 +473,18 @@ func matchesTrustStatement(
 		return false
 	}
 	switch statement.PrincipalType {
-	case TrustPrincipalUser:
+	case entity.TrustPrincipalUser:
 		return matchesPattern(statement.PrincipalPattern, fmt.Sprintf("%d", userID))
-	case TrustPrincipalService:
+	case entity.TrustPrincipalService:
 		return servicePrincipal != "" && matchesPattern(statement.PrincipalPattern, servicePrincipal)
-	case TrustPrincipalPlatformRole:
+	case entity.TrustPrincipalPlatformRole:
 		for _, membership := range platformMemberships {
 			if matchesPattern(statement.PrincipalPattern, membership.RoleName) {
 				return true
 			}
 		}
-	case TrustPrincipalTenantRole:
-		if tenantMembership == nil || tenantMembership.Status != MembershipStatusActive {
+	case entity.TrustPrincipalTenantRole:
+		if tenantMembership == nil || tenantMembership.Status != entity.MembershipStatusActive {
 			return false
 		}
 		return matchesPattern(statement.PrincipalPattern, tenantMembership.RoleName)

@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS tenants (
 
 CREATE TABLE IF NOT EXISTS tenant_memberships (
   tenant_id TEXT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id BIGINT NOT NULL,
   role_id BIGINT NOT NULL REFERENCES iam_roles(id),
   status TEXT NOT NULL DEFAULT 'active',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),

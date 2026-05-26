@@ -35,6 +35,9 @@ const (
 	AuthService_ListSessions_FullMethodName        = "/auth.AuthService/ListSessions"
 	AuthService_RevokeSession_FullMethodName       = "/auth.AuthService/RevokeSession"
 	AuthService_ListAuditLogs_FullMethodName       = "/auth.AuthService/ListAuditLogs"
+	AuthService_GetUserByIdentity_FullMethodName   = "/auth.AuthService/GetUserByIdentity"
+	AuthService_EnsureUserByEmail_FullMethodName   = "/auth.AuthService/EnsureUserByEmail"
+	AuthService_GetUserByID_FullMethodName         = "/auth.AuthService/GetUserByID"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -60,6 +63,9 @@ type AuthServiceClient interface {
 	ListSessions(ctx context.Context, in *ListSessionsRequest, opts ...grpc.CallOption) (*ListSessionsResponse, error)
 	RevokeSession(ctx context.Context, in *RevokeSessionRequest, opts ...grpc.CallOption) (*RevokeSessionResponse, error)
 	ListAuditLogs(ctx context.Context, in *ListAuditLogsRequest, opts ...grpc.CallOption) (*ListAuditLogsResponse, error)
+	GetUserByIdentity(ctx context.Context, in *GetUserByIdentityRequest, opts ...grpc.CallOption) (*GetUserByIdentityResponse, error)
+	EnsureUserByEmail(ctx context.Context, in *EnsureUserByEmailRequest, opts ...grpc.CallOption) (*EnsureUserByEmailResponse, error)
+	GetUserByID(ctx context.Context, in *GetUserByIDRequest, opts ...grpc.CallOption) (*GetUserByIDResponse, error)
 }
 
 type authServiceClient struct {
@@ -230,6 +236,36 @@ func (c *authServiceClient) ListAuditLogs(ctx context.Context, in *ListAuditLogs
 	return out, nil
 }
 
+func (c *authServiceClient) GetUserByIdentity(ctx context.Context, in *GetUserByIdentityRequest, opts ...grpc.CallOption) (*GetUserByIdentityResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserByIdentityResponse)
+	err := c.cc.Invoke(ctx, AuthService_GetUserByIdentity_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) EnsureUserByEmail(ctx context.Context, in *EnsureUserByEmailRequest, opts ...grpc.CallOption) (*EnsureUserByEmailResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EnsureUserByEmailResponse)
+	err := c.cc.Invoke(ctx, AuthService_EnsureUserByEmail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) GetUserByID(ctx context.Context, in *GetUserByIDRequest, opts ...grpc.CallOption) (*GetUserByIDResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserByIDResponse)
+	err := c.cc.Invoke(ctx, AuthService_GetUserByID_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
@@ -253,6 +289,9 @@ type AuthServiceServer interface {
 	ListSessions(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error)
 	RevokeSession(context.Context, *RevokeSessionRequest) (*RevokeSessionResponse, error)
 	ListAuditLogs(context.Context, *ListAuditLogsRequest) (*ListAuditLogsResponse, error)
+	GetUserByIdentity(context.Context, *GetUserByIdentityRequest) (*GetUserByIdentityResponse, error)
+	EnsureUserByEmail(context.Context, *EnsureUserByEmailRequest) (*EnsureUserByEmailResponse, error)
+	GetUserByID(context.Context, *GetUserByIDRequest) (*GetUserByIDResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -310,6 +349,15 @@ func (UnimplementedAuthServiceServer) RevokeSession(context.Context, *RevokeSess
 }
 func (UnimplementedAuthServiceServer) ListAuditLogs(context.Context, *ListAuditLogsRequest) (*ListAuditLogsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAuditLogs not implemented")
+}
+func (UnimplementedAuthServiceServer) GetUserByIdentity(context.Context, *GetUserByIdentityRequest) (*GetUserByIdentityResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserByIdentity not implemented")
+}
+func (UnimplementedAuthServiceServer) EnsureUserByEmail(context.Context, *EnsureUserByEmailRequest) (*EnsureUserByEmailResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EnsureUserByEmail not implemented")
+}
+func (UnimplementedAuthServiceServer) GetUserByID(context.Context, *GetUserByIDRequest) (*GetUserByIDResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserByID not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -620,6 +668,60 @@ func _AuthService_ListAuditLogs_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_GetUserByIdentity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserByIdentityRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).GetUserByIdentity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_GetUserByIdentity_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).GetUserByIdentity(ctx, req.(*GetUserByIdentityRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_EnsureUserByEmail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EnsureUserByEmailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).EnsureUserByEmail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_EnsureUserByEmail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).EnsureUserByEmail(ctx, req.(*EnsureUserByEmailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_GetUserByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserByIDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).GetUserByID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_GetUserByID_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).GetUserByID(ctx, req.(*GetUserByIDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -690,6 +792,18 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAuditLogs",
 			Handler:    _AuthService_ListAuditLogs_Handler,
+		},
+		{
+			MethodName: "GetUserByIdentity",
+			Handler:    _AuthService_GetUserByIdentity_Handler,
+		},
+		{
+			MethodName: "EnsureUserByEmail",
+			Handler:    _AuthService_EnsureUserByEmail_Handler,
+		},
+		{
+			MethodName: "GetUserByID",
+			Handler:    _AuthService_GetUserByID_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

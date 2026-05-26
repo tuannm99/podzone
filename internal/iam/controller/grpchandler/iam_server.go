@@ -9,15 +9,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
-	"github.com/tuannm99/podzone/internal/auth/config"
-	"github.com/tuannm99/podzone/internal/auth/domain/entity"
-	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
+	iamconfig "github.com/tuannm99/podzone/internal/iam/config"
+	iammapper "github.com/tuannm99/podzone/internal/iam/controller/mapper"
 	iamdomain "github.com/tuannm99/podzone/internal/iam/entity"
 	iaminputport "github.com/tuannm99/podzone/internal/iam/inputport"
+	iamoutputport "github.com/tuannm99/podzone/internal/iam/outputport"
+	"github.com/tuannm99/podzone/pkg/pdauthn"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
 	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
@@ -26,27 +25,24 @@ import (
 type IAMServer struct {
 	pbauthv1.UnimplementedIAMServiceServer
 	iamUC          iaminputport.IAMUsecase
-	sessionRep     outputport.SessionRepository
-	auditRep       outputport.AuditLogRepository
-	userRepo       outputport.UserRepository
-	jwtSecret      string
-	jwtKey         string
+	auditRep       iamoutputport.AuditLogRepository
+	userDirectory  iamoutputport.UserDirectory
 	appRedirectURL string
+	verifier       *pdauthn.Verifier
 }
 
 func NewIAMServer(
 	iamUC iaminputport.IAMUsecase,
-	auditRep outputport.AuditLogRepository,
-	userRepo outputport.UserRepository,
-	cfg config.AuthConfig,
+	auditRep iamoutputport.AuditLogRepository,
+	userDirectory iamoutputport.UserDirectory,
+	cfg iamconfig.ServerConfig,
 ) *IAMServer {
 	return &IAMServer{
 		iamUC:          iamUC,
 		auditRep:       auditRep,
-		userRepo:       userRepo,
-		jwtSecret:      cfg.JWTSecret,
-		jwtKey:         cfg.JWTKey,
+		userDirectory:  userDirectory,
 		appRedirectURL: cfg.AppRedirectURL,
+		verifier:       pdauthn.NewVerifier(cfg.Authn),
 	}
 }
 
@@ -83,8 +79,8 @@ func (s *IAMServer) CreateTenant(
 		"name": tenant.Name,
 	})
 	return &pbauthv1.CreateTenantResponse{
-		Tenant:          toProtoTenant(tenant),
-		OwnerMembership: toProtoMembership(membership),
+		Tenant:          iammapper.ToPBTenant(tenant),
+		OwnerMembership: iammapper.ToPBMembership(membership),
 	}, nil
 }
 
@@ -109,13 +105,13 @@ func (s *IAMServer) AssumeRole(
 		SessionName:      req.SessionName,
 		SourceIdentity:   req.SourceIdentity,
 		DurationSeconds:  req.DurationSeconds,
-		SessionTags:      cloneStringMap(req.SessionTags),
+		SessionTags:      iammapper.CloneStringMap(req.SessionTags),
 	})
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
 	return &pbauthv1.IAMAssumeRoleResponse{
-		AssumedRole: toProtoIAMAssumedRole(assumedRole),
+		AssumedRole: iammapper.ToPBIAMAssumedRole(assumedRole),
 	}, nil
 }
 
@@ -138,7 +134,7 @@ func (s *IAMServer) CreateOrganization(
 		"slug": org.Slug,
 		"name": org.Name,
 	})
-	return &pbauthv1.CreateOrganizationResponse{Organization: toProtoOrganization(org)}, nil
+	return &pbauthv1.CreateOrganizationResponse{Organization: iammapper.ToPBOrganization(org)}, nil
 }
 
 func (s *IAMServer) ListOrganizations(
@@ -159,7 +155,7 @@ func (s *IAMServer) ListOrganizations(
 	out := make([]*pbauthv1.Organization, 0, len(items))
 	for i := range items {
 		item := items[i]
-		out = append(out, toProtoOrganization(&item))
+		out = append(out, iammapper.ToPBOrganization(&item))
 	}
 	return &pbauthv1.ListOrganizationsResponse{Organizations: out}, nil
 }
@@ -295,7 +291,7 @@ func (s *IAMServer) ListServiceControlPolicies(
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	return &pbauthv1.ListServiceControlPoliciesResponse{Policies: toProtoPolicies(items)}, nil
+	return &pbauthv1.ListServiceControlPoliciesResponse{Policies: iammapper.ToPBPolicies(items)}, nil
 }
 
 func (s *IAMServer) AddTenantMember(
@@ -347,30 +343,29 @@ func (s *IAMServer) AddTenantMemberByIdentity(
 	if identity == "" {
 		return nil, status.Error(codes.InvalidArgument, "identity is required")
 	}
-	if s.userRepo == nil {
-		return nil, status.Error(codes.Internal, "user repository is not configured")
+	if s.userDirectory == nil {
+		return nil, status.Error(codes.Internal, "user directory is not configured")
 	}
 
 	createdUser := false
-	user, err := s.userRepo.GetByUsernameOrEmail(identity)
+	user, err := s.userDirectory.GetByIdentity(ctx, identity)
 	if err != nil {
-		if strings.Contains(identity, "@") && errors.Is(err, entity.ErrUserNotFound) {
-			user, err = s.userRepo.CreateByEmailIfNotExisted(identity)
+		if strings.Contains(identity, "@") && errors.Is(err, iamdomain.ErrUserNotFound) {
+			user, createdUser, err = s.userDirectory.EnsureByEmail(ctx, identity)
 			if err != nil {
 				return nil, status.Error(codes.Internal, err.Error())
 			}
-			createdUser = true
-		} else if errors.Is(err, entity.ErrUserNotFound) {
+		} else if errors.Is(err, iamdomain.ErrUserNotFound) {
 			return nil, status.Error(codes.NotFound, err.Error())
 		} else {
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
-	if user == nil || user.Id == 0 {
+	if user == nil || user.ID == 0 {
 		return nil, status.Error(codes.NotFound, "user not found")
 	}
 
-	if err := s.iamUC.AddMember(ctx, req.TenantId, user.Id, req.RoleName); err != nil {
+	if err := s.iamUC.AddMember(ctx, req.TenantId, user.ID, req.RoleName); err != nil {
 		return nil, iamStatusError(err)
 	}
 	s.recordAudit(
@@ -378,17 +373,17 @@ func (s *IAMServer) AddTenantMemberByIdentity(
 		actorUserID,
 		"tenant.member.identity_added",
 		"tenant_member",
-		fmt.Sprintf("%s:%d", req.TenantId, user.Id),
+		fmt.Sprintf("%s:%d", req.TenantId, user.ID),
 		req.TenantId,
 		map[string]any{
-			"user_id":      user.Id,
+			"user_id":      user.ID,
 			"identity":     identity,
 			"role_name":    req.RoleName,
 			"created_user": createdUser,
 		},
 	)
 	return &pbauthv1.AddTenantMemberByIdentityResponse{
-		UserId:      uint64(user.Id),
+		UserId:      uint64(user.ID),
 		CreatedUser: createdUser,
 	}, nil
 }
@@ -414,7 +409,7 @@ func (s *IAMServer) CreateTenantInvite(
 		"role_name": invite.RoleName,
 	})
 	return &pbauthv1.CreateTenantInviteResponse{
-		Invite:      toProtoInvite(invite),
+		Invite:      iammapper.ToPBTenantInvite(invite),
 		InviteToken: rawToken,
 		AcceptUrl:   acceptURL,
 	}, nil
@@ -437,7 +432,7 @@ func (s *IAMServer) ListTenantInvites(
 	}
 	out := make([]*pbauthv1.TenantInvite, 0, len(items))
 	for i := range items {
-		out = append(out, toProtoInvite(&items[i]))
+		out = append(out, iammapper.ToPBTenantInvite(&items[i]))
 	}
 	return &pbauthv1.ListTenantInvitesResponse{Invites: out}, nil
 }
@@ -482,10 +477,10 @@ func (s *IAMServer) AcceptTenantInvite(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if s.userRepo == nil {
-		return nil, status.Error(codes.Internal, "user repository is not configured")
+	if s.userDirectory == nil {
+		return nil, status.Error(codes.Internal, "user directory is not configured")
 	}
-	user, err := s.userRepo.GetByID(fmt.Sprintf("%d", actorUserID))
+	user, err := s.userDirectory.GetByID(ctx, actorUserID)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -505,7 +500,7 @@ func (s *IAMServer) AcceptTenantInvite(
 		},
 	)
 	return &pbauthv1.AcceptTenantInviteResponse{
-		Membership: toProtoMembership(membership),
+		Membership: iammapper.ToPBMembership(membership),
 	}, nil
 }
 
@@ -523,7 +518,7 @@ func (s *IAMServer) GetTenantMembership(
 		return nil, iamStatusError(err)
 	}
 	return &pbauthv1.GetTenantMembershipResponse{
-		Membership: toProtoMembership(membership),
+		Membership: iammapper.ToPBMembership(membership),
 	}, nil
 }
 
@@ -587,7 +582,7 @@ func (s *IAMServer) ListUserTenants(
 	out := make([]*pbauthv1.TenantMembership, 0, len(items))
 	for i := range items {
 		item := items[i]
-		out = append(out, toProtoMembership(&item))
+		out = append(out, iammapper.ToPBMembership(&item))
 	}
 	return &pbauthv1.ListUserTenantsResponse{Memberships: out}, nil
 }
@@ -614,7 +609,7 @@ func (s *IAMServer) ListPlatformRoles(
 	out := make([]*pbauthv1.PlatformRoleMembership, 0, len(items))
 	for i := range items {
 		item := items[i]
-		out = append(out, toProtoPlatformMembership(&item))
+		out = append(out, iammapper.ToPBPlatformMembership(&item))
 	}
 	return &pbauthv1.ListPlatformRolesResponse{Memberships: out}, nil
 }
@@ -667,7 +662,7 @@ func (s *IAMServer) CreatePolicy(
 		Scope:       req.Scope,
 		Name:        req.Name,
 		Description: req.Description,
-		Statements:  fromProtoPolicyStatements(req.Statements),
+		Statements:  iammapper.FromPBPolicyStatements(req.Statements),
 	})
 	if err != nil {
 		return nil, iamStatusError(err)
@@ -677,8 +672,8 @@ func (s *IAMServer) CreatePolicy(
 		"statements": len(statements),
 	})
 	return &pbauthv1.CreatePolicyResponse{
-		Policy:     toProtoPolicy(policy),
-		Statements: toProtoPolicyStatements(statements),
+		Policy:     iammapper.ToPBPolicy(policy),
+		Statements: iammapper.ToPBPolicyStatements(statements),
 	}, nil
 }
 
@@ -695,7 +690,7 @@ func (s *IAMServer) CreatePolicyVersion(
 	}
 	version, statements, err := s.iamUC.CreatePolicyVersion(ctx, iamdomain.CreatePolicyVersionInput{
 		PolicyName:   req.Name,
-		Statements:   fromProtoPolicyStatements(req.Statements),
+		Statements:   iammapper.FromPBPolicyStatements(req.Statements),
 		SetAsDefault: req.SetAsDefault,
 	})
 	if err != nil {
@@ -707,8 +702,8 @@ func (s *IAMServer) CreatePolicyVersion(
 		"statements":     len(statements),
 	})
 	return &pbauthv1.CreatePolicyVersionResponse{
-		PolicyVersion: toProtoPolicyVersion(version),
-		Statements:    toProtoPolicyStatements(statements),
+		PolicyVersion: iammapper.ToPBPolicyVersion(version),
+		Statements:    iammapper.ToPBPolicyStatements(statements),
 	}, nil
 }
 
@@ -728,8 +723,8 @@ func (s *IAMServer) GetPolicy(
 		return nil, iamStatusError(err)
 	}
 	return &pbauthv1.GetPolicyResponse{
-		Policy:     toProtoPolicy(policy),
-		Statements: toProtoPolicyStatements(statements),
+		Policy:     iammapper.ToPBPolicy(policy),
+		Statements: iammapper.ToPBPolicyStatements(statements),
 	}, nil
 }
 
@@ -750,7 +745,7 @@ func (s *IAMServer) ListPolicyVersions(
 	}
 	out := make([]*pbauthv1.PolicyVersion, 0, len(items))
 	for i := range items {
-		out = append(out, toProtoPolicyVersion(&items[i]))
+		out = append(out, iammapper.ToPBPolicyVersion(&items[i]))
 	}
 	return &pbauthv1.ListPolicyVersionsResponse{Versions: out}, nil
 }
@@ -818,7 +813,7 @@ func (s *IAMServer) ListPolicies(
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	return &pbauthv1.ListPoliciesResponse{Policies: toProtoPolicies(items)}, nil
+	return &pbauthv1.ListPoliciesResponse{Policies: iammapper.ToPBPolicies(items)}, nil
 }
 
 func (s *IAMServer) ListPolicyAttachments(
@@ -836,7 +831,7 @@ func (s *IAMServer) ListPolicyAttachments(
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	return &pbauthv1.ListPolicyAttachmentsResponse{Attachments: toProtoPolicyAttachments(items)}, nil
+	return &pbauthv1.ListPolicyAttachmentsResponse{Attachments: iammapper.ToPBPolicyAttachments(items)}, nil
 }
 
 func (s *IAMServer) DeletePolicy(
@@ -872,7 +867,7 @@ func (s *IAMServer) PutRoleTrustPolicy(
 	}
 	if err := s.iamUC.PutRoleTrustPolicy(ctx, iamdomain.PutRoleTrustPolicyInput{
 		RoleName:   req.RoleName,
-		Statements: fromProtoRoleTrustStatements(req.Statements),
+		Statements: iammapper.FromPBRoleTrustStatements(req.Statements),
 	}); err != nil {
 		return nil, iamStatusError(err)
 	}
@@ -894,7 +889,7 @@ func (s *IAMServer) GetRoleTrustPolicy(
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	return &pbauthv1.GetRoleTrustPolicyResponse{Statements: toProtoRoleTrustStatements(items)}, nil
+	return &pbauthv1.GetRoleTrustPolicyResponse{Statements: iammapper.ToPBRoleTrustStatements(items)}, nil
 }
 
 func (s *IAMServer) DeleteRoleTrustPolicy(
@@ -938,7 +933,7 @@ func (s *IAMServer) CreateGroup(
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	return &pbauthv1.CreateGroupResponse{Group: toProtoGroup(group)}, nil
+	return &pbauthv1.CreateGroupResponse{Group: iammapper.ToPBGroup(group)}, nil
 }
 
 func (s *IAMServer) ListGroups(
@@ -964,7 +959,7 @@ func (s *IAMServer) ListGroups(
 	}
 	out := make([]*pbauthv1.Group, 0, len(items))
 	for i := range items {
-		out = append(out, toProtoGroup(&items[i]))
+		out = append(out, iammapper.ToPBGroup(&items[i]))
 	}
 	return &pbauthv1.ListGroupsResponse{Groups: out}, nil
 }
@@ -1093,7 +1088,7 @@ func (s *IAMServer) ListGroupPolicies(
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	return &pbauthv1.ListGroupPoliciesResponse{Policies: toProtoPolicies(items)}, nil
+	return &pbauthv1.ListGroupPoliciesResponse{Policies: iammapper.ToPBPolicies(items)}, nil
 }
 
 func (s *IAMServer) DetachGroupPolicy(
@@ -1128,7 +1123,7 @@ func (s *IAMServer) PutGroupInlinePolicy(
 		GroupID:     req.GroupId,
 		Name:        req.Name,
 		Description: req.Description,
-		Statements:  fromProtoPolicyStatements(req.Statements),
+		Statements:  iammapper.FromPBPolicyStatements(req.Statements),
 	}); err != nil {
 		return nil, iamStatusError(err)
 	}
@@ -1150,7 +1145,7 @@ func (s *IAMServer) GetGroupInlinePolicy(
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	return &pbauthv1.GetGroupInlinePolicyResponse{Policy: toProtoGroupInlinePolicy(item)}, nil
+	return &pbauthv1.GetGroupInlinePolicyResponse{Policy: iammapper.ToPBGroupInlinePolicy(item)}, nil
 }
 
 func (s *IAMServer) ListGroupInlinePolicies(
@@ -1170,7 +1165,7 @@ func (s *IAMServer) ListGroupInlinePolicies(
 	}
 	out := make([]*pbauthv1.GroupInlinePolicy, 0, len(items))
 	for i := range items {
-		out = append(out, toProtoGroupInlinePolicy(&items[i]))
+		out = append(out, iammapper.ToPBGroupInlinePolicy(&items[i]))
 	}
 	return &pbauthv1.ListGroupInlinePoliciesResponse{Policies: out}, nil
 }
@@ -1211,7 +1206,7 @@ func (s *IAMServer) ListPlatformUserPolicies(
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	return &pbauthv1.ListPlatformUserPoliciesResponse{Policies: toProtoPolicies(items)}, nil
+	return &pbauthv1.ListPlatformUserPoliciesResponse{Policies: iammapper.ToPBPolicies(items)}, nil
 }
 
 func (s *IAMServer) PutPlatformUserInlinePolicy(
@@ -1233,7 +1228,7 @@ func (s *IAMServer) PutPlatformUserInlinePolicy(
 		UserID:      targetUserID,
 		Name:        req.Name,
 		Description: req.Description,
-		Statements:  fromProtoPolicyStatements(req.Statements),
+		Statements:  iammapper.FromPBPolicyStatements(req.Statements),
 	}); err != nil {
 		return nil, iamStatusError(err)
 	}
@@ -1259,7 +1254,7 @@ func (s *IAMServer) GetPlatformUserInlinePolicy(
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	return &pbauthv1.GetPlatformUserInlinePolicyResponse{Policy: toProtoUserInlinePolicy(item)}, nil
+	return &pbauthv1.GetPlatformUserInlinePolicyResponse{Policy: iammapper.ToPBUserInlinePolicy(item)}, nil
 }
 
 func (s *IAMServer) ListPlatformUserInlinePolicies(
@@ -1283,7 +1278,7 @@ func (s *IAMServer) ListPlatformUserInlinePolicies(
 	}
 	out := make([]*pbauthv1.UserInlinePolicy, 0, len(items))
 	for i := range items {
-		out = append(out, toProtoUserInlinePolicy(&items[i]))
+		out = append(out, iammapper.ToPBUserInlinePolicy(&items[i]))
 	}
 	return &pbauthv1.ListPlatformUserInlinePoliciesResponse{Policies: out}, nil
 }
@@ -1427,7 +1422,7 @@ func (s *IAMServer) GetPlatformUserPermissionBoundary(
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	return &pbauthv1.GetPlatformUserPermissionBoundaryResponse{Boundary: toProtoPermissionBoundary(item)}, nil
+	return &pbauthv1.GetPlatformUserPermissionBoundaryResponse{Boundary: iammapper.ToPBPermissionBoundary(item)}, nil
 }
 
 func (s *IAMServer) DeletePlatformUserPermissionBoundary(
@@ -1513,7 +1508,7 @@ func (s *IAMServer) ListTenantMembers(
 	out := make([]*pbauthv1.TenantMembership, 0, len(items))
 	for i := range items {
 		item := items[i]
-		out = append(out, toProtoMembership(&item))
+		out = append(out, iammapper.ToPBMembership(&item))
 	}
 	return &pbauthv1.ListTenantMembersResponse{Memberships: out}, nil
 }
@@ -1569,7 +1564,7 @@ func (s *IAMServer) ListTenantUserPolicies(
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	return &pbauthv1.ListTenantUserPoliciesResponse{Policies: toProtoPolicies(items)}, nil
+	return &pbauthv1.ListTenantUserPoliciesResponse{Policies: iammapper.ToPBPolicies(items)}, nil
 }
 
 func (s *IAMServer) PutTenantUserInlinePolicy(
@@ -1592,7 +1587,7 @@ func (s *IAMServer) PutTenantUserInlinePolicy(
 		UserID:      userID,
 		Name:        req.Name,
 		Description: req.Description,
-		Statements:  fromProtoPolicyStatements(req.Statements),
+		Statements:  iammapper.FromPBPolicyStatements(req.Statements),
 	}); err != nil {
 		return nil, iamStatusError(err)
 	}
@@ -1618,7 +1613,7 @@ func (s *IAMServer) GetTenantUserInlinePolicy(
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	return &pbauthv1.GetTenantUserInlinePolicyResponse{Policy: toProtoUserInlinePolicy(item)}, nil
+	return &pbauthv1.GetTenantUserInlinePolicyResponse{Policy: iammapper.ToPBUserInlinePolicy(item)}, nil
 }
 
 func (s *IAMServer) ListTenantUserInlinePolicies(
@@ -1642,7 +1637,7 @@ func (s *IAMServer) ListTenantUserInlinePolicies(
 	}
 	out := make([]*pbauthv1.UserInlinePolicy, 0, len(items))
 	for i := range items {
-		out = append(out, toProtoUserInlinePolicy(&items[i]))
+		out = append(out, iammapper.ToPBUserInlinePolicy(&items[i]))
 	}
 	return &pbauthv1.ListTenantUserInlinePoliciesResponse{Policies: out}, nil
 }
@@ -1789,7 +1784,7 @@ func (s *IAMServer) GetTenantUserPermissionBoundary(
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	return &pbauthv1.GetTenantUserPermissionBoundaryResponse{Boundary: toProtoPermissionBoundary(item)}, nil
+	return &pbauthv1.GetTenantUserPermissionBoundaryResponse{Boundary: iammapper.ToPBPermissionBoundary(item)}, nil
 }
 
 func (s *IAMServer) DeleteTenantUserPermissionBoundary(
@@ -1868,7 +1863,7 @@ func (s *IAMServer) GetRolePermissionBoundary(
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	return &pbauthv1.GetRolePermissionBoundaryResponse{Boundary: toProtoRolePermissionBoundary(item)}, nil
+	return &pbauthv1.GetRolePermissionBoundaryResponse{Boundary: iammapper.ToPBRolePermissionBoundary(item)}, nil
 }
 
 func (s *IAMServer) DeleteRolePermissionBoundary(
@@ -1925,14 +1920,14 @@ func (s *IAMServer) SimulateAccess(
 		Resource:         req.Resource,
 		UseAssumedRole:   req.UseAssumedRole,
 		AssumedRole:      assumedRole,
-		SessionPolicy:    fromProtoPolicyStatements(req.SessionPolicy),
+		SessionPolicy:    iammapper.FromPBPolicyStatements(req.SessionPolicy),
 		Attributes:       mergeStringMaps(req.Attributes, toPrincipalTagAttributes(req.SessionTags)),
 		ServicePrincipal: req.ServicePrincipal,
 	})
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	return toProtoSimulateAccessResponse(result), nil
+	return iammapper.ToPBSimulateAccessResponse(result), nil
 }
 
 func toUint(v uint64) (uint, error) {
@@ -1943,213 +1938,6 @@ func toUint(v uint64) (uint, error) {
 		return 0, status.Error(codes.InvalidArgument, "user_id is out of range")
 	}
 	return uint(v), nil
-}
-
-func toProtoTenant(t *iamdomain.Tenant) *pbauthv1.Tenant {
-	if t == nil {
-		return nil
-	}
-
-	return &pbauthv1.Tenant{
-		Id:        t.ID,
-		Slug:      t.Slug,
-		Name:      t.Name,
-		CreatedAt: t.CreatedAt.Format(time.RFC3339),
-		UpdatedAt: t.UpdatedAt.Format(time.RFC3339),
-		OrgId:     t.OrgID,
-	}
-}
-
-func toProtoOrganization(org *iamdomain.Organization) *pbauthv1.Organization {
-	if org == nil {
-		return nil
-	}
-	return &pbauthv1.Organization{
-		Id:        org.ID,
-		Slug:      org.Slug,
-		Name:      org.Name,
-		CreatedAt: org.CreatedAt.Format(time.RFC3339),
-		UpdatedAt: org.UpdatedAt.Format(time.RFC3339),
-	}
-}
-
-func toProtoMembership(m *iamdomain.Membership) *pbauthv1.TenantMembership {
-	if m == nil {
-		return nil
-	}
-	return &pbauthv1.TenantMembership{
-		TenantId:  m.TenantID,
-		UserId:    uint64(m.UserID),
-		RoleId:    m.RoleID,
-		RoleName:  m.RoleName,
-		Status:    m.Status,
-		CreatedAt: m.CreatedAt.Format(time.RFC3339),
-		UpdatedAt: m.UpdatedAt.Format(time.RFC3339),
-	}
-}
-
-func toProtoPlatformMembership(m *iamdomain.PlatformMembership) *pbauthv1.PlatformRoleMembership {
-	if m == nil {
-		return nil
-	}
-	return &pbauthv1.PlatformRoleMembership{
-		UserId:    uint64(m.UserID),
-		RoleId:    m.RoleID,
-		RoleName:  m.RoleName,
-		Status:    m.Status,
-		CreatedAt: m.CreatedAt.Format(time.RFC3339),
-		UpdatedAt: m.UpdatedAt.Format(time.RFC3339),
-	}
-}
-
-func toProtoPolicy(policy *iamdomain.Policy) *pbauthv1.Policy {
-	if policy == nil {
-		return nil
-	}
-	return &pbauthv1.Policy{
-		Id:             policy.ID,
-		Scope:          policy.Scope,
-		Name:           policy.Name,
-		Description:    policy.Description,
-		IsSystem:       policy.IsSystem,
-		DefaultVersion: policy.DefaultVersion,
-		CreatedAt:      policy.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:      policy.UpdatedAt.Format(time.RFC3339),
-	}
-}
-
-func toProtoPolicyVersion(version *iamdomain.PolicyVersion) *pbauthv1.PolicyVersion {
-	if version == nil {
-		return nil
-	}
-	return &pbauthv1.PolicyVersion{
-		Id:         version.ID,
-		PolicyId:   version.PolicyID,
-		PolicyName: version.PolicyName,
-		Version:    version.Version,
-		IsDefault:  version.IsDefault,
-		CreatedAt:  version.CreatedAt.Format(time.RFC3339),
-	}
-}
-
-func toProtoGroup(group *iamdomain.Group) *pbauthv1.Group {
-	if group == nil {
-		return nil
-	}
-	return &pbauthv1.Group{
-		Id:          group.ID,
-		Scope:       group.Scope,
-		TenantId:    group.TenantID,
-		Name:        group.Name,
-		Description: group.Description,
-		IsSystem:    group.IsSystem,
-		CreatedAt:   group.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:   group.UpdatedAt.Format(time.RFC3339),
-	}
-}
-
-func toProtoGroupInlinePolicy(policy *iamdomain.GroupInlinePolicy) *pbauthv1.GroupInlinePolicy {
-	if policy == nil {
-		return nil
-	}
-	return &pbauthv1.GroupInlinePolicy{
-		GroupId:     policy.GroupID,
-		Name:        policy.Name,
-		Description: policy.Description,
-		Statements:  toProtoPolicyStatements(policy.Statements),
-		CreatedAt:   policy.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:   policy.UpdatedAt.Format(time.RFC3339),
-	}
-}
-
-func toProtoUserInlinePolicy(policy *iamdomain.UserInlinePolicy) *pbauthv1.UserInlinePolicy {
-	if policy == nil {
-		return nil
-	}
-	return &pbauthv1.UserInlinePolicy{
-		Scope:       policy.Scope,
-		TenantId:    policy.TenantID,
-		UserId:      uint64(policy.UserID),
-		Name:        policy.Name,
-		Description: policy.Description,
-		Statements:  toProtoPolicyStatements(policy.Statements),
-		CreatedAt:   policy.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:   policy.UpdatedAt.Format(time.RFC3339),
-	}
-}
-
-func toProtoPermissionBoundary(boundary *iamdomain.PermissionBoundary) *pbauthv1.PermissionBoundary {
-	if boundary == nil {
-		return nil
-	}
-	return &pbauthv1.PermissionBoundary{
-		Scope:      boundary.Scope,
-		TenantId:   boundary.TenantID,
-		UserId:     uint64(boundary.UserID),
-		PolicyId:   boundary.PolicyID,
-		PolicyName: boundary.PolicyName,
-		CreatedAt:  boundary.CreatedAt.Format(time.RFC3339),
-	}
-}
-
-func toProtoRolePermissionBoundary(boundary *iamdomain.RolePermissionBoundary) *pbauthv1.RolePermissionBoundary {
-	if boundary == nil {
-		return nil
-	}
-	return &pbauthv1.RolePermissionBoundary{
-		RoleId:     boundary.RoleID,
-		RoleName:   boundary.RoleName,
-		PolicyId:   boundary.PolicyID,
-		PolicyName: boundary.PolicyName,
-		CreatedAt:  boundary.CreatedAt.Format(time.RFC3339),
-	}
-}
-
-func toProtoSimulateAccessResponse(result *iamdomain.SimulateAccessResult) *pbauthv1.SimulateAccessResponse {
-	if result == nil {
-		return nil
-	}
-	out := make([]*pbauthv1.SimulateMatchedStatement, 0, len(result.MatchedStatements))
-	for i := range result.MatchedStatements {
-		item := result.MatchedStatements[i]
-		out = append(out, &pbauthv1.SimulateMatchedStatement{
-			PolicyName:      item.PolicyName,
-			Effect:          item.Effect,
-			ActionPattern:   item.ActionPattern,
-			ResourcePattern: item.ResourcePattern,
-			Conditions:      toProtoPolicyConditions(item.Conditions),
-			Source:          item.Source,
-		})
-	}
-	layers := make([]*pbauthv1.SimulateDecisionLayer, 0, len(result.Layers))
-	for i := range result.Layers {
-		layer := result.Layers[i]
-		statements := make([]*pbauthv1.SimulateMatchedStatement, 0, len(layer.MatchedStatements))
-		for j := range layer.MatchedStatements {
-			item := layer.MatchedStatements[j]
-			statements = append(statements, &pbauthv1.SimulateMatchedStatement{
-				PolicyName:      item.PolicyName,
-				Effect:          item.Effect,
-				ActionPattern:   item.ActionPattern,
-				ResourcePattern: item.ResourcePattern,
-				Conditions:      toProtoPolicyConditions(item.Conditions),
-				Source:          item.Source,
-			})
-		}
-		layers = append(layers, &pbauthv1.SimulateDecisionLayer{
-			Layer:             layer.Layer,
-			Allowed:           layer.Allowed,
-			Reason:            layer.Reason,
-			MatchedStatements: statements,
-		})
-	}
-	return &pbauthv1.SimulateAccessResponse{
-		Allowed:           result.Allowed,
-		DecisionSource:    result.DecisionSource,
-		Reason:            result.Reason,
-		MatchedStatements: out,
-		Layers:            layers,
-	}
 }
 
 func mergeStringMaps(items ...map[string]string) map[string]string {
@@ -2177,102 +1965,6 @@ func toPrincipalTagAttributes(tags map[string]string) map[string]string {
 	return out
 }
 
-func toProtoPolicies(items []iamdomain.Policy) []*pbauthv1.Policy {
-	out := make([]*pbauthv1.Policy, 0, len(items))
-	for i := range items {
-		out = append(out, toProtoPolicy(&items[i]))
-	}
-	return out
-}
-
-func toProtoPolicyAttachments(items []iamdomain.PolicyAttachment) []*pbauthv1.PolicyAttachment {
-	out := make([]*pbauthv1.PolicyAttachment, 0, len(items))
-	for i := range items {
-		item := items[i]
-		out = append(out, &pbauthv1.PolicyAttachment{
-			AttachmentType: item.AttachmentType,
-			Scope:          item.Scope,
-			TenantId:       item.TenantID,
-			RoleId:         item.RoleID,
-			RoleName:       item.RoleName,
-			UserId:         uint64(item.UserID),
-			GroupId:        item.GroupID,
-			GroupName:      item.GroupName,
-			CreatedAt:      item.CreatedAt.Format(time.RFC3339),
-		})
-	}
-	return out
-}
-
-func toProtoRoleTrustStatements(items []iamdomain.RoleTrustStatement) []*pbauthv1.RoleTrustStatement {
-	out := make([]*pbauthv1.RoleTrustStatement, 0, len(items))
-	for i := range items {
-		item := items[i]
-		out = append(out, &pbauthv1.RoleTrustStatement{
-			Id:                item.ID,
-			RoleId:            item.RoleID,
-			Effect:            item.Effect,
-			PrincipalType:     item.PrincipalType,
-			PrincipalPattern:  item.PrincipalPattern,
-			TenantPattern:     item.TenantPattern,
-			ExternalIdPattern: item.ExternalIDPattern,
-			CreatedAt:         item.CreatedAt.Format(time.RFC3339),
-		})
-	}
-	return out
-}
-
-func toProtoPolicyStatements(items []iamdomain.PolicyStatement) []*pbauthv1.PolicyStatement {
-	out := make([]*pbauthv1.PolicyStatement, 0, len(items))
-	for i := range items {
-		item := items[i]
-		out = append(out, &pbauthv1.PolicyStatement{
-			Id:              item.ID,
-			PolicyId:        item.PolicyID,
-			PolicyName:      item.PolicyName,
-			Effect:          item.Effect,
-			ActionPattern:   item.ActionPattern,
-			ResourcePattern: item.ResourcePattern,
-			Conditions:      toProtoPolicyConditions(item.Conditions),
-			CreatedAt:       item.CreatedAt.Format(time.RFC3339),
-		})
-	}
-	return out
-}
-
-func fromProtoPolicyStatements(items []*pbauthv1.PolicyStatement) []iamdomain.PolicyStatement {
-	out := make([]iamdomain.PolicyStatement, 0, len(items))
-	for _, item := range items {
-		if item == nil {
-			continue
-		}
-		out = append(out, iamdomain.PolicyStatement{
-			Effect:          item.Effect,
-			ActionPattern:   item.ActionPattern,
-			ResourcePattern: item.ResourcePattern,
-			Conditions:      fromProtoPolicyConditions(item.Conditions),
-		})
-	}
-	return out
-}
-
-func fromProtoRoleTrustStatements(items []*pbauthv1.RoleTrustStatement) []iamdomain.RoleTrustStatement {
-	out := make([]iamdomain.RoleTrustStatement, 0, len(items))
-	for _, item := range items {
-		if item == nil {
-			continue
-		}
-		out = append(out, iamdomain.RoleTrustStatement{
-			Effect:            item.Effect,
-			PrincipalType:     item.PrincipalType,
-			PrincipalPattern:  item.PrincipalPattern,
-			TenantPattern:     item.TenantPattern,
-			ExternalIDPattern: item.ExternalIdPattern,
-		})
-	}
-	return out
-}
-
 func inviteAcceptBaseURL(appRedirectURL string) string {
 	base := strings.TrimSpace(appRedirectURL)
 	if base == "" {
@@ -2281,82 +1973,6 @@ func inviteAcceptBaseURL(appRedirectURL string) string {
 	base = strings.TrimRight(base, "/")
 	base = strings.TrimSuffix(base, "/auth/google/callback")
 	return base
-}
-
-func toProtoInvite(invite *iamdomain.TenantInvite) *pbauthv1.TenantInvite {
-	if invite == nil {
-		return nil
-	}
-	resp := &pbauthv1.TenantInvite{
-		Id:              invite.ID,
-		TenantId:        invite.TenantID,
-		Email:           invite.Email,
-		RoleId:          invite.RoleID,
-		RoleName:        invite.RoleName,
-		Status:          invite.Status,
-		InvitedByUserId: uint64(invite.InvitedByUserID),
-		CreatedAt:       invite.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:       invite.UpdatedAt.Format(time.RFC3339),
-		ExpiresAt:       invite.ExpiresAt.Format(time.RFC3339),
-	}
-	if invite.AcceptedByUserID != nil {
-		resp.AcceptedByUserId = uint64(*invite.AcceptedByUserID)
-	}
-	if invite.AcceptedAt != nil {
-		resp.AcceptedAt = invite.AcceptedAt.Format(time.RFC3339)
-	}
-	if invite.RevokedAt != nil {
-		resp.RevokedAt = invite.RevokedAt.Format(time.RFC3339)
-	}
-	return resp
-}
-
-func toProtoSession(s *entity.Session) *pbauthv1.Session {
-	if s == nil {
-		return nil
-	}
-	resp := &pbauthv1.Session{
-		Id:                          s.ID,
-		UserId:                      uint64(s.UserID),
-		ActiveTenantId:              s.ActiveTenantID,
-		Status:                      s.Status,
-		CreatedAt:                   s.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:                   s.UpdatedAt.Format(time.RFC3339),
-		ExpiresAt:                   s.ExpiresAt.Format(time.RFC3339),
-		SessionPolicy:               toProtoSessionPolicyStatements(s.SessionPolicy),
-		AssumedRoleId:               s.AssumedRoleID,
-		AssumedRoleScope:            s.AssumedRoleScope,
-		AssumedRoleName:             s.AssumedRoleName,
-		AssumedRoleTenantId:         s.AssumedRoleTenantID,
-		AssumedRoleSessionName:      s.AssumedRoleSessionName,
-		AssumedRoleSourceIdentity:   s.AssumedRoleSourceIdentity,
-		SessionTags:                 s.SessionTags,
-		AssumedRoleServicePrincipal: s.AssumedRoleServicePrincipal,
-	}
-	if s.AssumedRoleExpiresAt != nil {
-		resp.AssumedRoleExpiresAt = s.AssumedRoleExpiresAt.Format(time.RFC3339)
-	}
-	if s.RevokedAt != nil {
-		resp.RevokedAt = s.RevokedAt.Format(time.RFC3339)
-	}
-	return resp
-}
-
-func toProtoAuditLog(a *entity.AuditLog) *pbauthv1.AuditLog {
-	if a == nil {
-		return nil
-	}
-	return &pbauthv1.AuditLog{
-		Id:           a.ID,
-		ActorUserId:  uint64(a.ActorUserID),
-		Action:       a.Action,
-		ResourceType: a.ResourceType,
-		ResourceId:   a.ResourceID,
-		TenantId:     a.TenantID,
-		Status:       a.Status,
-		PayloadJson:  a.PayloadJSON,
-		CreatedAt:    a.CreatedAt.Format(time.RFC3339),
-	}
 }
 
 func (s *IAMServer) recordAudit(
@@ -2375,33 +1991,17 @@ func (s *IAMServer) recordAudit(
 	if err != nil {
 		payloadJSON = []byte("{}")
 	}
-	_ = s.auditRep.Create(ctx, entity.AuditLog{
+	_ = s.auditRep.Create(ctx, iamdomain.AuditLog{
 		ID:           uuid.NewString(),
 		ActorUserID:  actorUserID,
 		Action:       action,
 		ResourceType: resourceType,
 		ResourceID:   resourceID,
 		TenantID:     tenantID,
-		Status:       entity.AuditStatusSuccess,
+		Status:       "success",
 		PayloadJSON:  string(payloadJSON),
 		CreatedAt:    time.Now().UTC(),
 	})
-}
-
-func authStatusError(err error) error {
-	switch {
-	case errors.Is(err, entity.ErrInvalidUserID),
-		errors.Is(err, entity.ErrInvalidSessionPolicy):
-		return status.Error(codes.InvalidArgument, err.Error())
-	case errors.Is(err, entity.ErrSessionNotFound),
-		errors.Is(err, entity.ErrRefreshTokenInvalid):
-		return status.Error(codes.NotFound, err.Error())
-	case errors.Is(err, entity.ErrRefreshTokenExpired),
-		errors.Is(err, entity.ErrSessionRevoked):
-		return status.Error(codes.FailedPrecondition, err.Error())
-	default:
-		return iamStatusError(err)
-	}
 }
 
 func iamStatusError(err error) error {
@@ -2458,7 +2058,7 @@ func (s *IAMServer) authorizedContext(ctx context.Context) (context.Context, uin
 	if err != nil {
 		return ctx, 0, err
 	}
-	ctx = iamdomain.WithSessionPolicyStatements(ctx, toIAMSessionPolicyStatements(claims.SessionPolicy))
+	ctx = iamdomain.WithSessionPolicyStatements(ctx, iammapper.ToIAMSessionPolicyStatements(claims.SessionPolicy))
 	ctx = iamdomain.WithSessionTags(ctx, claims.SessionTags)
 	if claims.AssumedRoleID != 0 && claims.AssumedRoleName != "" {
 		ctx = iamdomain.WithAssumedRole(ctx, iamdomain.AssumedRole{
@@ -2478,197 +2078,14 @@ func (s *IAMServer) authorizedContext(ctx context.Context) (context.Context, uin
 	return ctx, uint(claims.UserID), nil
 }
 
-func (s *IAMServer) currentSessionFromAccessToken(accessToken string) (*entity.Session, error) {
-	claims := &entity.JWTClaims{}
-	token, err := jwt.ParseWithClaims(accessToken, claims, func(tok *jwt.Token) (interface{}, error) {
-		if tok.Method != jwt.SigningMethodHS256 {
-			return nil, errors.New("unexpected signing method")
-		}
-		return []byte(s.jwtSecret), nil
-	})
-	if err != nil || !token.Valid {
-		return nil, errors.New("invalid access token")
-	}
-	if s.jwtKey != "" && claims.Key != s.jwtKey {
-		return nil, errors.New("invalid access token")
-	}
-	return s.sessionRep.GetByID(context.Background(), claims.SessionID)
+func (s *IAMServer) claimsFromContext(ctx context.Context) (*pdauthn.Claims, error) {
+	return s.verifier.ClaimsFromContext(ctx)
 }
 
-func (s *IAMServer) claimsFromContext(ctx context.Context) (*entity.JWTClaims, error) {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return nil, errors.New("missing request metadata")
-	}
-	values := md.Get("authorization")
-	if len(values) == 0 {
-		return nil, errors.New("missing authorization header")
-	}
-	raw := strings.TrimSpace(values[0])
-	if !strings.HasPrefix(strings.ToLower(raw), "bearer ") {
-		return nil, errors.New("invalid authorization header")
-	}
-	tokenString := strings.TrimSpace(raw[len("Bearer "):])
-	return s.claimsFromTokenString(tokenString)
+func (s *IAMServer) claimsFromAccessToken(accessToken string) (*pdauthn.Claims, error) {
+	return s.verifier.ClaimsFromAccessToken(accessToken)
 }
 
-func (s *IAMServer) claimsFromAccessToken(accessToken string) (*entity.JWTClaims, error) {
-	tokenString := strings.TrimSpace(accessToken)
-	if tokenString == "" {
-		return nil, errors.New("missing access token")
-	}
-	return s.claimsFromTokenString(tokenString)
-}
-
-func (s *IAMServer) claimsFromTokenString(tokenString string) (*entity.JWTClaims, error) {
-	claims := &entity.JWTClaims{}
-	token, err := jwt.ParseWithClaims(tokenString, claims, func(tok *jwt.Token) (interface{}, error) {
-		if tok.Method != jwt.SigningMethodHS256 {
-			return nil, errors.New("unexpected signing method")
-		}
-		return []byte(s.jwtSecret), nil
-	})
-	if err != nil || !token.Valid {
-		return nil, errors.New("invalid access token")
-	}
-	if s.jwtKey != "" && claims.Key != s.jwtKey {
-		return nil, errors.New("invalid access token")
-	}
-	return claims, nil
-}
-
-func toProtoSessionPolicyStatements(items []entity.SessionPolicyStatement) []*pbauthv1.PolicyStatement {
-	out := make([]*pbauthv1.PolicyStatement, 0, len(items))
-	for _, item := range items {
-		out = append(out, &pbauthv1.PolicyStatement{
-			Effect:          item.Effect,
-			ActionPattern:   item.ActionPattern,
-			ResourcePattern: item.ResourcePattern,
-			Conditions:      toProtoSessionPolicyConditions(item.Conditions),
-		})
-	}
-	return out
-}
-
-func fromProtoSessionPolicyStatements(items []*pbauthv1.PolicyStatement) []entity.SessionPolicyStatement {
-	out := make([]entity.SessionPolicyStatement, 0, len(items))
-	for _, item := range items {
-		if item == nil {
-			continue
-		}
-		out = append(out, entity.SessionPolicyStatement{
-			Effect:          item.Effect,
-			ActionPattern:   item.ActionPattern,
-			ResourcePattern: item.ResourcePattern,
-			Conditions:      fromProtoSessionPolicyConditions(item.Conditions),
-		})
-	}
-	return out
-}
-
-func toIAMSessionPolicyStatements(items []entity.SessionPolicyStatement) []iamdomain.PolicyStatement {
-	out := make([]iamdomain.PolicyStatement, 0, len(items))
-	for _, item := range items {
-		out = append(out, iamdomain.PolicyStatement{
-			Effect:          item.Effect,
-			ActionPattern:   item.ActionPattern,
-			ResourcePattern: item.ResourcePattern,
-			Conditions:      toIAMSessionPolicyConditions(item.Conditions),
-		})
-	}
-	return out
-}
-
-func toProtoPolicyConditions(items []iamdomain.PolicyCondition) []*pbauthv1.PolicyCondition {
-	out := make([]*pbauthv1.PolicyCondition, 0, len(items))
-	for _, item := range items {
-		out = append(out, &pbauthv1.PolicyCondition{
-			Operator: item.Operator,
-			Key:      item.Key,
-			Value:    item.Value,
-		})
-	}
-	return out
-}
-
-func toProtoIAMAssumedRole(item *iamdomain.AssumedRole) *pbauthv1.IAMAssumedRole {
-	if item == nil {
-		return nil
-	}
-	return &pbauthv1.IAMAssumedRole{
-		RoleId:           item.RoleID,
-		RoleScope:        item.RoleScope,
-		RoleName:         item.RoleName,
-		TenantId:         item.TenantID,
-		ServicePrincipal: item.ServicePrincipal,
-		SessionName:      item.SessionName,
-		SourceIdentity:   item.SourceIdentity,
-		SessionTags:      cloneStringMap(item.SessionTags),
-		ExpiresAt:        item.ExpiresAt.Format(time.RFC3339),
-	}
-}
-
-func cloneStringMap(src map[string]string) map[string]string {
-	if len(src) == 0 {
-		return nil
-	}
-	out := make(map[string]string, len(src))
-	for k, v := range src {
-		out[k] = v
-	}
-	return out
-}
-
-func fromProtoPolicyConditions(items []*pbauthv1.PolicyCondition) []iamdomain.PolicyCondition {
-	out := make([]iamdomain.PolicyCondition, 0, len(items))
-	for _, item := range items {
-		if item == nil {
-			continue
-		}
-		out = append(out, iamdomain.PolicyCondition{
-			Operator: item.Operator,
-			Key:      item.Key,
-			Value:    item.Value,
-		})
-	}
-	return out
-}
-
-func toProtoSessionPolicyConditions(items []entity.SessionPolicyCondition) []*pbauthv1.PolicyCondition {
-	out := make([]*pbauthv1.PolicyCondition, 0, len(items))
-	for _, item := range items {
-		out = append(out, &pbauthv1.PolicyCondition{
-			Operator: item.Operator,
-			Key:      item.Key,
-			Value:    item.Value,
-		})
-	}
-	return out
-}
-
-func fromProtoSessionPolicyConditions(items []*pbauthv1.PolicyCondition) []entity.SessionPolicyCondition {
-	out := make([]entity.SessionPolicyCondition, 0, len(items))
-	for _, item := range items {
-		if item == nil {
-			continue
-		}
-		out = append(out, entity.SessionPolicyCondition{
-			Operator: item.Operator,
-			Key:      item.Key,
-			Value:    item.Value,
-		})
-	}
-	return out
-}
-
-func toIAMSessionPolicyConditions(items []entity.SessionPolicyCondition) []iamdomain.PolicyCondition {
-	out := make([]iamdomain.PolicyCondition, 0, len(items))
-	for _, item := range items {
-		out = append(out, iamdomain.PolicyCondition{
-			Operator: item.Operator,
-			Key:      item.Key,
-			Value:    item.Value,
-		})
-	}
-	return out
+func (s *IAMServer) claimsFromTokenString(tokenString string) (*pdauthn.Claims, error) {
+	return s.verifier.ClaimsFromTokenString(tokenString)
 }

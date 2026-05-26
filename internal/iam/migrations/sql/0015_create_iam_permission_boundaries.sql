@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE IF NOT EXISTS iam_platform_user_permission_boundaries (
-  user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  user_id BIGINT PRIMARY KEY,
   policy_id BIGINT NOT NULL REFERENCES iam_policies(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS iam_platform_user_permission_boundaries (
 
 CREATE TABLE IF NOT EXISTS iam_tenant_user_permission_boundaries (
   tenant_id TEXT NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id BIGINT NOT NULL,
   policy_id BIGINT NOT NULL REFERENCES iam_policies(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),

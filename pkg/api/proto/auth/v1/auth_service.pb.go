@@ -25,7 +25,7 @@ var File_auth_v1_auth_service_proto protoreflect.FileDescriptor
 
 const file_auth_v1_auth_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1aauth/v1/auth_service.proto\x12\x04auth\x1a\x12auth/v1/auth.proto\x1a\x1aauth/v1/auth_session.proto\x1a\x1cgoogle/api/annotations.proto2\xd0\r\n" +
+	"\x1aauth/v1/auth_service.proto\x12\x04auth\x1a\x12auth/v1/auth.proto\x1a\x1aauth/v1/auth_session.proto\x1a\x1cgoogle/api/annotations.proto2\xb1\x10\n" +
 	"\vAuthService\x12a\n" +
 	"\vGoogleLogin\x12\x18.auth.GoogleLoginRequest\x1a\x19.auth.GoogleLoginResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/auth/v1/google/login\x12m\n" +
 	"\x0eGoogleCallback\x12\x1b.auth.GoogleCallbackRequest\x1a\x1c.auth.GoogleCallbackResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/auth/v1/google/callback\x12q\n" +
@@ -44,7 +44,10 @@ const file_auth_v1_auth_service_proto_rawDesc = "" +
 	"GetSession\x12\x17.auth.GetSessionRequest\x1a\x18.auth.GetSessionResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/auth/v1/sessions/{session_id}\x12`\n" +
 	"\fListSessions\x12\x19.auth.ListSessionsRequest\x1a\x1a.auth.ListSessionsResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/auth/v1/sessions\x12p\n" +
 	"\rRevokeSession\x12\x1a.auth.RevokeSessionRequest\x1a\x1b.auth.RevokeSessionResponse\"&\x82\xd3\xe4\x93\x02 *\x1e/auth/v1/sessions/{session_id}\x12e\n" +
-	"\rListAuditLogs\x12\x1a.auth.ListAuditLogsRequest\x1a\x1b.auth.ListAuditLogsResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/auth/v1/audit-logsB<Z:github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1b\x06proto3"
+	"\rListAuditLogs\x12\x1a.auth.ListAuditLogsRequest\x1a\x1b.auth.ListAuditLogsResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/auth/v1/audit-logs\x12x\n" +
+	"\x11GetUserByIdentity\x12\x1e.auth.GetUserByIdentityRequest\x1a\x1f.auth.GetUserByIdentityResponse\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/auth/v1/users:by-identity\x12\x7f\n" +
+	"\x11EnsureUserByEmail\x12\x1e.auth.EnsureUserByEmailRequest\x1a\x1f.auth.EnsureUserByEmailResponse\")\x82\xd3\xe4\x93\x02#:\x01*\"\x1e/auth/v1/users:ensure-by-email\x12d\n" +
+	"\vGetUserByID\x12\x18.auth.GetUserByIDRequest\x1a\x19.auth.GetUserByIDResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/auth/v1/users/{user_id}B<Z:github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1b\x06proto3"
 
 var file_auth_v1_auth_service_proto_goTypes = []any{
 	(*GoogleLoginRequest)(nil),          // 0: auth.GoogleLoginRequest
@@ -63,21 +66,27 @@ var file_auth_v1_auth_service_proto_goTypes = []any{
 	(*ListSessionsRequest)(nil),         // 13: auth.ListSessionsRequest
 	(*RevokeSessionRequest)(nil),        // 14: auth.RevokeSessionRequest
 	(*ListAuditLogsRequest)(nil),        // 15: auth.ListAuditLogsRequest
-	(*GoogleLoginResponse)(nil),         // 16: auth.GoogleLoginResponse
-	(*GoogleCallbackResponse)(nil),      // 17: auth.GoogleCallbackResponse
-	(*LoginResponse)(nil),               // 18: auth.LoginResponse
-	(*RegisterResponse)(nil),            // 19: auth.RegisterResponse
-	(*RefreshTokenResponse)(nil),        // 20: auth.RefreshTokenResponse
-	(*LogoutResponse)(nil),              // 21: auth.LogoutResponse
-	(*SwitchActiveTenantResponse)(nil),  // 22: auth.SwitchActiveTenantResponse
-	(*AssumeSessionPolicyResponse)(nil), // 23: auth.AssumeSessionPolicyResponse
-	(*ClearSessionPolicyResponse)(nil),  // 24: auth.ClearSessionPolicyResponse
-	(*AssumeRoleResponse)(nil),          // 25: auth.AssumeRoleResponse
-	(*ClearAssumedRoleResponse)(nil),    // 26: auth.ClearAssumedRoleResponse
-	(*GetSessionResponse)(nil),          // 27: auth.GetSessionResponse
-	(*ListSessionsResponse)(nil),        // 28: auth.ListSessionsResponse
-	(*RevokeSessionResponse)(nil),       // 29: auth.RevokeSessionResponse
-	(*ListAuditLogsResponse)(nil),       // 30: auth.ListAuditLogsResponse
+	(*GetUserByIdentityRequest)(nil),    // 16: auth.GetUserByIdentityRequest
+	(*EnsureUserByEmailRequest)(nil),    // 17: auth.EnsureUserByEmailRequest
+	(*GetUserByIDRequest)(nil),          // 18: auth.GetUserByIDRequest
+	(*GoogleLoginResponse)(nil),         // 19: auth.GoogleLoginResponse
+	(*GoogleCallbackResponse)(nil),      // 20: auth.GoogleCallbackResponse
+	(*LoginResponse)(nil),               // 21: auth.LoginResponse
+	(*RegisterResponse)(nil),            // 22: auth.RegisterResponse
+	(*RefreshTokenResponse)(nil),        // 23: auth.RefreshTokenResponse
+	(*LogoutResponse)(nil),              // 24: auth.LogoutResponse
+	(*SwitchActiveTenantResponse)(nil),  // 25: auth.SwitchActiveTenantResponse
+	(*AssumeSessionPolicyResponse)(nil), // 26: auth.AssumeSessionPolicyResponse
+	(*ClearSessionPolicyResponse)(nil),  // 27: auth.ClearSessionPolicyResponse
+	(*AssumeRoleResponse)(nil),          // 28: auth.AssumeRoleResponse
+	(*ClearAssumedRoleResponse)(nil),    // 29: auth.ClearAssumedRoleResponse
+	(*GetSessionResponse)(nil),          // 30: auth.GetSessionResponse
+	(*ListSessionsResponse)(nil),        // 31: auth.ListSessionsResponse
+	(*RevokeSessionResponse)(nil),       // 32: auth.RevokeSessionResponse
+	(*ListAuditLogsResponse)(nil),       // 33: auth.ListAuditLogsResponse
+	(*GetUserByIdentityResponse)(nil),   // 34: auth.GetUserByIdentityResponse
+	(*EnsureUserByEmailResponse)(nil),   // 35: auth.EnsureUserByEmailResponse
+	(*GetUserByIDResponse)(nil),         // 36: auth.GetUserByIDResponse
 }
 var file_auth_v1_auth_service_proto_depIdxs = []int32{
 	0,  // 0: auth.AuthService.GoogleLogin:input_type -> auth.GoogleLoginRequest
@@ -96,24 +105,30 @@ var file_auth_v1_auth_service_proto_depIdxs = []int32{
 	13, // 13: auth.AuthService.ListSessions:input_type -> auth.ListSessionsRequest
 	14, // 14: auth.AuthService.RevokeSession:input_type -> auth.RevokeSessionRequest
 	15, // 15: auth.AuthService.ListAuditLogs:input_type -> auth.ListAuditLogsRequest
-	16, // 16: auth.AuthService.GoogleLogin:output_type -> auth.GoogleLoginResponse
-	17, // 17: auth.AuthService.GoogleCallback:output_type -> auth.GoogleCallbackResponse
-	18, // 18: auth.AuthService.ExchangeGoogleLogin:output_type -> auth.LoginResponse
-	18, // 19: auth.AuthService.Login:output_type -> auth.LoginResponse
-	19, // 20: auth.AuthService.Register:output_type -> auth.RegisterResponse
-	20, // 21: auth.AuthService.RefreshToken:output_type -> auth.RefreshTokenResponse
-	21, // 22: auth.AuthService.Logout:output_type -> auth.LogoutResponse
-	22, // 23: auth.AuthService.SwitchActiveTenant:output_type -> auth.SwitchActiveTenantResponse
-	23, // 24: auth.AuthService.AssumeSessionPolicy:output_type -> auth.AssumeSessionPolicyResponse
-	24, // 25: auth.AuthService.ClearSessionPolicy:output_type -> auth.ClearSessionPolicyResponse
-	25, // 26: auth.AuthService.AssumeRole:output_type -> auth.AssumeRoleResponse
-	26, // 27: auth.AuthService.ClearAssumedRole:output_type -> auth.ClearAssumedRoleResponse
-	27, // 28: auth.AuthService.GetSession:output_type -> auth.GetSessionResponse
-	28, // 29: auth.AuthService.ListSessions:output_type -> auth.ListSessionsResponse
-	29, // 30: auth.AuthService.RevokeSession:output_type -> auth.RevokeSessionResponse
-	30, // 31: auth.AuthService.ListAuditLogs:output_type -> auth.ListAuditLogsResponse
-	16, // [16:32] is the sub-list for method output_type
-	0,  // [0:16] is the sub-list for method input_type
+	16, // 16: auth.AuthService.GetUserByIdentity:input_type -> auth.GetUserByIdentityRequest
+	17, // 17: auth.AuthService.EnsureUserByEmail:input_type -> auth.EnsureUserByEmailRequest
+	18, // 18: auth.AuthService.GetUserByID:input_type -> auth.GetUserByIDRequest
+	19, // 19: auth.AuthService.GoogleLogin:output_type -> auth.GoogleLoginResponse
+	20, // 20: auth.AuthService.GoogleCallback:output_type -> auth.GoogleCallbackResponse
+	21, // 21: auth.AuthService.ExchangeGoogleLogin:output_type -> auth.LoginResponse
+	21, // 22: auth.AuthService.Login:output_type -> auth.LoginResponse
+	22, // 23: auth.AuthService.Register:output_type -> auth.RegisterResponse
+	23, // 24: auth.AuthService.RefreshToken:output_type -> auth.RefreshTokenResponse
+	24, // 25: auth.AuthService.Logout:output_type -> auth.LogoutResponse
+	25, // 26: auth.AuthService.SwitchActiveTenant:output_type -> auth.SwitchActiveTenantResponse
+	26, // 27: auth.AuthService.AssumeSessionPolicy:output_type -> auth.AssumeSessionPolicyResponse
+	27, // 28: auth.AuthService.ClearSessionPolicy:output_type -> auth.ClearSessionPolicyResponse
+	28, // 29: auth.AuthService.AssumeRole:output_type -> auth.AssumeRoleResponse
+	29, // 30: auth.AuthService.ClearAssumedRole:output_type -> auth.ClearAssumedRoleResponse
+	30, // 31: auth.AuthService.GetSession:output_type -> auth.GetSessionResponse
+	31, // 32: auth.AuthService.ListSessions:output_type -> auth.ListSessionsResponse
+	32, // 33: auth.AuthService.RevokeSession:output_type -> auth.RevokeSessionResponse
+	33, // 34: auth.AuthService.ListAuditLogs:output_type -> auth.ListAuditLogsResponse
+	34, // 35: auth.AuthService.GetUserByIdentity:output_type -> auth.GetUserByIdentityResponse
+	35, // 36: auth.AuthService.EnsureUserByEmail:output_type -> auth.EnsureUserByEmailResponse
+	36, // 37: auth.AuthService.GetUserByID:output_type -> auth.GetUserByIDResponse
+	19, // [19:38] is the sub-list for method output_type
+	0,  // [0:19] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name

@@ -93,3 +93,28 @@ message UserInfo {
   string dob = 11;
   bool email_verified = 12;
 }
+
+message GetUserByIdentityRequest {
+  string identity = 1;
+}
+
+message GetUserByIdentityResponse {
+  UserInfo user_info = 1;
+}
+
+message EnsureUserByEmailRequest {
+  string email = 1;
+}
+
+message EnsureUserByEmailResponse {
+  UserInfo user_info = 1;
+  bool created = 2;
+}
+
+message GetUserByIDRequest {
+  uint64 user_id = 1;
+}
+
+message GetUserByIDResponse {
+  UserInfo user_info = 1;
+}

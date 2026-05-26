@@ -17,6 +17,15 @@ Use this guide when changing Go code in this repo.
   - gRPC handlers
   - GraphQL resolvers
   - event handlers for Kafka projections
+- Keep transport mapping in dedicated mapper files/packages under `controller`, not inline in handler/resolver files.
+  - Good:
+    - `internal/auth/controller/mapper/auth_mapper.go`
+    - `internal/iam/controller/mapper/iam_mapper.go`
+  - Handler/resolver files should only:
+    - parse request
+    - call interactor/usecase
+    - call mapper
+    - translate status/error
 - Runtime subscribers, workers, clients, persistence, and external SDK wiring belong in `infrastructure`.
 - Do not import another service's interactor/domain directly. Cross-service calls must go through:
   - gRPC client adapters
@@ -47,6 +56,251 @@ Use this guide when changing Go code in this repo.
 
 - Prefer `gofumpt -w` for touched Go files.
 - If `gofumpt` is unavailable in the environment, at least run `gofmt -w`.
+- Follow the repo line-length rule enforced by `golangci-lint`:
+  - max line length: `120`
+  - break long call sites, composite literals, and chained conditions cleanly
+  - acceptable exceptions are rare and should stay readable even when long
+
+## Go Style
+
+Follow the practical subset of the Uber Go Style Guide, adapted for this repo:
+
+- Keep package names short, lower-case, and unsurprising.
+- Prefer small interfaces at boundaries only.
+- Do not define interfaces in the consumer package unless the boundary is truly owned there.
+- Accept interfaces, return concrete types unless a boundary requires otherwise.
+- Keep constructors explicit:
+  - `NewX(...) *X`
+  - return `(T, error)` when validation or dependency checks can fail
+- Avoid `panic` in application code except unrecoverable bootstrap/programmer-error cases.
+- Wrap errors with context using `fmt.Errorf("...: %w", err)`.
+- Do not use dot imports.
+- Avoid stutter in names:
+  - `auth.Config`, not `auth.AuthConfig` unless needed for clarity outside package boundaries
+- Keep zero values meaningful where possible.
+- Minimize mutable global state.
+- Prefer table-driven tests for branch-heavy logic.
+- Use compile-time interface assertions for important adapters and implementations:
+
+```go
+var _ outputport.SomeRepository = (*RepositoryImpl)(nil)
+```
+
+- Group imports in standard order:
+  - standard library
+  - third-party
+  - local repo imports
+- Keep functions short enough that intent is obvious; split orchestration from helpers.
+- Prefer explicitness over cleverness.
+- If a struct carries configuration/runtime knobs, document defaults in code.
+
+### Naming
+
+- Use descriptive names at boundaries, shorter names in tight local scope.
+- Boolean names should read like predicates:
+  - `enabled`
+  - `isActive`
+  - `hasProjection`
+- Avoid vague names like:
+  - `data`
+  - `obj`
+  - `info`
+    unless the scope is trivially small.
+- Error vars should start with `Err...`.
+- Sentinel errors should be package-level `var`, not re-created dynamically.
+- Acronyms should follow Go casing:
+  - `ID`, `URL`, `HTTP`, `JWT`, `IAM`
+
+### Package Design
+
+- Keep packages cohesive.
+- Avoid “utils” packages unless the content is truly cross-cutting and stable.
+- If code is service-specific, keep it inside that service under `internal/<service>`.
+- `pkg/*` is only for infrastructure or cross-service runtime that is genuinely shared.
+- Do not move code into `pkg` just to avoid imports.
+
+### Structs and Methods
+
+- Use pointer receivers when:
+  - the method mutates state
+  - the struct is large
+  - consistency across methods matters
+- Avoid mixing value and pointer receivers on the same type without reason.
+- Prefer constructors over exposing partially initialized structs.
+- Keep struct fields ordered logically:
+  - dependencies
+  - config
+  - runtime/cache state
+
+### Embedding
+
+- Do not embed types just for “shortcut syntax”.
+- Use embedding when it expresses a real relationship or shared behavior.
+- Prefer explicit fields over anonymous embedding in service code.
+
+### Interfaces
+
+- Core rule: accept interfaces, return concrete types.
+- Define interfaces where the boundary is consumed or owned intentionally.
+- Do not create an interface for a type that only has one implementation unless:
+  - it is a boundary
+  - it is used for testing/mocking
+  - it isolates external transport/storage concerns
+- Keep interfaces small and capability-based.
+- Function parameters may use interfaces when the caller benefits from substitution.
+- Function return values should prefer concrete types unless returning an interface is required by an architectural boundary.
+- Do not hide concrete behavior behind an interface return “just in case”.
+- Prefer:
+
+```go
+type Publisher interface {
+    Publish(ctx context.Context, topic string, key string, msg Envelope) error
+}
+```
+
+over large “god interfaces”.
+
+Examples:
+
+```go
+func NewRelay(store messaging.OutboxStore, publisher messaging.Publisher, limit int) *Relay
+```
+
+Good:
+
+- accepts interfaces for dependencies
+- returns concrete `*Relay`
+
+```go
+func NewRepository(db *sqlx.DB) outputport.Repository
+```
+
+Use only when the constructor is explicitly wiring an architectural boundary and callers should depend on that boundary.
+
+### Nil / Error Handling
+
+- Validate nil dependencies at construction or first use.
+- Return early on invalid input.
+- Do not silently swallow important errors unless the behavior is intentionally best-effort and documented.
+- Use `errors.Is` / `errors.As` for matching wrapped errors.
+- Log-or-return, not log-and-return at every layer.
+  - Prefer logging at process/transport/worker boundaries.
+  - Prefer returning wrapped errors inside domain/interactor code.
+
+### Error Messages
+
+- Error strings should start lower-case and avoid trailing punctuation.
+- Add operation context:
+
+```go
+return fmt.Errorf("load tenant membership: %w", err)
+```
+
+- Avoid ambiguous wrappers like `operation failed`.
+
+### Context Usage
+
+- Pass `context.Context` as the first parameter for request/runtime scoped work.
+- Do not store context in structs.
+- Do not use context for optional parameters.
+- Honor cancellation at I/O boundaries and long-running loops.
+- Do not pass `nil` contexts.
+
+### Concurrency
+
+- Be explicit about ownership and lifecycle of goroutines/workers.
+- Every long-running worker should have a clear start/stop path.
+- Prefer lifecycle-managed workers over ad-hoc goroutines in constructors.
+- Protect shared mutable state explicitly.
+- Prefer channels for ownership transfer, not as a substitute for every synchronization problem.
+- Avoid spawning goroutines inside libraries unless lifecycle is very clear.
+
+### Time and Duration
+
+- Use `time.Duration` values, not raw ints, for delays/timeouts.
+- Store timestamps in UTC unless there is a strong reason not to.
+- Capture `now := clock()` once when one operation should share a consistent timestamp.
+- Make clocks injectable when tests need deterministic time behavior.
+
+### Slices and Maps
+
+- Preallocate slices when size is known or bounded.
+- Return empty slices instead of `nil` when it simplifies API use, unless `nil` has semantic meaning.
+- Be explicit when cloning maps/slices passed across boundaries.
+- Never mutate caller-owned maps/slices unless documented.
+
+### Constants
+
+- Use typed constants when they model a domain concept.
+- Group related constants together.
+- Prefer enums via `type X string` over untyped string literals repeated across code.
+
+### Comments and Docs
+
+- Public symbols should have doc comments when the package is exported outside service-local code.
+- Comment why, not what, when code is already readable.
+- Keep TODOs actionable and specific.
+- When behavior is non-obvious, document invariants close to the code.
+
+### Logging
+
+- Structured logging only.
+- Log stable keys:
+  - `tenant_id`
+  - `user_id`
+  - `order_id`
+  - `message_id`
+  - `consumer`
+  - `topic`
+- Do not log secrets, tokens, or full credentials.
+- Prefer one meaningful log at the operational boundary over noisy logs at every helper.
+
+### Dependency Injection
+
+- Constructors should be deterministic and side-effect free where possible.
+- Put side-effectful start/stop logic into lifecycle hooks or workers.
+- `fx.Module` should describe composition, not business logic.
+- Keep named providers and tags consistent across services.
+
+### Clean Architecture Boundaries
+
+- `controller`:
+  - gRPC
+  - GraphQL
+  - HTTP
+  - inbound event handlers
+  - scheduler root
+- `interactor`:
+  - application usecases
+  - orchestration of business rules
+- `entity`:
+  - domain types and rules with minimal framework coupling
+- `outputport`:
+  - storage/external dependency contracts
+- `infrastructure`:
+  - repositories
+  - gRPC clients
+  - Kafka workers
+  - SQL/Mongo/Redis adapters
+
+- Workers that subscribe to Kafka belong in `infrastructure`.
+- Event handlers that translate consumed events into application actions belong in `controller/eventhandler`.
+- Do not put transport/storage code in `interactor`.
+
+### Testing Style
+
+- Prefer table-driven tests for branching logic.
+- Use small focused tests over giant end-to-end tests by default.
+- Test both happy path and failure path.
+- Assert behavior, not implementation details, where possible.
+- For time-sensitive code, inject clock functions.
+- For concurrency-sensitive code, keep tests deterministic and bounded.
+
+### Generated Code and Boundaries
+
+- Never hand-edit generated protobuf or gqlgen output.
+- Keep custom mapping/support code outside generated files.
+- Regenerate after proto/schema changes in the same batch.
 
 ## Lint
 
@@ -56,7 +310,25 @@ Use this guide when changing Go code in this repo.
 golangci-lint run ./...
 ```
 
-- Fix `staticcheck` issues instead of suppressing them where practical.
+- Current repo lint set explicitly enables:
+  - `govet`
+  - `staticcheck`
+  - `ineffassign`
+  - `unused`
+  - `lll`
+  - `copyloopvar`
+  - `errname`
+  - `wastedassign`
+  - `whitespace`
+  - `testifylint`
+  - `tparallel`
+  - `unconvert`
+  - `unparam`
+  - `nilerr`
+  - `asciicheck`
+- `errcheck` is currently disabled in repo config, but unchecked errors should still be a conscious decision.
+- Fix `staticcheck` and other enabled linter issues instead of suppressing them where practical.
+- Code should be written to satisfy the enabled linter set by default, not patched after the fact.
 
 ## Tests
 

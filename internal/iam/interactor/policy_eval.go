@@ -6,11 +6,13 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/tuannm99/podzone/internal/iam/entity"
 )
 
 func evaluatePolicyStatements(
-	request AccessRequest,
-	statements []PolicyStatement,
+	request entity.AccessRequest,
+	statements []entity.PolicyStatement,
 ) bool {
 	result := explainPolicyStatements("", request, statements)
 	return result.Allowed
@@ -18,9 +20,9 @@ func evaluatePolicyStatements(
 
 func explainPolicyStatements(
 	source string,
-	request AccessRequest,
-	statements []PolicyStatement,
-) SimulateAccessResult {
+	request entity.AccessRequest,
+	statements []entity.PolicyStatement,
+) entity.SimulateAccessResult {
 	action := request.Action
 	resource := request.Resource
 	if resource == "" {
@@ -28,7 +30,7 @@ func explainPolicyStatements(
 	}
 
 	allowed := false
-	matched := make([]SimulateMatchedStatement, 0)
+	matched := make([]entity.SimulateMatchedStatement, 0)
 	for _, statement := range statements {
 		if !matchesPattern(statement.ActionPattern, action) {
 			continue
@@ -39,7 +41,7 @@ func explainPolicyStatements(
 		if !matchesConditions(statement.Conditions, request) {
 			continue
 		}
-		matched = append(matched, SimulateMatchedStatement{
+		matched = append(matched, entity.SimulateMatchedStatement{
 			PolicyName:      statement.PolicyName,
 			Effect:          statement.Effect,
 			ActionPattern:   statement.ActionPattern,
@@ -47,28 +49,28 @@ func explainPolicyStatements(
 			Conditions:      statement.Conditions,
 			Source:          source,
 		})
-		if statement.Effect == PolicyEffectDeny {
-			return SimulateAccessResult{
+		if statement.Effect == entity.PolicyEffectDeny {
+			return entity.SimulateAccessResult{
 				Allowed:           false,
 				DecisionSource:    source,
 				Reason:            "explicit deny matched",
 				MatchedStatements: matched,
 			}
 		}
-		if statement.Effect == PolicyEffectAllow {
+		if statement.Effect == entity.PolicyEffectAllow {
 			allowed = true
 		}
 	}
 
 	if allowed {
-		return SimulateAccessResult{
+		return entity.SimulateAccessResult{
 			Allowed:           true,
 			DecisionSource:    source,
 			Reason:            "allow matched",
 			MatchedStatements: matched,
 		}
 	}
-	return SimulateAccessResult{
+	return entity.SimulateAccessResult{
 		Allowed:           false,
 		DecisionSource:    source,
 		Reason:            "no matching statement",
@@ -76,7 +78,7 @@ func explainPolicyStatements(
 	}
 }
 
-func matchesConditions(conditions []PolicyCondition, request AccessRequest) bool {
+func matchesConditions(conditions []entity.PolicyCondition, request entity.AccessRequest) bool {
 	if len(conditions) == 0 {
 		return true
 	}
@@ -88,32 +90,32 @@ func matchesConditions(conditions []PolicyCondition, request AccessRequest) bool
 	return true
 }
 
-func matchesCondition(condition PolicyCondition, request AccessRequest) bool {
+func matchesCondition(condition entity.PolicyCondition, request entity.AccessRequest) bool {
 	actual := requestAttribute(request, condition.Key)
 	switch condition.Operator {
-	case "", ConditionStringEquals:
+	case "", entity.ConditionStringEquals:
 		return actual == condition.Value
-	case ConditionStringLike:
+	case entity.ConditionStringLike:
 		return matchesPattern(condition.Value, actual)
-	case ConditionStringNotEquals:
+	case entity.ConditionStringNotEquals:
 		return actual != condition.Value
-	case ConditionStringNotLike:
+	case entity.ConditionStringNotLike:
 		return !matchesPattern(condition.Value, actual)
-	case ConditionBool:
+	case entity.ConditionBool:
 		return strings.EqualFold(actual, condition.Value)
-	case ConditionNumericEquals:
+	case entity.ConditionNumericEquals:
 		return compareNumeric(actual, condition.Value) == 0
-	case ConditionNumericGreaterThanEquals:
+	case entity.ConditionNumericGreaterThanEquals:
 		return compareNumeric(actual, condition.Value) >= 0
-	case ConditionNumericLessThanEquals:
+	case entity.ConditionNumericLessThanEquals:
 		return compareNumeric(actual, condition.Value) <= 0
-	case ConditionDateGreaterThan:
+	case entity.ConditionDateGreaterThan:
 		return compareTime(actual, condition.Value) > 0
-	case ConditionDateLessThan:
+	case entity.ConditionDateLessThan:
 		return compareTime(actual, condition.Value) < 0
-	case ConditionIpAddress:
+	case entity.ConditionIpAddress:
 		return matchesIPNet(actual, condition.Value)
-	case ConditionNull:
+	case entity.ConditionNull:
 		wantNull := strings.EqualFold(condition.Value, "true")
 		return (actual == "") == wantNull
 	default:
@@ -121,7 +123,7 @@ func matchesCondition(condition PolicyCondition, request AccessRequest) bool {
 	}
 }
 
-func requestAttribute(request AccessRequest, key string) string {
+func requestAttribute(request entity.AccessRequest, key string) string {
 	if request.Attributes != nil {
 		if value, ok := request.Attributes[key]; ok {
 			return value

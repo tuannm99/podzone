@@ -59,6 +59,7 @@ var (
 	ErrInvalidTenantName       = errors.New("iam: tenant name is required")
 	ErrInvalidTenantSlug       = errors.New("iam: tenant slug is required")
 	ErrInvalidUserID           = errors.New("iam: user id is required")
+	ErrUserNotFound            = errors.New("iam: user not found")
 	ErrInvalidRoleName         = errors.New("iam: role name is required")
 	ErrInvalidInviteEmail      = errors.New("iam: invite email is required")
 	ErrInvalidInviteToken      = errors.New("iam: invite token is required")

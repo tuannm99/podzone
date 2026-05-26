@@ -24,13 +24,13 @@ var testAuthCfg = config.AuthConfig{
 
 func newAuthServer(
 	t *testing.T,
-) (*AuthServer, *inputmocks.MockAuthUsecase, *outputmocks.MockSessionRepository, *outputmocks.MockAuditLogRepository) {
+) (*AuthServer, *inputmocks.MockAuthUsecase, *outputmocks.MockSessionRepository, *outputmocks.MockAuditLogRepository, *outputmocks.MockUserRepository) {
 	t.Helper()
 	authUC := inputmocks.NewMockAuthUsecase(t)
 	sessionRepo := outputmocks.NewMockSessionRepository(t)
 	auditRepo := outputmocks.NewMockAuditLogRepository(t)
 	userRepo := outputmocks.NewMockUserRepository(t)
-	return NewAuthServer(authUC, sessionRepo, auditRepo, userRepo, testAuthCfg), authUC, sessionRepo, auditRepo
+	return NewAuthServer(authUC, sessionRepo, auditRepo, userRepo, testAuthCfg), authUC, sessionRepo, auditRepo, userRepo
 }
 
 func authContextForUser(t *testing.T, userID uint) context.Context {

@@ -164,9 +164,9 @@ migrate:
 	@set -e; \
 	export GOOSE_DRIVER=postgres; \
 	export GOOSE_DBSTRING="postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"; \
-	go run github.com/pressly/goose/v3/cmd/goose -dir ./internal/auth/migrations/sql status; \
-	go run github.com/pressly/goose/v3/cmd/goose -dir ./internal/auth/migrations/sql up
-# 	go run github.com/pressly/goose/v3/cmd/goose -dir ./internal/auth/migrations/sql down
+	go run github.com/pressly/goose/v3/cmd/goose -dir ./internal/auth/migrations/authsql status; \
+	go run github.com/pressly/goose/v3/cmd/goose -dir ./internal/auth/migrations/authsql up
+# 	go run github.com/pressly/goose/v3/cmd/goose -dir ./internal/auth/migrations/authsql down
 
 sonar:
 	@echo "🔁 Starting quality check..."

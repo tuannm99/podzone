@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	entity "github.com/tuannm99/podzone/internal/iam/entity"
+	"github.com/tuannm99/podzone/internal/iam/inputport"
 	iaminteractor "github.com/tuannm99/podzone/internal/iam/interactor"
 	outputportmocks "github.com/tuannm99/podzone/internal/iam/outputport/mocks"
-	"github.com/tuannm99/podzone/internal/iam/inputport"
 	"github.com/tuannm99/podzone/pkg/messaging"
 )
 
@@ -131,103 +131,160 @@ func newIAMTestUsecase(t *testing.T) (inputport.IAMUsecase, *iamTestState) {
 		invites:                 &inviteState{items: map[string]entity.TenantInvite{}, tokenIndex: map[string]string{}},
 	}
 
-	outboxRepo.EXPECT().Append(mock.Anything, mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, tx messaging.Tx, record messaging.OutboxRecord) error {
-		state.outboxRecords = append(state.outboxRecords, record)
-		return nil
-	}).Maybe()
+	outboxRepo.EXPECT().
+		Append(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, tx messaging.Tx, record messaging.OutboxRecord) error {
+			state.outboxRecords = append(state.outboxRecords, record)
+			return nil
+		}).
+		Maybe()
 
-	orgRepo.EXPECT().Create(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, org entity.Organization) (*entity.Organization, error) {
-		copyOrg := org
-		return &copyOrg, nil
-	}).Maybe()
-	orgRepo.EXPECT().List(mock.Anything).RunAndReturn(func(ctx context.Context) ([]entity.Organization, error) { return nil, nil }).Maybe()
-	orgRepo.EXPECT().GetByID(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, orgID string) (*entity.Organization, error) {
-		if orgID == "" {
-			return nil, entity.ErrOrganizationNotFound
-		}
-		return &entity.Organization{ID: orgID, Slug: orgID, Name: orgID}, nil
-	}).Maybe()
+	orgRepo.EXPECT().
+		Create(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, org entity.Organization) (*entity.Organization, error) {
+			copyOrg := org
+			return &copyOrg, nil
+		}).
+		Maybe()
+	orgRepo.EXPECT().
+		List(mock.Anything).
+		RunAndReturn(func(ctx context.Context) ([]entity.Organization, error) { return nil, nil }).
+		Maybe()
+	orgRepo.EXPECT().
+		GetByID(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, orgID string) (*entity.Organization, error) {
+			if orgID == "" {
+				return nil, entity.ErrOrganizationNotFound
+			}
+			return &entity.Organization{ID: orgID, Slug: orgID, Name: orgID}, nil
+		}).
+		Maybe()
 	orgRepo.EXPECT().AttachServiceControlPolicy(mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
 	orgRepo.EXPECT().DetachServiceControlPolicy(mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
-	orgRepo.EXPECT().ListServiceControlPolicies(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, orgID string) ([]entity.Policy, error) { return nil, nil }).Maybe()
-	orgRepo.EXPECT().ListServiceControlPolicyStatements(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, orgID string) ([]entity.PolicyStatement, error) { return nil, nil }).Maybe()
+	orgRepo.EXPECT().
+		ListServiceControlPolicies(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, orgID string) ([]entity.Policy, error) { return nil, nil }).
+		Maybe()
+	orgRepo.EXPECT().
+		ListServiceControlPolicyStatements(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, orgID string) ([]entity.PolicyStatement, error) { return nil, nil }).
+		Maybe()
 
-	tenantRepo.EXPECT().Create(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, tenant entity.Tenant) (*entity.Tenant, error) {
-		copyTenant := tenant
-		state.tenants[tenant.ID] = tenant
-		return &copyTenant, nil
-	}).Maybe()
-	tenantRepo.EXPECT().GetByID(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, tenantID string) (*entity.Tenant, error) {
-		tenant, ok := state.tenants[tenantID]
-		if !ok {
-			return nil, entity.ErrTenantNotFound
-		}
-		copyTenant := tenant
-		return &copyTenant, nil
-	}).Maybe()
-	tenantRepo.EXPECT().AttachOrganization(mock.Anything, mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, tenantID string, orgID string) error {
-		tenant := state.tenants[tenantID]
-		tenant.OrgID = orgID
-		state.tenants[tenantID] = tenant
-		return nil
-	}).Maybe()
-	tenantRepo.EXPECT().DetachOrganization(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, tenantID string) error {
-		tenant := state.tenants[tenantID]
-		tenant.OrgID = ""
-		state.tenants[tenantID] = tenant
-		return nil
-	}).Maybe()
+	tenantRepo.EXPECT().
+		Create(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, tenant entity.Tenant) (*entity.Tenant, error) {
+			copyTenant := tenant
+			state.tenants[tenant.ID] = tenant
+			return &copyTenant, nil
+		}).
+		Maybe()
+	tenantRepo.EXPECT().
+		GetByID(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, tenantID string) (*entity.Tenant, error) {
+			tenant, ok := state.tenants[tenantID]
+			if !ok {
+				return nil, entity.ErrTenantNotFound
+			}
+			copyTenant := tenant
+			return &copyTenant, nil
+		}).
+		Maybe()
+	tenantRepo.EXPECT().
+		AttachOrganization(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, tenantID string, orgID string) error {
+			tenant := state.tenants[tenantID]
+			tenant.OrgID = orgID
+			state.tenants[tenantID] = tenant
+			return nil
+		}).
+		Maybe()
+	tenantRepo.EXPECT().
+		DetachOrganization(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, tenantID string) error {
+			tenant := state.tenants[tenantID]
+			tenant.OrgID = ""
+			state.tenants[tenantID] = tenant
+			return nil
+		}).
+		Maybe()
 
-	roleRepo.EXPECT().GetByName(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, name string) (*entity.Role, error) {
-		role, ok := state.roleByName[name]
-		if !ok {
-			return nil, entity.ErrRoleNotFound
-		}
-		copyRole := role
-		return &copyRole, nil
-	}).Maybe()
-	roleRepo.EXPECT().RoleHasPermission(mock.Anything, mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, roleID uint64, permission string) (bool, error) {
-		return state.rolePermissions[roleID][permission], nil
-	}).Maybe()
-	roleRepo.EXPECT().PutTrustPolicy(mock.Anything, mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, roleID uint64, statements []entity.RoleTrustStatement) error {
-		state.roleTrustStatements[roleID] = append([]entity.RoleTrustStatement(nil), statements...)
-		return nil
-	}).Maybe()
-	roleRepo.EXPECT().GetTrustPolicy(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, roleID uint64) ([]entity.RoleTrustStatement, error) {
-		return append([]entity.RoleTrustStatement(nil), state.roleTrustStatements[roleID]...), nil
-	}).Maybe()
-	roleRepo.EXPECT().DeleteTrustPolicy(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, roleID uint64) error {
-		delete(state.roleTrustStatements, roleID)
-		return nil
-	}).Maybe()
-	roleRepo.EXPECT().PutPermissionBoundary(mock.Anything, mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, roleID uint64, policyID uint64) error {
-		policy := state.policiesByID[policyID]
-		state.roleBoundary[roleID] = &entity.RolePermissionBoundary{
-			RoleID:     roleID,
-			RoleName:   state.roleByID(roleID).Name,
-			PolicyID:   policyID,
-			PolicyName: policy.Name,
-			CreatedAt:  time.Now().UTC(),
-		}
-		state.roleBoundaryStmts[roleID] = append([]entity.PolicyStatement(nil), state.policyStatements[policyID]...)
-		return nil
-	}).Maybe()
-	roleRepo.EXPECT().GetPermissionBoundary(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, roleID uint64) (*entity.RolePermissionBoundary, error) {
-		item := state.roleBoundary[roleID]
-		if item == nil {
-			return nil, nil
-		}
-		copyItem := *item
-		return &copyItem, nil
-	}).Maybe()
-	roleRepo.EXPECT().GetPermissionBoundaryStatements(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, roleID uint64) ([]entity.PolicyStatement, error) {
-		return append([]entity.PolicyStatement(nil), state.roleBoundaryStmts[roleID]...), nil
-	}).Maybe()
-	roleRepo.EXPECT().DeletePermissionBoundary(mock.Anything, mock.Anything).RunAndReturn(func(ctx context.Context, roleID uint64) error {
-		delete(state.roleBoundary, roleID)
-		delete(state.roleBoundaryStmts, roleID)
-		return nil
-	}).Maybe()
+	roleRepo.EXPECT().
+		GetByName(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, name string) (*entity.Role, error) {
+			role, ok := state.roleByName[name]
+			if !ok {
+				return nil, entity.ErrRoleNotFound
+			}
+			copyRole := role
+			return &copyRole, nil
+		}).
+		Maybe()
+	roleRepo.EXPECT().
+		RoleHasPermission(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, roleID uint64, permission string) (bool, error) {
+			return state.rolePermissions[roleID][permission], nil
+		}).
+		Maybe()
+	roleRepo.EXPECT().
+		PutTrustPolicy(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, roleID uint64, statements []entity.RoleTrustStatement) error {
+			state.roleTrustStatements[roleID] = append([]entity.RoleTrustStatement(nil), statements...)
+			return nil
+		}).
+		Maybe()
+	roleRepo.EXPECT().
+		GetTrustPolicy(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, roleID uint64) ([]entity.RoleTrustStatement, error) {
+			return append([]entity.RoleTrustStatement(nil), state.roleTrustStatements[roleID]...), nil
+		}).
+		Maybe()
+	roleRepo.EXPECT().
+		DeleteTrustPolicy(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, roleID uint64) error {
+			delete(state.roleTrustStatements, roleID)
+			return nil
+		}).
+		Maybe()
+	roleRepo.EXPECT().
+		PutPermissionBoundary(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, roleID uint64, policyID uint64) error {
+			policy := state.policiesByID[policyID]
+			state.roleBoundary[roleID] = &entity.RolePermissionBoundary{
+				RoleID:     roleID,
+				RoleName:   state.roleByID(roleID).Name,
+				PolicyID:   policyID,
+				PolicyName: policy.Name,
+				CreatedAt:  time.Now().UTC(),
+			}
+			state.roleBoundaryStmts[roleID] = append([]entity.PolicyStatement(nil), state.policyStatements[policyID]...)
+			return nil
+		}).
+		Maybe()
+	roleRepo.EXPECT().
+		GetPermissionBoundary(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, roleID uint64) (*entity.RolePermissionBoundary, error) {
+			item := state.roleBoundary[roleID]
+			if item == nil {
+				return nil, nil
+			}
+			copyItem := *item
+			return &copyItem, nil
+		}).
+		Maybe()
+	roleRepo.EXPECT().
+		GetPermissionBoundaryStatements(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, roleID uint64) ([]entity.PolicyStatement, error) {
+			return append([]entity.PolicyStatement(nil), state.roleBoundaryStmts[roleID]...), nil
+		}).
+		Maybe()
+	roleRepo.EXPECT().
+		DeletePermissionBoundary(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, roleID uint64) error {
+			delete(state.roleBoundary, roleID)
+			delete(state.roleBoundaryStmts, roleID)
+			return nil
+		}).
+		Maybe()
 
 	// Policy, group, principal, membership, and invite mocks are kept stateful here so
 	// slice-specific tests can stay focused on business rules rather than harness setup.

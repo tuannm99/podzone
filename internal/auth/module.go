@@ -65,10 +65,6 @@ var applyMigration = func(ctx context.Context, db *sql.DB, dialect string) error
 	return migrations.Apply(ctx, db, dialect)
 }
 
-func ApplyMigrationForIAM(ctx context.Context, db *sql.DB, dialect string) error {
-	return applyMigration(ctx, db, dialect)
-}
-
 func RegisterMigration(p MigrateParams) {
 	if !p.AuthDBConfig.ShouldRunMigration {
 		p.Logger.Info("Disabled migration ...")
