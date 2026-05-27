@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	boconfig "github.com/tuannm99/podzone/internal/backoffice/config"
 	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
@@ -17,7 +18,7 @@ import (
 
 type TenantAuthorizer interface {
 	AuthorizeTenant(ctx context.Context, sessionID, userID, tenantID string) error
-	RequirePermission(ctx context.Context, userID, tenantID, permission string) error
+	RequirePermission(ctx context.Context, userID, tenantID, permission, resource string) error
 }
 
 type authTenantAuthorizer struct {
@@ -111,16 +112,24 @@ func (a *authTenantAuthorizer) AuthorizeTenant(ctx context.Context, sessionID, u
 	return nil
 }
 
-func (a *authTenantAuthorizer) RequirePermission(ctx context.Context, userID, tenantID, permission string) error {
+func (a *authTenantAuthorizer) RequirePermission(
+	ctx context.Context,
+	userID, tenantID, permission, resource string,
+) error {
 	userIDNum, err := parseUserID(userID)
 	if err != nil {
 		return err
+	}
+	resource = strings.TrimSpace(resource)
+	if resource == "" {
+		resource = "*"
 	}
 
 	resp, err := a.iamClient.CheckPermission(ctx, &pbauthv1.CheckPermissionRequest{
 		TenantId:   tenantID,
 		UserId:     userIDNum,
 		Permission: permission,
+		Resource:   resource,
 	})
 	if err != nil {
 		return mapAuthzError("permission check failed", err)

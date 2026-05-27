@@ -122,7 +122,7 @@ export function OrderCard(props: OrderCardProps) {
   const { order, actions, helpers, ui } = props;
 
   return (
-    <div class="rounded-2xl border border-gray-200 bg-white p-4">
+    <div class="rounded-lg border border-gray-200 bg-white p-4">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-start gap-3">
           <label class="mt-1">
@@ -237,7 +237,7 @@ export function OrderCard(props: OrderCardProps) {
       </div>
 
       <Show when={order.exceptionType}>
-        <div class="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
+        <div class="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3">
           <p class="text-xs font-semibold uppercase tracking-[0.16em] text-amber-700">
             Exception
           </p>
@@ -248,7 +248,7 @@ export function OrderCard(props: OrderCardProps) {
       </Show>
 
       <Show when={order.status === 'routing_blocked'}>
-        <div class="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3">
+        <div class="mt-3 rounded-md border border-rose-200 bg-rose-50 p-3">
           <p class="text-xs font-semibold uppercase tracking-[0.16em] text-rose-700">
             Manual reroute
           </p>
@@ -282,7 +282,7 @@ export function OrderCard(props: OrderCardProps) {
         </div>
       </Show>
 
-      <div class="mt-3 rounded-xl border border-sky-200 bg-sky-50 p-3">
+      <div class="mt-3 rounded-md border border-sky-200 bg-sky-50 p-3">
         <p class="text-xs font-semibold uppercase tracking-[0.16em] text-sky-700">
           Queue ownership
         </p>
@@ -349,7 +349,7 @@ export function OrderCard(props: OrderCardProps) {
       </div>
 
       <Show when={order.exceptionType || order.shipmentStatus === 'delivery_issue'}>
-        <div class="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3">
+        <div class="mt-3 rounded-md border border-rose-200 bg-rose-50 p-3">
           <p class="text-xs font-semibold uppercase tracking-[0.16em] text-rose-700">
             Issue cost handling
           </p>
@@ -407,12 +407,12 @@ export function OrderCard(props: OrderCardProps) {
         </div>
       </Show>
 
-      <div class="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+      <div class="mt-3 rounded-md border border-emerald-200 bg-emerald-50 p-3">
         <p class="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
           Settlement readiness
         </p>
         <div class="mt-3 grid gap-3 md:grid-cols-2">
-          <div class="rounded-xl border border-emerald-200 bg-white p-3">
+          <div class="rounded-md border border-emerald-200 bg-white p-3">
             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
               Base cost snapshot
             </p>
@@ -420,7 +420,7 @@ export function OrderCard(props: OrderCardProps) {
               {order.baseCostSnapshot}
             </p>
           </div>
-          <div class="rounded-xl border border-emerald-200 bg-white p-3">
+          <div class="rounded-md border border-emerald-200 bg-white p-3">
             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
               Realized margin
             </p>
@@ -492,7 +492,7 @@ export function OrderCard(props: OrderCardProps) {
         </div>
       </div>
 
-      <div class="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+      <div class="mt-3 rounded-md border border-slate-200 bg-slate-50 p-3">
         <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-600">
           Manual shipment control
         </p>
@@ -573,7 +573,7 @@ export function OrderCard(props: OrderCardProps) {
         </div>
       </div>
 
-      <div class="mt-3 rounded-xl bg-gray-50 p-3">
+      <div class="mt-3 rounded-md bg-gray-50 p-3">
         <p class="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
           Timeline
         </p>
@@ -582,7 +582,7 @@ export function OrderCard(props: OrderCardProps) {
         </div>
       </div>
 
-      <div class="mt-3 rounded-xl border border-slate-200 bg-white p-3">
+      <div class="mt-3 rounded-md border border-slate-200 bg-white p-3">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-600">
             Activity log
@@ -624,7 +624,7 @@ export function OrderCard(props: OrderCardProps) {
           <Show
             when={helpers.filteredActivityLogFor(order).length > 0}
             fallback={
-              <div class="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-3 text-sm text-slate-500">
+              <div class="rounded-md border border-dashed border-slate-200 bg-slate-50 p-3 text-sm text-slate-500">
                 <Show
                   when={helpers.hiddenSystemActivityCountFor(order) > 0}
                   fallback={'No activity matches the current filter.'}
@@ -636,7 +636,7 @@ export function OrderCard(props: OrderCardProps) {
           >
             <For each={helpers.filteredActivityLogFor(order)}>
               {(activity) => (
-                <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <div class="rounded-md border border-slate-200 bg-slate-50 p-3">
                   <div class="flex flex-wrap items-center justify-between gap-2">
                     <div class="flex flex-wrap items-center gap-2">
                       <Badge

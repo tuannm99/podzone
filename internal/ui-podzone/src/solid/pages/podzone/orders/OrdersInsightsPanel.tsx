@@ -8,7 +8,7 @@ export function OrdersInsightsPanel() {
 
   return (
     <>
-      <div class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4">
+      <div class="mt-4 rounded-lg border border-rose-200 bg-rose-50 p-4">
         <div class="grid gap-4 md:grid-cols-2">
           <div>
             <p class="text-sm font-semibold text-rose-900">
@@ -69,7 +69,7 @@ export function OrdersInsightsPanel() {
         </div>
       </div>
       <div class="mt-4 grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
-        <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+        <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
           <p class="text-sm font-semibold text-emerald-900">
             Settlement reconciliation queue
           </p>
@@ -88,7 +88,7 @@ export function OrdersInsightsPanel() {
             >
               <For each={insights.reconciliationOrders().slice(0, 6)}>
                 {(order) => (
-                  <div class="rounded-xl border border-emerald-100 bg-white p-3">
+                  <div class="rounded-md border border-emerald-100 bg-white p-3">
                     <div class="flex flex-wrap items-center justify-between gap-2">
                       <div>
                         <p class="text-sm font-semibold text-slate-900">
@@ -129,7 +129,7 @@ export function OrdersInsightsPanel() {
             </Show>
           </div>
         </div>
-        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
           <p class="text-sm font-semibold text-slate-900">
             Partner finance snapshot
           </p>
@@ -148,7 +148,7 @@ export function OrdersInsightsPanel() {
             >
               <For each={insights.partnerFinanceSummary().slice(0, 6)}>
                 {(item) => (
-                  <div class="rounded-xl border border-slate-200 bg-white p-3">
+                  <div class="rounded-md border border-slate-200 bg-white p-3">
                     <div class="flex flex-wrap items-center justify-between gap-2">
                       <p class="text-sm font-semibold text-slate-900">
                         {item.partner}

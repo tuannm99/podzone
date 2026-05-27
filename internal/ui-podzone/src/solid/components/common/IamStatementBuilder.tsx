@@ -260,7 +260,7 @@ export function IamStatementBuilder(props: {
                   <Show
                     when={(statement.conditions || []).length > 0}
                     fallback={
-                      <div class="rounded-2xl border border-dashed border-gray-200 bg-white px-4 py-5 text-sm text-gray-500">
+                      <div class="rounded-lg border border-dashed border-gray-200 bg-white px-4 py-5 text-sm text-gray-500">
                         No conditions on this statement.
                       </div>
                     }
@@ -268,7 +268,7 @@ export function IamStatementBuilder(props: {
                     <div class="space-y-3">
                       <For each={statement.conditions || []}>
                         {(condition, conditionIndex) => (
-                          <div class="grid gap-3 rounded-2xl border border-gray-200 bg-white p-4 md:grid-cols-[1.2fr_1fr_1fr_auto] md:items-end">
+                          <div class="grid gap-3 rounded-lg border border-gray-200 bg-white p-4 md:grid-cols-[1.2fr_1fr_1fr_auto] md:items-end">
                             <SelectField
                               label="Operator"
                               value={condition.operator}

@@ -4918,6 +4918,7 @@ type CheckPermissionRequest struct {
 	TenantId      string                 `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
 	UserId        uint64                 `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Permission    string                 `protobuf:"bytes,3,opt,name=permission,proto3" json:"permission,omitempty"`
+	Resource      string                 `protobuf:"bytes,4,opt,name=resource,proto3" json:"resource,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4969,6 +4970,13 @@ func (x *CheckPermissionRequest) GetUserId() uint64 {
 func (x *CheckPermissionRequest) GetPermission() string {
 	if x != nil {
 		return x.Permission
+	}
+	return ""
+}
+
+func (x *CheckPermissionRequest) GetResource() string {
+	if x != nil {
+		return x.Resource
 	}
 	return ""
 }
@@ -6639,13 +6647,14 @@ const file_auth_v1_iam_policy_proto_rawDesc = "" +
 	"\bboundary\x18\x01 \x01(\v2\x18.auth.PermissionBoundaryR\bboundary\"S\n" +
 	"+DeletePlatformUserPermissionBoundaryRequest\x12$\n" +
 	"\x0etarget_user_id\x18\x01 \x01(\x04R\ftargetUserId\".\n" +
-	",DeletePlatformUserPermissionBoundaryResponse\"n\n" +
+	",DeletePlatformUserPermissionBoundaryResponse\"\x8a\x01\n" +
 	"\x16CheckPermissionRequest\x12\x1b\n" +
 	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x04R\x06userId\x12\x1e\n" +
 	"\n" +
 	"permission\x18\x03 \x01(\tR\n" +
-	"permission\"Y\n" +
+	"permission\x12\x1a\n" +
+	"\bresource\x18\x04 \x01(\tR\bresource\"Y\n" +
 	"\x1eCheckPlatformPermissionRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x04R\x06userId\x12\x1e\n" +
 	"\n" +

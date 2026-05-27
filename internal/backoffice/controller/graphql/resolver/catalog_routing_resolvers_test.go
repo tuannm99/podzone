@@ -15,7 +15,10 @@ import (
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
 	routinginputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport"
 	routinginputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport/mocks"
+	"github.com/tuannm99/podzone/internal/backoffice/runtime/scope"
 )
+
+const testStoreID = "store-ops"
 
 func TestCreateRoutedOrderMapsInputAndOutput(t *testing.T) {
 	t.Parallel()
@@ -26,6 +29,7 @@ func TestCreateRoutedOrderMapsInputAndOutput(t *testing.T) {
 		CreateRoutedOrder(mock.Anything, mock.Anything).
 		RunAndReturn(func(_ context.Context, cmd routinginputport.CreateRoutedOrderCmd) (*routingentity.RoutedOrder, error) {
 			require.Equal(t, routinginputport.CreateRoutedOrderCmd{
+				StoreID:          testStoreID,
 				CandidateID:      "cand-1",
 				CustomerName:     "Alex POD",
 				Quantity:         3,
@@ -64,7 +68,7 @@ func TestCreateRoutedOrderMapsInputAndOutput(t *testing.T) {
 		OrderRoutingUsecase: orderUC,
 	}}
 
-	got, err := resolver.CreateRoutedOrder(context.Background(), model.CreateRoutedOrderInput{
+	got, err := resolver.CreateRoutedOrder(storeScopedContext(), model.CreateRoutedOrderInput{
 		CandidateID:      "cand-1",
 		CustomerName:     "Alex POD",
 		Quantity:         3,
@@ -110,7 +114,7 @@ func TestBulkUpdateRoutedOrdersMapsPointersAndList(t *testing.T) {
 		OrderRoutingUsecase: orderUC,
 	}}
 
-	got, err := resolver.BulkUpdateRoutedOrders(context.Background(), model.BulkUpdateRoutedOrdersInput{
+	got, err := resolver.BulkUpdateRoutedOrders(storeScopedContext(), model.BulkUpdateRoutedOrdersInput{
 		OrderIds:         []string{"ord-1", "ord-2"},
 		OperatorAssignee: &owner,
 		ShipmentSLADueAt: &sla,
@@ -134,6 +138,7 @@ func TestForceRerouteBlockedOrderMapsInputAndOutput(t *testing.T) {
 		ForceRerouteBlockedOrder(mock.Anything, mock.Anything).
 		RunAndReturn(func(_ context.Context, cmd routinginputport.ForceRerouteBlockedOrderCmd) (*routingentity.RoutedOrder, error) {
 			require.Equal(t, routinginputport.ForceRerouteBlockedOrderCmd{
+				StoreID:          testStoreID,
 				OrderID:          "ord-1",
 				PreferredPartner: "Fulfill Fast",
 			}, cmd)
@@ -166,7 +171,7 @@ func TestForceRerouteBlockedOrderMapsInputAndOutput(t *testing.T) {
 		OrderRoutingUsecase: orderUC,
 	}}
 
-	got, err := resolver.ForceRerouteBlockedOrder(context.Background(), model.ForceRerouteBlockedOrderInput{
+	got, err := resolver.ForceRerouteBlockedOrder(storeScopedContext(), model.ForceRerouteBlockedOrderInput{
 		OrderID:          "ord-1",
 		PreferredPartner: "Fulfill Fast",
 	})
@@ -182,10 +187,11 @@ func TestProductSetupSnapshotMapsNestedGraphQLFields(t *testing.T) {
 	now := time.Date(2026, 5, 15, 9, 0, 0, 0, time.UTC)
 	productUC := cataloginputmocks.NewMockProductSetupUsecase(t)
 	orderUC := routinginputmocks.NewMockOrderRoutingUsecase(t)
-	productUC.EXPECT().GetSnapshot(mock.Anything).Return(&catalogentity.ProductSetupSnapshot{
+	productUC.EXPECT().GetSnapshot(mock.Anything, testStoreID).Return(&catalogentity.ProductSetupSnapshot{
 		Drafts: []catalogentity.ProductSetupDraft{
 			{
 				ID:          "draft-1",
+				StoreID:     testStoreID,
 				Name:        "Vintage Tee Draft",
 				Partner:     "Print Partner A",
 				BaseCost:    "$8.00",
@@ -199,6 +205,7 @@ func TestProductSetupSnapshotMapsNestedGraphQLFields(t *testing.T) {
 		Candidates: []catalogentity.ProductSetupCandidate{
 			{
 				ID:              "cand-1",
+				StoreID:         testStoreID,
 				DraftID:         "draft-1",
 				Title:           "Vintage Tee",
 				SKU:             "TEE-001",
@@ -228,7 +235,7 @@ func TestProductSetupSnapshotMapsNestedGraphQLFields(t *testing.T) {
 		OrderRoutingUsecase: orderUC,
 	}}
 
-	got, err := resolver.ProductSetupSnapshot(context.Background())
+	got, err := resolver.ProductSetupSnapshot(storeScopedContext())
 	require.NoError(t, err)
 	require.Len(t, got.Drafts, 1)
 	require.Len(t, got.Candidates, 1)
@@ -259,7 +266,7 @@ func TestUpdateOrderShipmentPropagatesUsecaseErrors(t *testing.T) {
 		OrderRoutingUsecase: orderUC,
 	}}
 
-	got, err := resolver.UpdateOrderShipment(context.Background(), model.UpdateOrderShipmentInput{
+	got, err := resolver.UpdateOrderShipment(storeScopedContext(), model.UpdateOrderShipmentInput{
 		OrderID:        "ord-1",
 		ShipmentStatus: "bad-status",
 		Carrier:        "DHL",
@@ -281,6 +288,7 @@ func TestRoutedOrderActivitiesMapsQueryAndResponse(t *testing.T) {
 		ListRoutedOrderActivities(mock.Anything, mock.Anything).
 		RunAndReturn(func(_ context.Context, query routingentity.RoutedOrderActivityFeedQuery) (*routingentity.RoutedOrderActivityFeedPage, error) {
 			require.Equal(t, "shipment_note", query.ActivityType)
+			require.Equal(t, testStoreID, query.StoreID)
 			require.Equal(t, "user:12", query.ActorContains)
 			require.Equal(t, "ord-1", query.OrderID)
 			require.Equal(t, "print partner a", query.Partner)
@@ -318,7 +326,7 @@ func TestRoutedOrderActivitiesMapsQueryAndResponse(t *testing.T) {
 		OrderRoutingUsecase: orderUC,
 	}}
 
-	got, err := resolver.RoutedOrderActivities(context.Background(), &model.RoutedOrderActivityFeedInput{
+	got, err := resolver.RoutedOrderActivities(storeScopedContext(), &model.RoutedOrderActivityFeedInput{
 		ActivityType:  ptrString("shipment_note"),
 		ActorContains: ptrString("user:12"),
 		OrderID:       ptrString("ord-1"),
@@ -348,6 +356,7 @@ func TestRoutedOrderRecommendationMapsQueryAndResponse(t *testing.T) {
 		RecommendRoutedOrderPartner(mock.Anything, mock.Anything).
 		RunAndReturn(func(_ context.Context, query routinginputport.RecommendRoutedOrderPartnerQuery) (*routingentity.RoutedOrderRecommendation, error) {
 			require.Equal(t, routinginputport.RecommendRoutedOrderPartnerQuery{
+				StoreID:          testStoreID,
 				CandidateID:      "cand-1",
 				ProductType:      "tshirt",
 				ShipRegion:       "us",
@@ -389,7 +398,7 @@ func TestRoutedOrderRecommendationMapsQueryAndResponse(t *testing.T) {
 		OrderRoutingUsecase: orderUC,
 	}}
 
-	got, err := resolver.RoutedOrderRecommendation(context.Background(), model.RoutedOrderRecommendationInput{
+	got, err := resolver.RoutedOrderRecommendation(storeScopedContext(), model.RoutedOrderRecommendationInput{
 		CandidateID:      "cand-1",
 		ProductType:      "tshirt",
 		ShipRegion:       "us",
@@ -407,3 +416,7 @@ func TestRoutedOrderRecommendationMapsQueryAndResponse(t *testing.T) {
 func ptrString(value string) *string { return &value }
 func ptrInt(value int) *int          { return &value }
 func ptrBool(value bool) *bool       { return &value }
+
+func storeScopedContext() context.Context {
+	return scope.WithStoreContext(context.Background(), scope.StoreContext{StoreID: testStoreID})
+}

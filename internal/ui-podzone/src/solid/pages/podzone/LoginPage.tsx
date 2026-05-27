@@ -37,7 +37,7 @@ export default function LoginPage() {
   return (
     <div class="mx-auto flex min-h-[calc(100vh-2rem)] max-w-5xl items-center px-4 py-8 sm:px-5 lg:px-6">
       <div class="grid w-full gap-5 lg:grid-cols-[1.05fr_0.95fr]">
-        <Card class="space-y-6 bg-[linear-gradient(135deg,_#dbeafe,_#ffffff_45%,_#eff6ff)]">
+        <Card class="space-y-6 bg-gray-950 text-white [&_h1]:text-white [&_p]:text-gray-300">
           <SectionLead
             eyebrow="PODZONE"
             title="Run your POD stores from one backoffice."
@@ -45,24 +45,24 @@ export default function LoginPage() {
           />
 
           <div class="grid gap-3 sm:grid-cols-3">
-            <div class="rounded-2xl bg-white/80 p-4 shadow-sm">
-              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600">
+            <div class="rounded-lg bg-white/80 p-4 shadow-sm">
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
                 01
               </p>
               <p class="mt-2 text-sm text-gray-600">
                 One sign-in unlocks your store operations workspace.
               </p>
             </div>
-            <div class="rounded-2xl bg-white/80 p-4 shadow-sm">
-              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600">
+            <div class="rounded-lg bg-white/80 p-4 shadow-sm">
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
                 02
               </p>
               <p class="mt-2 text-sm text-gray-600">
                 Store switching keeps each session scoped to the right shop.
               </p>
             </div>
-            <div class="rounded-2xl bg-white/80 p-4 shadow-sm">
-              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600">
+            <div class="rounded-lg bg-white/80 p-4 shadow-sm">
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
                 03
               </p>
               <p class="mt-2 text-sm text-gray-600">
@@ -115,7 +115,7 @@ export default function LoginPage() {
 
           <p class="text-sm text-gray-500">
             Need an account?{' '}
-            <Link to="/auth/register" class="font-semibold text-blue-700">
+            <Link to="/auth/register" class="font-semibold text-gray-950">
               Create one
             </Link>
           </p>
@@ -123,7 +123,7 @@ export default function LoginPage() {
             Local dev seed ready?{' '}
             <Link
               to="/auth/dev/bootstrap"
-              class="font-semibold text-sky-700"
+              class="font-semibold text-gray-950"
             >
               Import seeded credentials
             </Link>

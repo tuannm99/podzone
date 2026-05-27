@@ -22,12 +22,17 @@ func NewProductSetupInteractor(repo catalogoutputport.ProductSetupRepository) ca
 	return &ProductSetupInteractor{repo: repo}
 }
 
-func (i *ProductSetupInteractor) GetSnapshot(ctx context.Context) (*catalogentity.ProductSetupSnapshot, error) {
-	drafts, err := i.repo.ListDrafts(ctx)
+func (i *ProductSetupInteractor) GetSnapshot(ctx context.Context, storeID string) (*catalogentity.ProductSetupSnapshot, error) {
+	storeID = strings.TrimSpace(storeID)
+	if storeID == "" {
+		return nil, fmt.Errorf("store id is required")
+	}
+
+	drafts, err := i.repo.ListDrafts(ctx, storeID)
 	if err != nil {
 		return nil, err
 	}
-	candidates, err := i.repo.ListCandidates(ctx)
+	candidates, err := i.repo.ListCandidates(ctx, storeID)
 	if err != nil {
 		return nil, err
 	}
@@ -38,6 +43,11 @@ func (i *ProductSetupInteractor) CreateDraft(
 	ctx context.Context,
 	cmd cataloginputport.CreateProductSetupDraftCmd,
 ) (*catalogentity.ProductSetupDraft, error) {
+	storeID := strings.TrimSpace(cmd.StoreID)
+	if storeID == "" {
+		return nil, fmt.Errorf("store id is required")
+	}
+
 	name := strings.TrimSpace(cmd.Name)
 	if name == "" {
 		return nil, fmt.Errorf("product name is required")
@@ -51,6 +61,7 @@ func (i *ProductSetupInteractor) CreateDraft(
 	now := time.Now().UTC()
 	draft := catalogentity.ProductSetupDraft{
 		ID:          uuid.NewString(),
+		StoreID:     storeID,
 		Name:        name,
 		Partner:     strings.TrimSpace(cmd.Partner),
 		BaseCost:    fallbackValue(cmd.BaseCost, "TBD"),
@@ -70,17 +81,22 @@ func (i *ProductSetupInteractor) PromoteCandidate(
 	ctx context.Context,
 	cmd cataloginputport.PromoteProductSetupCandidateCmd,
 ) (*catalogentity.ProductSetupCandidate, error) {
+	storeID := strings.TrimSpace(cmd.StoreID)
+	if storeID == "" {
+		return nil, fmt.Errorf("store id is required")
+	}
+
 	draftID := strings.TrimSpace(cmd.DraftID)
 	if draftID == "" {
 		return nil, fmt.Errorf("draft id is required")
 	}
 
-	draft, err := i.repo.GetDraftByID(ctx, draftID)
+	draft, err := i.repo.GetDraftByID(ctx, storeID, draftID)
 	if err != nil {
 		return nil, err
 	}
 
-	existing, err := i.repo.GetCandidateByDraftID(ctx, draftID)
+	existing, err := i.repo.GetCandidateByDraftID(ctx, storeID, draftID)
 	if err != nil {
 		return nil, err
 	}
@@ -103,6 +119,7 @@ func (i *ProductSetupInteractor) PromoteCandidate(
 
 	candidate := catalogentity.ProductSetupCandidate{
 		ID:              uuid.NewString(),
+		StoreID:         storeID,
 		DraftID:         draft.ID,
 		Title:           draft.Name,
 		SKU:             buildSKU(draft.Name),
@@ -130,9 +147,15 @@ func (i *ProductSetupInteractor) PromoteCandidate(
 
 func (i *ProductSetupInteractor) UpdateCandidateStatus(
 	ctx context.Context,
+	storeID string,
 	id string,
 	status string,
 ) (*catalogentity.ProductSetupCandidate, error) {
+	storeID = strings.TrimSpace(storeID)
+	if storeID == "" {
+		return nil, fmt.Errorf("store id is required")
+	}
+
 	id = strings.TrimSpace(id)
 	if id == "" {
 		return nil, fmt.Errorf("candidate id is required")
@@ -142,7 +165,7 @@ func (i *ProductSetupInteractor) UpdateCandidateStatus(
 	if status == "" {
 		return nil, fmt.Errorf("invalid candidate status")
 	}
-	return i.repo.UpdateCandidateStatus(ctx, id, status)
+	return i.repo.UpdateCandidateStatus(ctx, storeID, id, status)
 }
 
 func normalizeDraftStatus(raw string) string {

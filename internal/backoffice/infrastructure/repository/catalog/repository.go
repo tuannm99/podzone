@@ -32,6 +32,7 @@ func New(mgr pdtenantdb.Manager) catalogoutputport.ProductSetupRepository {
 
 type productSetupDraftRow struct {
 	ID          string    `db:"id"`
+	StoreID     string    `db:"store_id"`
 	Name        string    `db:"name"`
 	Partner     string    `db:"partner"`
 	BaseCost    string    `db:"base_cost"`
@@ -44,6 +45,7 @@ type productSetupDraftRow struct {
 
 type productSetupCandidateRow struct {
 	ID                   string    `db:"id"`
+	StoreID              string    `db:"store_id"`
 	DraftID              string    `db:"draft_id"`
 	Title                string    `db:"title"`
 	SKU                  string    `db:"sku"`
@@ -59,10 +61,11 @@ type productSetupCandidateRow struct {
 	UpdatedAt            time.Time `db:"updated_at"`
 }
 
-func (r *Repository) ListDrafts(ctx context.Context) ([]catalogentity.ProductSetupDraft, error) {
+func (r *Repository) ListDrafts(ctx context.Context, storeID string) ([]catalogentity.ProductSetupDraft, error) {
 	query, args, err := psql.
-		Select("id", "name", "partner", "base_cost", "retail_price", "status", "notes", "created_at", "updated_at").
+		Select("id", "store_id", "name", "partner", "base_cost", "retail_price", "status", "notes", "created_at", "updated_at").
 		From("product_setup_drafts").
+		Where(sq.Eq{"store_id": storeID}).
 		OrderBy("created_at DESC").
 		ToSql()
 	if err != nil {
@@ -86,11 +89,11 @@ func (r *Repository) ListDrafts(ctx context.Context) ([]catalogentity.ProductSet
 	return out, nil
 }
 
-func (r *Repository) GetDraftByID(ctx context.Context, id string) (*catalogentity.ProductSetupDraft, error) {
+func (r *Repository) GetDraftByID(ctx context.Context, storeID, id string) (*catalogentity.ProductSetupDraft, error) {
 	query, args, err := psql.
-		Select("id", "name", "partner", "base_cost", "retail_price", "status", "notes", "created_at", "updated_at").
+		Select("id", "store_id", "name", "partner", "base_cost", "retail_price", "status", "notes", "created_at", "updated_at").
 		From("product_setup_drafts").
-		Where(sq.Eq{"id": id}).
+		Where(sq.Eq{"id": id, "store_id": storeID}).
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -122,8 +125,8 @@ func (r *Repository) CreateDraft(
 ) (*catalogentity.ProductSetupDraft, error) {
 	query, args, err := psql.
 		Insert("product_setup_drafts").
-		Columns("id", "name", "partner", "base_cost", "retail_price", "status", "notes", "created_at", "updated_at").
-		Values(draft.ID, draft.Name, draft.Partner, draft.BaseCost, draft.RetailPrice, draft.Status, draft.Notes, draft.CreatedAt, draft.UpdatedAt).
+		Columns("id", "store_id", "name", "partner", "base_cost", "retail_price", "status", "notes", "created_at", "updated_at").
+		Values(draft.ID, draft.StoreID, draft.Name, draft.Partner, draft.BaseCost, draft.RetailPrice, draft.Status, draft.Notes, draft.CreatedAt, draft.UpdatedAt).
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -141,14 +144,15 @@ func (r *Repository) CreateDraft(
 	return &draft, nil
 }
 
-func (r *Repository) ListCandidates(ctx context.Context) ([]catalogentity.ProductSetupCandidate, error) {
+func (r *Repository) ListCandidates(ctx context.Context, storeID string) ([]catalogentity.ProductSetupCandidate, error) {
 	query, args, err := psql.
 		Select(
-			"id", "draft_id", "title", "sku", "partner", "base_cost", "retail_price",
+			"id", "store_id", "draft_id", "title", "sku", "partner", "base_cost", "retail_price",
 			"estimated_margin", "status", "channel", "variants_json", "artwork_checklist_json",
 			"merchandising_notes", "updated_at",
 		).
 		From("product_setup_candidates").
+		Where(sq.Eq{"store_id": storeID}).
 		OrderBy("updated_at DESC").
 		ToSql()
 	if err != nil {
@@ -176,15 +180,15 @@ func (r *Repository) ListCandidates(ctx context.Context) ([]catalogentity.Produc
 	return out, nil
 }
 
-func (r *Repository) GetCandidateByID(ctx context.Context, id string) (*catalogentity.ProductSetupCandidate, error) {
+func (r *Repository) GetCandidateByID(ctx context.Context, storeID, id string) (*catalogentity.ProductSetupCandidate, error) {
 	query, args, err := psql.
 		Select(
-			"id", "draft_id", "title", "sku", "partner", "base_cost", "retail_price",
+			"id", "store_id", "draft_id", "title", "sku", "partner", "base_cost", "retail_price",
 			"estimated_margin", "status", "channel", "variants_json", "artwork_checklist_json",
 			"merchandising_notes", "updated_at",
 		).
 		From("product_setup_candidates").
-		Where(sq.Eq{"id": id}).
+		Where(sq.Eq{"id": id, "store_id": storeID}).
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -217,16 +221,17 @@ func (r *Repository) GetCandidateByID(ctx context.Context, id string) (*cataloge
 
 func (r *Repository) GetCandidateByDraftID(
 	ctx context.Context,
+	storeID string,
 	draftID string,
 ) (*catalogentity.ProductSetupCandidate, error) {
 	query, args, err := psql.
 		Select(
-			"id", "draft_id", "title", "sku", "partner", "base_cost", "retail_price",
+			"id", "store_id", "draft_id", "title", "sku", "partner", "base_cost", "retail_price",
 			"estimated_margin", "status", "channel", "variants_json", "artwork_checklist_json",
 			"merchandising_notes", "updated_at",
 		).
 		From("product_setup_candidates").
-		Where(sq.Eq{"draft_id": draftID}).
+		Where(sq.Eq{"draft_id": draftID, "store_id": storeID}).
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -273,8 +278,8 @@ func (r *Repository) CreateCandidate(
 
 	query, args, err := psql.
 		Insert("product_setup_candidates").
-		Columns("id", "draft_id", "title", "sku", "partner", "base_cost", "retail_price", "estimated_margin", "status", "channel", "variants_json", "artwork_checklist_json", "merchandising_notes", "updated_at").
-		Values(candidate.ID, candidate.DraftID, candidate.Title, candidate.SKU, candidate.Partner, candidate.BaseCost, candidate.RetailPrice, candidate.EstimatedMargin, candidate.Status, candidate.Channel, string(variantsJSON), string(checklistJSON), candidate.MerchandisingNotes, candidate.UpdatedAt).
+		Columns("id", "store_id", "draft_id", "title", "sku", "partner", "base_cost", "retail_price", "estimated_margin", "status", "channel", "variants_json", "artwork_checklist_json", "merchandising_notes", "updated_at").
+		Values(candidate.ID, candidate.StoreID, candidate.DraftID, candidate.Title, candidate.SKU, candidate.Partner, candidate.BaseCost, candidate.RetailPrice, candidate.EstimatedMargin, candidate.Status, candidate.Channel, string(variantsJSON), string(checklistJSON), candidate.MerchandisingNotes, candidate.UpdatedAt).
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -294,13 +299,14 @@ func (r *Repository) CreateCandidate(
 
 func (r *Repository) UpdateCandidateStatus(
 	ctx context.Context,
+	storeID string,
 	id, status string,
 ) (*catalogentity.ProductSetupCandidate, error) {
 	query, args, err := psql.
 		Update("product_setup_candidates").
 		Set("status", status).
 		Set("updated_at", time.Now().UTC()).
-		Where(sq.Eq{"id": id}).
+		Where(sq.Eq{"id": id, "store_id": storeID}).
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -323,7 +329,7 @@ func (r *Repository) UpdateCandidateStatus(
 		return nil, err
 	}
 
-	candidates, err := r.ListCandidates(ctx)
+	candidates, err := r.ListCandidates(ctx, storeID)
 	if err != nil {
 		return nil, err
 	}
@@ -358,6 +364,7 @@ func mapCandidateRow(row productSetupCandidateRow) (catalogentity.ProductSetupCa
 	}
 	return catalogentity.ProductSetupCandidate{
 		ID:                 row.ID,
+		StoreID:            row.StoreID,
 		DraftID:            row.DraftID,
 		Title:              row.Title,
 		SKU:                row.SKU,

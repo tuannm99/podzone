@@ -1,5 +1,5 @@
 import { useParams } from '@tanstack/solid-router';
-import { For, Show, createEffect, createSignal, onMount } from 'solid-js';
+import { For, Show, createEffect, createSignal } from 'solid-js';
 import {
   createPartner,
   listPartners,
@@ -25,6 +25,7 @@ import {
 } from '../../components/common/Primitives';
 import { SectionLead } from '../../components/common/SectionLead';
 import { SectionTitle } from '../../components/common/SectionTitle';
+import { useTenantWorkspace } from '../../workspace/context';
 
 const partnerTypeOptions = [
   { name: 'All partner types', value: '' },
@@ -83,6 +84,7 @@ function parseShippingCostRules(raw: string) {
 
 export default function TenantPartnersPage() {
   const params = useParams({ from: '/t/$tenantId/partners' });
+  const workspace = useTenantWorkspace();
 
   const [partners, setPartners] = createSignal<PartnerInfo[]>([]);
   const [loading, setLoading] = createSignal(false);
@@ -107,6 +109,11 @@ export default function TenantPartnersPage() {
   const [editingPartnerId, setEditingPartnerId] = createSignal('');
   const [filterPartnerType, setFilterPartnerType] = createSignal('');
   const [filterStatus, setFilterStatus] = createSignal('');
+  const currentStoreId = () => workspace?.currentStoreId() || '';
+  const currentStore = () => workspace?.currentStore();
+  const workspaceReady = () => !workspace || currentStoreId().trim().length > 0;
+  const storeLabel = () =>
+    currentStore()?.name || currentStoreId() || 'selected store';
 
   const isEditing = () => editingPartnerId().trim().length > 0;
 
@@ -234,9 +241,9 @@ export default function TenantPartnersPage() {
 
   createEffect(() => {
     tenantStorage.setTenantID(params().tenantId);
-  });
-
-  onMount(() => {
+    if (!workspaceReady()) {
+      return;
+    }
     void loadPartners();
   });
 
@@ -245,8 +252,8 @@ export default function TenantPartnersPage() {
       <Card class="space-y-4">
         <SectionLead
           eyebrow="Print Partners"
-          title={`Execution partners for store ${params().tenantId}`}
-          copy="Manage the real backend-backed partner records that this store can use later for production and fulfillment workflows."
+          title={`Execution partners for ${storeLabel()}`}
+          copy="Manage partner records from the current tenant workspace while selecting the store context that will use them for production and fulfillment workflows."
         />
       </Card>
 
@@ -259,8 +266,15 @@ export default function TenantPartnersPage() {
       </Show>
 
       <InfoAlert>
-        This is the real partner record layer behind the demo flow. Seed and reset from store home only affect local product and order mock data.
+        This is the real partner record layer behind the demo flow. The store switcher keeps the active workspace explicit even while partner records are still tenant-owned underneath.
       </InfoAlert>
+
+      <Show when={!workspaceReady()}>
+        <EmptyBlock
+          title="Choose a store first"
+          copy="Use the workspace store switcher before opening partner operations from the seller shell."
+        />
+      </Show>
 
       <div class="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
         <Card class="space-y-4">
@@ -462,7 +476,7 @@ export default function TenantPartnersPage() {
             <div class="space-y-3">
               <For each={partners()}>
                 {(partner) => (
-                  <div class="rounded-2xl border border-gray-200 p-4">
+                  <div class="rounded-lg border border-gray-200 p-4">
                     <div class="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <p class="font-semibold text-gray-900">{partner.name}</p>

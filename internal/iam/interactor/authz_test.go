@@ -73,6 +73,51 @@ func TestIAMService_RequirePermission_ExplicitDenyWins(t *testing.T) {
 	)
 }
 
+func TestIAMService_CheckPermissionForResource(t *testing.T) {
+	t.Parallel()
+
+	svc, state := newIAMTestUsecase(t)
+	tenant := entity.Tenant{ID: "t1", Name: "Tenant", Slug: "tenant"}
+	state.tenants[tenant.ID] = tenant
+	state.roleByName[entity.RoleTenantViewer] = entity.Role{ID: 3, Name: entity.RoleTenantViewer}
+	state.memberships.items[membershipKey("t1", 9)] = entity.Membership{
+		TenantID: "t1",
+		UserID:   9,
+		RoleID:   3,
+		RoleName: entity.RoleTenantViewer,
+		Status:   entity.MembershipStatusActive,
+	}
+	state.tenantDirect[membershipKey("t1", 9)] = []entity.PolicyStatement{
+		{
+			PolicyID:        12,
+			PolicyName:      "inline/store-a-read",
+			Effect:          entity.PolicyEffectAllow,
+			ActionPattern:   "store:read",
+			ResourcePattern: entity.ResourceStore("t1", "store-a"),
+		},
+	}
+
+	allowed, err := svc.CheckPermissionForResource(
+		context.Background(),
+		"t1",
+		9,
+		"store:read",
+		entity.ResourceStore("t1", "store-a"),
+	)
+	require.NoError(t, err)
+	require.True(t, allowed)
+
+	allowed, err = svc.CheckPermissionForResource(
+		context.Background(),
+		"t1",
+		9,
+		"store:read",
+		entity.ResourceStore("t1", "store-b"),
+	)
+	require.NoError(t, err)
+	require.False(t, allowed)
+}
+
 func TestIAMService_RequirePlatformPermission(t *testing.T) {
 	t.Parallel()
 

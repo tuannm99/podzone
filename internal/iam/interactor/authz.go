@@ -14,6 +14,20 @@ func (s *interactor) CheckPermission(
 	userID uint,
 	permission string,
 ) (bool, error) {
+	return s.CheckPermissionForResource(ctx, tenantID, userID, permission, "*")
+}
+
+func (s *interactor) CheckPermissionForResource(
+	ctx context.Context,
+	tenantID string,
+	userID uint,
+	permission string,
+	resource string,
+) (bool, error) {
+	resource = strings.TrimSpace(resource)
+	if resource == "" {
+		resource = "*"
+	}
 	if assumedRole, ok := entity.GetAssumedRole(ctx); ok {
 		if assumedRole.RoleScope == entity.PolicyScopeTenant && assumedRole.TenantID != strings.TrimSpace(tenantID) {
 			return false, nil
@@ -22,7 +36,7 @@ func (s *interactor) CheckPermission(
 			TenantID:   tenantID,
 			UserID:     userID,
 			Action:     permission,
-			Resource:   "*",
+			Resource:   resource,
 			Attributes: requestAttributesFromContext(ctx),
 		}, assumedRole.RoleID, permission)
 	}
@@ -42,7 +56,7 @@ func (s *interactor) CheckPermission(
 		OrgID:      tenant.OrgID,
 		UserID:     userID,
 		Action:     permission,
-		Resource:   "*",
+		Resource:   resource,
 		Attributes: requestAttributesFromContext(ctx),
 	}
 	statements, err := s.policies.ListTenantUserStatements(ctx, tenantID, userID)

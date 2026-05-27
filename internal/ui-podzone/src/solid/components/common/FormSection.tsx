@@ -13,15 +13,15 @@ export function FormSection(
   return (
     <section
       class={classes(
-        'rounded-2xl border border-gray-200 bg-white p-6 shadow-sm',
+        'rounded-lg border border-gray-200 bg-white p-5 shadow-sm',
         props.class
       )}
     >
       <div class="flex flex-col gap-4 border-b border-gray-100 pb-4 md:flex-row md:items-start md:justify-between">
         <div class="space-y-1">
-          <h2 class="text-lg font-semibold text-gray-900">{props.title}</h2>
+          <h2 class="text-base font-semibold text-gray-950">{props.title}</h2>
           {props.description ? (
-            <p class="max-w-2xl text-sm text-gray-500">{props.description}</p>
+            <p class="max-w-2xl text-sm text-gray-600">{props.description}</p>
           ) : null}
         </div>
         {props.aside ? <div class="shrink-0">{props.aside}</div> : null}

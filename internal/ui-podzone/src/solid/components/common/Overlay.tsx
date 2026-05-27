@@ -57,7 +57,7 @@ export function DropdownMenu(props: {
     >
       <button
         type="button"
-        class="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50"
+        class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50"
         onClick={() => setOpen((value) => !value)}
       >
         {props.trigger ?? props.label ?? 'More'}
@@ -71,7 +71,7 @@ export function DropdownMenu(props: {
       <Show when={open()}>
         <div
           class={classes(
-            'absolute right-0 z-30 mt-2 min-w-48 rounded-2xl border border-gray-200 bg-white p-2 shadow-xl',
+            'absolute right-0 z-30 mt-2 min-w-48 rounded-lg border border-gray-200 bg-white p-2 shadow-xl',
             props.menuClass
           )}
         >
@@ -82,7 +82,7 @@ export function DropdownMenu(props: {
                   <a
                     href={item.href}
                     class={classes(
-                      'block rounded-xl px-3 py-2 text-sm transition hover:bg-gray-50',
+                      'block rounded-md px-3 py-2 text-sm transition hover:bg-gray-50',
                       item.tone === 'danger' ? 'text-red-600' : 'text-gray-700'
                     )}
                     onClick={() => setOpen(false)}
@@ -93,7 +93,7 @@ export function DropdownMenu(props: {
                   <button
                     type="button"
                     class={classes(
-                      'block w-full rounded-xl px-3 py-2 text-left text-sm transition hover:bg-gray-50',
+                      'block w-full rounded-md px-3 py-2 text-left text-sm transition hover:bg-gray-50',
                       item.tone === 'danger' ? 'text-red-600' : 'text-gray-700'
                     )}
                     onClick={() => {
@@ -150,7 +150,7 @@ export function Popover(
       {props.children}
       <div
         class={classes(
-          'pointer-events-none absolute z-30 min-w-56 rounded-2xl border border-gray-200 bg-white p-4 text-sm text-gray-600 opacity-0 shadow-xl transition group-hover:pointer-events-auto group-hover:opacity-100',
+          'pointer-events-none absolute z-30 min-w-56 rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-600 opacity-0 shadow-xl transition group-hover:pointer-events-auto group-hover:opacity-100',
           floatingPositionClasses[props.position ?? 'bottom'],
           props.panelClass
         )}
@@ -192,7 +192,7 @@ export function Modal(
       >
         <div
           class={classes(
-            'w-full rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl',
+            'w-full rounded-lg border border-gray-200 bg-white p-5 shadow-xl',
             modalSizeClasses[props.size ?? 'md'],
             props.class
           )}
@@ -254,7 +254,7 @@ export function Drawer(
       >
         <aside
           class={classes(
-            'absolute top-0 h-full w-full max-w-md overflow-y-auto border-gray-200 bg-white p-6 shadow-2xl',
+            'absolute top-0 h-full w-full max-w-md overflow-y-auto border-gray-200 bg-white p-6 shadow-xl',
             drawerSideClasses[props.side ?? 'right'],
             props.side === 'left' ? 'border-r' : 'border-l',
             props.class

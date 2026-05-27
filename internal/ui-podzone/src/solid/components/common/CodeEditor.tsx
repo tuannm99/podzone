@@ -91,10 +91,9 @@ export function CodeEditor(props: CodeEditorProps) {
     const editorTheme = EditorView.theme({
       '&': {
         'min-height': minHeight(),
-        'border-radius': '1rem',
+        'border-radius': '0.5rem',
         border: '1px solid rgb(203 213 225)',
-        background:
-          'linear-gradient(180deg, rgb(248 250 252), rgb(255 255 255))',
+        background: 'rgb(255 255 255)',
         overflow: 'hidden',
       },
       '.cm-scroller': {
@@ -232,7 +231,7 @@ export function CodeEditor(props: CodeEditorProps) {
         </div>
 
         <div class="flex flex-wrap items-center gap-2 text-xs text-gray-500">
-          <span class="rounded-full bg-blue-50 px-2.5 py-1 font-semibold uppercase tracking-wide text-blue-700">
+          <span class="rounded-md bg-gray-100 px-2.5 py-1 font-semibold uppercase tracking-wide text-gray-700">
             {props.language ?? 'code'}
           </span>
           <span
@@ -250,7 +249,7 @@ export function CodeEditor(props: CodeEditorProps) {
         </div>
       </div>
 
-      <div class="overflow-hidden rounded-2xl bg-white shadow-sm">
+      <div class="overflow-hidden rounded-lg bg-white shadow-sm">
         <div class="flex items-center justify-between border border-slate-200 border-b-0 bg-white/90 px-4 py-2 text-xs text-slate-500">
           <span class="font-medium uppercase tracking-[0.18em] text-slate-600">
             Editor
@@ -262,7 +261,7 @@ export function CodeEditor(props: CodeEditorProps) {
       </div>
 
       <Show when={mode() === 'normal'}>
-        <div class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+        <div class="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
           Normal mode is active. Press{' '}
           <kbd class="rounded bg-white px-1.5 py-0.5 font-mono">i</kbd> to type.
         </div>

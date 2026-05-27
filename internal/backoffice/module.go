@@ -18,6 +18,8 @@ import (
 	catalogrepo "github.com/tuannm99/podzone/internal/backoffice/infrastructure/repository/catalog"
 	routingrepo "github.com/tuannm99/podzone/internal/backoffice/infrastructure/repository/routing"
 	storerepo "github.com/tuannm99/podzone/internal/backoffice/infrastructure/repository/store"
+	"github.com/tuannm99/podzone/internal/backoffice/runtime/storeaccess"
+	"github.com/tuannm99/podzone/internal/backoffice/runtime/tenancy"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 )
 
@@ -28,6 +30,8 @@ var Module = fx.Options(
 		boconfig.NewConfigFromKoanf,
 		fx.Annotate(NewTenantAuthorizer, fx.As(new(TenantAuthorizer))),
 		fx.Annotate(NewTenantBootstrapper, fx.As(new(TenantBootstrapper))),
+		fx.Annotate(storeaccess.New, fx.As(new(storeaccess.Access))),
+		fx.Annotate(tenancy.New, fx.As(new(tenancy.Runtime))),
 		fx.Annotate(partnerdirectory.New, fx.As(new(routingoutputport.PartnerDirectory))),
 
 		// --- Infrastructure layer ---

@@ -97,7 +97,7 @@ export function QueueToolbarPanel() {
           Newest
         </Button>
       </div>
-      <div class="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
+      <div class="mt-4 rounded-lg border border-gray-200 bg-white p-4">
         <div class="grid gap-4 md:grid-cols-[0.8fr_1.2fr]">
           <InputField
             label="Save queue preset"

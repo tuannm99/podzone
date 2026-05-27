@@ -55,7 +55,7 @@ export function MegaMenu(props: {
   return (
     <div
       class={classes(
-        'relative rounded-3xl border border-gray-200 bg-white px-5 py-4 shadow-sm',
+        'relative rounded-lg border border-gray-200 bg-white px-5 py-4 shadow-sm',
         props.class
       )}
       ref={container}
@@ -77,9 +77,9 @@ export function MegaMenu(props: {
                 <button
                   type="button"
                   class={classes(
-                    'inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition',
+                    'inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition',
                     item.active || openIndex() === index()
-                      ? 'bg-blue-50 text-blue-900'
+                      ? 'bg-gray-100 text-gray-950'
                       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                   )}
                   onClick={() =>
@@ -102,9 +102,9 @@ export function MegaMenu(props: {
                 <a
                   href={item.href}
                   class={classes(
-                    'inline-flex items-center rounded-xl px-3 py-2 text-sm font-medium transition',
+                    'inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition',
                     item.active
-                      ? 'bg-blue-700 text-white'
+                      ? 'bg-gray-950 text-white'
                       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                   )}
                 >
@@ -121,7 +121,7 @@ export function MegaMenu(props: {
       </div>
 
       <Show when={openIndex() !== null}>
-        <div class="absolute inset-x-4 top-full z-40 mt-3 rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl">
+        <div class="absolute inset-x-4 top-full z-40 mt-3 rounded-lg border border-gray-200 bg-white p-6 shadow-xl">
           <For each={props.items[openIndex() ?? 0]?.sections ?? []}>
             {(section) => (
               <div class="mb-6 last:mb-0">
@@ -133,12 +133,12 @@ export function MegaMenu(props: {
                     {(link) => (
                       <a
                         href={link.href}
-                        class="rounded-2xl border border-gray-200 px-4 py-3 transition hover:border-blue-200 hover:bg-blue-50"
+                        class="rounded-lg border border-gray-200 px-4 py-3 transition hover:border-gray-300 hover:bg-gray-50"
                         onClick={() => setOpenIndex(null)}
                       >
                         <div class="flex items-start gap-3">
                           <Show when={link.icon}>
-                            <div class="pt-0.5 text-blue-700">{link.icon}</div>
+                            <div class="pt-0.5 text-gray-700">{link.icon}</div>
                           </Show>
                           <div class="space-y-1">
                             <p class="text-sm font-semibold text-gray-900">

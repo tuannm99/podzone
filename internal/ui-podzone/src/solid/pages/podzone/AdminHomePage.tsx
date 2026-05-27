@@ -8,6 +8,8 @@ import {
   type TenantMembership,
 } from '../../../services/iam';
 import { getRoutedOrders } from '../../../services/orders';
+import { listStores } from '../../../services/store';
+import { storeStorage } from '../../../services/storeStorage';
 import { tenantStorage } from '../../../services/tenantStorage';
 import { tokenStorage } from '../../../services/tokenStorage';
 import {
@@ -55,8 +57,9 @@ function isOverdue(value?: string) {
   return new Date(value).getTime() < Date.now();
 }
 
-function buildOrdersHref(tenantID: string, queueView: string) {
+function buildOrdersHref(tenantID: string, storeID: string, queueView: string) {
   const params = new URLSearchParams({
+    storeId: storeID,
     queueView,
     queueSort: 'priority',
   });
@@ -65,9 +68,20 @@ function buildOrdersHref(tenantID: string, queueView: string) {
 
 type StoreAttention = {
   tenantId: string;
+  storeId: string;
+  storeName: string;
   overdueCount: number;
   disputedCount: number;
   unassignedCount: number;
+};
+
+type WorkspaceSummary = {
+  tenantId: string;
+  roleName: string;
+  status: string;
+  userId: number;
+  storeCount: number;
+  activeStoreCount: number;
 };
 
 export default function AdminHomePage() {
@@ -88,63 +102,110 @@ export default function AdminHomePage() {
   const [checkingPlatformAccess, setCheckingPlatformAccess] =
     createSignal(false);
   const [memberships, setMemberships] = createSignal<TenantMembership[]>([]);
+  const [workspaceSummaries, setWorkspaceSummaries] = createSignal<
+    WorkspaceSummary[]
+  >([]);
   const [storeAttention, setStoreAttention] = createSignal<StoreAttention[]>([]);
   const [canCreateTenant, setCanCreateTenant] = createSignal(false);
   const activeMemberships = () =>
     memberships().filter((membership) => membership.status === 'active');
 
-  const loadStoreAttention = async (membershipsToInspect: TenantMembership[]) => {
-    const activeStores = membershipsToInspect.filter(
+  const loadWorkspaceData = async (membershipsToInspect: TenantMembership[]) => {
+    const activeWorkspaces = membershipsToInspect.filter(
       (membership) => membership.status === 'active'
     );
-    if (activeStores.length === 0) {
+    if (activeWorkspaces.length === 0) {
+      setWorkspaceSummaries([]);
       setStoreAttention([]);
       return;
     }
 
     setLoadingAttention(true);
     const originalTenantID = tokenStorage.getActiveTenantID();
+    const originalStoreID = originalTenantID
+      ? storeStorage.getStoreID(originalTenantID)
+      : '';
+    const previousStoreByTenant = new Map<string, string>();
+    const summaries: WorkspaceSummary[] = [];
     const snapshot: StoreAttention[] = [];
     try {
-      for (const membership of activeStores) {
+      for (const membership of activeWorkspaces) {
         const switched = await ensureActiveTenant(membership.tenantId);
         if (!switched.success) {
           continue;
         }
-        const ordersResult = await getRoutedOrders();
-        if (!ordersResult.success) {
+        const storesResult = await listStores();
+        if (!storesResult.success) {
           continue;
         }
-        const orders = ordersResult.data.orders;
-        snapshot.push({
+        const stores = storesResult.data;
+        summaries.push({
           tenantId: membership.tenantId,
-          overdueCount: orders.filter(
-            (order) =>
-              (!!order.shipmentSlaDueAt &&
-                isOverdue(order.shipmentSlaDueAt) &&
-                order.shipmentStatus !== 'delivered') ||
-              (!!order.issueSlaDueAt &&
-                isOverdue(order.issueSlaDueAt) &&
-                (order.exceptionStatus === 'open' ||
-                  order.exceptionStatus === 'escalated' ||
-                  order.shipmentStatus === 'delivery_issue'))
-          ).length,
-          disputedCount: orders.filter(
-            (order) => order.settlementStatus === 'disputed'
-          ).length,
-          unassignedCount: orders.filter(
-            (order) =>
-              !order.operatorAssignee || order.operatorAssignee === 'unassigned'
-          ).length,
+          roleName: membership.roleName,
+          status: membership.status,
+          userId: membership.userId,
+          storeCount: stores.length,
+          activeStoreCount: stores.filter((store) => store.isActive).length,
         });
+        for (const store of stores) {
+          if (!previousStoreByTenant.has(membership.tenantId)) {
+            previousStoreByTenant.set(
+              membership.tenantId,
+              storeStorage.getStoreID(membership.tenantId)
+            );
+          }
+          storeStorage.setStoreID(membership.tenantId, store.id);
+          const ordersResult = await getRoutedOrders();
+          if (!ordersResult.success) {
+            continue;
+          }
+          const orders = ordersResult.data.orders;
+          snapshot.push({
+            tenantId: membership.tenantId,
+            storeId: store.id,
+            storeName: store.name,
+            overdueCount: orders.filter(
+              (order) =>
+                (!!order.shipmentSlaDueAt &&
+                  isOverdue(order.shipmentSlaDueAt) &&
+                  order.shipmentStatus !== 'delivered') ||
+                (!!order.issueSlaDueAt &&
+                  isOverdue(order.issueSlaDueAt) &&
+                  (order.exceptionStatus === 'open' ||
+                    order.exceptionStatus === 'escalated' ||
+                    order.shipmentStatus === 'delivery_issue'))
+            ).length,
+            disputedCount: orders.filter(
+              (order) => order.settlementStatus === 'disputed'
+            ).length,
+            unassignedCount: orders.filter(
+              (order) =>
+                !order.operatorAssignee ||
+                order.operatorAssignee === 'unassigned'
+            ).length,
+          });
+        }
       }
     } finally {
+      previousStoreByTenant.forEach((storeID, tenantID) => {
+        if (storeID) {
+          storeStorage.setStoreID(tenantID, storeID);
+        } else {
+          storeStorage.clearStoreID(tenantID);
+        }
+      });
       if (originalTenantID) {
         await ensureActiveTenant(originalTenantID);
         tenantStorage.setTenantID(originalTenantID);
+        if (originalStoreID) {
+          storeStorage.setStoreID(originalTenantID, originalStoreID);
+        } else {
+          storeStorage.clearStoreID(originalTenantID);
+        }
       }
       setLoadingAttention(false);
     }
+    setWorkspaceSummaries(summaries);
     setStoreAttention(snapshot);
   };
 
@@ -158,7 +219,7 @@ export default function AdminHomePage() {
         return;
       }
       setMemberships(result.data);
-      await loadStoreAttention(result.data);
+      await loadWorkspaceData(result.data);
     } finally {
       setLoadingTenants(false);
     }
@@ -290,7 +351,7 @@ export default function AdminHomePage() {
           value={user?.username || user?.email || 'Unknown'}
         />
         <StatCard
-          label="My stores"
+          label="My workspaces"
           value={`${activeMemberships().length}/${memberships().length}`}
         />
         <StatCard
@@ -369,14 +430,14 @@ export default function AdminHomePage() {
 
         <Card class="space-y-4">
           <SectionTitle
-            title="Quick store jump"
-            subtitle="Keep direct store opening for debugging, but prefer opening from your assigned stores below."
+            title="Quick workspace jump"
+            subtitle="Keep direct tenant opening for debugging, but prefer opening from your assigned workspaces below."
           />
           <div class="flex flex-col gap-3 sm:flex-row">
             <input
-              class="block w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+              class="block h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none transition focus:border-gray-950 focus:ring-2 focus:ring-gray-100"
               value={tenantId()}
-              placeholder="store id"
+              placeholder="tenant id"
               onInput={(event) => setTenantId(event.currentTarget.value)}
             />
             <Button
@@ -386,13 +447,13 @@ export default function AdminHomePage() {
                 void openTenant();
               }}
             >
-              Open store
+              Open workspace
             </Button>
           </div>
           {!tenantId().trim() ? (
             <EmptyBlock
-              title="No store selected"
-              copy="Create a store or pick one from your assigned stores to open the right workspace."
+              title="No workspace selected"
+              copy="Create a tenant workspace or pick one from your assigned workspaces to open the right shell."
             />
           ) : null}
         </Card>
@@ -401,62 +462,65 @@ export default function AdminHomePage() {
       <div class="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
         <Card class="space-y-4">
           <SectionTitle
-            title="My stores"
-            subtitle="Stores your account can access right now."
+            title="My workspaces"
+            subtitle="Tenant workspaces your account can access, including how many stores each workspace currently owns."
           />
           <Show when={loadingTenants()}>
-            <LoadingInline label="Loading stores..." />
+            <LoadingInline label="Loading workspaces..." />
           </Show>
           <Show
-            when={!loadingTenants() && memberships().length > 0}
+            when={!loadingTenants() && workspaceSummaries().length > 0}
             fallback={
               <EmptyBlock
-                title="No stores yet"
-                copy="Create your first store to start managing catalog, team access, and future POD operations."
+                title="No workspaces yet"
+                copy="Create your first tenant workspace to start managing stores, catalog, team access, and POD operations."
               />
             }
           >
             <div class="space-y-3">
-              <For each={memberships()}>
-                {(membership) => (
-                  <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+              <For each={workspaceSummaries()}>
+                {(workspace) => (
+                  <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
                     <div class="flex flex-wrap items-center gap-2">
-                      <Badge content={membership.roleName} color="blue" />
+                      <Badge content={workspace.roleName} color="blue" />
                       <Badge
-                        content={membership.status}
-                        color={membershipStatusColor(membership.status)}
+                        content={workspace.status}
+                        color={membershipStatusColor(workspace.status)}
                       />
                       <Show
                         when={
-                          membership.tenantId ===
+                          workspace.tenantId ===
                           tokenStorage.getActiveTenantID()
                         }
                       >
                         <Badge content="current" color="yellow" />
                       </Show>
                     </div>
-                    <p class="mt-3 font-semibold text-gray-900">
-                      {membership.tenantId}
+                    <p class="mt-3 font-semibold text-gray-950">
+                      {workspace.tenantId}
                     </p>
-                    <p class="mt-1 text-sm text-gray-500">
-                      access role for user {membership.userId}
+                    <p class="mt-1 text-sm text-gray-600">
+                      access role for user {workspace.userId}
+                    </p>
+                    <p class="mt-1 text-sm text-gray-600">
+                      {workspace.storeCount} stores · {workspace.activeStoreCount} active
                     </p>
                     <div class="mt-3 flex flex-wrap gap-3">
                       <Button
                         size="sm"
                         onClick={() => {
-                          void openTenant(membership.tenantId);
+                          void openTenant(workspace.tenantId);
                         }}
                       >
-                        Open store
+                        Open workspace
                       </Button>
                       <Button
                         size="sm"
                         color="alternative"
                         onClick={() => {
-                          setTenantId(membership.tenantId);
+                          setTenantId(workspace.tenantId);
                           setTenantMessage(
-                            `Prepared store ${membership.tenantId} as the next quick-jump target.`
+                            `Prepared workspace ${workspace.tenantId} as the next quick-jump target.`
                           );
                         }}
                       >
@@ -473,7 +537,7 @@ export default function AdminHomePage() {
         <Card class="space-y-4">
           <SectionTitle
             title="Attention view"
-            subtitle="Cross-store queue pressure based on overdue orders, disputed settlements, and unassigned ownership."
+            subtitle="Cross-store queue pressure grouped by real stores inside each tenant workspace."
           />
           <Show when={loadingAttention()}>
             <LoadingInline label="Scanning store attention..." />
@@ -490,9 +554,10 @@ export default function AdminHomePage() {
             <div class="space-y-3">
               <For each={storeAttention()}>
                 {(store) => (
-                  <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                  <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
                     <div class="flex flex-wrap items-center gap-2">
                       <Badge content={store.tenantId} color="indigo" />
+                      <Badge content={store.storeName} color="blue" />
                       <Badge
                         content={`${store.overdueCount} overdue`}
                         color={store.overdueCount > 0 ? 'red' : 'green'}
@@ -510,21 +575,33 @@ export default function AdminHomePage() {
                       <Button
                         size="sm"
                         color="alternative"
-                        href={buildOrdersHref(store.tenantId, 'overdue')}
+                        href={buildOrdersHref(
+                          store.tenantId,
+                          store.storeId,
+                          'overdue'
+                        )}
                       >
                         Open overdue
                       </Button>
                       <Button
                         size="sm"
                         color="alternative"
-                        href={buildOrdersHref(store.tenantId, 'settlement_pending')}
+                        href={buildOrdersHref(
+                          store.tenantId,
+                          store.storeId,
+                          'settlement_pending'
+                        )}
                       >
                         Open settlement follow-up
                       </Button>
                       <Button
                         size="sm"
                         color="alternative"
-                        href={buildOrdersHref(store.tenantId, 'all')}
+                        href={buildOrdersHref(
+                          store.tenantId,
+                          store.storeId,
+                          'all'
+                        )}
                       >
                         Open priority queue
                       </Button>
@@ -542,16 +619,16 @@ export default function AdminHomePage() {
             subtitle="Current application entrypoints used by the backoffice."
           />
           <div class="space-y-3 text-sm text-gray-600">
-            <div class="rounded-2xl bg-gray-50 p-4">
-              <p class="font-semibold text-gray-900">Gateway</p>
+            <div class="rounded-lg bg-gray-50 p-4">
+              <p class="font-semibold text-gray-950">Gateway</p>
               <p class="mt-1 break-all">{GW_API_URL}</p>
             </div>
-            <div class="rounded-2xl bg-gray-50 p-4">
-              <p class="font-semibold text-gray-900">Store GraphQL</p>
+            <div class="rounded-lg bg-gray-50 p-4">
+              <p class="font-semibold text-gray-950">Store GraphQL</p>
               <p class="mt-1 break-all">{TENANT_GQL_URL}</p>
             </div>
-            <div class="rounded-2xl bg-gray-50 p-4">
-              <p class="font-semibold text-gray-900">Next step</p>
+            <div class="rounded-lg bg-gray-50 p-4">
+              <p class="font-semibold text-gray-950">Next step</p>
               <p class="mt-1">
                 Use the settings page to manage team access, store invites,
                 sessions, and platform administration.

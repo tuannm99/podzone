@@ -25,7 +25,7 @@ export function Avatar(props: {
         class={classes(
           'inline-flex items-center justify-center overflow-hidden bg-gray-200 font-semibold text-gray-700',
           avatarSizeClasses[props.size ?? 'md'],
-          props.rounded === false ? 'rounded-2xl' : 'rounded-full'
+          props.rounded === false ? 'rounded-lg' : 'rounded-full'
         )}
       >
         <Show when={props.src} fallback={<span>{initials(props.name)}</span>}>

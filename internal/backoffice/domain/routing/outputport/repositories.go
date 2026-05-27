@@ -8,6 +8,7 @@ import (
 
 type OrderRoutingRepository interface {
 	List(ctx context.Context) ([]routingentity.RoutedOrder, error)
+	ListByStore(ctx context.Context, storeID string) ([]routingentity.RoutedOrder, error)
 	ListActivityFeed(
 		ctx context.Context,
 		query routingentity.RoutedOrderActivityFeedQuery,

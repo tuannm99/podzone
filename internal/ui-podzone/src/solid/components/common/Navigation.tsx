@@ -16,9 +16,9 @@ function NavAction(props: {
 }) {
   const className = () =>
     classes(
-      'inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition',
+      'inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition',
       props.item.active
-        ? (props.activeClass ?? 'bg-blue-700 text-white')
+        ? (props.activeClass ?? 'bg-gray-950 text-white')
         : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
       props.class
     );
@@ -56,7 +56,7 @@ export function Navbar(props: {
   return (
     <header
       class={classes(
-        'rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm',
+        'rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm',
         props.class
       )}
     >
@@ -93,7 +93,7 @@ export function Sidebar(
   return (
     <aside
       class={classes(
-        'rounded-2xl border border-gray-200 bg-white p-4 shadow-sm',
+        'rounded-lg border border-gray-200 bg-white p-4 shadow-sm',
         props.class
       )}
     >
@@ -114,7 +114,7 @@ export function Sidebar(
               <NavAction
                 item={item}
                 class="flex w-full justify-start"
-                activeClass="bg-blue-50 text-blue-900"
+                activeClass="bg-gray-100 text-gray-950"
               />
             )}
           </For>
@@ -141,7 +141,7 @@ export function BottomNavigation(props: { items: NavItem[]; class?: string }) {
             <NavAction
               item={item}
               class="min-w-0 flex-1 flex-col justify-center gap-1 px-2 py-1.5 text-xs"
-              activeClass="bg-transparent text-blue-700"
+              activeClass="bg-transparent text-gray-950"
             />
           )}
         </For>
@@ -161,7 +161,7 @@ export function Footer(
   return (
     <footer
       class={classes(
-        'rounded-2xl border border-gray-200 bg-white px-6 py-5 shadow-sm',
+        'rounded-lg border border-gray-200 bg-white px-6 py-5 shadow-sm',
         props.class
       )}
     >
@@ -184,7 +184,7 @@ export function Footer(
                 <NavAction
                   item={item}
                   class="px-0 py-0 hover:bg-transparent"
-                  activeClass="bg-transparent text-blue-700"
+                  activeClass="bg-transparent text-gray-950"
                 />
               )}
             </For>

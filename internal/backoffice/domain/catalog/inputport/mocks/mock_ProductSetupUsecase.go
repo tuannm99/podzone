@@ -108,8 +108,8 @@ func (_c *MockProductSetupUsecase_CreateDraft_Call) RunAndReturn(run func(ctx co
 }
 
 // GetSnapshot provides a mock function for the type MockProductSetupUsecase
-func (_mock *MockProductSetupUsecase) GetSnapshot(ctx context.Context) (*entity.ProductSetupSnapshot, error) {
-	ret := _mock.Called(ctx)
+func (_mock *MockProductSetupUsecase) GetSnapshot(ctx context.Context, storeID string) (*entity.ProductSetupSnapshot, error) {
+	ret := _mock.Called(ctx, storeID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSnapshot")
@@ -117,18 +117,18 @@ func (_mock *MockProductSetupUsecase) GetSnapshot(ctx context.Context) (*entity.
 
 	var r0 *entity.ProductSetupSnapshot
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context) (*entity.ProductSetupSnapshot, error)); ok {
-		return returnFunc(ctx)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*entity.ProductSetupSnapshot, error)); ok {
+		return returnFunc(ctx, storeID)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context) *entity.ProductSetupSnapshot); ok {
-		r0 = returnFunc(ctx)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *entity.ProductSetupSnapshot); ok {
+		r0 = returnFunc(ctx, storeID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*entity.ProductSetupSnapshot)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = returnFunc(ctx)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, storeID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -142,18 +142,24 @@ type MockProductSetupUsecase_GetSnapshot_Call struct {
 
 // GetSnapshot is a helper method to define mock.On call
 //   - ctx context.Context
-func (_e *MockProductSetupUsecase_Expecter) GetSnapshot(ctx interface{}) *MockProductSetupUsecase_GetSnapshot_Call {
-	return &MockProductSetupUsecase_GetSnapshot_Call{Call: _e.mock.On("GetSnapshot", ctx)}
+//   - storeID string
+func (_e *MockProductSetupUsecase_Expecter) GetSnapshot(ctx interface{}, storeID interface{}) *MockProductSetupUsecase_GetSnapshot_Call {
+	return &MockProductSetupUsecase_GetSnapshot_Call{Call: _e.mock.On("GetSnapshot", ctx, storeID)}
 }
 
-func (_c *MockProductSetupUsecase_GetSnapshot_Call) Run(run func(ctx context.Context)) *MockProductSetupUsecase_GetSnapshot_Call {
+func (_c *MockProductSetupUsecase_GetSnapshot_Call) Run(run func(ctx context.Context, storeID string)) *MockProductSetupUsecase_GetSnapshot_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
@@ -164,7 +170,7 @@ func (_c *MockProductSetupUsecase_GetSnapshot_Call) Return(productSetupSnapshot 
 	return _c
 }
 
-func (_c *MockProductSetupUsecase_GetSnapshot_Call) RunAndReturn(run func(ctx context.Context) (*entity.ProductSetupSnapshot, error)) *MockProductSetupUsecase_GetSnapshot_Call {
+func (_c *MockProductSetupUsecase_GetSnapshot_Call) RunAndReturn(run func(ctx context.Context, storeID string) (*entity.ProductSetupSnapshot, error)) *MockProductSetupUsecase_GetSnapshot_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -238,8 +244,8 @@ func (_c *MockProductSetupUsecase_PromoteCandidate_Call) RunAndReturn(run func(c
 }
 
 // UpdateCandidateStatus provides a mock function for the type MockProductSetupUsecase
-func (_mock *MockProductSetupUsecase) UpdateCandidateStatus(ctx context.Context, id string, status string) (*entity.ProductSetupCandidate, error) {
-	ret := _mock.Called(ctx, id, status)
+func (_mock *MockProductSetupUsecase) UpdateCandidateStatus(ctx context.Context, storeID string, id string, status string) (*entity.ProductSetupCandidate, error) {
+	ret := _mock.Called(ctx, storeID, id, status)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdateCandidateStatus")
@@ -247,18 +253,18 @@ func (_mock *MockProductSetupUsecase) UpdateCandidateStatus(ctx context.Context,
 
 	var r0 *entity.ProductSetupCandidate
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (*entity.ProductSetupCandidate, error)); ok {
-		return returnFunc(ctx, id, status)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string) (*entity.ProductSetupCandidate, error)); ok {
+		return returnFunc(ctx, storeID, id, status)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) *entity.ProductSetupCandidate); ok {
-		r0 = returnFunc(ctx, id, status)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string) *entity.ProductSetupCandidate); ok {
+		r0 = returnFunc(ctx, storeID, id, status)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*entity.ProductSetupCandidate)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = returnFunc(ctx, id, status)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = returnFunc(ctx, storeID, id, status)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -272,13 +278,14 @@ type MockProductSetupUsecase_UpdateCandidateStatus_Call struct {
 
 // UpdateCandidateStatus is a helper method to define mock.On call
 //   - ctx context.Context
+//   - storeID string
 //   - id string
 //   - status string
-func (_e *MockProductSetupUsecase_Expecter) UpdateCandidateStatus(ctx interface{}, id interface{}, status interface{}) *MockProductSetupUsecase_UpdateCandidateStatus_Call {
-	return &MockProductSetupUsecase_UpdateCandidateStatus_Call{Call: _e.mock.On("UpdateCandidateStatus", ctx, id, status)}
+func (_e *MockProductSetupUsecase_Expecter) UpdateCandidateStatus(ctx interface{}, storeID interface{}, id interface{}, status interface{}) *MockProductSetupUsecase_UpdateCandidateStatus_Call {
+	return &MockProductSetupUsecase_UpdateCandidateStatus_Call{Call: _e.mock.On("UpdateCandidateStatus", ctx, storeID, id, status)}
 }
 
-func (_c *MockProductSetupUsecase_UpdateCandidateStatus_Call) Run(run func(ctx context.Context, id string, status string)) *MockProductSetupUsecase_UpdateCandidateStatus_Call {
+func (_c *MockProductSetupUsecase_UpdateCandidateStatus_Call) Run(run func(ctx context.Context, storeID string, id string, status string)) *MockProductSetupUsecase_UpdateCandidateStatus_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -292,10 +299,15 @@ func (_c *MockProductSetupUsecase_UpdateCandidateStatus_Call) Run(run func(ctx c
 		if args[2] != nil {
 			arg2 = args[2].(string)
 		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
 		)
 	})
 	return _c
@@ -306,7 +318,7 @@ func (_c *MockProductSetupUsecase_UpdateCandidateStatus_Call) Return(productSetu
 	return _c
 }
 
-func (_c *MockProductSetupUsecase_UpdateCandidateStatus_Call) RunAndReturn(run func(ctx context.Context, id string, status string) (*entity.ProductSetupCandidate, error)) *MockProductSetupUsecase_UpdateCandidateStatus_Call {
+func (_c *MockProductSetupUsecase_UpdateCandidateStatus_Call) RunAndReturn(run func(ctx context.Context, storeID string, id string, status string) (*entity.ProductSetupCandidate, error)) *MockProductSetupUsecase_UpdateCandidateStatus_Call {
 	_c.Call.Return(run)
 	return _c
 }

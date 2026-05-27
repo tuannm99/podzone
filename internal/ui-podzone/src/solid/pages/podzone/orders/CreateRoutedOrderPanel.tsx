@@ -107,7 +107,7 @@ export function CreateRoutedOrderPanel() {
             <Show
               when={composer.manualPartnerOverride()}
               fallback={
-                <div class="space-y-2 rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-3">
+                <div class="space-y-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3">
                   <p class="text-sm font-medium text-gray-700">
                     Partner routing mode
                   </p>
@@ -148,7 +148,7 @@ export function CreateRoutedOrderPanel() {
           </div>
           <Show when={composer.routingRecommendation()}>
             {(recommendation) => (
-              <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+              <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
                 <div class="flex flex-wrap items-center gap-2">
                   <Badge content="routing recommendation" color="blue" />
                   <Badge
@@ -218,7 +218,7 @@ export function CreateRoutedOrderPanel() {
                           .slice(0, 4)}
                       >
                         {(option) => (
-                          <div class="rounded-xl bg-white p-3 text-sm text-gray-600">
+                          <div class="rounded-md bg-white p-3 text-sm text-gray-600">
                             <div class="flex flex-wrap items-center gap-2">
                               <Badge content={option.partner.name} color="green" />
                               <Badge
@@ -320,7 +320,7 @@ export function CreateRoutedOrderPanel() {
                           .slice(0, 3)}
                       >
                         {(option) => (
-                          <div class="rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-gray-600">
+                          <div class="rounded-md border border-red-100 bg-red-50 p-3 text-sm text-gray-600">
                             <div class="flex flex-wrap items-center gap-2">
                               <Badge content={option.partner.name} color="red" />
                               <Badge

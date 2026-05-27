@@ -49,7 +49,7 @@ export function MarkdownPreview(props: {
       fallback={
         <div
           class={classes(
-            'rounded-[28px] border border-dashed border-slate-300 bg-slate-50 px-6 py-8 text-sm leading-7 text-slate-500',
+            'rounded-lg border border-dashed border-slate-300 bg-slate-50 px-6 py-8 text-sm leading-7 text-slate-500',
             props.class
           )}
         >
@@ -59,7 +59,7 @@ export function MarkdownPreview(props: {
     >
       <div
         class={classes(
-          'problem-statement-viewer problem-statement-surface rounded-[28px] border border-slate-200 bg-gradient-to-b from-slate-50 via-white to-white shadow-sm',
+          'problem-statement-viewer problem-statement-surface rounded-lg border border-slate-200 bg-white shadow-sm',
           props.class
         )}
       >

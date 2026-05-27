@@ -1,5 +1,7 @@
 import { TENANT_GQL_URL } from './baseurl';
 import { http, type HttpError } from './http';
+import { storeStorage } from './storeStorage';
+import { tokenStorage } from './tokenStorage';
 
 type GraphQLErrorItem = {
   message?: string;
@@ -24,12 +26,21 @@ function toMessage(error: unknown, fallback: string): string {
 
 export async function postBackofficeGraphQL<T>(
   query: string,
-  variables?: Record<string, unknown>
+  variables?: Record<string, unknown>,
+  options?: {
+    includeStoreHeader?: boolean;
+  }
 ): Promise<{ success: true; data: T } | { success: false; message: string }> {
   try {
+    const tenantId = tokenStorage.getActiveTenantID();
+    const includeStoreHeader = options?.includeStoreHeader ?? true;
+    const storeId =
+      includeStoreHeader && tenantId ? storeStorage.getStoreID(tenantId) : '';
     const { data } = await http.post<GraphQLPayload<T>>(TENANT_GQL_URL, {
       query,
       variables,
+    }, {
+      headers: storeId ? { 'X-Store-ID': storeId } : undefined,
     });
 
     if (data.errors && data.errors.length > 0) {

@@ -19,9 +19,9 @@ export function Tabs(props: {
           <button
             type="button"
             class={classes(
-              'rounded-full px-4 py-2 text-sm font-medium transition',
+              'rounded-md px-3 py-2 text-sm font-medium transition',
               props.value === item.value
-                ? 'bg-blue-700 text-white shadow-sm'
+                ? 'bg-gray-950 text-white shadow-sm'
                 : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
             )}
             onClick={() => props.onChange(item.value)}

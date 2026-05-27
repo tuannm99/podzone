@@ -9,14 +9,16 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/golang-jwt/jwt"
 	boconfig "github.com/tuannm99/podzone/internal/backoffice/config"
+	"github.com/tuannm99/podzone/internal/backoffice/runtime/scope"
+	"github.com/tuannm99/podzone/internal/backoffice/runtime/tenancy"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 // TenantMiddleware is an app-level GraphQL extension.
 type TenantMiddleware struct {
-	authCfg      boconfig.RPCConfig
-	authorizer   TenantAuthorizer
-	bootstrapper TenantBootstrapper
+	authCfg    boconfig.RPCConfig
+	authorizer TenantAuthorizer
+	tenancy    tenancy.Runtime
 }
 
 type backofficeJWTClaims struct {
@@ -30,9 +32,13 @@ type backofficeJWTClaims struct {
 func NewTenantMiddleware(
 	cfg boconfig.Config,
 	authorizer TenantAuthorizer,
-	bootstrapper TenantBootstrapper,
+	tenancyRuntime tenancy.Runtime,
 ) *TenantMiddleware {
-	return &TenantMiddleware{authCfg: cfg.Auth, authorizer: authorizer, bootstrapper: bootstrapper}
+	return &TenantMiddleware{
+		authCfg:    cfg.Auth,
+		authorizer: authorizer,
+		tenancy:    tenancyRuntime,
+	}
 }
 
 func (m *TenantMiddleware) ExtensionName() string                          { return "TenantMiddleware" }
@@ -69,14 +75,32 @@ func (m *TenantMiddleware) InterceptOperation(
 			return graphql.ErrorResponse(ctx, "%s", err.Error())
 		}
 	}
-	if err := m.bootstrapper.EnsureReady(ctx, tenantID); err != nil {
+	ctx = toolkit.WithTenantID(ctx, tenantID)
+	ctx = toolkit.WithUserID(ctx, userID)
+
+	storeID := strings.TrimSpace(op.Headers.Get("X-Store-ID"))
+	requestScope, err := m.tenancy.ResolveRequestScope(ctx, tenantID, storeID)
+	if err != nil {
 		return func(ctx context.Context) *graphql.Response {
 			return graphql.ErrorResponse(ctx, "%s", err.Error())
 		}
 	}
 
-	ctx = toolkit.WithTenantID(ctx, tenantID)
-	ctx = toolkit.WithUserID(ctx, userID)
+	tenantCtx := scope.TenantContext{
+		TenantID:  requestScope.TenantID,
+		UserID:    userID,
+		SessionID: sessionID,
+	}
+	if requestScope.Placement != nil {
+		tenantCtx.ClusterName = requestScope.Placement.ClusterName
+		tenantCtx.DBName = requestScope.Placement.DBName
+		tenantCtx.SchemaName = requestScope.Placement.SchemaName
+		tenantCtx.PlacementMode = string(requestScope.Placement.Mode)
+	}
+	ctx = scope.WithTenantContext(ctx, tenantCtx)
+	if requestScope.Store != nil {
+		ctx = scope.WithStoreContext(ctx, scope.StoreContext{StoreID: requestScope.Store.ID})
+	}
 	return next(ctx)
 }
 
@@ -99,7 +123,13 @@ func (m *TenantMiddleware) InterceptField(ctx context.Context, next graphql.Reso
 	if err != nil {
 		return nil, err
 	}
-	if err := m.authorizer.RequirePermission(ctx, userID, tenantID, permission); err != nil {
+	if err := m.authorizer.RequirePermission(
+		ctx,
+		userID,
+		tenantID,
+		permission,
+		resourceForPermission(ctx, tenantID),
+	); err != nil {
 		return nil, err
 	}
 	return next(ctx)
@@ -184,4 +214,12 @@ func permissionForField(objectName, fieldName string) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+func resourceForPermission(ctx context.Context, tenantID string) string {
+	storeID := strings.TrimSpace(scope.CurrentStoreID(ctx))
+	if storeID == "" {
+		return "*"
+	}
+	return "podzone:tenant/" + strings.TrimSpace(tenantID) + "/store/" + storeID
 }

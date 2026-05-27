@@ -54,7 +54,7 @@ export function QrCode(props: {
   return (
     <div
       class={classes(
-        'inline-flex rounded-3xl border border-gray-200 bg-white p-4 shadow-sm',
+        'inline-flex rounded-lg border border-gray-200 bg-white p-4 shadow-sm',
         props.class
       )}
     >
@@ -63,7 +63,7 @@ export function QrCode(props: {
         fallback={
           <div
             class={classes(
-              'flex min-h-48 min-w-48 items-center justify-center rounded-2xl bg-gray-50 px-4 py-4 text-center text-sm text-gray-500',
+              'flex min-h-48 min-w-48 items-center justify-center rounded-lg bg-gray-50 px-4 py-4 text-center text-sm text-gray-500',
               props.panelClass
             )}
           >
@@ -86,7 +86,7 @@ export function QrCodeCard(props: {
   return (
     <section
       class={classes(
-        'inline-flex flex-col gap-4 rounded-3xl border border-gray-200 bg-white p-5 shadow-sm',
+        'inline-flex flex-col gap-4 rounded-lg border border-gray-200 bg-white p-5 shadow-sm',
         props.class
       )}
     >

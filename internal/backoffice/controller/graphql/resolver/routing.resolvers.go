@@ -14,11 +14,16 @@ import (
 
 // CreateRoutedOrder is the resolver for the createRoutedOrder field.
 func (r *mutationResolver) CreateRoutedOrder(ctx context.Context, input model.CreateRoutedOrderInput) (*model.RoutedOrder, error) {
+	storeID, err := requiredStoreID(ctx)
+	if err != nil {
+		return nil, err
+	}
 	preferredPartner := ""
 	if input.PreferredPartner != nil {
 		preferredPartner = *input.PreferredPartner
 	}
 	order, err := r.OrderRoutingUsecase.CreateRoutedOrder(ctx, routinginputport.CreateRoutedOrderCmd{
+		StoreID:          storeID,
 		CandidateID:      input.CandidateID,
 		CustomerName:     input.CustomerName,
 		Quantity:         input.Quantity,
@@ -34,7 +39,12 @@ func (r *mutationResolver) CreateRoutedOrder(ctx context.Context, input model.Cr
 
 // ForceRerouteBlockedOrder is the resolver for the forceRerouteBlockedOrder field.
 func (r *mutationResolver) ForceRerouteBlockedOrder(ctx context.Context, input model.ForceRerouteBlockedOrderInput) (*model.RoutedOrder, error) {
+	storeID, err := requiredStoreID(ctx)
+	if err != nil {
+		return nil, err
+	}
 	order, err := r.OrderRoutingUsecase.ForceRerouteBlockedOrder(ctx, routinginputport.ForceRerouteBlockedOrderCmd{
+		StoreID:          storeID,
 		OrderID:          input.OrderID,
 		PreferredPartner: input.PreferredPartner,
 	})
@@ -46,7 +56,11 @@ func (r *mutationResolver) ForceRerouteBlockedOrder(ctx context.Context, input m
 
 // AdvanceRoutedOrder is the resolver for the advanceRoutedOrder field.
 func (r *mutationResolver) AdvanceRoutedOrder(ctx context.Context, id string) (*model.RoutedOrder, error) {
-	order, err := r.OrderRoutingUsecase.AdvanceRoutedOrder(ctx, id)
+	storeID, err := requiredStoreID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	order, err := r.OrderRoutingUsecase.AdvanceRoutedOrder(ctx, storeID, id)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +69,12 @@ func (r *mutationResolver) AdvanceRoutedOrder(ctx context.Context, id string) (*
 
 // OpenOrderException is the resolver for the openOrderException field.
 func (r *mutationResolver) OpenOrderException(ctx context.Context, input model.OpenOrderExceptionInput) (*model.RoutedOrder, error) {
+	storeID, err := requiredStoreID(ctx)
+	if err != nil {
+		return nil, err
+	}
 	order, err := r.OrderRoutingUsecase.OpenOrderException(ctx, routinginputport.OpenOrderExceptionCmd{
+		StoreID:       storeID,
 		OrderID:       input.OrderID,
 		ExceptionType: input.ExceptionType,
 	})
@@ -67,7 +86,12 @@ func (r *mutationResolver) OpenOrderException(ctx context.Context, input model.O
 
 // UpdateOrderExceptionStatus is the resolver for the updateOrderExceptionStatus field.
 func (r *mutationResolver) UpdateOrderExceptionStatus(ctx context.Context, input model.UpdateOrderExceptionStatusInput) (*model.RoutedOrder, error) {
+	storeID, err := requiredStoreID(ctx)
+	if err != nil {
+		return nil, err
+	}
 	order, err := r.OrderRoutingUsecase.UpdateOrderExceptionStatus(ctx, routinginputport.UpdateOrderExceptionStatusCmd{
+		StoreID: storeID,
 		OrderID: input.OrderID,
 		Status:  input.Status,
 	})
@@ -79,7 +103,12 @@ func (r *mutationResolver) UpdateOrderExceptionStatus(ctx context.Context, input
 
 // UpdateOrderShipment is the resolver for the updateOrderShipment field.
 func (r *mutationResolver) UpdateOrderShipment(ctx context.Context, input model.UpdateOrderShipmentInput) (*model.RoutedOrder, error) {
+	storeID, err := requiredStoreID(ctx)
+	if err != nil {
+		return nil, err
+	}
 	order, err := r.OrderRoutingUsecase.UpdateOrderShipment(ctx, routinginputport.UpdateOrderShipmentCmd{
+		StoreID:        storeID,
 		OrderID:        input.OrderID,
 		ShipmentStatus: input.ShipmentStatus,
 		Carrier:        input.Carrier,
@@ -95,7 +124,12 @@ func (r *mutationResolver) UpdateOrderShipment(ctx context.Context, input model.
 
 // UpdateOrderSettlement is the resolver for the updateOrderSettlement field.
 func (r *mutationResolver) UpdateOrderSettlement(ctx context.Context, input model.UpdateOrderSettlementInput) (*model.RoutedOrder, error) {
+	storeID, err := requiredStoreID(ctx)
+	if err != nil {
+		return nil, err
+	}
 	order, err := r.OrderRoutingUsecase.UpdateOrderSettlement(ctx, routinginputport.UpdateOrderSettlementCmd{
+		StoreID:          storeID,
 		OrderID:          input.OrderID,
 		FulfillmentCost:  input.FulfillmentCost,
 		ShippingCost:     input.ShippingCost,
@@ -110,7 +144,12 @@ func (r *mutationResolver) UpdateOrderSettlement(ctx context.Context, input mode
 
 // UpdateOrderIssueHandling is the resolver for the updateOrderIssueHandling field.
 func (r *mutationResolver) UpdateOrderIssueHandling(ctx context.Context, input model.UpdateOrderIssueHandlingInput) (*model.RoutedOrder, error) {
+	storeID, err := requiredStoreID(ctx)
+	if err != nil {
+		return nil, err
+	}
 	order, err := r.OrderRoutingUsecase.UpdateOrderIssueHandling(ctx, routinginputport.UpdateOrderIssueHandlingCmd{
+		StoreID:         storeID,
 		OrderID:         input.OrderID,
 		IssueCost:       input.IssueCost,
 		IssueResolution: input.IssueResolution,
@@ -124,7 +163,12 @@ func (r *mutationResolver) UpdateOrderIssueHandling(ctx context.Context, input m
 
 // UpdateOrderQueueControl is the resolver for the updateOrderQueueControl field.
 func (r *mutationResolver) UpdateOrderQueueControl(ctx context.Context, input model.UpdateOrderQueueControlInput) (*model.RoutedOrder, error) {
+	storeID, err := requiredStoreID(ctx)
+	if err != nil {
+		return nil, err
+	}
 	order, err := r.OrderRoutingUsecase.UpdateOrderQueueControl(ctx, routinginputport.UpdateOrderQueueControlCmd{
+		StoreID:          storeID,
 		OrderID:          input.OrderID,
 		OperatorAssignee: input.OperatorAssignee,
 		ShipmentSlaDueAt: input.ShipmentSLADueAt,
@@ -138,7 +182,12 @@ func (r *mutationResolver) UpdateOrderQueueControl(ctx context.Context, input mo
 
 // BulkUpdateRoutedOrders is the resolver for the bulkUpdateRoutedOrders field.
 func (r *mutationResolver) BulkUpdateRoutedOrders(ctx context.Context, input model.BulkUpdateRoutedOrdersInput) ([]*model.RoutedOrder, error) {
+	storeID, err := requiredStoreID(ctx)
+	if err != nil {
+		return nil, err
+	}
 	orders, err := r.OrderRoutingUsecase.BulkUpdateRoutedOrders(ctx, routinginputport.BulkUpdateRoutedOrdersCmd{
+		StoreID:          storeID,
 		OrderIDs:         input.OrderIds,
 		OperatorAssignee: input.OperatorAssignee,
 		ShipmentSlaDueAt: input.ShipmentSLADueAt,
@@ -156,7 +205,11 @@ func (r *mutationResolver) BulkUpdateRoutedOrders(ctx context.Context, input mod
 
 // RoutedOrders is the resolver for the routedOrders field.
 func (r *queryResolver) RoutedOrders(ctx context.Context) ([]*model.RoutedOrder, error) {
-	orders, err := r.OrderRoutingUsecase.ListRoutedOrders(ctx)
+	storeID, err := requiredStoreID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	orders, err := r.OrderRoutingUsecase.ListRoutedOrders(ctx, routinginputport.ListRoutedOrdersQuery{StoreID: storeID})
 	if err != nil {
 		return nil, err
 	}
@@ -185,6 +238,11 @@ func (r *queryResolver) RoutedOrderActivities(ctx context.Context, input *model.
 		query.After = stringOrEmpty(input.After)
 		query.IncludeSystem = boolOrFalse(input.IncludeSystem)
 	}
+	storeID, err := requiredStoreID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	query.StoreID = storeID
 	page, err := r.OrderRoutingUsecase.ListRoutedOrderActivities(ctx, query)
 	if err != nil {
 		return nil, err
@@ -194,11 +252,16 @@ func (r *queryResolver) RoutedOrderActivities(ctx context.Context, input *model.
 
 // RoutedOrderRecommendation is the resolver for the routedOrderRecommendation field.
 func (r *queryResolver) RoutedOrderRecommendation(ctx context.Context, input model.RoutedOrderRecommendationInput) (*model.RoutedOrderRecommendation, error) {
+	storeID, err := requiredStoreID(ctx)
+	if err != nil {
+		return nil, err
+	}
 	preferredPartner := ""
 	if input.PreferredPartner != nil {
 		preferredPartner = *input.PreferredPartner
 	}
 	recommendation, err := r.OrderRoutingUsecase.RecommendRoutedOrderPartner(ctx, routinginputport.RecommendRoutedOrderPartnerQuery{
+		StoreID:          storeID,
 		CandidateID:      input.CandidateID,
 		ProductType:      input.ProductType,
 		ShipRegion:       input.ShipRegion,

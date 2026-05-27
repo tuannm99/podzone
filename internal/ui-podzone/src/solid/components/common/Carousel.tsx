@@ -56,7 +56,7 @@ export function Carousel(props: {
   return (
     <section
       class={classes(
-        'overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm',
+        'overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm',
         props.class
       )}
       aria-roledescription="carousel"
@@ -76,7 +76,7 @@ export function Carousel(props: {
                 <article class="grid min-h-[24rem] gap-8 p-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(20rem,0.9fr)] lg:p-8">
                   <div class="flex flex-col justify-center space-y-4">
                     <Show when={slide.eyebrow}>
-                      <p class="text-xs font-semibold uppercase tracking-[0.24em] text-blue-700">
+                      <p class="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">
                         {slide.eyebrow}
                       </p>
                     </Show>
@@ -99,7 +99,7 @@ export function Carousel(props: {
                   </div>
 
                   <Show when={slide.imageSrc}>
-                    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-50 to-white">
+                    <div class="relative overflow-hidden rounded-lg bg-gray-100">
                       <img
                         src={slide.imageSrc}
                         alt={slide.imageAlt ?? slide.title ?? 'Carousel image'}
@@ -141,7 +141,7 @@ export function Carousel(props: {
                       class={classes(
                         'size-2.5 rounded-full transition',
                         index() === currentIndex()
-                          ? 'bg-blue-700'
+                          ? 'bg-gray-950'
                           : 'bg-gray-300 hover:bg-gray-400'
                       )}
                       onClick={() => goTo(index())}

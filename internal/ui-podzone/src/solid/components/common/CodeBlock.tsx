@@ -12,7 +12,7 @@ export function CodeBlock(props: {
           {props.label}
         </div>
       </Show>
-      <pre class="overflow-x-auto rounded-xl bg-gray-900 p-4 text-xs text-gray-100">
+      <pre class="overflow-x-auto rounded-md bg-gray-900 p-4 text-xs text-gray-100">
         {props.code || '—'}
       </pre>
     </div>

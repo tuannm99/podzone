@@ -17,7 +17,7 @@ export function Banner(
     <Show when={!dismissed()}>
       <div
         class={classes(
-          'flex flex-col gap-3 rounded-2xl border px-4 py-3 shadow-sm md:flex-row md:items-center md:justify-between',
+          'flex flex-col gap-3 rounded-lg border px-4 py-3 shadow-sm md:flex-row md:items-center md:justify-between',
           toneClasses[props.tone ?? 'dark'],
           props.class
         )}

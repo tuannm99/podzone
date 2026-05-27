@@ -12,6 +12,7 @@ import (
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
 	routinginputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport"
 	routingoutputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/outputport"
+	"github.com/tuannm99/podzone/internal/backoffice/runtime/scope"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
@@ -31,14 +32,26 @@ func NewOrderRoutingInteractor(
 	return &OrderRoutingInteractor{orders: orders, products: products, partners: partners}
 }
 
-func (i *OrderRoutingInteractor) ListRoutedOrders(ctx context.Context) ([]routingentity.RoutedOrder, error) {
-	return i.orders.List(ctx)
+func (i *OrderRoutingInteractor) ListRoutedOrders(
+	ctx context.Context,
+	query routinginputport.ListRoutedOrdersQuery,
+) ([]routingentity.RoutedOrder, error) {
+	storeID, err := requiredStoreScope(ctx, query.StoreID)
+	if err != nil {
+		return nil, err
+	}
+	return i.orders.ListByStore(ctx, storeID)
 }
 
 func (i *OrderRoutingInteractor) ListRoutedOrderActivities(
 	ctx context.Context,
 	query routingentity.RoutedOrderActivityFeedQuery,
 ) (*routingentity.RoutedOrderActivityFeedPage, error) {
+	storeID, err := requiredStoreScope(ctx, query.StoreID)
+	if err != nil {
+		return nil, err
+	}
+	query.StoreID = storeID
 	return i.orders.ListActivityFeed(ctx, query)
 }
 
@@ -46,11 +59,15 @@ func (i *OrderRoutingInteractor) RecommendRoutedOrderPartner(
 	ctx context.Context,
 	query routinginputport.RecommendRoutedOrderPartnerQuery,
 ) (*routingentity.RoutedOrderRecommendation, error) {
+	storeID, err := requiredStoreScope(ctx, query.StoreID)
+	if err != nil {
+		return nil, err
+	}
 	candidateID := strings.TrimSpace(query.CandidateID)
 	if candidateID == "" {
 		return nil, fmt.Errorf("candidate id is required")
 	}
-	candidate, err := i.products.GetCandidateByID(ctx, candidateID)
+	candidate, err := i.products.GetCandidateByID(ctx, storeID, candidateID)
 	if err != nil {
 		return nil, err
 	}
@@ -78,11 +95,15 @@ func (i *OrderRoutingInteractor) CreateRoutedOrder(
 	ctx context.Context,
 	cmd routinginputport.CreateRoutedOrderCmd,
 ) (*routingentity.RoutedOrder, error) {
+	storeID, err := requiredStoreScope(ctx, cmd.StoreID)
+	if err != nil {
+		return nil, err
+	}
 	candidateID := strings.TrimSpace(cmd.CandidateID)
 	if candidateID == "" {
 		return nil, fmt.Errorf("candidate id is required")
 	}
-	candidate, err := i.products.GetCandidateByID(ctx, candidateID)
+	candidate, err := i.products.GetCandidateByID(ctx, storeID, candidateID)
 	if err != nil {
 		return nil, err
 	}
@@ -143,6 +164,7 @@ func (i *OrderRoutingInteractor) CreateRoutedOrder(
 	}
 	order := routingentity.RoutedOrder{
 		ID:                 fmt.Sprintf("ORD-%s", strings.ToUpper(uuid.NewString()[:8])),
+		StoreID:            storeID,
 		CandidateID:        candidate.ID,
 		ProductTitle:       candidate.Title,
 		Partner:            partner,
@@ -205,12 +227,16 @@ func (i *OrderRoutingInteractor) ForceRerouteBlockedOrder(
 	ctx context.Context,
 	cmd routinginputport.ForceRerouteBlockedOrderCmd,
 ) (*routingentity.RoutedOrder, error) {
+	storeID, err := requiredStoreScope(ctx, cmd.StoreID)
+	if err != nil {
+		return nil, err
+	}
 	order, err := i.orders.GetByID(ctx, strings.TrimSpace(cmd.OrderID))
 	if err != nil {
 		return nil, err
 	}
-	if order == nil {
-		return nil, fmt.Errorf("routed order not found")
+	if err := ensureOrderStore(order, storeID); err != nil {
+		return nil, err
 	}
 	if order.Status != routingentity.RoutedOrderStatusRoutingBlocked {
 		return nil, fmt.Errorf("routed order is not in routing_blocked status")
@@ -220,7 +246,7 @@ func (i *OrderRoutingInteractor) ForceRerouteBlockedOrder(
 		return nil, fmt.Errorf("preferred partner is required")
 	}
 
-	candidate, err := i.products.GetCandidateByID(ctx, strings.TrimSpace(order.CandidateID))
+	candidate, err := i.products.GetCandidateByID(ctx, storeID, strings.TrimSpace(order.CandidateID))
 	if err != nil {
 		return nil, err
 	}
@@ -322,4 +348,25 @@ func inferProductType(title string) string {
 	default:
 		return ""
 	}
+}
+
+func requiredStoreScope(ctx context.Context, explicitStoreID string) (string, error) {
+	storeID := strings.TrimSpace(explicitStoreID)
+	if storeID == "" {
+		storeID = strings.TrimSpace(scope.CurrentStoreID(ctx))
+	}
+	if storeID == "" {
+		return "", fmt.Errorf("store scope is required")
+	}
+	return storeID, nil
+}
+
+func ensureOrderStore(order *routingentity.RoutedOrder, storeID string) error {
+	if order == nil {
+		return fmt.Errorf("routed order not found")
+	}
+	if strings.TrimSpace(order.StoreID) == "" || strings.TrimSpace(order.StoreID) != strings.TrimSpace(storeID) {
+		return fmt.Errorf("routed order not found")
+	}
+	return nil
 }

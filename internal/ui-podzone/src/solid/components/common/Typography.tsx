@@ -53,7 +53,7 @@ export function Blockquote(
   return (
     <figure
       class={classes(
-        'rounded-2xl border-s-4 border-blue-600 bg-blue-50 px-5 py-4',
+        'rounded-lg border-s-4 border-gray-900 bg-gray-50 px-5 py-4',
         props.class
       )}
     >
@@ -82,7 +82,7 @@ export function TextLink(
       target={props.target}
       rel={props.target === '_blank' ? 'noreferrer' : undefined}
       class={classes(
-        'font-medium text-blue-700 underline decoration-blue-200 underline-offset-4 transition hover:text-blue-800 hover:decoration-blue-400',
+        'font-medium text-gray-900 underline decoration-gray-300 underline-offset-4 transition hover:text-gray-700 hover:decoration-gray-500',
         props.class
       )}
     >

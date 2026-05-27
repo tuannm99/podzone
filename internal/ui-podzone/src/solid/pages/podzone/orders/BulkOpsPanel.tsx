@@ -16,7 +16,7 @@ export function BulkOpsPanel() {
   const board = useTenantOrdersBoard();
 
   return (
-    <div class="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
+    <div class="mt-4 rounded-lg border border-gray-200 bg-white p-4">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p class="text-sm font-semibold text-gray-900">Bulk ops</p>
@@ -98,7 +98,7 @@ export function BulkOpsPanel() {
           }
         />
       </div>
-      <div class="mt-4 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+      <div class="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
         <div class="grid gap-4 md:grid-cols-[0.8fr_1.2fr]">
           <InputField
             label="Save bulk template"

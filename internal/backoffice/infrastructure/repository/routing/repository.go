@@ -39,6 +39,7 @@ func NewOrderRoutingRepository(mgr pdtenantdb.Manager) routingoutputport.OrderRo
 
 type routedOrderRow struct {
 	ID                     string       `db:"id"`
+	StoreID                string       `db:"store_id"`
 	CandidateID            string       `db:"candidate_id"`
 	ProductTitle           string       `db:"product_title"`
 	Partner                string       `db:"partner"`
@@ -76,6 +77,7 @@ type routedOrderRow struct {
 
 type routedOrderActivityRow struct {
 	ID               int64     `db:"id"`
+	StoreID          string    `db:"store_id"`
 	OrderID          string    `db:"order_id"`
 	ProductTitle     string    `db:"product_title"`
 	Partner          string    `db:"partner"`
@@ -88,9 +90,21 @@ type routedOrderActivityRow struct {
 }
 
 func (r *OrderRoutingRepositoryImpl) List(ctx context.Context) ([]routingentity.RoutedOrder, error) {
-	query, args, err := psql.
+	return r.list(ctx, "")
+}
+
+func (r *OrderRoutingRepositoryImpl) ListByStore(
+	ctx context.Context,
+	storeID string,
+) ([]routingentity.RoutedOrder, error) {
+	return r.list(ctx, strings.TrimSpace(storeID))
+}
+
+func (r *OrderRoutingRepositoryImpl) list(ctx context.Context, storeID string) ([]routingentity.RoutedOrder, error) {
+	builder := psql.
 		Select(
 			"id",
+			"store_id",
 			"candidate_id",
 			"product_title",
 			"partner",
@@ -125,7 +139,13 @@ func (r *OrderRoutingRepositoryImpl) List(ctx context.Context) ([]routingentity.
 			"created_at",
 			"updated_at",
 		).
-		From("routed_orders").
+		From("routed_orders")
+	if storeID != "" {
+		builder = builder.Where(sq.Eq{"store_id": storeID})
+	}
+	query, args, err := psql.
+		Select("*").
+		FromSelect(builder, "routed_orders_scoped").
 		OrderBy("created_at DESC").
 		ToSql()
 	if err != nil {
@@ -163,6 +183,7 @@ func (r *OrderRoutingRepositoryImpl) GetByID(ctx context.Context, id string) (*r
 	query, args, err := psql.
 		Select(
 			"id",
+			"store_id",
 			"candidate_id",
 			"product_title",
 			"partner",
@@ -245,6 +266,7 @@ func (r *OrderRoutingRepositoryImpl) ListActivityFeed(
 	builder := psql.
 		Select(
 			"id",
+			"store_id",
 			"order_id",
 			"product_title",
 			"partner",
@@ -274,6 +296,9 @@ func (r *OrderRoutingRepositoryImpl) ListActivityFeed(
 		}
 		if orderID := strings.TrimSpace(query.OrderID); orderID != "" {
 			b = b.Where(sq.Eq{"order_id": orderID})
+		}
+		if storeID := strings.TrimSpace(query.StoreID); storeID != "" {
+			b = b.Where(sq.Eq{"store_id": storeID})
 		}
 		if partner := strings.ToLower(strings.TrimSpace(query.Partner)); partner != "" {
 			b = b.Where("LOWER(partner) LIKE ?", "%"+partner+"%")
@@ -353,8 +378,8 @@ func (r *OrderRoutingRepositoryImpl) Create(
 	}
 	query, args, err := psql.
 		Insert("routed_orders").
-		Columns("id", "candidate_id", "product_title", "partner", "quantity", "total", "customer_name", "status", "timeline_json", "exception_type", "exception_status", "shipment_status", "shipment_carrier", "shipment_tracking_number", "shipment_tracking_url", "shipment_notes", "operator_assignee", "shipment_sla_due_at", "issue_sla_due_at", "routing_block_code", "routing_block_reason", "base_cost_snapshot", "fulfillment_cost", "shipping_cost", "issue_cost", "issue_resolution", "issue_notes", "realized_margin", "settlement_status", "settlement_notes", "shipped_at", "delivered_at", "created_at", "updated_at").
-		Values(order.ID, order.CandidateID, order.ProductTitle, order.Partner, order.Quantity, order.Total, order.CustomerName, order.Status, string(timelineJSON), order.ExceptionType, order.ExceptionStatus, order.ShipmentStatus, order.ShipmentCarrier, order.ShipmentTrackingNumber, order.ShipmentTrackingURL, order.ShipmentNotes, order.OperatorAssignee, order.ShipmentSlaDueAt, order.IssueSlaDueAt, order.RoutingBlockCode, order.RoutingBlockReason, order.BaseCostSnapshot, order.FulfillmentCost, order.ShippingCost, order.IssueCost, order.IssueResolution, order.IssueNotes, order.RealizedMargin, order.SettlementStatus, order.SettlementNotes, order.ShippedAt, order.DeliveredAt, order.CreatedAt, order.UpdatedAt).
+		Columns("id", "store_id", "candidate_id", "product_title", "partner", "quantity", "total", "customer_name", "status", "timeline_json", "exception_type", "exception_status", "shipment_status", "shipment_carrier", "shipment_tracking_number", "shipment_tracking_url", "shipment_notes", "operator_assignee", "shipment_sla_due_at", "issue_sla_due_at", "routing_block_code", "routing_block_reason", "base_cost_snapshot", "fulfillment_cost", "shipping_cost", "issue_cost", "issue_resolution", "issue_notes", "realized_margin", "settlement_status", "settlement_notes", "shipped_at", "delivered_at", "created_at", "updated_at").
+		Values(order.ID, order.StoreID, order.CandidateID, order.ProductTitle, order.Partner, order.Quantity, order.Total, order.CustomerName, order.Status, string(timelineJSON), order.ExceptionType, order.ExceptionStatus, order.ShipmentStatus, order.ShipmentCarrier, order.ShipmentTrackingNumber, order.ShipmentTrackingURL, order.ShipmentNotes, order.OperatorAssignee, order.ShipmentSlaDueAt, order.IssueSlaDueAt, order.RoutingBlockCode, order.RoutingBlockReason, order.BaseCostSnapshot, order.FulfillmentCost, order.ShippingCost, order.IssueCost, order.IssueResolution, order.IssueNotes, order.RealizedMargin, order.SettlementStatus, order.SettlementNotes, order.ShippedAt, order.DeliveredAt, order.CreatedAt, order.UpdatedAt).
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -366,7 +391,7 @@ func (r *OrderRoutingRepositoryImpl) Create(
 		if _, err = tx.ExecContext(ctx, query, args...); err != nil {
 			return err
 		}
-		return insertOrderActivities(ctx, tx, order.ID, order.ProductTitle, order.Partner, order.OperatorAssignee, order.ActivityLog)
+		return insertOrderActivities(ctx, tx, order.StoreID, order.ID, order.ProductTitle, order.Partner, order.OperatorAssignee, order.ActivityLog)
 	}); err != nil {
 		return nil, err
 	}
@@ -383,6 +408,7 @@ func (r *OrderRoutingRepositoryImpl) Update(
 	}
 	query, args, err := psql.
 		Update("routed_orders").
+		Set("store_id", order.StoreID).
 		Set("candidate_id", order.CandidateID).
 		Set("product_title", order.ProductTitle).
 		Set("partner", order.Partner).
@@ -440,7 +466,7 @@ func (r *OrderRoutingRepositoryImpl) Update(
 			return fmt.Errorf("routed order not found")
 		}
 		if len(order.ActivityLog) > existingActivityCount {
-			return insertOrderActivities(ctx, tx, order.ID, order.ProductTitle, order.Partner, order.OperatorAssignee, order.ActivityLog[existingActivityCount:])
+			return insertOrderActivities(ctx, tx, order.StoreID, order.ID, order.ProductTitle, order.Partner, order.OperatorAssignee, order.ActivityLog[existingActivityCount:])
 		}
 		return nil
 	}); err != nil {
@@ -487,6 +513,7 @@ func mapRoutedOrderRow(
 	}
 	return routingentity.RoutedOrder{
 		ID:                     row.ID,
+		StoreID:                row.StoreID,
 		CandidateID:            row.CandidateID,
 		ProductTitle:           row.ProductTitle,
 		Partner:                row.Partner,
@@ -533,6 +560,7 @@ func mapRoutedOrderActivityRow(row routedOrderActivityRow) (routingentity.Routed
 		return routingentity.RoutedOrderActivityFeedEntry{}, err
 	}
 	return routingentity.RoutedOrderActivityFeedEntry{
+		StoreID:          row.StoreID,
 		OrderID:          row.OrderID,
 		ProductTitle:     row.ProductTitle,
 		Partner:          row.Partner,
@@ -550,6 +578,7 @@ func mapRoutedOrderActivityRow(row routedOrderActivityRow) (routingentity.Routed
 func insertOrderActivities(
 	ctx context.Context,
 	tx *sqlx.Tx,
+	storeID string,
 	orderID, productTitle, partner, operatorAssignee string,
 	activities []routingentity.RoutedOrderActivity,
 ) error {
@@ -560,8 +589,9 @@ func insertOrderActivities(
 		}
 		if _, err := tx.ExecContext(
 			ctx,
-			`INSERT INTO routed_order_activities (order_id, product_title, partner, operator_assignee, activity_type, actor, message, details_json, created_at)
-			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+			`INSERT INTO routed_order_activities (store_id, order_id, product_title, partner, operator_assignee, activity_type, actor, message, details_json, created_at)
+			 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+			storeID,
 			orderID,
 			productTitle,
 			partner,
@@ -598,6 +628,7 @@ func loadOrderActivitiesByOrderIDs(
 	query, args, err := psql.
 		Select(
 			"id",
+			"store_id",
 			"order_id",
 			"product_title",
 			"partner",

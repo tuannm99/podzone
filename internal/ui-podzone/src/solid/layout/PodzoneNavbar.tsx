@@ -1,58 +1,98 @@
 import { Link, useNavigate } from '@tanstack/solid-router';
-import { Show, createSignal } from 'solid-js';
+import { For, Show, createSignal } from 'solid-js';
 import { ensureActiveTenant, logout } from '../../services/auth';
 import { tenantStorage } from '../../services/tenantStorage';
 import { tokenStorage } from '../../services/tokenStorage';
-import { Badge, Button } from '../components/common/Primitives';
+import { useTenantWorkspace } from '../workspace/context';
+import { Button } from '../components/common/Primitives';
 import { classes } from '../shared/utils';
+
+type NavItem = {
+  href: string;
+  label: string;
+  section: 'Platform' | 'Operations';
+  active: () => boolean;
+};
+
+function initials(value: string) {
+  const cleaned = value.trim();
+  if (!cleaned) return 'PZ';
+  return cleaned
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('');
+}
 
 export function PodzoneNavbar(props: { currentPath: string }) {
   const navigate = useNavigate();
+  const workspace = useTenantWorkspace();
   const [tenantId, setTenantId] = createSignal(
     tokenStorage.getActiveTenantID() || tenantStorage.getTenantID()
   );
   const [switchingTenant, setSwitchingTenant] = createSignal(false);
   const user = tokenStorage.getUser();
-  const hasTenant = () => tenantId().trim().length > 0;
 
-  const links = [
+  const hasTenant = () =>
+    (workspace?.tenantId() || tenantId()).trim().length > 0;
+  const activeTenantId = () => workspace?.tenantId() || tenantId();
+  const currentStore = () => workspace?.currentStore();
+  const currentStoreId = () => workspace?.currentStoreId() || '';
+  const stores = () => workspace?.stores() || [];
+  const loadingStores = () => workspace?.loading() || false;
+  const storeName = () => currentStore()?.name || currentStoreId() || 'No store';
+  const accountLabel = () => user?.username || user?.email || 'Account';
+
+  const links = (): NavItem[] => [
     {
       href: '/admin',
-      label: 'Overview',
+      label: 'Home',
+      section: 'Platform',
       active: () => props.currentPath === '/admin',
     },
     {
       href: '/admin/settings',
       label: 'Settings',
+      section: 'Platform',
       active: () => props.currentPath === '/admin/settings',
     },
     ...(hasTenant()
       ? [
           {
-            href: `/t/${tenantId().trim()}`,
-            label: 'Store',
-            active: () => props.currentPath === `/t/${tenantId().trim()}`,
+            href: `/t/${activeTenantId().trim()}`,
+            label: 'Store Home',
+            section: 'Operations' as const,
+            active: () => props.currentPath === `/t/${activeTenantId().trim()}`,
           },
           {
-            href: `/t/${tenantId().trim()}/partners`,
-            label: 'Print partners',
-            active: () => props.currentPath === `/t/${tenantId().trim()}/partners`,
-          },
-          {
-            href: `/t/${tenantId().trim()}/products/setup`,
-            label: 'Product setup',
-            active: () => props.currentPath === `/t/${tenantId().trim()}/products/setup`,
-          },
-          {
-            href: `/t/${tenantId().trim()}/orders`,
+            href: `/t/${activeTenantId().trim()}/orders`,
             label: 'Orders',
-            active: () => props.currentPath === `/t/${tenantId().trim()}/orders`,
+            section: 'Operations' as const,
+            active: () =>
+              props.currentPath === `/t/${activeTenantId().trim()}/orders`,
           },
           {
-            href: `/t/${tenantId().trim()}/orders/audit`,
-            label: 'Order audit',
+            href: `/t/${activeTenantId().trim()}/products/setup`,
+            label: 'Products',
+            section: 'Operations' as const,
             active: () =>
-              props.currentPath === `/t/${tenantId().trim()}/orders/audit`,
+              props.currentPath ===
+              `/t/${activeTenantId().trim()}/products/setup`,
+          },
+          {
+            href: `/t/${activeTenantId().trim()}/partners`,
+            label: 'Partners',
+            section: 'Operations' as const,
+            active: () =>
+              props.currentPath === `/t/${activeTenantId().trim()}/partners`,
+          },
+          {
+            href: `/t/${activeTenantId().trim()}/orders/audit`,
+            label: 'Audit',
+            section: 'Operations' as const,
+            active: () =>
+              props.currentPath ===
+              `/t/${activeTenantId().trim()}/orders/audit`,
           },
         ]
       : []),
@@ -72,74 +112,135 @@ export function PodzoneNavbar(props: { currentPath: string }) {
     }
   };
 
-  return (
-    <header class="sticky top-0 z-40 w-full border-b border-gray-200 bg-white/90 shadow-sm backdrop-blur">
-      <div class="mx-auto flex min-h-14 w-full max-w-[96rem] flex-wrap items-center justify-between gap-2 px-4 py-2.5 sm:px-6 lg:px-8">
-        <Link to="/admin" class="flex min-w-0 items-center gap-3">
-          <span class="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-xs font-bold uppercase tracking-[0.22em] text-white">
-            pz
-          </span>
-          <div class="min-w-0">
-            <div class="truncate text-sm font-semibold text-gray-900">
-              Podzone Backoffice
-            </div>
-            <div class="hidden text-xs text-gray-500 sm:block">
-              Admin and store workspace
-            </div>
-          </div>
-        </Link>
+  const platformLinks = () => links().filter((item) => item.section === 'Platform');
+  const operationLinks = () =>
+    links().filter((item) => item.section === 'Operations');
 
-        <nav class="flex items-center gap-1">
-          {links.map((link) => (
-            <Link
-              to={link.href}
-              class={classes(
-                'rounded-full px-3 py-1 text-sm font-medium transition',
-                link.active()
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+  const navLinkClass = (active: boolean) =>
+    classes(
+      'flex h-10 items-center rounded-md px-3 text-sm font-medium transition',
+      active
+        ? 'bg-gray-900 text-white shadow-sm'
+        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-950'
+    );
+
+  return (
+    <>
+      <aside class="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-gray-200 bg-white lg:flex lg:flex-col">
+        <div class="flex h-16 items-center gap-3 border-b border-gray-200 px-5">
+          <Link
+            to="/admin"
+            class="flex size-9 items-center justify-center rounded-md bg-gray-950 text-xs font-bold tracking-widest text-white"
+          >
+            PZ
+          </Link>
+          <div class="min-w-0">
+            <div class="truncate text-sm font-semibold text-gray-950">
+              Podzone
+            </div>
+            <div class="truncate text-xs text-gray-500">Seller Center</div>
+          </div>
+        </div>
+
+        <div class="border-b border-gray-200 p-4">
+          <Show
+            when={workspace}
+            fallback={
+              <div class="space-y-2">
+                <label class="text-xs font-semibold uppercase text-gray-500">
+                  Tenant
+                </label>
+                <div class="flex gap-2">
+                  <input
+                    class="min-w-0 flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-gray-900"
+                    value={tenantId()}
+                    placeholder="tenant id"
+                    onInput={(event) => setTenantId(event.currentTarget.value)}
+                  />
+                  <Button
+                    color="dark"
+                    size="xs"
+                    disabled={!hasTenant() || switchingTenant()}
+                    loading={switchingTenant()}
+                    onClick={() => {
+                      void goToTenant();
+                    }}
+                  >
+                    Open
+                  </Button>
+                </div>
+              </div>
+            }
+          >
+            <div class="space-y-2">
+              <label class="text-xs font-semibold uppercase text-gray-500">
+                Store
+              </label>
+              <select
+                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-gray-900"
+                value={currentStoreId()}
+                disabled={loadingStores() || stores().length === 0}
+                onChange={(event) =>
+                  workspace?.setCurrentStoreId(event.currentTarget.value)
+                }
+              >
+                <For each={stores()}>
+                  {(store) => <option value={store.id}>{store.name}</option>}
+                </For>
+              </select>
+              <div class="truncate text-xs text-gray-500">
+                {activeTenantId().trim()}
+              </div>
+            </div>
+          </Show>
+        </div>
+
+        <nav class="flex-1 space-y-6 overflow-y-auto p-4">
+          <div class="space-y-1">
+            <div class="px-3 text-xs font-semibold uppercase text-gray-400">
+              Platform
+            </div>
+            <For each={platformLinks()}>
+              {(link) => (
+                <Link to={link.href} class={navLinkClass(link.active())}>
+                  {link.label}
+                </Link>
               )}
-            >
-              {link.label}
-            </Link>
-          ))}
+            </For>
+          </div>
+
+          <Show when={operationLinks().length > 0}>
+            <div class="space-y-1">
+              <div class="px-3 text-xs font-semibold uppercase text-gray-400">
+                Operations
+              </div>
+              <For each={operationLinks()}>
+                {(link) => (
+                  <Link to={link.href} class={navLinkClass(link.active())}>
+                    {link.label}
+                  </Link>
+                )}
+              </For>
+            </div>
+          </Show>
         </nav>
 
-        <div class="flex flex-wrap items-center justify-end gap-2">
-          <div class="flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-2 py-1">
-            <input
-              class="w-32 border-0 bg-transparent px-2 text-sm text-gray-700 outline-none placeholder:text-gray-400"
-              value={tenantId()}
-              placeholder="store id"
-              onInput={(event) => setTenantId(event.currentTarget.value)}
-            />
-            <Button
-              color="blue"
-              size="xs"
-              pill
-              disabled={!hasTenant() || switchingTenant()}
-              loading={switchingTenant()}
-              onClick={() => {
-                void goToTenant();
-              }}
-            >
-              Open
-            </Button>
+        <div class="border-t border-gray-200 p-4">
+          <div class="flex items-center gap-3">
+            <div class="flex size-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-700">
+              {initials(accountLabel())}
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="truncate text-sm font-medium text-gray-950">
+                {accountLabel()}
+              </div>
+              <div class="truncate text-xs text-gray-500">Signed in</div>
+            </div>
           </div>
-
-          <Show when={hasTenant()}>
-            <Badge content={`store ${tenantId().trim()}`} color="indigo" />
-          </Show>
-
-          <Badge
-            content={user?.username || user?.email || 'authenticated'}
-            color="dark"
-          />
-
           <Button
             color="alternative"
             size="sm"
-            pill
+            class="mt-3 w-full"
             onClick={() => {
               void logout();
             }}
@@ -147,7 +248,52 @@ export function PodzoneNavbar(props: { currentPath: string }) {
             Sign out
           </Button>
         </div>
-      </div>
-    </header>
+      </aside>
+
+      <header class="sticky top-0 z-30 border-b border-gray-200 bg-white/95 backdrop-blur lg:pl-64">
+        <div class="flex min-h-16 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+          <div class="min-w-0">
+            <div class="truncate text-sm font-semibold text-gray-950">
+              {storeName()}
+            </div>
+            <div class="truncate text-xs text-gray-500">
+              {hasTenant() ? activeTenantId().trim() : 'Platform workspace'}
+            </div>
+          </div>
+
+          <div class="flex min-w-0 flex-1 justify-end lg:hidden">
+            <nav class="flex gap-1 overflow-x-auto">
+              <For each={links()}>
+                {(link) => (
+                  <Link
+                    to={link.href}
+                    class={classes(
+                      'whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium',
+                      link.active()
+                        ? 'bg-gray-900 text-white'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                )}
+              </For>
+            </nav>
+          </div>
+
+          <div class="hidden items-center gap-3 lg:flex">
+            <div class="text-right">
+              <div class="max-w-52 truncate text-sm font-medium text-gray-900">
+                {accountLabel()}
+              </div>
+              <div class="text-xs text-gray-500">Operator</div>
+            </div>
+            <div class="flex size-9 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-700">
+              {initials(accountLabel())}
+            </div>
+          </div>
+        </div>
+      </header>
+    </>
   );
 }

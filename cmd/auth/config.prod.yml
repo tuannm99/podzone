@@ -5,6 +5,8 @@ logger:
   env: 'dev'
 
 auth:
+  jwt_secret: '${JWT_SECRET}'
+  jwt_key: '${JWT_KEY}'
   iam:
     grpc_host: '${IAM_GRPC_HOST}'
     grpc_port: '${IAM_GRPC_PORT}'

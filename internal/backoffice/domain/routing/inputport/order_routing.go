@@ -8,6 +8,7 @@ import (
 )
 
 type CreateRoutedOrderCmd struct {
+	StoreID          string
 	CandidateID      string
 	CustomerName     string
 	Quantity         int
@@ -17,6 +18,7 @@ type CreateRoutedOrderCmd struct {
 }
 
 type RecommendRoutedOrderPartnerQuery struct {
+	StoreID          string
 	CandidateID      string
 	ProductType      string
 	ShipRegion       string
@@ -24,21 +26,25 @@ type RecommendRoutedOrderPartnerQuery struct {
 }
 
 type OpenOrderExceptionCmd struct {
+	StoreID       string
 	OrderID       string
 	ExceptionType string
 }
 
 type ForceRerouteBlockedOrderCmd struct {
+	StoreID          string
 	OrderID          string
 	PreferredPartner string
 }
 
 type UpdateOrderExceptionStatusCmd struct {
+	StoreID string
 	OrderID string
 	Status  string
 }
 
 type UpdateOrderShipmentCmd struct {
+	StoreID        string
 	OrderID        string
 	ShipmentStatus string
 	Carrier        string
@@ -48,6 +54,7 @@ type UpdateOrderShipmentCmd struct {
 }
 
 type UpdateOrderSettlementCmd struct {
+	StoreID          string
 	OrderID          string
 	FulfillmentCost  string
 	ShippingCost     string
@@ -56,6 +63,7 @@ type UpdateOrderSettlementCmd struct {
 }
 
 type UpdateOrderIssueHandlingCmd struct {
+	StoreID         string
 	OrderID         string
 	IssueCost       string
 	IssueResolution string
@@ -63,6 +71,7 @@ type UpdateOrderIssueHandlingCmd struct {
 }
 
 type UpdateOrderQueueControlCmd struct {
+	StoreID          string
 	OrderID          string
 	OperatorAssignee string
 	ShipmentSlaDueAt *time.Time
@@ -70,14 +79,19 @@ type UpdateOrderQueueControlCmd struct {
 }
 
 type BulkUpdateRoutedOrdersCmd struct {
+	StoreID          string
 	OrderIDs         []string
 	OperatorAssignee *string
 	ShipmentSlaDueAt *time.Time
 	SettlementStatus *string
 }
 
+type ListRoutedOrdersQuery struct {
+	StoreID string
+}
+
 type OrderRoutingUsecase interface {
-	ListRoutedOrders(ctx context.Context) ([]routingentity.RoutedOrder, error)
+	ListRoutedOrders(ctx context.Context, query ListRoutedOrdersQuery) ([]routingentity.RoutedOrder, error)
 	ListRoutedOrderActivities(
 		ctx context.Context,
 		query routingentity.RoutedOrderActivityFeedQuery,
@@ -88,7 +102,7 @@ type OrderRoutingUsecase interface {
 	) (*routingentity.RoutedOrderRecommendation, error)
 	CreateRoutedOrder(ctx context.Context, cmd CreateRoutedOrderCmd) (*routingentity.RoutedOrder, error)
 	ForceRerouteBlockedOrder(ctx context.Context, cmd ForceRerouteBlockedOrderCmd) (*routingentity.RoutedOrder, error)
-	AdvanceRoutedOrder(ctx context.Context, orderID string) (*routingentity.RoutedOrder, error)
+	AdvanceRoutedOrder(ctx context.Context, storeID, orderID string) (*routingentity.RoutedOrder, error)
 	OpenOrderException(ctx context.Context, cmd OpenOrderExceptionCmd) (*routingentity.RoutedOrder, error)
 	UpdateOrderExceptionStatus(
 		ctx context.Context,

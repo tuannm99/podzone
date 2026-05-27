@@ -23,9 +23,15 @@ import (
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/generated"
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/resolver"
 	cataloginputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/inputport/mocks"
-	routinginputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport/mocks"
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
+	routinginputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport"
+	routinginputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport/mocks"
+	storeentity "github.com/tuannm99/podzone/internal/backoffice/domain/store/entity"
+	storeoutputportmocks "github.com/tuannm99/podzone/internal/backoffice/domain/store/outputport/mocks"
 	backofficemocks "github.com/tuannm99/podzone/internal/backoffice/mocks"
+	"github.com/tuannm99/podzone/internal/backoffice/runtime/scope"
+	"github.com/tuannm99/podzone/internal/backoffice/runtime/storeaccess"
+	"github.com/tuannm99/podzone/internal/backoffice/runtime/tenancy"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -45,18 +51,28 @@ func TestTenantMiddlewareGraphQLInjectsIdentityAndChecksPermission(t *testing.T)
 	authz := backofficemocks.NewMockTenantAuthorizer(t)
 	bootstrapper := backofficemocks.NewMockTenantBootstrapper(t)
 	orderUC := routinginputmocks.NewMockOrderRoutingUsecase(t)
+	storeRepo := storeoutputportmocks.NewMockStoreRepository(t)
+	const storeID = "store-ops"
 	authz.EXPECT().AuthorizeTenant(mock.Anything, "session-1", "12", "tenant-ops").Return(nil).Once()
-	authz.EXPECT().RequirePermission(mock.Anything, "12", "tenant-ops", "store:read").Return(nil).Once()
+	authz.EXPECT().
+		RequirePermission(mock.Anything, "12", "tenant-ops", "store:read", "podzone:tenant/tenant-ops/store/"+storeID).
+		Return(nil).
+		Once()
 	bootstrapper.EXPECT().EnsureReady(mock.Anything, "tenant-ops").Return(nil).Once()
+	storeRepo.EXPECT().
+		FindByID(mock.Anything, storeID).
+		Return(&storeentity.Store{ID: storeID, Name: "Ops Store"}, nil).
+		Once()
 	orderUC.EXPECT().
-		ListRoutedOrders(mock.Anything).
-		RunAndReturn(func(ctx context.Context) ([]routingentity.RoutedOrder, error) {
+		ListRoutedOrders(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, query routinginputport.ListRoutedOrdersQuery) ([]routingentity.RoutedOrder, error) {
 			tenantID, err := toolkit.GetTenantID(ctx)
 			require.NoError(t, err)
 			userID, err := toolkit.GetUserID(ctx)
 			require.NoError(t, err)
 			require.Equal(t, "tenant-ops", tenantID)
 			require.Equal(t, "12", userID)
+			require.Equal(t, storeID, query.StoreID)
 			return []routingentity.RoutedOrder{
 				{
 					ID:               "ord-1",
@@ -85,9 +101,68 @@ func TestTenantMiddlewareGraphQLInjectsIdentityAndChecksPermission(t *testing.T)
 	srv := newBackofficeGraphQLTestServer(t, authz, &resolver.Resolver{
 		ProductSetupUsecase: productUC,
 		OrderRoutingUsecase: orderUC,
-	}, bootstrapper)
+	}, bootstrapper, storeaccess.New(storeRepo))
 
-	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "Bearer "+token)
+	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "Bearer "+token, map[string]string{
+		"X-Store-ID": storeID,
+	})
+	require.Equal(t, http.StatusOK, rec.Code)
+
+	var payload graphQLResponse
+	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &payload))
+	require.Empty(t, payload.Errors)
+	require.Equal(t, "ord-1", payload.Data.RoutedOrders[0].ID)
+}
+
+func TestTenantMiddlewareGraphQLInjectsStoreScope(t *testing.T) {
+	tokenUC := authdomain.NewTokenUsecase(authconfig.AuthConfig{
+		JWTSecret: "secret",
+		JWTKey:    "app-key",
+	})
+	token, err := tokenUC.CreateJwtTokenForSession(authentity.User{
+		Id:       12,
+		Email:    "owner@podzone.io",
+		Username: "owner",
+	}, "tenant-ops", "session-1")
+	require.NoError(t, err)
+
+	authz := backofficemocks.NewMockTenantAuthorizer(t)
+	bootstrapper := backofficemocks.NewMockTenantBootstrapper(t)
+	orderUC := routinginputmocks.NewMockOrderRoutingUsecase(t)
+	storeRepo := storeoutputportmocks.NewMockStoreRepository(t)
+	const storeID = "store-ops"
+
+	authz.EXPECT().AuthorizeTenant(mock.Anything, "session-1", "12", "tenant-ops").Return(nil).Once()
+	authz.EXPECT().
+		RequirePermission(mock.Anything, "12", "tenant-ops", "store:read", "podzone:tenant/tenant-ops/store/"+storeID).
+		Return(nil).
+		Once()
+	bootstrapper.EXPECT().EnsureReady(mock.Anything, "tenant-ops").Return(nil).Once()
+	storeRepo.EXPECT().
+		FindByID(mock.Anything, storeID).
+		Return(&storeentity.Store{ID: storeID, Name: "Ops Store"}, nil).
+		Once()
+	orderUC.EXPECT().
+		ListRoutedOrders(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, query routinginputport.ListRoutedOrdersQuery) ([]routingentity.RoutedOrder, error) {
+			currentStoreID := scope.CurrentStoreID(ctx)
+			require.Equal(t, storeID, currentStoreID)
+			require.Equal(t, storeID, query.StoreID)
+			return []routingentity.RoutedOrder{
+				{ID: "ord-1", CandidateID: "cand-1", ProductTitle: "Vintage Tee"},
+			}, nil
+		}).
+		Once()
+	productUC := cataloginputmocks.NewMockProductSetupUsecase(t)
+
+	srv := newBackofficeGraphQLTestServer(t, authz, &resolver.Resolver{
+		ProductSetupUsecase: productUC,
+		OrderRoutingUsecase: orderUC,
+	}, bootstrapper, storeaccess.New(storeRepo))
+
+	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "Bearer "+token, map[string]string{
+		"X-Store-ID": storeID,
+	})
 	require.Equal(t, http.StatusOK, rec.Code)
 
 	var payload graphQLResponse
@@ -100,9 +175,9 @@ func TestTenantMiddlewareGraphQLRejectsMissingAuthorization(t *testing.T) {
 	srv := newBackofficeGraphQLTestServer(t, backofficemocks.NewMockTenantAuthorizer(t), &resolver.Resolver{
 		ProductSetupUsecase: cataloginputmocks.NewMockProductSetupUsecase(t),
 		OrderRoutingUsecase: routinginputmocks.NewMockOrderRoutingUsecase(t),
-	}, backofficemocks.NewMockTenantBootstrapper(t))
+	}, backofficemocks.NewMockTenantBootstrapper(t), nil)
 
-	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "")
+	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "", nil)
 	require.Equal(t, http.StatusOK, rec.Code)
 
 	var payload graphQLResponse
@@ -127,22 +202,57 @@ func TestTenantMiddlewareGraphQLRejectsPermissionDenied(t *testing.T) {
 	bootstrapper := backofficemocks.NewMockTenantBootstrapper(t)
 	authz.EXPECT().AuthorizeTenant(mock.Anything, "session-2", "99", "tenant-ops").Return(nil).Once()
 	authz.EXPECT().
-		RequirePermission(mock.Anything, "99", "tenant-ops", "store:read").
+		RequirePermission(mock.Anything, "99", "tenant-ops", "store:read", "*").
 		Return(errors.New("permission denied")).
 		Once()
 	bootstrapper.EXPECT().EnsureReady(mock.Anything, "tenant-ops").Return(nil).Once()
 	srv := newBackofficeGraphQLTestServer(t, authz, &resolver.Resolver{
 		ProductSetupUsecase: cataloginputmocks.NewMockProductSetupUsecase(t),
 		OrderRoutingUsecase: routinginputmocks.NewMockOrderRoutingUsecase(t),
-	}, bootstrapper)
+	}, bootstrapper, nil)
 
-	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "Bearer "+token)
+	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "Bearer "+token, nil)
 	require.Equal(t, http.StatusOK, rec.Code)
 
 	var payload graphQLResponse
 	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &payload))
 	require.Len(t, payload.Errors, 1)
 	assert.Contains(t, payload.Errors[0].Message, "permission denied")
+}
+
+func TestTenantMiddlewareGraphQLRejectsUnknownStore(t *testing.T) {
+	tokenUC := authdomain.NewTokenUsecase(authconfig.AuthConfig{
+		JWTSecret: "secret",
+		JWTKey:    "app-key",
+	})
+	token, err := tokenUC.CreateJwtTokenForSession(authentity.User{
+		Id:       42,
+		Email:    "ops@podzone.io",
+		Username: "ops",
+	}, "tenant-ops", "session-3")
+	require.NoError(t, err)
+
+	authz := backofficemocks.NewMockTenantAuthorizer(t)
+	bootstrapper := backofficemocks.NewMockTenantBootstrapper(t)
+	storeRepo := storeoutputportmocks.NewMockStoreRepository(t)
+	storeRepo.EXPECT().FindByID(mock.Anything, "missing-store").Return(nil, nil).Once()
+	authz.EXPECT().AuthorizeTenant(mock.Anything, "session-3", "42", "tenant-ops").Return(nil).Once()
+	bootstrapper.EXPECT().EnsureReady(mock.Anything, "tenant-ops").Return(nil).Once()
+
+	srv := newBackofficeGraphQLTestServer(t, authz, &resolver.Resolver{
+		ProductSetupUsecase: cataloginputmocks.NewMockProductSetupUsecase(t),
+		OrderRoutingUsecase: routinginputmocks.NewMockOrderRoutingUsecase(t),
+	}, bootstrapper, storeaccess.New(storeRepo))
+
+	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "Bearer "+token, map[string]string{
+		"X-Store-ID": "missing-store",
+	})
+	require.Equal(t, http.StatusOK, rec.Code)
+
+	var payload graphQLResponse
+	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &payload))
+	require.Len(t, payload.Errors, 1)
+	assert.Contains(t, payload.Errors[0].Message, "store not found")
 }
 
 func TestTenantMiddlewareGraphQLRejectsBootstrapFailure(t *testing.T) {
@@ -164,9 +274,9 @@ func TestTenantMiddlewareGraphQLRejectsBootstrapFailure(t *testing.T) {
 	srv := newBackofficeGraphQLTestServer(t, authz, &resolver.Resolver{
 		ProductSetupUsecase: cataloginputmocks.NewMockProductSetupUsecase(t),
 		OrderRoutingUsecase: routinginputmocks.NewMockOrderRoutingUsecase(t),
-	}, bootstrapper)
+	}, bootstrapper, nil)
 
-	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "Bearer "+token)
+	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "Bearer "+token, nil)
 	require.Equal(t, http.StatusOK, rec.Code)
 
 	var payload graphQLResponse
@@ -180,6 +290,7 @@ func newBackofficeGraphQLTestServer(
 	authz TenantAuthorizer,
 	r *resolver.Resolver,
 	bootstrapper TenantBootstrapper,
+	storeAccess storeaccess.Access,
 ) *handler.Server {
 	t.Helper()
 
@@ -193,11 +304,17 @@ func newBackofficeGraphQLTestServer(
 			JWTSecret: "secret",
 			JWTKey:    "app-key",
 		},
-	}, authz, bootstrapper))
+	}, authz, tenancy.New(bootstrapper, storeAccess, nil)))
 	return srv
 }
 
-func doGraphQLRequest(t *testing.T, srv http.Handler, query string, authHeader string) *httptest.ResponseRecorder {
+func doGraphQLRequest(
+	t *testing.T,
+	srv http.Handler,
+	query string,
+	authHeader string,
+	headers map[string]string,
+) *httptest.ResponseRecorder {
 	t.Helper()
 
 	body, err := json.Marshal(map[string]any{
@@ -209,6 +326,9 @@ func doGraphQLRequest(t *testing.T, srv http.Handler, query string, authHeader s
 	req.Header.Set("Content-Type", "application/json")
 	if authHeader != "" {
 		req.Header.Set("Authorization", authHeader)
+	}
+	for key, value := range headers {
+		req.Header.Set(key, value)
 	}
 	rec := httptest.NewRecorder()
 	srv.ServeHTTP(rec, req)

@@ -455,6 +455,7 @@ message CheckPermissionRequest {
   string tenant_id = 1;
   uint64 user_id = 2;
   string permission = 3;
+  string resource = 4;
 }
 
 message CheckPlatformPermissionRequest {

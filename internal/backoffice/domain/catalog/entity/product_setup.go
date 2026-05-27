@@ -14,6 +14,7 @@ const (
 
 type ProductSetupDraft struct {
 	ID          string    `json:"id"`
+	StoreID     string    `json:"storeId"`
 	Name        string    `json:"name"`
 	Partner     string    `json:"partner"`
 	BaseCost    string    `json:"baseCost"`
@@ -41,6 +42,7 @@ type ProductSetupArtworkChecklist struct {
 
 type ProductSetupCandidate struct {
 	ID                 string                       `json:"id"`
+	StoreID            string                       `json:"storeId"`
 	DraftID            string                       `json:"draftId"`
 	Title              string                       `json:"title"`
 	SKU                string                       `json:"sku"`

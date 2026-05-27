@@ -20,6 +20,7 @@ import {
 } from '../../components/common/Primitives';
 import { SectionLead } from '../../components/common/SectionLead';
 import { SectionTitle } from '../../components/common/SectionTitle';
+import { useTenantWorkspace } from '../../workspace/context';
 
 const activityFilterOptions = [
   { name: 'All', value: 'all' },
@@ -104,8 +105,18 @@ function formatFeedSummary(
   ].join('\n');
 }
 
+function buildOrdersHref(tenantID: string, storeID: string) {
+  const params = new URLSearchParams();
+  if (storeID) {
+    params.set('storeId', storeID);
+  }
+  const query = params.toString();
+  return `/t/${tenantID}/orders${query ? `?${query}` : ''}`;
+}
+
 export default function TenantOrderAuditPage() {
   const params = useParams({ from: '/t/$tenantId/orders/audit' });
+  const workspace = useTenantWorkspace();
 
   const [entries, setEntries] = createSignal<RoutedOrderActivityFeedEntry[]>([]);
   const [nextCursor, setNextCursor] = createSignal<string>();
@@ -120,6 +131,11 @@ export default function TenantOrderAuditPage() {
   const [assigneeFilter, setAssigneeFilter] = createSignal('');
   const [message, setMessage] = createSignal('');
   const [error, setError] = createSignal('');
+  const currentStoreId = () => workspace?.currentStoreId() || '';
+  const currentStore = () => workspace?.currentStore();
+  const workspaceReady = () => !workspace || currentStoreId().trim().length > 0;
+  const storeLabel = () =>
+    currentStore()?.name || currentStoreId() || 'selected store';
 
   const loadEntries = async (after?: string, append = false) => {
     const result = await getRoutedOrderActivities({
@@ -155,9 +171,9 @@ export default function TenantOrderAuditPage() {
   const copyFeed = async () => {
     try {
       await navigator.clipboard.writeText(
-        formatFeedSummary(params().tenantId, auditFeed())
+        formatFeedSummary(storeLabel(), auditFeed())
       );
-      setMessage(`Copied audit feed for ${params().tenantId}.`);
+      setMessage(`Copied audit feed for ${storeLabel()}.`);
     } catch {
       setError('Could not copy audit feed to clipboard.');
     }
@@ -173,10 +189,16 @@ export default function TenantOrderAuditPage() {
 
   createEffect(() => {
     tenantStorage.setTenantID(params().tenantId);
+    if (!workspaceReady()) {
+      return;
+    }
     void loadEntries(undefined, false);
   });
 
   createEffect(() => {
+    if (!workspaceReady()) {
+      return;
+    }
     activityFilter();
     hideSystemActivity();
     actorFilter();
@@ -192,7 +214,7 @@ export default function TenantOrderAuditPage() {
       <Card class="space-y-4">
         <SectionLead
           eyebrow="Store Audit"
-          title={`Audit history for store ${params().tenantId}`}
+          title={`Audit history for ${storeLabel()}`}
           copy="Review store-wide routed order activity across shipment, settlement, issue handling, and queue ownership updates without opening each order card."
         />
       </Card>
@@ -203,6 +225,13 @@ export default function TenantOrderAuditPage() {
 
       <Show when={error()}>
         <ErrorAlert>{error()}</ErrorAlert>
+      </Show>
+
+      <Show when={!workspaceReady()}>
+        <EmptyBlock
+          title="Choose a store first"
+          copy="Use the workspace store switcher before loading the store audit feed."
+        />
       </Show>
 
       <Card class="space-y-4">
@@ -273,7 +302,7 @@ export default function TenantOrderAuditPage() {
             type="button"
             size="xs"
             color="light"
-            href={`/t/${params().tenantId}/orders`}
+            href={buildOrdersHref(params().tenantId, currentStoreId())}
           >
             Back to orders board
           </Button>
@@ -324,7 +353,7 @@ export default function TenantOrderAuditPage() {
           <div class="space-y-3">
             <For each={auditFeed()}>
               {(entry) => (
-                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
                   <div class="flex flex-wrap items-center justify-between gap-2">
                     <div class="flex flex-wrap items-center gap-2">
                       <Badge

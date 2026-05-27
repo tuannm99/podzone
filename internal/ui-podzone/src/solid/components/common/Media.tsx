@@ -28,7 +28,7 @@ export function GalleryGrid(props: {
     >
       <For each={props.items}>
         {(item) => (
-          <figure class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <figure class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
             <img
               src={item.src}
               alt={item.alt}
@@ -61,7 +61,7 @@ export function VideoEmbed(props: {
   return (
     <div
       class={classes(
-        'overflow-hidden rounded-2xl border border-gray-200 bg-black shadow-sm',
+        'overflow-hidden rounded-lg border border-gray-200 bg-black shadow-sm',
         props.class
       )}
     >

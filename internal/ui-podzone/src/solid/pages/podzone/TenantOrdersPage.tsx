@@ -44,6 +44,7 @@ import { TenantOrdersBoardProvider } from './orders/board-context';
 import { QueueToolbarPanel } from './orders/QueueToolbarPanel';
 import { BulkOpsPanel } from './orders/BulkOpsPanel';
 import { OrderCard } from './orders/OrderCard';
+import { useTenantWorkspace } from '../../workspace/context';
 import {
   anomalyFlagsFor,
   formatActivitySummary,
@@ -264,12 +265,16 @@ function isQueueSort(value: string): value is QueueSort {
   return value === 'priority' || value === 'newest';
 }
 
-function queuePresetStorageKey(tenantID: string) {
-  return `podzone:orders:queue-presets:${tenantID}`;
+function scopedStorageKey(prefix: string, tenantID: string, storeID: string) {
+  return `${prefix}:${tenantID}:${storeID || 'pending'}`;
 }
 
-function bulkTemplateStorageKey(tenantID: string) {
-  return `podzone:orders:bulk-templates:${tenantID}`;
+function queuePresetStorageKey(tenantID: string, storeID: string) {
+  return scopedStorageKey('podzone:orders:queue-presets', tenantID, storeID);
+}
+
+function bulkTemplateStorageKey(tenantID: string, storeID: string) {
+  return scopedStorageKey('podzone:orders:bulk-templates', tenantID, storeID);
 }
 
 function resolveShipmentSla(mode: ShipmentSlaMode) {
@@ -291,6 +296,7 @@ function resolveShipmentSla(mode: ShipmentSlaMode) {
 export default function TenantOrdersPage() {
   const params = useParams({ from: '/t/$tenantId/orders' });
   const search = useSearch({ strict: false }) as () => Record<string, unknown>;
+  const workspace = useTenantWorkspace();
 
   const [availableCandidates, setAvailableCandidates] = createSignal<
     CatalogCandidate[]
@@ -344,6 +350,11 @@ export default function TenantOrdersPage() {
   >({});
   const [message, setMessage] = createSignal('');
   const [error, setError] = createSignal('');
+  const currentStoreId = () => workspace?.currentStoreId() || '';
+  const currentStore = () => workspace?.currentStore();
+  const workspaceReady = () => !workspace || currentStoreId().trim().length > 0;
+  const storeLabel = () =>
+    currentStore()?.name || currentStoreId() || 'selected store';
 
   const shipmentDraftFor = (order: RoutedOrder): ShipmentDraft =>
     shipmentDrafts()[order.id] || {
@@ -809,12 +820,12 @@ export default function TenantOrdersPage() {
 
   const copyStoreActivityFeed = async () => {
     const summary = formatStoreActivitySummary(
-      params().tenantId,
+      storeLabel(),
       storeActivityFeed()
     );
     try {
       await navigator.clipboard.writeText(summary);
-      setMessage(`Copied store activity feed for ${params().tenantId}.`);
+      setMessage(`Copied store activity feed for ${storeLabel()}.`);
     } catch {
       setError('Could not copy store activity feed to clipboard.');
     }
@@ -822,6 +833,8 @@ export default function TenantOrdersPage() {
 
   const insightsContextValue = {
     tenantId: params().tenantId,
+    storeId: currentStoreId,
+    storeLabel,
     blockedOrders,
     blockedReasonSummary,
     forcedRerouteSummary,
@@ -833,7 +846,7 @@ export default function TenantOrdersPage() {
 
   const loadSavedPresets = () => {
     const raw = window.localStorage.getItem(
-      queuePresetStorageKey(params().tenantId)
+      queuePresetStorageKey(params().tenantId, currentStoreId())
     );
     if (!raw) {
       setSavedPresets([]);
@@ -849,7 +862,7 @@ export default function TenantOrdersPage() {
 
   const persistSavedPresets = (next: SavedQueuePreset[]) => {
     window.localStorage.setItem(
-      queuePresetStorageKey(params().tenantId),
+      queuePresetStorageKey(params().tenantId, currentStoreId()),
       JSON.stringify(next)
     );
     setSavedPresets(next);
@@ -857,7 +870,7 @@ export default function TenantOrdersPage() {
 
   const loadSavedBulkTemplates = () => {
     const raw = window.localStorage.getItem(
-      bulkTemplateStorageKey(params().tenantId)
+      bulkTemplateStorageKey(params().tenantId, currentStoreId())
     );
     if (!raw) {
       setSavedBulkTemplates([]);
@@ -873,7 +886,7 @@ export default function TenantOrdersPage() {
 
   const persistSavedBulkTemplates = (next: SavedBulkTemplate[]) => {
     window.localStorage.setItem(
-      bulkTemplateStorageKey(params().tenantId),
+      bulkTemplateStorageKey(params().tenantId, currentStoreId()),
       JSON.stringify(next)
     );
     setSavedBulkTemplates(next);
@@ -1287,6 +1300,9 @@ export default function TenantOrdersPage() {
 
   createEffect(() => {
     tenantStorage.setTenantID(params().tenantId);
+    if (!workspaceReady()) {
+      return;
+    }
     loadSavedPresets();
     loadSavedBulkTemplates();
     void loadCandidates();
@@ -1311,6 +1327,10 @@ export default function TenantOrdersPage() {
   });
 
   createEffect(() => {
+    if (!workspaceReady()) {
+      setRoutingRecommendation(null);
+      return;
+    }
     void loadRoutingRecommendation();
   });
 
@@ -1319,7 +1339,7 @@ export default function TenantOrdersPage() {
       <Card class="space-y-4">
         <SectionLead
           eyebrow="Order Routing Workspace"
-          title={`POD routing board for store ${params().tenantId}`}
+          title={`POD routing board for ${storeLabel()}`}
           copy="This routing workspace persists store-scoped POD orders in the backend. Published mock products can be routed through production, shipment, issue handling, and settlement readiness."
         />
       </Card>
@@ -1330,6 +1350,13 @@ export default function TenantOrdersPage() {
 
       <Show when={error()}>
         <ErrorAlert>{error()}</ErrorAlert>
+      </Show>
+
+      <Show when={!workspaceReady()}>
+        <EmptyBlock
+          title="Choose a store first"
+          copy="Use the workspace store switcher before loading store-scoped routing and fulfillment data."
+        />
       </Show>
 
       <InfoAlert>
@@ -1351,7 +1378,7 @@ export default function TenantOrdersPage() {
             subtitle="Watch each order move from intake to production, then manage shipment and settlement state directly inside the store-scoped POD workflow."
           />
 
-          <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+          <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
             <TenantOrdersBoardProvider value={boardContextValue}>
               <QueueToolbarPanel />
               <BulkOpsPanel />

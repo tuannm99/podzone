@@ -18,9 +18,16 @@ function activityColor(type: string) {
 
 export function StoreActivityFeedPanel() {
   const insights = useTenantOrdersInsights();
+  const workspaceURL = (path: string) => {
+    const params = new URLSearchParams();
+    const storeId = insights.storeId().trim();
+    if (storeId) params.set('storeId', storeId);
+    const query = params.toString();
+    return `/t/${insights.tenantId}${path}${query ? `?${query}` : ''}`;
+  };
 
   return (
-    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+    <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p class="text-sm font-semibold text-slate-900">
@@ -28,7 +35,7 @@ export function StoreActivityFeedPanel() {
           </p>
           <p class="text-sm text-slate-500">
             Latest activity across the current queue slice for store{' '}
-            {insights.tenantId}.
+            {insights.storeLabel()}.
           </p>
         </div>
         <Button
@@ -45,7 +52,7 @@ export function StoreActivityFeedPanel() {
           type="button"
           size="xs"
           color="alternative"
-          href={`/t/${insights.tenantId}/orders/audit`}
+          href={workspaceURL('/orders/audit')}
         >
           Open full audit
         </Button>
@@ -53,7 +60,7 @@ export function StoreActivityFeedPanel() {
           type="button"
           size="xs"
           color="alternative"
-          href={`/t/${insights.tenantId}/orders/finance`}
+          href={workspaceURL('/orders/finance')}
         >
           Open finance view
         </Button>
@@ -62,14 +69,14 @@ export function StoreActivityFeedPanel() {
         <Show
           when={insights.storeActivityFeed().length > 0}
           fallback={
-            <div class="rounded-xl border border-dashed border-slate-200 bg-white p-3 text-sm text-slate-500">
+            <div class="rounded-md border border-dashed border-slate-200 bg-white p-3 text-sm text-slate-500">
               No store activity matches the current queue and activity filters.
             </div>
           }
         >
           <For each={insights.storeActivityFeed()}>
             {(entry) => (
-              <div class="rounded-xl border border-slate-200 bg-white p-3">
+              <div class="rounded-md border border-slate-200 bg-white p-3">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                   <div class="flex flex-wrap items-center gap-2">
                     <Badge

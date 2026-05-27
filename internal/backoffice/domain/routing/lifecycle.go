@@ -12,14 +12,19 @@ import (
 
 func (i *OrderRoutingInteractor) AdvanceRoutedOrder(
 	ctx context.Context,
+	storeID string,
 	orderID string,
 ) (*routingentity.RoutedOrder, error) {
+	storeID, err := requiredStoreScope(ctx, storeID)
+	if err != nil {
+		return nil, err
+	}
 	order, err := i.orders.GetByID(ctx, strings.TrimSpace(orderID))
 	if err != nil {
 		return nil, err
 	}
-	if order == nil {
-		return nil, fmt.Errorf("routed order not found")
+	if err := ensureOrderStore(order, storeID); err != nil {
+		return nil, err
 	}
 	if order.ExceptionStatus == routingentity.RoutedOrderExceptionStatusOpen ||
 		order.ExceptionStatus == routingentity.RoutedOrderExceptionStatusEscalated {
@@ -62,12 +67,16 @@ func (i *OrderRoutingInteractor) OpenOrderException(
 	ctx context.Context,
 	cmd routinginputport.OpenOrderExceptionCmd,
 ) (*routingentity.RoutedOrder, error) {
+	storeID, err := requiredStoreScope(ctx, cmd.StoreID)
+	if err != nil {
+		return nil, err
+	}
 	order, err := i.orders.GetByID(ctx, strings.TrimSpace(cmd.OrderID))
 	if err != nil {
 		return nil, err
 	}
-	if order == nil {
-		return nil, fmt.Errorf("routed order not found")
+	if err := ensureOrderStore(order, storeID); err != nil {
+		return nil, err
 	}
 	exceptionType := normalizeExceptionType(cmd.ExceptionType)
 	if exceptionType == "" {
@@ -102,12 +111,16 @@ func (i *OrderRoutingInteractor) UpdateOrderExceptionStatus(
 	ctx context.Context,
 	cmd routinginputport.UpdateOrderExceptionStatusCmd,
 ) (*routingentity.RoutedOrder, error) {
+	storeID, err := requiredStoreScope(ctx, cmd.StoreID)
+	if err != nil {
+		return nil, err
+	}
 	order, err := i.orders.GetByID(ctx, strings.TrimSpace(cmd.OrderID))
 	if err != nil {
 		return nil, err
 	}
-	if order == nil {
-		return nil, fmt.Errorf("routed order not found")
+	if err := ensureOrderStore(order, storeID); err != nil {
+		return nil, err
 	}
 	if order.ExceptionType == "" {
 		return nil, fmt.Errorf("routed order has no active exception type")

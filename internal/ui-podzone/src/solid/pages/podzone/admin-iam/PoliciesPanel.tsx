@@ -54,7 +54,7 @@ export function PoliciesPanel() {
 
       <Show when={policy.policyDetail()}>
         {(detail) => (
-          <div class="rounded-2xl bg-gray-50 p-4 text-sm text-gray-600">
+          <div class="rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
             <p class="font-semibold text-gray-900">{detail().name}</p>
             <p class="mt-1">{detail().description || 'No description'}</p>
             <div class="mt-3 flex flex-wrap gap-2">
@@ -110,7 +110,7 @@ export function PoliciesPanel() {
             <div class="space-y-3">
               <For each={policy.policyVersions()}>
                 {(version) => (
-                  <div class="rounded-2xl border border-gray-200 p-4">
+                  <div class="rounded-lg border border-gray-200 p-4">
                     <div class="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <p class="font-semibold text-gray-900">{version.version}</p>
@@ -167,7 +167,7 @@ export function PoliciesPanel() {
             <div class="space-y-3">
               <For each={policy.policyAttachments()}>
                 {(attachment) => (
-                  <div class="rounded-2xl border border-gray-200 p-4">
+                  <div class="rounded-lg border border-gray-200 p-4">
                     <div class="flex flex-wrap items-center gap-2">
                       <Badge
                         content={attachment.attachmentType}

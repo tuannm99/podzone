@@ -15,7 +15,11 @@ import (
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
 	routinginputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport"
 	routingoutputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/routing/outputport/mocks"
+	"github.com/tuannm99/podzone/internal/backoffice/runtime/scope"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 )
+
+const testRoutingStoreID = "store-ops"
 
 type testOrderRoutingHarness struct {
 	orders map[string]routingentity.RoutedOrder
@@ -26,6 +30,9 @@ func newTestOrderRoutingHarness() *testOrderRoutingHarness {
 }
 
 func (h *testOrderRoutingHarness) mustSeed(order routingentity.RoutedOrder) {
+	if strings.TrimSpace(order.StoreID) == "" {
+		order.StoreID = testRoutingStoreID
+	}
 	h.orders[order.ID] = cloneOrder(order)
 }
 
@@ -41,6 +48,9 @@ func newOrderRoutingTestInteractor(
 	orderState := newTestOrderRoutingHarness()
 	productState := map[string]catalogentity.ProductSetupCandidate{}
 	for id, candidate := range candidates {
+		if strings.TrimSpace(candidate.StoreID) == "" {
+			candidate.StoreID = testRoutingStoreID
+		}
 		productState[id] = candidate
 	}
 	partnerState := []routingentity.PartnerRoutingProfile{
@@ -78,13 +88,17 @@ func newOrderRoutingTestInteractor(
 		},
 	}
 
-	ordersMock.EXPECT().List(mock.Anything).RunAndReturn(func(context.Context) ([]routingentity.RoutedOrder, error) {
-		orders := make([]routingentity.RoutedOrder, 0, len(orderState.orders))
-		for _, order := range orderState.orders {
-			orders = append(orders, cloneOrder(order))
-		}
-		return orders, nil
-	}).Maybe()
+	ordersMock.EXPECT().
+		ListByStore(mock.Anything, mock.Anything).
+		RunAndReturn(func(_ context.Context, storeID string) ([]routingentity.RoutedOrder, error) {
+			orders := make([]routingentity.RoutedOrder, 0, len(orderState.orders))
+			for _, order := range orderState.orders {
+				if order.StoreID == storeID {
+					orders = append(orders, cloneOrder(order))
+				}
+			}
+			return orders, nil
+		}).Maybe()
 
 	ordersMock.EXPECT().
 		ListActivityFeed(mock.Anything, mock.Anything).
@@ -199,10 +213,10 @@ func newOrderRoutingTestInteractor(
 		Maybe()
 
 	productsMock.EXPECT().
-		GetCandidateByID(mock.Anything, mock.Anything).
-		RunAndReturn(func(_ context.Context, id string) (*catalogentity.ProductSetupCandidate, error) {
+		GetCandidateByID(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(_ context.Context, storeID string, id string) (*catalogentity.ProductSetupCandidate, error) {
 			candidate, ok := productState[id]
-			if !ok {
+			if !ok || candidate.StoreID != storeID {
 				return nil, nil
 			}
 			copyCandidate := candidate
@@ -211,10 +225,10 @@ func newOrderRoutingTestInteractor(
 		Maybe()
 
 	productsMock.EXPECT().
-		GetCandidateByDraftID(mock.Anything, mock.Anything).
-		RunAndReturn(func(_ context.Context, draftID string) (*catalogentity.ProductSetupCandidate, error) {
+		GetCandidateByDraftID(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(_ context.Context, storeID string, draftID string) (*catalogentity.ProductSetupCandidate, error) {
 			for _, candidate := range productState {
-				if candidate.DraftID == draftID {
+				if candidate.StoreID == storeID && candidate.DraftID == draftID {
 					copyCandidate := candidate
 					return &copyCandidate, nil
 				}
@@ -224,19 +238,21 @@ func newOrderRoutingTestInteractor(
 		Maybe()
 
 	productsMock.EXPECT().
-		ListCandidates(mock.Anything).
-		RunAndReturn(func(context.Context) ([]catalogentity.ProductSetupCandidate, error) {
+		ListCandidates(mock.Anything, mock.Anything).
+		RunAndReturn(func(_ context.Context, storeID string) ([]catalogentity.ProductSetupCandidate, error) {
 			candidates := make([]catalogentity.ProductSetupCandidate, 0, len(productState))
 			for _, candidate := range productState {
-				candidates = append(candidates, candidate)
+				if candidate.StoreID == storeID {
+					candidates = append(candidates, candidate)
+				}
 			}
 			return candidates, nil
 		}).
 		Maybe()
 
-	productsMock.EXPECT().ListDrafts(mock.Anything).Return([]catalogentity.ProductSetupDraft(nil), nil).Maybe()
+	productsMock.EXPECT().ListDrafts(mock.Anything, mock.Anything).Return([]catalogentity.ProductSetupDraft(nil), nil).Maybe()
 	productsMock.EXPECT().
-		GetDraftByID(mock.Anything, mock.Anything).
+		GetDraftByID(mock.Anything, mock.Anything, mock.Anything).
 		Return((*catalogentity.ProductSetupDraft)(nil), nil).
 		Maybe()
 	productsMock.EXPECT().
@@ -248,7 +264,7 @@ func newOrderRoutingTestInteractor(
 		Return((*catalogentity.ProductSetupCandidate)(nil), fmt.Errorf("not implemented")).
 		Maybe()
 	productsMock.EXPECT().
-		UpdateCandidateStatus(mock.Anything, mock.Anything, mock.Anything).
+		UpdateCandidateStatus(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 		Return((*catalogentity.ProductSetupCandidate)(nil), fmt.Errorf("not implemented")).
 		Maybe()
 
@@ -283,6 +299,16 @@ func cloneOrder(order routingentity.RoutedOrder) routingentity.RoutedOrder {
 		cloned.DeliveredAt = &value
 	}
 	return cloned
+}
+
+func testRoutingContext() context.Context {
+	ctx := context.Background()
+	ctx = scope.WithStoreContext(ctx, scope.StoreContext{StoreID: testRoutingStoreID})
+	return ctx
+}
+
+func testTenantRoutingContext(tenantID string) context.Context {
+	return toolkit.WithTenantID(testRoutingContext(), tenantID)
 }
 
 func hasActivityDetail(details []routingentity.RoutedOrderActivityDetail, key, value string) bool {

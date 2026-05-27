@@ -42,6 +42,46 @@ Use this guide when changing Go code in this repo.
   - `internal/<service>/infrastructure/messaging/...`
 - Projection tables are read models, not source of truth.
 
+## Messaging Architecture
+
+- Default shape is:
+  - `1 worker binary = 1 consumer runtime`
+  - `1 consumer runtime = 1 registry`
+  - `1 registry = many typed handlers`
+- Do not start with a multi-consumer supervisor unless one binary truly owns multiple independent consumers.
+- Keep API runtimes and worker runtimes separate once Kafka work is real:
+  - `cmd/<service>` for API
+  - `cmd/<service>-worker` for projections, outbox relays, sagas, and background consumers
+- If one worker later owns multiple consumers, run each consumer in its own goroutine under a supervisor.
+
+### Event Handler Shape
+
+- Do not grow one big `switch envelope.Type` as event surface expands.
+- Use `pkg/messaging.Registry` plus `messaging.TypedHandler`.
+- Each event belongs in its own file.
+- `handler.go` should only assemble the registry.
+
+Recommended shape:
+
+```text
+internal/<service>/controller/eventhandler/<consumer>/
+  handler.go
+  <event_one>.go
+  <event_two>.go
+```
+
+### Consumer Concurrency
+
+- Keep message handling sequential inside a partition claim by default.
+- Do not spawn goroutines per message unless offset management and ordering semantics are redesigned explicitly.
+- Safe concurrency points are:
+  - partitions
+  - separate consumer groups
+  - separate consumers under a worker supervisor
+- Unsafe defaults to avoid:
+  - fire-and-forget goroutines inside `Handle(...)`
+  - marking offsets before background work is complete
+
 ## Config
 
 - Prefer package-owned config loaders with defaults.

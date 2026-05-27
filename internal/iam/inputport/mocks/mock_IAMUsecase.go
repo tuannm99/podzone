@@ -780,6 +780,90 @@ func (_c *MockIAMUsecase_CheckPermission_Call) RunAndReturn(run func(ctx context
 	return _c
 }
 
+// CheckPermissionForResource provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) CheckPermissionForResource(ctx context.Context, tenantID string, userID uint, permission string, resource string) (bool, error) {
+	ret := _mock.Called(ctx, tenantID, userID, permission, resource)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CheckPermissionForResource")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint, string, string) (bool, error)); ok {
+		return returnFunc(ctx, tenantID, userID, permission, resource)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint, string, string) bool); ok {
+		r0 = returnFunc(ctx, tenantID, userID, permission, resource)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint, string, string) error); ok {
+		r1 = returnFunc(ctx, tenantID, userID, permission, resource)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMUsecase_CheckPermissionForResource_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CheckPermissionForResource'
+type MockIAMUsecase_CheckPermissionForResource_Call struct {
+	*mock.Call
+}
+
+// CheckPermissionForResource is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - userID uint
+//   - permission string
+//   - resource string
+func (_e *MockIAMUsecase_Expecter) CheckPermissionForResource(ctx interface{}, tenantID interface{}, userID interface{}, permission interface{}, resource interface{}) *MockIAMUsecase_CheckPermissionForResource_Call {
+	return &MockIAMUsecase_CheckPermissionForResource_Call{Call: _e.mock.On("CheckPermissionForResource", ctx, tenantID, userID, permission, resource)}
+}
+
+func (_c *MockIAMUsecase_CheckPermissionForResource_Call) Run(run func(ctx context.Context, tenantID string, userID uint, permission string, resource string)) *MockIAMUsecase_CheckPermissionForResource_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		var arg4 string
+		if args[4] != nil {
+			arg4 = args[4].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+			arg4,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_CheckPermissionForResource_Call) Return(b bool, err error) *MockIAMUsecase_CheckPermissionForResource_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_CheckPermissionForResource_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint, permission string, resource string) (bool, error)) *MockIAMUsecase_CheckPermissionForResource_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CheckPlatformPermission provides a mock function for the type MockIAMUsecase
 func (_mock *MockIAMUsecase) CheckPlatformPermission(ctx context.Context, userID uint, permission string) (bool, error) {
 	ret := _mock.Called(ctx, userID, permission)

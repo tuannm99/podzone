@@ -13,6 +13,7 @@ import (
 	boconfig "github.com/tuannm99/podzone/internal/backoffice/config"
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/generated"
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/resolver"
+	"github.com/tuannm99/podzone/internal/backoffice/runtime/tenancy"
 	"github.com/tuannm99/podzone/pkg/pdgraphql"
 	"github.com/tuannm99/podzone/pkg/pdhttp"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -32,11 +33,11 @@ func provideCORSMiddleware() pdhttp.Middleware {
 
 type gqlRegistrarParams struct {
 	fx.In
-	Cfg          pdgraphql.Config
-	BOCfg        boconfig.Config
-	Authz        TenantAuthorizer
-	Bootstrapper TenantBootstrapper
-	Resolver     *resolver.Resolver
+	Cfg      pdgraphql.Config
+	BOCfg    boconfig.Config
+	Authz    TenantAuthorizer
+	Tenancy  tenancy.Runtime
+	Resolver *resolver.Resolver
 }
 
 func graphQLRegistrar(p gqlRegistrarParams) pdhttp.RouteRegistrar {
@@ -59,7 +60,7 @@ func graphQLRegistrar(p gqlRegistrarParams) pdhttp.RouteRegistrar {
 		srv.Use(extension.AutomaticPersistedQuery{Cache: lru.New[string](100)})
 
 		// app-specific extension
-		srv.Use(NewTenantMiddleware(p.BOCfg, p.Authz, p.Bootstrapper))
+		srv.Use(NewTenantMiddleware(p.BOCfg, p.Authz, p.Tenancy))
 
 		r.POST(p.Cfg.QueryPath, gin.HandlerFunc(func(c *gin.Context) {
 			srv.ServeHTTP(c.Writer, c.Request)

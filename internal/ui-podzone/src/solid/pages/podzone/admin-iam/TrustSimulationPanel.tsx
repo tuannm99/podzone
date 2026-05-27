@@ -51,7 +51,7 @@ export function TrustSimulationPanel() {
       </div>
       <Show when={trust.roleBoundary()}>
         {(boundary) => (
-          <div class="rounded-2xl bg-gray-50 p-4 text-sm text-gray-600">
+          <div class="rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
             <div class="flex flex-wrap gap-2">
               <Badge content="role boundary" color="pink" />
               <Badge content={boundary().policyName} color="blue" />
@@ -230,7 +230,7 @@ export function TrustSimulationPanel() {
         }
       >
         {(result) => (
-          <div class="space-y-4 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+          <div class="space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
             <div class="flex flex-wrap items-center gap-3">
               <Badge
                 content={result().allowed ? 'allowed' : 'denied'}
@@ -251,7 +251,7 @@ export function TrustSimulationPanel() {
             </div>
             <p class="text-sm text-gray-600">{result().reason}</p>
             <Show when={(result().matchedStatements || []).length > 0}>
-              <div class="rounded-2xl border border-gray-200 bg-white p-4">
+              <div class="rounded-lg border border-gray-200 bg-white p-4">
                 <div class="flex flex-wrap items-center gap-2">
                   <Badge content="decision matches" color="dark" />
                   <Badge
@@ -274,7 +274,7 @@ export function TrustSimulationPanel() {
                 <div class="mt-3 space-y-2">
                   <For each={result().matchedStatements || []}>
                     {(statement) => (
-                      <div class="rounded-xl bg-gray-50 p-3 text-xs text-gray-600">
+                      <div class="rounded-md bg-gray-50 p-3 text-xs text-gray-600">
                         <div class="flex flex-wrap items-center gap-2">
                           <Badge
                             content={statement.effect}
@@ -320,7 +320,7 @@ export function TrustSimulationPanel() {
                 {(layer) => (
                   <div
                     class={classes(
-                      'rounded-2xl border p-4',
+                      'rounded-lg border p-4',
                       trust.simulationLayerTone(layer.allowed, layer.reason)
                     )}
                   >
@@ -353,7 +353,7 @@ export function TrustSimulationPanel() {
                       <div class="mt-3 space-y-2">
                         <For each={layer.matchedStatements || []}>
                           {(statement) => (
-                            <div class="rounded-xl bg-gray-50 p-3 text-xs text-gray-600">
+                            <div class="rounded-md bg-gray-50 p-3 text-xs text-gray-600">
                               <div class="flex flex-wrap items-center gap-2">
                                 <Badge
                                   content={statement.effect}

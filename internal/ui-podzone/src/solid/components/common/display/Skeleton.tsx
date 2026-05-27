@@ -6,7 +6,7 @@ export function Skeleton(props: { class?: string; circle?: boolean }) {
     <div
       class={classes(
         'animate-pulse bg-gray-200',
-        props.circle ? 'rounded-full' : 'rounded-xl',
+        props.circle ? 'rounded-full' : 'rounded-md',
         props.class ?? 'h-4 w-full'
       )}
       aria-hidden="true"

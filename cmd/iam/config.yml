@@ -6,8 +6,8 @@ logger:
 
 iam:
   authn:
-    jwt_secret: secret
-    jwt_key: app-key
+    jwt_secret: dev-secret
+    jwt_key: ''
   auth:
     grpc_host: localhost
     grpc_port: 50052

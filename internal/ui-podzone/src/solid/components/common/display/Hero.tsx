@@ -12,13 +12,13 @@ export function Hero(props: {
   return (
     <section
       class={classes(
-        'rounded-3xl border border-gray-200 bg-gradient-to-br from-white to-gray-100 p-8 shadow-sm sm:p-10',
+        'rounded-lg border border-gray-200 bg-white p-8 shadow-sm sm:p-10',
         props.class
       )}
     >
       <div class="max-w-3xl space-y-4">
         <Show when={props.eyebrow}>
-          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-blue-700">
+          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500">
             {props.eyebrow}
           </p>
         </Show>

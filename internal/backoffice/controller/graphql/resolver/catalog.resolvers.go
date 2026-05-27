@@ -9,7 +9,13 @@ import (
 
 // CreateProductSetupDraft is the resolver for the createProductSetupDraft field.
 func (r *mutationResolver) CreateProductSetupDraft(ctx context.Context, input model.CreateProductSetupDraftInput) (*model.ProductSetupDraft, error) {
+	storeID, err := requiredStoreID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	draft, err := r.ProductSetupUsecase.CreateDraft(ctx, cataloginputport.CreateProductSetupDraftCmd{
+		StoreID:     storeID,
 		Name:        input.Name,
 		Partner:     input.Partner,
 		BaseCost:    input.BaseCost,
@@ -25,7 +31,13 @@ func (r *mutationResolver) CreateProductSetupDraft(ctx context.Context, input mo
 
 // PromoteProductSetupCandidate is the resolver for the promoteProductSetupCandidate field.
 func (r *mutationResolver) PromoteProductSetupCandidate(ctx context.Context, input model.PromoteProductSetupCandidateInput) (*model.ProductSetupCandidate, error) {
+	storeID, err := requiredStoreID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	candidate, err := r.ProductSetupUsecase.PromoteCandidate(ctx, cataloginputport.PromoteProductSetupCandidateCmd{
+		StoreID:            storeID,
 		DraftID:            input.DraftID,
 		Channel:            input.Channel,
 		VariantColor:       input.VariantColor,
@@ -41,7 +53,12 @@ func (r *mutationResolver) PromoteProductSetupCandidate(ctx context.Context, inp
 
 // UpdateProductSetupCandidateStatus is the resolver for the updateProductSetupCandidateStatus field.
 func (r *mutationResolver) UpdateProductSetupCandidateStatus(ctx context.Context, id string, status string) (*model.ProductSetupCandidate, error) {
-	candidate, err := r.ProductSetupUsecase.UpdateCandidateStatus(ctx, id, status)
+	storeID, err := requiredStoreID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	candidate, err := r.ProductSetupUsecase.UpdateCandidateStatus(ctx, storeID, id, status)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +67,12 @@ func (r *mutationResolver) UpdateProductSetupCandidateStatus(ctx context.Context
 
 // ProductSetupSnapshot is the resolver for the productSetupSnapshot field.
 func (r *queryResolver) ProductSetupSnapshot(ctx context.Context) (*model.ProductSetupSnapshot, error) {
-	snapshot, err := r.ProductSetupUsecase.GetSnapshot(ctx)
+	storeID, err := requiredStoreID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	snapshot, err := r.ProductSetupUsecase.GetSnapshot(ctx, storeID)
 	if err != nil {
 		return nil, err
 	}

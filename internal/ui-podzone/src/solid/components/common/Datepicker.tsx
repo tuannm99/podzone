@@ -127,14 +127,14 @@ export function Calendar(props: {
   return (
     <div
       class={classes(
-        'rounded-2xl border border-gray-200 bg-white p-4 shadow-xl',
+        'rounded-lg border border-gray-200 bg-white p-4 shadow-xl',
         props.class
       )}
     >
       <div class="flex items-center justify-between gap-3">
         <button
           type="button"
-          class="rounded-xl px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+          class="rounded-md px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
           onClick={() => setCursor((date) => addMonths(date, -1))}
           aria-label="Previous month"
         >
@@ -145,7 +145,7 @@ export function Calendar(props: {
         </p>
         <button
           type="button"
-          class="rounded-xl px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+          class="rounded-md px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
           onClick={() => setCursor((date) => addMonths(date, 1))}
           aria-label="Next month"
         >
@@ -174,13 +174,13 @@ export function Calendar(props: {
                 type="button"
                 disabled={disabled()}
                 class={classes(
-                  'rounded-xl px-0 py-2 text-sm transition',
+                  'rounded-md px-0 py-2 text-sm transition',
                   selected()
-                    ? 'bg-blue-700 text-white shadow-sm'
+                    ? 'bg-gray-950 text-white shadow-sm'
                     : inMonth()
                       ? 'text-gray-700 hover:bg-gray-100'
                       : 'text-gray-300 hover:bg-gray-50',
-                  today() && !selected() && 'ring-1 ring-blue-200',
+                  today() && !selected() && 'ring-1 ring-gray-300',
                   disabled() &&
                     'cursor-not-allowed opacity-40 hover:bg-transparent'
                 )}
@@ -196,7 +196,7 @@ export function Calendar(props: {
       <div class="mt-4 flex items-center justify-between gap-3 border-t border-gray-100 pt-4">
         <button
           type="button"
-          class="rounded-xl px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+          class="rounded-md px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
           onClick={() => {
             const today = new Date();
             setCursor(startOfMonth(today));
@@ -247,7 +247,7 @@ export function DatepickerField(props: {
       <div class={classes('relative', props.class)} ref={container}>
         <button
           type="button"
-          class="flex w-full items-center justify-between rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-left text-sm text-gray-900 shadow-sm outline-none transition hover:border-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+          class="flex w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2.5 text-left text-sm text-gray-900 shadow-sm outline-none transition hover:border-gray-950 focus:border-gray-950 focus:ring-2 focus:ring-gray-100"
           onClick={() => setOpen((value) => !value)}
         >
           <span class={props.value ? 'text-gray-900' : 'text-gray-400'}>

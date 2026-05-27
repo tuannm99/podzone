@@ -1,8 +1,13 @@
 package resolver
 
 import (
+	"context"
+	"fmt"
+	"strings"
+
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/generated/model"
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
+	"github.com/tuannm99/podzone/internal/backoffice/runtime/scope"
 )
 
 func toGraphQLRoutedOrder(order routingentity.RoutedOrder) *model.RoutedOrder {
@@ -172,4 +177,12 @@ func boolOrFalse(value *bool) bool {
 		return false
 	}
 	return *value
+}
+
+func requiredStoreID(ctx context.Context) (string, error) {
+	storeID := strings.TrimSpace(scope.CurrentStoreID(ctx))
+	if storeID == "" {
+		return "", fmt.Errorf("store scope is required")
+	}
+	return storeID, nil
 }

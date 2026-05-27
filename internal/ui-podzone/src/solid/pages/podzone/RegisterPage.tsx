@@ -46,13 +46,13 @@ export default function RegisterPage() {
   return (
     <div class="mx-auto flex min-h-[calc(100vh-3rem)] max-w-6xl items-center px-4 py-10 sm:px-6 lg:px-8">
       <div class="grid w-full gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        <Card class="space-y-6 bg-[linear-gradient(145deg,_#ecfeff,_#ffffff_45%,_#eff6ff)]">
+        <Card class="space-y-6 bg-gray-950 text-white [&_h1]:text-white [&_p]:text-gray-300">
           <SectionLead
             eyebrow="Store Setup"
             title="Create your seller account."
             copy="Start with one account, then create stores, invite teammates, and run day-to-day POD operations from the same backoffice."
           />
-          <div class="rounded-2xl border border-cyan-100 bg-white/80 p-5 text-sm text-gray-600 shadow-sm">
+          <div class="rounded-lg border border-white/10 bg-white/10 p-5 text-sm text-gray-200 shadow-sm">
             New accounts go straight into the same secure sign-in flow used by
             the rest of the backoffice.
           </div>
@@ -115,7 +115,7 @@ export default function RegisterPage() {
 
           <p class="text-sm text-gray-500">
             Already have an account?{' '}
-            <Link to="/auth/login" class="font-semibold text-blue-700">
+            <Link to="/auth/login" class="font-semibold text-gray-950">
               Sign in
             </Link>
           </p>

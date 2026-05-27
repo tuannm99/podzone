@@ -105,7 +105,7 @@ export function RichTextEditor(props: RichTextEditorProps) {
           </div>
         </div>
 
-        <div class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">
+        <div class="rounded-md bg-gray-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-gray-700">
           TOAST UI Editor
         </div>
       </div>

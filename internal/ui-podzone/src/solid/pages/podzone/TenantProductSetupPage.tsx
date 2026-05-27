@@ -1,5 +1,5 @@
 import { useParams } from '@tanstack/solid-router';
-import { For, Show, createEffect, createSignal, onMount } from 'solid-js';
+import { For, Show, createEffect, createSignal } from 'solid-js';
 import {
   createProductSetupDraft,
   getProductSetupSnapshot,
@@ -15,6 +15,7 @@ import { Badge, Button, Card, InputField, SelectField, TextareaField } from '../
 import { SectionLead } from '../../components/common/SectionLead';
 import { SectionTitle } from '../../components/common/SectionTitle';
 import { EmptyBlock, ErrorAlert, InfoAlert, LoadingInline } from '../../components/common/Feedback';
+import { useTenantWorkspace } from '../../workspace/context';
 
 const statusOptions = [
   { name: 'Draft', value: 'draft' },
@@ -64,6 +65,7 @@ function checklistCompletion(checklist: ArtworkChecklist) {
 
 export default function TenantProductSetupPage() {
   const params = useParams({ from: '/t/$tenantId/products/setup' });
+  const workspace = useTenantWorkspace();
 
   const [name, setName] = createSignal('');
   const [partner, setPartner] = createSignal('');
@@ -85,6 +87,11 @@ export default function TenantProductSetupPage() {
   const [promotingDraftID, setPromotingDraftID] = createSignal('');
   const [drafts, setDrafts] = createSignal<SetupDraft[]>([]);
   const [candidates, setCandidates] = createSignal<CatalogCandidate[]>([]);
+  const currentStoreId = () => workspace?.currentStoreId() || '';
+  const currentStore = () => workspace?.currentStore();
+  const workspaceReady = () => !workspace || currentStoreId().trim().length > 0;
+  const storeLabel = () =>
+    currentStore()?.name || currentStoreId() || 'selected store';
 
   const resetForm = () => {
     setName('');
@@ -185,9 +192,9 @@ export default function TenantProductSetupPage() {
 
   createEffect(() => {
     tenantStorage.setTenantID(params().tenantId);
-  });
-
-  onMount(() => {
+    if (!workspaceReady()) {
+      return;
+    }
     void loadState();
   });
 
@@ -196,10 +203,17 @@ export default function TenantProductSetupPage() {
       <Card class="space-y-4">
         <SectionLead
           eyebrow="Product Setup Prototype"
-          title={`POD product setup for store ${params().tenantId}`}
+          title={`POD product setup for ${storeLabel()}`}
           copy="This workspace now persists store-scoped product setup drafts and candidates in the backend, while still using lightweight POD-first language for early operational shaping."
         />
       </Card>
+
+      <Show when={!workspaceReady()}>
+        <EmptyBlock
+          title="Choose a store first"
+          copy="Use the workspace store switcher before loading store-scoped product setup drafts and candidates."
+        />
+      </Show>
 
       <InfoAlert>
         Product setup drafts and candidates on this page are now backend-backed per store. Order routing remains a separate prototype flow.
@@ -278,7 +292,7 @@ export default function TenantProductSetupPage() {
                 onInput={(event) => setVariantSize(event.currentTarget.value)}
               />
             </div>
-            <div class="rounded-2xl border border-gray-200 p-4">
+            <div class="rounded-lg border border-gray-200 p-4">
               <p class="text-sm font-semibold text-gray-900">Artwork readiness</p>
               <div class="mt-3 grid gap-3 md:grid-cols-2">
                 <label class="flex items-center gap-2 text-sm text-gray-600">
@@ -346,7 +360,7 @@ export default function TenantProductSetupPage() {
             <div class="space-y-3">
               <For each={drafts()}>
                 {(draft) => (
-                  <div class="rounded-2xl border border-gray-200 p-4">
+                  <div class="rounded-lg border border-gray-200 p-4">
                     <div class="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <p class="font-semibold text-gray-900">{draft.name}</p>
@@ -394,7 +408,7 @@ export default function TenantProductSetupPage() {
           <div class="space-y-3">
             <For each={candidates()}>
               {(candidate) => (
-                <div class="rounded-2xl border border-gray-200 p-4">
+                <div class="rounded-lg border border-gray-200 p-4">
                     <div class="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <p class="font-semibold text-gray-900">{candidate.title}</p>
@@ -438,7 +452,7 @@ export default function TenantProductSetupPage() {
                     </div>
                   </div>
                   <div class="mt-3 grid gap-3 md:grid-cols-2">
-                    <div class="rounded-xl bg-gray-50 p-3">
+                    <div class="rounded-md bg-gray-50 p-3">
                       <p class="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
                         Artwork checklist
                       </p>
@@ -460,7 +474,7 @@ export default function TenantProductSetupPage() {
                         </li>
                       </ul>
                     </div>
-                    <div class="rounded-xl bg-gray-50 p-3">
+                    <div class="rounded-md bg-gray-50 p-3">
                       <p class="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
                         Variant starter
                       </p>

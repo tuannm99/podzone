@@ -13,7 +13,7 @@ export function Accordion(props: { items: AccordionItem[]; class?: string }) {
   return (
     <div
       class={classes(
-        'divide-y divide-gray-200 overflow-hidden rounded-2xl border border-gray-200 bg-white',
+        'divide-y divide-gray-200 overflow-hidden rounded-lg border border-gray-200 bg-white',
         props.class
       )}
     >

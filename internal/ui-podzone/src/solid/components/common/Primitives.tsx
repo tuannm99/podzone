@@ -13,20 +13,20 @@ type BadgeColor =
   | 'red';
 
 const buttonColorClasses: Record<ButtonColor, string> = {
-  blue: 'bg-blue-700 text-white hover:bg-blue-800 focus:ring-blue-300',
+  blue: 'bg-gray-950 text-white hover:bg-gray-800 focus:ring-gray-300',
   alternative:
-    'border border-gray-200 bg-white text-gray-900 hover:bg-gray-100 focus:ring-gray-200',
+    'border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 focus:ring-gray-200',
   light:
     'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 focus:ring-gray-200',
-  dark: 'bg-gray-800 text-white hover:bg-gray-900 focus:ring-gray-300',
+  dark: 'bg-gray-950 text-white hover:bg-gray-800 focus:ring-gray-300',
   green: 'bg-green-700 text-white hover:bg-green-800 focus:ring-green-300',
   red: 'bg-red-700 text-white hover:bg-red-800 focus:ring-red-300',
 };
 
 const buttonSizeClasses: Record<ButtonSize, string> = {
-  xs: 'px-3 py-2 text-xs',
-  sm: 'px-4 py-2 text-sm',
-  md: 'px-5 py-2.5 text-sm',
+  xs: 'h-8 px-3 text-xs',
+  sm: 'h-9 px-3 text-sm',
+  md: 'h-10 px-4 text-sm',
 };
 
 const badgeColorClasses: Record<BadgeColor, string> = {
@@ -41,10 +41,10 @@ const badgeColorClasses: Record<BadgeColor, string> = {
 
 function fieldBaseClasses(hasError?: boolean) {
   return classes(
-    'block w-full rounded-xl border bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm outline-none transition',
+    'block h-10 w-full rounded-md border bg-white px-3 text-sm text-gray-900 outline-none transition',
     hasError
-      ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100'
-      : 'border-gray-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-100'
+      ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-100'
+      : 'border-gray-300 focus:border-gray-950 focus:ring-2 focus:ring-gray-100'
   );
 }
 
@@ -64,7 +64,7 @@ export function Card(props: ParentProps<{ class?: string }>) {
   return (
     <section
       class={classes(
-        'rounded-2xl border border-gray-200 bg-white p-6 shadow-sm',
+        'rounded-lg border border-gray-200 bg-white p-5 shadow-sm',
         props.class
       )}
     >
@@ -81,7 +81,7 @@ export function Badge(props: {
   return (
     <span
       class={classes(
-        'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold',
+        'inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold',
         badgeColorClasses[props.color ?? 'dark'],
         props.class
       )}
@@ -123,10 +123,10 @@ export function Button(props: ButtonProps) {
   ]);
 
   const className = classes(
-    'inline-flex items-center justify-center gap-2 font-medium focus:outline-none focus:ring-4 disabled:pointer-events-none disabled:opacity-60',
+    'inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus:outline-none focus:ring-2 disabled:pointer-events-none disabled:opacity-60',
     buttonColorClasses[local.color ?? 'blue'],
     buttonSizeClasses[local.size ?? 'md'],
-    local.pill ? 'rounded-full' : 'rounded-xl',
+    local.pill ? 'rounded-full' : 'rounded-md',
     local.class
   );
 
@@ -175,7 +175,9 @@ export function Button(props: ButtonProps) {
 export function FieldLabel(props: ParentProps<{ label: string }>) {
   return (
     <label class="space-y-2">
-      <span class="block text-sm font-medium text-gray-700">{props.label}</span>
+      <span class="block text-xs font-semibold uppercase text-gray-500">
+        {props.label}
+      </span>
       {props.children}
     </label>
   );
@@ -243,7 +245,7 @@ export function TextareaField(props: TextareaFieldProps) {
   return (
     <FieldLabel label={props.label}>
       <textarea
-        class={fieldBaseClasses()}
+        class={classes(fieldBaseClasses(), 'h-auto py-2.5')}
         rows={props.rows ?? 6}
         value={props.value}
         onInput={props.onInput}
@@ -263,7 +265,7 @@ export function CheckboxField(props: CheckboxFieldProps) {
     <label class="flex items-center gap-3 text-sm text-gray-700">
       <input
         type="checkbox"
-        class="size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+        class="size-4 rounded border-gray-300 text-gray-950 focus:ring-gray-300"
         checked={props.checked}
         onChange={props.onChange}
       />
@@ -305,7 +307,7 @@ export function FileInputField(props: FileInputFieldProps) {
       <input
         class={classes(
           fieldBaseClasses(),
-          'cursor-pointer file:mr-4 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100'
+          'cursor-pointer file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-gray-800 hover:file:bg-gray-200'
         )}
         type="file"
         accept={props.accept}
@@ -333,7 +335,7 @@ export type RadioGroupFieldProps = {
 export function RadioGroupField(props: RadioGroupFieldProps) {
   return (
     <FieldLabel label={props.label}>
-      <div class="space-y-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div class="space-y-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
         <For each={props.options}>
           {(option) => (
             <label class="flex items-start gap-3 text-sm text-gray-700">
@@ -343,7 +345,7 @@ export function RadioGroupField(props: RadioGroupFieldProps) {
                 value={option.value}
                 checked={props.value === option.value}
                 onChange={props.onChange}
-                class="mt-0.5 size-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                class="mt-0.5 size-4 border-gray-300 text-gray-950 focus:ring-gray-300"
               />
               <span class="space-y-0.5">
                 <span class="block font-medium text-gray-900">
@@ -369,7 +371,7 @@ export type ToggleFieldProps = {
 
 export function ToggleField(props: ToggleFieldProps) {
   return (
-    <label class="flex items-center justify-between gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm">
+    <label class="flex items-center justify-between gap-4 rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm">
       <span class="text-sm font-medium text-gray-700">{props.label}</span>
       <span class="relative inline-flex items-center">
         <input
@@ -378,7 +380,7 @@ export function ToggleField(props: ToggleFieldProps) {
           checked={props.checked}
           onChange={props.onChange}
         />
-        <span class="h-6 w-11 rounded-full bg-gray-300 transition peer-checked:bg-blue-600" />
+        <span class="h-6 w-11 rounded-full bg-gray-300 transition peer-checked:bg-gray-950" />
         <span class="pointer-events-none absolute left-0.5 top-0.5 size-5 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
       </span>
     </label>
@@ -404,7 +406,7 @@ export function RangeField(props: RangeFieldProps) {
         step={props.step}
         value={props.value}
         onInput={props.onInput}
-        class="h-2 w-full cursor-pointer appearance-none rounded-full bg-gray-200 accent-blue-600"
+        class="h-2 w-full cursor-pointer appearance-none rounded-full bg-gray-200 accent-gray-950"
       />
     </FieldLabel>
   );
@@ -421,7 +423,7 @@ export function FloatingLabelField(props: FloatingLabelFieldProps) {
   return (
     <label class="relative block">
       <input
-        class="peer block w-full rounded-2xl border border-gray-300 bg-white px-3 pb-2 pt-6 text-sm text-gray-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+        class="peer block w-full rounded-md border border-gray-300 bg-white px-3 pb-2 pt-6 text-sm text-gray-900 outline-none transition focus:border-gray-950 focus:ring-2 focus:ring-gray-100"
         type={props.type ?? 'text'}
         value={props.value}
         placeholder=" "

@@ -546,11 +546,11 @@ export default function AdminSettingsPage() {
             subtitle="Current frontend targets."
           />
           <div class="space-y-3 text-sm text-gray-600">
-            <div class="rounded-2xl bg-gray-50 p-4">
+            <div class="rounded-lg bg-gray-50 p-4">
               <p class="font-semibold text-gray-900">Gateway API</p>
               <p class="mt-1 break-all">{GW_API_URL}</p>
             </div>
-            <div class="rounded-2xl bg-gray-50 p-4">
+            <div class="rounded-lg bg-gray-50 p-4">
               <p class="font-semibold text-gray-900">Store GraphQL API</p>
               <p class="mt-1 break-all">{TENANT_GQL_URL}</p>
             </div>
@@ -633,7 +633,7 @@ export default function AdminSettingsPage() {
           <div class="space-y-3">
             <For each={sessions()}>
               {(session) => (
-                <div class="rounded-2xl border border-gray-200 p-4">
+                <div class="rounded-lg border border-gray-200 p-4">
                   <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p class="font-semibold text-gray-900">{session.id}</p>
@@ -694,7 +694,7 @@ export default function AdminSettingsPage() {
           <div class="space-y-3">
             <For each={auditLogs()}>
               {(log) => (
-                <div class="rounded-2xl border border-gray-200 p-4">
+                <div class="rounded-lg border border-gray-200 p-4">
                   <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p class="font-semibold text-gray-900">{log.action || 'unknown action'}</p>
@@ -702,7 +702,7 @@ export default function AdminSettingsPage() {
                         {log.resourceType || 'resource'} {log.resourceId || 'n/a'} · store {log.tenantId || 'global'}
                       </p>
                       <Show when={log.payloadJson}>
-                        <pre class="mt-3 overflow-x-auto rounded-2xl bg-gray-50 p-3 text-xs text-gray-700">{log.payloadJson}</pre>
+                        <pre class="mt-3 overflow-x-auto rounded-lg bg-gray-50 p-3 text-xs text-gray-700">{log.payloadJson}</pre>
                       </Show>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
@@ -738,7 +738,7 @@ export default function AdminSettingsPage() {
             <div class="space-y-3">
               <For each={memberships()}>
                 {(membership) => (
-                  <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                  <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
                     <div class="flex flex-wrap items-center gap-2">
                       <Badge content={membership.roleName} color="blue" />
                       <Badge content={membership.status} color="green" />
@@ -873,7 +873,7 @@ export default function AdminSettingsPage() {
             <div class="space-y-3">
               <For each={members()}>
                 {(membership) => (
-                  <div class="rounded-2xl border border-gray-200 p-4">
+                  <div class="rounded-lg border border-gray-200 p-4">
                     <div class="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <p class="font-semibold text-gray-900">
@@ -972,7 +972,7 @@ export default function AdminSettingsPage() {
         </form>
 
         <Show when={latestInviteAcceptURL()}>
-          <div class="rounded-2xl bg-gray-50 p-4 text-sm text-gray-700">
+          <div class="rounded-lg bg-gray-50 p-4 text-sm text-gray-700">
             <p class="font-semibold text-gray-900">Latest join link</p>
             <p class="mt-2 break-all">{latestInviteAcceptURL()}</p>
           </div>
@@ -994,7 +994,7 @@ export default function AdminSettingsPage() {
           <div class="space-y-3">
             <For each={invites()}>
               {(invite) => (
-                <div class="rounded-2xl border border-gray-200 p-4">
+                <div class="rounded-lg border border-gray-200 p-4">
                   <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p class="font-semibold text-gray-900">{invite.email}</p>
@@ -1093,7 +1093,7 @@ export default function AdminSettingsPage() {
           <div class="space-y-3">
             <For each={platformRoles()}>
               {(membership) => (
-                <div class="rounded-2xl border border-gray-200 p-4">
+                <div class="rounded-lg border border-gray-200 p-4">
                   <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p class="font-semibold text-gray-900">

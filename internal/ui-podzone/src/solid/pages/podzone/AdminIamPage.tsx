@@ -1351,7 +1351,7 @@ export default function AdminIamPage() {
               <div class="space-y-3">
                 <For each={organizations()}>
                   {(org) => (
-                    <div class="rounded-2xl border border-gray-200 p-4">
+                    <div class="rounded-lg border border-gray-200 p-4">
                       <div class="flex flex-wrap items-center justify-between gap-3">
                         <div>
                           <p class="font-semibold text-gray-900">{org.name}</p>
@@ -1409,7 +1409,7 @@ export default function AdminIamPage() {
               subtitle="Quickly grant or revoke platform roles and tenant memberships without leaving the IAM console."
             />
             <div class="grid gap-6 lg:grid-cols-2">
-              <div class="space-y-3 rounded-2xl border border-gray-200 p-4">
+              <div class="space-y-3 rounded-lg border border-gray-200 p-4">
                 <p class="text-sm font-semibold text-gray-900">Platform role shortcut</p>
                 <InputField
                   label="Target user id"
@@ -1432,7 +1432,7 @@ export default function AdminIamPage() {
                 </div>
               </div>
 
-              <div class="space-y-3 rounded-2xl border border-gray-200 p-4">
+              <div class="space-y-3 rounded-lg border border-gray-200 p-4">
                 <p class="text-sm font-semibold text-gray-900">Tenant membership shortcut</p>
                 <SelectField
                   label="Tenant"

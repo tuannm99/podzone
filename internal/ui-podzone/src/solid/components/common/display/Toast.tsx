@@ -17,7 +17,7 @@ export function Toast(
     <Show when={props.show ?? true}>
       <div
         class={classes(
-          'z-50 flex max-w-sm items-start justify-between gap-4 rounded-2xl border bg-white px-4 py-3 shadow-xl',
+          'z-50 flex max-w-sm items-start justify-between gap-4 rounded-lg border bg-white px-4 py-3 shadow-xl',
           props.fixed !== false && 'fixed bottom-4 right-4',
           toneClasses[props.tone ?? 'dark'],
           props.class

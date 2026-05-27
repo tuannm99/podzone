@@ -25,7 +25,7 @@ export function Breadcrumbs(props: {
                   {item.href && !current() ? (
                     <a
                       href={item.href}
-                      class="font-medium text-gray-600 transition hover:text-blue-700"
+                      class="font-medium text-gray-600 transition hover:text-gray-950"
                     >
                       {item.label}
                     </a>

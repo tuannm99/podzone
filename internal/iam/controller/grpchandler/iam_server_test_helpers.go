@@ -30,6 +30,7 @@ type iamUsecaseMockConfig struct {
 	createTenantFunc              func(ctx context.Context, ownerUserID uint, cmd iamentity.CreateTenantCmd) (*iamentity.Tenant, error)
 	getMembershipFunc             func(ctx context.Context, tenantID string, userID uint) (*iamentity.Membership, error)
 	checkPermissionFunc           func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error)
+	checkPermissionResourceFunc   func(ctx context.Context, tenantID string, userID uint, permission string, resource string) (bool, error)
 	listUserTenantsFunc           func(ctx context.Context, userID uint) ([]iamentity.Membership, error)
 	createPolicyFunc              func(ctx context.Context, input iamentity.CreatePolicyInput) (*iamentity.Policy, []iamentity.PolicyStatement, error)
 	assumeRoleFunc                func(ctx context.Context, input iamentity.AssumeRoleInput) (*iamentity.AssumedRole, error)
@@ -55,6 +56,18 @@ func newIAMUsecaseMock(t *testing.T, cfg iamUsecaseMockConfig) *iammocks.MockIAM
 		iamUC.EXPECT().
 			CheckPermission(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 			RunAndReturn(cfg.checkPermissionFunc).
+			Maybe()
+		iamUC.EXPECT().
+			CheckPermissionForResource(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+			RunAndReturn(func(ctx context.Context, tenantID string, userID uint, permission string, _ string) (bool, error) {
+				return cfg.checkPermissionFunc(ctx, tenantID, userID, permission)
+			}).
+			Maybe()
+	}
+	if cfg.checkPermissionResourceFunc != nil {
+		iamUC.EXPECT().
+			CheckPermissionForResource(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+			RunAndReturn(cfg.checkPermissionResourceFunc).
 			Maybe()
 	}
 	if cfg.listUserTenantsFunc != nil {

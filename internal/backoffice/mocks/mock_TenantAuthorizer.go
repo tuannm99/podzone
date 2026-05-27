@@ -107,16 +107,16 @@ func (_c *MockTenantAuthorizer_AuthorizeTenant_Call) RunAndReturn(run func(ctx c
 }
 
 // RequirePermission provides a mock function for the type MockTenantAuthorizer
-func (_mock *MockTenantAuthorizer) RequirePermission(ctx context.Context, userID string, tenantID string, permission string) error {
-	ret := _mock.Called(ctx, userID, tenantID, permission)
+func (_mock *MockTenantAuthorizer) RequirePermission(ctx context.Context, userID string, tenantID string, permission string, resource string) error {
+	ret := _mock.Called(ctx, userID, tenantID, permission, resource)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RequirePermission")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string) error); ok {
-		r0 = returnFunc(ctx, userID, tenantID, permission)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string) error); ok {
+		r0 = returnFunc(ctx, userID, tenantID, permission, resource)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -133,11 +133,12 @@ type MockTenantAuthorizer_RequirePermission_Call struct {
 //   - userID string
 //   - tenantID string
 //   - permission string
-func (_e *MockTenantAuthorizer_Expecter) RequirePermission(ctx interface{}, userID interface{}, tenantID interface{}, permission interface{}) *MockTenantAuthorizer_RequirePermission_Call {
-	return &MockTenantAuthorizer_RequirePermission_Call{Call: _e.mock.On("RequirePermission", ctx, userID, tenantID, permission)}
+//   - resource string
+func (_e *MockTenantAuthorizer_Expecter) RequirePermission(ctx interface{}, userID interface{}, tenantID interface{}, permission interface{}, resource interface{}) *MockTenantAuthorizer_RequirePermission_Call {
+	return &MockTenantAuthorizer_RequirePermission_Call{Call: _e.mock.On("RequirePermission", ctx, userID, tenantID, permission, resource)}
 }
 
-func (_c *MockTenantAuthorizer_RequirePermission_Call) Run(run func(ctx context.Context, userID string, tenantID string, permission string)) *MockTenantAuthorizer_RequirePermission_Call {
+func (_c *MockTenantAuthorizer_RequirePermission_Call) Run(run func(ctx context.Context, userID string, tenantID string, permission string, resource string)) *MockTenantAuthorizer_RequirePermission_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -155,11 +156,16 @@ func (_c *MockTenantAuthorizer_RequirePermission_Call) Run(run func(ctx context.
 		if args[3] != nil {
 			arg3 = args[3].(string)
 		}
+		var arg4 string
+		if args[4] != nil {
+			arg4 = args[4].(string)
+		}
 		run(
 			arg0,
 			arg1,
 			arg2,
 			arg3,
+			arg4,
 		)
 	})
 	return _c
@@ -170,7 +176,7 @@ func (_c *MockTenantAuthorizer_RequirePermission_Call) Return(err error) *MockTe
 	return _c
 }
 
-func (_c *MockTenantAuthorizer_RequirePermission_Call) RunAndReturn(run func(ctx context.Context, userID string, tenantID string, permission string) error) *MockTenantAuthorizer_RequirePermission_Call {
+func (_c *MockTenantAuthorizer_RequirePermission_Call) RunAndReturn(run func(ctx context.Context, userID string, tenantID string, permission string, resource string) error) *MockTenantAuthorizer_RequirePermission_Call {
 	_c.Call.Return(run)
 	return _c
 }

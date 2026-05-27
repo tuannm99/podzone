@@ -41,7 +41,7 @@ function formatShippingCostRules(
 
 function DetailRow(props: { label: string; value: string }) {
   return (
-    <div class="rounded-2xl border border-gray-200 p-4">
+    <div class="rounded-lg border border-gray-200 p-4">
       <p class="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
         {props.label}
       </p>

@@ -11,6 +11,7 @@ import { Badge, Button, Card } from '../../components/common/Primitives';
 import { SectionLead } from '../../components/common/SectionLead';
 import { SectionTitle } from '../../components/common/SectionTitle';
 import { StatCard } from '../../components/dashboard/StatCard';
+import { useTenantWorkspace } from '../../workspace/context';
 
 function parseMoney(value: string) {
   const cleaned = value.replace(/[^0-9.]/g, '');
@@ -31,6 +32,7 @@ function isOverdue(value?: string) {
 
 function buildOrdersHref(
   tenantID: string,
+  storeID: string,
   queueView: string,
   queueSort: string = 'priority',
   operatorLens?: string
@@ -42,11 +44,24 @@ function buildOrdersHref(
   if (operatorLens) {
     params.set('operatorLens', operatorLens);
   }
+  if (storeID) {
+    params.set('storeId', storeID);
+  }
   return `/t/${tenantID}/orders?${params.toString()}`;
+}
+
+function buildTenantHref(tenantID: string, storeID: string, path: string) {
+  const params = new URLSearchParams();
+  if (storeID) {
+    params.set('storeId', storeID);
+  }
+  const query = params.toString();
+  return `/t/${tenantID}${path}${query ? `?${query}` : ''}`;
 }
 
 export default function TenantHomePage() {
   const params = useParams({ from: '/t/$tenantId' });
+  const workspace = useTenantWorkspace();
   const [tenantReady, setTenantReady] = createSignal(
     tokenStorage.getActiveTenantID() === params().tenantId
   );
@@ -64,6 +79,11 @@ export default function TenantHomePage() {
   const [topPartnerLoad, setTopPartnerLoad] = createSignal('No partner load yet');
   const [issueRate, setIssueRate] = createSignal('0%');
   const [error, setError] = createSignal('');
+  const currentStoreId = () => workspace?.currentStoreId() || '';
+  const currentStore = () => workspace?.currentStore();
+  const workspaceReady = () => !workspace || currentStoreId().trim().length > 0;
+  const storeLabel = () =>
+    currentStore()?.name || currentStoreId() || 'Select a store';
 
   const loadOpsSnapshot = async () => {
     setError('');
@@ -176,6 +196,9 @@ export default function TenantHomePage() {
   createEffect(() => {
     tenantStorage.setTenantID(params().tenantId);
     setTenantReady(tokenStorage.getActiveTenantID() === params().tenantId);
+    if (!workspaceReady()) {
+      return;
+    }
     void loadOpsSnapshot();
   });
 
@@ -184,15 +207,21 @@ export default function TenantHomePage() {
       <Card class="space-y-4">
         <SectionLead
           eyebrow="Store Workspace"
-          title={`Store ${params().tenantId}`}
-          copy="This store workspace stays scoped to the active session. Product setup, order routing, shipment control, and settlement readiness now come from backend store data."
+          title={storeLabel()}
+          copy="This workspace stays scoped to the active tenant session and the selected store. Product setup, order routing, shipment control, and settlement readiness now resolve against backend store data."
         />
       </Card>
 
       {error() ? <ErrorAlert>{error()}</ErrorAlert> : null}
+      {!workspaceReady() ? (
+        <EmptyBlock
+          title="Choose a store first"
+          copy="Use the store switcher in the workspace shell before loading store-scoped POD operations."
+        />
+      ) : null}
 
       <div class="grid gap-4 md:grid-cols-3">
-        <StatCard label="Store id" value={params().tenantId} />
+        <StatCard label="Store id" value={currentStoreId() || 'pending'} />
         <StatCard label="Transport" value="GraphQL" />
         <StatCard
           label="Endpoint"
@@ -238,11 +267,11 @@ export default function TenantHomePage() {
         />
         <div class="flex flex-wrap gap-2">
           <Badge
-            content={`current store: ${tokenStorage.getActiveTenantID() || 'missing'}`}
+            content={`tenant ${tokenStorage.getActiveTenantID() || 'missing'}`}
             color={tenantReady() ? 'green' : 'yellow'}
           />
           <Badge
-            content={`route store: ${tenantStorage.getTenantID() || params().tenantId}`}
+            content={`selected store: ${currentStoreId() || 'missing'}`}
             color="indigo"
           />
           <Badge content="Authorization: Bearer ..." color="green" />
@@ -307,7 +336,7 @@ export default function TenantHomePage() {
           subtitle="A simple guided POD flow that separates the partner record layer from store-side catalog and routing operations."
         />
         <div class="grid gap-4 md:grid-cols-4">
-          <div class="rounded-2xl border border-gray-200 p-4">
+          <div class="rounded-lg border border-gray-200 p-4">
             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
               1. Partner setup
             </p>
@@ -318,12 +347,15 @@ export default function TenantHomePage() {
               Keep partner records current before shaping products or routing test orders.
             </p>
             <div class="mt-4">
-              <Button href={`/t/${params().tenantId}/partners`} color="blue">
+              <Button
+                href={buildTenantHref(params().tenantId, currentStoreId(), '/partners')}
+                color="blue"
+              >
                 Review print partners
               </Button>
             </div>
           </div>
-          <div class="rounded-2xl border border-gray-200 p-4">
+          <div class="rounded-lg border border-gray-200 p-4">
             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
               2. Product setup
             </p>
@@ -334,12 +366,19 @@ export default function TenantHomePage() {
               Create backend-backed drafts, verify artwork readiness, and mock publish what is ready to route.
             </p>
             <div class="mt-4">
-              <Button href={`/t/${params().tenantId}/products/setup`} color="green">
+              <Button
+                href={buildTenantHref(
+                  params().tenantId,
+                  currentStoreId(),
+                  '/products/setup'
+                )}
+                color="green"
+              >
                 Open product setup
               </Button>
             </div>
           </div>
-          <div class="rounded-2xl border border-gray-200 p-4">
+          <div class="rounded-lg border border-gray-200 p-4">
             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
               3. Order operations
             </p>
@@ -350,7 +389,10 @@ export default function TenantHomePage() {
               Route backend-backed store orders through production flow, manual shipment status, and settlement readiness.
             </p>
             <div class="mt-4">
-              <Button href={`/t/${params().tenantId}/orders`} color="alternative">
+              <Button
+                href={buildTenantHref(params().tenantId, currentStoreId(), '/orders')}
+                color="alternative"
+              >
                 Open orders board
               </Button>
             </div>
@@ -364,7 +406,7 @@ export default function TenantHomePage() {
           subtitle="A lightweight operational finance view from backend-backed routed orders before any separate analytics stack exists."
         />
         <div class="grid gap-4 md:grid-cols-3">
-          <div class="rounded-2xl border border-gray-200 p-4">
+          <div class="rounded-lg border border-gray-200 p-4">
             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
               Realized margin
             </p>
@@ -375,7 +417,7 @@ export default function TenantHomePage() {
               Calculated from routed order revenue minus fulfillment and shipping costs captured in the store workflow.
             </p>
           </div>
-          <div class="rounded-2xl border border-gray-200 p-4">
+          <div class="rounded-lg border border-gray-200 p-4">
             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
               Settlement pressure
             </p>
@@ -386,7 +428,7 @@ export default function TenantHomePage() {
               Highlights which routed orders still need reconciliation or manual finance follow-up.
             </p>
           </div>
-          <div class="rounded-2xl border border-gray-200 p-4">
+          <div class="rounded-lg border border-gray-200 p-4">
             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
               Issue cost exposure
             </p>
@@ -397,7 +439,7 @@ export default function TenantHomePage() {
               Captures reprint, delivery issue, and other exception costs now reducing realized margin.
             </p>
           </div>
-          <div class="rounded-2xl border border-gray-200 p-4">
+          <div class="rounded-lg border border-gray-200 p-4">
             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
               Queue pressure
             </p>
@@ -417,16 +459,36 @@ export default function TenantHomePage() {
           subtitle="Jump straight to the next likely action based on the current operational state."
         />
         <div class="flex flex-wrap gap-3">
-          <Button href={`/t/${params().tenantId}/products/setup`} color="green">
+          <Button
+            href={buildTenantHref(
+              params().tenantId,
+              currentStoreId(),
+              '/products/setup'
+            )}
+            color="green"
+          >
             {publishedCandidateCount() > 0 ? 'Refine product candidates' : 'Publish first mock product'}
           </Button>
-          <Button href={`/t/${params().tenantId}/orders`} color="blue">
+          <Button
+            href={buildTenantHref(params().tenantId, currentStoreId(), '/orders')}
+            color="blue"
+          >
             {openExceptionCount() > 0 ? 'Review active issues' : 'Review routing board'}
           </Button>
-          <Button href={`/t/${params().tenantId}/orders/finance`} color="alternative">
+          <Button
+            href={buildTenantHref(
+              params().tenantId,
+              currentStoreId(),
+              '/orders/finance'
+            )}
+            color="alternative"
+          >
             {pendingSettlementCount() > 0 ? 'Review settlement queue' : 'Create first routed order'}
           </Button>
-          <Button href={`/t/${params().tenantId}/partners`} color="light">
+          <Button
+            href={buildTenantHref(params().tenantId, currentStoreId(), '/partners')}
+            color="light"
+          >
             {topPartnerLoad() === 'No partner load yet' ? 'Set up print partners' : 'Review partner load'}
           </Button>
         </div>
@@ -439,7 +501,7 @@ export default function TenantHomePage() {
         />
         <div class="flex flex-wrap gap-3">
           <Button
-            href={buildOrdersHref(params().tenantId, 'overdue')}
+            href={buildOrdersHref(params().tenantId, currentStoreId(), 'overdue')}
             color={
               shipmentSlaOverdueCount() > 0 || issueSlaOverdueCount() > 0
                 ? 'red'
@@ -449,25 +511,42 @@ export default function TenantHomePage() {
             Overdue queue
           </Button>
           <Button
-            href={buildOrdersHref(params().tenantId, 'delivery_issues')}
+            href={buildOrdersHref(
+              params().tenantId,
+              currentStoreId(),
+              'delivery_issues'
+            )}
             color={openExceptionCount() > 0 ? 'dark' : 'alternative'}
           >
             Issue queue
           </Button>
           <Button
-            href={buildOrdersHref(params().tenantId, 'settlement_pending')}
+            href={buildOrdersHref(
+              params().tenantId,
+              currentStoreId(),
+              'settlement_pending'
+            )}
             color={pendingSettlementCount() > 0 ? 'green' : 'alternative'}
           >
             Settlement follow-up
           </Button>
           <Button
-            href={`/t/${params().tenantId}/orders/finance`}
+            href={buildTenantHref(
+              params().tenantId,
+              currentStoreId(),
+              '/orders/finance'
+            )}
             color={disputedSettlementCount() > 0 ? 'red' : 'alternative'}
           >
             Finance review
           </Button>
           <Button
-            href={buildOrdersHref(params().tenantId, 'all', 'priority')}
+            href={buildOrdersHref(
+              params().tenantId,
+              currentStoreId(),
+              'all',
+              'priority'
+            )}
             color="blue"
           >
             Priority queue
@@ -481,13 +560,26 @@ export default function TenantHomePage() {
           subtitle="Direct links into each experimental POD workflow area."
         />
         <div class="flex flex-wrap gap-3">
-          <Button href={`/t/${params().tenantId}/products/setup`} color="green">
+          <Button
+            href={buildTenantHref(
+              params().tenantId,
+              currentStoreId(),
+              '/products/setup'
+            )}
+            color="green"
+          >
             Open product setup
           </Button>
-          <Button href={`/t/${params().tenantId}/partners`} color="blue">
+          <Button
+            href={buildTenantHref(params().tenantId, currentStoreId(), '/partners')}
+            color="blue"
+          >
             Open print partners
           </Button>
-          <Button href={`/t/${params().tenantId}/orders`} color="alternative">
+          <Button
+            href={buildTenantHref(params().tenantId, currentStoreId(), '/orders')}
+            color="alternative"
+          >
             Open orders
           </Button>
         </div>

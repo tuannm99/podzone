@@ -15,7 +15,7 @@ export function ListGroup(props: { items: ListGroupItem[]; class?: string }) {
   return (
     <div
       class={classes(
-        'overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm',
+        'overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm',
         props.class
       )}
     >

@@ -10,6 +10,7 @@ import (
 	authentity "github.com/tuannm99/podzone/internal/auth/domain/entity"
 	boconfig "github.com/tuannm99/podzone/internal/backoffice/config"
 	backofficemocks "github.com/tuannm99/podzone/internal/backoffice/mocks"
+	"github.com/tuannm99/podzone/internal/backoffice/runtime/tenancy"
 )
 
 func TestIdentityFromAuthorization_ReadsUserAndActiveTenant(t *testing.T) {
@@ -31,7 +32,7 @@ func TestIdentityFromAuthorization_ReadsUserAndActiveTenant(t *testing.T) {
 			JWTSecret: "secret",
 			JWTKey:    "app-key",
 		},
-	}, authz, bootstrapper)
+	}, authz, tenancy.New(bootstrapper, nil, nil))
 
 	userID, tenantID, sessionID, err := m.identityFromAuthorization("Bearer " + token)
 	require.NoError(t, err)

@@ -44,6 +44,8 @@ services:
       GOMODCACHE: /go/pkg/mod
       GOCACHE: /root/.cache/go-build
       CONFIG_PATH: deployments/docker/config/auth.yml
+      JWT_SECRET: ${JWT_SECRET:-dev-secret}
+      JWT_KEY: ${JWT_KEY:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -78,6 +80,8 @@ services:
       GOMODCACHE: /go/pkg/mod
       GOCACHE: /root/.cache/go-build
       CONFIG_PATH: deployments/docker/config/iam.yml
+      JWT_SECRET: ${JWT_SECRET:-dev-secret}
+      JWT_KEY: ${JWT_KEY:-}
     depends_on:
       postgres:
         condition: service_healthy

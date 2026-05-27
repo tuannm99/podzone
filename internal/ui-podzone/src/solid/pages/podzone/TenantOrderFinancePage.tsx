@@ -12,6 +12,7 @@ import { Badge, Button, Card } from '../../components/common/Primitives';
 import { SectionLead } from '../../components/common/SectionLead';
 import { SectionTitle } from '../../components/common/SectionTitle';
 import { StatCard } from '../../components/dashboard/StatCard';
+import { useTenantWorkspace } from '../../workspace/context';
 
 function parseMoneyValue(value: string) {
   const trimmed = value.trim();
@@ -96,12 +97,29 @@ type PartnerFinanceRow = {
   realizedMargin: number;
 };
 
+function buildFinanceQueueHref(tenantID: string, storeID: string) {
+  const params = new URLSearchParams({
+    queueView: 'finance_review',
+    queueSort: 'priority',
+  });
+  if (storeID) {
+    params.set('storeId', storeID);
+  }
+  return `/t/${tenantID}/orders?${params.toString()}`;
+}
+
 export default function TenantOrderFinancePage() {
   const params = useParams({ from: '/t/$tenantId/orders/finance' });
+  const workspace = useTenantWorkspace();
 
   const [orders, setOrders] = createSignal<RoutedOrder[]>([]);
   const [message, setMessage] = createSignal('');
   const [error, setError] = createSignal('');
+  const currentStoreId = () => workspace?.currentStoreId() || '';
+  const currentStore = () => workspace?.currentStore();
+  const workspaceReady = () => !workspace || currentStoreId().trim().length > 0;
+  const storeLabel = () =>
+    currentStore()?.name || currentStoreId() || 'selected store';
 
   const loadOrders = async () => {
     const result = await getRoutedOrders();
@@ -200,6 +218,7 @@ export default function TenantOrderFinancePage() {
   const copySummary = async () => {
     const lines = [
       `Finance review for ${params().tenantId}`,
+      `Store: ${storeLabel()} (${currentStoreId() || 'pending'})`,
       `Orders needing attention: ${financeOrders().length}`,
       `Realized margin: ${totalRealizedMargin()}`,
       `Issue exposure: ${issueExposure()}`,
@@ -219,7 +238,7 @@ export default function TenantOrderFinancePage() {
     ].join('\n');
     try {
       await navigator.clipboard.writeText(lines);
-      setMessage(`Copied finance summary for ${params().tenantId}.`);
+      setMessage(`Copied finance summary for ${storeLabel()}.`);
     } catch {
       setError('Could not copy finance summary to clipboard.');
     }
@@ -227,6 +246,9 @@ export default function TenantOrderFinancePage() {
 
   createEffect(() => {
     tenantStorage.setTenantID(params().tenantId);
+    if (!workspaceReady()) {
+      return;
+    }
     void loadOrders();
   });
 
@@ -235,7 +257,7 @@ export default function TenantOrderFinancePage() {
       <Card class="space-y-4">
         <SectionLead
           eyebrow="Settlement Finance"
-          title={`Finance review for store ${params().tenantId}`}
+          title={`Finance review for ${storeLabel()}`}
           copy="Track pending and disputed settlements, margin anomalies, issue cost exposure, and partner payout pressure from a single operations lane."
         />
       </Card>
@@ -246,6 +268,13 @@ export default function TenantOrderFinancePage() {
 
       <Show when={error()}>
         <ErrorAlert>{error()}</ErrorAlert>
+      </Show>
+
+      <Show when={!workspaceReady()}>
+        <EmptyBlock
+          title="Choose a store first"
+          copy="Use the workspace store switcher before loading store-scoped finance review data."
+        />
       </Show>
 
       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -285,7 +314,7 @@ export default function TenantOrderFinancePage() {
               type="button"
               size="xs"
               color="alternative"
-              href={`/t/${params().tenantId}/orders?queueView=finance_review&queueSort=priority`}
+              href={buildFinanceQueueHref(params().tenantId, currentStoreId())}
             >
               Open queue board
             </Button>
@@ -303,7 +332,7 @@ export default function TenantOrderFinancePage() {
           <div class="space-y-3">
             <For each={financeOrders()}>
               {(order) => (
-                <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                <div class="rounded-lg border border-slate-200 bg-white p-4">
                   <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p class="text-sm font-semibold text-slate-900">
@@ -364,7 +393,7 @@ export default function TenantOrderFinancePage() {
           <div class="grid gap-3 xl:grid-cols-2">
             <For each={partnerFinanceSummary()}>
               {(item) => (
-                <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                <div class="rounded-lg border border-slate-200 bg-white p-4">
                   <div class="flex flex-wrap items-center justify-between gap-2">
                     <p class="text-sm font-semibold text-slate-900">
                       {item.partner}

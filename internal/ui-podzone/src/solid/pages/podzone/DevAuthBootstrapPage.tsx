@@ -72,7 +72,11 @@ export default function DevAuthBootstrapPage() {
       setMessage('Dev credentials imported. Redirecting to tenant workspace...');
 
       window.setTimeout(() => {
-        void navigate({ to: '/t/$tenantId', params: { tenantId: nextBundle.tenantId }, replace: true });
+        void navigate({
+          to: '/t/$tenantId',
+          params: { tenantId: nextBundle.tenantId },
+          replace: true,
+        });
       }, 250);
     } catch (error) {
       setStatus('error');
@@ -91,19 +95,19 @@ export default function DevAuthBootstrapPage() {
 
   return (
     <div class="mx-auto flex min-h-[calc(100vh-2rem)] max-w-4xl items-center px-4 py-8 sm:px-5 lg:px-6">
-      <Card class="w-full space-y-6 bg-[linear-gradient(135deg,_#e0f2fe,_#ffffff_42%,_#f8fafc)]">
+      <Card class="w-full space-y-6">
         <SectionLead
           eyebrow="DEV BOOTSTRAP"
           title="Import local POD dev credentials"
           copy="This page reads the generated auth bundle from the UI public assets, writes it into local storage, and opens the seeded tenant workspace."
         />
 
-        <div class="grid gap-4 rounded-2xl border border-sky-100 bg-white/85 p-5 shadow-sm">
+        <div class="grid gap-4 rounded-lg border border-gray-200 bg-gray-50 p-5 shadow-sm">
           <p class="text-sm text-gray-600">{message()}</p>
 
           <Show when={status() === 'ready' && bundle()}>
             {(resolved) => (
-              <div class="grid gap-2 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">
+              <div class="grid gap-2 rounded-lg bg-slate-50 p-4 text-sm text-slate-700">
                 <p>
                   <span class="font-semibold text-slate-900">Tenant:</span>{' '}
                   {resolved().tenantId}
@@ -123,7 +127,7 @@ export default function DevAuthBootstrapPage() {
           <Show when={status() === 'error'}>
             <div class="space-y-4">
               <ErrorAlert>{message()}</ErrorAlert>
-              <div class="rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">
+              <div class="rounded-lg bg-slate-50 p-4 text-sm text-slate-700">
                 <p class="font-semibold text-slate-900">Expected flow</p>
                 <p class="mt-2">
                   Run `make dev-pod-sample ...` first, then sync the generated
@@ -134,7 +138,10 @@ export default function DevAuthBootstrapPage() {
           </Show>
 
           <div class="flex flex-col gap-3 sm:flex-row">
-            <Button onClick={() => void importBundle()} loading={status() === 'loading'}>
+            <Button
+              onClick={() => void importBundle()}
+              loading={status() === 'loading'}
+            >
               Retry import
             </Button>
             <Button href="/auth/login" color="alternative">
@@ -142,7 +149,7 @@ export default function DevAuthBootstrapPage() {
             </Button>
             <a
               href={DEV_BUNDLE_URL}
-              class="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+              class="inline-flex h-10 items-center justify-center rounded-md border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-800 transition hover:bg-gray-50"
             >
               Inspect bundle JSON
             </a>

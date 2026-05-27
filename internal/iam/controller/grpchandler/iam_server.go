@@ -531,7 +531,13 @@ func (s *IAMServer) CheckPermission(
 		return nil, err
 	}
 
-	allowed, err := s.iamUC.CheckPermission(ctx, req.TenantId, userID, req.Permission)
+	allowed, err := s.iamUC.CheckPermissionForResource(
+		ctx,
+		req.TenantId,
+		userID,
+		req.Permission,
+		req.Resource,
+	)
 	if err != nil {
 		if errors.Is(err, iamdomain.ErrPermissionDenied) || errors.Is(err, iamdomain.ErrInactiveMembership) {
 			return &pbauthv1.CheckPermissionResponse{Allowed: false}, nil
@@ -2042,17 +2048,6 @@ func iamStatusError(err error) error {
 	}
 }
 
-func (s *IAMServer) actorUserIDFromContext(ctx context.Context) (uint, error) {
-	claims, err := s.claimsFromContext(ctx)
-	if err != nil {
-		return 0, err
-	}
-	if claims.UserID == 0 {
-		return 0, errors.New("access token missing user_id")
-	}
-	return uint(claims.UserID), nil
-}
-
 func (s *IAMServer) authorizedContext(ctx context.Context) (context.Context, uint, error) {
 	claims, err := s.claimsFromContext(ctx)
 	if err != nil {
@@ -2075,7 +2070,7 @@ func (s *IAMServer) authorizedContext(ctx context.Context) (context.Context, uin
 	if claims.UserID == 0 {
 		return ctx, 0, errors.New("access token missing user_id")
 	}
-	return ctx, uint(claims.UserID), nil
+	return ctx, claims.UserID, nil
 }
 
 func (s *IAMServer) claimsFromContext(ctx context.Context) (*pdauthn.Claims, error) {
@@ -2084,8 +2079,4 @@ func (s *IAMServer) claimsFromContext(ctx context.Context) (*pdauthn.Claims, err
 
 func (s *IAMServer) claimsFromAccessToken(accessToken string) (*pdauthn.Claims, error) {
 	return s.verifier.ClaimsFromAccessToken(accessToken)
-}
-
-func (s *IAMServer) claimsFromTokenString(tokenString string) (*pdauthn.Claims, error) {
-	return s.verifier.ClaimsFromTokenString(tokenString)
 }

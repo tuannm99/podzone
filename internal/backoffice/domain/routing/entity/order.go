@@ -49,6 +49,7 @@ type RoutedOrderActivityDetail struct {
 }
 
 type RoutedOrderActivityFeedEntry struct {
+	StoreID          string              `json:"storeId"`
 	OrderID          string              `json:"orderId"`
 	ProductTitle     string              `json:"productTitle"`
 	Partner          string              `json:"partner"`
@@ -64,6 +65,7 @@ type RoutedOrderActivityFeedPage struct {
 
 type RoutedOrder struct {
 	ID                     string                `json:"id"`
+	StoreID                string                `json:"storeId"`
 	CandidateID            string                `json:"candidateId"`
 	ProductTitle           string                `json:"productTitle"`
 	Partner                string                `json:"partner"`

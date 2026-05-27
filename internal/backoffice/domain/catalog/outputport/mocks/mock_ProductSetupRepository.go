@@ -175,8 +175,8 @@ func (_c *MockProductSetupRepository_CreateDraft_Call) RunAndReturn(run func(ctx
 }
 
 // GetCandidateByDraftID provides a mock function for the type MockProductSetupRepository
-func (_mock *MockProductSetupRepository) GetCandidateByDraftID(ctx context.Context, draftID string) (*entity.ProductSetupCandidate, error) {
-	ret := _mock.Called(ctx, draftID)
+func (_mock *MockProductSetupRepository) GetCandidateByDraftID(ctx context.Context, storeID string, draftID string) (*entity.ProductSetupCandidate, error) {
+	ret := _mock.Called(ctx, storeID, draftID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetCandidateByDraftID")
@@ -184,18 +184,18 @@ func (_mock *MockProductSetupRepository) GetCandidateByDraftID(ctx context.Conte
 
 	var r0 *entity.ProductSetupCandidate
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*entity.ProductSetupCandidate, error)); ok {
-		return returnFunc(ctx, draftID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (*entity.ProductSetupCandidate, error)); ok {
+		return returnFunc(ctx, storeID, draftID)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *entity.ProductSetupCandidate); ok {
-		r0 = returnFunc(ctx, draftID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) *entity.ProductSetupCandidate); ok {
+		r0 = returnFunc(ctx, storeID, draftID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*entity.ProductSetupCandidate)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, draftID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = returnFunc(ctx, storeID, draftID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -209,341 +209,13 @@ type MockProductSetupRepository_GetCandidateByDraftID_Call struct {
 
 // GetCandidateByDraftID is a helper method to define mock.On call
 //   - ctx context.Context
+//   - storeID string
 //   - draftID string
-func (_e *MockProductSetupRepository_Expecter) GetCandidateByDraftID(ctx interface{}, draftID interface{}) *MockProductSetupRepository_GetCandidateByDraftID_Call {
-	return &MockProductSetupRepository_GetCandidateByDraftID_Call{Call: _e.mock.On("GetCandidateByDraftID", ctx, draftID)}
+func (_e *MockProductSetupRepository_Expecter) GetCandidateByDraftID(ctx interface{}, storeID interface{}, draftID interface{}) *MockProductSetupRepository_GetCandidateByDraftID_Call {
+	return &MockProductSetupRepository_GetCandidateByDraftID_Call{Call: _e.mock.On("GetCandidateByDraftID", ctx, storeID, draftID)}
 }
 
-func (_c *MockProductSetupRepository_GetCandidateByDraftID_Call) Run(run func(ctx context.Context, draftID string)) *MockProductSetupRepository_GetCandidateByDraftID_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		run(
-			arg0,
-			arg1,
-		)
-	})
-	return _c
-}
-
-func (_c *MockProductSetupRepository_GetCandidateByDraftID_Call) Return(productSetupCandidate *entity.ProductSetupCandidate, err error) *MockProductSetupRepository_GetCandidateByDraftID_Call {
-	_c.Call.Return(productSetupCandidate, err)
-	return _c
-}
-
-func (_c *MockProductSetupRepository_GetCandidateByDraftID_Call) RunAndReturn(run func(ctx context.Context, draftID string) (*entity.ProductSetupCandidate, error)) *MockProductSetupRepository_GetCandidateByDraftID_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// GetCandidateByID provides a mock function for the type MockProductSetupRepository
-func (_mock *MockProductSetupRepository) GetCandidateByID(ctx context.Context, id string) (*entity.ProductSetupCandidate, error) {
-	ret := _mock.Called(ctx, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetCandidateByID")
-	}
-
-	var r0 *entity.ProductSetupCandidate
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*entity.ProductSetupCandidate, error)); ok {
-		return returnFunc(ctx, id)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *entity.ProductSetupCandidate); ok {
-		r0 = returnFunc(ctx, id)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*entity.ProductSetupCandidate)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, id)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockProductSetupRepository_GetCandidateByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCandidateByID'
-type MockProductSetupRepository_GetCandidateByID_Call struct {
-	*mock.Call
-}
-
-// GetCandidateByID is a helper method to define mock.On call
-//   - ctx context.Context
-//   - id string
-func (_e *MockProductSetupRepository_Expecter) GetCandidateByID(ctx interface{}, id interface{}) *MockProductSetupRepository_GetCandidateByID_Call {
-	return &MockProductSetupRepository_GetCandidateByID_Call{Call: _e.mock.On("GetCandidateByID", ctx, id)}
-}
-
-func (_c *MockProductSetupRepository_GetCandidateByID_Call) Run(run func(ctx context.Context, id string)) *MockProductSetupRepository_GetCandidateByID_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		run(
-			arg0,
-			arg1,
-		)
-	})
-	return _c
-}
-
-func (_c *MockProductSetupRepository_GetCandidateByID_Call) Return(productSetupCandidate *entity.ProductSetupCandidate, err error) *MockProductSetupRepository_GetCandidateByID_Call {
-	_c.Call.Return(productSetupCandidate, err)
-	return _c
-}
-
-func (_c *MockProductSetupRepository_GetCandidateByID_Call) RunAndReturn(run func(ctx context.Context, id string) (*entity.ProductSetupCandidate, error)) *MockProductSetupRepository_GetCandidateByID_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// GetDraftByID provides a mock function for the type MockProductSetupRepository
-func (_mock *MockProductSetupRepository) GetDraftByID(ctx context.Context, id string) (*entity.ProductSetupDraft, error) {
-	ret := _mock.Called(ctx, id)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetDraftByID")
-	}
-
-	var r0 *entity.ProductSetupDraft
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*entity.ProductSetupDraft, error)); ok {
-		return returnFunc(ctx, id)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *entity.ProductSetupDraft); ok {
-		r0 = returnFunc(ctx, id)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*entity.ProductSetupDraft)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, id)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockProductSetupRepository_GetDraftByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDraftByID'
-type MockProductSetupRepository_GetDraftByID_Call struct {
-	*mock.Call
-}
-
-// GetDraftByID is a helper method to define mock.On call
-//   - ctx context.Context
-//   - id string
-func (_e *MockProductSetupRepository_Expecter) GetDraftByID(ctx interface{}, id interface{}) *MockProductSetupRepository_GetDraftByID_Call {
-	return &MockProductSetupRepository_GetDraftByID_Call{Call: _e.mock.On("GetDraftByID", ctx, id)}
-}
-
-func (_c *MockProductSetupRepository_GetDraftByID_Call) Run(run func(ctx context.Context, id string)) *MockProductSetupRepository_GetDraftByID_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		run(
-			arg0,
-			arg1,
-		)
-	})
-	return _c
-}
-
-func (_c *MockProductSetupRepository_GetDraftByID_Call) Return(productSetupDraft *entity.ProductSetupDraft, err error) *MockProductSetupRepository_GetDraftByID_Call {
-	_c.Call.Return(productSetupDraft, err)
-	return _c
-}
-
-func (_c *MockProductSetupRepository_GetDraftByID_Call) RunAndReturn(run func(ctx context.Context, id string) (*entity.ProductSetupDraft, error)) *MockProductSetupRepository_GetDraftByID_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// ListCandidates provides a mock function for the type MockProductSetupRepository
-func (_mock *MockProductSetupRepository) ListCandidates(ctx context.Context) ([]entity.ProductSetupCandidate, error) {
-	ret := _mock.Called(ctx)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ListCandidates")
-	}
-
-	var r0 []entity.ProductSetupCandidate
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context) ([]entity.ProductSetupCandidate, error)); ok {
-		return returnFunc(ctx)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context) []entity.ProductSetupCandidate); ok {
-		r0 = returnFunc(ctx)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.ProductSetupCandidate)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = returnFunc(ctx)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockProductSetupRepository_ListCandidates_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListCandidates'
-type MockProductSetupRepository_ListCandidates_Call struct {
-	*mock.Call
-}
-
-// ListCandidates is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *MockProductSetupRepository_Expecter) ListCandidates(ctx interface{}) *MockProductSetupRepository_ListCandidates_Call {
-	return &MockProductSetupRepository_ListCandidates_Call{Call: _e.mock.On("ListCandidates", ctx)}
-}
-
-func (_c *MockProductSetupRepository_ListCandidates_Call) Run(run func(ctx context.Context)) *MockProductSetupRepository_ListCandidates_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		run(
-			arg0,
-		)
-	})
-	return _c
-}
-
-func (_c *MockProductSetupRepository_ListCandidates_Call) Return(productSetupCandidates []entity.ProductSetupCandidate, err error) *MockProductSetupRepository_ListCandidates_Call {
-	_c.Call.Return(productSetupCandidates, err)
-	return _c
-}
-
-func (_c *MockProductSetupRepository_ListCandidates_Call) RunAndReturn(run func(ctx context.Context) ([]entity.ProductSetupCandidate, error)) *MockProductSetupRepository_ListCandidates_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// ListDrafts provides a mock function for the type MockProductSetupRepository
-func (_mock *MockProductSetupRepository) ListDrafts(ctx context.Context) ([]entity.ProductSetupDraft, error) {
-	ret := _mock.Called(ctx)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ListDrafts")
-	}
-
-	var r0 []entity.ProductSetupDraft
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context) ([]entity.ProductSetupDraft, error)); ok {
-		return returnFunc(ctx)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context) []entity.ProductSetupDraft); ok {
-		r0 = returnFunc(ctx)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.ProductSetupDraft)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = returnFunc(ctx)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockProductSetupRepository_ListDrafts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListDrafts'
-type MockProductSetupRepository_ListDrafts_Call struct {
-	*mock.Call
-}
-
-// ListDrafts is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *MockProductSetupRepository_Expecter) ListDrafts(ctx interface{}) *MockProductSetupRepository_ListDrafts_Call {
-	return &MockProductSetupRepository_ListDrafts_Call{Call: _e.mock.On("ListDrafts", ctx)}
-}
-
-func (_c *MockProductSetupRepository_ListDrafts_Call) Run(run func(ctx context.Context)) *MockProductSetupRepository_ListDrafts_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		run(
-			arg0,
-		)
-	})
-	return _c
-}
-
-func (_c *MockProductSetupRepository_ListDrafts_Call) Return(productSetupDrafts []entity.ProductSetupDraft, err error) *MockProductSetupRepository_ListDrafts_Call {
-	_c.Call.Return(productSetupDrafts, err)
-	return _c
-}
-
-func (_c *MockProductSetupRepository_ListDrafts_Call) RunAndReturn(run func(ctx context.Context) ([]entity.ProductSetupDraft, error)) *MockProductSetupRepository_ListDrafts_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// UpdateCandidateStatus provides a mock function for the type MockProductSetupRepository
-func (_mock *MockProductSetupRepository) UpdateCandidateStatus(ctx context.Context, id string, status string) (*entity.ProductSetupCandidate, error) {
-	ret := _mock.Called(ctx, id, status)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateCandidateStatus")
-	}
-
-	var r0 *entity.ProductSetupCandidate
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (*entity.ProductSetupCandidate, error)); ok {
-		return returnFunc(ctx, id, status)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) *entity.ProductSetupCandidate); ok {
-		r0 = returnFunc(ctx, id, status)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*entity.ProductSetupCandidate)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = returnFunc(ctx, id, status)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockProductSetupRepository_UpdateCandidateStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateCandidateStatus'
-type MockProductSetupRepository_UpdateCandidateStatus_Call struct {
-	*mock.Call
-}
-
-// UpdateCandidateStatus is a helper method to define mock.On call
-//   - ctx context.Context
-//   - id string
-//   - status string
-func (_e *MockProductSetupRepository_Expecter) UpdateCandidateStatus(ctx interface{}, id interface{}, status interface{}) *MockProductSetupRepository_UpdateCandidateStatus_Call {
-	return &MockProductSetupRepository_UpdateCandidateStatus_Call{Call: _e.mock.On("UpdateCandidateStatus", ctx, id, status)}
-}
-
-func (_c *MockProductSetupRepository_UpdateCandidateStatus_Call) Run(run func(ctx context.Context, id string, status string)) *MockProductSetupRepository_UpdateCandidateStatus_Call {
+func (_c *MockProductSetupRepository_GetCandidateByDraftID_Call) Run(run func(ctx context.Context, storeID string, draftID string)) *MockProductSetupRepository_GetCandidateByDraftID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -566,12 +238,376 @@ func (_c *MockProductSetupRepository_UpdateCandidateStatus_Call) Run(run func(ct
 	return _c
 }
 
+func (_c *MockProductSetupRepository_GetCandidateByDraftID_Call) Return(productSetupCandidate *entity.ProductSetupCandidate, err error) *MockProductSetupRepository_GetCandidateByDraftID_Call {
+	_c.Call.Return(productSetupCandidate, err)
+	return _c
+}
+
+func (_c *MockProductSetupRepository_GetCandidateByDraftID_Call) RunAndReturn(run func(ctx context.Context, storeID string, draftID string) (*entity.ProductSetupCandidate, error)) *MockProductSetupRepository_GetCandidateByDraftID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetCandidateByID provides a mock function for the type MockProductSetupRepository
+func (_mock *MockProductSetupRepository) GetCandidateByID(ctx context.Context, storeID string, id string) (*entity.ProductSetupCandidate, error) {
+	ret := _mock.Called(ctx, storeID, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetCandidateByID")
+	}
+
+	var r0 *entity.ProductSetupCandidate
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (*entity.ProductSetupCandidate, error)); ok {
+		return returnFunc(ctx, storeID, id)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) *entity.ProductSetupCandidate); ok {
+		r0 = returnFunc(ctx, storeID, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.ProductSetupCandidate)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = returnFunc(ctx, storeID, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockProductSetupRepository_GetCandidateByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCandidateByID'
+type MockProductSetupRepository_GetCandidateByID_Call struct {
+	*mock.Call
+}
+
+// GetCandidateByID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - storeID string
+//   - id string
+func (_e *MockProductSetupRepository_Expecter) GetCandidateByID(ctx interface{}, storeID interface{}, id interface{}) *MockProductSetupRepository_GetCandidateByID_Call {
+	return &MockProductSetupRepository_GetCandidateByID_Call{Call: _e.mock.On("GetCandidateByID", ctx, storeID, id)}
+}
+
+func (_c *MockProductSetupRepository_GetCandidateByID_Call) Run(run func(ctx context.Context, storeID string, id string)) *MockProductSetupRepository_GetCandidateByID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockProductSetupRepository_GetCandidateByID_Call) Return(productSetupCandidate *entity.ProductSetupCandidate, err error) *MockProductSetupRepository_GetCandidateByID_Call {
+	_c.Call.Return(productSetupCandidate, err)
+	return _c
+}
+
+func (_c *MockProductSetupRepository_GetCandidateByID_Call) RunAndReturn(run func(ctx context.Context, storeID string, id string) (*entity.ProductSetupCandidate, error)) *MockProductSetupRepository_GetCandidateByID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetDraftByID provides a mock function for the type MockProductSetupRepository
+func (_mock *MockProductSetupRepository) GetDraftByID(ctx context.Context, storeID string, id string) (*entity.ProductSetupDraft, error) {
+	ret := _mock.Called(ctx, storeID, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDraftByID")
+	}
+
+	var r0 *entity.ProductSetupDraft
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (*entity.ProductSetupDraft, error)); ok {
+		return returnFunc(ctx, storeID, id)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) *entity.ProductSetupDraft); ok {
+		r0 = returnFunc(ctx, storeID, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.ProductSetupDraft)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = returnFunc(ctx, storeID, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockProductSetupRepository_GetDraftByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDraftByID'
+type MockProductSetupRepository_GetDraftByID_Call struct {
+	*mock.Call
+}
+
+// GetDraftByID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - storeID string
+//   - id string
+func (_e *MockProductSetupRepository_Expecter) GetDraftByID(ctx interface{}, storeID interface{}, id interface{}) *MockProductSetupRepository_GetDraftByID_Call {
+	return &MockProductSetupRepository_GetDraftByID_Call{Call: _e.mock.On("GetDraftByID", ctx, storeID, id)}
+}
+
+func (_c *MockProductSetupRepository_GetDraftByID_Call) Run(run func(ctx context.Context, storeID string, id string)) *MockProductSetupRepository_GetDraftByID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockProductSetupRepository_GetDraftByID_Call) Return(productSetupDraft *entity.ProductSetupDraft, err error) *MockProductSetupRepository_GetDraftByID_Call {
+	_c.Call.Return(productSetupDraft, err)
+	return _c
+}
+
+func (_c *MockProductSetupRepository_GetDraftByID_Call) RunAndReturn(run func(ctx context.Context, storeID string, id string) (*entity.ProductSetupDraft, error)) *MockProductSetupRepository_GetDraftByID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListCandidates provides a mock function for the type MockProductSetupRepository
+func (_mock *MockProductSetupRepository) ListCandidates(ctx context.Context, storeID string) ([]entity.ProductSetupCandidate, error) {
+	ret := _mock.Called(ctx, storeID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListCandidates")
+	}
+
+	var r0 []entity.ProductSetupCandidate
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]entity.ProductSetupCandidate, error)); ok {
+		return returnFunc(ctx, storeID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []entity.ProductSetupCandidate); ok {
+		r0 = returnFunc(ctx, storeID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]entity.ProductSetupCandidate)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, storeID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockProductSetupRepository_ListCandidates_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListCandidates'
+type MockProductSetupRepository_ListCandidates_Call struct {
+	*mock.Call
+}
+
+// ListCandidates is a helper method to define mock.On call
+//   - ctx context.Context
+//   - storeID string
+func (_e *MockProductSetupRepository_Expecter) ListCandidates(ctx interface{}, storeID interface{}) *MockProductSetupRepository_ListCandidates_Call {
+	return &MockProductSetupRepository_ListCandidates_Call{Call: _e.mock.On("ListCandidates", ctx, storeID)}
+}
+
+func (_c *MockProductSetupRepository_ListCandidates_Call) Run(run func(ctx context.Context, storeID string)) *MockProductSetupRepository_ListCandidates_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockProductSetupRepository_ListCandidates_Call) Return(productSetupCandidates []entity.ProductSetupCandidate, err error) *MockProductSetupRepository_ListCandidates_Call {
+	_c.Call.Return(productSetupCandidates, err)
+	return _c
+}
+
+func (_c *MockProductSetupRepository_ListCandidates_Call) RunAndReturn(run func(ctx context.Context, storeID string) ([]entity.ProductSetupCandidate, error)) *MockProductSetupRepository_ListCandidates_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListDrafts provides a mock function for the type MockProductSetupRepository
+func (_mock *MockProductSetupRepository) ListDrafts(ctx context.Context, storeID string) ([]entity.ProductSetupDraft, error) {
+	ret := _mock.Called(ctx, storeID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListDrafts")
+	}
+
+	var r0 []entity.ProductSetupDraft
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]entity.ProductSetupDraft, error)); ok {
+		return returnFunc(ctx, storeID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []entity.ProductSetupDraft); ok {
+		r0 = returnFunc(ctx, storeID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]entity.ProductSetupDraft)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, storeID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockProductSetupRepository_ListDrafts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListDrafts'
+type MockProductSetupRepository_ListDrafts_Call struct {
+	*mock.Call
+}
+
+// ListDrafts is a helper method to define mock.On call
+//   - ctx context.Context
+//   - storeID string
+func (_e *MockProductSetupRepository_Expecter) ListDrafts(ctx interface{}, storeID interface{}) *MockProductSetupRepository_ListDrafts_Call {
+	return &MockProductSetupRepository_ListDrafts_Call{Call: _e.mock.On("ListDrafts", ctx, storeID)}
+}
+
+func (_c *MockProductSetupRepository_ListDrafts_Call) Run(run func(ctx context.Context, storeID string)) *MockProductSetupRepository_ListDrafts_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockProductSetupRepository_ListDrafts_Call) Return(productSetupDrafts []entity.ProductSetupDraft, err error) *MockProductSetupRepository_ListDrafts_Call {
+	_c.Call.Return(productSetupDrafts, err)
+	return _c
+}
+
+func (_c *MockProductSetupRepository_ListDrafts_Call) RunAndReturn(run func(ctx context.Context, storeID string) ([]entity.ProductSetupDraft, error)) *MockProductSetupRepository_ListDrafts_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateCandidateStatus provides a mock function for the type MockProductSetupRepository
+func (_mock *MockProductSetupRepository) UpdateCandidateStatus(ctx context.Context, storeID string, id string, status string) (*entity.ProductSetupCandidate, error) {
+	ret := _mock.Called(ctx, storeID, id, status)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateCandidateStatus")
+	}
+
+	var r0 *entity.ProductSetupCandidate
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string) (*entity.ProductSetupCandidate, error)); ok {
+		return returnFunc(ctx, storeID, id, status)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string) *entity.ProductSetupCandidate); ok {
+		r0 = returnFunc(ctx, storeID, id, status)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.ProductSetupCandidate)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = returnFunc(ctx, storeID, id, status)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockProductSetupRepository_UpdateCandidateStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateCandidateStatus'
+type MockProductSetupRepository_UpdateCandidateStatus_Call struct {
+	*mock.Call
+}
+
+// UpdateCandidateStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - storeID string
+//   - id string
+//   - status string
+func (_e *MockProductSetupRepository_Expecter) UpdateCandidateStatus(ctx interface{}, storeID interface{}, id interface{}, status interface{}) *MockProductSetupRepository_UpdateCandidateStatus_Call {
+	return &MockProductSetupRepository_UpdateCandidateStatus_Call{Call: _e.mock.On("UpdateCandidateStatus", ctx, storeID, id, status)}
+}
+
+func (_c *MockProductSetupRepository_UpdateCandidateStatus_Call) Run(run func(ctx context.Context, storeID string, id string, status string)) *MockProductSetupRepository_UpdateCandidateStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
 func (_c *MockProductSetupRepository_UpdateCandidateStatus_Call) Return(productSetupCandidate *entity.ProductSetupCandidate, err error) *MockProductSetupRepository_UpdateCandidateStatus_Call {
 	_c.Call.Return(productSetupCandidate, err)
 	return _c
 }
 
-func (_c *MockProductSetupRepository_UpdateCandidateStatus_Call) RunAndReturn(run func(ctx context.Context, id string, status string) (*entity.ProductSetupCandidate, error)) *MockProductSetupRepository_UpdateCandidateStatus_Call {
+func (_c *MockProductSetupRepository_UpdateCandidateStatus_Call) RunAndReturn(run func(ctx context.Context, storeID string, id string, status string) (*entity.ProductSetupCandidate, error)) *MockProductSetupRepository_UpdateCandidateStatus_Call {
 	_c.Call.Return(run)
 	return _c
 }

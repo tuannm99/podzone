@@ -16,15 +16,15 @@ export function ChatBubble(props: ChatBubbleProps) {
     <div class={classes('flex w-full', isEnd() ? 'justify-end' : 'justify-start', props.class)}>
       <div
         class={classes(
-          'max-w-xl rounded-2xl px-4 py-3 shadow-sm',
-          isEnd() ? 'bg-blue-700 text-white' : 'bg-white text-gray-900 ring-1 ring-gray-200'
+          'max-w-xl rounded-lg px-4 py-3 shadow-sm',
+          isEnd() ? 'bg-gray-950 text-white' : 'bg-white text-gray-900 ring-1 ring-gray-200'
         )}
       >
         <Show when={props.author || props.meta}>
           <div
             class={classes(
               'mb-1 flex flex-wrap items-center gap-2 text-xs',
-              isEnd() ? 'text-blue-100' : 'text-gray-500'
+              isEnd() ? 'text-gray-300' : 'text-gray-500'
             )}
           >
             <Show when={props.author}>

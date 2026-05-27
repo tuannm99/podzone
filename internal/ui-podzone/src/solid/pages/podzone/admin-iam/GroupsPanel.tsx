@@ -192,7 +192,7 @@ export function GroupsPanel() {
           <div class="space-y-3">
             <For each={group.groupInlinePolicies()}>
               {(policy) => (
-                <div class="rounded-2xl border border-gray-200 p-4">
+                <div class="rounded-lg border border-gray-200 p-4">
                   <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p class="font-semibold text-gray-900">{policy.name}</p>

@@ -135,7 +135,7 @@ export function PrincipalPoliciesPanel() {
           </div>
           <Show when={principal.currentBoundary()}>
             {(boundary) => (
-              <div class="rounded-2xl bg-gray-50 p-4 text-sm text-gray-600">
+              <div class="rounded-lg bg-gray-50 p-4 text-sm text-gray-600">
                 <div class="flex flex-wrap gap-2">
                   <Badge content="boundary" color="pink" />
                   <Badge content={boundary().policyName} color="blue" />
@@ -188,7 +188,7 @@ export function PrincipalPoliciesPanel() {
           <div class="space-y-3">
             <For each={principal.currentInlinePolicies()}>
               {(policy) => (
-                <div class="rounded-2xl border border-gray-200 p-4">
+                <div class="rounded-lg border border-gray-200 p-4">
                   <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p class="font-semibold text-gray-900">{policy.name}</p>

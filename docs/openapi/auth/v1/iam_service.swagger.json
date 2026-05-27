@@ -2809,6 +2809,9 @@
         },
         "permission": {
           "type": "string"
+        },
+        "resource": {
+          "type": "string"
         }
       }
     },

@@ -5,7 +5,7 @@ export function DataTable(props: ParentProps<{ class?: string }>) {
   return (
     <div
       class={classes(
-        'overflow-x-auto rounded-2xl border border-gray-200',
+        'overflow-x-auto rounded-lg border border-gray-200',
         props.class
       )}
     >

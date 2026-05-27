@@ -15,12 +15,16 @@ func (i *OrderRoutingInteractor) UpdateOrderShipment(
 	ctx context.Context,
 	cmd routinginputport.UpdateOrderShipmentCmd,
 ) (*routingentity.RoutedOrder, error) {
+	storeID, err := requiredStoreScope(ctx, cmd.StoreID)
+	if err != nil {
+		return nil, err
+	}
 	order, err := i.orders.GetByID(ctx, strings.TrimSpace(cmd.OrderID))
 	if err != nil {
 		return nil, err
 	}
-	if order == nil {
-		return nil, fmt.Errorf("routed order not found")
+	if err := ensureOrderStore(order, storeID); err != nil {
+		return nil, err
 	}
 
 	shipmentStatus := normalizeShipmentStatus(cmd.ShipmentStatus)
@@ -111,12 +115,16 @@ func (i *OrderRoutingInteractor) UpdateOrderQueueControl(
 	ctx context.Context,
 	cmd routinginputport.UpdateOrderQueueControlCmd,
 ) (*routingentity.RoutedOrder, error) {
+	storeID, err := requiredStoreScope(ctx, cmd.StoreID)
+	if err != nil {
+		return nil, err
+	}
 	order, err := i.orders.GetByID(ctx, strings.TrimSpace(cmd.OrderID))
 	if err != nil {
 		return nil, err
 	}
-	if order == nil {
-		return nil, fmt.Errorf("routed order not found")
+	if err := ensureOrderStore(order, storeID); err != nil {
+		return nil, err
 	}
 
 	assignee := strings.TrimSpace(cmd.OperatorAssignee)
@@ -148,6 +156,10 @@ func (i *OrderRoutingInteractor) BulkUpdateRoutedOrders(
 	ctx context.Context,
 	cmd routinginputport.BulkUpdateRoutedOrdersCmd,
 ) ([]routingentity.RoutedOrder, error) {
+	storeID, err := requiredStoreScope(ctx, cmd.StoreID)
+	if err != nil {
+		return nil, err
+	}
 	if len(cmd.OrderIDs) == 0 {
 		return nil, fmt.Errorf("at least one routed order id is required")
 	}
@@ -173,8 +185,8 @@ func (i *OrderRoutingInteractor) BulkUpdateRoutedOrders(
 		if err != nil {
 			return nil, err
 		}
-		if order == nil {
-			return nil, fmt.Errorf("routed order not found")
+		if err := ensureOrderStore(order, storeID); err != nil {
+			return nil, err
 		}
 
 		if cmd.OperatorAssignee != nil {
@@ -219,12 +231,16 @@ func (i *OrderRoutingInteractor) UpdateOrderSettlement(
 	ctx context.Context,
 	cmd routinginputport.UpdateOrderSettlementCmd,
 ) (*routingentity.RoutedOrder, error) {
+	storeID, err := requiredStoreScope(ctx, cmd.StoreID)
+	if err != nil {
+		return nil, err
+	}
 	order, err := i.orders.GetByID(ctx, strings.TrimSpace(cmd.OrderID))
 	if err != nil {
 		return nil, err
 	}
-	if order == nil {
-		return nil, fmt.Errorf("routed order not found")
+	if err := ensureOrderStore(order, storeID); err != nil {
+		return nil, err
 	}
 
 	fulfillmentCost, err := normalizeMoney(cmd.FulfillmentCost)
@@ -278,12 +294,16 @@ func (i *OrderRoutingInteractor) UpdateOrderIssueHandling(
 	ctx context.Context,
 	cmd routinginputport.UpdateOrderIssueHandlingCmd,
 ) (*routingentity.RoutedOrder, error) {
+	storeID, err := requiredStoreScope(ctx, cmd.StoreID)
+	if err != nil {
+		return nil, err
+	}
 	order, err := i.orders.GetByID(ctx, strings.TrimSpace(cmd.OrderID))
 	if err != nil {
 		return nil, err
 	}
-	if order == nil {
-		return nil, fmt.Errorf("routed order not found")
+	if err := ensureOrderStore(order, storeID); err != nil {
+		return nil, err
 	}
 	if order.ExceptionType == "" && order.ShipmentStatus != routingentity.RoutedOrderShipmentStatusDeliveryIssue {
 		return nil, fmt.Errorf("issue cost handling requires an active exception or delivery issue")

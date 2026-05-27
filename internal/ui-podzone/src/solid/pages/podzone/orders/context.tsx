@@ -8,6 +8,8 @@ import type {
 
 export type TenantOrdersInsightsContextValue = {
   tenantId: string;
+  storeId: Accessor<string>;
+  storeLabel: Accessor<string>;
   blockedOrders: Accessor<RoutedOrder[]>;
   blockedReasonSummary: Accessor<{ code: string; count: number }[]>;
   forcedRerouteSummary: Accessor<{ partner: string; count: number }[]>;

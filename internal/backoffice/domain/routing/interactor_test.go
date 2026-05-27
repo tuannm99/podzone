@@ -1,7 +1,6 @@
 package routing
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -10,7 +9,6 @@ import (
 	catalogentity "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/entity"
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
 	routinginputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport"
-	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 func TestCreateRoutedOrderSnapshotsCostsAndMargin(t *testing.T) {
@@ -27,7 +25,7 @@ func TestCreateRoutedOrderSnapshotsCostsAndMargin(t *testing.T) {
 		},
 	})
 
-	ctx := toolkit.WithTenantID(context.Background(), "t_demo")
+	ctx := testTenantRoutingContext("t_demo")
 	order, err := interactor.CreateRoutedOrder(ctx, routinginputport.CreateRoutedOrderCmd{
 		CandidateID:  "cand-1",
 		CustomerName: "Alex POD",
@@ -64,7 +62,7 @@ func TestRecommendRoutedOrderPartnerPrefersEligibleRequestedPartner(t *testing.T
 		},
 	})
 
-	ctx := toolkit.WithTenantID(context.Background(), "t_demo")
+	ctx := testTenantRoutingContext("t_demo")
 	recommendation, err := interactor.RecommendRoutedOrderPartner(
 		ctx,
 		routinginputport.RecommendRoutedOrderPartnerQuery{
@@ -103,7 +101,7 @@ func TestRecommendRoutedOrderPartnerPrefersHigherMarginOverCandidateDefault(t *t
 		},
 	})
 
-	ctx := toolkit.WithTenantID(context.Background(), "t_demo")
+	ctx := testTenantRoutingContext("t_demo")
 	recommendation, err := interactor.RecommendRoutedOrderPartner(
 		ctx,
 		routinginputport.RecommendRoutedOrderPartnerQuery{
@@ -133,7 +131,7 @@ func TestRecommendRoutedOrderPartnerDoesNotAutoSelectNegativeMarginOption(t *tes
 		},
 	})
 
-	ctx := toolkit.WithTenantID(context.Background(), "t_demo")
+	ctx := testTenantRoutingContext("t_demo")
 	recommendation, err := interactor.RecommendRoutedOrderPartner(
 		ctx,
 		routinginputport.RecommendRoutedOrderPartnerQuery{
@@ -168,7 +166,7 @@ func TestCreateRoutedOrderCreatesBlockedQueueItemWhenNoViablePartner(t *testing.
 		},
 	})
 
-	ctx := toolkit.WithTenantID(context.Background(), "t_demo")
+	ctx := testTenantRoutingContext("t_demo")
 	order, err := interactor.CreateRoutedOrder(ctx, routinginputport.CreateRoutedOrderCmd{
 		CandidateID:  "cand-1",
 		CustomerName: "Blocked Customer",
@@ -233,7 +231,7 @@ func TestForceRerouteBlockedOrderClearsBlockAndQueuesOrder(t *testing.T) {
 		},
 	})
 
-	ctx := toolkit.WithTenantID(context.Background(), "t_demo")
+	ctx := testTenantRoutingContext("t_demo")
 	order, err := interactor.ForceRerouteBlockedOrder(ctx, routinginputport.ForceRerouteBlockedOrderCmd{
 		OrderID:          "ord-blocked-reroute",
 		PreferredPartner: "Fulfill Fast",
@@ -268,7 +266,7 @@ func TestUpdateOrderSettlementRecalculatesMarginIncludingIssueCost(t *testing.T)
 		Timeline:         []string{"created"},
 	})
 
-	order, err := interactor.UpdateOrderSettlement(context.Background(), routinginputport.UpdateOrderSettlementCmd{
+	order, err := interactor.UpdateOrderSettlement(testRoutingContext(), routinginputport.UpdateOrderSettlementCmd{
 		OrderID:          "ord-1",
 		FulfillmentCost:  "$12.00",
 		ShippingCost:     "$5.50",
@@ -306,7 +304,7 @@ func TestUpdateOrderIssueHandlingRequiresActiveIssue(t *testing.T) {
 		SettlementStatus: routingentity.RoutedOrderSettlementStatusPending,
 	})
 
-	_, err := interactor.UpdateOrderIssueHandling(context.Background(), routinginputport.UpdateOrderIssueHandlingCmd{
+	_, err := interactor.UpdateOrderIssueHandling(testRoutingContext(), routinginputport.UpdateOrderIssueHandlingCmd{
 		OrderID:         "ord-no-issue",
 		IssueCost:       "$6.00",
 		IssueResolution: routingentity.RoutedOrderIssueResolutionReprint,
@@ -334,7 +332,7 @@ func TestUpdateOrderIssueHandlingRecalculatesMargin(t *testing.T) {
 	})
 
 	order, err := interactor.UpdateOrderIssueHandling(
-		context.Background(),
+		testRoutingContext(),
 		routinginputport.UpdateOrderIssueHandlingCmd{
 			OrderID:         "ord-issue",
 			IssueCost:       "$6.00",
@@ -365,7 +363,7 @@ func TestUpdateOrderQueueControlNormalizesAssigneeAndPersistsSLA(t *testing.T) {
 		Timeline: []string{"created"},
 	})
 
-	order, err := interactor.UpdateOrderQueueControl(context.Background(), routinginputport.UpdateOrderQueueControlCmd{
+	order, err := interactor.UpdateOrderQueueControl(testRoutingContext(), routinginputport.UpdateOrderQueueControlCmd{
 		OrderID:          "ord-queue",
 		OperatorAssignee: "  ",
 		ShipmentSlaDueAt: &shipmentSLA,
@@ -400,7 +398,7 @@ func TestBulkUpdateRoutedOrdersUpdatesSelectedOrders(t *testing.T) {
 		Timeline:         []string{"created"},
 	})
 
-	updated, err := interactor.BulkUpdateRoutedOrders(context.Background(), routinginputport.BulkUpdateRoutedOrdersCmd{
+	updated, err := interactor.BulkUpdateRoutedOrders(testRoutingContext(), routinginputport.BulkUpdateRoutedOrdersCmd{
 		OrderIDs:         []string{"ord-1", " ord-2 "},
 		OperatorAssignee: &assignee,
 		ShipmentSlaDueAt: &shipmentSLA,
@@ -456,7 +454,7 @@ func TestListRoutedOrderActivitiesFiltersAndSorts(t *testing.T) {
 	})
 
 	firstPage, err := interactor.ListRoutedOrderActivities(
-		context.Background(),
+		testRoutingContext(),
 		routingentity.RoutedOrderActivityFeedQuery{
 			ActivityType:  routingentity.RoutedOrderActivityTypeShipmentNote,
 			ActorContains: "user:",
@@ -473,7 +471,7 @@ func TestListRoutedOrderActivitiesFiltersAndSorts(t *testing.T) {
 	require.NotEmpty(t, *firstPage.NextCursor)
 
 	secondPage, err := interactor.ListRoutedOrderActivities(
-		context.Background(),
+		testRoutingContext(),
 		routingentity.RoutedOrderActivityFeedQuery{
 			ActivityType:  routingentity.RoutedOrderActivityTypeShipmentNote,
 			ActorContains: "user:",
@@ -500,7 +498,7 @@ func TestAdvanceRoutedOrderBlocksWhenExceptionActive(t *testing.T) {
 		ExceptionStatus: routingentity.RoutedOrderExceptionStatusOpen,
 	})
 
-	_, err := interactor.AdvanceRoutedOrder(context.Background(), "ord-blocked")
+	_, err := interactor.AdvanceRoutedOrder(testRoutingContext(), testRoutingStoreID, "ord-blocked")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "resolve the active exception")
 }
@@ -516,7 +514,7 @@ func TestAdvanceRoutedOrderBlocksWhenRoutingBlocked(t *testing.T) {
 		RoutingBlockReason: "all eligible partners have negative expected margin",
 	})
 
-	_, err := interactor.AdvanceRoutedOrder(context.Background(), "ord-routing-blocked")
+	_, err := interactor.AdvanceRoutedOrder(testRoutingContext(), testRoutingStoreID, "ord-routing-blocked")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "resolve the routing block")
 }
@@ -532,7 +530,7 @@ func TestAdvanceRoutedOrderTransitionsQueuedToProduction(t *testing.T) {
 		Timeline: []string{"created"},
 	})
 
-	order, err := interactor.AdvanceRoutedOrder(context.Background(), "ord-advance")
+	order, err := interactor.AdvanceRoutedOrder(testRoutingContext(), testRoutingStoreID, "ord-advance")
 	require.NoError(t, err)
 	require.Equal(t, routingentity.RoutedOrderStatusInProduction, order.Status)
 	require.Contains(t, order.Timeline[len(order.Timeline)-1], "POD production")
@@ -547,7 +545,7 @@ func TestOpenAndResolveOrderException(t *testing.T) {
 		Timeline: []string{"created"},
 	})
 
-	opened, err := interactor.OpenOrderException(context.Background(), routinginputport.OpenOrderExceptionCmd{
+	opened, err := interactor.OpenOrderException(testRoutingContext(), routinginputport.OpenOrderExceptionCmd{
 		OrderID:       "ord-exception",
 		ExceptionType: "reprint_request",
 	})
@@ -557,7 +555,7 @@ func TestOpenAndResolveOrderException(t *testing.T) {
 	require.Contains(t, opened.Timeline[len(opened.Timeline)-1], "Exception opened")
 
 	resolved, err := interactor.UpdateOrderExceptionStatus(
-		context.Background(),
+		testRoutingContext(),
 		routinginputport.UpdateOrderExceptionStatusCmd{
 			OrderID: "ord-exception",
 			Status:  routingentity.RoutedOrderExceptionStatusResolved,
@@ -580,7 +578,7 @@ func TestUpdateOrderShipmentMarksInTransitAndAppendsTracking(t *testing.T) {
 		Timeline:       []string{"created"},
 	})
 
-	order, err := interactor.UpdateOrderShipment(context.Background(), routinginputport.UpdateOrderShipmentCmd{
+	order, err := interactor.UpdateOrderShipment(testRoutingContext(), routinginputport.UpdateOrderShipmentCmd{
 		OrderID:        "ord-ship",
 		ShipmentStatus: routingentity.RoutedOrderShipmentStatusInTransit,
 		Carrier:        "DHL",
@@ -614,7 +612,7 @@ func TestUpdateOrderShipmentMarksDelivered(t *testing.T) {
 		Timeline:       []string{"created"},
 	})
 
-	order, err := interactor.UpdateOrderShipment(context.Background(), routinginputport.UpdateOrderShipmentCmd{
+	order, err := interactor.UpdateOrderShipment(testRoutingContext(), routinginputport.UpdateOrderShipmentCmd{
 		OrderID:        "ord-delivered",
 		ShipmentStatus: routingentity.RoutedOrderShipmentStatusDelivered,
 		Notes:          "Delivered to customer",
