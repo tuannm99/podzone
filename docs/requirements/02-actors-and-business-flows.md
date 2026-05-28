@@ -13,6 +13,23 @@ Responsibilities:
 - review audit logs
 - configure platform-level policies
 
+## 1A. System Admin / Platform Operator
+
+This is a separate operator persona from the store owner.
+
+Responsibilities:
+
+- manage centralized IAM and platform-wide governance
+- approve or revoke platform-wide administrative access
+- inspect platform audit trails and high-risk actions
+- operate shared platform policy, organization, and trust controls
+
+Important distinction:
+
+- a first-time tenant owner is not automatically a system admin
+- creating the first tenant/workspace only makes that user the owner of that tenant
+- system admin access is a separate platform-level grant and must be modeled independently
+
 ## 2. Store Owner
 
 The store owner is the main merchant account for a specific store.

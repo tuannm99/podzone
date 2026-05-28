@@ -17,7 +17,7 @@ type MigrationTenantBootstrapper struct {
 	mgr pdtenantdb.Manager
 }
 
-func NewTenantBootstrapper(mgr pdtenantdb.Manager) TenantBootstrapper {
+func NewTenantBootstrapper(mgr pdtenantdb.Manager) *MigrationTenantBootstrapper {
 	return &MigrationTenantBootstrapper{mgr: mgr}
 }
 

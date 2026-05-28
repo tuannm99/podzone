@@ -152,7 +152,10 @@ func (s *interactor) RemovePlatformRole(ctx context.Context, userID uint, roleNa
 	return s.platformMemberships.Delete(ctx, userID, role.ID)
 }
 
-func (s *interactor) PutPlatformUserInlinePolicy(ctx context.Context, input entity.PutPlatformUserInlinePolicyInput) error {
+func (s *interactor) PutPlatformUserInlinePolicy(
+	ctx context.Context,
+	input entity.PutPlatformUserInlinePolicyInput,
+) error {
 	if input.UserID == 0 {
 		return entity.ErrInvalidUserID
 	}
@@ -193,7 +196,10 @@ func (s *interactor) GetPlatformUserInlinePolicy(
 	return s.policies.GetPlatformUserInlinePolicy(ctx, userID, strings.TrimSpace(name))
 }
 
-func (s *interactor) ListPlatformUserInlinePolicies(ctx context.Context, userID uint) ([]entity.UserInlinePolicy, error) {
+func (s *interactor) ListPlatformUserInlinePolicies(
+	ctx context.Context,
+	userID uint,
+) ([]entity.UserInlinePolicy, error) {
 	if userID == 0 {
 		return nil, entity.ErrInvalidUserID
 	}
@@ -268,7 +274,10 @@ func (s *interactor) PutPlatformUserPermissionBoundary(ctx context.Context, user
 	return s.policies.PutPlatformUserPermissionBoundary(ctx, userID, policy.ID)
 }
 
-func (s *interactor) GetPlatformUserPermissionBoundary(ctx context.Context, userID uint) (*entity.PermissionBoundary, error) {
+func (s *interactor) GetPlatformUserPermissionBoundary(
+	ctx context.Context,
+	userID uint,
+) (*entity.PermissionBoundary, error) {
 	if userID == 0 {
 		return nil, entity.ErrInvalidUserID
 	}

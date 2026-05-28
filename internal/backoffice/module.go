@@ -29,7 +29,8 @@ var Module = fx.Options(
 		func() *pdtenantdb.Config { return &pdtenantdb.Config{} },
 		boconfig.NewConfigFromKoanf,
 		fx.Annotate(NewTenantAuthorizer, fx.As(new(TenantAuthorizer))),
-		fx.Annotate(NewTenantBootstrapper, fx.As(new(TenantBootstrapper))),
+
+		fx.Annotate(NewTenantBootstrapper, fx.As(new(TenantBootstrapper)), fx.As(new(tenancy.Readiness))),
 		fx.Annotate(storeaccess.New, fx.As(new(storeaccess.Access))),
 		fx.Annotate(tenancy.New, fx.As(new(tenancy.Runtime))),
 		fx.Annotate(partnerdirectory.New, fx.As(new(routingoutputport.PartnerDirectory))),

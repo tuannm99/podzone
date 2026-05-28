@@ -45,10 +45,10 @@ import { SectionLead } from '../../components/common/SectionLead';
 import { SectionTitle } from '../../components/common/SectionTitle';
 
 const roleOptions = [
-  { name: 'Store owner', value: 'tenant_owner' },
-  { name: 'Store admin', value: 'tenant_admin' },
-  { name: 'Store operator', value: 'tenant_editor' },
-  { name: 'Store viewer', value: 'tenant_viewer' },
+  { name: 'Workspace owner', value: 'tenant_owner' },
+  { name: 'Workspace admin', value: 'tenant_admin' },
+  { name: 'Workspace operator', value: 'tenant_editor' },
+  { name: 'Workspace viewer', value: 'tenant_viewer' },
 ];
 
 const platformRoleOptions = [
@@ -215,11 +215,11 @@ export default function AdminSettingsPage() {
     const parsedUserId = Number.parseInt(memberUserId().trim(), 10);
     const identity = memberIdentity().trim();
     if (!tenantId || (identity === '' && (!Number.isFinite(parsedUserId) || parsedUserId <= 0))) {
-      setPageError('Store id and either teammate identity or user id are required.');
+      setPageError('Workspace id and either teammate identity or user id are required.');
       return;
     }
     if (!canManageMembers()) {
-      setPageError('You do not have permission to manage team access for this store.');
+      setPageError('You do not have permission to manage team access for this workspace.');
       return;
     }
 
@@ -241,8 +241,8 @@ export default function AdminSettingsPage() {
         setMemberIdentity('');
         setMemberActionMessage(
           result.data.createdUser
-            ? `Created a new account and granted store access for ${identity} in ${tenantId}.`
-            : `Granted store access to existing user ${result.data.userId} for ${identity} in ${tenantId}.`
+            ? `Created a new account and granted workspace access for ${identity} in ${tenantId}.`
+            : `Granted workspace access to existing user ${result.data.userId} for ${identity} in ${tenantId}.`
         );
       } else {
         const result = await upsertTenantMember({
@@ -255,7 +255,7 @@ export default function AdminSettingsPage() {
           return;
         }
         setMemberUserId('');
-        setMemberActionMessage(`Saved store access for user ${parsedUserId} in ${tenantId}.`);
+        setMemberActionMessage(`Saved workspace access for user ${parsedUserId} in ${tenantId}.`);
       }
       await loadTenantMembers(tenantId);
     } finally {
@@ -265,7 +265,7 @@ export default function AdminSettingsPage() {
 
   const handleRemoveMember = async (tenantId: string, userId: number) => {
     if (!canManageMembers()) {
-      setPageError('You do not have permission to remove store access.');
+      setPageError('You do not have permission to remove workspace access.');
       return;
     }
     setPageError('');
@@ -275,7 +275,7 @@ export default function AdminSettingsPage() {
       setPageError(result.message);
       return;
     }
-    setMemberActionMessage(`Removed user ${userId} from store ${tenantId}.`);
+    setMemberActionMessage(`Removed user ${userId} from workspace ${tenantId}.`);
     await loadTenantMembers(tenantId);
   };
 
@@ -284,11 +284,11 @@ export default function AdminSettingsPage() {
     const tenantId = memberTenantId().trim();
     const email = inviteEmail().trim();
     if (!tenantId || !email) {
-      setPageError('Store id and invite email are required.');
+      setPageError('Workspace id and invite email are required.');
       return;
     }
     if (!canManageMembers()) {
-      setPageError('You do not have permission to manage store invites.');
+      setPageError('You do not have permission to manage workspace invites.');
       return;
     }
 
@@ -308,7 +308,7 @@ export default function AdminSettingsPage() {
       }
       setInviteEmail('');
       setLatestInviteAcceptURL(result.data.acceptUrl);
-      setMemberActionMessage(`Created a store invite for ${email} in ${tenantId}.`);
+      setMemberActionMessage(`Created a workspace invite for ${email} in ${tenantId}.`);
       await loadTenantInvites(tenantId);
     } finally {
       setSavingInvite(false);
@@ -317,7 +317,7 @@ export default function AdminSettingsPage() {
 
   const handleRevokeInvite = async (inviteId: string, tenantId: string, email: string) => {
     if (!canManageMembers()) {
-      setPageError('You do not have permission to revoke store invites.');
+      setPageError('You do not have permission to revoke workspace invites.');
       return;
     }
     setPageError('');
@@ -327,7 +327,7 @@ export default function AdminSettingsPage() {
       setPageError(result.message);
       return;
     }
-    setMemberActionMessage(`Revoked store invite for ${email}.`);
+    setMemberActionMessage(`Revoked workspace invite for ${email}.`);
     await loadTenantInvites(tenantId);
   };
 
@@ -513,13 +513,15 @@ export default function AdminSettingsPage() {
       <Card class="space-y-4">
         <SectionLead
           eyebrow="Settings"
-          title="Manage store access, sessions, and platform controls."
-          copy="This area brings together the operational controls behind the backoffice: current sessions, team access, store invites, and platform administration."
+          title="Manage workspace access, sessions, and platform controls."
+          copy="This area brings together the operational controls behind the backoffice: current sessions, workspace access, workspace invites, and platform administration."
         />
         <div class="flex flex-wrap gap-3">
-          <Button href="/admin/iam" color="dark" size="sm">
-            Open IAM console
-          </Button>
+          <Show when={canManagePlatformRoles()}>
+            <Button href="/admin/iam" color="dark" size="sm">
+              Open IAM console
+            </Button>
+          </Show>
         </div>
       </Card>
 
@@ -532,7 +534,7 @@ export default function AdminSettingsPage() {
       </Show>
 
       <Show when={checkingPermissions()}>
-        <LoadingInline label="Checking store access permissions..." />
+        <LoadingInline label="Checking workspace access permissions..." />
       </Show>
 
       <Show when={canManagePlatformRoles()}>
@@ -561,7 +563,7 @@ export default function AdminSettingsPage() {
         <SectionTitle
           title="Local session state"
           subtitle="Storage-backed sign-in and navigation state."
-          />
+        />
           <div class="flex flex-wrap gap-2">
             <Badge
               content={hasToken ? 'token present' : 'no token'}
@@ -570,8 +572,8 @@ export default function AdminSettingsPage() {
             <Badge
               content={
                 activeTenantId()
-                  ? `current store ${activeTenantId()}`
-                  : 'current store not set'
+                  ? `current workspace ${activeTenantId()}`
+                  : 'current workspace not set'
               }
               color={activeTenantId() ? 'green' : 'dark'}
             />
@@ -582,8 +584,8 @@ export default function AdminSettingsPage() {
             <Badge
               content={
                 routeTenantId()
-                  ? `last opened store ${routeTenantId()}`
-                  : 'last opened store not set'
+                  ? `last opened workspace ${routeTenantId()}`
+                  : 'last opened workspace not set'
               }
               color={routeTenantId() ? 'indigo' : 'dark'}
             />
@@ -596,7 +598,7 @@ export default function AdminSettingsPage() {
               window.location.reload();
             }}
           >
-            Clear last opened store
+            Clear last opened workspace
           </Button>
         </Card>
       </div>
@@ -604,7 +606,7 @@ export default function AdminSettingsPage() {
       <Card class="space-y-4">
         <SectionTitle
           title="Sessions"
-          subtitle="Review active sign-ins and revoke sessions that should no longer access your stores."
+          subtitle="Review active sign-ins and revoke sessions that should no longer access your workspaces."
         />
         <div class="flex flex-wrap gap-3">
           <Badge content={`current ${currentSessionCount()}`} color="yellow" />
@@ -638,7 +640,7 @@ export default function AdminSettingsPage() {
                     <div>
                       <p class="font-semibold text-gray-900">{session.id}</p>
                       <p class="mt-1 text-sm text-gray-500">
-                        store {session.activeTenantId || 'not selected'} · expires {session.expiresAt || 'unknown'}
+                        workspace {session.activeTenantId || 'not selected'} · expires {session.expiresAt || 'unknown'}
                       </p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
@@ -699,7 +701,7 @@ export default function AdminSettingsPage() {
                     <div>
                       <p class="font-semibold text-gray-900">{log.action || 'unknown action'}</p>
                       <p class="mt-1 text-sm text-gray-500">
-                        {log.resourceType || 'resource'} {log.resourceId || 'n/a'} · store {log.tenantId || 'global'}
+                        {log.resourceType || 'resource'} {log.resourceId || 'n/a'} · workspace {log.tenantId || 'global'}
                       </p>
                       <Show when={log.payloadJson}>
                         <pre class="mt-3 overflow-x-auto rounded-lg bg-gray-50 p-3 text-xs text-gray-700">{log.payloadJson}</pre>
@@ -720,18 +722,18 @@ export default function AdminSettingsPage() {
       <div class="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
         <Card class="space-y-4">
           <SectionTitle
-            title="My store access"
-            subtitle="Stores this account can access right now."
+            title="My workspace access"
+            subtitle="Workspaces this account can access right now."
           />
           <Show when={loadingTenants()}>
-            <LoadingInline label="Loading store access..." />
+            <LoadingInline label="Loading workspace access..." />
           </Show>
           <Show
             when={!loadingTenants() && memberships().length > 0}
             fallback={
               <EmptyBlock
-                title="No store access yet"
-                copy="Create or join a store to see your working spaces here."
+                title="No workspace access yet"
+                copy="Create or join a workspace to see your working spaces here."
               />
             }
           >
@@ -747,7 +749,7 @@ export default function AdminSettingsPage() {
                       {membership.tenantId}
                     </p>
                     <p class="mt-1 text-sm text-gray-500">
-                      teammate {membership.userId}
+                      user {membership.userId}
                     </p>
                     <div class="mt-3">
                       <Button
@@ -770,23 +772,23 @@ export default function AdminSettingsPage() {
 
         <Card class="space-y-4">
           <SectionTitle
-            title="Team access"
-            subtitle="List, add, update, or remove store teammates. Start from one of your stores instead of typing technical IDs by hand."
+          title="Team access"
+          subtitle="List, add, update, or remove workspace teammates. Start from one of your workspaces instead of typing technical IDs by hand."
           />
 
           <form class="space-y-4" onSubmit={submitMember}>
             <Show when={tenantOptions().length > 0}>
               <SelectField
-                label="Store"
+                label="Workspace"
                 value={memberTenantId()}
                 options={tenantOptions()}
                 onChange={(event) => setMemberTenantId(event.currentTarget.value)}
               />
             </Show>
             <InputField
-              label="Store id override"
+              label="Workspace id override"
               value={memberTenantId()}
-              placeholder="store id"
+              placeholder="workspace id"
               onInput={(event) => setMemberTenantId(event.currentTarget.value)}
             />
             <div class="grid gap-4 md:grid-cols-2">
@@ -806,7 +808,7 @@ export default function AdminSettingsPage() {
             <InputField
               label="Teammate email or username"
               value={memberIdentity()}
-              placeholder="ops@store.com or store_operator"
+              placeholder="ops@workspace.com or store_operator"
               onInput={(event) => setMemberIdentity(event.currentTarget.value)}
             />
             <div class="flex flex-wrap gap-3">
@@ -847,7 +849,7 @@ export default function AdminSettingsPage() {
           </form>
 
           <Show when={loadingMembers()}>
-            <LoadingInline label="Loading store team..." />
+            <LoadingInline label="Loading workspace team..." />
           </Show>
 
           <Show
@@ -855,19 +857,19 @@ export default function AdminSettingsPage() {
             fallback={
               <EmptyBlock
                 title="No team members loaded"
-                copy="Choose a store and reload team access to inspect who can operate in that store."
+                copy="Choose a workspace and reload team access to inspect who can operate in that workspace."
               />
             }
           >
             <Show when={!canReadTenant()}>
               <EmptyBlock
-                title="No store access"
-                copy="You do not currently have permission to inspect team access for this store."
+                title="No workspace access"
+                copy="You do not currently have permission to inspect team access for this workspace."
               />
             </Show>
             <Show when={canReadTenant() && !canManageMembers()}>
               <InfoAlert>
-                You can inspect this store, but only authorized store owners or admins can manage team access.
+                You can inspect this workspace, but only authorized workspace owners or admins can manage team access.
               </InfoAlert>
             </Show>
             <div class="space-y-3">
@@ -911,18 +913,18 @@ export default function AdminSettingsPage() {
 
       <Card class="space-y-4">
         <SectionTitle
-          title="Store invites"
+          title="Workspace invites"
           subtitle="Create email invites, track pending team access, and revoke old invite links."
         />
         <Show when={!canManageMembers()}>
           <InfoAlert>
-            Store invites require access to manage team permissions for this store.
+            Workspace invites require access to manage team permissions for this workspace.
           </InfoAlert>
         </Show>
         <form class="space-y-4" onSubmit={submitInvite}>
           <Show when={tenantOptions().length > 0}>
             <SelectField
-              label="Store"
+              label="Workspace"
               value={memberTenantId()}
               options={tenantOptions()}
               onChange={(event) => setMemberTenantId(event.currentTarget.value)}
@@ -956,7 +958,7 @@ export default function AdminSettingsPage() {
               loading={savingInvite()}
               disabled={!canManageMembers()}
             >
-              Create store invite
+              Create workspace invite
             </Button>
             <Button
               type="button"
@@ -979,15 +981,15 @@ export default function AdminSettingsPage() {
         </Show>
 
         <Show when={loadingInvites()}>
-          <LoadingInline label="Loading store invites..." />
+          <LoadingInline label="Loading workspace invites..." />
         </Show>
 
         <Show
           when={!loadingInvites() && invites().length > 0}
           fallback={
             <EmptyBlock
-              title="No store invites loaded"
-              copy="Create an invite or reload invites for the selected store."
+              title="No workspace invites loaded"
+              copy="Create an invite or reload invites for the selected workspace."
             />
           }
         >
@@ -999,7 +1001,7 @@ export default function AdminSettingsPage() {
                     <div>
                       <p class="font-semibold text-gray-900">{invite.email}</p>
                       <p class="mt-1 text-sm text-gray-500">
-                        store {invite.tenantId} · {invite.roleName} · expires {invite.expiresAt || 'unknown'}
+                        workspace {invite.tenantId} · {invite.roleName} · expires {invite.expiresAt || 'unknown'}
                       </p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
@@ -1026,7 +1028,7 @@ export default function AdminSettingsPage() {
       <Card class="space-y-4">
         <SectionTitle
           title="Platform administration"
-          subtitle="Assign or revoke platform-wide roles such as store creation and admin governance."
+          subtitle="Assign or revoke platform-wide roles such as workspace creation and admin governance."
         />
         <Show when={!canManagePlatformRoles()}>
           <InfoAlert>

@@ -34,6 +34,7 @@ type iamUsecaseMockConfig struct {
 	listUserTenantsFunc           func(ctx context.Context, userID uint) ([]iamentity.Membership, error)
 	createPolicyFunc              func(ctx context.Context, input iamentity.CreatePolicyInput) (*iamentity.Policy, []iamentity.PolicyStatement, error)
 	assumeRoleFunc                func(ctx context.Context, input iamentity.AssumeRoleInput) (*iamentity.AssumedRole, error)
+	checkPlatformPermissionFunc   func(ctx context.Context, userID uint, permission string) (bool, error)
 	requirePlatformPermissionFunc func(ctx context.Context, userID uint, permission string) error
 }
 
@@ -78,6 +79,12 @@ func newIAMUsecaseMock(t *testing.T, cfg iamUsecaseMockConfig) *iammocks.MockIAM
 	}
 	if cfg.assumeRoleFunc != nil {
 		iamUC.EXPECT().AssumeRole(mock.Anything, mock.Anything).RunAndReturn(cfg.assumeRoleFunc).Maybe()
+	}
+	if cfg.checkPlatformPermissionFunc != nil {
+		iamUC.EXPECT().
+			CheckPlatformPermission(mock.Anything, mock.Anything, mock.Anything).
+			RunAndReturn(cfg.checkPlatformPermissionFunc).
+			Maybe()
 	}
 	if cfg.requirePlatformPermissionFunc != nil {
 		iamUC.EXPECT().

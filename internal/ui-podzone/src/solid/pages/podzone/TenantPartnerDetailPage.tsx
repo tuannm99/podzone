@@ -144,7 +144,7 @@ export default function TenantPartnerDetailPage() {
                   content={partnerTypeLabel(current().partnerType)}
                   color="indigo"
                 />
-                <Badge content={`store ${current().tenantId}`} color="blue" />
+                <Badge content={`tenant ${current().tenantId}`} color="blue" />
               </div>
             </Card>
 

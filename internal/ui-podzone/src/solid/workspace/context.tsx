@@ -31,8 +31,7 @@ function pickInitialStore(tenantId: string, stores: StoreInfo[]) {
   const persisted = storeStorage.getStoreID(tenantId);
   const persistedMatch = stores.find((store) => store.id === persisted);
   if (persistedMatch) return persistedMatch.id;
-  const active = stores.find((store) => store.status === 'active' || store.isActive);
-  return active?.id || stores[0]?.id || '';
+  return '';
 }
 
 function syncStoreIdToURL(storeId: string) {

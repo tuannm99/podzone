@@ -1,7 +1,6 @@
-import { Link, useNavigate } from '@tanstack/solid-router';
-import { For, Show, createSignal } from 'solid-js';
-import { ensureActiveTenant, logout } from '../../services/auth';
-import { tenantStorage } from '../../services/tenantStorage';
+import { Link } from '@tanstack/solid-router';
+import { For, Show } from 'solid-js';
+import { logout } from '../../services/auth';
 import { tokenStorage } from '../../services/tokenStorage';
 import { useTenantWorkspace } from '../workspace/context';
 import { Button } from '../components/common/Primitives';
@@ -25,23 +24,24 @@ function initials(value: string) {
 }
 
 export function PodzoneNavbar(props: { currentPath: string }) {
-  const navigate = useNavigate();
   const workspace = useTenantWorkspace();
-  const [tenantId, setTenantId] = createSignal(
-    tokenStorage.getActiveTenantID() || tenantStorage.getTenantID()
-  );
-  const [switchingTenant, setSwitchingTenant] = createSignal(false);
   const user = tokenStorage.getUser();
 
   const hasTenant = () =>
-    (workspace?.tenantId() || tenantId()).trim().length > 0;
-  const activeTenantId = () => workspace?.tenantId() || tenantId();
+    (workspace?.tenantId() || tokenStorage.getActiveTenantID()).trim().length > 0;
+  const activeTenantId = () =>
+    workspace?.tenantId() || tokenStorage.getActiveTenantID();
   const currentStore = () => workspace?.currentStore();
   const currentStoreId = () => workspace?.currentStoreId() || '';
-  const stores = () => workspace?.stores() || [];
-  const loadingStores = () => workspace?.loading() || false;
-  const storeName = () => currentStore()?.name || currentStoreId() || 'No store';
+  const storeName = () =>
+    currentStore()?.name || currentStoreId() || 'Choose a store';
   const accountLabel = () => user?.username || user?.email || 'Account';
+  const scopedHref = (path = '') => {
+    const tenant = activeTenantId().trim();
+    const storeId = currentStoreId().trim();
+    const params = storeId ? `?storeId=${encodeURIComponent(storeId)}` : '';
+    return `/t/${tenant}${path}${params}`;
+  };
 
   const links = (): NavItem[] => [
     {
@@ -56,23 +56,23 @@ export function PodzoneNavbar(props: { currentPath: string }) {
       section: 'Platform',
       active: () => props.currentPath === '/admin/settings',
     },
-    ...(hasTenant()
+    ...(hasTenant() && currentStoreId()
       ? [
           {
-            href: `/t/${activeTenantId().trim()}`,
+            href: scopedHref(),
             label: 'Store Home',
             section: 'Operations' as const,
             active: () => props.currentPath === `/t/${activeTenantId().trim()}`,
           },
           {
-            href: `/t/${activeTenantId().trim()}/orders`,
+            href: scopedHref('/orders'),
             label: 'Orders',
             section: 'Operations' as const,
             active: () =>
               props.currentPath === `/t/${activeTenantId().trim()}/orders`,
           },
           {
-            href: `/t/${activeTenantId().trim()}/products/setup`,
+            href: scopedHref('/products/setup'),
             label: 'Products',
             section: 'Operations' as const,
             active: () =>
@@ -80,14 +80,14 @@ export function PodzoneNavbar(props: { currentPath: string }) {
               `/t/${activeTenantId().trim()}/products/setup`,
           },
           {
-            href: `/t/${activeTenantId().trim()}/partners`,
+            href: scopedHref('/partners'),
             label: 'Partners',
             section: 'Operations' as const,
             active: () =>
               props.currentPath === `/t/${activeTenantId().trim()}/partners`,
           },
           {
-            href: `/t/${activeTenantId().trim()}/orders/audit`,
+            href: scopedHref('/orders/audit'),
             label: 'Audit',
             section: 'Operations' as const,
             active: () =>
@@ -97,20 +97,6 @@ export function PodzoneNavbar(props: { currentPath: string }) {
         ]
       : []),
   ];
-
-  const goToTenant = async () => {
-    const nextTenant = tenantId().trim();
-    if (!nextTenant) return;
-    setSwitchingTenant(true);
-    try {
-      const { success } = await ensureActiveTenant(nextTenant);
-      if (!success) return;
-      tenantStorage.setTenantID(nextTenant);
-      void navigate({ to: `/t/${nextTenant}` });
-    } finally {
-      setSwitchingTenant(false);
-    }
-  };
 
   const platformLinks = () => links().filter((item) => item.section === 'Platform');
   const operationLinks = () =>
@@ -148,49 +134,27 @@ export function PodzoneNavbar(props: { currentPath: string }) {
             fallback={
               <div class="space-y-2">
                 <label class="text-xs font-semibold uppercase text-gray-500">
-                  Tenant
+                  Workspace
                 </label>
-                <div class="flex gap-2">
-                  <input
-                    class="min-w-0 flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-gray-900"
-                    value={tenantId()}
-                    placeholder="tenant id"
-                    onInput={(event) => setTenantId(event.currentTarget.value)}
-                  />
-                  <Button
-                    color="dark"
-                    size="xs"
-                    disabled={!hasTenant() || switchingTenant()}
-                    loading={switchingTenant()}
-                    onClick={() => {
-                      void goToTenant();
-                    }}
-                  >
-                    Open
-                  </Button>
-                </div>
+                <Button href="/admin" color="alternative" size="sm" class="w-full">
+                  Choose store
+                </Button>
               </div>
             }
           >
             <div class="space-y-2">
               <label class="text-xs font-semibold uppercase text-gray-500">
-                Store
+                Current store
               </label>
-              <select
-                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-gray-900"
-                value={currentStoreId()}
-                disabled={loadingStores() || stores().length === 0}
-                onChange={(event) =>
-                  workspace?.setCurrentStoreId(event.currentTarget.value)
-                }
-              >
-                <For each={stores()}>
-                  {(store) => <option value={store.id}>{store.name}</option>}
-                </For>
-              </select>
+              <div class="truncate rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-950">
+                {storeName()}
+              </div>
               <div class="truncate text-xs text-gray-500">
                 {activeTenantId().trim()}
               </div>
+              <Button href="/admin" color="alternative" size="sm" class="w-full">
+                Change store
+              </Button>
             </div>
           </Show>
         </div>

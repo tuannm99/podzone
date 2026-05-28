@@ -57,8 +57,22 @@ func (s *IAMServer) CreateTenant(
 	if req.OwnerUserId != 0 && uint64(actorUserID) != req.OwnerUserId {
 		return nil, status.Error(codes.InvalidArgument, "owner_user_id must match authenticated user")
 	}
-	if err := s.iamUC.RequirePlatformPermission(ctx, actorUserID, "tenant:create"); err != nil {
+	canCreateTenant := false
+	memberships, err := s.iamUC.ListUserTenants(ctx, actorUserID)
+	if err != nil {
 		return nil, iamStatusError(err)
+	}
+	if len(memberships) == 0 {
+		canCreateTenant = true
+	} else {
+		allowed, err := s.iamUC.CheckPlatformPermission(ctx, actorUserID, "tenant:create")
+		if err != nil {
+			return nil, iamStatusError(err)
+		}
+		canCreateTenant = allowed
+	}
+	if !canCreateTenant {
+		return nil, iamStatusError(iamdomain.ErrPermissionDenied)
 	}
 
 	tenant, err := s.iamUC.CreateTenant(ctx, actorUserID, iamdomain.CreateTenantCmd{

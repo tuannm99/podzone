@@ -190,7 +190,11 @@ func (s *interactor) DetachTenantUserPolicy(
 	return s.policies.DetachTenantUserPolicy(ctx, tenantID, userID, policy.ID)
 }
 
-func (s *interactor) ListTenantUserPolicies(ctx context.Context, tenantID string, userID uint) ([]entity.Policy, error) {
+func (s *interactor) ListTenantUserPolicies(
+	ctx context.Context,
+	tenantID string,
+	userID uint,
+) ([]entity.Policy, error) {
 	if strings.TrimSpace(tenantID) == "" {
 		return nil, entity.ErrTenantNotFound
 	}

@@ -209,7 +209,10 @@ func (s *interactor) PutRolePermissionBoundary(ctx context.Context, roleName str
 	return s.roles.PutPermissionBoundary(ctx, role.ID, policy.ID)
 }
 
-func (s *interactor) GetRolePermissionBoundary(ctx context.Context, roleName string) (*entity.RolePermissionBoundary, error) {
+func (s *interactor) GetRolePermissionBoundary(
+	ctx context.Context,
+	roleName string,
+) (*entity.RolePermissionBoundary, error) {
 	role, err := s.roles.GetByName(ctx, strings.TrimSpace(roleName))
 	if err != nil {
 		return nil, err

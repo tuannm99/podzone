@@ -115,10 +115,10 @@ const groupScopeOptions = [
 ];
 
 const tenantRoleOptions = [
-  { name: 'Tenant owner', value: 'tenant_owner' },
-  { name: 'Tenant admin', value: 'tenant_admin' },
-  { name: 'Tenant operator', value: 'tenant_editor' },
-  { name: 'Tenant viewer', value: 'tenant_viewer' },
+  { name: 'Workspace owner', value: 'tenant_owner' },
+  { name: 'Workspace admin', value: 'tenant_admin' },
+  { name: 'Workspace operator', value: 'tenant_editor' },
+  { name: 'Workspace viewer', value: 'tenant_viewer' },
 ];
 
 const platformRoleOptions = [
@@ -1302,7 +1302,7 @@ export default function AdminIamPage() {
           <Card class="space-y-4">
             <SectionTitle
               title="Organizations and SCP"
-              subtitle="Create organizations, map tenants, and attach service control policies."
+              subtitle="Create organizations, map workspaces, and attach service control policies."
             />
             <form class="grid gap-3 md:grid-cols-2" onSubmit={submitCreateOrganization}>
               <InputField label="Organization name" value={orgName()} onInput={(e) => setOrgName(e.currentTarget.value)} />
@@ -1323,7 +1323,7 @@ export default function AdminIamPage() {
 
             <div class="grid gap-3 md:grid-cols-2">
               <SelectField
-                label="Tenant to attach"
+                label="Workspace to attach"
                 value={orgTenantId()}
                 options={tenantOptions()}
                 onChange={(e) => setOrgTenantId(e.currentTarget.value)}
@@ -1337,7 +1337,7 @@ export default function AdminIamPage() {
 
             <div class="flex flex-wrap gap-3">
               <Button size="sm" onClick={handleAttachTenantToOrg} disabled={!selectedOrgId() || !orgTenantId()}>
-                Attach tenant
+                Attach workspace
               </Button>
               <Button size="sm" color="dark" onClick={handleAttachScp} disabled={!selectedOrgId() || !orgPolicyName().trim()}>
                 Attach SCP
@@ -1369,7 +1369,7 @@ export default function AdminIamPage() {
                             color="light"
                             onClick={() => handleDetachTenantFromOrg(orgTenantId().trim())}
                           >
-                            Detach selected tenant
+                            Detach selected workspace
                           </Button>
                         </Show>
                         <For each={org.id === selectedOrgId() ? orgPolicies() : []}>
@@ -1406,7 +1406,7 @@ export default function AdminIamPage() {
           <Card class="space-y-4">
             <SectionTitle
               title="Role assignment shortcuts"
-              subtitle="Quickly grant or revoke platform roles and tenant memberships without leaving the IAM console."
+              subtitle="Quickly grant or revoke platform roles and workspace memberships without leaving the IAM console."
             />
             <div class="grid gap-6 lg:grid-cols-2">
               <div class="space-y-3 rounded-lg border border-gray-200 p-4">
@@ -1433,9 +1433,9 @@ export default function AdminIamPage() {
               </div>
 
               <div class="space-y-3 rounded-lg border border-gray-200 p-4">
-                <p class="text-sm font-semibold text-gray-900">Tenant membership shortcut</p>
+                <p class="text-sm font-semibold text-gray-900">Workspace membership shortcut</p>
                 <SelectField
-                  label="Tenant"
+                  label="Workspace"
                   value={shortcutTenantId()}
                   options={tenantOptions()}
                   onChange={(e) => setShortcutTenantId(e.currentTarget.value)}
@@ -1446,14 +1446,14 @@ export default function AdminIamPage() {
                   onInput={(e) => setShortcutTenantUserId(e.currentTarget.value)}
                 />
                 <SelectField
-                  label="Tenant role"
+                  label="Workspace role"
                   value={shortcutTenantRoleName()}
                   options={tenantRoleOptions}
                   onChange={(e) => setShortcutTenantRoleName(e.currentTarget.value)}
                 />
                 <div class="flex flex-wrap gap-3">
                   <Button size="sm" onClick={handleAssignTenantRole} disabled={!shortcutTenantId().trim() || !shortcutTenantUserId().trim()}>
-                    Assign tenant role
+                    Assign workspace role
                   </Button>
                   <Button size="sm" color="red" onClick={handleRemoveTenantMembershipShortcut} disabled={!shortcutTenantId().trim() || !shortcutTenantUserId().trim()}>
                     Remove membership

@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	iamentity "github.com/tuannm99/podzone/internal/iam/entity"
 	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
@@ -13,7 +15,9 @@ import (
 
 func TestCreateTenant_OK(t *testing.T) {
 	srv := newIAMServerForTest(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
-		requirePlatformPermissionFunc: func(ctx context.Context, userID uint, permission string) error { return nil },
+		listUserTenantsFunc: func(ctx context.Context, userID uint) ([]iamentity.Membership, error) {
+			return nil, nil
+		},
 		createTenantFunc: func(ctx context.Context, ownerUserID uint, cmd iamentity.CreateTenantCmd) (*iamentity.Tenant, error) {
 			return &iamentity.Tenant{ID: "tenant-1", Name: cmd.Name, Slug: cmd.Slug}, nil
 		},
@@ -36,6 +40,25 @@ func TestCreateTenant_OK(t *testing.T) {
 	require.NotNil(t, res)
 	assert.Equal(t, "tenant-1", res.Tenant.Id)
 	assert.Equal(t, uint64(7), res.OwnerMembership.UserId)
+}
+
+func TestCreateTenant_RequiresPlatformPermissionAfterFirstWorkspace(t *testing.T) {
+	srv := newIAMServerForTest(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		listUserTenantsFunc: func(ctx context.Context, userID uint) ([]iamentity.Membership, error) {
+			return []iamentity.Membership{{TenantID: "existing", UserID: userID}}, nil
+		},
+		checkPlatformPermissionFunc: func(ctx context.Context, userID uint, permission string) (bool, error) {
+			return false, nil
+		},
+	}))
+
+	_, err := srv.CreateTenant(authContextForIAMUser(t, 7), &pbauthv1.CreateTenantRequest{
+		OwnerUserId: 7,
+		Name:        "Second Tenant",
+		Slug:        "second-tenant",
+	})
+	require.Error(t, err)
+	assert.Equal(t, codes.PermissionDenied, status.Code(err))
 }
 
 func TestCheckPermission_InactiveMembershipReturnsNotAllowed(t *testing.T) {

@@ -24,7 +24,7 @@ export default function AcceptInvitePage() {
   const acceptInvite = async () => {
     const token = inviteToken();
     if (!token) {
-      setError('Missing store invite token.');
+      setError('Missing workspace invite token.');
       return;
     }
     if (!isAuthenticated()) {
@@ -48,18 +48,14 @@ export default function AcceptInvitePage() {
       const switched = await switchActiveTenant(tenantId);
       if (!switched.success) {
         setMessage(
-          `Store invite accepted for ${tenantId}. Open that store manually from the backoffice if switching does not happen automatically.`
+          `Workspace invite accepted for ${tenantId}. Open /admin and choose the store manually if switching does not happen automatically.`
         );
         void navigate({ to: '/admin', replace: true });
         return;
       }
 
-      setMessage(`Store invite accepted. Opening store ${tenantId}.`);
-      void navigate({
-        to: '/t/$tenantId',
-        params: { tenantId },
-        replace: true,
-      });
+      setMessage(`Workspace invite accepted. Choose a store from /admin to continue.`);
+      void navigate({ to: '/admin', replace: true });
     } finally {
       setLoading(false);
     }
@@ -69,9 +65,9 @@ export default function AcceptInvitePage() {
     <div class="mx-auto flex min-h-[calc(100vh-3rem)] max-w-3xl items-center px-4 py-10 sm:px-6 lg:px-8">
       <Card class="w-full space-y-5">
         <SectionLead
-          eyebrow="Store Invite"
-          title="Join your store team."
-          copy="This invite links your signed-in account to the right store role, then opens that store so you can start working right away."
+          eyebrow="Workspace Invite"
+          title="Join your workspace team."
+          copy="This invite links your signed-in account to the right workspace role, then sends you back to /admin so you can pick the right store."
         />
 
         <Show when={error()}>
@@ -83,13 +79,13 @@ export default function AcceptInvitePage() {
         </Show>
 
         <Show when={!inviteToken()}>
-          <ErrorAlert>Store invite token is missing from this URL.</ErrorAlert>
+          <ErrorAlert>Workspace invite token is missing from this URL.</ErrorAlert>
         </Show>
 
         <Show when={!isAuthenticated()}>
           <InfoAlert>
             Sign in with the invited account, then reopen this link to finish
-            joining the store.
+            joining the workspace.
           </InfoAlert>
         </Show>
 
@@ -102,7 +98,7 @@ export default function AcceptInvitePage() {
               void acceptInvite();
             }}
           >
-            Join store
+            Join workspace
           </Button>
           <Button color="alternative" href="/auth/login">
             Go to sign in

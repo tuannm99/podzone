@@ -8,7 +8,12 @@ import {
   type TenantMembership,
 } from '../../../services/iam';
 import { getRoutedOrders } from '../../../services/orders';
-import { listStores } from '../../../services/store';
+import {
+  activateStore,
+  createStore,
+  listStores,
+  type StoreInfo,
+} from '../../../services/store';
 import { storeStorage } from '../../../services/storeStorage';
 import { tenantStorage } from '../../../services/tenantStorage';
 import { tokenStorage } from '../../../services/tokenStorage';
@@ -80,6 +85,7 @@ type WorkspaceSummary = {
   roleName: string;
   status: string;
   userId: number;
+  stores: StoreInfo[];
   storeCount: number;
   activeStoreCount: number;
 };
@@ -97,6 +103,10 @@ export default function AdminHomePage() {
   const [tenantMessage, setTenantMessage] = createSignal('');
   const [switchingTenant, setSwitchingTenant] = createSignal(false);
   const [creatingTenant, setCreatingTenant] = createSignal(false);
+  const [creatingStoreTenantId, setCreatingStoreTenantId] = createSignal('');
+  const [storeNameByTenant, setStoreNameByTenant] = createSignal<
+    Record<string, string>
+  >({});
   const [loadingTenants, setLoadingTenants] = createSignal(false);
   const [loadingAttention, setLoadingAttention] = createSignal(false);
   const [checkingPlatformAccess, setCheckingPlatformAccess] =
@@ -107,8 +117,10 @@ export default function AdminHomePage() {
   >([]);
   const [storeAttention, setStoreAttention] = createSignal<StoreAttention[]>([]);
   const [canCreateTenant, setCanCreateTenant] = createSignal(false);
+  const [canManagePlatformIAM, setCanManagePlatformIAM] = createSignal(false);
   const activeMemberships = () =>
     memberships().filter((membership) => membership.status === 'active');
+  const canBootstrapFirstWorkspace = () => !!userID && memberships().length === 0;
 
   const loadWorkspaceData = async (membershipsToInspect: TenantMembership[]) => {
     const activeWorkspaces = membershipsToInspect.filter(
@@ -144,6 +156,7 @@ export default function AdminHomePage() {
           roleName: membership.roleName,
           status: membership.status,
           userId: membership.userId,
+          stores,
           storeCount: stores.length,
           activeStoreCount: stores.filter((store) => store.isActive).length,
         });
@@ -219,6 +232,9 @@ export default function AdminHomePage() {
         return;
       }
       setMemberships(result.data);
+      if (result.data.length === 0) {
+        setCanCreateTenant(true);
+      }
       await loadWorkspaceData(result.data);
     } finally {
       setLoadingTenants(false);
@@ -230,6 +246,10 @@ export default function AdminHomePage() {
       setCanCreateTenant(false);
       return;
     }
+    if (canBootstrapFirstWorkspace()) {
+      setCanCreateTenant(true);
+      return;
+    }
     setCheckingPlatformAccess(true);
     try {
       const result = await checkPlatformPermission('tenant:create');
@@ -239,12 +259,38 @@ export default function AdminHomePage() {
         return;
       }
       setCanCreateTenant(result.data);
+      const iamResult = await checkPlatformPermission('platform:manage_roles');
+      setCanManagePlatformIAM(iamResult.success ? iamResult.data : false);
     } finally {
       setCheckingPlatformAccess(false);
     }
   };
 
-  const openTenant = async (nextTenantID = tenantId().trim()) => {
+  const openStore = async (nextTenantID: string, nextStoreID: string) => {
+    const normalizedTenantID = nextTenantID.trim();
+    const normalizedStoreID = nextStoreID.trim();
+    if (!normalizedTenantID || !normalizedStoreID) return;
+
+    setSwitchingTenant(true);
+    setTenantError('');
+    setTenantMessage('');
+    try {
+      const { success, data } = await ensureActiveTenant(normalizedTenantID);
+      if (!success) {
+        setTenantError(data.message || 'Failed to open store');
+        return;
+      }
+
+      tenantStorage.setTenantID(normalizedTenantID);
+      storeStorage.setStoreID(normalizedTenantID, normalizedStoreID);
+      setTenantId(normalizedTenantID);
+      window.location.href = `/t/${normalizedTenantID}?storeId=${encodeURIComponent(normalizedStoreID)}`;
+    } finally {
+      setSwitchingTenant(false);
+    }
+  };
+
+  const prepareTenant = async (nextTenantID = tenantId().trim()) => {
     if (!nextTenantID) return;
 
     setSwitchingTenant(true);
@@ -253,15 +299,54 @@ export default function AdminHomePage() {
     try {
       const { success, data } = await ensureActiveTenant(nextTenantID);
       if (!success) {
-      setTenantError(data.message || 'Failed to open store');
+        setTenantError(data.message || 'Failed to load workspace');
         return;
       }
-
       tenantStorage.setTenantID(nextTenantID);
       setTenantId(nextTenantID);
-      window.location.href = `/t/${nextTenantID}`;
+      setTenantMessage(`Loaded workspace ${nextTenantID}. Choose a store below.`);
+      await loadMemberships();
     } finally {
       setSwitchingTenant(false);
+    }
+  };
+
+  const setDraftStoreName = (nextTenantID: string, value: string) => {
+    setStoreNameByTenant((current) => ({
+      ...current,
+      [nextTenantID]: value,
+    }));
+  };
+
+  const submitCreateStore = async (nextTenantID: string) => {
+    const normalizedTenantID = nextTenantID.trim();
+    const normalizedStoreName = (storeNameByTenant()[normalizedTenantID] || '').trim();
+    if (!normalizedTenantID || !normalizedStoreName) return;
+
+    setCreatingStoreTenantId(normalizedTenantID);
+    setTenantError('');
+    setTenantMessage('');
+    try {
+      const switched = await ensureActiveTenant(normalizedTenantID);
+      if (!switched.success) {
+        setTenantError(switched.data.message || 'Failed to load workspace');
+        return;
+      }
+      const created = await createStore({ name: normalizedStoreName });
+      if (!created.success) {
+        setTenantError(created.message);
+        return;
+      }
+      const activated = await activateStore(created.data.id);
+      if (!activated.success) {
+        setTenantError(activated.message);
+        return;
+      }
+      setDraftStoreName(normalizedTenantID, '');
+      await loadMemberships();
+      await openStore(normalizedTenantID, activated.data.id);
+    } finally {
+      setCreatingStoreTenantId('');
     }
   };
 
@@ -272,15 +357,15 @@ export default function AdminHomePage() {
       setTenantError('No signed-in account found.');
       return;
     }
-    if (!canCreateTenant()) {
-      setTenantError('Your account cannot create stores yet.');
+    if (!canCreateTenant() && !canBootstrapFirstWorkspace()) {
+      setTenantError('Your account cannot create another workspace yet.');
       return;
     }
 
     const normalizedName = tenantName().trim();
     const normalizedSlug = slugify(tenantSlug() || normalizedName);
     if (!normalizedName || !normalizedSlug) {
-      setTenantError('Store name and store slug are required.');
+      setTenantError('Workspace name and slug are required.');
       return;
     }
 
@@ -304,18 +389,21 @@ export default function AdminHomePage() {
       setTenantId(createdTenantID);
       setTenantMessage(
         createdTenantID
-          ? `Created store ${createdSlug} (${createdTenantID}).`
-          : `Created store ${createdSlug}.`
+          ? `Created workspace ${createdSlug} (${createdTenantID}).`
+          : `Created workspace ${createdSlug}.`
       );
       await loadMemberships();
+      await loadPlatformAccess();
     } finally {
       setCreatingTenant(false);
     }
   };
 
   onMount(() => {
-    void loadPlatformAccess();
-    void loadMemberships();
+    void (async () => {
+      await loadMemberships();
+      await loadPlatformAccess();
+    })();
   });
 
   return (
@@ -323,13 +411,15 @@ export default function AdminHomePage() {
       <Card class="space-y-4">
         <SectionLead
           eyebrow="Seller Backoffice"
-          title="Manage your stores from one control room."
-          copy="Create a new store, review where your team has access, and open the right workspace without relying on technical IDs."
+          title="Choose the store you want to operate."
+          copy="Start from a tenant workspace, create or select a store, then enter the store-scoped backoffice."
         />
         <div class="flex flex-wrap gap-3">
-          <Button href="/admin/iam" color="dark" size="sm">
-            Open IAM console
-          </Button>
+          <Show when={canManagePlatformIAM()}>
+            <Button href="/admin/iam" color="dark" size="sm">
+              Open IAM console
+            </Button>
+          </Show>
         </div>
       </Card>
 
@@ -356,7 +446,12 @@ export default function AdminHomePage() {
         />
         <StatCard
           label="Current store"
-          value={tokenStorage.getActiveTenantID() || 'Not selected'}
+          value={
+            tokenStorage.getActiveTenantID()
+              ? storeStorage.getStoreID(tokenStorage.getActiveTenantID()) ||
+                'Not selected'
+              : 'Not selected'
+          }
         />
         <StatCard
           label="Stores with attention"
@@ -372,24 +467,24 @@ export default function AdminHomePage() {
       </div>
 
       <Show when={checkingPlatformAccess()}>
-        <LoadingInline label="Checking store creation access..." />
+        <LoadingInline label="Checking workspace creation access..." />
       </Show>
 
       <div class="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
         <Card class="space-y-4">
           <SectionTitle
-            title="Create store"
-            subtitle="Open a new store workspace and make yourself the store owner."
+            title="Create workspace"
+            subtitle="Create the tenant workspace that will own your stores and IAM memberships."
           />
           <Show when={!canCreateTenant() && !checkingPlatformAccess()}>
             <InfoAlert>
-              Creating stores requires platform approval. The first platform
-              owner can grant this access to additional operators.
+              This account already owns a workspace. Creating additional
+              workspaces requires platform approval.
             </InfoAlert>
           </Show>
           <form class="space-y-4" onSubmit={submitCreateTenant}>
             <InputField
-              label="Store name"
+              label="Workspace name"
               value={tenantName()}
               placeholder="Urban Finds"
               onInput={(event) => {
@@ -401,7 +496,7 @@ export default function AdminHomePage() {
               }}
             />
             <InputField
-              label="Store slug"
+              label="Workspace slug"
               value={tenantSlug()}
               placeholder="urban-finds"
               onInput={(event) =>
@@ -412,9 +507,12 @@ export default function AdminHomePage() {
               <Button
                 type="submit"
                 loading={creatingTenant()}
-                disabled={!tenantName().trim() || !canCreateTenant()}
+                disabled={
+                  !tenantName().trim() ||
+                  (!canCreateTenant() && !canBootstrapFirstWorkspace())
+                }
               >
-                Create store
+                Create workspace
               </Button>
               <Badge
                 content={
@@ -430,8 +528,8 @@ export default function AdminHomePage() {
 
         <Card class="space-y-4">
           <SectionTitle
-            title="Quick workspace jump"
-            subtitle="Keep direct tenant opening for debugging, but prefer opening from your assigned workspaces below."
+            title="Load workspace"
+            subtitle="Use direct tenant loading only when you know the ID. Store selection still happens below."
           />
           <div class="flex flex-col gap-3 sm:flex-row">
             <input
@@ -444,10 +542,10 @@ export default function AdminHomePage() {
               disabled={!tenantId().trim() || switchingTenant()}
               loading={switchingTenant()}
               onClick={() => {
-                void openTenant();
+                void prepareTenant();
               }}
             >
-              Open workspace
+              Load workspace
             </Button>
           </div>
           {!tenantId().trim() ? (
@@ -463,7 +561,7 @@ export default function AdminHomePage() {
         <Card class="space-y-4">
           <SectionTitle
             title="My workspaces"
-            subtitle="Tenant workspaces your account can access, including how many stores each workspace currently owns."
+            subtitle="Pick one store to enter. To switch later, return here and choose another store."
           />
           <Show when={loadingTenants()}>
             <LoadingInline label="Loading workspaces..." />
@@ -505,18 +603,73 @@ export default function AdminHomePage() {
                     <p class="mt-1 text-sm text-gray-600">
                       {workspace.storeCount} stores · {workspace.activeStoreCount} active
                     </p>
-                    <div class="mt-3 flex flex-wrap gap-3">
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          void openTenant(workspace.tenantId);
-                        }}
+                    <div class="mt-4 space-y-3">
+                      <Show
+                        when={workspace.stores.length > 0}
+                        fallback={
+                          <EmptyBlock
+                            title="No stores in this workspace"
+                            copy="Create the first store here, then the backoffice will open in that store scope."
+                          />
+                        }
                       >
-                        Open workspace
-                      </Button>
+                        <For each={workspace.stores}>
+                          {(store) => (
+                            <div class="flex flex-col gap-3 rounded-md border border-gray-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+                              <div class="min-w-0">
+                                <div class="truncate text-sm font-semibold text-gray-950">
+                                  {store.name}
+                                </div>
+                                <div class="mt-1 flex flex-wrap gap-2">
+                                  <Badge
+                                    content={store.status || 'unknown'}
+                                    color={store.isActive ? 'green' : 'dark'}
+                                  />
+                                  <Badge content={store.id} color="dark" />
+                                </div>
+                              </div>
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  void openStore(workspace.tenantId, store.id);
+                                }}
+                              >
+                                Open store
+                              </Button>
+                            </div>
+                          )}
+                        </For>
+                      </Show>
+                      <div class="flex flex-col gap-3 rounded-md border border-dashed border-gray-300 bg-white p-3 sm:flex-row">
+                        <input
+                          class="block h-9 min-w-0 flex-1 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none transition focus:border-gray-950 focus:ring-2 focus:ring-gray-100"
+                          value={storeNameByTenant()[workspace.tenantId] || ''}
+                          placeholder="New store name"
+                          onInput={(event) =>
+                            setDraftStoreName(
+                              workspace.tenantId,
+                              event.currentTarget.value
+                            )
+                          }
+                        />
+                        <Button
+                          size="sm"
+                          color="alternative"
+                          loading={creatingStoreTenantId() === workspace.tenantId}
+                          disabled={
+                            creatingStoreTenantId() === workspace.tenantId ||
+                            !(storeNameByTenant()[workspace.tenantId] || '').trim()
+                          }
+                          onClick={() => {
+                            void submitCreateStore(workspace.tenantId);
+                          }}
+                        >
+                          Create store
+                        </Button>
+                      </div>
                       <Button
                         size="sm"
-                        color="alternative"
+                        color="light"
                         onClick={() => {
                           setTenantId(workspace.tenantId);
                           setTenantMessage(
@@ -524,7 +677,7 @@ export default function AdminHomePage() {
                           );
                         }}
                       >
-                        Use for quick jump
+                        Use for direct load
                       </Button>
                     </div>
                   </div>
@@ -630,7 +783,7 @@ export default function AdminHomePage() {
             <div class="rounded-lg bg-gray-50 p-4">
               <p class="font-semibold text-gray-950">Next step</p>
               <p class="mt-1">
-                Use the settings page to manage team access, store invites,
+                Use the settings page to manage team access, workspace invites,
                 sessions, and platform administration.
               </p>
             </div>
