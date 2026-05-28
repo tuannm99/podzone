@@ -8,6 +8,7 @@ import (
 	"github.com/tuannm99/podzone/pkg/pdconfig"
 	"github.com/tuannm99/podzone/pkg/pdglobalmiddleware"
 	"github.com/tuannm99/podzone/pkg/pdhttp"
+	"github.com/tuannm99/podzone/pkg/pdkafka"
 	kvstores "github.com/tuannm99/podzone/pkg/pdkvstores"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/pdmongo"
@@ -16,6 +17,7 @@ import (
 var connOpts = fx.Options(
 	kvstores.Module,
 	pdmongo.ModuleFor("onboarding"),
+	pdkafka.ModuleFor("onboarding"),
 	onboarding.Module,
 )
 

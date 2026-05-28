@@ -7,7 +7,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/core"
+	infrasinputport "github.com/tuannm99/podzone/internal/onboarding/infrasmanager/inputport"
 )
+
+var _ infrasinputport.Usecase = (*Service)(nil)
 
 type Service struct {
 	st core.ConnectionStore

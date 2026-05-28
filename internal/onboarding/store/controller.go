@@ -4,26 +4,27 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	storeinputport "github.com/tuannm99/podzone/internal/onboarding/store/inputport"
 	pdlog "github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
 )
 
 type StoreController struct {
 	logger  pdlog.Logger
-	service *StoreService
+	service storeinputport.Usecase
 }
 
 type StoreControllerParams struct {
 	fx.In
 
 	Logger       pdlog.Logger
-	StoreService *StoreService
+	StoreUsecase storeinputport.Usecase
 }
 
 func NewStoreController(params StoreControllerParams) *StoreController {
 	return &StoreController{
 		logger:  params.Logger,
-		service: params.StoreService,
+		service: params.StoreUsecase,
 	}
 }
 
@@ -94,7 +95,7 @@ func (c *StoreController) GetStore(ctx *gin.Context) {
 }
 
 type UpdateStoreStatusRequest struct {
-	Status StoreStatus `json:"status" binding:"required"`
+	Status storeinputport.StoreStatus `json:"status" binding:"required"`
 }
 
 func (c *StoreController) UpdateStoreStatus(ctx *gin.Context) {

@@ -10,7 +10,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/fx"
+
+	storeinputport "github.com/tuannm99/podzone/internal/onboarding/store/inputport"
 )
+
+var _ storeinputport.Usecase = (*StoreService)(nil)
 
 var (
 	ErrStoreNotFound     = errors.New("store not found")
@@ -69,7 +73,7 @@ func NewStoreService(params StoreServiceParams) *StoreService {
 }
 
 // CreateStore creates a new store
-func (s *StoreService) CreateStore(ctx context.Context, name, subdomain, ownerID string) (*Store, error) {
+func (s *StoreService) CreateStore(ctx context.Context, name, subdomain, ownerID string) (*storeinputport.Store, error) {
 	// Check if subdomain is taken
 	var existing Store
 	err := s.collection.FindOne(ctx, bson.M{"subdomain": subdomain}).Decode(&existing)
@@ -97,11 +101,11 @@ func (s *StoreService) CreateStore(ctx context.Context, name, subdomain, ownerID
 	}
 
 	store.ID = result.InsertedID.(primitive.ObjectID)
-	return store, nil
+	return toInputPortStore(store), nil
 }
 
 // GetStore retrieves a store by ID
-func (s *StoreService) GetStore(ctx context.Context, id string) (*Store, error) {
+func (s *StoreService) GetStore(ctx context.Context, id string) (*storeinputport.Store, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
@@ -116,11 +120,11 @@ func (s *StoreService) GetStore(ctx context.Context, id string) (*Store, error) 
 		return nil, err
 	}
 
-	return &store, nil
+	return toInputPortStore(&store), nil
 }
 
 // GetStoresByOwner retrieves all stores owned by a user
-func (s *StoreService) GetStoresByOwner(ctx context.Context, ownerID string) ([]*Store, error) {
+func (s *StoreService) GetStoresByOwner(ctx context.Context, ownerID string) ([]*storeinputport.Store, error) {
 	cursor, err := s.collection.Find(ctx, bson.M{"owner_id": ownerID})
 	if err != nil {
 		return nil, err
@@ -132,11 +136,15 @@ func (s *StoreService) GetStoresByOwner(ctx context.Context, ownerID string) ([]
 		return nil, err
 	}
 
-	return stores, nil
+	out := make([]*storeinputport.Store, 0, len(stores))
+	for _, st := range stores {
+		out = append(out, toInputPortStore(st))
+	}
+	return out, nil
 }
 
 // UpdateStoreStatus updates a store's status
-func (s *StoreService) UpdateStoreStatus(ctx context.Context, id string, status StoreStatus) error {
+func (s *StoreService) UpdateStoreStatus(ctx context.Context, id string, status storeinputport.StoreStatus) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
@@ -152,7 +160,7 @@ func (s *StoreService) UpdateStoreStatus(ctx context.Context, id string, status 
 	}
 
 	// Validate status transition
-	if !isValidStatusTransition(store.Status, status) {
+	if !isValidStatusTransition(storeinputport.StoreStatus(store.Status), status) {
 		return ErrInvalidStatus
 	}
 
@@ -163,7 +171,7 @@ func (s *StoreService) UpdateStoreStatus(ctx context.Context, id string, status 
 		},
 	}
 
-	if status == StoreStatusActive {
+	if status == storeinputport.StoreStatusActive {
 		now := time.Now()
 		update["$set"].(bson.M)["completed_at"] = now
 	}
@@ -173,19 +181,39 @@ func (s *StoreService) UpdateStoreStatus(ctx context.Context, id string, status 
 }
 
 // isValidStatusTransition checks if the status transition is valid
-func isValidStatusTransition(current, next StoreStatus) bool {
+func isValidStatusTransition(current, next storeinputport.StoreStatus) bool {
 	switch current {
-	case StoreStatusDraft:
-		return next == StoreStatusPending || next == StoreStatusRejected
-	case StoreStatusPending:
-		return next == StoreStatusActive || next == StoreStatusRejected
-	case StoreStatusActive:
-		return next == StoreStatusSuspended
-	case StoreStatusRejected:
-		return next == StoreStatusPending
-	case StoreStatusSuspended:
-		return next == StoreStatusActive
+	case storeinputport.StoreStatusDraft:
+		return next == storeinputport.StoreStatusPending || next == storeinputport.StoreStatusRejected
+	case storeinputport.StoreStatusPending:
+		return next == storeinputport.StoreStatusActive || next == storeinputport.StoreStatusRejected
+	case storeinputport.StoreStatusActive:
+		return next == storeinputport.StoreStatusSuspended
+	case storeinputport.StoreStatusRejected:
+		return next == storeinputport.StoreStatusPending
+	case storeinputport.StoreStatusSuspended:
+		return next == storeinputport.StoreStatusActive
 	default:
 		return false
 	}
+}
+
+func toInputPortStore(st *Store) *storeinputport.Store {
+	if st == nil {
+		return nil
+	}
+	out := &storeinputport.Store{
+		ID:        st.ID.Hex(),
+		Name:      st.Name,
+		Subdomain: st.Subdomain,
+		OwnerID:   st.OwnerID,
+		Status:    storeinputport.StoreStatus(st.Status),
+		CreatedAt: st.CreatedAt,
+		UpdatedAt: st.UpdatedAt,
+	}
+	if st.CompletedAt != nil {
+		completedAt := *st.CompletedAt
+		out.CompletedAt = &completedAt
+	}
+	return out
 }

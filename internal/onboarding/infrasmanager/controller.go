@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/core"
+	infrasinputport "github.com/tuannm99/podzone/internal/onboarding/infrasmanager/inputport"
 	pdlog "github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 	"go.uber.org/fx"
@@ -12,20 +13,20 @@ import (
 
 type InfrasController struct {
 	logger  pdlog.Logger
-	service *Service
+	service infrasinputport.Usecase
 }
 
 type ControllerParams struct {
 	fx.In
 
-	Logger  pdlog.Logger
-	Service *Service
+	Logger        pdlog.Logger
+	InfrasUsecase infrasinputport.Usecase
 }
 
 func NewController(params ControllerParams) *InfrasController {
 	return &InfrasController{
 		logger:  params.Logger,
-		service: params.Service,
+		service: params.InfrasUsecase,
 	}
 }
 

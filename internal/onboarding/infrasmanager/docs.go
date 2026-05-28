@@ -6,6 +6,7 @@
 //  1. provision infrastructure (Mongo/Redis/Postgres/Elastic/Kafka, etc.) in a target environment
 //  2. store connection information (endpoint, auth secret reference, metadata)
 //  3. keep history/audit of provisioning actions for traceability
+//  4. publish side-effect requests through Kafka-backed outbox relay instead of writing directly to Consul
 //
 // Architecture (high-level)
 //
@@ -21,7 +22,8 @@
 //	       v
 //	Providers
 //	  - InfraProvisioner implementations (K8s/Helm/Terraform/CLI, etc.)
-//	  - ConnectionStore implementations (Consul KV, MongoDB, etc.)
+//	  - ConnectionStore implementations (MongoDB, etc.)
+//	  - OutboxStore adapter for Kafka relay
 //	  - History store (Consul KV or Mongo collection)
 //
 // # Data flow
@@ -32,7 +34,8 @@
 //	  -> Registry.Get(infraType)
 //	    -> Provisioner.Create(input) => ProvisionResult{Endpoint, SecretRef, Status}
 //	      -> ConnectionStore.Save(ConnectionInfo{...})
-//	        -> History.Append(Event{action=create, ...})  (optional)
+//	        -> History.Append(Event{action=create, ...})
+//	          -> Outbox.Enqueue(Envelope{type=consul.publish, ...})
 //	          -> return ProvisionResult
 //
 // DestroyInfra:
