@@ -159,33 +159,33 @@ service IAMService {
 
   rpc CreatePolicyVersion(CreatePolicyVersionRequest) returns (CreatePolicyVersionResponse) {
     option (google.api.http) = {
-      post: "/auth/v1/iam/policies/{name}/versions"
+      post: "/auth/v1/iam/policies/{name=**}/versions"
       body: "*"
     };
   }
 
   rpc GetPolicy(GetPolicyRequest) returns (GetPolicyResponse) {
     option (google.api.http) = {
-      get: "/auth/v1/iam/policies/{name}"
+      get: "/auth/v1/iam/policies/{name=**}"
     };
   }
 
   rpc ListPolicyVersions(ListPolicyVersionsRequest) returns (ListPolicyVersionsResponse) {
     option (google.api.http) = {
-      get: "/auth/v1/iam/policies/{name}/versions"
+      get: "/auth/v1/iam/policies/{name=**}/versions"
     };
   }
 
   rpc SetDefaultPolicyVersion(SetDefaultPolicyVersionRequest) returns (SetDefaultPolicyVersionResponse) {
     option (google.api.http) = {
-      post: "/auth/v1/iam/policies/{name}/versions/{version}:set-default"
+      post: "/auth/v1/iam/policies/{name=**}/versions/{version}:set-default"
       body: "*"
     };
   }
 
   rpc DeletePolicyVersion(DeletePolicyVersionRequest) returns (DeletePolicyVersionResponse) {
     option (google.api.http) = {
-      delete: "/auth/v1/iam/policies/{name}/versions/{version}"
+      delete: "/auth/v1/iam/policies/{name=**}/versions/{version}"
     };
   }
 
@@ -197,13 +197,13 @@ service IAMService {
 
   rpc ListPolicyAttachments(ListPolicyAttachmentsRequest) returns (ListPolicyAttachmentsResponse) {
     option (google.api.http) = {
-      get: "/auth/v1/iam/policies/{name}/attachments"
+      get: "/auth/v1/iam/policies/{name=**}/attachments"
     };
   }
 
   rpc DeletePolicy(DeletePolicyRequest) returns (DeletePolicyResponse) {
     option (google.api.http) = {
-      delete: "/auth/v1/iam/policies/{name}"
+      delete: "/auth/v1/iam/policies/{name=**}"
     };
   }
 

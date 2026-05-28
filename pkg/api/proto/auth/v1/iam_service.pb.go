@@ -25,7 +25,7 @@ var File_auth_v1_iam_service_proto protoreflect.FileDescriptor
 
 const file_auth_v1_iam_service_proto_rawDesc = "" +
 	"\n" +
-	"\x19auth/v1/iam_service.proto\x12\x04auth\x1a\x18auth/v1/iam_policy.proto\x1a\x1cauth/v1/iam_simulation.proto\x1a\x18auth/v1/iam_tenant.proto\x1a\x1cgoogle/api/annotations.proto2\xf0Y\n" +
+	"\x19auth/v1/iam_service.proto\x12\x04auth\x1a\x18auth/v1/iam_policy.proto\x1a\x1cauth/v1/iam_simulation.proto\x1a\x18auth/v1/iam_tenant.proto\x1a\x1cgoogle/api/annotations.proto2\x85Z\n" +
 	"\n" +
 	"IAMService\x12j\n" +
 	"\n" +
@@ -50,15 +50,15 @@ const file_auth_v1_iam_service_proto_rawDesc = "" +
 	"\x0fListUserTenants\x12\x1c.auth.ListUserTenantsRequest\x1a\x1d.auth.ListUserTenantsResponse\",\x82\xd3\xe4\x93\x02&\x12$/auth/v1/iam/users/{user_id}/tenants\x12\x90\x01\n" +
 	"\x11ListPlatformRoles\x12\x1e.auth.ListPlatformRolesRequest\x1a\x1f.auth.ListPlatformRolesResponse\":\x82\xd3\xe4\x93\x024\x122/auth/v1/iam/platform-users/{target_user_id}/roles\x12\x8d\x01\n" +
 	"\x0fAddPlatformRole\x12\x1c.auth.AddPlatformRoleRequest\x1a\x1d.auth.AddPlatformRoleResponse\"=\x82\xd3\xe4\x93\x027:\x01*\"2/auth/v1/iam/platform-users/{target_user_id}/roles\x12g\n" +
-	"\fCreatePolicy\x12\x19.auth.CreatePolicyRequest\x1a\x1a.auth.CreatePolicyResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/auth/v1/iam/policies\x12\x8c\x01\n" +
-	"\x13CreatePolicyVersion\x12 .auth.CreatePolicyVersionRequest\x1a!.auth.CreatePolicyVersionResponse\"0\x82\xd3\xe4\x93\x02*:\x01*\"%/auth/v1/iam/policies/{name}/versions\x12b\n" +
-	"\tGetPolicy\x12\x16.auth.GetPolicyRequest\x1a\x17.auth.GetPolicyResponse\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/auth/v1/iam/policies/{name}\x12\x86\x01\n" +
-	"\x12ListPolicyVersions\x12\x1f.auth.ListPolicyVersionsRequest\x1a .auth.ListPolicyVersionsResponse\"-\x82\xd3\xe4\x93\x02'\x12%/auth/v1/iam/policies/{name}/versions\x12\xae\x01\n" +
-	"\x17SetDefaultPolicyVersion\x12$.auth.SetDefaultPolicyVersionRequest\x1a%.auth.SetDefaultPolicyVersionResponse\"F\x82\xd3\xe4\x93\x02@:\x01*\";/auth/v1/iam/policies/{name}/versions/{version}:set-default\x12\x93\x01\n" +
-	"\x13DeletePolicyVersion\x12 .auth.DeletePolicyVersionRequest\x1a!.auth.DeletePolicyVersionResponse\"7\x82\xd3\xe4\x93\x021*//auth/v1/iam/policies/{name}/versions/{version}\x12d\n" +
-	"\fListPolicies\x12\x19.auth.ListPoliciesRequest\x1a\x1a.auth.ListPoliciesResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/auth/v1/iam/policies\x12\x92\x01\n" +
-	"\x15ListPolicyAttachments\x12\".auth.ListPolicyAttachmentsRequest\x1a#.auth.ListPolicyAttachmentsResponse\"0\x82\xd3\xe4\x93\x02*\x12(/auth/v1/iam/policies/{name}/attachments\x12k\n" +
-	"\fDeletePolicy\x12\x19.auth.DeletePolicyRequest\x1a\x1a.auth.DeletePolicyResponse\"$\x82\xd3\xe4\x93\x02\x1e*\x1c/auth/v1/iam/policies/{name}\x12b\n" +
+	"\fCreatePolicy\x12\x19.auth.CreatePolicyRequest\x1a\x1a.auth.CreatePolicyResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/auth/v1/iam/policies\x12\x8f\x01\n" +
+	"\x13CreatePolicyVersion\x12 .auth.CreatePolicyVersionRequest\x1a!.auth.CreatePolicyVersionResponse\"3\x82\xd3\xe4\x93\x02-:\x01*\"(/auth/v1/iam/policies/{name=**}/versions\x12e\n" +
+	"\tGetPolicy\x12\x16.auth.GetPolicyRequest\x1a\x17.auth.GetPolicyResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/auth/v1/iam/policies/{name=**}\x12\x89\x01\n" +
+	"\x12ListPolicyVersions\x12\x1f.auth.ListPolicyVersionsRequest\x1a .auth.ListPolicyVersionsResponse\"0\x82\xd3\xe4\x93\x02*\x12(/auth/v1/iam/policies/{name=**}/versions\x12\xb1\x01\n" +
+	"\x17SetDefaultPolicyVersion\x12$.auth.SetDefaultPolicyVersionRequest\x1a%.auth.SetDefaultPolicyVersionResponse\"I\x82\xd3\xe4\x93\x02C:\x01*\">/auth/v1/iam/policies/{name=**}/versions/{version}:set-default\x12\x96\x01\n" +
+	"\x13DeletePolicyVersion\x12 .auth.DeletePolicyVersionRequest\x1a!.auth.DeletePolicyVersionResponse\":\x82\xd3\xe4\x93\x024*2/auth/v1/iam/policies/{name=**}/versions/{version}\x12d\n" +
+	"\fListPolicies\x12\x19.auth.ListPoliciesRequest\x1a\x1a.auth.ListPoliciesResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/auth/v1/iam/policies\x12\x95\x01\n" +
+	"\x15ListPolicyAttachments\x12\".auth.ListPolicyAttachmentsRequest\x1a#.auth.ListPolicyAttachmentsResponse\"3\x82\xd3\xe4\x93\x02-\x12+/auth/v1/iam/policies/{name=**}/attachments\x12n\n" +
+	"\fDeletePolicy\x12\x19.auth.DeletePolicyRequest\x1a\x1a.auth.DeletePolicyResponse\"'\x82\xd3\xe4\x93\x02!*\x1f/auth/v1/iam/policies/{name=**}\x12b\n" +
 	"\vCreateGroup\x12\x18.auth.CreateGroupRequest\x1a\x19.auth.CreateGroupResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/auth/v1/iam/groups\x12\\\n" +
 	"\n" +
 	"ListGroups\x12\x17.auth.ListGroupsRequest\x1a\x18.auth.ListGroupsResponse\"\x1b\x82\xd3\xe4\x93\x02\x15\x12\x13/auth/v1/iam/groups\x12j\n" +

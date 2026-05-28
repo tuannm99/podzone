@@ -517,12 +517,20 @@ export default function AdminSettingsPage() {
           copy="This area brings together the operational controls behind the backoffice: current sessions, workspace access, workspace invites, and platform administration."
         />
         <div class="flex flex-wrap gap-3">
-          <Show when={canManagePlatformRoles()}>
-            <Button href="/admin/iam" color="dark" size="sm">
-              Open IAM console
-            </Button>
-          </Show>
+          <Button
+            href="/admin/iam"
+            color={canManagePlatformRoles() ? 'dark' : 'light'}
+            size="sm"
+            disabled={!canManagePlatformRoles()}
+          >
+            Open IAM console
+          </Button>
         </div>
+        <Show when={!canManagePlatformRoles()}>
+          <InfoAlert>
+            Platform IAM is not available in this session.
+          </InfoAlert>
+        </Show>
       </Card>
 
       <Show when={pageError()}>

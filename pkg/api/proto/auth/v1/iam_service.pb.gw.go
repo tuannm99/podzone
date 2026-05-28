@@ -3838,7 +3838,7 @@ func RegisterIAMServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.IAMService/CreatePolicyVersion", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name}/versions"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.IAMService/CreatePolicyVersion", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name=**}/versions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -3858,7 +3858,7 @@ func RegisterIAMServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.IAMService/GetPolicy", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.IAMService/GetPolicy", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name=**}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -3878,7 +3878,7 @@ func RegisterIAMServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.IAMService/ListPolicyVersions", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name}/versions"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.IAMService/ListPolicyVersions", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name=**}/versions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -3898,7 +3898,7 @@ func RegisterIAMServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.IAMService/SetDefaultPolicyVersion", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name}/versions/{version}:set-default"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.IAMService/SetDefaultPolicyVersion", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name=**}/versions/{version}:set-default"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -3918,7 +3918,7 @@ func RegisterIAMServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.IAMService/DeletePolicyVersion", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name}/versions/{version}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.IAMService/DeletePolicyVersion", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name=**}/versions/{version}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -3958,7 +3958,7 @@ func RegisterIAMServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.IAMService/ListPolicyAttachments", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name}/attachments"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.IAMService/ListPolicyAttachments", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name=**}/attachments"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -3978,7 +3978,7 @@ func RegisterIAMServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.IAMService/DeletePolicy", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/auth.IAMService/DeletePolicy", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name=**}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -5270,7 +5270,7 @@ func RegisterIAMServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.IAMService/CreatePolicyVersion", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name}/versions"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.IAMService/CreatePolicyVersion", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name=**}/versions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -5287,7 +5287,7 @@ func RegisterIAMServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.IAMService/GetPolicy", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.IAMService/GetPolicy", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name=**}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -5304,7 +5304,7 @@ func RegisterIAMServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.IAMService/ListPolicyVersions", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name}/versions"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.IAMService/ListPolicyVersions", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name=**}/versions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -5321,7 +5321,7 @@ func RegisterIAMServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.IAMService/SetDefaultPolicyVersion", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name}/versions/{version}:set-default"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.IAMService/SetDefaultPolicyVersion", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name=**}/versions/{version}:set-default"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -5338,7 +5338,7 @@ func RegisterIAMServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.IAMService/DeletePolicyVersion", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name}/versions/{version}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.IAMService/DeletePolicyVersion", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name=**}/versions/{version}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -5372,7 +5372,7 @@ func RegisterIAMServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.IAMService/ListPolicyAttachments", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name}/attachments"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.IAMService/ListPolicyAttachments", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name=**}/attachments"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -5389,7 +5389,7 @@ func RegisterIAMServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.IAMService/DeletePolicy", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/auth.IAMService/DeletePolicy", runtime.WithHTTPPathPattern("/auth/v1/iam/policies/{name=**}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -6159,14 +6159,14 @@ var (
 	pattern_IAMService_ListPlatformRoles_0                    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"auth", "v1", "iam", "platform-users", "target_user_id", "roles"}, ""))
 	pattern_IAMService_AddPlatformRole_0                      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"auth", "v1", "iam", "platform-users", "target_user_id", "roles"}, ""))
 	pattern_IAMService_CreatePolicy_0                         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"auth", "v1", "iam", "policies"}, ""))
-	pattern_IAMService_CreatePolicyVersion_0                  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"auth", "v1", "iam", "policies", "name", "versions"}, ""))
-	pattern_IAMService_GetPolicy_0                            = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"auth", "v1", "iam", "policies", "name"}, ""))
-	pattern_IAMService_ListPolicyVersions_0                   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"auth", "v1", "iam", "policies", "name", "versions"}, ""))
-	pattern_IAMService_SetDefaultPolicyVersion_0              = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6}, []string{"auth", "v1", "iam", "policies", "name", "versions", "version"}, "set-default"))
-	pattern_IAMService_DeletePolicyVersion_0                  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6}, []string{"auth", "v1", "iam", "policies", "name", "versions", "version"}, ""))
+	pattern_IAMService_CreatePolicyVersion_0                  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 3, 0, 4, 1, 5, 4, 2, 5}, []string{"auth", "v1", "iam", "policies", "name", "versions"}, ""))
+	pattern_IAMService_GetPolicy_0                            = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 3, 0, 4, 1, 5, 4}, []string{"auth", "v1", "iam", "policies", "name"}, ""))
+	pattern_IAMService_ListPolicyVersions_0                   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 3, 0, 4, 1, 5, 4, 2, 5}, []string{"auth", "v1", "iam", "policies", "name", "versions"}, ""))
+	pattern_IAMService_SetDefaultPolicyVersion_0              = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 3, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6}, []string{"auth", "v1", "iam", "policies", "name", "versions", "version"}, "set-default"))
+	pattern_IAMService_DeletePolicyVersion_0                  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 3, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6}, []string{"auth", "v1", "iam", "policies", "name", "versions", "version"}, ""))
 	pattern_IAMService_ListPolicies_0                         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"auth", "v1", "iam", "policies"}, ""))
-	pattern_IAMService_ListPolicyAttachments_0                = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"auth", "v1", "iam", "policies", "name", "attachments"}, ""))
-	pattern_IAMService_DeletePolicy_0                         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"auth", "v1", "iam", "policies", "name"}, ""))
+	pattern_IAMService_ListPolicyAttachments_0                = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 3, 0, 4, 1, 5, 4, 2, 5}, []string{"auth", "v1", "iam", "policies", "name", "attachments"}, ""))
+	pattern_IAMService_DeletePolicy_0                         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 3, 0, 4, 1, 5, 4}, []string{"auth", "v1", "iam", "policies", "name"}, ""))
 	pattern_IAMService_CreateGroup_0                          = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"auth", "v1", "iam", "groups"}, ""))
 	pattern_IAMService_ListGroups_0                           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"auth", "v1", "iam", "groups"}, ""))
 	pattern_IAMService_DeleteGroup_0                          = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"auth", "v1", "iam", "groups", "group_id"}, ""))

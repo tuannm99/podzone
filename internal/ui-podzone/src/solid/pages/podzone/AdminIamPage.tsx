@@ -263,6 +263,14 @@ export default function AdminIamPage() {
   const [shortcutTenantId, setShortcutTenantId] = createSignal('');
   const [shortcutTenantUserId, setShortcutTenantUserId] = createSignal('');
   const [shortcutTenantRoleName, setShortcutTenantRoleName] = createSignal(tenantRoleOptions[1].value);
+  const sectionLinks = [
+    { id: 'iam-orgs', label: 'Orgs & SCP' },
+    { id: 'iam-policies', label: 'Policies' },
+    { id: 'iam-groups', label: 'Groups' },
+    { id: 'iam-shortcuts', label: 'Shortcuts' },
+    { id: 'iam-principals', label: 'Principals' },
+    { id: 'iam-trust-sim', label: 'Trust sim' },
+  ];
 
   const [trustRoleName, setTrustRoleName] = createSignal('tenant_admin');
   const [trustBoundaryPolicyName, setTrustBoundaryPolicyName] = createSignal('');
@@ -1298,8 +1306,25 @@ export default function AdminIamPage() {
       </Show>
 
       <Show when={allowed()}>
+        <Card class="space-y-3">
+          <SectionTitle
+            title="Jump to section"
+            subtitle="Use this instead of scrolling through the entire IAM console."
+          />
+          <div class="flex flex-wrap gap-2">
+            <For each={sectionLinks}>
+              {(section) => (
+                <Button href={`#${section.id}`} size="sm" color="alternative">
+                  {section.label}
+                </Button>
+              )}
+            </For>
+          </div>
+        </Card>
+
         <div class="grid gap-6 xl:grid-cols-2">
-          <Card class="space-y-4">
+          <div id="iam-orgs" class="scroll-mt-24">
+            <Card class="space-y-4">
             <SectionTitle
               title="Organizations and SCP"
               subtitle="Create organizations, map workspaces, and attach service control policies."
@@ -1389,91 +1414,102 @@ export default function AdminIamPage() {
                 </For>
               </div>
             </Show>
-          </Card>
+            </Card>
+          </div>
 
-          <Card class="space-y-4">
-            <AdminIamPolicyProvider value={policyContextValue}>
-              <PoliciesPanel />
-            </AdminIamPolicyProvider>
-          </Card>
+          <div id="iam-policies" class="scroll-mt-24">
+            <Card class="space-y-4">
+              <AdminIamPolicyProvider value={policyContextValue}>
+                <PoliciesPanel />
+              </AdminIamPolicyProvider>
+            </Card>
+          </div>
 
-          <Card class="space-y-4">
-            <AdminIamGroupProvider value={groupContextValue}>
-              <GroupsPanel />
-            </AdminIamGroupProvider>
-          </Card>
+          <div id="iam-groups" class="scroll-mt-24">
+            <Card class="space-y-4">
+              <AdminIamGroupProvider value={groupContextValue}>
+                <GroupsPanel />
+              </AdminIamGroupProvider>
+            </Card>
+          </div>
 
-          <Card class="space-y-4">
-            <SectionTitle
-              title="Role assignment shortcuts"
-              subtitle="Quickly grant or revoke platform roles and workspace memberships without leaving the IAM console."
-            />
-            <div class="grid gap-6 lg:grid-cols-2">
-              <div class="space-y-3 rounded-lg border border-gray-200 p-4">
-                <p class="text-sm font-semibold text-gray-900">Platform role shortcut</p>
-                <InputField
-                  label="Target user id"
-                  value={shortcutPlatformUserId()}
-                  onInput={(e) => setShortcutPlatformUserId(e.currentTarget.value)}
-                />
-                <SelectField
-                  label="Platform role"
-                  value={shortcutPlatformRoleName()}
-                  options={platformRoleOptions}
-                  onChange={(e) => setShortcutPlatformRoleName(e.currentTarget.value)}
-                />
-                <div class="flex flex-wrap gap-3">
-                  <Button size="sm" onClick={handleAssignPlatformRole} disabled={!shortcutPlatformUserId().trim()}>
-                    Assign platform role
-                  </Button>
-                  <Button size="sm" color="red" onClick={handleRemovePlatformRoleShortcut} disabled={!shortcutPlatformUserId().trim()}>
-                    Remove platform role
-                  </Button>
+          <div id="iam-shortcuts" class="scroll-mt-24">
+            <Card class="space-y-4">
+              <SectionTitle
+                title="Role assignment shortcuts"
+                subtitle="Quickly grant or revoke platform roles and workspace memberships without leaving the IAM console."
+              />
+              <div class="grid gap-6 lg:grid-cols-2">
+                <div class="space-y-3 rounded-lg border border-gray-200 p-4">
+                  <p class="text-sm font-semibold text-gray-900">Platform role shortcut</p>
+                  <InputField
+                    label="Target user id"
+                    value={shortcutPlatformUserId()}
+                    onInput={(e) => setShortcutPlatformUserId(e.currentTarget.value)}
+                  />
+                  <SelectField
+                    label="Platform role"
+                    value={shortcutPlatformRoleName()}
+                    options={platformRoleOptions}
+                    onChange={(e) => setShortcutPlatformRoleName(e.currentTarget.value)}
+                  />
+                  <div class="flex flex-wrap gap-3">
+                    <Button size="sm" onClick={handleAssignPlatformRole} disabled={!shortcutPlatformUserId().trim()}>
+                      Assign platform role
+                    </Button>
+                    <Button size="sm" color="red" onClick={handleRemovePlatformRoleShortcut} disabled={!shortcutPlatformUserId().trim()}>
+                      Remove platform role
+                    </Button>
+                  </div>
+                </div>
+
+                <div class="space-y-3 rounded-lg border border-gray-200 p-4">
+                  <p class="text-sm font-semibold text-gray-900">Workspace membership shortcut</p>
+                  <SelectField
+                    label="Workspace"
+                    value={shortcutTenantId()}
+                    options={tenantOptions()}
+                    onChange={(e) => setShortcutTenantId(e.currentTarget.value)}
+                  />
+                  <InputField
+                    label="Target user id"
+                    value={shortcutTenantUserId()}
+                    onInput={(e) => setShortcutTenantUserId(e.currentTarget.value)}
+                  />
+                  <SelectField
+                    label="Workspace role"
+                    value={shortcutTenantRoleName()}
+                    options={tenantRoleOptions}
+                    onChange={(e) => setShortcutTenantRoleName(e.currentTarget.value)}
+                  />
+                  <div class="flex flex-wrap gap-3">
+                    <Button size="sm" onClick={handleAssignTenantRole} disabled={!shortcutTenantId().trim() || !shortcutTenantUserId().trim()}>
+                      Assign workspace role
+                    </Button>
+                    <Button size="sm" color="red" onClick={handleRemoveTenantMembershipShortcut} disabled={!shortcutTenantId().trim() || !shortcutTenantUserId().trim()}>
+                      Remove membership
+                    </Button>
+                  </div>
                 </div>
               </div>
+            </Card>
+          </div>
 
-              <div class="space-y-3 rounded-lg border border-gray-200 p-4">
-                <p class="text-sm font-semibold text-gray-900">Workspace membership shortcut</p>
-                <SelectField
-                  label="Workspace"
-                  value={shortcutTenantId()}
-                  options={tenantOptions()}
-                  onChange={(e) => setShortcutTenantId(e.currentTarget.value)}
-                />
-                <InputField
-                  label="Target user id"
-                  value={shortcutTenantUserId()}
-                  onInput={(e) => setShortcutTenantUserId(e.currentTarget.value)}
-                />
-                <SelectField
-                  label="Workspace role"
-                  value={shortcutTenantRoleName()}
-                  options={tenantRoleOptions}
-                  onChange={(e) => setShortcutTenantRoleName(e.currentTarget.value)}
-                />
-                <div class="flex flex-wrap gap-3">
-                  <Button size="sm" onClick={handleAssignTenantRole} disabled={!shortcutTenantId().trim() || !shortcutTenantUserId().trim()}>
-                    Assign workspace role
-                  </Button>
-                  <Button size="sm" color="red" onClick={handleRemoveTenantMembershipShortcut} disabled={!shortcutTenantId().trim() || !shortcutTenantUserId().trim()}>
-                    Remove membership
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Card>
+          <div id="iam-principals" class="scroll-mt-24">
+            <Card class="space-y-4">
+              <AdminIamPrincipalProvider value={principalContextValue}>
+                <PrincipalPoliciesPanel />
+              </AdminIamPrincipalProvider>
+            </Card>
+          </div>
 
-          <Card class="space-y-4">
-            <AdminIamPrincipalProvider value={principalContextValue}>
-              <PrincipalPoliciesPanel />
-            </AdminIamPrincipalProvider>
-          </Card>
-
-          <Card class="space-y-4">
-            <AdminIamTrustSimProvider value={trustSimContextValue}>
-              <TrustSimulationPanel />
-            </AdminIamTrustSimProvider>
-          </Card>
+          <div id="iam-trust-sim" class="scroll-mt-24">
+            <Card class="space-y-4">
+              <AdminIamTrustSimProvider value={trustSimContextValue}>
+                <TrustSimulationPanel />
+              </AdminIamTrustSimProvider>
+            </Card>
+          </div>
         </div>
       </Show>
     </PageShell>

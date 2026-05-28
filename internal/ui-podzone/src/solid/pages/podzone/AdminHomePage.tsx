@@ -1,4 +1,4 @@
-import { For, Show, createSignal, onMount } from 'solid-js';
+import { For, Show, createEffect, createSignal, onMount } from 'solid-js';
 import { GW_API_URL, TENANT_GQL_URL } from '../../../services/baseurl';
 import { ensureActiveTenant } from '../../../services/auth';
 import {
@@ -29,6 +29,7 @@ import {
   Button,
   Card,
   InputField,
+  SelectField,
 } from '../../components/common/Primitives';
 import { SectionLead } from '../../components/common/SectionLead';
 import { SectionTitle } from '../../components/common/SectionTitle';
@@ -94,9 +95,6 @@ export default function AdminHomePage() {
   const user = tokenStorage.getUser();
   const userID = parseUserID(user?.id);
 
-  const [tenantId, setTenantId] = createSignal(
-    tokenStorage.getActiveTenantID() || tenantStorage.getTenantID()
-  );
   const [tenantName, setTenantName] = createSignal('');
   const [tenantSlug, setTenantSlug] = createSignal('');
   const [tenantError, setTenantError] = createSignal('');
@@ -118,9 +116,36 @@ export default function AdminHomePage() {
   const [storeAttention, setStoreAttention] = createSignal<StoreAttention[]>([]);
   const [canCreateTenant, setCanCreateTenant] = createSignal(false);
   const [canManagePlatformIAM, setCanManagePlatformIAM] = createSignal(false);
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = createSignal('');
+  const [selectedStoreId, setSelectedStoreId] = createSignal('');
   const activeMemberships = () =>
     memberships().filter((membership) => membership.status === 'active');
   const canBootstrapFirstWorkspace = () => !!userID && memberships().length === 0;
+  const activeWorkspaceSummaries = () =>
+    workspaceSummaries().filter(
+      (workspace) => workspace.status === 'active'
+    );
+  const selectedWorkspace = () =>
+    activeWorkspaceSummaries().find(
+      (workspace) => workspace.tenantId === selectedWorkspaceId()
+    );
+  const selectedWorkspaceOptions = () =>
+    activeWorkspaceSummaries().map((workspace) => ({
+      name: `${workspace.tenantId} · ${workspace.roleName}`,
+      value: workspace.tenantId,
+    }));
+  const selectedStoreOptions = () =>
+    (selectedWorkspace()?.stores || []).map((store) => ({
+      name: `${store.name}${store.isActive ? ' · active' : ''}`,
+      value: store.id,
+    }));
+  const currentSelectionLabel = () => {
+    const workspace = selectedWorkspace();
+    const store = workspace?.stores.find((item) => item.id === selectedStoreId());
+    if (!workspace) return 'No workspace selected';
+    if (!store) return `${workspace.tenantId} selected, no store chosen`;
+    return `${workspace.tenantId} / ${store.name}`;
+  };
 
   const loadWorkspaceData = async (membershipsToInspect: TenantMembership[]) => {
     const activeWorkspaces = membershipsToInspect.filter(
@@ -222,6 +247,32 @@ export default function AdminHomePage() {
     setStoreAttention(snapshot);
   };
 
+  createEffect(() => {
+    const nextWorkspace =
+      selectedWorkspaceId() ||
+      activeWorkspaceSummaries()[0]?.tenantId ||
+      activeMemberships()[0]?.tenantId ||
+      '';
+    if (!nextWorkspace) return;
+    if (nextWorkspace !== selectedWorkspaceId()) {
+      setSelectedWorkspaceId(nextWorkspace);
+    }
+  });
+
+  createEffect(() => {
+    const stores = selectedWorkspace()?.stores || [];
+    if (stores.length === 0) {
+      setSelectedStoreId('');
+      return;
+    }
+    const current = selectedStoreId();
+    if (stores.some((store) => store.id === current)) {
+      return;
+    }
+    const preferred = stores.find((store) => store.isActive) || stores[0];
+    setSelectedStoreId(preferred?.id || '');
+  });
+
   const loadMemberships = async () => {
     if (!userID) return;
     setLoadingTenants(true);
@@ -283,14 +334,13 @@ export default function AdminHomePage() {
 
       tenantStorage.setTenantID(normalizedTenantID);
       storeStorage.setStoreID(normalizedTenantID, normalizedStoreID);
-      setTenantId(normalizedTenantID);
       window.location.href = `/t/${normalizedTenantID}?storeId=${encodeURIComponent(normalizedStoreID)}`;
     } finally {
       setSwitchingTenant(false);
     }
   };
 
-  const prepareTenant = async (nextTenantID = tenantId().trim()) => {
+  const prepareTenant = async (nextTenantID: string) => {
     if (!nextTenantID) return;
 
     setSwitchingTenant(true);
@@ -303,7 +353,6 @@ export default function AdminHomePage() {
         return;
       }
       tenantStorage.setTenantID(nextTenantID);
-      setTenantId(nextTenantID);
       setTenantMessage(`Loaded workspace ${nextTenantID}. Choose a store below.`);
       await loadMemberships();
     } finally {
@@ -386,7 +435,7 @@ export default function AdminHomePage() {
       const createdSlug = result.data.tenant?.slug || normalizedSlug;
       setTenantName('');
       setTenantSlug('');
-      setTenantId(createdTenantID);
+      setSelectedWorkspaceId(createdTenantID);
       setTenantMessage(
         createdTenantID
           ? `Created workspace ${createdSlug} (${createdTenantID}).`
@@ -415,12 +464,15 @@ export default function AdminHomePage() {
           copy="Start from a tenant workspace, create or select a store, then enter the store-scoped backoffice."
         />
         <div class="flex flex-wrap gap-3">
-          <Show when={canManagePlatformIAM()}>
-            <Button href="/admin/iam" color="dark" size="sm">
-              Open IAM console
-            </Button>
-          </Show>
+          <Button href="/admin/iam" color="dark" size="sm">
+            Open IAM console
+          </Button>
         </div>
+        <Show when={!canManagePlatformIAM()}>
+          <InfoAlert>
+            Platform IAM is available only for platform admins. This session can still manage workspace and store access.
+          </InfoAlert>
+        </Show>
       </Card>
 
       <Show when={tenantError()}>
@@ -470,92 +522,180 @@ export default function AdminHomePage() {
         <LoadingInline label="Checking workspace creation access..." />
       </Show>
 
-      <div class="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
-        <Card class="space-y-4">
-          <SectionTitle
-            title="Create workspace"
-            subtitle="Create the tenant workspace that will own your stores and IAM memberships."
-          />
-          <Show when={!canCreateTenant() && !checkingPlatformAccess()}>
-            <InfoAlert>
-              This account already owns a workspace. Creating additional
-              workspaces requires platform approval.
-            </InfoAlert>
-          </Show>
-          <form class="space-y-4" onSubmit={submitCreateTenant}>
-            <InputField
-              label="Workspace name"
-              value={tenantName()}
-              placeholder="Urban Finds"
-              onInput={(event) => {
-                const value = event.currentTarget.value;
-                setTenantName(value);
-                if (!tenantSlug().trim()) {
-                  setTenantSlug(slugify(value));
-                }
+      <Card class="space-y-4">
+        <SectionTitle
+          title="Choose store"
+          subtitle="Pick a workspace, then choose a store inside it. If the workspace has no store yet, create one right here."
+        />
+        <div class="grid gap-4 lg:grid-cols-[0.85fr_1.15fr]">
+          <div class="space-y-3">
+            <SelectField
+              label="Workspace"
+              value={selectedWorkspaceId()}
+              options={selectedWorkspaceOptions()}
+              onChange={(event) => {
+                setSelectedWorkspaceId(event.currentTarget.value);
               }}
             />
-            <InputField
-              label="Workspace slug"
-              value={tenantSlug()}
-              placeholder="urban-finds"
-              onInput={(event) =>
-                setTenantSlug(slugify(event.currentTarget.value))
-              }
-            />
-            <div class="flex flex-wrap gap-3">
-              <Button
-                type="submit"
-                loading={creatingTenant()}
-                disabled={
-                  !tenantName().trim() ||
-                  (!canCreateTenant() && !canBootstrapFirstWorkspace())
-                }
-              >
-                Create workspace
-              </Button>
-              <Badge
-                content={
-                  tenantSlug().trim()
-                    ? `slug ${tenantSlug().trim()}`
-                    : 'slug pending'
-                }
-                color={tenantSlug().trim() ? 'indigo' : 'dark'}
-              />
-            </div>
-          </form>
-        </Card>
+            <p class="text-sm text-gray-600">{currentSelectionLabel()}</p>
+          </div>
 
-        <Card class="space-y-4">
-          <SectionTitle
-            title="Load workspace"
-            subtitle="Use direct tenant loading only when you know the ID. Store selection still happens below."
-          />
-          <div class="flex flex-col gap-3 sm:flex-row">
-            <input
-              class="block h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none transition focus:border-gray-950 focus:ring-2 focus:ring-gray-100"
-              value={tenantId()}
-              placeholder="tenant id"
-              onInput={(event) => setTenantId(event.currentTarget.value)}
+          <div class="space-y-3">
+            <Show
+              when={selectedWorkspace() && selectedStoreOptions().length > 0}
+              fallback={
+                <div class="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                  <p class="text-sm font-semibold text-gray-950">
+                    No store in this workspace yet
+                  </p>
+                  <p class="text-sm text-gray-600">
+                    Create the first store below, then select it from this workspace.
+                  </p>
+                  <div class="flex flex-col gap-3 sm:flex-row">
+                    <input
+                      class="block h-10 min-w-0 flex-1 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none transition focus:border-gray-950 focus:ring-2 focus:ring-gray-100"
+                      value={storeNameByTenant()[selectedWorkspaceId()] || ''}
+                      placeholder="New store name"
+                      onInput={(event) =>
+                        setDraftStoreName(
+                          selectedWorkspaceId(),
+                          event.currentTarget.value
+                        )
+                      }
+                    />
+                    <Button
+                      size="sm"
+                      color="dark"
+                      loading={creatingStoreTenantId() === selectedWorkspaceId()}
+                      disabled={
+                        !selectedWorkspaceId() ||
+                        creatingStoreTenantId() === selectedWorkspaceId() ||
+                        !(storeNameByTenant()[selectedWorkspaceId()] || '').trim()
+                      }
+                      onClick={() => {
+                        void submitCreateStore(selectedWorkspaceId());
+                      }}
+                    >
+                      Create store
+                    </Button>
+                  </div>
+                </div>
+              }
+            >
+              <SelectField
+                label="Store"
+                value={selectedStoreId()}
+                options={selectedStoreOptions()}
+                onChange={(event) => setSelectedStoreId(event.currentTarget.value)}
+              />
+              <div class="flex flex-wrap gap-3">
+                <Button
+                  disabled={!selectedWorkspaceId() || !selectedStoreId()}
+                  loading={switchingTenant()}
+                  onClick={() => {
+                    void openStore(selectedWorkspaceId(), selectedStoreId());
+                  }}
+                >
+                  Open selected store
+                </Button>
+                <Button
+                  color="light"
+                  disabled={!selectedWorkspaceId() || !selectedStoreId()}
+                  onClick={() => {
+                    const current = selectedWorkspace();
+                    const store = current?.stores.find(
+                      (item) => item.id === selectedStoreId()
+                    );
+                    if (!current || !store) return;
+                    setTenantMessage(
+                      `Selected ${store.name} in ${current.tenantId}.`
+                    );
+                  }}
+                >
+                  Confirm selection
+                </Button>
+              </div>
+            </Show>
+          </div>
+        </div>
+      </Card>
+
+      <Show when={canCreateTenant() || canBootstrapFirstWorkspace()}>
+        <div class="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
+          <Card class="space-y-4">
+            <SectionTitle
+              title="Create workspace"
+              subtitle="Create the tenant workspace that will own your stores and IAM memberships."
             />
+            <form class="space-y-4" onSubmit={submitCreateTenant}>
+              <InputField
+                label="Workspace name"
+                value={tenantName()}
+                placeholder="Urban Finds"
+                onInput={(event) => {
+                  const value = event.currentTarget.value;
+                  setTenantName(value);
+                  if (!tenantSlug().trim()) {
+                    setTenantSlug(slugify(value));
+                  }
+                }}
+              />
+              <InputField
+                label="Workspace slug"
+                value={tenantSlug()}
+                placeholder="urban-finds"
+                onInput={(event) =>
+                  setTenantSlug(slugify(event.currentTarget.value))
+                }
+              />
+              <div class="flex flex-wrap gap-3">
+                <Button
+                  type="submit"
+                  loading={creatingTenant()}
+                  disabled={
+                    !tenantName().trim() ||
+                    (!canCreateTenant() && !canBootstrapFirstWorkspace())
+                  }
+                >
+                  Create workspace
+                </Button>
+                <Badge
+                  content={
+                    tenantSlug().trim()
+                      ? `slug ${tenantSlug().trim()}`
+                      : 'slug pending'
+                  }
+                  color={tenantSlug().trim() ? 'indigo' : 'dark'}
+                />
+              </div>
+            </form>
+          </Card>
+
+          <Card class="space-y-4">
+            <SectionTitle
+              title="Current workspace"
+              subtitle="The workspace you are preparing to enter."
+            />
+            <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+              <p class="text-sm font-semibold text-gray-950">
+                {selectedWorkspace()?.tenantId || 'No workspace selected'}
+              </p>
+              <p class="mt-1 text-sm text-gray-600">
+                {selectedWorkspace()?.roleName || 'Select a workspace above'}
+              </p>
+            </div>
             <Button
-              disabled={!tenantId().trim() || switchingTenant()}
-              loading={switchingTenant()}
+              color="alternative"
+              disabled={!selectedWorkspaceId()}
               onClick={() => {
-                void prepareTenant();
+                void prepareTenant(selectedWorkspaceId());
               }}
             >
-              Load workspace
+              Reload workspace
             </Button>
-          </div>
-          {!tenantId().trim() ? (
-            <EmptyBlock
-              title="No workspace selected"
-              copy="Create a tenant workspace or pick one from your assigned workspaces to open the right shell."
-            />
-          ) : null}
-        </Card>
-      </div>
+          </Card>
+        </div>
+      </Show>
 
       <div class="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
         <Card class="space-y-4">
@@ -667,18 +807,6 @@ export default function AdminHomePage() {
                           Create store
                         </Button>
                       </div>
-                      <Button
-                        size="sm"
-                        color="light"
-                        onClick={() => {
-                          setTenantId(workspace.tenantId);
-                          setTenantMessage(
-                            `Prepared workspace ${workspace.tenantId} as the next quick-jump target.`
-                          );
-                        }}
-                      >
-                        Use for direct load
-                      </Button>
                     </div>
                   </div>
                 )}

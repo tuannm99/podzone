@@ -56,6 +56,12 @@ export function PodzoneNavbar(props: { currentPath: string }) {
       section: 'Platform',
       active: () => props.currentPath === '/admin/settings',
     },
+    {
+      href: '/admin/iam',
+      label: 'IAM',
+      section: 'Platform',
+      active: () => props.currentPath === '/admin/iam',
+    },
     ...(hasTenant() && currentStoreId()
       ? [
           {
