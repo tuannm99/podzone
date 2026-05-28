@@ -68,6 +68,20 @@ Manage the internal provisioning and placement metadata of store infrastructure.
 
 - `internal/onboarding`
 
+### Business responsibility
+
+This domain owns the store request and provisioning pipeline:
+
+- request intake
+- request queueing
+- approval gating
+- capacity and connection checks
+- placement publication
+- readiness tracking
+- failure tracking and retry visibility
+
+Store creation should be treated as a workflow, not as a single synchronous write.
+
 ## Domain 5. Catalog
 
 ### Purpose

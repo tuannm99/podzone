@@ -180,3 +180,40 @@ sequenceDiagram
     Worker->>Consul: publish connection snapshot and placement
     Worker->>Mongo: mark published
 ```
+
+## 9. Store Onboarding Request to Ready
+
+```mermaid
+sequenceDiagram
+    participant UI as Admin / Workspace Owner UI
+    participant Onboarding as Onboarding Service
+    participant IAM as IAM Service
+    participant Queue as Provisioning Queue
+    participant Worker as Provisioning Worker
+    participant Consul as Consul
+    participant BO as Backoffice Runtime
+    participant DB as Tenant DB / Schema
+    participant PDT as pdtenantdb
+
+    UI->>Onboarding: createStoreRequest(workspaceID, name, placementPrefs)
+    Onboarding->>IAM: verify requester membership / approval actor
+    IAM-->>Onboarding: membership + policy context
+    Onboarding->>Onboarding: persist request as queued or pending approval
+    alt auto-approvable
+        Onboarding->>Queue: enqueue provisioning job
+    else requires approval
+        Onboarding-->>UI: request pending approval
+        Onboarding->>Queue: enqueue after approval
+    end
+
+    Queue->>Worker: consume provisioning job
+    Worker->>Worker: validate capacity, connection, DB/schema target
+    Worker->>DB: provision or bind tenant storage target
+    Worker->>Consul: publish tenant placement
+    Worker->>Onboarding: mark request ready
+
+    BO->>PDT: resolve placement for tenant/store scope
+    PDT->>Consul: get tenant placement
+    Consul-->>PDT: cluster/db/schema placement
+    BO->>DB: execute store-scoped operations only after placement resolves
+```

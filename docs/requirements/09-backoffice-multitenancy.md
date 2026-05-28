@@ -141,6 +141,9 @@ The lifecycle should follow the onboarding model managed by `OnboardingService`.
 
 At requirement level, backoffice must assume store states similar to:
 
+- requested
+- pending approval
+- provisioning
 - onboarding
 - ready
 - active
@@ -148,6 +151,41 @@ At requirement level, backoffice must assume store states similar to:
 - archived
 
 Exact status names can be aligned later with the onboarding implementation, but store lifecycle is required as a first-class concept.
+
+### Store creation expectation
+
+Creating a store is a request into the onboarding pipeline, not a direct synchronous shell action.
+
+The backoffice must support:
+
+- submit store request
+- review approval state
+- show provisioning/readiness state
+- open only stores that are ready and resolvable
+- show when a request is queued, blocked, failed, or waiting for approval
+
+Backoffice must not assume that a newly submitted store request is immediately usable.
+The workspace can exist before any store becomes selectable.
+
+Store creation may require admin approval when:
+
+- workspace quota is exceeded
+- database capacity is unavailable
+- a higher-risk placement is requested
+- policy requires manual review
+
+### Provisioning dependency
+
+Backoffice store-scoped access depends on onboarding publishing tenant placement metadata.
+
+That means:
+
+- tenant existence alone is not enough
+- a store request is not enough until onboarding completes
+- a store cannot be opened until `pdtenantdb` can resolve placement
+- missing placement should be treated as a readiness problem
+- onboarding owns placement publication, not backoffice
+- if placement is missing, the UI should surface onboarding status instead of presenting the store as openable
 
 ## Bootstrap and readiness requirements
 
@@ -160,7 +198,13 @@ This means:
 
 - tenant infrastructure readiness alone is not sufficient
 - store readiness alone is not sufficient
-- backoffice runtime must eventually validate both before store-scoped operations are treated as ready
+- placement resolution must be available before store-scoped operations are treated as ready
+- backoffice runtime must validate readiness before allowing store-scoped navigation
+- readiness checks must distinguish between:
+  - tenant exists
+  - store request exists
+  - placement exists
+  - store is openable
 
 ## Data isolation requirements
 

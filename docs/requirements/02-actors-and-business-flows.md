@@ -131,6 +131,15 @@ Let an authorized actor create a new store workspace.
 
 This is the merchant onboarding entry point.
 
+### Target flow
+
+1. Authenticated actor submits a store request from the workspace surface.
+2. System records the request and evaluates policy, quota, and capacity.
+3. If approval is required, the request waits in a queue or approval inbox.
+4. If approved, onboarding selects the target connection and placement.
+5. Onboarding provisions infrastructure and publishes placement metadata.
+6. The store becomes selectable only after readiness is confirmed.
+
 ## Flow C. Enter store workspace
 
 ### Goal
@@ -221,6 +230,21 @@ Turn customer demand into operational work.
 2. Store order is recorded.
 3. Order is routed to the appropriate partner or internal path.
 4. Shipment and status updates flow back to the merchant.
+
+## Flow K. Store provisioning approval and readiness tracking
+
+### Goal
+
+Let the platform trace store onboarding from request to readiness.
+
+### Target future flow
+
+1. Store request is created with an explicit request ID.
+2. System records queue state, approval state, and selected placement target.
+3. Platform operator or policy engine approves or rejects the request.
+4. Onboarding worker provisions the required infra.
+5. Placement is published for runtime resolution.
+6. Backoffice marks the store as ready or failed with a visible reason.
 
 ## Flow J. Margin and settlement visibility
 
