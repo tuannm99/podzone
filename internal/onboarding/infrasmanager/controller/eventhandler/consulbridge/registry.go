@@ -1,7 +1,7 @@
 package consulbridge
 
 import (
-	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/core/publisher"
+	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/infrastructure/publisher"
 	"github.com/tuannm99/podzone/pkg/messaging"
 )
 

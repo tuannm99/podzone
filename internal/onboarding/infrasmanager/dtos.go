@@ -1,7 +1,7 @@
 package infrasmanager
 
 import (
-	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/core"
+	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/entity"
 	inputport "github.com/tuannm99/podzone/internal/onboarding/infrasmanager/inputport"
 )
 
@@ -12,7 +12,7 @@ type ConnectionEventDTO = inputport.ConnectionEvent
 type ListConnectionsResponse = inputport.ListConnectionsResponse
 type ListEventsResponse = inputport.ListEventsResponse
 
-func toDTO(c core.ConnectionInfo) ConnectionDTO {
+func toDTO(c entity.ConnectionInfo) ConnectionDTO {
 	return ConnectionDTO{
 		TenantID:  c.TenantID,
 		InfraType: c.InfraType,
@@ -29,7 +29,7 @@ func toDTO(c core.ConnectionInfo) ConnectionDTO {
 	}
 }
 
-func toEventDTO(e core.ConnectionEvent) ConnectionEventDTO {
+func toEventDTO(e entity.ConnectionEvent) ConnectionEventDTO {
 	return ConnectionEventDTO{
 		ID:            e.ID,
 		CorrelationID: e.CorrelationID,

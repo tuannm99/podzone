@@ -16,15 +16,15 @@
 //	InfraManager (core)
 //	  - validates request
 //	  - delegates to a provisioner by InfraType via Registry
-//	  - persists connection info via ConnectionStore
-//	  - writes History events (if enabled)
+//	  - persists connection state via repository ports
+//	  - writes history events via repository ports
 //	       |
 //	       v
 //	Providers
 //	  - InfraProvisioner implementations (K8s/Helm/Terraform/CLI, etc.)
-//	  - ConnectionStore implementations (MongoDB, etc.)
-//	  - OutboxStore adapter for Kafka relay
-//	  - History store (Consul KV or Mongo collection)
+//	  - Connection repository implementations (MongoDB, etc.)
+//	  - Outbox adapter for Kafka relay
+//	  - History/event repository (Mongo collection)
 //
 // # Data flow
 //
@@ -33,9 +33,9 @@
 //	Input(tenant/service/infraType/config/meta)
 //	  -> Registry.Get(infraType)
 //	    -> Provisioner.Create(input) => ProvisionResult{Endpoint, SecretRef, Status}
-//	      -> ConnectionStore.Save(ConnectionInfo{...})
-//	        -> History.Append(Event{action=create, ...})
-//	          -> Outbox.Enqueue(Envelope{type=consul.publish, ...})
+//	      -> state repository persists ConnectionInfo{...}
+//	        -> event repository appends Event{action=create, ...}
+//	          -> outbox repository enqueues Envelope{type=consul.publish, ...}
 //	          -> return ProvisionResult
 //
 // DestroyInfra:
@@ -43,13 +43,13 @@
 //	Input(id/infraType/meta)
 //	  -> Registry.Get(infraType)
 //	    -> Provisioner.Destroy(input)
-//	      -> ConnectionStore.Delete(id)
-//	        -> History.Append(Event{action=destroy, ...}) (optional)
+//	      -> state repository soft-deletes connection
+//	        -> event repository appends Event{action=destroy, ...} (optional)
 //	          -> return nil
 //
 // # Notes
 //
 //   - The Registry is a typed map[InfraType]InfraProvisioner to avoid relying on provisioners exposing Type().
-//   - ConnectionStore can be backed by Consul KV (fast lookup, centralized config) while History can be stored
-//     in MongoDB (queryable audit log) or Consul (simple append-only key scheme).
+//   - Connection state can be backed by MongoDB or Consul KV, while history is queryable storage and outbox
+//     is relayed to Kafka.
 package infrasmanager

@@ -10,12 +10,12 @@
 // # Main components
 //
 // - Registry: typed container that resolves InfraProvisioner by InfraType.
-// - InfraManager: orchestrates create/destroy and persists ConnectionInfo.
+// - InfraManager: orchestrates create/destroy and persists ConnectionInfo via repository ports.
 //
 // # Responsibilities
 //
 // - InfraProvisioner: performs actual provisioning work (K8s, Helm, Terraform, etc.).
-// - ConnectionStore: persists ConnectionInfo (Consul KV / MongoDB / etc.).
+// - ConnectionStateRepository, ConnectionEventRepository, OutboxRepository: persistence ports.
 //
 // This package should remain framework-agnostic and easy to unit test.
-package core
+package entity

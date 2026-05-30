@@ -1,10 +1,10 @@
-package infrasmanager
+package controller
 
 import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/core"
+	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/entity"
 	infrasinputport "github.com/tuannm99/podzone/internal/onboarding/infrasmanager/inputport"
 	pdlog "github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/toolkit"
@@ -50,7 +50,7 @@ func (c *InfrasController) UpsertConnection(ctx *gin.Context) {
 		return
 	}
 
-	var req UpsertConnectionRequest
+	var req infrasinputport.UpsertConnectionRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "bad_request", "message": err.Error()})
 		return
@@ -71,7 +71,7 @@ func (c *InfrasController) DeleteConnection(ctx *gin.Context) {
 		return
 	}
 
-	infraType := core.InfraType(ctx.Param("infraType"))
+	infraType := entity.InfraType(ctx.Param("infraType"))
 	name := ctx.Param("name")
 
 	corrID, err := c.service.DeleteConnection(
@@ -92,12 +92,12 @@ func (c *InfrasController) GetConnection(ctx *gin.Context) {
 		return
 	}
 
-	infraType := core.InfraType(ctx.Param("infraType"))
+	infraType := entity.InfraType(ctx.Param("infraType"))
 	name := ctx.Param("name")
 
 	item, err := c.service.GetConnection(tenantID, infraType, name)
 	if err != nil {
-		if err == core.ErrConnectionNotFound {
+		if err == entity.ErrConnectionNotFound {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "not_found", "message": err.Error()})
 			return
 		}
@@ -113,7 +113,7 @@ func (c *InfrasController) ListConnections(ctx *gin.Context) {
 		return
 	}
 
-	infraType := core.InfraType(ctx.Query("infra_type")) // optional: "" => all
+	infraType := entity.InfraType(ctx.Query("infra_type")) // optional: "" => all
 	includeDeleted := ctx.Query("include_deleted") == "true"
 
 	limit := toolkit.ParseInt(ctx.Query("limit"), 50)
@@ -125,7 +125,7 @@ func (c *InfrasController) ListConnections(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal_error", "message": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, ListConnectionsResponse{Items: items})
+	ctx.JSON(http.StatusOK, infrasinputport.ListConnectionsResponse{Items: items})
 }
 
 func (c *InfrasController) ListEvents(ctx *gin.Context) {
@@ -134,7 +134,7 @@ func (c *InfrasController) ListEvents(ctx *gin.Context) {
 		return
 	}
 
-	infraType := core.InfraType(ctx.Query("infra_type")) // optional
+	infraType := entity.InfraType(ctx.Query("infra_type")) // optional
 	name := ctx.Query("name")                            // optional
 	corrID := ctx.Query("correlation_id")                // optional
 
@@ -147,5 +147,5 @@ func (c *InfrasController) ListEvents(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal_error", "message": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, ListEventsResponse{Items: items})
+	ctx.JSON(http.StatusOK, infrasinputport.ListEventsResponse{Items: items})
 }

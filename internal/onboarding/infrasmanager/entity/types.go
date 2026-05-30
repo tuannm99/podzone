@@ -1,4 +1,4 @@
-package core
+package entity
 
 import (
 	"context"
@@ -103,8 +103,7 @@ type InfraProvisioner interface {
 	Destroy(input ProvisionInput) error
 }
 
-// ConnectionStore = current state + history + outbox
-type ConnectionStore interface {
+type ConnectionStateRepository interface {
 	EnsureIndexes(ctx context.Context) error
 	Upsert(info ConnectionInfo) error
 	SoftDelete(tenantID string, infraType InfraType, name string) error
@@ -117,6 +116,11 @@ type ConnectionStore interface {
 		includeDeleted bool,
 		limit, offset int,
 	) ([]ConnectionInfo, error)
+}
+
+type ConnectionEventRepository interface {
+	AppendEvent(ev ConnectionEvent) error
+
 	ListEvents(
 		tenantID string,
 		infraType InfraType,
@@ -124,11 +128,18 @@ type ConnectionStore interface {
 		correlationID string,
 		limit, offset int,
 	) ([]ConnectionEvent, error)
+}
 
-	AppendEvent(ev ConnectionEvent) error
-
+type OutboxRepository interface {
 	EnqueueOutbox(msg OutboxMessage) error
 	FindDueOutbox(limit int) ([]OutboxMessage, error)
 	MarkOutboxDone(eventID string) error
 	MarkOutboxFailed(eventID string, nextRetry time.Time) error
+}
+
+// ConnectionStore remains for callers that want the full aggregate of repositories.
+type ConnectionStore interface {
+	ConnectionStateRepository
+	ConnectionEventRepository
+	OutboxRepository
 }

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	mock "github.com/stretchr/testify/mock"
-	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/core"
+	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/entity"
 )
 
 // NewMockConnectionStore creates a new instance of MockConnectionStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -40,7 +40,7 @@ func (_m *MockConnectionStore) EXPECT() *MockConnectionStore_Expecter {
 }
 
 // AppendEvent provides a mock function for the type MockConnectionStore
-func (_mock *MockConnectionStore) AppendEvent(ev core.ConnectionEvent) error {
+func (_mock *MockConnectionStore) AppendEvent(ev entity.ConnectionEvent) error {
 	ret := _mock.Called(ev)
 
 	if len(ret) == 0 {
@@ -48,7 +48,7 @@ func (_mock *MockConnectionStore) AppendEvent(ev core.ConnectionEvent) error {
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(core.ConnectionEvent) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(entity.ConnectionEvent) error); ok {
 		r0 = returnFunc(ev)
 	} else {
 		r0 = ret.Error(0)
@@ -62,16 +62,16 @@ type MockConnectionStore_AppendEvent_Call struct {
 }
 
 // AppendEvent is a helper method to define mock.On call
-//   - ev core.ConnectionEvent
+//   - ev entity.ConnectionEvent
 func (_e *MockConnectionStore_Expecter) AppendEvent(ev interface{}) *MockConnectionStore_AppendEvent_Call {
 	return &MockConnectionStore_AppendEvent_Call{Call: _e.mock.On("AppendEvent", ev)}
 }
 
-func (_c *MockConnectionStore_AppendEvent_Call) Run(run func(ev core.ConnectionEvent)) *MockConnectionStore_AppendEvent_Call {
+func (_c *MockConnectionStore_AppendEvent_Call) Run(run func(ev entity.ConnectionEvent)) *MockConnectionStore_AppendEvent_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 core.ConnectionEvent
+		var arg0 entity.ConnectionEvent
 		if args[0] != nil {
-			arg0 = args[0].(core.ConnectionEvent)
+			arg0 = args[0].(entity.ConnectionEvent)
 		}
 		run(
 			arg0,
@@ -85,13 +85,13 @@ func (_c *MockConnectionStore_AppendEvent_Call) Return(err error) *MockConnectio
 	return _c
 }
 
-func (_c *MockConnectionStore_AppendEvent_Call) RunAndReturn(run func(ev core.ConnectionEvent) error) *MockConnectionStore_AppendEvent_Call {
+func (_c *MockConnectionStore_AppendEvent_Call) RunAndReturn(run func(ev entity.ConnectionEvent) error) *MockConnectionStore_AppendEvent_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // EnqueueOutbox provides a mock function for the type MockConnectionStore
-func (_mock *MockConnectionStore) EnqueueOutbox(msg core.OutboxMessage) error {
+func (_mock *MockConnectionStore) EnqueueOutbox(msg entity.OutboxMessage) error {
 	ret := _mock.Called(msg)
 
 	if len(ret) == 0 {
@@ -99,7 +99,7 @@ func (_mock *MockConnectionStore) EnqueueOutbox(msg core.OutboxMessage) error {
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(core.OutboxMessage) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(entity.OutboxMessage) error); ok {
 		r0 = returnFunc(msg)
 	} else {
 		r0 = ret.Error(0)
@@ -113,16 +113,16 @@ type MockConnectionStore_EnqueueOutbox_Call struct {
 }
 
 // EnqueueOutbox is a helper method to define mock.On call
-//   - msg core.OutboxMessage
+//   - msg entity.OutboxMessage
 func (_e *MockConnectionStore_Expecter) EnqueueOutbox(msg interface{}) *MockConnectionStore_EnqueueOutbox_Call {
 	return &MockConnectionStore_EnqueueOutbox_Call{Call: _e.mock.On("EnqueueOutbox", msg)}
 }
 
-func (_c *MockConnectionStore_EnqueueOutbox_Call) Run(run func(msg core.OutboxMessage)) *MockConnectionStore_EnqueueOutbox_Call {
+func (_c *MockConnectionStore_EnqueueOutbox_Call) Run(run func(msg entity.OutboxMessage)) *MockConnectionStore_EnqueueOutbox_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 core.OutboxMessage
+		var arg0 entity.OutboxMessage
 		if args[0] != nil {
-			arg0 = args[0].(core.OutboxMessage)
+			arg0 = args[0].(entity.OutboxMessage)
 		}
 		run(
 			arg0,
@@ -136,7 +136,7 @@ func (_c *MockConnectionStore_EnqueueOutbox_Call) Return(err error) *MockConnect
 	return _c
 }
 
-func (_c *MockConnectionStore_EnqueueOutbox_Call) RunAndReturn(run func(msg core.OutboxMessage) error) *MockConnectionStore_EnqueueOutbox_Call {
+func (_c *MockConnectionStore_EnqueueOutbox_Call) RunAndReturn(run func(msg entity.OutboxMessage) error) *MockConnectionStore_EnqueueOutbox_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -193,23 +193,23 @@ func (_c *MockConnectionStore_EnsureIndexes_Call) RunAndReturn(run func(ctx cont
 }
 
 // FindDueOutbox provides a mock function for the type MockConnectionStore
-func (_mock *MockConnectionStore) FindDueOutbox(limit int) ([]core.OutboxMessage, error) {
+func (_mock *MockConnectionStore) FindDueOutbox(limit int) ([]entity.OutboxMessage, error) {
 	ret := _mock.Called(limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindDueOutbox")
 	}
 
-	var r0 []core.OutboxMessage
+	var r0 []entity.OutboxMessage
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(int) ([]core.OutboxMessage, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(int) ([]entity.OutboxMessage, error)); ok {
 		return returnFunc(limit)
 	}
-	if returnFunc, ok := ret.Get(0).(func(int) []core.OutboxMessage); ok {
+	if returnFunc, ok := ret.Get(0).(func(int) []entity.OutboxMessage); ok {
 		r0 = returnFunc(limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]core.OutboxMessage)
+			r0 = ret.Get(0).([]entity.OutboxMessage)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(int) error); ok {
@@ -244,37 +244,37 @@ func (_c *MockConnectionStore_FindDueOutbox_Call) Run(run func(limit int)) *Mock
 	return _c
 }
 
-func (_c *MockConnectionStore_FindDueOutbox_Call) Return(outboxMessages []core.OutboxMessage, err error) *MockConnectionStore_FindDueOutbox_Call {
+func (_c *MockConnectionStore_FindDueOutbox_Call) Return(outboxMessages []entity.OutboxMessage, err error) *MockConnectionStore_FindDueOutbox_Call {
 	_c.Call.Return(outboxMessages, err)
 	return _c
 }
 
-func (_c *MockConnectionStore_FindDueOutbox_Call) RunAndReturn(run func(limit int) ([]core.OutboxMessage, error)) *MockConnectionStore_FindDueOutbox_Call {
+func (_c *MockConnectionStore_FindDueOutbox_Call) RunAndReturn(run func(limit int) ([]entity.OutboxMessage, error)) *MockConnectionStore_FindDueOutbox_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Get provides a mock function for the type MockConnectionStore
-func (_mock *MockConnectionStore) Get(tenantID string, infraType core.InfraType, name string) (*core.ConnectionInfo, error) {
+func (_mock *MockConnectionStore) Get(tenantID string, infraType entity.InfraType, name string) (*entity.ConnectionInfo, error) {
 	ret := _mock.Called(tenantID, infraType, name)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
 	}
 
-	var r0 *core.ConnectionInfo
+	var r0 *entity.ConnectionInfo
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(string, core.InfraType, string) (*core.ConnectionInfo, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(string, entity.InfraType, string) (*entity.ConnectionInfo, error)); ok {
 		return returnFunc(tenantID, infraType, name)
 	}
-	if returnFunc, ok := ret.Get(0).(func(string, core.InfraType, string) *core.ConnectionInfo); ok {
+	if returnFunc, ok := ret.Get(0).(func(string, entity.InfraType, string) *entity.ConnectionInfo); ok {
 		r0 = returnFunc(tenantID, infraType, name)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*core.ConnectionInfo)
+			r0 = ret.Get(0).(*entity.ConnectionInfo)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(string, core.InfraType, string) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(string, entity.InfraType, string) error); ok {
 		r1 = returnFunc(tenantID, infraType, name)
 	} else {
 		r1 = ret.Error(1)
@@ -289,21 +289,21 @@ type MockConnectionStore_Get_Call struct {
 
 // Get is a helper method to define mock.On call
 //   - tenantID string
-//   - infraType core.InfraType
+//   - infraType entity.InfraType
 //   - name string
 func (_e *MockConnectionStore_Expecter) Get(tenantID interface{}, infraType interface{}, name interface{}) *MockConnectionStore_Get_Call {
 	return &MockConnectionStore_Get_Call{Call: _e.mock.On("Get", tenantID, infraType, name)}
 }
 
-func (_c *MockConnectionStore_Get_Call) Run(run func(tenantID string, infraType core.InfraType, name string)) *MockConnectionStore_Get_Call {
+func (_c *MockConnectionStore_Get_Call) Run(run func(tenantID string, infraType entity.InfraType, name string)) *MockConnectionStore_Get_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 string
 		if args[0] != nil {
 			arg0 = args[0].(string)
 		}
-		var arg1 core.InfraType
+		var arg1 entity.InfraType
 		if args[1] != nil {
-			arg1 = args[1].(core.InfraType)
+			arg1 = args[1].(entity.InfraType)
 		}
 		var arg2 string
 		if args[2] != nil {
@@ -318,37 +318,37 @@ func (_c *MockConnectionStore_Get_Call) Run(run func(tenantID string, infraType 
 	return _c
 }
 
-func (_c *MockConnectionStore_Get_Call) Return(connectionInfo *core.ConnectionInfo, err error) *MockConnectionStore_Get_Call {
+func (_c *MockConnectionStore_Get_Call) Return(connectionInfo *entity.ConnectionInfo, err error) *MockConnectionStore_Get_Call {
 	_c.Call.Return(connectionInfo, err)
 	return _c
 }
 
-func (_c *MockConnectionStore_Get_Call) RunAndReturn(run func(tenantID string, infraType core.InfraType, name string) (*core.ConnectionInfo, error)) *MockConnectionStore_Get_Call {
+func (_c *MockConnectionStore_Get_Call) RunAndReturn(run func(tenantID string, infraType entity.InfraType, name string) (*entity.ConnectionInfo, error)) *MockConnectionStore_Get_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListConnections provides a mock function for the type MockConnectionStore
-func (_mock *MockConnectionStore) ListConnections(tenantID string, infraType core.InfraType, includeDeleted bool, limit int, offset int) ([]core.ConnectionInfo, error) {
+func (_mock *MockConnectionStore) ListConnections(tenantID string, infraType entity.InfraType, includeDeleted bool, limit int, offset int) ([]entity.ConnectionInfo, error) {
 	ret := _mock.Called(tenantID, infraType, includeDeleted, limit, offset)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListConnections")
 	}
 
-	var r0 []core.ConnectionInfo
+	var r0 []entity.ConnectionInfo
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(string, core.InfraType, bool, int, int) ([]core.ConnectionInfo, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(string, entity.InfraType, bool, int, int) ([]entity.ConnectionInfo, error)); ok {
 		return returnFunc(tenantID, infraType, includeDeleted, limit, offset)
 	}
-	if returnFunc, ok := ret.Get(0).(func(string, core.InfraType, bool, int, int) []core.ConnectionInfo); ok {
+	if returnFunc, ok := ret.Get(0).(func(string, entity.InfraType, bool, int, int) []entity.ConnectionInfo); ok {
 		r0 = returnFunc(tenantID, infraType, includeDeleted, limit, offset)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]core.ConnectionInfo)
+			r0 = ret.Get(0).([]entity.ConnectionInfo)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(string, core.InfraType, bool, int, int) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(string, entity.InfraType, bool, int, int) error); ok {
 		r1 = returnFunc(tenantID, infraType, includeDeleted, limit, offset)
 	} else {
 		r1 = ret.Error(1)
@@ -363,7 +363,7 @@ type MockConnectionStore_ListConnections_Call struct {
 
 // ListConnections is a helper method to define mock.On call
 //   - tenantID string
-//   - infraType core.InfraType
+//   - infraType entity.InfraType
 //   - includeDeleted bool
 //   - limit int
 //   - offset int
@@ -371,15 +371,15 @@ func (_e *MockConnectionStore_Expecter) ListConnections(tenantID interface{}, in
 	return &MockConnectionStore_ListConnections_Call{Call: _e.mock.On("ListConnections", tenantID, infraType, includeDeleted, limit, offset)}
 }
 
-func (_c *MockConnectionStore_ListConnections_Call) Run(run func(tenantID string, infraType core.InfraType, includeDeleted bool, limit int, offset int)) *MockConnectionStore_ListConnections_Call {
+func (_c *MockConnectionStore_ListConnections_Call) Run(run func(tenantID string, infraType entity.InfraType, includeDeleted bool, limit int, offset int)) *MockConnectionStore_ListConnections_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 string
 		if args[0] != nil {
 			arg0 = args[0].(string)
 		}
-		var arg1 core.InfraType
+		var arg1 entity.InfraType
 		if args[1] != nil {
-			arg1 = args[1].(core.InfraType)
+			arg1 = args[1].(entity.InfraType)
 		}
 		var arg2 bool
 		if args[2] != nil {
@@ -404,37 +404,37 @@ func (_c *MockConnectionStore_ListConnections_Call) Run(run func(tenantID string
 	return _c
 }
 
-func (_c *MockConnectionStore_ListConnections_Call) Return(connectionInfos []core.ConnectionInfo, err error) *MockConnectionStore_ListConnections_Call {
+func (_c *MockConnectionStore_ListConnections_Call) Return(connectionInfos []entity.ConnectionInfo, err error) *MockConnectionStore_ListConnections_Call {
 	_c.Call.Return(connectionInfos, err)
 	return _c
 }
 
-func (_c *MockConnectionStore_ListConnections_Call) RunAndReturn(run func(tenantID string, infraType core.InfraType, includeDeleted bool, limit int, offset int) ([]core.ConnectionInfo, error)) *MockConnectionStore_ListConnections_Call {
+func (_c *MockConnectionStore_ListConnections_Call) RunAndReturn(run func(tenantID string, infraType entity.InfraType, includeDeleted bool, limit int, offset int) ([]entity.ConnectionInfo, error)) *MockConnectionStore_ListConnections_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListEvents provides a mock function for the type MockConnectionStore
-func (_mock *MockConnectionStore) ListEvents(tenantID string, infraType core.InfraType, name string, correlationID string, limit int, offset int) ([]core.ConnectionEvent, error) {
+func (_mock *MockConnectionStore) ListEvents(tenantID string, infraType entity.InfraType, name string, correlationID string, limit int, offset int) ([]entity.ConnectionEvent, error) {
 	ret := _mock.Called(tenantID, infraType, name, correlationID, limit, offset)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListEvents")
 	}
 
-	var r0 []core.ConnectionEvent
+	var r0 []entity.ConnectionEvent
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(string, core.InfraType, string, string, int, int) ([]core.ConnectionEvent, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(string, entity.InfraType, string, string, int, int) ([]entity.ConnectionEvent, error)); ok {
 		return returnFunc(tenantID, infraType, name, correlationID, limit, offset)
 	}
-	if returnFunc, ok := ret.Get(0).(func(string, core.InfraType, string, string, int, int) []core.ConnectionEvent); ok {
+	if returnFunc, ok := ret.Get(0).(func(string, entity.InfraType, string, string, int, int) []entity.ConnectionEvent); ok {
 		r0 = returnFunc(tenantID, infraType, name, correlationID, limit, offset)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]core.ConnectionEvent)
+			r0 = ret.Get(0).([]entity.ConnectionEvent)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(string, core.InfraType, string, string, int, int) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(string, entity.InfraType, string, string, int, int) error); ok {
 		r1 = returnFunc(tenantID, infraType, name, correlationID, limit, offset)
 	} else {
 		r1 = ret.Error(1)
@@ -449,7 +449,7 @@ type MockConnectionStore_ListEvents_Call struct {
 
 // ListEvents is a helper method to define mock.On call
 //   - tenantID string
-//   - infraType core.InfraType
+//   - infraType entity.InfraType
 //   - name string
 //   - correlationID string
 //   - limit int
@@ -458,15 +458,15 @@ func (_e *MockConnectionStore_Expecter) ListEvents(tenantID interface{}, infraTy
 	return &MockConnectionStore_ListEvents_Call{Call: _e.mock.On("ListEvents", tenantID, infraType, name, correlationID, limit, offset)}
 }
 
-func (_c *MockConnectionStore_ListEvents_Call) Run(run func(tenantID string, infraType core.InfraType, name string, correlationID string, limit int, offset int)) *MockConnectionStore_ListEvents_Call {
+func (_c *MockConnectionStore_ListEvents_Call) Run(run func(tenantID string, infraType entity.InfraType, name string, correlationID string, limit int, offset int)) *MockConnectionStore_ListEvents_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 string
 		if args[0] != nil {
 			arg0 = args[0].(string)
 		}
-		var arg1 core.InfraType
+		var arg1 entity.InfraType
 		if args[1] != nil {
-			arg1 = args[1].(core.InfraType)
+			arg1 = args[1].(entity.InfraType)
 		}
 		var arg2 string
 		if args[2] != nil {
@@ -496,12 +496,12 @@ func (_c *MockConnectionStore_ListEvents_Call) Run(run func(tenantID string, inf
 	return _c
 }
 
-func (_c *MockConnectionStore_ListEvents_Call) Return(connectionEvents []core.ConnectionEvent, err error) *MockConnectionStore_ListEvents_Call {
+func (_c *MockConnectionStore_ListEvents_Call) Return(connectionEvents []entity.ConnectionEvent, err error) *MockConnectionStore_ListEvents_Call {
 	_c.Call.Return(connectionEvents, err)
 	return _c
 }
 
-func (_c *MockConnectionStore_ListEvents_Call) RunAndReturn(run func(tenantID string, infraType core.InfraType, name string, correlationID string, limit int, offset int) ([]core.ConnectionEvent, error)) *MockConnectionStore_ListEvents_Call {
+func (_c *MockConnectionStore_ListEvents_Call) RunAndReturn(run func(tenantID string, infraType entity.InfraType, name string, correlationID string, limit int, offset int) ([]entity.ConnectionEvent, error)) *MockConnectionStore_ListEvents_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -615,7 +615,7 @@ func (_c *MockConnectionStore_MarkOutboxFailed_Call) RunAndReturn(run func(event
 }
 
 // SoftDelete provides a mock function for the type MockConnectionStore
-func (_mock *MockConnectionStore) SoftDelete(tenantID string, infraType core.InfraType, name string) error {
+func (_mock *MockConnectionStore) SoftDelete(tenantID string, infraType entity.InfraType, name string) error {
 	ret := _mock.Called(tenantID, infraType, name)
 
 	if len(ret) == 0 {
@@ -623,7 +623,7 @@ func (_mock *MockConnectionStore) SoftDelete(tenantID string, infraType core.Inf
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(string, core.InfraType, string) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(string, entity.InfraType, string) error); ok {
 		r0 = returnFunc(tenantID, infraType, name)
 	} else {
 		r0 = ret.Error(0)
@@ -638,21 +638,21 @@ type MockConnectionStore_SoftDelete_Call struct {
 
 // SoftDelete is a helper method to define mock.On call
 //   - tenantID string
-//   - infraType core.InfraType
+//   - infraType entity.InfraType
 //   - name string
 func (_e *MockConnectionStore_Expecter) SoftDelete(tenantID interface{}, infraType interface{}, name interface{}) *MockConnectionStore_SoftDelete_Call {
 	return &MockConnectionStore_SoftDelete_Call{Call: _e.mock.On("SoftDelete", tenantID, infraType, name)}
 }
 
-func (_c *MockConnectionStore_SoftDelete_Call) Run(run func(tenantID string, infraType core.InfraType, name string)) *MockConnectionStore_SoftDelete_Call {
+func (_c *MockConnectionStore_SoftDelete_Call) Run(run func(tenantID string, infraType entity.InfraType, name string)) *MockConnectionStore_SoftDelete_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 string
 		if args[0] != nil {
 			arg0 = args[0].(string)
 		}
-		var arg1 core.InfraType
+		var arg1 entity.InfraType
 		if args[1] != nil {
-			arg1 = args[1].(core.InfraType)
+			arg1 = args[1].(entity.InfraType)
 		}
 		var arg2 string
 		if args[2] != nil {
@@ -672,13 +672,13 @@ func (_c *MockConnectionStore_SoftDelete_Call) Return(err error) *MockConnection
 	return _c
 }
 
-func (_c *MockConnectionStore_SoftDelete_Call) RunAndReturn(run func(tenantID string, infraType core.InfraType, name string) error) *MockConnectionStore_SoftDelete_Call {
+func (_c *MockConnectionStore_SoftDelete_Call) RunAndReturn(run func(tenantID string, infraType entity.InfraType, name string) error) *MockConnectionStore_SoftDelete_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Upsert provides a mock function for the type MockConnectionStore
-func (_mock *MockConnectionStore) Upsert(info core.ConnectionInfo) error {
+func (_mock *MockConnectionStore) Upsert(info entity.ConnectionInfo) error {
 	ret := _mock.Called(info)
 
 	if len(ret) == 0 {
@@ -686,7 +686,7 @@ func (_mock *MockConnectionStore) Upsert(info core.ConnectionInfo) error {
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(core.ConnectionInfo) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(entity.ConnectionInfo) error); ok {
 		r0 = returnFunc(info)
 	} else {
 		r0 = ret.Error(0)
@@ -700,16 +700,16 @@ type MockConnectionStore_Upsert_Call struct {
 }
 
 // Upsert is a helper method to define mock.On call
-//   - info core.ConnectionInfo
+//   - info entity.ConnectionInfo
 func (_e *MockConnectionStore_Expecter) Upsert(info interface{}) *MockConnectionStore_Upsert_Call {
 	return &MockConnectionStore_Upsert_Call{Call: _e.mock.On("Upsert", info)}
 }
 
-func (_c *MockConnectionStore_Upsert_Call) Run(run func(info core.ConnectionInfo)) *MockConnectionStore_Upsert_Call {
+func (_c *MockConnectionStore_Upsert_Call) Run(run func(info entity.ConnectionInfo)) *MockConnectionStore_Upsert_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 core.ConnectionInfo
+		var arg0 entity.ConnectionInfo
 		if args[0] != nil {
-			arg0 = args[0].(core.ConnectionInfo)
+			arg0 = args[0].(entity.ConnectionInfo)
 		}
 		run(
 			arg0,
@@ -723,7 +723,7 @@ func (_c *MockConnectionStore_Upsert_Call) Return(err error) *MockConnectionStor
 	return _c
 }
 
-func (_c *MockConnectionStore_Upsert_Call) RunAndReturn(run func(info core.ConnectionInfo) error) *MockConnectionStore_Upsert_Call {
+func (_c *MockConnectionStore_Upsert_Call) RunAndReturn(run func(info entity.ConnectionInfo) error) *MockConnectionStore_Upsert_Call {
 	_c.Call.Return(run)
 	return _c
 }

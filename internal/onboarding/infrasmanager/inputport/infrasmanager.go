@@ -3,11 +3,11 @@ package inputport
 import (
 	"time"
 
-	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/core"
+	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/entity"
 )
 
 type UpsertConnectionRequest struct {
-	InfraType core.InfraType         `json:"infra_type" binding:"required"`
+	InfraType entity.InfraType         `json:"infra_type" binding:"required"`
 	Name      string                 `json:"name"`
 	Endpoint  string                 `json:"endpoint"   binding:"required"`
 	SecretRef string                 `json:"secret_ref"`
@@ -30,7 +30,7 @@ type UpsertConnectionResponse struct {
 
 type Connection struct {
 	TenantID  string                 `json:"tenant_id"`
-	InfraType core.InfraType         `json:"infra_type"`
+	InfraType entity.InfraType         `json:"infra_type"`
 	Name      string                 `json:"name"`
 	Endpoint  string                 `json:"endpoint"`
 	SecretRef string                 `json:"secret_ref"`
@@ -51,7 +51,7 @@ type ConnectionEvent struct {
 	ID            string                 `json:"id"`
 	CorrelationID string                 `json:"correlation_id"`
 	TenantID      string                 `json:"tenant_id"`
-	InfraType     core.InfraType         `json:"infra_type"`
+	InfraType     entity.InfraType         `json:"infra_type"`
 	Name          string                 `json:"name"`
 	Action        string                 `json:"action"`
 	Status        string                 `json:"status"`
@@ -74,20 +74,20 @@ type Usecase interface {
 	) (*UpsertConnectionResponse, error)
 	DeleteConnection(
 		tenantID string,
-		infraType core.InfraType,
+		infraType entity.InfraType,
 		name string,
 		actor map[string]string,
 	) (string, error)
-	GetConnection(tenantID string, infraType core.InfraType, name string) (*Connection, error)
+	GetConnection(tenantID string, infraType entity.InfraType, name string) (*Connection, error)
 	ListConnections(
 		tenantID string,
-		infraType core.InfraType,
+		infraType entity.InfraType,
 		includeDeleted bool,
 		limit, offset int,
 	) ([]Connection, error)
 	ListEvents(
 		tenantID string,
-		infraType core.InfraType,
+		infraType entity.InfraType,
 		name string,
 		correlationID string,
 		limit, offset int,

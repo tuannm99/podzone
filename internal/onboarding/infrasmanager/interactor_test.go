@@ -6,23 +6,23 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/core"
-	coremocks "github.com/tuannm99/podzone/internal/onboarding/infrasmanager/core/mocks"
+	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/entity"
+	coremocks "github.com/tuannm99/podzone/internal/onboarding/infrasmanager/outputport/mocks"
 )
 
 type connectionStoreState struct {
 	upsertCalls     int
 	softDeleteCalls int
-	lastConn        *core.ConnectionInfo
-	outbox          []core.OutboxMessage
-	events          []core.ConnectionEvent
+	lastConn        *entity.ConnectionInfo
+	outbox          []entity.OutboxMessage
+	events          []entity.ConnectionEvent
 }
 
 func newConnectionStoreMock(t *testing.T, state *connectionStoreState) *coremocks.MockConnectionStore {
 	t.Helper()
 	store := coremocks.NewMockConnectionStore(t)
 	store.EXPECT().EnsureIndexes(mock.Anything).Return(nil).Maybe()
-	store.EXPECT().Upsert(mock.Anything).RunAndReturn(func(info core.ConnectionInfo) error {
+	store.EXPECT().Upsert(mock.Anything).RunAndReturn(func(info entity.ConnectionInfo) error {
 		state.upsertCalls++
 		copyInfo := info
 		state.lastConn = &copyInfo
@@ -30,14 +30,14 @@ func newConnectionStoreMock(t *testing.T, state *connectionStoreState) *coremock
 	}).Maybe()
 	store.EXPECT().
 		SoftDelete(mock.Anything, mock.Anything, mock.Anything).
-		RunAndReturn(func(tenantID string, infraType core.InfraType, name string) error {
+		RunAndReturn(func(tenantID string, infraType entity.InfraType, name string) error {
 			state.softDeleteCalls++
 			return nil
 		}).
 		Maybe()
 	store.EXPECT().
 		Get(mock.Anything, mock.Anything, mock.Anything).
-		RunAndReturn(func(tenantID string, infraType core.InfraType, name string) (*core.ConnectionInfo, error) {
+		RunAndReturn(func(tenantID string, infraType entity.InfraType, name string) (*entity.ConnectionInfo, error) {
 			if state.lastConn == nil {
 				return nil, nil
 			}
@@ -47,21 +47,21 @@ func newConnectionStoreMock(t *testing.T, state *connectionStoreState) *coremock
 		Maybe()
 	store.EXPECT().
 		ListConnections(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-		Return([]core.ConnectionInfo(nil), nil).
+		Return([]entity.ConnectionInfo(nil), nil).
 		Maybe()
 	store.EXPECT().
 		ListEvents(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-		Return([]core.ConnectionEvent(nil), nil).
+		Return([]entity.ConnectionEvent(nil), nil).
 		Maybe()
-	store.EXPECT().AppendEvent(mock.Anything).RunAndReturn(func(ev core.ConnectionEvent) error {
+	store.EXPECT().AppendEvent(mock.Anything).RunAndReturn(func(ev entity.ConnectionEvent) error {
 		state.events = append(state.events, ev)
 		return nil
 	}).Maybe()
-	store.EXPECT().EnqueueOutbox(mock.Anything).RunAndReturn(func(msg core.OutboxMessage) error {
+	store.EXPECT().EnqueueOutbox(mock.Anything).RunAndReturn(func(msg entity.OutboxMessage) error {
 		state.outbox = append(state.outbox, msg)
 		return nil
 	}).Maybe()
-	store.EXPECT().FindDueOutbox(mock.Anything).Return([]core.OutboxMessage(nil), nil).Maybe()
+	store.EXPECT().FindDueOutbox(mock.Anything).Return([]entity.OutboxMessage(nil), nil).Maybe()
 	store.EXPECT().MarkOutboxDone(mock.Anything).Return(nil).Maybe()
 	store.EXPECT().MarkOutboxFailed(mock.Anything, mock.Anything).Return(nil).Maybe()
 	return store
@@ -69,10 +69,10 @@ func newConnectionStoreMock(t *testing.T, state *connectionStoreState) *coremock
 
 func TestManualUpsertConnection_RejectsSchemaModeMissingSchemaName(t *testing.T) {
 	state := &connectionStoreState{}
-	svc := NewService(newConnectionStoreMock(t, state))
+	svc := NewInteractor(newConnectionStoreMock(t, state))
 
 	_, err := svc.ManualUpsertConnection("tenant-1", UpsertConnectionRequest{
-		InfraType:   core.InfraPostgres,
+		InfraType:   entity.InfraPostgres,
 		Endpoint:    "postgres://db",
 		ClusterName: "pg-01",
 		Mode:        "schema",
@@ -86,10 +86,10 @@ func TestManualUpsertConnection_RejectsSchemaModeMissingSchemaName(t *testing.T)
 
 func TestManualUpsertConnection_PostgresEnqueuesPlacementPublish(t *testing.T) {
 	state := &connectionStoreState{}
-	svc := NewService(newConnectionStoreMock(t, state))
+	svc := NewInteractor(newConnectionStoreMock(t, state))
 
 	resp, err := svc.ManualUpsertConnection("tenant-1", UpsertConnectionRequest{
-		InfraType:   core.InfraPostgres,
+		InfraType:   entity.InfraPostgres,
 		Name:        "default",
 		Endpoint:    "postgres://db",
 		ClusterName: "pg-01",
@@ -110,9 +110,9 @@ func TestManualUpsertConnection_PostgresEnqueuesPlacementPublish(t *testing.T) {
 
 func TestDeleteConnection_PostgresEnqueuesPlacementDelete(t *testing.T) {
 	state := &connectionStoreState{}
-	svc := NewService(newConnectionStoreMock(t, state))
+	svc := NewInteractor(newConnectionStoreMock(t, state))
 
-	corrID, err := svc.DeleteConnection("tenant-1", core.InfraPostgres, "default", map[string]string{"user": "tester"})
+	corrID, err := svc.DeleteConnection("tenant-1", entity.InfraPostgres, "default", map[string]string{"user": "tester"})
 	require.NoError(t, err)
 	require.NotEmpty(t, corrID)
 	require.Equal(t, 1, state.softDeleteCalls)

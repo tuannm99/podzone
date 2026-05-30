@@ -5,30 +5,43 @@ import (
 	"time"
 )
 
-type StoreStatus string
+type RequestStatus string
 
 const (
-	StoreStatusDraft     StoreStatus = "draft"
-	StoreStatusPending   StoreStatus = "pending"
-	StoreStatusActive    StoreStatus = "active"
-	StoreStatusRejected  StoreStatus = "rejected"
-	StoreStatusSuspended StoreStatus = "suspended"
+	RequestStatusRequested       RequestStatus = "requested"
+	RequestStatusPendingApproval RequestStatus = "pending_approval"
+	RequestStatusQueued          RequestStatus = "queued"
+	RequestStatusProvisioning    RequestStatus = "provisioning"
+	RequestStatusReady           RequestStatus = "ready"
+	RequestStatusFailed          RequestStatus = "failed"
+	RequestStatusRejected        RequestStatus = "rejected"
+	RequestStatusSuspended       RequestStatus = "suspended"
+	RequestStatusArchived        RequestStatus = "archived"
 )
 
-type Store struct {
-	ID          string      `json:"id"`
-	Name        string      `json:"name"`
-	Subdomain   string      `json:"subdomain"`
-	OwnerID     string      `json:"owner_id"`
-	Status      StoreStatus `json:"status"`
-	CreatedAt   time.Time   `json:"created_at"`
-	UpdatedAt   time.Time   `json:"updated_at"`
-	CompletedAt *time.Time  `json:"completed_at,omitempty"`
+type Request struct {
+	ID          string        `json:"id"`
+	WorkspaceID string        `json:"workspace_id"`
+	Name        string        `json:"name"`
+	Subdomain   string        `json:"subdomain"`
+	RequestedBy string        `json:"requested_by"`
+	Status      RequestStatus `json:"status"`
+	StoreID     string        `json:"store_id,omitempty"`
+	LastError   string        `json:"last_error,omitempty"`
+	CreatedAt   time.Time     `json:"created_at"`
+	UpdatedAt   time.Time     `json:"updated_at"`
+	ApprovedAt  *time.Time    `json:"approved_at,omitempty"`
+	CompletedAt *time.Time    `json:"completed_at,omitempty"`
 }
 
 type Usecase interface {
-	CreateStore(ctx context.Context, name, subdomain, ownerID string) (*Store, error)
-	GetStore(ctx context.Context, id string) (*Store, error)
-	GetStoresByOwner(ctx context.Context, ownerID string) ([]*Store, error)
-	UpdateStoreStatus(ctx context.Context, id string, status StoreStatus) error
+	CreateStoreRequest(ctx context.Context, name, subdomain, workspaceID, requestedBy string) (*Request, error)
+	GetStoreRequest(ctx context.Context, id string) (*Request, error)
+	ListStoreRequests(ctx context.Context, workspaceID string) ([]*Request, error)
+	ApproveStoreRequest(ctx context.Context, id string) error
+	RejectStoreRequest(ctx context.Context, id string) error
+	UpdateStoreRequestStatus(ctx context.Context, id string, status RequestStatus) error
 }
+
+type StoreStatus = RequestStatus
+type Store = Request

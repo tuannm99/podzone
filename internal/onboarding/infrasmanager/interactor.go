@@ -6,22 +6,23 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/core"
+	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/entity"
 	infrasinputport "github.com/tuannm99/podzone/internal/onboarding/infrasmanager/inputport"
+	storeoutputport "github.com/tuannm99/podzone/internal/onboarding/infrasmanager/outputport"
 )
 
-var _ infrasinputport.Usecase = (*Service)(nil)
+var _ infrasinputport.Usecase = (*Interactor)(nil)
 
-type Service struct {
-	st core.ConnectionStore
+type Interactor struct {
+	st storeoutputport.ConnectionStore
 }
 
-func NewService(st core.ConnectionStore) *Service {
-	return &Service{st: st}
+func NewInteractor(st storeoutputport.ConnectionStore) *Interactor {
+	return &Interactor{st: st}
 }
 
 // ManualUpsertConnection stores connection and enqueues publish snapshot to Consul.
-func (s *Service) ManualUpsertConnection(
+func (s *Interactor) ManualUpsertConnection(
 	tenantID string,
 	req UpsertConnectionRequest,
 	actor map[string]string,
@@ -37,7 +38,7 @@ func (s *Service) ManualUpsertConnection(
 
 	corrID := uuid.NewString()
 
-	_ = s.st.AppendEvent(core.ConnectionEvent{
+	_ = s.st.AppendEvent(entity.ConnectionEvent{
 		ID:            uuid.NewString(),
 		CorrelationID: corrID,
 		TenantID:      tenantID,
@@ -56,7 +57,7 @@ func (s *Service) ManualUpsertConnection(
 		CreatedAt: time.Now(),
 	})
 
-	conn := core.ConnectionInfo{
+	conn := entity.ConnectionInfo{
 		TenantID:  tenantID,
 		InfraType: req.InfraType,
 		Name:      name,
@@ -70,7 +71,7 @@ func (s *Service) ManualUpsertConnection(
 	}
 
 	if err := s.st.Upsert(conn); err != nil {
-		_ = s.st.AppendEvent(core.ConnectionEvent{
+		_ = s.st.AppendEvent(entity.ConnectionEvent{
 			ID:            uuid.NewString(),
 			CorrelationID: corrID,
 			TenantID:      tenantID,
@@ -85,7 +86,7 @@ func (s *Service) ManualUpsertConnection(
 		return nil, err
 	}
 
-	consulKey := core.BuildConsulKey(tenantID, req.InfraType, name)
+	consulKey := entity.BuildConsulKey(tenantID, req.InfraType, name)
 
 	snap := map[string]interface{}{
 		"tenantID":  tenantID,
@@ -100,7 +101,7 @@ func (s *Service) ManualUpsertConnection(
 	}
 	valBytes, err := json.Marshal(snap)
 	if err != nil {
-		_ = s.st.AppendEvent(core.ConnectionEvent{
+		_ = s.st.AppendEvent(entity.ConnectionEvent{
 			ID:            uuid.NewString(),
 			CorrelationID: corrID,
 			TenantID:      tenantID,
@@ -115,7 +116,7 @@ func (s *Service) ManualUpsertConnection(
 		return nil, err
 	}
 
-	if err := s.st.EnqueueOutbox(core.OutboxMessage{
+	if err := s.st.EnqueueOutbox(entity.OutboxMessage{
 		EventID:       uuid.NewString(),
 		CorrelationID: corrID,
 		Topic:         "consul.publish",
@@ -129,7 +130,7 @@ func (s *Service) ManualUpsertConnection(
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
 	}); err != nil {
-		_ = s.st.AppendEvent(core.ConnectionEvent{
+		_ = s.st.AppendEvent(entity.ConnectionEvent{
 			ID:            uuid.NewString(),
 			CorrelationID: corrID,
 			TenantID:      tenantID,
@@ -146,7 +147,7 @@ func (s *Service) ManualUpsertConnection(
 
 	// For postgres connections, also write placement routing data so that
 	// pdtenantdb's ConsulPlacementResolver can route tenant queries.
-	if req.InfraType == core.InfraPostgres && req.ClusterName != "" {
+	if req.InfraType == entity.InfraPostgres && req.ClusterName != "" {
 		placementKey := "podzone/tenants/" + tenantID + "/placement"
 		placementSnap := map[string]interface{}{
 			"cluster_name": req.ClusterName,
@@ -155,7 +156,7 @@ func (s *Service) ManualUpsertConnection(
 			"schema_name":  req.SchemaName,
 		}
 		if placementBytes, err := json.Marshal(placementSnap); err == nil {
-			_ = s.st.EnqueueOutbox(core.OutboxMessage{
+			_ = s.st.EnqueueOutbox(entity.OutboxMessage{
 				EventID:       uuid.NewString(),
 				CorrelationID: corrID,
 				Topic:         "consul.publish",
@@ -172,7 +173,7 @@ func (s *Service) ManualUpsertConnection(
 		}
 	}
 
-	_ = s.st.AppendEvent(core.ConnectionEvent{
+	_ = s.st.AppendEvent(entity.ConnectionEvent{
 		ID:            uuid.NewString(),
 		CorrelationID: corrID,
 		TenantID:      tenantID,
@@ -202,9 +203,9 @@ func (s *Service) ManualUpsertConnection(
 	}, nil
 }
 
-func (s *Service) DeleteConnection(
+func (s *Interactor) DeleteConnection(
 	tenantID string,
-	infraType core.InfraType,
+	infraType entity.InfraType,
 	name string,
 	actor map[string]string,
 ) (string, error) {
@@ -214,7 +215,7 @@ func (s *Service) DeleteConnection(
 
 	corrID := uuid.NewString()
 
-	_ = s.st.AppendEvent(core.ConnectionEvent{
+	_ = s.st.AppendEvent(entity.ConnectionEvent{
 		ID:            uuid.NewString(),
 		CorrelationID: corrID,
 		TenantID:      tenantID,
@@ -227,7 +228,7 @@ func (s *Service) DeleteConnection(
 	})
 
 	if err := s.st.SoftDelete(tenantID, infraType, name); err != nil {
-		_ = s.st.AppendEvent(core.ConnectionEvent{
+		_ = s.st.AppendEvent(entity.ConnectionEvent{
 			ID:            uuid.NewString(),
 			CorrelationID: corrID,
 			TenantID:      tenantID,
@@ -242,9 +243,9 @@ func (s *Service) DeleteConnection(
 		return corrID, err
 	}
 
-	if infraType == core.InfraPostgres {
+	if infraType == entity.InfraPostgres {
 		placementKey := "podzone/tenants/" + tenantID + "/placement"
-		if err := s.st.EnqueueOutbox(core.OutboxMessage{
+		if err := s.st.EnqueueOutbox(entity.OutboxMessage{
 			EventID:       uuid.NewString(),
 			CorrelationID: corrID,
 			Topic:         "consul.delete",
@@ -257,7 +258,7 @@ func (s *Service) DeleteConnection(
 			CreatedAt:     time.Now(),
 			UpdatedAt:     time.Now(),
 		}); err != nil {
-			_ = s.st.AppendEvent(core.ConnectionEvent{
+			_ = s.st.AppendEvent(entity.ConnectionEvent{
 				ID:            uuid.NewString(),
 				CorrelationID: corrID,
 				TenantID:      tenantID,
@@ -273,8 +274,8 @@ func (s *Service) DeleteConnection(
 		}
 	}
 
-	consulKey := core.BuildConsulKey(tenantID, infraType, name)
-	if err := s.st.EnqueueOutbox(core.OutboxMessage{
+	consulKey := entity.BuildConsulKey(tenantID, infraType, name)
+	if err := s.st.EnqueueOutbox(entity.OutboxMessage{
 		EventID:       uuid.NewString(),
 		CorrelationID: corrID,
 		Topic:         "consul.delete",
@@ -287,7 +288,7 @@ func (s *Service) DeleteConnection(
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
 	}); err != nil {
-		_ = s.st.AppendEvent(core.ConnectionEvent{
+		_ = s.st.AppendEvent(entity.ConnectionEvent{
 			ID:            uuid.NewString(),
 			CorrelationID: corrID,
 			TenantID:      tenantID,
@@ -302,7 +303,7 @@ func (s *Service) DeleteConnection(
 		return corrID, err
 	}
 
-	_ = s.st.AppendEvent(core.ConnectionEvent{
+	_ = s.st.AppendEvent(entity.ConnectionEvent{
 		ID:            uuid.NewString(),
 		CorrelationID: corrID,
 		TenantID:      tenantID,
@@ -319,7 +320,7 @@ func (s *Service) DeleteConnection(
 }
 
 func validatePlacementRequest(req UpsertConnectionRequest) error {
-	if req.InfraType != core.InfraPostgres || req.ClusterName == "" {
+	if req.InfraType != entity.InfraPostgres || req.ClusterName == "" {
 		return nil
 	}
 
@@ -343,7 +344,7 @@ func validatePlacementRequest(req UpsertConnectionRequest) error {
 	return nil
 }
 
-func (s *Service) GetConnection(tenantID string, infraType core.InfraType, name string) (*ConnectionDTO, error) {
+func (s *Interactor) GetConnection(tenantID string, infraType entity.InfraType, name string) (*ConnectionDTO, error) {
 	c, err := s.st.Get(tenantID, infraType, name)
 	if err != nil {
 		return nil, err
@@ -352,9 +353,9 @@ func (s *Service) GetConnection(tenantID string, infraType core.InfraType, name 
 	return &dto, nil
 }
 
-func (s *Service) ListConnections(
+func (s *Interactor) ListConnections(
 	tenantID string,
-	infraType core.InfraType,
+	infraType entity.InfraType,
 	includeDeleted bool,
 	limit, offset int,
 ) ([]ConnectionDTO, error) {
@@ -369,9 +370,9 @@ func (s *Service) ListConnections(
 	return out, nil
 }
 
-func (s *Service) ListEvents(
+func (s *Interactor) ListEvents(
 	tenantID string,
-	infraType core.InfraType,
+	infraType entity.InfraType,
 	name string,
 	correlationID string,
 	limit, offset int,

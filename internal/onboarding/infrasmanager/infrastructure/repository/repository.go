@@ -1,17 +1,22 @@
-package eventstore
+package repository
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"time"
 
-	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/core"
+	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/entity"
+	storeoutputport "github.com/tuannm99/podzone/internal/onboarding/infrasmanager/outputport"
+	"github.com/tuannm99/podzone/pkg/messaging"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/fx"
 )
 
-var _ core.ConnectionStore = (*MongoStore)(nil)
+var _ storeoutputport.ConnectionStore = (*MongoStore)(nil)
+var _ messaging.OutboxStore = (*MongoStore)(nil)
 
 type MongoStore struct {
 	db *mongo.Database
@@ -34,7 +39,7 @@ func NewMongoStore(p MongoStoreParams) *MongoStore {
 		db:        db,
 		connCol:   db.Collection("connections"),
 		eventCol:  db.Collection("connection_events"),
-		outboxCol: db.Collection("outbox"),
+		outboxCol: db.Collection("connection_outbox"),
 	}
 }
 
@@ -80,17 +85,17 @@ func (s *MongoStore) EnsureIndexes(ctx context.Context) error {
 	_, err = s.outboxCol.Indexes().CreateMany(ctx, []mongo.IndexModel{
 		{
 			Keys:    bson.D{{Key: "status", Value: 1}, {Key: "next_retry", Value: 1}},
-			Options: options.Index().SetName("status_next_retry"),
+			Options: options.Index().SetName("connection_outbox_status_next_retry"),
 		},
 		{
 			Keys:    bson.D{{Key: "event_id", Value: 1}},
-			Options: options.Index().SetUnique(true).SetName("uniq_outbox_event"),
+			Options: options.Index().SetUnique(true).SetName("uniq_connection_outbox_event"),
 		},
 	})
 	return err
 }
 
-func (s *MongoStore) Upsert(info core.ConnectionInfo) error {
+func (s *MongoStore) Upsert(info entity.ConnectionInfo) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -134,7 +139,7 @@ func (s *MongoStore) Upsert(info core.ConnectionInfo) error {
 	return err
 }
 
-func (s *MongoStore) SoftDelete(tenantID string, infraType core.InfraType, name string) error {
+func (s *MongoStore) SoftDelete(tenantID string, infraType entity.InfraType, name string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -156,7 +161,7 @@ func (s *MongoStore) SoftDelete(tenantID string, infraType core.InfraType, name 
 	return err
 }
 
-func (s *MongoStore) Get(tenantID string, infraType core.InfraType, name string) (*core.ConnectionInfo, error) {
+func (s *MongoStore) Get(tenantID string, infraType entity.InfraType, name string) (*entity.ConnectionInfo, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -184,14 +189,14 @@ func (s *MongoStore) Get(tenantID string, infraType core.InfraType, name string)
 	}).Decode(&doc)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return nil, core.ErrConnectionNotFound
+			return nil, entity.ErrConnectionNotFound
 		}
 		return nil, err
 	}
 
-	return &core.ConnectionInfo{
+	return &entity.ConnectionInfo{
 		TenantID:  doc.TenantID,
-		InfraType: core.InfraType(doc.InfraType),
+		InfraType: entity.InfraType(doc.InfraType),
 		Name:      doc.Name,
 		Endpoint:  doc.Endpoint,
 		SecretRef: doc.SecretRef,
@@ -207,10 +212,10 @@ func (s *MongoStore) Get(tenantID string, infraType core.InfraType, name string)
 
 func (s *MongoStore) ListConnections(
 	tenantID string,
-	infraType core.InfraType,
+	infraType entity.InfraType,
 	includeDeleted bool,
 	limit, offset int,
-) ([]core.ConnectionInfo, error) {
+) ([]entity.ConnectionInfo, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
 	defer cancel()
 
@@ -242,7 +247,7 @@ func (s *MongoStore) ListConnections(
 	}
 	defer cur.Close(ctx)
 
-	out := make([]core.ConnectionInfo, 0, limit)
+	out := make([]entity.ConnectionInfo, 0, limit)
 	for cur.Next(ctx) {
 		var doc struct {
 			TenantID  string                 `bson:"tenant_id"`
@@ -261,9 +266,9 @@ func (s *MongoStore) ListConnections(
 		if err := cur.Decode(&doc); err != nil {
 			return nil, err
 		}
-		out = append(out, core.ConnectionInfo{
+		out = append(out, entity.ConnectionInfo{
 			TenantID:  doc.TenantID,
-			InfraType: core.InfraType(doc.InfraType),
+			InfraType: entity.InfraType(doc.InfraType),
 			Name:      doc.Name,
 			Endpoint:  doc.Endpoint,
 			SecretRef: doc.SecretRef,
@@ -281,11 +286,11 @@ func (s *MongoStore) ListConnections(
 
 func (s *MongoStore) ListEvents(
 	tenantID string,
-	infraType core.InfraType,
+	infraType entity.InfraType,
 	name string,
 	correlationID string,
 	limit, offset int,
-) ([]core.ConnectionEvent, error) {
+) ([]entity.ConnectionEvent, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
 	defer cancel()
 
@@ -320,7 +325,7 @@ func (s *MongoStore) ListEvents(
 	}
 	defer cur.Close(ctx)
 
-	out := make([]core.ConnectionEvent, 0, limit)
+	out := make([]entity.ConnectionEvent, 0, limit)
 	for cur.Next(ctx) {
 		var doc struct {
 			ID            string                 `bson:"id"`
@@ -339,11 +344,11 @@ func (s *MongoStore) ListEvents(
 		if err := cur.Decode(&doc); err != nil {
 			return nil, err
 		}
-		out = append(out, core.ConnectionEvent{
+		out = append(out, entity.ConnectionEvent{
 			ID:            doc.ID,
 			CorrelationID: doc.CorrelationID,
 			TenantID:      doc.TenantID,
-			InfraType:     core.InfraType(doc.InfraType),
+			InfraType:     entity.InfraType(doc.InfraType),
 			Name:          doc.Name,
 			Action:        doc.Action,
 			Status:        doc.Status,
@@ -357,12 +362,12 @@ func (s *MongoStore) ListEvents(
 	return out, cur.Err()
 }
 
-func (s *MongoStore) AppendEvent(ev core.ConnectionEvent) error {
+func (s *MongoStore) AppendEvent(ev entity.ConnectionEvent) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if ev.ID == "" {
-		return core.ErrInvalidInput
+		return entity.ErrInvalidInput
 	}
 	if ev.CreatedAt.IsZero() {
 		ev.CreatedAt = time.Now()
@@ -391,12 +396,12 @@ func (s *MongoStore) AppendEvent(ev core.ConnectionEvent) error {
 	return err
 }
 
-func (s *MongoStore) EnqueueOutbox(msg core.OutboxMessage) error {
+func (s *MongoStore) EnqueueOutbox(msg entity.OutboxMessage) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if msg.EventID == "" {
-		return core.ErrInvalidInput
+		return entity.ErrInvalidInput
 	}
 
 	now := time.Now()
@@ -437,7 +442,60 @@ func (s *MongoStore) EnqueueOutbox(msg core.OutboxMessage) error {
 	return err
 }
 
-func (s *MongoStore) FindDueOutbox(limit int) ([]core.OutboxMessage, error) {
+func (s *MongoStore) Append(ctx context.Context, tx messaging.Tx, record messaging.OutboxRecord) error {
+	_ = ctx
+	_ = tx
+	msg, err := outboxRecordToCore(record)
+	if err != nil {
+		return err
+	}
+	return s.EnqueueOutbox(msg)
+}
+
+func (s *MongoStore) ListPending(ctx context.Context, limit int) ([]messaging.OutboxRecord, error) {
+	msgs, err := s.FindDueOutbox(limit)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]messaging.OutboxRecord, 0, len(msgs))
+	for _, msg := range msgs {
+		payload, err := json.Marshal(msg.Payload)
+		if err != nil {
+			return nil, fmt.Errorf("marshal onboarding outbox payload: %w", err)
+		}
+		out = append(out, messaging.OutboxRecord{
+			ID:            msg.EventID,
+			Topic:         msg.Topic,
+			MessageKey:    outboxMessageKey(msg),
+			Envelope:      outboxMessageEnvelope(msg, payload),
+			Status:        msg.Status,
+			Attempts:      msg.RetryCount,
+			NextAttemptAt: msg.NextRetry,
+			CreatedAt:     msg.CreatedAt,
+			UpdatedAt:     msg.UpdatedAt,
+		})
+	}
+	return out, nil
+}
+
+func (s *MongoStore) MarkPublished(ctx context.Context, ids []string, publishedAt time.Time) error {
+	_ = ctx
+	_ = publishedAt
+	for _, id := range ids {
+		if err := s.MarkOutboxDone(id); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *MongoStore) MarkFailed(ctx context.Context, id string, errText string, nextAttemptAt time.Time) error {
+	_ = ctx
+	_ = errText
+	return s.MarkOutboxFailed(id, nextAttemptAt)
+}
+
+func (s *MongoStore) FindDueOutbox(limit int) ([]entity.OutboxMessage, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -454,7 +512,7 @@ func (s *MongoStore) FindDueOutbox(limit int) ([]core.OutboxMessage, error) {
 	}
 	defer cur.Close(ctx)
 
-	var out []core.OutboxMessage
+	var out []entity.OutboxMessage
 	for cur.Next(ctx) {
 		var doc struct {
 			EventID       string                 `bson:"event_id"`
@@ -473,13 +531,13 @@ func (s *MongoStore) FindDueOutbox(limit int) ([]core.OutboxMessage, error) {
 		if err := cur.Decode(&doc); err != nil {
 			return nil, err
 		}
-		out = append(out, core.OutboxMessage{
+		out = append(out, entity.OutboxMessage{
 			EventID:       doc.EventID,
 			CorrelationID: doc.CorrelationID,
 			Topic:         doc.Topic,
 			Payload:       doc.Payload,
 			TenantID:      doc.TenantID,
-			InfraType:     core.InfraType(doc.InfraType),
+			InfraType:     entity.InfraType(doc.InfraType),
 			Name:          doc.Name,
 			Status:        doc.Status,
 			RetryCount:    doc.RetryCount,
@@ -510,4 +568,56 @@ func (s *MongoStore) MarkOutboxFailed(eventID string, nextRetry time.Time) error
 		"$inc": bson.M{"retry_count": 1},
 	})
 	return err
+}
+
+func outboxRecordToCore(record messaging.OutboxRecord) (entity.OutboxMessage, error) {
+	var payload map[string]interface{}
+	if len(record.Envelope.Payload) > 0 {
+		if err := json.Unmarshal(record.Envelope.Payload, &payload); err != nil {
+			return entity.OutboxMessage{}, fmt.Errorf("unmarshal onboarding outbox payload: %w", err)
+		}
+	} else {
+		payload = map[string]interface{}{}
+	}
+	return entity.OutboxMessage{
+		EventID:       record.ID,
+		CorrelationID: record.Envelope.CorrelationID,
+		Topic:         record.Envelope.Type,
+		Payload:       payload,
+		TenantID:      record.Envelope.TenantID,
+		InfraType:     entity.InfraType(record.Envelope.Headers["infra_type"]),
+		Name:          record.Envelope.EntityID,
+		Status:        record.Status,
+		RetryCount:    record.Attempts,
+		NextRetry:     record.NextAttemptAt,
+		CreatedAt:     record.CreatedAt,
+		UpdatedAt:     record.UpdatedAt,
+	}, nil
+}
+
+func outboxMessageEnvelope(msg entity.OutboxMessage, payload []byte) messaging.Envelope {
+	return messaging.Envelope{
+		ID:            msg.EventID,
+		Type:          msg.Topic,
+		Source:        "onboarding",
+		TenantID:      msg.TenantID,
+		EntityID:      msg.Name,
+		CorrelationID: msg.CorrelationID,
+		OccurredAt:    msg.CreatedAt,
+		SchemaVersion: 1,
+		Headers: map[string]string{
+			"infra_type": string(msg.InfraType),
+		},
+		Payload: payload,
+	}
+}
+
+func outboxMessageKey(msg entity.OutboxMessage) string {
+	if msg.TenantID == "" {
+		return msg.Name
+	}
+	if msg.Name == "" {
+		return msg.TenantID
+	}
+	return fmt.Sprintf("%s:%s:%s", msg.TenantID, msg.InfraType, msg.Name)
 }
