@@ -17,6 +17,18 @@ mongo:
     ping_timeout: 3s
     connect_timeout: 5s
 
+onboarding:
+  store_provisioning:
+    enabled: true
+    auto_approve: true
+    interval: 5s
+    cluster_name: pg-default
+    mode: schema
+    db_name: postgres
+    schema_prefix: t_
+    endpoint: postgres://postgres:***@pgbouncer:6432/postgres
+    secret_ref: postgres/default
+
 http:
   address: ':8800'
   trusted_proxies: []

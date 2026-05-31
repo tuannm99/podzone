@@ -12,4 +12,6 @@ var (
 	ErrSubdomainRequired   = errors.New("subdomain is required")
 	ErrWorkspaceIDRequired = errors.New("workspace_id is required")
 	ErrRequestedByRequired = errors.New("requested_by is required")
+	ErrProvisionerDisabled = errors.New("store provisioning worker is disabled")
+	ErrProvisionerMissing  = errors.New("store provisioning dependency is missing")
 )

@@ -117,6 +117,32 @@ func (r *MongoRepository) List(ctx context.Context, workspaceID string) ([]store
 	return requests, nil
 }
 
+func (r *MongoRepository) ClaimNextQueued(ctx context.Context) (*storeentity.StoreRequest, error) {
+	now := time.Now().UTC()
+	var request storeentity.StoreRequest
+	err := r.collection.FindOneAndUpdate(
+		ctx,
+		bson.M{"status": storeentity.RequestStatusQueued},
+		bson.M{
+			"$set": bson.M{
+				"status":     storeentity.RequestStatusProvisioning,
+				"last_error": "",
+				"updated_at": now,
+			},
+		},
+		options.FindOneAndUpdate().
+			SetSort(bson.D{{Key: "updated_at", Value: 1}}).
+			SetReturnDocument(options.After),
+	).Decode(&request)
+	if err == mongo.ErrNoDocuments {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &request, nil
+}
+
 func (r *MongoRepository) UpdateStatus(ctx context.Context, id string, status storeentity.RequestStatus) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -138,5 +164,54 @@ func (r *MongoRepository) UpdateStatus(ctx context.Context, id string, status st
 	}
 
 	_, err = r.collection.UpdateOne(ctx, bson.M{"_id": objectID}, update)
+	return err
+}
+
+func (r *MongoRepository) MarkReady(ctx context.Context, id string, storeID string) error {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	storeObjectID, err := primitive.ObjectIDFromHex(storeID)
+	if err != nil {
+		return err
+	}
+
+	now := time.Now().UTC()
+	_, err = r.collection.UpdateOne(
+		ctx,
+		bson.M{"_id": objectID},
+		bson.M{
+			"$set": bson.M{
+				"status":       storeentity.RequestStatusReady,
+				"store_id":     storeObjectID,
+				"last_error":   "",
+				"updated_at":   now,
+				"completed_at": now,
+			},
+		},
+	)
+	return err
+}
+
+func (r *MongoRepository) MarkFailed(ctx context.Context, id string, reason string) error {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	now := time.Now().UTC()
+	_, err = r.collection.UpdateOne(
+		ctx,
+		bson.M{"_id": objectID},
+		bson.M{
+			"$set": bson.M{
+				"status":       storeentity.RequestStatusFailed,
+				"last_error":   reason,
+				"updated_at":   now,
+				"completed_at": now,
+			},
+		},
+	)
 	return err
 }

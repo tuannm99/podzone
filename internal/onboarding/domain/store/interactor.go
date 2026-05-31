@@ -7,6 +7,8 @@ import (
 
 	"go.uber.org/fx"
 
+	infrasentity "github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/entity"
+	infrasinputport "github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/inputport"
 	storeentity "github.com/tuannm99/podzone/internal/onboarding/domain/store/entity"
 	storeinputport "github.com/tuannm99/podzone/internal/onboarding/domain/store/inputport"
 	storeoutputport "github.com/tuannm99/podzone/internal/onboarding/domain/store/outputport"
@@ -15,17 +17,25 @@ import (
 var _ storeinputport.Usecase = (*StoreInteractor)(nil)
 
 type StoreInteractor struct {
-	repo storeoutputport.StoreRepository
+	repo        storeoutputport.StoreRepository
+	infra       infrasinputport.Usecase
+	provisioner storeentity.ProvisioningConfig
 }
 
 type StoreInteractorParams struct {
 	fx.In
 
 	StoreRepo storeoutputport.StoreRepository
+	Infra     infrasinputport.Usecase
+	Config    storeentity.ProvisioningConfig
 }
 
 func NewStoreInteractor(params StoreInteractorParams) *StoreInteractor {
-	return &StoreInteractor{repo: params.StoreRepo}
+	return &StoreInteractor{
+		repo:        params.StoreRepo,
+		infra:       params.Infra,
+		provisioner: params.Config,
+	}
 }
 
 func (s *StoreInteractor) CreateStoreRequest(
@@ -54,12 +64,16 @@ func (s *StoreInteractor) CreateStoreRequest(
 	}
 
 	now := time.Now().UTC()
+	status := storeentity.RequestStatusRequested
+	if s.provisioner.AutoApprove {
+		status = storeentity.RequestStatusQueued
+	}
 	request, err := s.repo.Create(ctx, storeentity.StoreRequest{
 		WorkspaceID: workspaceID,
 		Name:        name,
 		Subdomain:   subdomain,
 		RequestedBy: requestedBy,
-		Status:      storeentity.RequestStatusRequested,
+		Status:      status,
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	})
@@ -175,6 +189,95 @@ func (s *StoreInteractor) UpdateStoreStatus(ctx context.Context, id string, stat
 	return s.UpdateStoreRequestStatus(ctx, id, status)
 }
 
+func (s *StoreInteractor) ProcessNextStoreRequest(ctx context.Context) (*storeinputport.Request, error) {
+	if !s.provisioner.Enabled {
+		return nil, ErrProvisionerDisabled
+	}
+	if s.infra == nil {
+		return nil, ErrProvisionerMissing
+	}
+
+	request, err := s.repo.ClaimNextQueued(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if request == nil {
+		return nil, nil
+	}
+
+	storeID := request.ID.Hex()
+	schemaName := s.schemaName(request.WorkspaceID)
+	_, err = s.infra.ManualUpsertConnection(
+		ctx,
+		request.WorkspaceID,
+		infrasinputport.UpsertConnectionRequest{
+			InfraType:   infrasentity.InfraPostgres,
+			Name:        "default",
+			Endpoint:    s.provisioner.Endpoint,
+			SecretRef:   s.provisioner.SecretRef,
+			Status:      "active",
+			ClusterName: s.provisioner.ClusterName,
+			Mode:        s.provisioner.Mode,
+			DBName:      s.provisioner.DBName,
+			SchemaName:  schemaName,
+			Meta: map[string]string{
+				"store_request_id": request.ID.Hex(),
+				"store_id":         storeID,
+				"store_subdomain":  request.Subdomain,
+			},
+			Config: map[string]interface{}{
+				"driver": "postgres",
+				"mode":   s.provisioner.Mode,
+			},
+		},
+		map[string]string{
+			"service": "onboarding",
+			"worker":  "store-provisioner",
+		},
+	)
+	if err != nil {
+		_ = s.repo.MarkFailed(ctx, request.ID.Hex(), err.Error())
+		return nil, err
+	}
+
+	if err := s.repo.MarkReady(ctx, request.ID.Hex(), storeID); err != nil {
+		return nil, err
+	}
+
+	return s.GetStoreRequest(ctx, request.ID.Hex())
+}
+
 func isDuplicateStoreError(err error) bool {
 	return strings.Contains(strings.ToLower(err.Error()), "duplicate")
+}
+
+func (s *StoreInteractor) schemaName(workspaceID string) string {
+	prefix := s.provisioner.SchemaPrefix
+	if prefix == "" {
+		prefix = "t_"
+	}
+	return prefix + sanitizeIdentifier(workspaceID)
+}
+
+func sanitizeIdentifier(value string) string {
+	value = strings.ToLower(value)
+	var b strings.Builder
+	for _, r := range value {
+		switch {
+		case r >= 'a' && r <= 'z':
+			b.WriteRune(r)
+		case r >= '0' && r <= '9':
+			b.WriteRune(r)
+		default:
+			b.WriteByte('_')
+		}
+	}
+	out := strings.Trim(b.String(), "_")
+	if out == "" {
+		return "tenant"
+	}
+	if out[0] >= '0' && out[0] <= '9' {
+		return "tenant_" + out
+	}
+	return out
 }

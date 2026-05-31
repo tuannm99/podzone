@@ -146,3 +146,15 @@ packages:
       dir: internal/onboarding/domain/infrasmanager/outputport/mocks
     interfaces:
       ConnectionStore:
+
+  github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/inputport:
+    config:
+      dir: internal/onboarding/domain/infrasmanager/inputport/mocks
+    interfaces:
+      Usecase:
+
+  github.com/tuannm99/podzone/internal/onboarding/domain/store/outputport:
+    config:
+      dir: internal/onboarding/domain/store/outputport/mocks
+    interfaces:
+      StoreRepository:

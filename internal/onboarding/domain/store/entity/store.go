@@ -34,3 +34,14 @@ type StoreRequest struct {
 	ApprovedAt  *time.Time          `bson:"approved_at,omitempty" json:"approved_at,omitempty"`
 	CompletedAt *time.Time          `bson:"completed_at,omitempty" json:"completed_at,omitempty"`
 }
+
+type ProvisioningConfig struct {
+	Enabled      bool
+	AutoApprove  bool
+	ClusterName  string
+	Mode         string
+	DBName       string
+	SchemaPrefix string
+	Endpoint     string
+	SecretRef    string
+}

@@ -7,6 +7,7 @@ import (
 	"github.com/knadh/koanf/v2"
 	"go.uber.org/fx"
 
+	onboardingconfig "github.com/tuannm99/podzone/internal/onboarding/config"
 	consulbridge "github.com/tuannm99/podzone/internal/onboarding/controller/eventhandler/consulbridge"
 	infrascontroller "github.com/tuannm99/podzone/internal/onboarding/controller/httphandler/infrasmanager"
 	storecontroller "github.com/tuannm99/podzone/internal/onboarding/controller/httphandler/store"
@@ -58,6 +59,10 @@ var Module = fx.Options(
 	}),
 
 	fx.Invoke(func(lc fx.Lifecycle, log pdlog.Logger, w *worker.ConsumerWorker) {
+		pdworker.StartWorker(lc, log, w)
+	}),
+
+	fx.Invoke(func(lc fx.Lifecycle, log pdlog.Logger, w *worker.StoreProvisioningWorker) {
 		pdworker.StartWorker(lc, log, w)
 	}),
 )
@@ -119,10 +124,13 @@ var (
 
 	StoreCtrlProvider = fx.Provide(
 		// --- Infrastructure layer ---
+		onboardingconfig.NewStoreProvisioningConfig,
+		onboardingconfig.NewStoreProvisioningDomainConfig,
 		fx.Annotate(
 			storerepository.New,
 			fx.As(new(storeoutputport.StoreRepository)),
 		),
+		worker.NewStoreProvisioningWorker,
 
 		// --- Domain layer ---
 		fx.Annotate(store.NewStoreInteractor, fx.As(new(storeinputport.Usecase))),
