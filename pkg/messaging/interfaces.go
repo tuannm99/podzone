@@ -34,6 +34,8 @@ type ErrorClassifier interface {
 
 type Tx interface{}
 
+// OutboxStore is for commit-coupled integration events.
+// Do not use it for every async job; best-effort work should publish through Publisher directly.
 type OutboxStore interface {
 	Append(ctx context.Context, tx Tx, record OutboxRecord) error
 	ListPending(ctx context.Context, limit int) ([]OutboxRecord, error)

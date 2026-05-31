@@ -2,11 +2,60 @@
 
 ## Messaging Runtime
 
+Not every async job should use an outbox. Pick the dispatch path by the consistency requirement:
+
+| Workload                     | Dispatch path                                   | Use when                                                            |
+| ---------------------------- | ----------------------------------------------- | ------------------------------------------------------------------- |
+| Transactional domain event   | Transactional outbox, preferably drained by CDC | The event must not be lost after the service commits state.         |
+| Best-effort operational job  | Direct `messaging.Publisher` pub/sub            | The job can be retried from source state or safely missed.          |
+| Local background maintenance | Service-owned worker queue/table                | The work is private to one service and does not need Kafka fan-out. |
+
+Use outbox for events such as tenant creation, IAM membership changes, policy attachment,
+store provisioning state transitions, payment/order state changes, and connection placement commits.
+Use direct pub/sub for cache refreshes, index warmups, non-critical notifications, telemetry,
+UI hints, and other jobs that do not require atomic commit with business state.
+
+Polling an outbox table is only an MVP/fallback relay. At scale, service databases should expose
+outbox changes through CDC, for example Debezium/Postgres logical replication or MongoDB change
+streams, and publish those records to Kafka without periodically scanning hot tables.
+
+## CDC Component
+
+Podzone uses Kafka Connect as the CDC runtime boundary:
+
+```mermaid
+flowchart LR
+    ServiceDB["Service DB"]
+    WAL["DB Change Log"]
+    Connect["Kafka Connect / Debezium"]
+    Kafka["Kafka"]
+    Consumers["Consumers / Projections"]
+
+    ServiceDB --> WAL
+    WAL --> Connect
+    Connect --> Kafka
+    Kafka --> Consumers
+```
+
+Current component choice:
+
+- **Postgres**: Debezium PostgreSQL connector over logical replication (`pgoutput`).
+- **Postgres outbox routing**: Debezium Outbox Event Router after the outbox schema is aligned.
+- **MongoDB**: MongoDB change streams after Mongo runs as a replica set or sharded cluster.
+
+Local Docker includes `cdc-connect` in `deployments/docker/infras.yml` and a raw IAM outbox
+connector template at `deployments/docker/cdc/connectors/iam-message-outbox-raw.json`.
+The raw connector is intentionally a bridge step: it proves WAL-based CDC without changing the
+existing `message_outbox` table yet. The next schema step is a Debezium-compatible outbox table
+with explicit aggregate, event type, topic, key, and payload fields.
+
+## Transactional Outbox Runtime
+
 ```mermaid
 flowchart LR
     Domain["Service Domain / Interactor"]
     Outbox["Transactional Outbox"]
-    Relay["Kafka Relay Worker"]
+    Relay["CDC Connector or Fallback Relay"]
     Kafka["Kafka Topics"]
     ConsumerRuntime["Consumer Runtime"]
     Handler["Inbound Event Handler Registry"]
@@ -14,7 +63,7 @@ flowchart LR
     Projection["Projection / Local Read Model"]
 
     Domain -->|"append event in same tx"| Outbox
-    Relay -->|"poll + publish"| Outbox
+    Outbox -->|"CDC stream or bounded fallback polling"| Relay
     Relay --> Kafka
     Kafka --> ConsumerRuntime
     ConsumerRuntime --> Handler
@@ -33,7 +82,7 @@ flowchart LR
   - retry / DLT strategy
   - observer hooks
   - idempotency middleware
-  - outbox / inbox abstractions
+  - direct publisher and outbox / inbox abstractions
 - `internal/<service>/controller/eventhandler/...`
   - inbound event handler that maps a consumed event into application behavior
 - `internal/<service>/infrastructure/messaging/...`
@@ -45,6 +94,8 @@ flowchart LR
 - Consumer workers and Kafka runtime wiring live under `infrastructure/messaging`.
 - Business rules stay in `domain` / `interactor`.
 - Projections are persistence adapters and read-model maintenance, not domain source of truth.
+- Domain code should depend on a publishing/output port that matches the guarantee it needs:
+  direct pub/sub for best-effort signals, transactional outbox for commit-coupled events.
 
 ## Consumer Architecture Rules
 

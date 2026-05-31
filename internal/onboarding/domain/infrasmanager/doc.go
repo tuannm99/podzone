@@ -6,7 +6,7 @@
 //  1. provision infrastructure (Mongo/Redis/Postgres/Elastic/Kafka, etc.) in a target environment
 //  2. store connection information (endpoint, auth secret reference, metadata)
 //  3. keep history/audit of provisioning actions for traceability
-//  4. publish side-effect requests through Kafka-backed outbox relay instead of writing directly to Consul
+//  4. publish commit-coupled side-effect requests through the transactional messaging path
 //
 // Architecture (high-level)
 //
@@ -21,7 +21,7 @@
 //	       v
 //	Infrastructure adapters
 //	  - Connection repository implementations (MongoDB, etc.)
-//	  - Kafka outbox store used by the shared messaging relay
+//	  - Transactional event store for placement/connection side effects
 //	  - History/event repository (Mongo collection)
 //
 // # Data flow
@@ -31,7 +31,7 @@
 //	Input(tenant/service/infraType/config/meta)
 //	  -> state repository persists ConnectionInfo{...}
 //	    -> event repository appends Event{action=create, ...}
-//	      -> outbox repository enqueues Envelope{type=consul.publish, ...}
+//	      -> transactional event path enqueues Envelope{type=consul.publish, ...}
 //	        -> return response
 //
 // DestroyInfra:
@@ -43,6 +43,9 @@
 //
 // # Notes
 //
-//   - Connection state can be backed by MongoDB or Consul KV, while history is queryable storage and outbox
-//     is relayed to Kafka.
+//   - Connection state can be backed by MongoDB or Consul KV, while history is queryable storage.
+//   - Placement/connection publishes are commit-coupled integration events. They can be drained by CDC
+//     when available; bounded polling is a fallback relay, not the target scale design.
+//   - Best-effort operational jobs should publish directly through a service output port instead of adding
+//     outbox storage dependency by default.
 package infrasmanager

@@ -30,5 +30,6 @@ This section documents the current Podzone architecture using a lightweight C4 s
 - `auth`, `iam`, `backoffice`, `partner`, and `onboarding` are treated as separate services.
 - Synchronous cross-service reads go through `gRPC`.
 - Asynchronous propagation goes through `Kafka`.
-- `iam` owns the authorization source of truth and publishes domain events through an outbox.
+- Transactional domain events use outbox/CDC; best-effort operational jobs use direct pub/sub.
+- `iam` owns the authorization source of truth and publishes commit-coupled domain events through an outbox.
 - `auth` owns identity, sessions, and token issuance, and now maintains a small IAM projection for local read paths.

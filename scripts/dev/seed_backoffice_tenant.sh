@@ -77,7 +77,12 @@ if [ "${CREATE_STORE}" = "true" ] && [ -n "${ONBOARDING_URL}" ]; then
       -X POST \
       "${ONBOARDING_URL}/onboarding/v1/stores" \
       -H "Content-Type: application/json" \
-      --data "{\"name\":\"${STORE_NAME}\",\"subdomain\":\"${STORE_SUBDOMAIN}\"}"
+      --data "{
+        \"workspace_id\":\"${TENANT_ID}\",
+        \"requested_by\":\"dev-bootstrap\",
+        \"name\":\"${STORE_NAME}\",
+        \"subdomain\":\"${STORE_SUBDOMAIN}\"
+      }"
   )"
   cat /tmp/podzone-onboarding-store.json
   echo

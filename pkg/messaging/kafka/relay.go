@@ -13,6 +13,9 @@ type Relay struct {
 	limit     int
 }
 
+// NewRelay builds a bounded fallback relay for transactional outbox records.
+// High-volume deployments should prefer CDC from the service database into Kafka
+// and keep this relay for local development or recovery paths.
 func NewRelay(store messaging.OutboxStore, publisher messaging.Publisher, limit int) *Relay {
 	if limit <= 0 {
 		limit = 100

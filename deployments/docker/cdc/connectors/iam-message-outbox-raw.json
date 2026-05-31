@@ -1,0 +1,27 @@
+{
+  "name": "podzone-iam-message-outbox-raw",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tasks.max": "1",
+    "database.hostname": "postgres",
+    "database.port": "5432",
+    "database.user": "postgres",
+    "database.password": "postgres",
+    "database.dbname": "iam",
+    "topic.prefix": "podzone.cdc.iam",
+    "plugin.name": "pgoutput",
+    "slot.name": "podzone_iam_message_outbox",
+    "publication.name": "podzone_iam_message_outbox_pub",
+    "publication.autocreate.mode": "filtered",
+    "table.include.list": "public.message_outbox",
+    "column.include.list": "public.message_outbox.id,public.message_outbox.topic,public.message_outbox.message_key,public.message_outbox.envelope_json,public.message_outbox.created_at",
+    "tombstones.on.delete": "false",
+    "snapshot.mode": "initial",
+    "decimal.handling.mode": "string",
+    "time.precision.mode": "adaptive_time_microseconds",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false"
+  }
+}

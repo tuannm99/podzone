@@ -30,7 +30,7 @@ flowchart LR
     AuthIdentity["Auth: identity, sessions, tokens"]
     AuthProjection["Auth: IAM local projection"]
     IAMCore["IAM: tenants, memberships, policies, groups, orgs"]
-    IAMEvents["IAM Kafka outbox events"]
+    IAMEvents["IAM commit-coupled Kafka events"]
 
     IAMCore --> IAMEvents
     IAMEvents --> AuthProjection

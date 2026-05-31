@@ -75,20 +75,31 @@ Notes:
 flowchart TB
     ServiceDB["Service DB"]
     Outbox["message_outbox"]
-    Relay["Outbox Relay Worker"]
+    Relay["CDC Connector / Fallback Relay"]
     Kafka["Kafka Topic"]
     Projection["Consumer / Projection Worker"]
     LocalReadModel["Local Projection Tables"]
 
     ServiceDB --> Outbox
-    Outbox --> Relay
+    Outbox -->|"CDC stream preferred"| Relay
     Relay --> Kafka
     Kafka --> Projection
     Projection --> LocalReadModel
 ```
 
-This is the preferred asynchronous integration pattern for the current codebase:
+This pattern is for transactional integration events, not every async job:
 
-- write business state and outbox in the same service-owned database
-- relay publishes Kafka events
+- write business state and the outbox record in the same service-owned transaction
+- publish outbox records through CDC where possible; bounded polling is only a fallback
 - downstream services materialize local read models when needed
+
+Use direct pub/sub through `messaging.Publisher` for best-effort operational jobs that do not need
+atomic commit with service state. Examples: cache refresh, search indexing hints, warmups,
+non-critical notifications, telemetry, and UI task hints.
+
+The CDC runtime boundary is Kafka Connect/Debezium:
+
+- Postgres service databases publish changes through logical replication.
+- The local Docker component is `cdc-connect`.
+- MongoDB CDC requires Mongo change streams, so local Mongo must become a replica set before Mongo
+  collections such as onboarding `connection_outbox` can use CDC reliably.

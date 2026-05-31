@@ -30,7 +30,7 @@ sequenceDiagram
     participant Admin as Admin / Caller
     participant IAM as IAM Service
     participant IAMDB as IAM DB
-    participant Outbox as IAM Outbox Worker
+    participant EventRelay as IAM CDC / Fallback Relay
     participant Kafka as Kafka
     participant AuthProj as Auth IAM Projection Worker
     participant AuthDB as Auth DB
@@ -41,9 +41,9 @@ sequenceDiagram
     IAM->>IAMDB: append message_outbox(tenant.created)
     IAM-->>Admin: tenant created
 
-    Outbox->>IAMDB: poll pending outbox
-    Outbox->>Kafka: publish tenant.created
-    Outbox->>IAMDB: mark published
+    IAMDB->>EventRelay: stream outbox change or bounded fallback read
+    EventRelay->>Kafka: publish tenant.created
+    EventRelay->>IAMDB: mark published when using fallback relay
 
     AuthProj->>Kafka: consume tenant.created
     AuthProj->>AuthDB: upsert iam_tenants_projection
@@ -56,7 +56,7 @@ sequenceDiagram
     participant Operator as Operator
     participant IAM as IAM Service
     participant IAMDB as IAM DB
-    participant Outbox as IAM Outbox Worker
+    participant EventRelay as IAM CDC / Fallback Relay
     participant Kafka as Kafka
     participant AuthProj as Auth IAM Projection Worker
     participant AuthDB as Auth DB
@@ -66,7 +66,8 @@ sequenceDiagram
     IAM->>IAMDB: append message_outbox(tenant.member.added)
     IAM-->>Operator: ok
 
-    Outbox->>Kafka: publish tenant.member.added
+    IAMDB->>EventRelay: stream outbox change or bounded fallback read
+    EventRelay->>Kafka: publish tenant.member.added
     AuthProj->>Kafka: consume tenant.member.added
     AuthProj->>AuthDB: upsert iam_tenant_memberships_projection
 ```
@@ -100,15 +101,15 @@ sequenceDiagram
 sequenceDiagram
     participant IAM as IAM Service
     participant IAMDB as IAM DB
-    participant Relay as IAM Outbox Worker
+    participant Relay as IAM CDC / Fallback Relay
     participant Kafka as Kafka
     participant AuthWorker as Auth IAM Projection Worker
     participant AuthDB as Auth DB
 
     IAM->>IAMDB: append message_outbox(policy.attached / tenant.member.added)
-    Relay->>IAMDB: poll pending outbox
+    IAMDB->>Relay: stream outbox change or bounded fallback read
     Relay->>Kafka: publish podzone.iam.events
-    Relay->>IAMDB: mark published
+    Relay->>IAMDB: mark published when using fallback relay
 
     AuthWorker->>Kafka: consume podzone.iam.events
     alt tenant.created
@@ -147,7 +148,7 @@ sequenceDiagram
     participant GW as gRPC Gateway
     participant IAM as IAM Service
     participant IAMDB as IAM DB
-    participant Outbox as IAM Outbox Worker
+    participant EventRelay as IAM CDC / Fallback Relay
     participant Kafka as Kafka
 
     UI->>GW: AttachTenantUserPolicy
@@ -157,9 +158,9 @@ sequenceDiagram
     IAM-->>GW: ok
     GW-->>UI: success
 
-    Outbox->>IAMDB: poll pending outbox
-    Outbox->>Kafka: publish policy.attached
-    Outbox->>IAMDB: mark published
+    IAMDB->>EventRelay: stream outbox change or bounded fallback read
+    EventRelay->>Kafka: publish policy.attached
+    EventRelay->>IAMDB: mark published when using fallback relay
 ```
 
 ## 8. Onboarding Connection Publish to Consul
@@ -169,16 +170,16 @@ sequenceDiagram
     participant Client as Operator / Bootstrap Script
     participant Onboarding as Onboarding Service
     participant Mongo as Mongo Event Store
-    participant Worker as Onboarding Outbox Worker
+    participant EventRelay as Onboarding CDC / Fallback Relay
     participant Consul as Consul
 
     Client->>Onboarding: create/update connection
-    Onboarding->>Mongo: persist connection event + outbox item
+    Onboarding->>Mongo: persist connection event + transactional publish record
     Onboarding-->>Client: accepted
 
-    Worker->>Mongo: poll pending outbox
-    Worker->>Consul: publish connection snapshot and placement
-    Worker->>Mongo: mark published
+    Mongo->>EventRelay: stream publish record or bounded fallback read
+    EventRelay->>Consul: publish connection snapshot and placement
+    EventRelay->>Mongo: mark published when using fallback relay
 ```
 
 ## 9. Store Onboarding Request to Ready

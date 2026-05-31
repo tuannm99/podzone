@@ -78,7 +78,7 @@ flowchart LR
     Auth["Auth Service"]
     AuthWorker["Auth Projection Worker"]
     IAM["IAM Service"]
-    IAMWorker["IAM Outbox Worker"]
+    IAMWorker["IAM Event Publisher"]
     Backoffice["Backoffice Service"]
     Partner["Partner Service"]
     Catalog["Catalog Service"]
@@ -158,7 +158,7 @@ flowchart TB
   - Terraform-managed Admin API resources
   - environment-specific route/plugin manifests
 - `auth` and `iam` now run separate API and worker binaries in local Docker.
-- Projection and outbox workers no longer share the gRPC server runtime by default.
+- Projection and event publisher workers no longer share the gRPC server runtime by default.
 - `Backoffice` should be treated as stateless API capacity inside tenant-assigned runtime pools.
 - Tenant-to-runtime-pool routing belongs to edge/runtime placement, not to business handlers.
 - Tenant-to-database placement belongs to `pdtenantdb` and application runtime placement resolution.

@@ -46,7 +46,7 @@ flowchart LR
     IAMServer["controller/grpchandler"]
     IAMInteractor["interactor"]
     IAMRepo["infrastructure/repository"]
-    OutboxWorker["worker/outbox"]
+    EventRelay["outbox CDC / fallback relay"]
     IAMAPI["cmd/iam"]
     IAMWorker["cmd/iam-worker"]
     IAMDB["iam DB"]
@@ -56,10 +56,10 @@ flowchart LR
     IAMServer --> IAMInteractor
     IAMInteractor --> IAMRepo
     IAMRepo --> IAMDB
-    IAMWorker --> OutboxWorker
+    IAMWorker --> EventRelay
     IAMInteractor -->|"append outbox"| IAMDB
-    OutboxWorker -->|"poll outbox"| IAMDB
-    OutboxWorker -->|"publish"| Kafka
+    IAMDB -->|"CDC preferred; bounded polling fallback"| EventRelay
+    EventRelay -->|"publish"| Kafka
 ```
 
 ### Main modules
@@ -69,7 +69,7 @@ flowchart LR
 - `outputport`: repository and outbox contracts
 - `interactor`: policy lifecycle, authz evaluation, groups, tenants, org/SCP, assume-role
 - `cmd/iam`: IAM API runtime
-- `cmd/iam-worker`: outbox publisher runtime
+- `cmd/iam-worker`: transactional event publisher runtime; polling relay is fallback until CDC is wired
 
 ## Backoffice Service
 
@@ -130,21 +130,21 @@ flowchart LR
     StoreSvc["store"]
     MongoStore["mongo store / eventstore"]
     ConsulPub["consul publisher"]
-    OutboxWorker["outbox worker"]
+    EventRelay["CDC / fallback relay"]
 
     HTTP --> InfraManager
     HTTP --> StoreSvc
     InfraManager --> MongoStore
     InfraManager --> ConsulPub
-    OutboxWorker --> MongoStore
-    OutboxWorker --> ConsulPub
+    MongoStore -->|"connection placement events"| EventRelay
+    EventRelay --> ConsulPub
 ```
 
 ### Main modules
 
-- `infrasmanager/core`: connection lifecycle and outbox/event storage
+- `infrasmanager/core`: connection lifecycle and transactional placement event storage
 - `store`: onboarding-facing store CRUD
-- `core/worker`: outbox publisher to Consul
+- `infrastructure/messaging`: CDC/fallback publisher to Consul and best-effort workers
 
 ## Catalog Service
 

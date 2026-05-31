@@ -744,8 +744,10 @@ func seedPartners(ctx context.Context, db *sqlx.DB, cfg cfg) error {
 
 func createOnboardingStore(ctx context.Context, cfg cfg) error {
 	payload := map[string]string{
-		"name":      cfg.StoreName,
-		"subdomain": cfg.StoreSubdomain,
+		"workspace_id": cfg.TenantID,
+		"requested_by": "dev-bootstrap",
+		"name":         cfg.StoreName,
+		"subdomain":    cfg.StoreSubdomain,
 	}
 	body, err := json.Marshal(payload)
 	if err != nil {
