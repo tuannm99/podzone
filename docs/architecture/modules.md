@@ -126,25 +126,41 @@ flowchart LR
 ```mermaid
 flowchart LR
     HTTP["controller/http"]
-    InfraManager["infrasmanager/core"]
-    StoreSvc["store"]
-    MongoStore["mongo store / eventstore"]
-    ConsulPub["consul publisher"]
-    EventRelay["CDC / fallback relay"]
+    InfraInteractor["domain/infrasmanager/interactor"]
+    StoreInteractor["domain/store/interactor"]
+    InfraPorts["domain/infrasmanager/outputport"]
+    StorePorts["domain/store/outputport"]
+    MongoStore["infrastructure/repository/infrasmanager"]
+    StoreRepo["infrastructure/repository/store"]
+    Provider["infrastructure/provisioning/provider"]
+    ConsulBridge["controller/eventhandler/consulbridge"]
+    Messaging["infrastructure/messaging"]
+    Mongo["Mongo onboarding DB"]
+    Consul["Consul router projection"]
 
-    HTTP --> InfraManager
-    HTTP --> StoreSvc
-    InfraManager --> MongoStore
-    InfraManager --> ConsulPub
-    MongoStore -->|"connection placement events"| EventRelay
-    EventRelay --> ConsulPub
+    HTTP --> InfraInteractor
+    HTTP --> StoreInteractor
+    StoreInteractor --> InfraInteractor
+    InfraInteractor --> InfraPorts
+    StoreInteractor --> StorePorts
+    InfraPorts --> MongoStore
+    InfraPorts --> Provider
+    StorePorts --> StoreRepo
+    MongoStore --> Mongo
+    StoreRepo --> Mongo
+    MongoStore -->|"placement/outbox records"| Messaging
+    Messaging --> ConsulBridge
+    ConsulBridge --> Consul
 ```
 
 ### Main modules
 
-- `infrasmanager/core`: connection lifecycle and transactional placement event storage
-- `store`: onboarding-facing store CRUD
-- `infrastructure/messaging`: CDC/fallback publisher to Consul and best-effort workers
+- `domain/infrasmanager`: placement allocation, connection publication, and infrastructure manager usecases
+- `domain/store`: store request lifecycle, approval state, and provisioning orchestration
+- `infrastructure/repository`: Mongo-backed repositories for store requests, connection events, and placement allocations
+- `infrastructure/provisioning/provider`: runtime-specific placement provider for local Docker, Kubernetes, and future Terraform/cloud
+- `controller/eventhandler/consulbridge`: router projection publisher; Consul is rebuilt from onboarding allocation state
+- `infrastructure/messaging`: CDC/fallback publisher and background worker wiring
 
 ## Catalog Service
 

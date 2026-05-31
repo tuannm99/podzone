@@ -22,12 +22,14 @@ onboarding:
     enabled: true
     auto_approve: true
     interval: 5s
+    runtime: local_docker
     cluster_name: pg-default
     mode: schema
     db_name: postgres
     schema_prefix: t_
-    endpoint: postgres://postgres:***@pgbouncer:6432/postgres
-    secret_ref: postgres/default
+    docker_network: docker_default
+    kubernetes_namespace: default
+    terraform_workspace: default
 
 http:
   address: ':8800'

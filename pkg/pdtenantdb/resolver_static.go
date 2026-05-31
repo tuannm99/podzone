@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"strings"
+
+	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 // StaticPlacementResolver is a simple resolver for dev/testing.
@@ -46,7 +48,7 @@ func (r *StaticPlacementResolver) Resolve(ctx context.Context, tenantID string) 
 			TenantID:    tenantID,
 			ClusterName: cluster,
 			Mode:        ModeDatabase,
-			DBName:      "bo_" + sanitizeName(tenantID),
+			DBName:      "bo_" + toolkit.Identifier(tenantID),
 			// SchemaName optional (usually public)
 		}, nil
 	}
@@ -61,26 +63,6 @@ func (r *StaticPlacementResolver) Resolve(ctx context.Context, tenantID string) 
 		ClusterName: cluster,
 		Mode:        ModeSchema,
 		DBName:      sharedDB,
-		SchemaName:  "t_" + sanitizeName(tenantID),
+		SchemaName:  toolkit.SchemaName("t_", tenantID),
 	}, nil
-}
-
-// sanitizeName is a minimal sanitizer for schema/db naming.
-// NOTE: Keep it deterministic. For production, use a stronger sanitizer.
-func sanitizeName(s string) string {
-	s = strings.ToLower(strings.TrimSpace(s))
-	// Replace invalid chars with underscore.
-	var b strings.Builder
-	for _, ch := range s {
-		if (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9') || ch == '_' {
-			b.WriteRune(ch)
-		} else {
-			b.WriteByte('_')
-		}
-	}
-	out := b.String()
-	if out == "" {
-		return "unknown"
-	}
-	return out
 }

@@ -7,7 +7,6 @@ import (
 
 	"go.uber.org/fx"
 
-	infrasentity "github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/entity"
 	infrasinputport "github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/inputport"
 	storeentity "github.com/tuannm99/podzone/internal/onboarding/domain/store/entity"
 	storeinputport "github.com/tuannm99/podzone/internal/onboarding/domain/store/inputport"
@@ -206,29 +205,14 @@ func (s *StoreInteractor) ProcessNextStoreRequest(ctx context.Context) (*storein
 	}
 
 	storeID := request.ID.Hex()
-	schemaName := s.schemaName(request.WorkspaceID)
-	_, err = s.infra.ManualUpsertConnection(
+	_, err = s.infra.ProvisionStorePlacement(
 		ctx,
-		request.WorkspaceID,
-		infrasinputport.UpsertConnectionRequest{
-			InfraType:   infrasentity.InfraPostgres,
-			Name:        "default",
-			Endpoint:    s.provisioner.Endpoint,
-			SecretRef:   s.provisioner.SecretRef,
-			Status:      "active",
-			ClusterName: s.provisioner.ClusterName,
-			Mode:        s.provisioner.Mode,
-			DBName:      s.provisioner.DBName,
-			SchemaName:  schemaName,
-			Meta: map[string]string{
-				"store_request_id": request.ID.Hex(),
-				"store_id":         storeID,
-				"store_subdomain":  request.Subdomain,
-			},
-			Config: map[string]interface{}{
-				"driver": "postgres",
-				"mode":   s.provisioner.Mode,
-			},
+		infrasinputport.ProvisionStorePlacementRequest{
+			RequestID:   request.ID.Hex(),
+			TenantID:    request.WorkspaceID,
+			StoreID:     storeID,
+			Subdomain:   request.Subdomain,
+			RequestedBy: request.RequestedBy,
 		},
 		map[string]string{
 			"service": "onboarding",
@@ -249,35 +233,4 @@ func (s *StoreInteractor) ProcessNextStoreRequest(ctx context.Context) (*storein
 
 func isDuplicateStoreError(err error) bool {
 	return strings.Contains(strings.ToLower(err.Error()), "duplicate")
-}
-
-func (s *StoreInteractor) schemaName(workspaceID string) string {
-	prefix := s.provisioner.SchemaPrefix
-	if prefix == "" {
-		prefix = "t_"
-	}
-	return prefix + sanitizeIdentifier(workspaceID)
-}
-
-func sanitizeIdentifier(value string) string {
-	value = strings.ToLower(value)
-	var b strings.Builder
-	for _, r := range value {
-		switch {
-		case r >= 'a' && r <= 'z':
-			b.WriteRune(r)
-		case r >= '0' && r <= '9':
-			b.WriteRune(r)
-		default:
-			b.WriteByte('_')
-		}
-	}
-	out := strings.Trim(b.String(), "_")
-	if out == "" {
-		return "tenant"
-	}
-	if out[0] >= '0' && out[0] <= '9' {
-		return "tenant_" + out
-	}
-	return out
 }

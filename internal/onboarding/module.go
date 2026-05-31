@@ -19,6 +19,7 @@ import (
 	storeoutputport "github.com/tuannm99/podzone/internal/onboarding/domain/store/outputport"
 	"github.com/tuannm99/podzone/internal/onboarding/infrastructure/messaging/publisher"
 	"github.com/tuannm99/podzone/internal/onboarding/infrastructure/messaging/worker"
+	placementprovider "github.com/tuannm99/podzone/internal/onboarding/infrastructure/provisioning/provider"
 	infrarepository "github.com/tuannm99/podzone/internal/onboarding/infrastructure/repository/infrasmanager"
 	storerepository "github.com/tuannm99/podzone/internal/onboarding/infrastructure/repository/store"
 	"github.com/tuannm99/podzone/pkg/messaging"
@@ -103,7 +104,15 @@ var (
 		),
 		fx.Annotate(
 			infrarepository.NewMongoStore,
-			fx.As(new(infrasoutputport.ConnectionStore), new(messaging.OutboxStore)),
+			fx.As(
+				new(infrasoutputport.ConnectionStore),
+				new(infrasoutputport.PlacementRepository),
+				new(messaging.OutboxStore),
+			),
+		),
+		fx.Annotate(
+			placementprovider.NewProvider,
+			fx.As(new(infrasoutputport.PlacementPlanner), new(infrasoutputport.StorageProvisioner)),
 		),
 		worker.NewOutboxWorker,
 		fx.Annotate(
@@ -112,7 +121,7 @@ var (
 		),
 
 		// --- Domain layer ---
-		fx.Annotate(infrasmanager.NewInteractor, fx.As(new(infrasinputport.Usecase))),
+		fx.Annotate(infrasmanager.NewInteractorWithParams, fx.As(new(infrasinputport.Usecase))),
 
 		// --- HTTP handler layer ---
 		fx.Annotate(

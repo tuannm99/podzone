@@ -42,6 +42,4 @@ type ProvisioningConfig struct {
 	Mode         string
 	DBName       string
 	SchemaPrefix string
-	Endpoint     string
-	SecretRef    string
 }

@@ -12,12 +12,16 @@ type StoreProvisioningConfig struct {
 	Enabled      bool          `koanf:"enabled"       mapstructure:"enabled"`
 	AutoApprove  bool          `koanf:"auto_approve"  mapstructure:"auto_approve"`
 	Interval     time.Duration `koanf:"interval"      mapstructure:"interval"`
+	Runtime      string        `koanf:"runtime"       mapstructure:"runtime"`
 	ClusterName  string        `koanf:"cluster_name"  mapstructure:"cluster_name"`
 	Mode         string        `koanf:"mode"          mapstructure:"mode"`
 	DBName       string        `koanf:"db_name"       mapstructure:"db_name"`
 	SchemaPrefix string        `koanf:"schema_prefix" mapstructure:"schema_prefix"`
-	Endpoint     string        `koanf:"endpoint"      mapstructure:"endpoint"`
-	SecretRef    string        `koanf:"secret_ref"    mapstructure:"secret_ref"`
+
+	DockerNetwork       string `koanf:"docker_network"       mapstructure:"docker_network"`
+	KubernetesNamespace string `koanf:"kubernetes_namespace" mapstructure:"kubernetes_namespace"`
+	TerraformWorkspace  string `koanf:"terraform_workspace"  mapstructure:"terraform_workspace"`
+	TerraformModule     string `koanf:"terraform_module"     mapstructure:"terraform_module"`
 }
 
 func DefaultStoreProvisioningConfig() StoreProvisioningConfig {
@@ -25,12 +29,15 @@ func DefaultStoreProvisioningConfig() StoreProvisioningConfig {
 		Enabled:      true,
 		AutoApprove:  true,
 		Interval:     5 * time.Second,
+		Runtime:      "local_docker",
 		ClusterName:  "pg-default",
 		Mode:         "schema",
 		DBName:       "postgres",
 		SchemaPrefix: "t_",
-		Endpoint:     "postgres://postgres:***@pgbouncer:6432/postgres",
-		SecretRef:    "postgres/default",
+
+		DockerNetwork:       "docker_default",
+		KubernetesNamespace: "default",
+		TerraformWorkspace:  "default",
 	}
 }
 
@@ -41,6 +48,9 @@ func NewStoreProvisioningConfig(k *koanf.Koanf) StoreProvisioningConfig {
 	}
 	if cfg.Interval <= 0 {
 		cfg.Interval = 5 * time.Second
+	}
+	if cfg.Runtime == "" {
+		cfg.Runtime = "local_docker"
 	}
 	if cfg.ClusterName == "" {
 		cfg.ClusterName = "pg-default"
@@ -54,11 +64,14 @@ func NewStoreProvisioningConfig(k *koanf.Koanf) StoreProvisioningConfig {
 	if cfg.SchemaPrefix == "" {
 		cfg.SchemaPrefix = "t_"
 	}
-	if cfg.Endpoint == "" {
-		cfg.Endpoint = "postgres://postgres:***@pgbouncer:6432/postgres"
+	if cfg.DockerNetwork == "" {
+		cfg.DockerNetwork = "docker_default"
 	}
-	if cfg.SecretRef == "" {
-		cfg.SecretRef = "postgres/default"
+	if cfg.KubernetesNamespace == "" {
+		cfg.KubernetesNamespace = "default"
+	}
+	if cfg.TerraformWorkspace == "" {
+		cfg.TerraformWorkspace = "default"
 	}
 	return cfg
 }
@@ -71,7 +84,5 @@ func NewStoreProvisioningDomainConfig(cfg StoreProvisioningConfig) storeentity.P
 		Mode:         cfg.Mode,
 		DBName:       cfg.DBName,
 		SchemaPrefix: cfg.SchemaPrefix,
-		Endpoint:     cfg.Endpoint,
-		SecretRef:    cfg.SecretRef,
 	}
 }

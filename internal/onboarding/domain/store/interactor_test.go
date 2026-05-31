@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
-	infrasentity "github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/entity"
 	infrasinputport "github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/inputport"
 	infrasmocks "github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/inputport/mocks"
 	storeentity "github.com/tuannm99/podzone/internal/onboarding/domain/store/entity"
@@ -107,8 +106,6 @@ func TestProcessNextStoreRequest_ProvisionsQueuedRequest(t *testing.T) {
 			Mode:         "schema",
 			DBName:       "postgres",
 			SchemaPrefix: "t_",
-			Endpoint:     "postgres://postgres:***@pgbouncer:6432/postgres",
-			SecretRef:    "postgres/default",
 		},
 	}
 
@@ -127,27 +124,25 @@ func TestProcessNextStoreRequest_ProvisionsQueuedRequest(t *testing.T) {
 
 	repo.EXPECT().ClaimNextQueued(mock.Anything).Return(request, nil)
 	infra.EXPECT().
-		ManualUpsertConnection(
+		ProvisionStorePlacement(
 			mock.Anything,
-			request.WorkspaceID,
-			mock.MatchedBy(func(req infrasinputport.UpsertConnectionRequest) bool {
-				return req.InfraType == infrasentity.InfraPostgres &&
-					req.Name == "default" &&
-					req.Endpoint == "postgres://postgres:***@pgbouncer:6432/postgres" &&
-					req.SecretRef == "postgres/default" &&
-					req.ClusterName == "pg-default" &&
-					req.Mode == "schema" &&
-					req.DBName == "postgres" &&
-					req.SchemaName == "t_tenant_2e0df8f6_4964_447d_a287_67eabd0e65c9" &&
-					req.Meta["store_request_id"] == id.Hex() &&
-					req.Meta["store_id"] == id.Hex() &&
-					req.Meta["store_subdomain"] == "urban-finds"
+			mock.MatchedBy(func(req infrasinputport.ProvisionStorePlacementRequest) bool {
+				return req.RequestID == id.Hex() &&
+					req.TenantID == request.WorkspaceID &&
+					req.StoreID == id.Hex() &&
+					req.Subdomain == "urban-finds" &&
+					req.RequestedBy == "user-1"
 			}),
 			mock.MatchedBy(func(actor map[string]string) bool {
 				return actor["service"] == "onboarding" && actor["worker"] == "store-provisioner"
 			}),
 		).
-		Return(&infrasinputport.UpsertConnectionResponse{CorrelationID: "correlation-1", Queued: true}, nil)
+		Return(&infrasinputport.ProvisionStorePlacementResponse{
+			CorrelationID: "correlation-1",
+			AllocationID:  "allocation-1",
+			Status:        "ready",
+			Queued:        true,
+		}, nil)
 	repo.EXPECT().MarkReady(mock.Anything, id.Hex(), id.Hex()).Return(nil)
 	repo.EXPECT().FindByID(mock.Anything, id.Hex()).Return(&ready, nil)
 

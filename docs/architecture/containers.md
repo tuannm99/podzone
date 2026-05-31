@@ -18,12 +18,18 @@ flowchart TB
         ONBOARDING["Onboarding Service"]
     end
 
+    subgraph Provisioning
+        PROVWORKER["Onboarding Provisioning Worker"]
+        PROVIDER["Placement Provider\nDocker / Kubernetes / Terraform"]
+    end
+
     subgraph Infra
         AUTHDB["Postgres: auth"]
         IAMDB["Postgres: iam"]
-        BACKOFFICEDB["Postgres: backoffice"]
+        BACKOFFICEDB["Postgres: tenant data pools"]
         CATALOGDB["Postgres: catalog"]
         PARTNERDB["Postgres: partner"]
+        ONBOARDINGDB["Mongo: onboarding"]
         REDIS["Redis"]
         KAFKA["Kafka"]
         CONSUL["Consul"]
@@ -57,8 +63,14 @@ flowchart TB
     CATALOG --> CATALOGDB
     PARTNER --> PARTNERDB
     PARTNER --> KAFKA
-    ONBOARDING --> CONSUL
-    ONBOARDING --> BACKOFFICEDB
+    ONBOARDING --> ONBOARDINGDB
+    ONBOARDING --> KAFKA
+    ONBOARDING --> PROVWORKER
+    PROVWORKER --> PROVIDER
+    PROVIDER --> BACKOFFICEDB
+    PROVWORKER --> ONBOARDINGDB
+    PROVWORKER --> CONSUL
+    BACKOFFICE --> CONSUL
 ```
 
 ## Boundaries
@@ -69,3 +81,6 @@ flowchart TB
 - `auth` consumes a subset of IAM events into a local projection.
 - `grpcgateway` remains the HTTP translation layer for gRPC services.
 - `backoffice` is GraphQL-first and talks to service APIs plus its own database.
+- `onboarding` owns store provisioning requests and the placement allocation source of truth.
+- `consul` is a runtime router projection consumed by `pdtenantdb`, not the source of truth for placement.
+- placement providers create or bind the tenant storage target for Docker, Kubernetes, or future Terraform/cloud runtimes.

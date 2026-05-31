@@ -7,19 +7,117 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.uber.org/fx"
+
 	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/entity"
 	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/inputport"
 	storeoutputport "github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/outputport"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 var _ inputport.Usecase = (*Interactor)(nil)
 
 type Interactor struct {
-	st storeoutputport.ConnectionStore
+	st          storeoutputport.ConnectionStore
+	placements  storeoutputport.PlacementRepository
+	planner     storeoutputport.PlacementPlanner
+	provisioner storeoutputport.StorageProvisioner
 }
 
 func NewInteractor(st storeoutputport.ConnectionStore) *Interactor {
 	return &Interactor{st: st}
+}
+
+type InteractorParams struct {
+	fx.In
+
+	Store       storeoutputport.ConnectionStore
+	Placements  storeoutputport.PlacementRepository
+	Planner     storeoutputport.PlacementPlanner
+	Provisioner storeoutputport.StorageProvisioner
+}
+
+func NewInteractorWithParams(p InteractorParams) *Interactor {
+	return &Interactor{
+		st:          p.Store,
+		placements:  p.Placements,
+		planner:     p.Planner,
+		provisioner: p.Provisioner,
+	}
+}
+
+func (s *Interactor) ProvisionStorePlacement(
+	ctx context.Context,
+	req inputport.ProvisionStorePlacementRequest,
+	actor map[string]string,
+) (*inputport.ProvisionStorePlacementResponse, error) {
+	if s.placements == nil || s.planner == nil || s.provisioner == nil {
+		return nil, fmt.Errorf("placement provisioning runtime is not configured")
+	}
+
+	placementReq := entity.StorePlacementRequest{
+		RequestID:   req.RequestID,
+		TenantID:    req.TenantID,
+		StoreID:     req.StoreID,
+		Subdomain:   req.Subdomain,
+		RequestedBy: req.RequestedBy,
+	}
+	existing, err := s.placements.GetPlacementAllocation(ctx, req.TenantID, req.StoreID)
+	if err != nil {
+		return nil, err
+	}
+	if existing != nil {
+		return allocationResponse(existing, "", false), nil
+	}
+
+	plan, err := s.planner.PlanStorePlacement(ctx, placementReq)
+	if err != nil {
+		return nil, err
+	}
+	allocation, err := s.provisioner.ProvisionStorePlacement(ctx, placementReq, plan)
+	if err != nil {
+		return nil, err
+	}
+	if allocation.ID == "" {
+		allocation.ID = uuid.NewString()
+	}
+	if allocation.Status == "" {
+		allocation.Status = "ready"
+	}
+	if allocation.CreatedAt.IsZero() {
+		allocation.CreatedAt = time.Now().UTC()
+	}
+	allocation.UpdatedAt = time.Now().UTC()
+	if err := s.placements.SavePlacementAllocation(ctx, allocation); err != nil {
+		return nil, err
+	}
+
+	upsertResp, err := s.ManualUpsertConnection(ctx, req.TenantID, inputport.UpsertConnectionRequest{
+		InfraType:   entity.InfraPostgres,
+		Name:        "default",
+		Endpoint:    allocation.Endpoint,
+		SecretRef:   allocation.SecretRef,
+		Status:      "active",
+		ClusterName: allocation.ClusterName,
+		Mode:        allocation.Mode,
+		DBName:      allocation.DBName,
+		SchemaName:  allocation.SchemaName,
+		Meta: map[string]string{
+			"placement_allocation_id": allocation.ID,
+			"store_request_id":        req.RequestID,
+			"store_id":                req.StoreID,
+			"store_subdomain":         req.Subdomain,
+			"runtime":                 string(allocation.Runtime),
+		},
+		Config: map[string]interface{}{
+			"driver": "postgres",
+			"mode":   allocation.Mode,
+		},
+	}, actor)
+	if err != nil {
+		return nil, err
+	}
+	return allocationResponse(&allocation, upsertResp.CorrelationID, upsertResp.Queued), nil
 }
 
 // ManualUpsertConnection stores connection and enqueues publish snapshot to Consul.
@@ -96,7 +194,7 @@ func (s *Interactor) ManualUpsertConnection(
 		"name":      name,
 		"endpoint":  req.Endpoint,
 		"secretRef": req.SecretRef,
-		"status":    firstNonEmpty(req.Status, "active"),
+		"status":    toolkit.FirstNonEmpty(req.Status, "active"),
 		"updatedAt": time.Now().UTC().Format(time.RFC3339),
 		"meta":      req.Meta,
 		"config":    req.Config,
@@ -153,7 +251,7 @@ func (s *Interactor) ManualUpsertConnection(
 		placementKey := "podzone/tenants/" + tenantID + "/placement"
 		placementSnap := map[string]interface{}{
 			"cluster_name": req.ClusterName,
-			"mode":         firstNonEmpty(req.Mode, "schema"),
+			"mode":         toolkit.FirstNonEmpty(req.Mode, "schema"),
 			"db_name":      req.DBName,
 			"schema_name":  req.SchemaName,
 		}
@@ -327,7 +425,7 @@ func validatePlacementRequest(req inputport.UpsertConnectionRequest) error {
 		return nil
 	}
 
-	mode := firstNonEmpty(req.Mode, "schema")
+	mode := toolkit.FirstNonEmpty(req.Mode, "schema")
 	switch mode {
 	case "schema":
 		if req.DBName == "" {
@@ -345,6 +443,27 @@ func validatePlacementRequest(req inputport.UpsertConnectionRequest) error {
 	}
 
 	return nil
+}
+
+func allocationResponse(
+	allocation *entity.PlacementAllocation,
+	correlationID string,
+	queued bool,
+) *inputport.ProvisionStorePlacementResponse {
+	return &inputport.ProvisionStorePlacementResponse{
+		CorrelationID: correlationID,
+		AllocationID:  allocation.ID,
+		Runtime:       string(allocation.Runtime),
+		ClusterName:   allocation.ClusterName,
+		Mode:          allocation.Mode,
+		DBName:        allocation.DBName,
+		SchemaName:    allocation.SchemaName,
+		Endpoint:      allocation.Endpoint,
+		SecretRef:     allocation.SecretRef,
+		Status:        allocation.Status,
+		ProviderMeta:  allocation.ProviderMeta,
+		Queued:        queued,
+	}
 }
 
 func (s *Interactor) GetConnection(
@@ -396,11 +515,4 @@ func (s *Interactor) ListEvents(
 		out = append(out, toEventDTO(it))
 	}
 	return out, nil
-}
-
-func firstNonEmpty(v string, d string) string {
-	if v == "" {
-		return d
-	}
-	return v
 }

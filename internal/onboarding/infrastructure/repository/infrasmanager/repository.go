@@ -16,6 +16,7 @@ import (
 )
 
 var _ storeoutputport.ConnectionStore = (*MongoStore)(nil)
+var _ storeoutputport.PlacementRepository = (*MongoStore)(nil)
 var _ messaging.OutboxStore = (*MongoStore)(nil)
 
 type MongoStore struct {
@@ -24,6 +25,7 @@ type MongoStore struct {
 	connCol   *mongo.Collection
 	eventCol  *mongo.Collection
 	outboxCol *mongo.Collection
+	placeCol  *mongo.Collection
 }
 
 type MongoStoreParams struct {
@@ -40,6 +42,7 @@ func NewMongoStore(p MongoStoreParams) *MongoStore {
 		connCol:   db.Collection("connections"),
 		eventCol:  db.Collection("connection_events"),
 		outboxCol: db.Collection("connection_outbox"),
+		placeCol:  db.Collection("placement_allocations"),
 	}
 }
 
@@ -90,6 +93,21 @@ func (s *MongoStore) EnsureIndexes(ctx context.Context) error {
 		{
 			Keys:    bson.D{{Key: "event_id", Value: 1}},
 			Options: options.Index().SetUnique(true).SetName("uniq_connection_outbox_event"),
+		},
+	})
+	if err != nil {
+		return err
+	}
+	_, err = s.placeCol.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "tenant_id", Value: 1}, {Key: "store_id", Value: 1}},
+			Options: options.Index().
+				SetUnique(true).
+				SetName("uniq_placement_allocation_tenant_store"),
+		},
+		{
+			Keys:    bson.D{{Key: "status", Value: 1}, {Key: "updated_at", Value: -1}},
+			Options: options.Index().SetName("placement_allocation_status_updated"),
 		},
 	})
 	return err
@@ -572,6 +590,106 @@ func (s *MongoStore) MarkOutboxFailed(ctx context.Context, eventID string, nextR
 		"$inc": bson.M{"retry_count": 1},
 	})
 	return err
+}
+
+func (s *MongoStore) GetPlacementAllocation(
+	ctx context.Context,
+	tenantID string,
+	storeID string,
+) (*entity.PlacementAllocation, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	var doc placementAllocationDoc
+	err := s.placeCol.FindOne(ctx, bson.M{"tenant_id": tenantID, "store_id": storeID}).Decode(&doc)
+	if err == mongo.ErrNoDocuments {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	out := doc.toEntity()
+	return &out, nil
+}
+
+func (s *MongoStore) SavePlacementAllocation(
+	ctx context.Context,
+	allocation entity.PlacementAllocation,
+) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	doc := placementAllocationFromEntity(allocation)
+	_, err := s.placeCol.UpdateOne(
+		ctx,
+		bson.M{"tenant_id": allocation.TenantID, "store_id": allocation.StoreID},
+		bson.M{
+			"$set": doc,
+			"$setOnInsert": bson.M{
+				"created_at": allocation.CreatedAt,
+			},
+		},
+		options.Update().SetUpsert(true),
+	)
+	return err
+}
+
+type placementAllocationDoc struct {
+	ID           string            `bson:"id"`
+	RequestID    string            `bson:"request_id"`
+	TenantID     string            `bson:"tenant_id"`
+	StoreID      string            `bson:"store_id"`
+	Runtime      string            `bson:"runtime"`
+	ClusterName  string            `bson:"cluster_name"`
+	Mode         string            `bson:"mode"`
+	DBName       string            `bson:"db_name"`
+	SchemaName   string            `bson:"schema_name"`
+	Endpoint     string            `bson:"endpoint"`
+	SecretRef    string            `bson:"secret_ref"`
+	Status       string            `bson:"status"`
+	ProviderMeta map[string]string `bson:"provider_meta"`
+	CreatedAt    time.Time         `bson:"created_at"`
+	UpdatedAt    time.Time         `bson:"updated_at"`
+}
+
+func placementAllocationFromEntity(allocation entity.PlacementAllocation) placementAllocationDoc {
+	return placementAllocationDoc{
+		ID:           allocation.ID,
+		RequestID:    allocation.RequestID,
+		TenantID:     allocation.TenantID,
+		StoreID:      allocation.StoreID,
+		Runtime:      string(allocation.Runtime),
+		ClusterName:  allocation.ClusterName,
+		Mode:         allocation.Mode,
+		DBName:       allocation.DBName,
+		SchemaName:   allocation.SchemaName,
+		Endpoint:     allocation.Endpoint,
+		SecretRef:    allocation.SecretRef,
+		Status:       allocation.Status,
+		ProviderMeta: allocation.ProviderMeta,
+		CreatedAt:    allocation.CreatedAt,
+		UpdatedAt:    allocation.UpdatedAt,
+	}
+}
+
+func (d placementAllocationDoc) toEntity() entity.PlacementAllocation {
+	return entity.PlacementAllocation{
+		ID:           d.ID,
+		RequestID:    d.RequestID,
+		TenantID:     d.TenantID,
+		StoreID:      d.StoreID,
+		Runtime:      entity.PlacementRuntime(d.Runtime),
+		ClusterName:  d.ClusterName,
+		Mode:         d.Mode,
+		DBName:       d.DBName,
+		SchemaName:   d.SchemaName,
+		Endpoint:     d.Endpoint,
+		SecretRef:    d.SecretRef,
+		Status:       d.Status,
+		ProviderMeta: d.ProviderMeta,
+		CreatedAt:    d.CreatedAt,
+		UpdatedAt:    d.UpdatedAt,
+	}
 }
 
 func outboxRecordToCore(record messaging.OutboxRecord) (entity.OutboxMessage, error) {

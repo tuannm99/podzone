@@ -146,6 +146,9 @@ packages:
       dir: internal/onboarding/domain/infrasmanager/outputport/mocks
     interfaces:
       ConnectionStore:
+      PlacementPlanner:
+      StorageProvisioner:
+      PlacementRepository:
 
   github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/inputport:
     config:

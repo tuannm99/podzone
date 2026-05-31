@@ -94,10 +94,11 @@ The user must never be left with an unlabelled failure state.
 2. The request is persisted as a trackable onboarding item.
 3. The system evaluates whether the request can be auto-approved.
 4. If approval is required, the request enters a pending approval queue.
-5. If approved, onboarding resolves the target infrastructure placement.
-6. Onboarding provisions the required infrastructure and writes the placement metadata.
+5. If approved, onboarding builds a placement allocation from the infrastructure manager.
+6. Onboarding provisions the required runtime through the selected provider and persists the allocation.
 7. A background worker or queue consumer performs the long-running provisioning work.
-8. Backoffice can open the store only after placement is resolvable and the store is ready.
+8. Onboarding publishes the router projection, for example Consul metadata consumed by `pdtenantdb`.
+9. Backoffice can open the store only after placement is resolvable and the store is ready.
 
 ### Approval paths
 
@@ -139,13 +140,18 @@ The product should not assume a store can be provisioned synchronously from the 
 
 A store becomes operational only when the tenant has a resolvable placement.
 
-That placement must be published through onboarding infrastructure and consumed by `pdtenantdb`.
+The placement source of truth is the onboarding/platform infrastructure manager allocation.
+Consul is only a router projection for runtime lookup and can be rebuilt from that allocation.
 
 Requirements:
 
+- placement allocation must be persisted before publishing router metadata
+- placement provider must be explicit: local Docker, Kubernetes, Terraform/cloud, or another runtime
+- connection endpoint and secret reference must be produced by the selected provider after provisioning
+- service config may seed runtime policy or local defaults, but it must not be treated as the source of truth for connection routing
 - placement must exist before store-scoped runtime can be entered
 - missing placement should surface as a provisioning or readiness problem, not as a generic UI failure
-- placement publication is part of onboarding, not a backoffice-side fallback
+- placement publication is part of onboarding, not a backoffice-side fallback or source of truth
 - placement resolution must point to the selected tenant DB, schema, or equivalent storage target
 - placement must be refreshed or republished when the storage target changes
 

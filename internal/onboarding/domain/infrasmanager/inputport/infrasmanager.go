@@ -29,6 +29,29 @@ type UpsertConnectionResponse struct {
 	ConsulKey     string     `json:"consul_key"`
 }
 
+type ProvisionStorePlacementRequest struct {
+	RequestID   string `json:"request_id"`
+	TenantID    string `json:"tenant_id"`
+	StoreID     string `json:"store_id"`
+	Subdomain   string `json:"subdomain"`
+	RequestedBy string `json:"requested_by"`
+}
+
+type ProvisionStorePlacementResponse struct {
+	CorrelationID string            `json:"correlation_id"`
+	AllocationID  string            `json:"allocation_id"`
+	Runtime       string            `json:"runtime"`
+	ClusterName   string            `json:"cluster_name"`
+	Mode          string            `json:"mode"`
+	DBName        string            `json:"db_name"`
+	SchemaName    string            `json:"schema_name"`
+	Endpoint      string            `json:"endpoint"`
+	SecretRef     string            `json:"secret_ref"`
+	Status        string            `json:"status"`
+	ProviderMeta  map[string]string `json:"provider_meta"`
+	Queued        bool              `json:"queued"`
+}
+
 type Connection struct {
 	TenantID  string                 `json:"tenant_id"`
 	InfraType entity.InfraType       `json:"infra_type"`
@@ -68,6 +91,11 @@ type ListEventsResponse struct {
 }
 
 type Usecase interface {
+	ProvisionStorePlacement(
+		ctx context.Context,
+		req ProvisionStorePlacementRequest,
+		actor map[string]string,
+	) (*ProvisionStorePlacementResponse, error)
 	ManualUpsertConnection(
 		ctx context.Context,
 		tenantID string,

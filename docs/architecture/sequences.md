@@ -163,22 +163,23 @@ sequenceDiagram
     EventRelay->>IAMDB: mark published when using fallback relay
 ```
 
-## 8. Onboarding Connection Publish to Consul
+## 8. Onboarding Placement Publish to Consul
 
 ```mermaid
 sequenceDiagram
-    participant Client as Operator / Bootstrap Script
+    participant Client as Operator / Provisioning Worker
     participant Onboarding as Onboarding Service
-    participant Mongo as Mongo Event Store
+    participant Mongo as Mongo Onboarding Store
     participant EventRelay as Onboarding CDC / Fallback Relay
     participant Consul as Consul
 
-    Client->>Onboarding: create/update connection
-    Onboarding->>Mongo: persist connection event + transactional publish record
+    Client->>Onboarding: save placement allocation and router publish record
+    Onboarding->>Mongo: persist allocation as source of truth
+    Onboarding->>Mongo: append publish record for router projection
     Onboarding-->>Client: accepted
 
     Mongo->>EventRelay: stream publish record or bounded fallback read
-    EventRelay->>Consul: publish connection snapshot and placement
+    EventRelay->>Consul: publish placement projection for pdtenantdb
     EventRelay->>Mongo: mark published when using fallback relay
 ```
 
@@ -191,6 +192,8 @@ sequenceDiagram
     participant IAM as IAM Service
     participant Queue as Provisioning Queue
     participant Worker as Provisioning Worker
+    participant Provider as Placement Provider
+    participant Mongo as Mongo Onboarding Store
     participant Consul as Consul
     participant BO as Backoffice Runtime
     participant DB as Tenant DB / Schema
@@ -208,9 +211,16 @@ sequenceDiagram
     end
 
     Queue->>Worker: consume provisioning job
-    Worker->>Worker: validate capacity, connection, DB/schema target
-    Worker->>DB: provision or bind tenant storage target
-    Worker->>Consul: publish tenant placement
+    Worker->>Onboarding: request placement plan
+    Onboarding->>Provider: plan runtime placement
+    Provider-->>Onboarding: runtime, cluster, db, schema, metadata
+    Onboarding-->>Worker: placement plan
+    Worker->>Provider: provision or bind tenant storage target
+    Provider->>DB: create/bind database, schema, or runtime resource
+    Provider-->>Worker: endpoint, secret ref, allocation metadata
+    Worker->>Mongo: persist placement allocation as source of truth
+    Worker->>Mongo: append router publish record
+    Mongo->>Consul: publish tenant placement projection via CDC/fallback relay
     Worker->>Onboarding: mark request ready
 
     BO->>PDT: resolve placement for tenant/store scope
