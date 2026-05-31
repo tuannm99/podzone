@@ -3,7 +3,7 @@ package repository
 import (
 	"time"
 
-	entity "github.com/tuannm99/podzone/internal/iam/entity"
+	entity "github.com/tuannm99/podzone/internal/iam/domain/entity"
 )
 
 type tenantModel struct {

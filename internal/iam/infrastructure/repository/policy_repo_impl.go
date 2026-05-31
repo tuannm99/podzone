@@ -8,8 +8,8 @@ import (
 	"strconv"
 
 	"github.com/jmoiron/sqlx"
-	entity "github.com/tuannm99/podzone/internal/iam/entity"
-	"github.com/tuannm99/podzone/internal/iam/outputport"
+	entity "github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/internal/iam/domain/outputport"
 )
 
 type PolicyRepositoryImpl struct {

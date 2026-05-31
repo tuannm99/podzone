@@ -5,8 +5,8 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
-	"github.com/tuannm99/podzone/internal/iam/entity"
-	"github.com/tuannm99/podzone/internal/iam/outputport"
+	"github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/internal/iam/domain/outputport"
 	"go.uber.org/fx"
 )
 

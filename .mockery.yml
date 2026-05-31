@@ -112,9 +112,9 @@ packages:
       OrderRoutingRepository:
       PartnerDirectory:
 
-  github.com/tuannm99/podzone/internal/iam/outputport:
+  github.com/tuannm99/podzone/internal/iam/domain/outputport:
     config:
-      dir: internal/iam/outputport/mocks
+      dir: internal/iam/domain/outputport/mocks
     interfaces:
       AuditLogRepository:
       UserDirectory:
@@ -128,9 +128,9 @@ packages:
       InviteRepository:
       OutboxRepository:
 
-  github.com/tuannm99/podzone/internal/iam/inputport:
+  github.com/tuannm99/podzone/internal/iam/domain/inputport:
     config:
-      dir: internal/iam/inputport/mocks
+      dir: internal/iam/domain/inputport/mocks
     interfaces:
       IAMUsecase:
 
@@ -141,8 +141,8 @@ packages:
       PartnerRepository:
       PartnerUsecase:
 
-  github.com/tuannm99/podzone/internal/onboarding/infrasmanager/core:
+  github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/outputport:
     config:
-      dir: internal/onboarding/infrasmanager/core/mocks
+      dir: internal/onboarding/domain/infrasmanager/outputport/mocks
     interfaces:
       ConnectionStore:

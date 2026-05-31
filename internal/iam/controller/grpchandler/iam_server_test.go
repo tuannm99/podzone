@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	iamentity "github.com/tuannm99/podzone/internal/iam/entity"
+	iamentity "github.com/tuannm99/podzone/internal/iam/domain/entity"
 	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
 )
 

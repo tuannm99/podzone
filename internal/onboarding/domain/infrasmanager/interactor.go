@@ -1,0 +1,406 @@
+package infrasmanager
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/entity"
+	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/inputport"
+	storeoutputport "github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/outputport"
+)
+
+var _ inputport.Usecase = (*Interactor)(nil)
+
+type Interactor struct {
+	st storeoutputport.ConnectionStore
+}
+
+func NewInteractor(st storeoutputport.ConnectionStore) *Interactor {
+	return &Interactor{st: st}
+}
+
+// ManualUpsertConnection stores connection and enqueues publish snapshot to Consul.
+func (s *Interactor) ManualUpsertConnection(
+	ctx context.Context,
+	tenantID string,
+	req inputport.UpsertConnectionRequest,
+	actor map[string]string,
+) (*inputport.UpsertConnectionResponse, error) {
+	if err := validatePlacementRequest(req); err != nil {
+		return nil, err
+	}
+
+	name := req.Name
+	if name == "" {
+		name = "default"
+	}
+
+	corrID := uuid.NewString()
+
+	_ = s.st.AppendEvent(ctx, entity.ConnectionEvent{
+		ID:            uuid.NewString(),
+		CorrelationID: corrID,
+		TenantID:      tenantID,
+		InfraType:     req.InfraType,
+		Name:          name,
+		Action:        "manual_upsert",
+		Status:        "started",
+		Request: map[string]interface{}{
+			"endpoint":   req.Endpoint,
+			"secret_ref": req.SecretRef,
+			"status":     req.Status,
+			"meta":       req.Meta,
+			"config":     req.Config,
+		},
+		Actor:     actor,
+		CreatedAt: time.Now(),
+	})
+
+	conn := entity.ConnectionInfo{
+		TenantID:  tenantID,
+		InfraType: req.InfraType,
+		Name:      name,
+		Endpoint:  req.Endpoint,
+		SecretRef: req.SecretRef,
+		Status:    req.Status,
+		Meta:      req.Meta,
+		Config:    req.Config,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	if err := s.st.Upsert(ctx, conn); err != nil {
+		_ = s.st.AppendEvent(ctx, entity.ConnectionEvent{
+			ID:            uuid.NewString(),
+			CorrelationID: corrID,
+			TenantID:      tenantID,
+			InfraType:     req.InfraType,
+			Name:          name,
+			Action:        "manual_upsert",
+			Status:        "failed",
+			Error:         err.Error(),
+			Actor:         actor,
+			CreatedAt:     time.Now(),
+		})
+		return nil, err
+	}
+
+	consulKey := entity.BuildConsulKey(tenantID, req.InfraType, name)
+
+	snap := map[string]interface{}{
+		"tenantID":  tenantID,
+		"infraType": string(req.InfraType),
+		"name":      name,
+		"endpoint":  req.Endpoint,
+		"secretRef": req.SecretRef,
+		"status":    firstNonEmpty(req.Status, "active"),
+		"updatedAt": time.Now().UTC().Format(time.RFC3339),
+		"meta":      req.Meta,
+		"config":    req.Config,
+	}
+	valBytes, err := json.Marshal(snap)
+	if err != nil {
+		_ = s.st.AppendEvent(ctx, entity.ConnectionEvent{
+			ID:            uuid.NewString(),
+			CorrelationID: corrID,
+			TenantID:      tenantID,
+			InfraType:     req.InfraType,
+			Name:          name,
+			Action:        "manual_upsert",
+			Status:        "failed",
+			Error:         "marshal consul snapshot failed: " + err.Error(),
+			Actor:         actor,
+			CreatedAt:     time.Now(),
+		})
+		return nil, err
+	}
+
+	if err := s.st.EnqueueOutbox(ctx, entity.OutboxMessage{
+		EventID:       uuid.NewString(),
+		CorrelationID: corrID,
+		Topic:         "consul.publish",
+		Payload:       map[string]interface{}{"key": consulKey, "value": string(valBytes)},
+		TenantID:      tenantID,
+		InfraType:     req.InfraType,
+		Name:          name,
+		Status:        "pending",
+		RetryCount:    0,
+		NextRetry:     time.Now(),
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+	}); err != nil {
+		_ = s.st.AppendEvent(ctx, entity.ConnectionEvent{
+			ID:            uuid.NewString(),
+			CorrelationID: corrID,
+			TenantID:      tenantID,
+			InfraType:     req.InfraType,
+			Name:          name,
+			Action:        "manual_upsert",
+			Status:        "failed",
+			Error:         "enqueue outbox failed: " + err.Error(),
+			Actor:         actor,
+			CreatedAt:     time.Now(),
+		})
+		return nil, err
+	}
+
+	// For postgres connections, also write placement routing data so that
+	// pdtenantdb's ConsulPlacementResolver can route tenant queries.
+	if req.InfraType == entity.InfraPostgres && req.ClusterName != "" {
+		placementKey := "podzone/tenants/" + tenantID + "/placement"
+		placementSnap := map[string]interface{}{
+			"cluster_name": req.ClusterName,
+			"mode":         firstNonEmpty(req.Mode, "schema"),
+			"db_name":      req.DBName,
+			"schema_name":  req.SchemaName,
+		}
+		if placementBytes, err := json.Marshal(placementSnap); err == nil {
+			_ = s.st.EnqueueOutbox(ctx, entity.OutboxMessage{
+				EventID:       uuid.NewString(),
+				CorrelationID: corrID,
+				Topic:         "consul.publish",
+				Payload:       map[string]interface{}{"key": placementKey, "value": string(placementBytes)},
+				TenantID:      tenantID,
+				InfraType:     req.InfraType,
+				Name:          name,
+				Status:        "pending",
+				RetryCount:    0,
+				NextRetry:     time.Now(),
+				CreatedAt:     time.Now(),
+				UpdatedAt:     time.Now(),
+			})
+		}
+	}
+
+	_ = s.st.AppendEvent(ctx, entity.ConnectionEvent{
+		ID:            uuid.NewString(),
+		CorrelationID: corrID,
+		TenantID:      tenantID,
+		InfraType:     req.InfraType,
+		Name:          name,
+		Action:        "manual_upsert",
+		Status:        "succeeded",
+		Result: map[string]interface{}{
+			"consul_key": consulKey,
+			"queued":     true,
+		},
+		Actor:     actor,
+		CreatedAt: time.Now(),
+	})
+
+	// Fetch latest to return (optional)
+	latest, _ := s.st.Get(ctx, tenantID, req.InfraType, name)
+	if latest == nil {
+		latest = &conn
+	}
+
+	return &inputport.UpsertConnectionResponse{
+		CorrelationID: corrID,
+		Connection:    toDTO(*latest),
+		Queued:        true,
+		ConsulKey:     consulKey,
+	}, nil
+}
+
+func (s *Interactor) DeleteConnection(
+	ctx context.Context,
+	tenantID string,
+	infraType entity.InfraType,
+	name string,
+	actor map[string]string,
+) (string, error) {
+	if name == "" {
+		name = "default"
+	}
+
+	corrID := uuid.NewString()
+
+	_ = s.st.AppendEvent(ctx, entity.ConnectionEvent{
+		ID:            uuid.NewString(),
+		CorrelationID: corrID,
+		TenantID:      tenantID,
+		InfraType:     infraType,
+		Name:          name,
+		Action:        "manual_delete",
+		Status:        "started",
+		Actor:         actor,
+		CreatedAt:     time.Now(),
+	})
+
+	if err := s.st.SoftDelete(ctx, tenantID, infraType, name); err != nil {
+		_ = s.st.AppendEvent(ctx, entity.ConnectionEvent{
+			ID:            uuid.NewString(),
+			CorrelationID: corrID,
+			TenantID:      tenantID,
+			InfraType:     infraType,
+			Name:          name,
+			Action:        "manual_delete",
+			Status:        "failed",
+			Error:         err.Error(),
+			Actor:         actor,
+			CreatedAt:     time.Now(),
+		})
+		return corrID, err
+	}
+
+	if infraType == entity.InfraPostgres {
+		placementKey := "podzone/tenants/" + tenantID + "/placement"
+		if err := s.st.EnqueueOutbox(ctx, entity.OutboxMessage{
+			EventID:       uuid.NewString(),
+			CorrelationID: corrID,
+			Topic:         "consul.delete",
+			Payload:       map[string]interface{}{"key": placementKey},
+			TenantID:      tenantID,
+			InfraType:     infraType,
+			Name:          name,
+			Status:        "pending",
+			NextRetry:     time.Now(),
+			CreatedAt:     time.Now(),
+			UpdatedAt:     time.Now(),
+		}); err != nil {
+			_ = s.st.AppendEvent(ctx, entity.ConnectionEvent{
+				ID:            uuid.NewString(),
+				CorrelationID: corrID,
+				TenantID:      tenantID,
+				InfraType:     infraType,
+				Name:          name,
+				Action:        "manual_delete",
+				Status:        "failed",
+				Error:         "enqueue placement delete failed: " + err.Error(),
+				Actor:         actor,
+				CreatedAt:     time.Now(),
+			})
+			return corrID, err
+		}
+	}
+
+	consulKey := entity.BuildConsulKey(tenantID, infraType, name)
+	if err := s.st.EnqueueOutbox(ctx, entity.OutboxMessage{
+		EventID:       uuid.NewString(),
+		CorrelationID: corrID,
+		Topic:         "consul.delete",
+		Payload:       map[string]interface{}{"key": consulKey},
+		TenantID:      tenantID,
+		InfraType:     infraType,
+		Name:          name,
+		Status:        "pending",
+		NextRetry:     time.Now(),
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+	}); err != nil {
+		_ = s.st.AppendEvent(ctx, entity.ConnectionEvent{
+			ID:            uuid.NewString(),
+			CorrelationID: corrID,
+			TenantID:      tenantID,
+			InfraType:     infraType,
+			Name:          name,
+			Action:        "manual_delete",
+			Status:        "failed",
+			Error:         "enqueue outbox failed: " + err.Error(),
+			Actor:         actor,
+			CreatedAt:     time.Now(),
+		})
+		return corrID, err
+	}
+
+	_ = s.st.AppendEvent(ctx, entity.ConnectionEvent{
+		ID:            uuid.NewString(),
+		CorrelationID: corrID,
+		TenantID:      tenantID,
+		InfraType:     infraType,
+		Name:          name,
+		Action:        "manual_delete",
+		Status:        "succeeded",
+		Result:        map[string]interface{}{"consul_key": consulKey, "queued": true},
+		Actor:         actor,
+		CreatedAt:     time.Now(),
+	})
+
+	return corrID, nil
+}
+
+func validatePlacementRequest(req inputport.UpsertConnectionRequest) error {
+	if req.InfraType != entity.InfraPostgres || req.ClusterName == "" {
+		return nil
+	}
+
+	mode := firstNonEmpty(req.Mode, "schema")
+	switch mode {
+	case "schema":
+		if req.DBName == "" {
+			return fmt.Errorf("db_name is required for postgres schema mode")
+		}
+		if req.SchemaName == "" {
+			return fmt.Errorf("schema_name is required for postgres schema mode")
+		}
+	case "database":
+		if req.DBName == "" {
+			return fmt.Errorf("db_name is required for postgres database mode")
+		}
+	default:
+		return fmt.Errorf("invalid postgres placement mode: %s", req.Mode)
+	}
+
+	return nil
+}
+
+func (s *Interactor) GetConnection(
+	ctx context.Context,
+	tenantID string,
+	infraType entity.InfraType,
+	name string,
+) (*inputport.Connection, error) {
+	c, err := s.st.Get(ctx, tenantID, infraType, name)
+	if err != nil {
+		return nil, err
+	}
+	dto := toDTO(*c)
+	return &dto, nil
+}
+
+func (s *Interactor) ListConnections(
+	ctx context.Context,
+	tenantID string,
+	infraType entity.InfraType,
+	includeDeleted bool,
+	limit, offset int,
+) ([]inputport.Connection, error) {
+	items, err := s.st.ListConnections(ctx, tenantID, infraType, includeDeleted, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]inputport.Connection, 0, len(items))
+	for _, it := range items {
+		out = append(out, toDTO(it))
+	}
+	return out, nil
+}
+
+func (s *Interactor) ListEvents(
+	ctx context.Context,
+	tenantID string,
+	infraType entity.InfraType,
+	name string,
+	correlationID string,
+	limit, offset int,
+) ([]inputport.ConnectionEvent, error) {
+	items, err := s.st.ListEvents(ctx, tenantID, infraType, name, correlationID, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]inputport.ConnectionEvent, 0, len(items))
+	for _, it := range items {
+		out = append(out, toEventDTO(it))
+	}
+	return out, nil
+}
+
+func firstNonEmpty(v string, d string) string {
+	if v == "" {
+		return d
+	}
+	return v
+}

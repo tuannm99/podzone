@@ -236,74 +236,6 @@ func (_c *MockOrderRoutingRepository_List_Call) RunAndReturn(run func(ctx contex
 	return _c
 }
 
-// ListByStore provides a mock function for the type MockOrderRoutingRepository
-func (_mock *MockOrderRoutingRepository) ListByStore(ctx context.Context, storeID string) ([]entity.RoutedOrder, error) {
-	ret := _mock.Called(ctx, storeID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ListByStore")
-	}
-
-	var r0 []entity.RoutedOrder
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]entity.RoutedOrder, error)); ok {
-		return returnFunc(ctx, storeID)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []entity.RoutedOrder); ok {
-		r0 = returnFunc(ctx, storeID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.RoutedOrder)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, storeID)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockOrderRoutingRepository_ListByStore_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListByStore'
-type MockOrderRoutingRepository_ListByStore_Call struct {
-	*mock.Call
-}
-
-// ListByStore is a helper method to define mock.On call
-//   - ctx context.Context
-//   - storeID string
-func (_e *MockOrderRoutingRepository_Expecter) ListByStore(ctx interface{}, storeID interface{}) *MockOrderRoutingRepository_ListByStore_Call {
-	return &MockOrderRoutingRepository_ListByStore_Call{Call: _e.mock.On("ListByStore", ctx, storeID)}
-}
-
-func (_c *MockOrderRoutingRepository_ListByStore_Call) Run(run func(ctx context.Context, storeID string)) *MockOrderRoutingRepository_ListByStore_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		run(
-			arg0,
-			arg1,
-		)
-	})
-	return _c
-}
-
-func (_c *MockOrderRoutingRepository_ListByStore_Call) Return(routedOrders []entity.RoutedOrder, err error) *MockOrderRoutingRepository_ListByStore_Call {
-	_c.Call.Return(routedOrders, err)
-	return _c
-}
-
-func (_c *MockOrderRoutingRepository_ListByStore_Call) RunAndReturn(run func(ctx context.Context, storeID string) ([]entity.RoutedOrder, error)) *MockOrderRoutingRepository_ListByStore_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // ListActivityFeed provides a mock function for the type MockOrderRoutingRepository
 func (_mock *MockOrderRoutingRepository) ListActivityFeed(ctx context.Context, query entity.RoutedOrderActivityFeedQuery) (*entity.RoutedOrderActivityFeedPage, error) {
 	ret := _mock.Called(ctx, query)
@@ -368,6 +300,74 @@ func (_c *MockOrderRoutingRepository_ListActivityFeed_Call) Return(routedOrderAc
 }
 
 func (_c *MockOrderRoutingRepository_ListActivityFeed_Call) RunAndReturn(run func(ctx context.Context, query entity.RoutedOrderActivityFeedQuery) (*entity.RoutedOrderActivityFeedPage, error)) *MockOrderRoutingRepository_ListActivityFeed_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListByStore provides a mock function for the type MockOrderRoutingRepository
+func (_mock *MockOrderRoutingRepository) ListByStore(ctx context.Context, storeID string) ([]entity.RoutedOrder, error) {
+	ret := _mock.Called(ctx, storeID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListByStore")
+	}
+
+	var r0 []entity.RoutedOrder
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]entity.RoutedOrder, error)); ok {
+		return returnFunc(ctx, storeID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []entity.RoutedOrder); ok {
+		r0 = returnFunc(ctx, storeID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]entity.RoutedOrder)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, storeID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockOrderRoutingRepository_ListByStore_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListByStore'
+type MockOrderRoutingRepository_ListByStore_Call struct {
+	*mock.Call
+}
+
+// ListByStore is a helper method to define mock.On call
+//   - ctx context.Context
+//   - storeID string
+func (_e *MockOrderRoutingRepository_Expecter) ListByStore(ctx interface{}, storeID interface{}) *MockOrderRoutingRepository_ListByStore_Call {
+	return &MockOrderRoutingRepository_ListByStore_Call{Call: _e.mock.On("ListByStore", ctx, storeID)}
+}
+
+func (_c *MockOrderRoutingRepository_ListByStore_Call) Run(run func(ctx context.Context, storeID string)) *MockOrderRoutingRepository_ListByStore_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockOrderRoutingRepository_ListByStore_Call) Return(routedOrders []entity.RoutedOrder, err error) *MockOrderRoutingRepository_ListByStore_Call {
+	_c.Call.Return(routedOrders, err)
+	return _c
+}
+
+func (_c *MockOrderRoutingRepository_ListByStore_Call) RunAndReturn(run func(ctx context.Context, storeID string) ([]entity.RoutedOrder, error)) *MockOrderRoutingRepository_ListByStore_Call {
 	_c.Call.Return(run)
 	return _c
 }

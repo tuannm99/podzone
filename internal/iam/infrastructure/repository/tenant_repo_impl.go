@@ -9,8 +9,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/fx"
 
-	entity "github.com/tuannm99/podzone/internal/iam/entity"
-	"github.com/tuannm99/podzone/internal/iam/outputport"
+	entity "github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/internal/iam/domain/outputport"
 )
 
 type repoParams struct {

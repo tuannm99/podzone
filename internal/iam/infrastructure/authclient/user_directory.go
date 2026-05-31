@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	iamconfig "github.com/tuannm99/podzone/internal/iam/config"
-	"github.com/tuannm99/podzone/internal/iam/entity"
-	"github.com/tuannm99/podzone/internal/iam/outputport"
+	"github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/internal/iam/domain/outputport"
 	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"

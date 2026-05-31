@@ -11,10 +11,10 @@ import (
 
 	"github.com/tuannm99/podzone/internal/auth/config"
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
-	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
 	inputmocks "github.com/tuannm99/podzone/internal/auth/domain/inputport/mocks"
+	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
 	outputmocks "github.com/tuannm99/podzone/internal/auth/domain/outputport/mocks"
-	iamdomain "github.com/tuannm99/podzone/internal/iam/entity"
+	iamdomain "github.com/tuannm99/podzone/internal/iam/domain/entity"
 )
 
 func TestAssumeRole_Success(t *testing.T) {

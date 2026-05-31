@@ -4,7 +4,7 @@ import (
 	"github.com/joho/godotenv"
 	"go.uber.org/fx"
 
-	iamworker "github.com/tuannm99/podzone/internal/iam/worker"
+	iamworker "github.com/tuannm99/podzone/internal/iam/infrastructure/messaging/outbox"
 	"github.com/tuannm99/podzone/pkg/pdconfig"
 	"github.com/tuannm99/podzone/pkg/pdkafka"
 	"github.com/tuannm99/podzone/pkg/pdlog"

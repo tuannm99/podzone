@@ -7,20 +7,19 @@ import (
 	"github.com/knadh/koanf/v2"
 	"go.uber.org/fx"
 
-	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager"
-	infrascontroller "github.com/tuannm99/podzone/internal/onboarding/infrasmanager/controller"
-	consulbridge "github.com/tuannm99/podzone/internal/onboarding/infrasmanager/controller/eventhandler/consulbridge"
-	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/entity"
-	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/infrastructure/publisher"
-	infrarepository "github.com/tuannm99/podzone/internal/onboarding/infrasmanager/infrastructure/repository"
-	"github.com/tuannm99/podzone/internal/onboarding/infrasmanager/infrastructure/worker"
-	infrasinputport "github.com/tuannm99/podzone/internal/onboarding/infrasmanager/inputport"
-	infrasoutputport "github.com/tuannm99/podzone/internal/onboarding/infrasmanager/outputport"
-	"github.com/tuannm99/podzone/internal/onboarding/store"
-	storecontroller "github.com/tuannm99/podzone/internal/onboarding/store/controller"
-	storerepository "github.com/tuannm99/podzone/internal/onboarding/store/infrastructure/repository"
-	storeinputport "github.com/tuannm99/podzone/internal/onboarding/store/inputport"
-	storeoutputport "github.com/tuannm99/podzone/internal/onboarding/store/outputport"
+	consulbridge "github.com/tuannm99/podzone/internal/onboarding/controller/eventhandler/consulbridge"
+	infrascontroller "github.com/tuannm99/podzone/internal/onboarding/controller/httphandler/infrasmanager"
+	storecontroller "github.com/tuannm99/podzone/internal/onboarding/controller/httphandler/store"
+	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager"
+	infrasinputport "github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/inputport"
+	infrasoutputport "github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/outputport"
+	"github.com/tuannm99/podzone/internal/onboarding/domain/store"
+	storeinputport "github.com/tuannm99/podzone/internal/onboarding/domain/store/inputport"
+	storeoutputport "github.com/tuannm99/podzone/internal/onboarding/domain/store/outputport"
+	"github.com/tuannm99/podzone/internal/onboarding/infrastructure/messaging/publisher"
+	"github.com/tuannm99/podzone/internal/onboarding/infrastructure/messaging/worker"
+	infrarepository "github.com/tuannm99/podzone/internal/onboarding/infrastructure/repository/infrasmanager"
+	storerepository "github.com/tuannm99/podzone/internal/onboarding/infrastructure/repository/store"
 	"github.com/tuannm99/podzone/pkg/messaging"
 	messagingkafka "github.com/tuannm99/podzone/pkg/messaging/kafka"
 	"github.com/tuannm99/podzone/pkg/pdhttp"
@@ -65,10 +64,7 @@ var Module = fx.Options(
 
 var (
 	InfrasCtrlProvider = fx.Provide(
-		// Wire Infras Core
-		func() map[entity.InfraType]entity.InfraProvisioner {
-			return map[entity.InfraType]entity.InfraProvisioner{}
-		},
+		// --- Infrastructure layer ---
 		publisher.NewConsulPublisher,
 		fx.Annotate(
 			func(producer pdkafka.Producer) messaging.Publisher {
@@ -110,8 +106,10 @@ var (
 			fx.ParamTags(``, ``, ``, `name:"onboarding-consul-bridge-runtime"`, ``, ``),
 		),
 
-		// Infras API
+		// --- Domain layer ---
 		fx.Annotate(infrasmanager.NewInteractor, fx.As(new(infrasinputport.Usecase))),
+
+		// --- HTTP handler layer ---
 		fx.Annotate(
 			infrascontroller.NewController,
 			fx.As(new(Controller)),
@@ -120,13 +118,18 @@ var (
 	)
 
 	StoreCtrlProvider = fx.Provide(
+		// --- Infrastructure layer ---
 		fx.Annotate(
 			storerepository.New,
 			fx.As(new(storeoutputport.StoreRepository)),
 		),
+
+		// --- Domain layer ---
 		fx.Annotate(store.NewStoreInteractor, fx.As(new(storeinputport.Usecase))),
+
+		// --- HTTP handler layer ---
 		fx.Annotate(
-			storecontroller.NewStoreController,
+			storecontroller.NewController,
 			fx.As(new(Controller)),
 			fx.ResultTags(`group:"onboarding-controllers"`),
 		),

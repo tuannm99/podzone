@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/tuannm99/podzone/internal/iam/outputport"
+	"github.com/tuannm99/podzone/internal/iam/domain/outputport"
 	"github.com/tuannm99/podzone/pkg/messaging"
 	"go.uber.org/fx"
 )

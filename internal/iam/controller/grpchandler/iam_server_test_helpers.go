@@ -11,10 +11,10 @@ import (
 	"google.golang.org/grpc/metadata"
 
 	iamconfig "github.com/tuannm99/podzone/internal/iam/config"
-	iamentity "github.com/tuannm99/podzone/internal/iam/entity"
-	iaminputport "github.com/tuannm99/podzone/internal/iam/inputport"
-	iammocks "github.com/tuannm99/podzone/internal/iam/inputport/mocks"
-	iamoutputmocks "github.com/tuannm99/podzone/internal/iam/outputport/mocks"
+	iamentity "github.com/tuannm99/podzone/internal/iam/domain/entity"
+	iaminputport "github.com/tuannm99/podzone/internal/iam/domain/inputport"
+	iammocks "github.com/tuannm99/podzone/internal/iam/domain/inputport/mocks"
+	iamoutputmocks "github.com/tuannm99/podzone/internal/iam/domain/outputport/mocks"
 	"github.com/tuannm99/podzone/pkg/pdauthn"
 )
 

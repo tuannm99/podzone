@@ -3,7 +3,7 @@ package mapper
 import (
 	"time"
 
-	iamdomain "github.com/tuannm99/podzone/internal/iam/entity"
+	iamdomain "github.com/tuannm99/podzone/internal/iam/domain/entity"
 	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
 	"github.com/tuannm99/podzone/pkg/pdauthn"
 )

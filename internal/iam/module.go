@@ -3,10 +3,10 @@ package iam
 import (
 	"go.uber.org/fx"
 
+	"github.com/tuannm99/podzone/internal/iam/domain/inputport"
+	"github.com/tuannm99/podzone/internal/iam/domain/interactor"
+	"github.com/tuannm99/podzone/internal/iam/domain/outputport"
 	"github.com/tuannm99/podzone/internal/iam/infrastructure/repository"
-	"github.com/tuannm99/podzone/internal/iam/inputport"
-	"github.com/tuannm99/podzone/internal/iam/interactor"
-	"github.com/tuannm99/podzone/internal/iam/outputport"
 	"github.com/tuannm99/podzone/pkg/messaging"
 )
 
@@ -20,7 +20,10 @@ var Module = fx.Options(
 		fx.Annotate(repository.NewPlatformMembershipRepository, fx.As(new(outputport.PlatformMembershipRepository))),
 		fx.Annotate(repository.NewMembershipRepository, fx.As(new(outputport.MembershipRepository))),
 		fx.Annotate(repository.NewInviteRepository, fx.As(new(outputport.InviteRepository))),
-		fx.Annotate(repository.NewOutboxRepository, fx.As(new(outputport.OutboxRepository), new(messaging.OutboxStore))),
+		fx.Annotate(
+			repository.NewOutboxRepository,
+			fx.As(new(outputport.OutboxRepository), new(messaging.OutboxStore)),
+		),
 		fx.Annotate(interactor.NewIAMUsecase, fx.As(new(inputport.IAMUsecase))),
 	),
 )
