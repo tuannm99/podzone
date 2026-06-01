@@ -2,11 +2,13 @@
 // versions:
 // 	protoc-gen-go v1.36.6
 // 	protoc        (unknown)
-// source: auth/v1/iam_simulation.proto
+// source: iam/v1/iam_simulation.proto
 
-package pbauthv1
+package pbiamv1
 
 import (
+	v1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
+	v11 "github.com/tuannm99/podzone/pkg/api/proto/common/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -29,8 +31,8 @@ type SimulateAccessRequest struct {
 	Action             string                 `protobuf:"bytes,4,opt,name=action,proto3" json:"action,omitempty"`
 	Resource           string                 `protobuf:"bytes,5,opt,name=resource,proto3" json:"resource,omitempty"`
 	UseAssumedRole     bool                   `protobuf:"varint,6,opt,name=use_assumed_role,json=useAssumedRole,proto3" json:"use_assumed_role,omitempty"`
-	AssumedRoleSession *Session               `protobuf:"bytes,7,opt,name=assumed_role_session,json=assumedRoleSession,proto3" json:"assumed_role_session,omitempty"`
-	SessionPolicy      []*PolicyStatement     `protobuf:"bytes,8,rep,name=session_policy,json=sessionPolicy,proto3" json:"session_policy,omitempty"`
+	AssumedRoleSession *v1.Session            `protobuf:"bytes,7,opt,name=assumed_role_session,json=assumedRoleSession,proto3" json:"assumed_role_session,omitempty"`
+	SessionPolicy      []*v11.PolicyStatement `protobuf:"bytes,8,rep,name=session_policy,json=sessionPolicy,proto3" json:"session_policy,omitempty"`
 	Attributes         map[string]string      `protobuf:"bytes,9,rep,name=attributes,proto3" json:"attributes,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	ServicePrincipal   string                 `protobuf:"bytes,10,opt,name=service_principal,json=servicePrincipal,proto3" json:"service_principal,omitempty"`
 	SessionTags        map[string]string      `protobuf:"bytes,11,rep,name=session_tags,json=sessionTags,proto3" json:"session_tags,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
@@ -40,7 +42,7 @@ type SimulateAccessRequest struct {
 
 func (x *SimulateAccessRequest) Reset() {
 	*x = SimulateAccessRequest{}
-	mi := &file_auth_v1_iam_simulation_proto_msgTypes[0]
+	mi := &file_iam_v1_iam_simulation_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -52,7 +54,7 @@ func (x *SimulateAccessRequest) String() string {
 func (*SimulateAccessRequest) ProtoMessage() {}
 
 func (x *SimulateAccessRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_simulation_proto_msgTypes[0]
+	mi := &file_iam_v1_iam_simulation_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -65,7 +67,7 @@ func (x *SimulateAccessRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SimulateAccessRequest.ProtoReflect.Descriptor instead.
 func (*SimulateAccessRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_simulation_proto_rawDescGZIP(), []int{0}
+	return file_iam_v1_iam_simulation_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *SimulateAccessRequest) GetScope() string {
@@ -110,14 +112,14 @@ func (x *SimulateAccessRequest) GetUseAssumedRole() bool {
 	return false
 }
 
-func (x *SimulateAccessRequest) GetAssumedRoleSession() *Session {
+func (x *SimulateAccessRequest) GetAssumedRoleSession() *v1.Session {
 	if x != nil {
 		return x.AssumedRoleSession
 	}
 	return nil
 }
 
-func (x *SimulateAccessRequest) GetSessionPolicy() []*PolicyStatement {
+func (x *SimulateAccessRequest) GetSessionPolicy() []*v11.PolicyStatement {
 	if x != nil {
 		return x.SessionPolicy
 	}
@@ -151,7 +153,7 @@ type SimulateMatchedStatement struct {
 	Effect          string                 `protobuf:"bytes,2,opt,name=effect,proto3" json:"effect,omitempty"`
 	ActionPattern   string                 `protobuf:"bytes,3,opt,name=action_pattern,json=actionPattern,proto3" json:"action_pattern,omitempty"`
 	ResourcePattern string                 `protobuf:"bytes,4,opt,name=resource_pattern,json=resourcePattern,proto3" json:"resource_pattern,omitempty"`
-	Conditions      []*PolicyCondition     `protobuf:"bytes,5,rep,name=conditions,proto3" json:"conditions,omitempty"`
+	Conditions      []*v11.PolicyCondition `protobuf:"bytes,5,rep,name=conditions,proto3" json:"conditions,omitempty"`
 	Source          string                 `protobuf:"bytes,6,opt,name=source,proto3" json:"source,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
@@ -159,7 +161,7 @@ type SimulateMatchedStatement struct {
 
 func (x *SimulateMatchedStatement) Reset() {
 	*x = SimulateMatchedStatement{}
-	mi := &file_auth_v1_iam_simulation_proto_msgTypes[1]
+	mi := &file_iam_v1_iam_simulation_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -171,7 +173,7 @@ func (x *SimulateMatchedStatement) String() string {
 func (*SimulateMatchedStatement) ProtoMessage() {}
 
 func (x *SimulateMatchedStatement) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_simulation_proto_msgTypes[1]
+	mi := &file_iam_v1_iam_simulation_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -184,7 +186,7 @@ func (x *SimulateMatchedStatement) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SimulateMatchedStatement.ProtoReflect.Descriptor instead.
 func (*SimulateMatchedStatement) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_simulation_proto_rawDescGZIP(), []int{1}
+	return file_iam_v1_iam_simulation_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *SimulateMatchedStatement) GetPolicyName() string {
@@ -215,7 +217,7 @@ func (x *SimulateMatchedStatement) GetResourcePattern() string {
 	return ""
 }
 
-func (x *SimulateMatchedStatement) GetConditions() []*PolicyCondition {
+func (x *SimulateMatchedStatement) GetConditions() []*v11.PolicyCondition {
 	if x != nil {
 		return x.Conditions
 	}
@@ -242,7 +244,7 @@ type SimulateAccessResponse struct {
 
 func (x *SimulateAccessResponse) Reset() {
 	*x = SimulateAccessResponse{}
-	mi := &file_auth_v1_iam_simulation_proto_msgTypes[2]
+	mi := &file_iam_v1_iam_simulation_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -254,7 +256,7 @@ func (x *SimulateAccessResponse) String() string {
 func (*SimulateAccessResponse) ProtoMessage() {}
 
 func (x *SimulateAccessResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_simulation_proto_msgTypes[2]
+	mi := &file_iam_v1_iam_simulation_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -267,7 +269,7 @@ func (x *SimulateAccessResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SimulateAccessResponse.ProtoReflect.Descriptor instead.
 func (*SimulateAccessResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_simulation_proto_rawDescGZIP(), []int{2}
+	return file_iam_v1_iam_simulation_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *SimulateAccessResponse) GetAllowed() bool {
@@ -317,7 +319,7 @@ type SimulateDecisionLayer struct {
 
 func (x *SimulateDecisionLayer) Reset() {
 	*x = SimulateDecisionLayer{}
-	mi := &file_auth_v1_iam_simulation_proto_msgTypes[3]
+	mi := &file_iam_v1_iam_simulation_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -329,7 +331,7 @@ func (x *SimulateDecisionLayer) String() string {
 func (*SimulateDecisionLayer) ProtoMessage() {}
 
 func (x *SimulateDecisionLayer) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_simulation_proto_msgTypes[3]
+	mi := &file_iam_v1_iam_simulation_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -342,7 +344,7 @@ func (x *SimulateDecisionLayer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SimulateDecisionLayer.ProtoReflect.Descriptor instead.
 func (*SimulateDecisionLayer) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_simulation_proto_rawDescGZIP(), []int{3}
+	return file_iam_v1_iam_simulation_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SimulateDecisionLayer) GetLayer() string {
@@ -390,7 +392,7 @@ type IAMAssumeRoleRequest struct {
 
 func (x *IAMAssumeRoleRequest) Reset() {
 	*x = IAMAssumeRoleRequest{}
-	mi := &file_auth_v1_iam_simulation_proto_msgTypes[4]
+	mi := &file_iam_v1_iam_simulation_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -402,7 +404,7 @@ func (x *IAMAssumeRoleRequest) String() string {
 func (*IAMAssumeRoleRequest) ProtoMessage() {}
 
 func (x *IAMAssumeRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_simulation_proto_msgTypes[4]
+	mi := &file_iam_v1_iam_simulation_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -415,7 +417,7 @@ func (x *IAMAssumeRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IAMAssumeRoleRequest.ProtoReflect.Descriptor instead.
 func (*IAMAssumeRoleRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_simulation_proto_rawDescGZIP(), []int{4}
+	return file_iam_v1_iam_simulation_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *IAMAssumeRoleRequest) GetAccessToken() string {
@@ -498,7 +500,7 @@ type IAMAssumedRole struct {
 
 func (x *IAMAssumedRole) Reset() {
 	*x = IAMAssumedRole{}
-	mi := &file_auth_v1_iam_simulation_proto_msgTypes[5]
+	mi := &file_iam_v1_iam_simulation_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -510,7 +512,7 @@ func (x *IAMAssumedRole) String() string {
 func (*IAMAssumedRole) ProtoMessage() {}
 
 func (x *IAMAssumedRole) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_simulation_proto_msgTypes[5]
+	mi := &file_iam_v1_iam_simulation_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -523,7 +525,7 @@ func (x *IAMAssumedRole) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IAMAssumedRole.ProtoReflect.Descriptor instead.
 func (*IAMAssumedRole) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_simulation_proto_rawDescGZIP(), []int{5}
+	return file_iam_v1_iam_simulation_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *IAMAssumedRole) GetRoleId() uint64 {
@@ -598,7 +600,7 @@ type IAMAssumeRoleResponse struct {
 
 func (x *IAMAssumeRoleResponse) Reset() {
 	*x = IAMAssumeRoleResponse{}
-	mi := &file_auth_v1_iam_simulation_proto_msgTypes[6]
+	mi := &file_iam_v1_iam_simulation_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -610,7 +612,7 @@ func (x *IAMAssumeRoleResponse) String() string {
 func (*IAMAssumeRoleResponse) ProtoMessage() {}
 
 func (x *IAMAssumeRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_simulation_proto_msgTypes[6]
+	mi := &file_iam_v1_iam_simulation_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -623,7 +625,7 @@ func (x *IAMAssumeRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IAMAssumeRoleResponse.ProtoReflect.Descriptor instead.
 func (*IAMAssumeRoleResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_simulation_proto_rawDescGZIP(), []int{6}
+	return file_iam_v1_iam_simulation_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *IAMAssumeRoleResponse) GetAssumedRole() *IAMAssumedRole {
@@ -633,11 +635,11 @@ func (x *IAMAssumeRoleResponse) GetAssumedRole() *IAMAssumedRole {
 	return nil
 }
 
-var File_auth_v1_iam_simulation_proto protoreflect.FileDescriptor
+var File_iam_v1_iam_simulation_proto protoreflect.FileDescriptor
 
-const file_auth_v1_iam_simulation_proto_rawDesc = "" +
+const file_iam_v1_iam_simulation_proto_rawDesc = "" +
 	"\n" +
-	"\x1cauth/v1/iam_simulation.proto\x12\x04auth\x1a\x1aauth/v1/auth_session.proto\x1a\x18auth/v1/iam_policy.proto\"\x8a\x05\n" +
+	"\x1biam/v1/iam_simulation.proto\x12\x03iam\x1a\x1aauth/v1/auth_session.proto\x1a\x1acommon/v1/iam_policy.proto\"\x8a\x05\n" +
 	"\x15SimulateAccessRequest\x12\x14\n" +
 	"\x05scope\x18\x01 \x01(\tR\x05scope\x12\x1b\n" +
 	"\ttenant_id\x18\x02 \x01(\tR\btenantId\x12\x17\n" +
@@ -645,41 +647,41 @@ const file_auth_v1_iam_simulation_proto_rawDesc = "" +
 	"\x06action\x18\x04 \x01(\tR\x06action\x12\x1a\n" +
 	"\bresource\x18\x05 \x01(\tR\bresource\x12(\n" +
 	"\x10use_assumed_role\x18\x06 \x01(\bR\x0euseAssumedRole\x12?\n" +
-	"\x14assumed_role_session\x18\a \x01(\v2\r.auth.SessionR\x12assumedRoleSession\x12<\n" +
-	"\x0esession_policy\x18\b \x03(\v2\x15.auth.PolicyStatementR\rsessionPolicy\x12K\n" +
+	"\x14assumed_role_session\x18\a \x01(\v2\r.auth.SessionR\x12assumedRoleSession\x12>\n" +
+	"\x0esession_policy\x18\b \x03(\v2\x17.common.PolicyStatementR\rsessionPolicy\x12J\n" +
 	"\n" +
-	"attributes\x18\t \x03(\v2+.auth.SimulateAccessRequest.AttributesEntryR\n" +
+	"attributes\x18\t \x03(\v2*.iam.SimulateAccessRequest.AttributesEntryR\n" +
 	"attributes\x12+\n" +
 	"\x11service_principal\x18\n" +
-	" \x01(\tR\x10servicePrincipal\x12O\n" +
-	"\fsession_tags\x18\v \x03(\v2,.auth.SimulateAccessRequest.SessionTagsEntryR\vsessionTags\x1a=\n" +
+	" \x01(\tR\x10servicePrincipal\x12N\n" +
+	"\fsession_tags\x18\v \x03(\v2+.iam.SimulateAccessRequest.SessionTagsEntryR\vsessionTags\x1a=\n" +
 	"\x0fAttributesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a>\n" +
 	"\x10SessionTagsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xf4\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xf6\x01\n" +
 	"\x18SimulateMatchedStatement\x12\x1f\n" +
 	"\vpolicy_name\x18\x01 \x01(\tR\n" +
 	"policyName\x12\x16\n" +
 	"\x06effect\x18\x02 \x01(\tR\x06effect\x12%\n" +
 	"\x0eaction_pattern\x18\x03 \x01(\tR\ractionPattern\x12)\n" +
-	"\x10resource_pattern\x18\x04 \x01(\tR\x0fresourcePattern\x125\n" +
+	"\x10resource_pattern\x18\x04 \x01(\tR\x0fresourcePattern\x127\n" +
 	"\n" +
-	"conditions\x18\x05 \x03(\v2\x15.auth.PolicyConditionR\n" +
+	"conditions\x18\x05 \x03(\v2\x17.common.PolicyConditionR\n" +
 	"conditions\x12\x16\n" +
-	"\x06source\x18\x06 \x01(\tR\x06source\"\xf7\x01\n" +
+	"\x06source\x18\x06 \x01(\tR\x06source\"\xf5\x01\n" +
 	"\x16SimulateAccessResponse\x12\x18\n" +
 	"\aallowed\x18\x01 \x01(\bR\aallowed\x12'\n" +
 	"\x0fdecision_source\x18\x02 \x01(\tR\x0edecisionSource\x12\x16\n" +
-	"\x06reason\x18\x03 \x01(\tR\x06reason\x12M\n" +
-	"\x12matched_statements\x18\x04 \x03(\v2\x1e.auth.SimulateMatchedStatementR\x11matchedStatements\x123\n" +
-	"\x06layers\x18\x05 \x03(\v2\x1b.auth.SimulateDecisionLayerR\x06layers\"\xae\x01\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\x12L\n" +
+	"\x12matched_statements\x18\x04 \x03(\v2\x1d.iam.SimulateMatchedStatementR\x11matchedStatements\x122\n" +
+	"\x06layers\x18\x05 \x03(\v2\x1a.iam.SimulateDecisionLayerR\x06layers\"\xad\x01\n" +
 	"\x15SimulateDecisionLayer\x12\x14\n" +
 	"\x05layer\x18\x01 \x01(\tR\x05layer\x12\x18\n" +
 	"\aallowed\x18\x02 \x01(\bR\aallowed\x12\x16\n" +
-	"\x06reason\x18\x03 \x01(\tR\x06reason\x12M\n" +
-	"\x12matched_statements\x18\x04 \x03(\v2\x1e.auth.SimulateMatchedStatementR\x11matchedStatements\"\xc8\x03\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\x12L\n" +
+	"\x12matched_statements\x18\x04 \x03(\v2\x1d.iam.SimulateMatchedStatementR\x11matchedStatements\"\xc7\x03\n" +
 	"\x14IAMAssumeRoleRequest\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1b\n" +
 	"\trole_name\x18\x02 \x01(\tR\broleName\x12\x1b\n" +
@@ -689,11 +691,11 @@ const file_auth_v1_iam_simulation_proto_rawDesc = "" +
 	"\fsession_name\x18\x05 \x01(\tR\vsessionName\x12'\n" +
 	"\x0fsource_identity\x18\x06 \x01(\tR\x0esourceIdentity\x12)\n" +
 	"\x10duration_seconds\x18\a \x01(\rR\x0fdurationSeconds\x12+\n" +
-	"\x11service_principal\x18\b \x01(\tR\x10servicePrincipal\x12N\n" +
-	"\fsession_tags\x18\t \x03(\v2+.auth.IAMAssumeRoleRequest.SessionTagsEntryR\vsessionTags\x1a>\n" +
+	"\x11service_principal\x18\b \x01(\tR\x10servicePrincipal\x12M\n" +
+	"\fsession_tags\x18\t \x03(\v2*.iam.IAMAssumeRoleRequest.SessionTagsEntryR\vsessionTags\x1a>\n" +
 	"\x10SessionTagsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xa4\x03\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xa3\x03\n" +
 	"\x0eIAMAssumedRole\x12\x17\n" +
 	"\arole_id\x18\x01 \x01(\x04R\x06roleId\x12\x1d\n" +
 	"\n" +
@@ -702,57 +704,57 @@ const file_auth_v1_iam_simulation_proto_rawDesc = "" +
 	"\ttenant_id\x18\x04 \x01(\tR\btenantId\x12+\n" +
 	"\x11service_principal\x18\x05 \x01(\tR\x10servicePrincipal\x12!\n" +
 	"\fsession_name\x18\x06 \x01(\tR\vsessionName\x12'\n" +
-	"\x0fsource_identity\x18\a \x01(\tR\x0esourceIdentity\x12H\n" +
-	"\fsession_tags\x18\b \x03(\v2%.auth.IAMAssumedRole.SessionTagsEntryR\vsessionTags\x12\x1d\n" +
+	"\x0fsource_identity\x18\a \x01(\tR\x0esourceIdentity\x12G\n" +
+	"\fsession_tags\x18\b \x03(\v2$.iam.IAMAssumedRole.SessionTagsEntryR\vsessionTags\x12\x1d\n" +
 	"\n" +
 	"expires_at\x18\t \x01(\tR\texpiresAt\x1a>\n" +
 	"\x10SessionTagsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"P\n" +
-	"\x15IAMAssumeRoleResponse\x127\n" +
-	"\fassumed_role\x18\x01 \x01(\v2\x14.auth.IAMAssumedRoleR\vassumedRoleB<Z:github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1b\x06proto3"
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"O\n" +
+	"\x15IAMAssumeRoleResponse\x126\n" +
+	"\fassumed_role\x18\x01 \x01(\v2\x13.iam.IAMAssumedRoleR\vassumedRoleB:Z8github.com/tuannm99/podzone/pkg/api/proto/iam/v1;pbiamv1b\x06proto3"
 
 var (
-	file_auth_v1_iam_simulation_proto_rawDescOnce sync.Once
-	file_auth_v1_iam_simulation_proto_rawDescData []byte
+	file_iam_v1_iam_simulation_proto_rawDescOnce sync.Once
+	file_iam_v1_iam_simulation_proto_rawDescData []byte
 )
 
-func file_auth_v1_iam_simulation_proto_rawDescGZIP() []byte {
-	file_auth_v1_iam_simulation_proto_rawDescOnce.Do(func() {
-		file_auth_v1_iam_simulation_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_auth_v1_iam_simulation_proto_rawDesc), len(file_auth_v1_iam_simulation_proto_rawDesc)))
+func file_iam_v1_iam_simulation_proto_rawDescGZIP() []byte {
+	file_iam_v1_iam_simulation_proto_rawDescOnce.Do(func() {
+		file_iam_v1_iam_simulation_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_iam_v1_iam_simulation_proto_rawDesc), len(file_iam_v1_iam_simulation_proto_rawDesc)))
 	})
-	return file_auth_v1_iam_simulation_proto_rawDescData
+	return file_iam_v1_iam_simulation_proto_rawDescData
 }
 
-var file_auth_v1_iam_simulation_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
-var file_auth_v1_iam_simulation_proto_goTypes = []any{
-	(*SimulateAccessRequest)(nil),    // 0: auth.SimulateAccessRequest
-	(*SimulateMatchedStatement)(nil), // 1: auth.SimulateMatchedStatement
-	(*SimulateAccessResponse)(nil),   // 2: auth.SimulateAccessResponse
-	(*SimulateDecisionLayer)(nil),    // 3: auth.SimulateDecisionLayer
-	(*IAMAssumeRoleRequest)(nil),     // 4: auth.IAMAssumeRoleRequest
-	(*IAMAssumedRole)(nil),           // 5: auth.IAMAssumedRole
-	(*IAMAssumeRoleResponse)(nil),    // 6: auth.IAMAssumeRoleResponse
-	nil,                              // 7: auth.SimulateAccessRequest.AttributesEntry
-	nil,                              // 8: auth.SimulateAccessRequest.SessionTagsEntry
-	nil,                              // 9: auth.IAMAssumeRoleRequest.SessionTagsEntry
-	nil,                              // 10: auth.IAMAssumedRole.SessionTagsEntry
-	(*Session)(nil),                  // 11: auth.Session
-	(*PolicyStatement)(nil),          // 12: auth.PolicyStatement
-	(*PolicyCondition)(nil),          // 13: auth.PolicyCondition
+var file_iam_v1_iam_simulation_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_iam_v1_iam_simulation_proto_goTypes = []any{
+	(*SimulateAccessRequest)(nil),    // 0: iam.SimulateAccessRequest
+	(*SimulateMatchedStatement)(nil), // 1: iam.SimulateMatchedStatement
+	(*SimulateAccessResponse)(nil),   // 2: iam.SimulateAccessResponse
+	(*SimulateDecisionLayer)(nil),    // 3: iam.SimulateDecisionLayer
+	(*IAMAssumeRoleRequest)(nil),     // 4: iam.IAMAssumeRoleRequest
+	(*IAMAssumedRole)(nil),           // 5: iam.IAMAssumedRole
+	(*IAMAssumeRoleResponse)(nil),    // 6: iam.IAMAssumeRoleResponse
+	nil,                              // 7: iam.SimulateAccessRequest.AttributesEntry
+	nil,                              // 8: iam.SimulateAccessRequest.SessionTagsEntry
+	nil,                              // 9: iam.IAMAssumeRoleRequest.SessionTagsEntry
+	nil,                              // 10: iam.IAMAssumedRole.SessionTagsEntry
+	(*v1.Session)(nil),               // 11: auth.Session
+	(*v11.PolicyStatement)(nil),      // 12: common.PolicyStatement
+	(*v11.PolicyCondition)(nil),      // 13: common.PolicyCondition
 }
-var file_auth_v1_iam_simulation_proto_depIdxs = []int32{
-	11, // 0: auth.SimulateAccessRequest.assumed_role_session:type_name -> auth.Session
-	12, // 1: auth.SimulateAccessRequest.session_policy:type_name -> auth.PolicyStatement
-	7,  // 2: auth.SimulateAccessRequest.attributes:type_name -> auth.SimulateAccessRequest.AttributesEntry
-	8,  // 3: auth.SimulateAccessRequest.session_tags:type_name -> auth.SimulateAccessRequest.SessionTagsEntry
-	13, // 4: auth.SimulateMatchedStatement.conditions:type_name -> auth.PolicyCondition
-	1,  // 5: auth.SimulateAccessResponse.matched_statements:type_name -> auth.SimulateMatchedStatement
-	3,  // 6: auth.SimulateAccessResponse.layers:type_name -> auth.SimulateDecisionLayer
-	1,  // 7: auth.SimulateDecisionLayer.matched_statements:type_name -> auth.SimulateMatchedStatement
-	9,  // 8: auth.IAMAssumeRoleRequest.session_tags:type_name -> auth.IAMAssumeRoleRequest.SessionTagsEntry
-	10, // 9: auth.IAMAssumedRole.session_tags:type_name -> auth.IAMAssumedRole.SessionTagsEntry
-	5,  // 10: auth.IAMAssumeRoleResponse.assumed_role:type_name -> auth.IAMAssumedRole
+var file_iam_v1_iam_simulation_proto_depIdxs = []int32{
+	11, // 0: iam.SimulateAccessRequest.assumed_role_session:type_name -> auth.Session
+	12, // 1: iam.SimulateAccessRequest.session_policy:type_name -> common.PolicyStatement
+	7,  // 2: iam.SimulateAccessRequest.attributes:type_name -> iam.SimulateAccessRequest.AttributesEntry
+	8,  // 3: iam.SimulateAccessRequest.session_tags:type_name -> iam.SimulateAccessRequest.SessionTagsEntry
+	13, // 4: iam.SimulateMatchedStatement.conditions:type_name -> common.PolicyCondition
+	1,  // 5: iam.SimulateAccessResponse.matched_statements:type_name -> iam.SimulateMatchedStatement
+	3,  // 6: iam.SimulateAccessResponse.layers:type_name -> iam.SimulateDecisionLayer
+	1,  // 7: iam.SimulateDecisionLayer.matched_statements:type_name -> iam.SimulateMatchedStatement
+	9,  // 8: iam.IAMAssumeRoleRequest.session_tags:type_name -> iam.IAMAssumeRoleRequest.SessionTagsEntry
+	10, // 9: iam.IAMAssumedRole.session_tags:type_name -> iam.IAMAssumedRole.SessionTagsEntry
+	5,  // 10: iam.IAMAssumeRoleResponse.assumed_role:type_name -> iam.IAMAssumedRole
 	11, // [11:11] is the sub-list for method output_type
 	11, // [11:11] is the sub-list for method input_type
 	11, // [11:11] is the sub-list for extension type_name
@@ -760,28 +762,26 @@ var file_auth_v1_iam_simulation_proto_depIdxs = []int32{
 	0,  // [0:11] is the sub-list for field type_name
 }
 
-func init() { file_auth_v1_iam_simulation_proto_init() }
-func file_auth_v1_iam_simulation_proto_init() {
-	if File_auth_v1_iam_simulation_proto != nil {
+func init() { file_iam_v1_iam_simulation_proto_init() }
+func file_iam_v1_iam_simulation_proto_init() {
+	if File_iam_v1_iam_simulation_proto != nil {
 		return
 	}
-	file_auth_v1_auth_session_proto_init()
-	file_auth_v1_iam_policy_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_v1_iam_simulation_proto_rawDesc), len(file_auth_v1_iam_simulation_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_iam_v1_iam_simulation_proto_rawDesc), len(file_iam_v1_iam_simulation_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_auth_v1_iam_simulation_proto_goTypes,
-		DependencyIndexes: file_auth_v1_iam_simulation_proto_depIdxs,
-		MessageInfos:      file_auth_v1_iam_simulation_proto_msgTypes,
+		GoTypes:           file_iam_v1_iam_simulation_proto_goTypes,
+		DependencyIndexes: file_iam_v1_iam_simulation_proto_depIdxs,
+		MessageInfos:      file_iam_v1_iam_simulation_proto_msgTypes,
 	}.Build()
-	File_auth_v1_iam_simulation_proto = out.File
-	file_auth_v1_iam_simulation_proto_goTypes = nil
-	file_auth_v1_iam_simulation_proto_depIdxs = nil
+	File_iam_v1_iam_simulation_proto = out.File
+	file_iam_v1_iam_simulation_proto_goTypes = nil
+	file_iam_v1_iam_simulation_proto_depIdxs = nil
 }

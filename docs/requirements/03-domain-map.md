@@ -22,6 +22,17 @@ Manage authentication, sessions, store access, roles, permissions, and auditabil
 - technically strong for MVP
 - product copy still too technical
 
+### Direction
+
+IAM should use DDD with CQRS:
+
+- command model for tenant, organization, group, policy, membership, boundary, and invite mutations
+- query model for policy reads, permission evaluation, session checks, and management list/detail screens
+- command handlers emit commit-coupled events through outbox/CDC
+- read models and projections are rebuildable and must not own source-of-truth writes
+- platform IAM remains centralized and reusable beyond this backoffice product
+- gRPC clients should migrate toward `IAMCommandService` and `IAMQueryService`; existing REST clients can remain on `IAMService` until the gateway contract is split
+
 ## Domain 2. Store Workspace / Backoffice
 
 ### Purpose
@@ -42,6 +53,16 @@ Provide the operational portal for store owners and their teams.
 ### Gap
 
 This should become the main product surface for POD operations, but today it still reads too much like an admin console.
+
+### Direction
+
+Backoffice should use DDD inside one deployable service:
+
+- `store` owns store/workspace operations and store-scoped entry rules
+- `catalog` owns product setup and listing workflows
+- `routing` owns routed orders, partner recommendation, assignment, shipment, settlement, and activity feed
+- GraphQL is an inbound adapter only; business rules belong in context interactors
+- context repositories should stay behind output ports and must not be shared as cross-context shortcuts
 
 ## Domain 3. Tenant Data Isolation
 

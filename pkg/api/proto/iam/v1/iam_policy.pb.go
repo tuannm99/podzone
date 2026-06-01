@@ -2,11 +2,12 @@
 // versions:
 // 	protoc-gen-go v1.36.6
 // 	protoc        (unknown)
-// source: auth/v1/iam_policy.proto
+// source: iam/v1/iam_policy.proto
 
-package pbauthv1
+package pbiamv1
 
 import (
+	v1 "github.com/tuannm99/podzone/pkg/api/proto/common/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -35,7 +36,7 @@ type PlatformRoleMembership struct {
 
 func (x *PlatformRoleMembership) Reset() {
 	*x = PlatformRoleMembership{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[0]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -47,7 +48,7 @@ func (x *PlatformRoleMembership) String() string {
 func (*PlatformRoleMembership) ProtoMessage() {}
 
 func (x *PlatformRoleMembership) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[0]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -60,7 +61,7 @@ func (x *PlatformRoleMembership) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlatformRoleMembership.ProtoReflect.Descriptor instead.
 func (*PlatformRoleMembership) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{0}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *PlatformRoleMembership) GetUserId() uint64 {
@@ -105,166 +106,6 @@ func (x *PlatformRoleMembership) GetUpdatedAt() string {
 	return ""
 }
 
-type PolicyStatement struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	Id              uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	PolicyId        uint64                 `protobuf:"varint,2,opt,name=policy_id,json=policyId,proto3" json:"policy_id,omitempty"`
-	PolicyName      string                 `protobuf:"bytes,3,opt,name=policy_name,json=policyName,proto3" json:"policy_name,omitempty"`
-	Effect          string                 `protobuf:"bytes,4,opt,name=effect,proto3" json:"effect,omitempty"`
-	ActionPattern   string                 `protobuf:"bytes,5,opt,name=action_pattern,json=actionPattern,proto3" json:"action_pattern,omitempty"`
-	ResourcePattern string                 `protobuf:"bytes,6,opt,name=resource_pattern,json=resourcePattern,proto3" json:"resource_pattern,omitempty"`
-	Conditions      []*PolicyCondition     `protobuf:"bytes,7,rep,name=conditions,proto3" json:"conditions,omitempty"`
-	CreatedAt       string                 `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
-}
-
-func (x *PolicyStatement) Reset() {
-	*x = PolicyStatement{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PolicyStatement) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PolicyStatement) ProtoMessage() {}
-
-func (x *PolicyStatement) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PolicyStatement.ProtoReflect.Descriptor instead.
-func (*PolicyStatement) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *PolicyStatement) GetId() uint64 {
-	if x != nil {
-		return x.Id
-	}
-	return 0
-}
-
-func (x *PolicyStatement) GetPolicyId() uint64 {
-	if x != nil {
-		return x.PolicyId
-	}
-	return 0
-}
-
-func (x *PolicyStatement) GetPolicyName() string {
-	if x != nil {
-		return x.PolicyName
-	}
-	return ""
-}
-
-func (x *PolicyStatement) GetEffect() string {
-	if x != nil {
-		return x.Effect
-	}
-	return ""
-}
-
-func (x *PolicyStatement) GetActionPattern() string {
-	if x != nil {
-		return x.ActionPattern
-	}
-	return ""
-}
-
-func (x *PolicyStatement) GetResourcePattern() string {
-	if x != nil {
-		return x.ResourcePattern
-	}
-	return ""
-}
-
-func (x *PolicyStatement) GetConditions() []*PolicyCondition {
-	if x != nil {
-		return x.Conditions
-	}
-	return nil
-}
-
-func (x *PolicyStatement) GetCreatedAt() string {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return ""
-}
-
-type PolicyCondition struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Operator      string                 `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
-	Key           string                 `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
-	Value         string                 `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *PolicyCondition) Reset() {
-	*x = PolicyCondition{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PolicyCondition) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PolicyCondition) ProtoMessage() {}
-
-func (x *PolicyCondition) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PolicyCondition.ProtoReflect.Descriptor instead.
-func (*PolicyCondition) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *PolicyCondition) GetOperator() string {
-	if x != nil {
-		return x.Operator
-	}
-	return ""
-}
-
-func (x *PolicyCondition) GetKey() string {
-	if x != nil {
-		return x.Key
-	}
-	return ""
-}
-
-func (x *PolicyCondition) GetValue() string {
-	if x != nil {
-		return x.Value
-	}
-	return ""
-}
-
 type Policy struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Id             uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -281,7 +122,7 @@ type Policy struct {
 
 func (x *Policy) Reset() {
 	*x = Policy{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[3]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -293,7 +134,7 @@ func (x *Policy) String() string {
 func (*Policy) ProtoMessage() {}
 
 func (x *Policy) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[3]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -306,7 +147,7 @@ func (x *Policy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Policy.ProtoReflect.Descriptor instead.
 func (*Policy) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{3}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Policy) GetId() uint64 {
@@ -379,7 +220,7 @@ type PolicyVersion struct {
 
 func (x *PolicyVersion) Reset() {
 	*x = PolicyVersion{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[4]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -391,7 +232,7 @@ func (x *PolicyVersion) String() string {
 func (*PolicyVersion) ProtoMessage() {}
 
 func (x *PolicyVersion) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[4]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -404,7 +245,7 @@ func (x *PolicyVersion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyVersion.ProtoReflect.Descriptor instead.
 func (*PolicyVersion) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{4}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *PolicyVersion) GetId() uint64 {
@@ -466,7 +307,7 @@ type PolicyAttachment struct {
 
 func (x *PolicyAttachment) Reset() {
 	*x = PolicyAttachment{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[5]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -478,7 +319,7 @@ func (x *PolicyAttachment) String() string {
 func (*PolicyAttachment) ProtoMessage() {}
 
 func (x *PolicyAttachment) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[5]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -491,7 +332,7 @@ func (x *PolicyAttachment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyAttachment.ProtoReflect.Descriptor instead.
 func (*PolicyAttachment) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{5}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *PolicyAttachment) GetAttachmentType() string {
@@ -569,7 +410,7 @@ type ServiceControlPolicyAttachment struct {
 
 func (x *ServiceControlPolicyAttachment) Reset() {
 	*x = ServiceControlPolicyAttachment{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[6]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -581,7 +422,7 @@ func (x *ServiceControlPolicyAttachment) String() string {
 func (*ServiceControlPolicyAttachment) ProtoMessage() {}
 
 func (x *ServiceControlPolicyAttachment) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[6]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -594,7 +435,7 @@ func (x *ServiceControlPolicyAttachment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServiceControlPolicyAttachment.ProtoReflect.Descriptor instead.
 func (*ServiceControlPolicyAttachment) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{6}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ServiceControlPolicyAttachment) GetOrgId() string {
@@ -641,7 +482,7 @@ type RoleTrustStatement struct {
 
 func (x *RoleTrustStatement) Reset() {
 	*x = RoleTrustStatement{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[7]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -653,7 +494,7 @@ func (x *RoleTrustStatement) String() string {
 func (*RoleTrustStatement) ProtoMessage() {}
 
 func (x *RoleTrustStatement) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[7]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -666,7 +507,7 @@ func (x *RoleTrustStatement) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RoleTrustStatement.ProtoReflect.Descriptor instead.
 func (*RoleTrustStatement) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{7}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *RoleTrustStatement) GetId() uint64 {
@@ -741,7 +582,7 @@ type Group struct {
 
 func (x *Group) Reset() {
 	*x = Group{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[8]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -753,7 +594,7 @@ func (x *Group) String() string {
 func (*Group) ProtoMessage() {}
 
 func (x *Group) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[8]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -766,7 +607,7 @@ func (x *Group) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Group.ProtoReflect.Descriptor instead.
 func (*Group) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{8}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Group) GetId() uint64 {
@@ -830,7 +671,7 @@ type GroupInlinePolicy struct {
 	GroupId       uint64                 `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	Statements    []*PolicyStatement     `protobuf:"bytes,4,rep,name=statements,proto3" json:"statements,omitempty"`
+	Statements    []*v1.PolicyStatement  `protobuf:"bytes,4,rep,name=statements,proto3" json:"statements,omitempty"`
 	CreatedAt     string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     string                 `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -839,7 +680,7 @@ type GroupInlinePolicy struct {
 
 func (x *GroupInlinePolicy) Reset() {
 	*x = GroupInlinePolicy{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[9]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -851,7 +692,7 @@ func (x *GroupInlinePolicy) String() string {
 func (*GroupInlinePolicy) ProtoMessage() {}
 
 func (x *GroupInlinePolicy) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[9]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -864,7 +705,7 @@ func (x *GroupInlinePolicy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupInlinePolicy.ProtoReflect.Descriptor instead.
 func (*GroupInlinePolicy) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{9}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GroupInlinePolicy) GetGroupId() uint64 {
@@ -888,7 +729,7 @@ func (x *GroupInlinePolicy) GetDescription() string {
 	return ""
 }
 
-func (x *GroupInlinePolicy) GetStatements() []*PolicyStatement {
+func (x *GroupInlinePolicy) GetStatements() []*v1.PolicyStatement {
 	if x != nil {
 		return x.Statements
 	}
@@ -916,7 +757,7 @@ type UserInlinePolicy struct {
 	UserId        uint64                 `protobuf:"varint,3,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
 	Description   string                 `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
-	Statements    []*PolicyStatement     `protobuf:"bytes,6,rep,name=statements,proto3" json:"statements,omitempty"`
+	Statements    []*v1.PolicyStatement  `protobuf:"bytes,6,rep,name=statements,proto3" json:"statements,omitempty"`
 	CreatedAt     string                 `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     string                 `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -925,7 +766,7 @@ type UserInlinePolicy struct {
 
 func (x *UserInlinePolicy) Reset() {
 	*x = UserInlinePolicy{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[10]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -937,7 +778,7 @@ func (x *UserInlinePolicy) String() string {
 func (*UserInlinePolicy) ProtoMessage() {}
 
 func (x *UserInlinePolicy) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[10]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -950,7 +791,7 @@ func (x *UserInlinePolicy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserInlinePolicy.ProtoReflect.Descriptor instead.
 func (*UserInlinePolicy) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{10}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *UserInlinePolicy) GetScope() string {
@@ -988,7 +829,7 @@ func (x *UserInlinePolicy) GetDescription() string {
 	return ""
 }
 
-func (x *UserInlinePolicy) GetStatements() []*PolicyStatement {
+func (x *UserInlinePolicy) GetStatements() []*v1.PolicyStatement {
 	if x != nil {
 		return x.Statements
 	}
@@ -1023,7 +864,7 @@ type PermissionBoundary struct {
 
 func (x *PermissionBoundary) Reset() {
 	*x = PermissionBoundary{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[11]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1035,7 +876,7 @@ func (x *PermissionBoundary) String() string {
 func (*PermissionBoundary) ProtoMessage() {}
 
 func (x *PermissionBoundary) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[11]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1048,7 +889,7 @@ func (x *PermissionBoundary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PermissionBoundary.ProtoReflect.Descriptor instead.
 func (*PermissionBoundary) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{11}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *PermissionBoundary) GetScope() string {
@@ -1106,7 +947,7 @@ type RolePermissionBoundary struct {
 
 func (x *RolePermissionBoundary) Reset() {
 	*x = RolePermissionBoundary{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[12]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1118,7 +959,7 @@ func (x *RolePermissionBoundary) String() string {
 func (*RolePermissionBoundary) ProtoMessage() {}
 
 func (x *RolePermissionBoundary) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[12]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1131,7 +972,7 @@ func (x *RolePermissionBoundary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RolePermissionBoundary.ProtoReflect.Descriptor instead.
 func (*RolePermissionBoundary) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{12}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *RolePermissionBoundary) GetRoleId() uint64 {
@@ -1179,7 +1020,7 @@ type AttachServiceControlPolicyRequest struct {
 
 func (x *AttachServiceControlPolicyRequest) Reset() {
 	*x = AttachServiceControlPolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[13]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1191,7 +1032,7 @@ func (x *AttachServiceControlPolicyRequest) String() string {
 func (*AttachServiceControlPolicyRequest) ProtoMessage() {}
 
 func (x *AttachServiceControlPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[13]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1204,7 +1045,7 @@ func (x *AttachServiceControlPolicyRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use AttachServiceControlPolicyRequest.ProtoReflect.Descriptor instead.
 func (*AttachServiceControlPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{13}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *AttachServiceControlPolicyRequest) GetOrgId() string {
@@ -1229,7 +1070,7 @@ type AttachServiceControlPolicyResponse struct {
 
 func (x *AttachServiceControlPolicyResponse) Reset() {
 	*x = AttachServiceControlPolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[14]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1241,7 +1082,7 @@ func (x *AttachServiceControlPolicyResponse) String() string {
 func (*AttachServiceControlPolicyResponse) ProtoMessage() {}
 
 func (x *AttachServiceControlPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[14]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1254,7 +1095,7 @@ func (x *AttachServiceControlPolicyResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use AttachServiceControlPolicyResponse.ProtoReflect.Descriptor instead.
 func (*AttachServiceControlPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{14}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{12}
 }
 
 type DetachServiceControlPolicyRequest struct {
@@ -1267,7 +1108,7 @@ type DetachServiceControlPolicyRequest struct {
 
 func (x *DetachServiceControlPolicyRequest) Reset() {
 	*x = DetachServiceControlPolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[15]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1279,7 +1120,7 @@ func (x *DetachServiceControlPolicyRequest) String() string {
 func (*DetachServiceControlPolicyRequest) ProtoMessage() {}
 
 func (x *DetachServiceControlPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[15]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1292,7 +1133,7 @@ func (x *DetachServiceControlPolicyRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use DetachServiceControlPolicyRequest.ProtoReflect.Descriptor instead.
 func (*DetachServiceControlPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{15}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *DetachServiceControlPolicyRequest) GetOrgId() string {
@@ -1317,7 +1158,7 @@ type DetachServiceControlPolicyResponse struct {
 
 func (x *DetachServiceControlPolicyResponse) Reset() {
 	*x = DetachServiceControlPolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[16]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1329,7 +1170,7 @@ func (x *DetachServiceControlPolicyResponse) String() string {
 func (*DetachServiceControlPolicyResponse) ProtoMessage() {}
 
 func (x *DetachServiceControlPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[16]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1342,7 +1183,7 @@ func (x *DetachServiceControlPolicyResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use DetachServiceControlPolicyResponse.ProtoReflect.Descriptor instead.
 func (*DetachServiceControlPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{16}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{14}
 }
 
 type ListServiceControlPoliciesRequest struct {
@@ -1354,7 +1195,7 @@ type ListServiceControlPoliciesRequest struct {
 
 func (x *ListServiceControlPoliciesRequest) Reset() {
 	*x = ListServiceControlPoliciesRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[17]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1366,7 +1207,7 @@ func (x *ListServiceControlPoliciesRequest) String() string {
 func (*ListServiceControlPoliciesRequest) ProtoMessage() {}
 
 func (x *ListServiceControlPoliciesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[17]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1379,7 +1220,7 @@ func (x *ListServiceControlPoliciesRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListServiceControlPoliciesRequest.ProtoReflect.Descriptor instead.
 func (*ListServiceControlPoliciesRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{17}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ListServiceControlPoliciesRequest) GetOrgId() string {
@@ -1398,7 +1239,7 @@ type ListServiceControlPoliciesResponse struct {
 
 func (x *ListServiceControlPoliciesResponse) Reset() {
 	*x = ListServiceControlPoliciesResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[18]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1410,7 +1251,7 @@ func (x *ListServiceControlPoliciesResponse) String() string {
 func (*ListServiceControlPoliciesResponse) ProtoMessage() {}
 
 func (x *ListServiceControlPoliciesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[18]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1423,7 +1264,7 @@ func (x *ListServiceControlPoliciesResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use ListServiceControlPoliciesResponse.ProtoReflect.Descriptor instead.
 func (*ListServiceControlPoliciesResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{18}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ListServiceControlPoliciesResponse) GetPolicies() []*Policy {
@@ -1443,7 +1284,7 @@ type ListPlatformRolesRequest struct {
 
 func (x *ListPlatformRolesRequest) Reset() {
 	*x = ListPlatformRolesRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[19]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1455,7 +1296,7 @@ func (x *ListPlatformRolesRequest) String() string {
 func (*ListPlatformRolesRequest) ProtoMessage() {}
 
 func (x *ListPlatformRolesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[19]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1468,7 +1309,7 @@ func (x *ListPlatformRolesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPlatformRolesRequest.ProtoReflect.Descriptor instead.
 func (*ListPlatformRolesRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{19}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ListPlatformRolesRequest) GetActorUserId() uint64 {
@@ -1494,7 +1335,7 @@ type ListPlatformRolesResponse struct {
 
 func (x *ListPlatformRolesResponse) Reset() {
 	*x = ListPlatformRolesResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[20]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1506,7 +1347,7 @@ func (x *ListPlatformRolesResponse) String() string {
 func (*ListPlatformRolesResponse) ProtoMessage() {}
 
 func (x *ListPlatformRolesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[20]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1519,7 +1360,7 @@ func (x *ListPlatformRolesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPlatformRolesResponse.ProtoReflect.Descriptor instead.
 func (*ListPlatformRolesResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{20}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ListPlatformRolesResponse) GetMemberships() []*PlatformRoleMembership {
@@ -1540,7 +1381,7 @@ type AddPlatformRoleRequest struct {
 
 func (x *AddPlatformRoleRequest) Reset() {
 	*x = AddPlatformRoleRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[21]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1552,7 +1393,7 @@ func (x *AddPlatformRoleRequest) String() string {
 func (*AddPlatformRoleRequest) ProtoMessage() {}
 
 func (x *AddPlatformRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[21]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1565,7 +1406,7 @@ func (x *AddPlatformRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddPlatformRoleRequest.ProtoReflect.Descriptor instead.
 func (*AddPlatformRoleRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{21}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *AddPlatformRoleRequest) GetActorUserId() uint64 {
@@ -1597,7 +1438,7 @@ type AddPlatformRoleResponse struct {
 
 func (x *AddPlatformRoleResponse) Reset() {
 	*x = AddPlatformRoleResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[22]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1609,7 +1450,7 @@ func (x *AddPlatformRoleResponse) String() string {
 func (*AddPlatformRoleResponse) ProtoMessage() {}
 
 func (x *AddPlatformRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[22]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1622,7 +1463,7 @@ func (x *AddPlatformRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddPlatformRoleResponse.ProtoReflect.Descriptor instead.
 func (*AddPlatformRoleResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{22}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{20}
 }
 
 type RemovePlatformRoleRequest struct {
@@ -1636,7 +1477,7 @@ type RemovePlatformRoleRequest struct {
 
 func (x *RemovePlatformRoleRequest) Reset() {
 	*x = RemovePlatformRoleRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[23]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1648,7 +1489,7 @@ func (x *RemovePlatformRoleRequest) String() string {
 func (*RemovePlatformRoleRequest) ProtoMessage() {}
 
 func (x *RemovePlatformRoleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[23]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1661,7 +1502,7 @@ func (x *RemovePlatformRoleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemovePlatformRoleRequest.ProtoReflect.Descriptor instead.
 func (*RemovePlatformRoleRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{23}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *RemovePlatformRoleRequest) GetActorUserId() uint64 {
@@ -1693,7 +1534,7 @@ type RemovePlatformRoleResponse struct {
 
 func (x *RemovePlatformRoleResponse) Reset() {
 	*x = RemovePlatformRoleResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[24]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1705,7 +1546,7 @@ func (x *RemovePlatformRoleResponse) String() string {
 func (*RemovePlatformRoleResponse) ProtoMessage() {}
 
 func (x *RemovePlatformRoleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[24]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1718,7 +1559,7 @@ func (x *RemovePlatformRoleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemovePlatformRoleResponse.ProtoReflect.Descriptor instead.
 func (*RemovePlatformRoleResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{24}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{22}
 }
 
 type CreatePolicyRequest struct {
@@ -1726,14 +1567,14 @@ type CreatePolicyRequest struct {
 	Scope         string                 `protobuf:"bytes,1,opt,name=scope,proto3" json:"scope,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	Statements    []*PolicyStatement     `protobuf:"bytes,4,rep,name=statements,proto3" json:"statements,omitempty"`
+	Statements    []*v1.PolicyStatement  `protobuf:"bytes,4,rep,name=statements,proto3" json:"statements,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreatePolicyRequest) Reset() {
 	*x = CreatePolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[25]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1745,7 +1586,7 @@ func (x *CreatePolicyRequest) String() string {
 func (*CreatePolicyRequest) ProtoMessage() {}
 
 func (x *CreatePolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[25]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1758,7 +1599,7 @@ func (x *CreatePolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePolicyRequest.ProtoReflect.Descriptor instead.
 func (*CreatePolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{25}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *CreatePolicyRequest) GetScope() string {
@@ -1782,7 +1623,7 @@ func (x *CreatePolicyRequest) GetDescription() string {
 	return ""
 }
 
-func (x *CreatePolicyRequest) GetStatements() []*PolicyStatement {
+func (x *CreatePolicyRequest) GetStatements() []*v1.PolicyStatement {
 	if x != nil {
 		return x.Statements
 	}
@@ -1792,14 +1633,14 @@ func (x *CreatePolicyRequest) GetStatements() []*PolicyStatement {
 type CreatePolicyResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Policy        *Policy                `protobuf:"bytes,1,opt,name=policy,proto3" json:"policy,omitempty"`
-	Statements    []*PolicyStatement     `protobuf:"bytes,2,rep,name=statements,proto3" json:"statements,omitempty"`
+	Statements    []*v1.PolicyStatement  `protobuf:"bytes,2,rep,name=statements,proto3" json:"statements,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreatePolicyResponse) Reset() {
 	*x = CreatePolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[26]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1811,7 +1652,7 @@ func (x *CreatePolicyResponse) String() string {
 func (*CreatePolicyResponse) ProtoMessage() {}
 
 func (x *CreatePolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[26]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1824,7 +1665,7 @@ func (x *CreatePolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePolicyResponse.ProtoReflect.Descriptor instead.
 func (*CreatePolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{26}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *CreatePolicyResponse) GetPolicy() *Policy {
@@ -1834,7 +1675,7 @@ func (x *CreatePolicyResponse) GetPolicy() *Policy {
 	return nil
 }
 
-func (x *CreatePolicyResponse) GetStatements() []*PolicyStatement {
+func (x *CreatePolicyResponse) GetStatements() []*v1.PolicyStatement {
 	if x != nil {
 		return x.Statements
 	}
@@ -1844,7 +1685,7 @@ func (x *CreatePolicyResponse) GetStatements() []*PolicyStatement {
 type CreatePolicyVersionRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Statements    []*PolicyStatement     `protobuf:"bytes,2,rep,name=statements,proto3" json:"statements,omitempty"`
+	Statements    []*v1.PolicyStatement  `protobuf:"bytes,2,rep,name=statements,proto3" json:"statements,omitempty"`
 	SetAsDefault  bool                   `protobuf:"varint,3,opt,name=set_as_default,json=setAsDefault,proto3" json:"set_as_default,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1852,7 +1693,7 @@ type CreatePolicyVersionRequest struct {
 
 func (x *CreatePolicyVersionRequest) Reset() {
 	*x = CreatePolicyVersionRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[27]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1864,7 +1705,7 @@ func (x *CreatePolicyVersionRequest) String() string {
 func (*CreatePolicyVersionRequest) ProtoMessage() {}
 
 func (x *CreatePolicyVersionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[27]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1877,7 +1718,7 @@ func (x *CreatePolicyVersionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePolicyVersionRequest.ProtoReflect.Descriptor instead.
 func (*CreatePolicyVersionRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{27}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *CreatePolicyVersionRequest) GetName() string {
@@ -1887,7 +1728,7 @@ func (x *CreatePolicyVersionRequest) GetName() string {
 	return ""
 }
 
-func (x *CreatePolicyVersionRequest) GetStatements() []*PolicyStatement {
+func (x *CreatePolicyVersionRequest) GetStatements() []*v1.PolicyStatement {
 	if x != nil {
 		return x.Statements
 	}
@@ -1904,14 +1745,14 @@ func (x *CreatePolicyVersionRequest) GetSetAsDefault() bool {
 type CreatePolicyVersionResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	PolicyVersion *PolicyVersion         `protobuf:"bytes,1,opt,name=policy_version,json=policyVersion,proto3" json:"policy_version,omitempty"`
-	Statements    []*PolicyStatement     `protobuf:"bytes,2,rep,name=statements,proto3" json:"statements,omitempty"`
+	Statements    []*v1.PolicyStatement  `protobuf:"bytes,2,rep,name=statements,proto3" json:"statements,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreatePolicyVersionResponse) Reset() {
 	*x = CreatePolicyVersionResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[28]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1923,7 +1764,7 @@ func (x *CreatePolicyVersionResponse) String() string {
 func (*CreatePolicyVersionResponse) ProtoMessage() {}
 
 func (x *CreatePolicyVersionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[28]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1936,7 +1777,7 @@ func (x *CreatePolicyVersionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePolicyVersionResponse.ProtoReflect.Descriptor instead.
 func (*CreatePolicyVersionResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{28}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *CreatePolicyVersionResponse) GetPolicyVersion() *PolicyVersion {
@@ -1946,7 +1787,7 @@ func (x *CreatePolicyVersionResponse) GetPolicyVersion() *PolicyVersion {
 	return nil
 }
 
-func (x *CreatePolicyVersionResponse) GetStatements() []*PolicyStatement {
+func (x *CreatePolicyVersionResponse) GetStatements() []*v1.PolicyStatement {
 	if x != nil {
 		return x.Statements
 	}
@@ -1962,7 +1803,7 @@ type GetPolicyRequest struct {
 
 func (x *GetPolicyRequest) Reset() {
 	*x = GetPolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[29]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1974,7 +1815,7 @@ func (x *GetPolicyRequest) String() string {
 func (*GetPolicyRequest) ProtoMessage() {}
 
 func (x *GetPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[29]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1987,7 +1828,7 @@ func (x *GetPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPolicyRequest.ProtoReflect.Descriptor instead.
 func (*GetPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{29}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *GetPolicyRequest) GetName() string {
@@ -2000,14 +1841,14 @@ func (x *GetPolicyRequest) GetName() string {
 type GetPolicyResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Policy        *Policy                `protobuf:"bytes,1,opt,name=policy,proto3" json:"policy,omitempty"`
-	Statements    []*PolicyStatement     `protobuf:"bytes,2,rep,name=statements,proto3" json:"statements,omitempty"`
+	Statements    []*v1.PolicyStatement  `protobuf:"bytes,2,rep,name=statements,proto3" json:"statements,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetPolicyResponse) Reset() {
 	*x = GetPolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[30]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2019,7 +1860,7 @@ func (x *GetPolicyResponse) String() string {
 func (*GetPolicyResponse) ProtoMessage() {}
 
 func (x *GetPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[30]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2032,7 +1873,7 @@ func (x *GetPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPolicyResponse.ProtoReflect.Descriptor instead.
 func (*GetPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{30}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GetPolicyResponse) GetPolicy() *Policy {
@@ -2042,7 +1883,7 @@ func (x *GetPolicyResponse) GetPolicy() *Policy {
 	return nil
 }
 
-func (x *GetPolicyResponse) GetStatements() []*PolicyStatement {
+func (x *GetPolicyResponse) GetStatements() []*v1.PolicyStatement {
 	if x != nil {
 		return x.Statements
 	}
@@ -2058,7 +1899,7 @@ type ListPolicyVersionsRequest struct {
 
 func (x *ListPolicyVersionsRequest) Reset() {
 	*x = ListPolicyVersionsRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[31]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2070,7 +1911,7 @@ func (x *ListPolicyVersionsRequest) String() string {
 func (*ListPolicyVersionsRequest) ProtoMessage() {}
 
 func (x *ListPolicyVersionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[31]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2083,7 +1924,7 @@ func (x *ListPolicyVersionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPolicyVersionsRequest.ProtoReflect.Descriptor instead.
 func (*ListPolicyVersionsRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{31}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *ListPolicyVersionsRequest) GetName() string {
@@ -2102,7 +1943,7 @@ type ListPolicyVersionsResponse struct {
 
 func (x *ListPolicyVersionsResponse) Reset() {
 	*x = ListPolicyVersionsResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[32]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2114,7 +1955,7 @@ func (x *ListPolicyVersionsResponse) String() string {
 func (*ListPolicyVersionsResponse) ProtoMessage() {}
 
 func (x *ListPolicyVersionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[32]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2127,7 +1968,7 @@ func (x *ListPolicyVersionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPolicyVersionsResponse.ProtoReflect.Descriptor instead.
 func (*ListPolicyVersionsResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{32}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ListPolicyVersionsResponse) GetVersions() []*PolicyVersion {
@@ -2147,7 +1988,7 @@ type SetDefaultPolicyVersionRequest struct {
 
 func (x *SetDefaultPolicyVersionRequest) Reset() {
 	*x = SetDefaultPolicyVersionRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[33]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2159,7 +2000,7 @@ func (x *SetDefaultPolicyVersionRequest) String() string {
 func (*SetDefaultPolicyVersionRequest) ProtoMessage() {}
 
 func (x *SetDefaultPolicyVersionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[33]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2172,7 +2013,7 @@ func (x *SetDefaultPolicyVersionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetDefaultPolicyVersionRequest.ProtoReflect.Descriptor instead.
 func (*SetDefaultPolicyVersionRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{33}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *SetDefaultPolicyVersionRequest) GetName() string {
@@ -2197,7 +2038,7 @@ type SetDefaultPolicyVersionResponse struct {
 
 func (x *SetDefaultPolicyVersionResponse) Reset() {
 	*x = SetDefaultPolicyVersionResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[34]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2209,7 +2050,7 @@ func (x *SetDefaultPolicyVersionResponse) String() string {
 func (*SetDefaultPolicyVersionResponse) ProtoMessage() {}
 
 func (x *SetDefaultPolicyVersionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[34]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2222,7 +2063,7 @@ func (x *SetDefaultPolicyVersionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetDefaultPolicyVersionResponse.ProtoReflect.Descriptor instead.
 func (*SetDefaultPolicyVersionResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{34}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{32}
 }
 
 type DeletePolicyVersionRequest struct {
@@ -2235,7 +2076,7 @@ type DeletePolicyVersionRequest struct {
 
 func (x *DeletePolicyVersionRequest) Reset() {
 	*x = DeletePolicyVersionRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[35]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2247,7 +2088,7 @@ func (x *DeletePolicyVersionRequest) String() string {
 func (*DeletePolicyVersionRequest) ProtoMessage() {}
 
 func (x *DeletePolicyVersionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[35]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2260,7 +2101,7 @@ func (x *DeletePolicyVersionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeletePolicyVersionRequest.ProtoReflect.Descriptor instead.
 func (*DeletePolicyVersionRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{35}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *DeletePolicyVersionRequest) GetName() string {
@@ -2285,7 +2126,7 @@ type DeletePolicyVersionResponse struct {
 
 func (x *DeletePolicyVersionResponse) Reset() {
 	*x = DeletePolicyVersionResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[36]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2297,7 +2138,7 @@ func (x *DeletePolicyVersionResponse) String() string {
 func (*DeletePolicyVersionResponse) ProtoMessage() {}
 
 func (x *DeletePolicyVersionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[36]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2310,7 +2151,7 @@ func (x *DeletePolicyVersionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeletePolicyVersionResponse.ProtoReflect.Descriptor instead.
 func (*DeletePolicyVersionResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{36}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{34}
 }
 
 type ListPoliciesRequest struct {
@@ -2322,7 +2163,7 @@ type ListPoliciesRequest struct {
 
 func (x *ListPoliciesRequest) Reset() {
 	*x = ListPoliciesRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[37]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2334,7 +2175,7 @@ func (x *ListPoliciesRequest) String() string {
 func (*ListPoliciesRequest) ProtoMessage() {}
 
 func (x *ListPoliciesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[37]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2347,7 +2188,7 @@ func (x *ListPoliciesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPoliciesRequest.ProtoReflect.Descriptor instead.
 func (*ListPoliciesRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{37}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *ListPoliciesRequest) GetScope() string {
@@ -2366,7 +2207,7 @@ type ListPoliciesResponse struct {
 
 func (x *ListPoliciesResponse) Reset() {
 	*x = ListPoliciesResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[38]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2378,7 +2219,7 @@ func (x *ListPoliciesResponse) String() string {
 func (*ListPoliciesResponse) ProtoMessage() {}
 
 func (x *ListPoliciesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[38]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2391,7 +2232,7 @@ func (x *ListPoliciesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPoliciesResponse.ProtoReflect.Descriptor instead.
 func (*ListPoliciesResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{38}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *ListPoliciesResponse) GetPolicies() []*Policy {
@@ -2410,7 +2251,7 @@ type ListPolicyAttachmentsRequest struct {
 
 func (x *ListPolicyAttachmentsRequest) Reset() {
 	*x = ListPolicyAttachmentsRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[39]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2422,7 +2263,7 @@ func (x *ListPolicyAttachmentsRequest) String() string {
 func (*ListPolicyAttachmentsRequest) ProtoMessage() {}
 
 func (x *ListPolicyAttachmentsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[39]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2435,7 +2276,7 @@ func (x *ListPolicyAttachmentsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPolicyAttachmentsRequest.ProtoReflect.Descriptor instead.
 func (*ListPolicyAttachmentsRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{39}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *ListPolicyAttachmentsRequest) GetName() string {
@@ -2454,7 +2295,7 @@ type ListPolicyAttachmentsResponse struct {
 
 func (x *ListPolicyAttachmentsResponse) Reset() {
 	*x = ListPolicyAttachmentsResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[40]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2466,7 +2307,7 @@ func (x *ListPolicyAttachmentsResponse) String() string {
 func (*ListPolicyAttachmentsResponse) ProtoMessage() {}
 
 func (x *ListPolicyAttachmentsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[40]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2479,7 +2320,7 @@ func (x *ListPolicyAttachmentsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPolicyAttachmentsResponse.ProtoReflect.Descriptor instead.
 func (*ListPolicyAttachmentsResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{40}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *ListPolicyAttachmentsResponse) GetAttachments() []*PolicyAttachment {
@@ -2498,7 +2339,7 @@ type DeletePolicyRequest struct {
 
 func (x *DeletePolicyRequest) Reset() {
 	*x = DeletePolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[41]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2510,7 +2351,7 @@ func (x *DeletePolicyRequest) String() string {
 func (*DeletePolicyRequest) ProtoMessage() {}
 
 func (x *DeletePolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[41]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2523,7 +2364,7 @@ func (x *DeletePolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeletePolicyRequest.ProtoReflect.Descriptor instead.
 func (*DeletePolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{41}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *DeletePolicyRequest) GetName() string {
@@ -2541,7 +2382,7 @@ type DeletePolicyResponse struct {
 
 func (x *DeletePolicyResponse) Reset() {
 	*x = DeletePolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[42]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2553,7 +2394,7 @@ func (x *DeletePolicyResponse) String() string {
 func (*DeletePolicyResponse) ProtoMessage() {}
 
 func (x *DeletePolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[42]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2566,7 +2407,7 @@ func (x *DeletePolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeletePolicyResponse.ProtoReflect.Descriptor instead.
 func (*DeletePolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{42}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{40}
 }
 
 type PutRoleTrustPolicyRequest struct {
@@ -2579,7 +2420,7 @@ type PutRoleTrustPolicyRequest struct {
 
 func (x *PutRoleTrustPolicyRequest) Reset() {
 	*x = PutRoleTrustPolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[43]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2591,7 +2432,7 @@ func (x *PutRoleTrustPolicyRequest) String() string {
 func (*PutRoleTrustPolicyRequest) ProtoMessage() {}
 
 func (x *PutRoleTrustPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[43]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2604,7 +2445,7 @@ func (x *PutRoleTrustPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PutRoleTrustPolicyRequest.ProtoReflect.Descriptor instead.
 func (*PutRoleTrustPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{43}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *PutRoleTrustPolicyRequest) GetRoleName() string {
@@ -2629,7 +2470,7 @@ type PutRoleTrustPolicyResponse struct {
 
 func (x *PutRoleTrustPolicyResponse) Reset() {
 	*x = PutRoleTrustPolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[44]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2641,7 +2482,7 @@ func (x *PutRoleTrustPolicyResponse) String() string {
 func (*PutRoleTrustPolicyResponse) ProtoMessage() {}
 
 func (x *PutRoleTrustPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[44]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2654,7 +2495,7 @@ func (x *PutRoleTrustPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PutRoleTrustPolicyResponse.ProtoReflect.Descriptor instead.
 func (*PutRoleTrustPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{44}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{42}
 }
 
 type GetRoleTrustPolicyRequest struct {
@@ -2666,7 +2507,7 @@ type GetRoleTrustPolicyRequest struct {
 
 func (x *GetRoleTrustPolicyRequest) Reset() {
 	*x = GetRoleTrustPolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[45]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2678,7 +2519,7 @@ func (x *GetRoleTrustPolicyRequest) String() string {
 func (*GetRoleTrustPolicyRequest) ProtoMessage() {}
 
 func (x *GetRoleTrustPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[45]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2691,7 +2532,7 @@ func (x *GetRoleTrustPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRoleTrustPolicyRequest.ProtoReflect.Descriptor instead.
 func (*GetRoleTrustPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{45}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *GetRoleTrustPolicyRequest) GetRoleName() string {
@@ -2710,7 +2551,7 @@ type GetRoleTrustPolicyResponse struct {
 
 func (x *GetRoleTrustPolicyResponse) Reset() {
 	*x = GetRoleTrustPolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[46]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2722,7 +2563,7 @@ func (x *GetRoleTrustPolicyResponse) String() string {
 func (*GetRoleTrustPolicyResponse) ProtoMessage() {}
 
 func (x *GetRoleTrustPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[46]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2735,7 +2576,7 @@ func (x *GetRoleTrustPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRoleTrustPolicyResponse.ProtoReflect.Descriptor instead.
 func (*GetRoleTrustPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{46}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *GetRoleTrustPolicyResponse) GetStatements() []*RoleTrustStatement {
@@ -2754,7 +2595,7 @@ type DeleteRoleTrustPolicyRequest struct {
 
 func (x *DeleteRoleTrustPolicyRequest) Reset() {
 	*x = DeleteRoleTrustPolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[47]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2766,7 +2607,7 @@ func (x *DeleteRoleTrustPolicyRequest) String() string {
 func (*DeleteRoleTrustPolicyRequest) ProtoMessage() {}
 
 func (x *DeleteRoleTrustPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[47]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2779,7 +2620,7 @@ func (x *DeleteRoleTrustPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRoleTrustPolicyRequest.ProtoReflect.Descriptor instead.
 func (*DeleteRoleTrustPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{47}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *DeleteRoleTrustPolicyRequest) GetRoleName() string {
@@ -2797,7 +2638,7 @@ type DeleteRoleTrustPolicyResponse struct {
 
 func (x *DeleteRoleTrustPolicyResponse) Reset() {
 	*x = DeleteRoleTrustPolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[48]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2809,7 +2650,7 @@ func (x *DeleteRoleTrustPolicyResponse) String() string {
 func (*DeleteRoleTrustPolicyResponse) ProtoMessage() {}
 
 func (x *DeleteRoleTrustPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[48]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2822,7 +2663,7 @@ func (x *DeleteRoleTrustPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRoleTrustPolicyResponse.ProtoReflect.Descriptor instead.
 func (*DeleteRoleTrustPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{48}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{46}
 }
 
 type CreateGroupRequest struct {
@@ -2837,7 +2678,7 @@ type CreateGroupRequest struct {
 
 func (x *CreateGroupRequest) Reset() {
 	*x = CreateGroupRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[49]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2849,7 +2690,7 @@ func (x *CreateGroupRequest) String() string {
 func (*CreateGroupRequest) ProtoMessage() {}
 
 func (x *CreateGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[49]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2862,7 +2703,7 @@ func (x *CreateGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateGroupRequest.ProtoReflect.Descriptor instead.
 func (*CreateGroupRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{49}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *CreateGroupRequest) GetScope() string {
@@ -2902,7 +2743,7 @@ type CreateGroupResponse struct {
 
 func (x *CreateGroupResponse) Reset() {
 	*x = CreateGroupResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[50]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2914,7 +2755,7 @@ func (x *CreateGroupResponse) String() string {
 func (*CreateGroupResponse) ProtoMessage() {}
 
 func (x *CreateGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[50]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2927,7 +2768,7 @@ func (x *CreateGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateGroupResponse.ProtoReflect.Descriptor instead.
 func (*CreateGroupResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{50}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *CreateGroupResponse) GetGroup() *Group {
@@ -2947,7 +2788,7 @@ type ListGroupsRequest struct {
 
 func (x *ListGroupsRequest) Reset() {
 	*x = ListGroupsRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[51]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2959,7 +2800,7 @@ func (x *ListGroupsRequest) String() string {
 func (*ListGroupsRequest) ProtoMessage() {}
 
 func (x *ListGroupsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[51]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2972,7 +2813,7 @@ func (x *ListGroupsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupsRequest.ProtoReflect.Descriptor instead.
 func (*ListGroupsRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{51}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *ListGroupsRequest) GetScope() string {
@@ -2998,7 +2839,7 @@ type ListGroupsResponse struct {
 
 func (x *ListGroupsResponse) Reset() {
 	*x = ListGroupsResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[52]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3010,7 +2851,7 @@ func (x *ListGroupsResponse) String() string {
 func (*ListGroupsResponse) ProtoMessage() {}
 
 func (x *ListGroupsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[52]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3023,7 +2864,7 @@ func (x *ListGroupsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupsResponse.ProtoReflect.Descriptor instead.
 func (*ListGroupsResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{52}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *ListGroupsResponse) GetGroups() []*Group {
@@ -3042,7 +2883,7 @@ type DeleteGroupRequest struct {
 
 func (x *DeleteGroupRequest) Reset() {
 	*x = DeleteGroupRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[53]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3054,7 +2895,7 @@ func (x *DeleteGroupRequest) String() string {
 func (*DeleteGroupRequest) ProtoMessage() {}
 
 func (x *DeleteGroupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[53]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3067,7 +2908,7 @@ func (x *DeleteGroupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteGroupRequest.ProtoReflect.Descriptor instead.
 func (*DeleteGroupRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{53}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *DeleteGroupRequest) GetGroupId() uint64 {
@@ -3085,7 +2926,7 @@ type DeleteGroupResponse struct {
 
 func (x *DeleteGroupResponse) Reset() {
 	*x = DeleteGroupResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[54]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3097,7 +2938,7 @@ func (x *DeleteGroupResponse) String() string {
 func (*DeleteGroupResponse) ProtoMessage() {}
 
 func (x *DeleteGroupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[54]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3110,7 +2951,7 @@ func (x *DeleteGroupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteGroupResponse.ProtoReflect.Descriptor instead.
 func (*DeleteGroupResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{54}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{52}
 }
 
 type AddGroupMemberRequest struct {
@@ -3123,7 +2964,7 @@ type AddGroupMemberRequest struct {
 
 func (x *AddGroupMemberRequest) Reset() {
 	*x = AddGroupMemberRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[55]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3135,7 +2976,7 @@ func (x *AddGroupMemberRequest) String() string {
 func (*AddGroupMemberRequest) ProtoMessage() {}
 
 func (x *AddGroupMemberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[55]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3148,7 +2989,7 @@ func (x *AddGroupMemberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddGroupMemberRequest.ProtoReflect.Descriptor instead.
 func (*AddGroupMemberRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{55}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *AddGroupMemberRequest) GetGroupId() uint64 {
@@ -3173,7 +3014,7 @@ type AddGroupMemberResponse struct {
 
 func (x *AddGroupMemberResponse) Reset() {
 	*x = AddGroupMemberResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[56]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3185,7 +3026,7 @@ func (x *AddGroupMemberResponse) String() string {
 func (*AddGroupMemberResponse) ProtoMessage() {}
 
 func (x *AddGroupMemberResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[56]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3198,7 +3039,7 @@ func (x *AddGroupMemberResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddGroupMemberResponse.ProtoReflect.Descriptor instead.
 func (*AddGroupMemberResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{56}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{54}
 }
 
 type ListGroupMembersRequest struct {
@@ -3210,7 +3051,7 @@ type ListGroupMembersRequest struct {
 
 func (x *ListGroupMembersRequest) Reset() {
 	*x = ListGroupMembersRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[57]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3222,7 +3063,7 @@ func (x *ListGroupMembersRequest) String() string {
 func (*ListGroupMembersRequest) ProtoMessage() {}
 
 func (x *ListGroupMembersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[57]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3235,7 +3076,7 @@ func (x *ListGroupMembersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupMembersRequest.ProtoReflect.Descriptor instead.
 func (*ListGroupMembersRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{57}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *ListGroupMembersRequest) GetGroupId() uint64 {
@@ -3254,7 +3095,7 @@ type ListGroupMembersResponse struct {
 
 func (x *ListGroupMembersResponse) Reset() {
 	*x = ListGroupMembersResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[58]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3266,7 +3107,7 @@ func (x *ListGroupMembersResponse) String() string {
 func (*ListGroupMembersResponse) ProtoMessage() {}
 
 func (x *ListGroupMembersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[58]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3279,7 +3120,7 @@ func (x *ListGroupMembersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupMembersResponse.ProtoReflect.Descriptor instead.
 func (*ListGroupMembersResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{58}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *ListGroupMembersResponse) GetUserIds() []uint64 {
@@ -3299,7 +3140,7 @@ type RemoveGroupMemberRequest struct {
 
 func (x *RemoveGroupMemberRequest) Reset() {
 	*x = RemoveGroupMemberRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[59]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3311,7 +3152,7 @@ func (x *RemoveGroupMemberRequest) String() string {
 func (*RemoveGroupMemberRequest) ProtoMessage() {}
 
 func (x *RemoveGroupMemberRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[59]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3324,7 +3165,7 @@ func (x *RemoveGroupMemberRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveGroupMemberRequest.ProtoReflect.Descriptor instead.
 func (*RemoveGroupMemberRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{59}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *RemoveGroupMemberRequest) GetGroupId() uint64 {
@@ -3349,7 +3190,7 @@ type RemoveGroupMemberResponse struct {
 
 func (x *RemoveGroupMemberResponse) Reset() {
 	*x = RemoveGroupMemberResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[60]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3361,7 +3202,7 @@ func (x *RemoveGroupMemberResponse) String() string {
 func (*RemoveGroupMemberResponse) ProtoMessage() {}
 
 func (x *RemoveGroupMemberResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[60]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3374,7 +3215,7 @@ func (x *RemoveGroupMemberResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveGroupMemberResponse.ProtoReflect.Descriptor instead.
 func (*RemoveGroupMemberResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{60}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{58}
 }
 
 type AttachGroupPolicyRequest struct {
@@ -3387,7 +3228,7 @@ type AttachGroupPolicyRequest struct {
 
 func (x *AttachGroupPolicyRequest) Reset() {
 	*x = AttachGroupPolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[61]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3399,7 +3240,7 @@ func (x *AttachGroupPolicyRequest) String() string {
 func (*AttachGroupPolicyRequest) ProtoMessage() {}
 
 func (x *AttachGroupPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[61]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3412,7 +3253,7 @@ func (x *AttachGroupPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttachGroupPolicyRequest.ProtoReflect.Descriptor instead.
 func (*AttachGroupPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{61}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *AttachGroupPolicyRequest) GetGroupId() uint64 {
@@ -3437,7 +3278,7 @@ type AttachGroupPolicyResponse struct {
 
 func (x *AttachGroupPolicyResponse) Reset() {
 	*x = AttachGroupPolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[62]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3449,7 +3290,7 @@ func (x *AttachGroupPolicyResponse) String() string {
 func (*AttachGroupPolicyResponse) ProtoMessage() {}
 
 func (x *AttachGroupPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[62]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3462,7 +3303,7 @@ func (x *AttachGroupPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttachGroupPolicyResponse.ProtoReflect.Descriptor instead.
 func (*AttachGroupPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{62}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{60}
 }
 
 type ListGroupPoliciesRequest struct {
@@ -3474,7 +3315,7 @@ type ListGroupPoliciesRequest struct {
 
 func (x *ListGroupPoliciesRequest) Reset() {
 	*x = ListGroupPoliciesRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[63]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3486,7 +3327,7 @@ func (x *ListGroupPoliciesRequest) String() string {
 func (*ListGroupPoliciesRequest) ProtoMessage() {}
 
 func (x *ListGroupPoliciesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[63]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3499,7 +3340,7 @@ func (x *ListGroupPoliciesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupPoliciesRequest.ProtoReflect.Descriptor instead.
 func (*ListGroupPoliciesRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{63}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *ListGroupPoliciesRequest) GetGroupId() uint64 {
@@ -3518,7 +3359,7 @@ type ListGroupPoliciesResponse struct {
 
 func (x *ListGroupPoliciesResponse) Reset() {
 	*x = ListGroupPoliciesResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[64]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3530,7 +3371,7 @@ func (x *ListGroupPoliciesResponse) String() string {
 func (*ListGroupPoliciesResponse) ProtoMessage() {}
 
 func (x *ListGroupPoliciesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[64]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3543,7 +3384,7 @@ func (x *ListGroupPoliciesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupPoliciesResponse.ProtoReflect.Descriptor instead.
 func (*ListGroupPoliciesResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{64}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *ListGroupPoliciesResponse) GetPolicies() []*Policy {
@@ -3563,7 +3404,7 @@ type DetachGroupPolicyRequest struct {
 
 func (x *DetachGroupPolicyRequest) Reset() {
 	*x = DetachGroupPolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[65]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3575,7 +3416,7 @@ func (x *DetachGroupPolicyRequest) String() string {
 func (*DetachGroupPolicyRequest) ProtoMessage() {}
 
 func (x *DetachGroupPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[65]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3588,7 +3429,7 @@ func (x *DetachGroupPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DetachGroupPolicyRequest.ProtoReflect.Descriptor instead.
 func (*DetachGroupPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{65}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *DetachGroupPolicyRequest) GetGroupId() uint64 {
@@ -3613,7 +3454,7 @@ type DetachGroupPolicyResponse struct {
 
 func (x *DetachGroupPolicyResponse) Reset() {
 	*x = DetachGroupPolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[66]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3625,7 +3466,7 @@ func (x *DetachGroupPolicyResponse) String() string {
 func (*DetachGroupPolicyResponse) ProtoMessage() {}
 
 func (x *DetachGroupPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[66]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3638,7 +3479,7 @@ func (x *DetachGroupPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DetachGroupPolicyResponse.ProtoReflect.Descriptor instead.
 func (*DetachGroupPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{66}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{64}
 }
 
 type PutGroupInlinePolicyRequest struct {
@@ -3646,14 +3487,14 @@ type PutGroupInlinePolicyRequest struct {
 	GroupId       uint64                 `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	Statements    []*PolicyStatement     `protobuf:"bytes,4,rep,name=statements,proto3" json:"statements,omitempty"`
+	Statements    []*v1.PolicyStatement  `protobuf:"bytes,4,rep,name=statements,proto3" json:"statements,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PutGroupInlinePolicyRequest) Reset() {
 	*x = PutGroupInlinePolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[67]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3665,7 +3506,7 @@ func (x *PutGroupInlinePolicyRequest) String() string {
 func (*PutGroupInlinePolicyRequest) ProtoMessage() {}
 
 func (x *PutGroupInlinePolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[67]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3678,7 +3519,7 @@ func (x *PutGroupInlinePolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PutGroupInlinePolicyRequest.ProtoReflect.Descriptor instead.
 func (*PutGroupInlinePolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{67}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *PutGroupInlinePolicyRequest) GetGroupId() uint64 {
@@ -3702,7 +3543,7 @@ func (x *PutGroupInlinePolicyRequest) GetDescription() string {
 	return ""
 }
 
-func (x *PutGroupInlinePolicyRequest) GetStatements() []*PolicyStatement {
+func (x *PutGroupInlinePolicyRequest) GetStatements() []*v1.PolicyStatement {
 	if x != nil {
 		return x.Statements
 	}
@@ -3717,7 +3558,7 @@ type PutGroupInlinePolicyResponse struct {
 
 func (x *PutGroupInlinePolicyResponse) Reset() {
 	*x = PutGroupInlinePolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[68]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3729,7 +3570,7 @@ func (x *PutGroupInlinePolicyResponse) String() string {
 func (*PutGroupInlinePolicyResponse) ProtoMessage() {}
 
 func (x *PutGroupInlinePolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[68]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3742,7 +3583,7 @@ func (x *PutGroupInlinePolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PutGroupInlinePolicyResponse.ProtoReflect.Descriptor instead.
 func (*PutGroupInlinePolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{68}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{66}
 }
 
 type GetGroupInlinePolicyRequest struct {
@@ -3755,7 +3596,7 @@ type GetGroupInlinePolicyRequest struct {
 
 func (x *GetGroupInlinePolicyRequest) Reset() {
 	*x = GetGroupInlinePolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[69]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3767,7 +3608,7 @@ func (x *GetGroupInlinePolicyRequest) String() string {
 func (*GetGroupInlinePolicyRequest) ProtoMessage() {}
 
 func (x *GetGroupInlinePolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[69]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3780,7 +3621,7 @@ func (x *GetGroupInlinePolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetGroupInlinePolicyRequest.ProtoReflect.Descriptor instead.
 func (*GetGroupInlinePolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{69}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *GetGroupInlinePolicyRequest) GetGroupId() uint64 {
@@ -3806,7 +3647,7 @@ type GetGroupInlinePolicyResponse struct {
 
 func (x *GetGroupInlinePolicyResponse) Reset() {
 	*x = GetGroupInlinePolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[70]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3818,7 +3659,7 @@ func (x *GetGroupInlinePolicyResponse) String() string {
 func (*GetGroupInlinePolicyResponse) ProtoMessage() {}
 
 func (x *GetGroupInlinePolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[70]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3831,7 +3672,7 @@ func (x *GetGroupInlinePolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetGroupInlinePolicyResponse.ProtoReflect.Descriptor instead.
 func (*GetGroupInlinePolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{70}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *GetGroupInlinePolicyResponse) GetPolicy() *GroupInlinePolicy {
@@ -3850,7 +3691,7 @@ type ListGroupInlinePoliciesRequest struct {
 
 func (x *ListGroupInlinePoliciesRequest) Reset() {
 	*x = ListGroupInlinePoliciesRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[71]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3862,7 +3703,7 @@ func (x *ListGroupInlinePoliciesRequest) String() string {
 func (*ListGroupInlinePoliciesRequest) ProtoMessage() {}
 
 func (x *ListGroupInlinePoliciesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[71]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3875,7 +3716,7 @@ func (x *ListGroupInlinePoliciesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupInlinePoliciesRequest.ProtoReflect.Descriptor instead.
 func (*ListGroupInlinePoliciesRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{71}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *ListGroupInlinePoliciesRequest) GetGroupId() uint64 {
@@ -3894,7 +3735,7 @@ type ListGroupInlinePoliciesResponse struct {
 
 func (x *ListGroupInlinePoliciesResponse) Reset() {
 	*x = ListGroupInlinePoliciesResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[72]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3906,7 +3747,7 @@ func (x *ListGroupInlinePoliciesResponse) String() string {
 func (*ListGroupInlinePoliciesResponse) ProtoMessage() {}
 
 func (x *ListGroupInlinePoliciesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[72]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3919,7 +3760,7 @@ func (x *ListGroupInlinePoliciesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGroupInlinePoliciesResponse.ProtoReflect.Descriptor instead.
 func (*ListGroupInlinePoliciesResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{72}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *ListGroupInlinePoliciesResponse) GetPolicies() []*GroupInlinePolicy {
@@ -3939,7 +3780,7 @@ type DeleteGroupInlinePolicyRequest struct {
 
 func (x *DeleteGroupInlinePolicyRequest) Reset() {
 	*x = DeleteGroupInlinePolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[73]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3951,7 +3792,7 @@ func (x *DeleteGroupInlinePolicyRequest) String() string {
 func (*DeleteGroupInlinePolicyRequest) ProtoMessage() {}
 
 func (x *DeleteGroupInlinePolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[73]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3964,7 +3805,7 @@ func (x *DeleteGroupInlinePolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteGroupInlinePolicyRequest.ProtoReflect.Descriptor instead.
 func (*DeleteGroupInlinePolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{73}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *DeleteGroupInlinePolicyRequest) GetGroupId() uint64 {
@@ -3989,7 +3830,7 @@ type DeleteGroupInlinePolicyResponse struct {
 
 func (x *DeleteGroupInlinePolicyResponse) Reset() {
 	*x = DeleteGroupInlinePolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[74]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4001,7 +3842,7 @@ func (x *DeleteGroupInlinePolicyResponse) String() string {
 func (*DeleteGroupInlinePolicyResponse) ProtoMessage() {}
 
 func (x *DeleteGroupInlinePolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[74]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4014,7 +3855,7 @@ func (x *DeleteGroupInlinePolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteGroupInlinePolicyResponse.ProtoReflect.Descriptor instead.
 func (*DeleteGroupInlinePolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{74}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{72}
 }
 
 type ListPlatformUserPoliciesRequest struct {
@@ -4026,7 +3867,7 @@ type ListPlatformUserPoliciesRequest struct {
 
 func (x *ListPlatformUserPoliciesRequest) Reset() {
 	*x = ListPlatformUserPoliciesRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[75]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4038,7 +3879,7 @@ func (x *ListPlatformUserPoliciesRequest) String() string {
 func (*ListPlatformUserPoliciesRequest) ProtoMessage() {}
 
 func (x *ListPlatformUserPoliciesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[75]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4051,7 +3892,7 @@ func (x *ListPlatformUserPoliciesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPlatformUserPoliciesRequest.ProtoReflect.Descriptor instead.
 func (*ListPlatformUserPoliciesRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{75}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *ListPlatformUserPoliciesRequest) GetTargetUserId() uint64 {
@@ -4070,7 +3911,7 @@ type ListPlatformUserPoliciesResponse struct {
 
 func (x *ListPlatformUserPoliciesResponse) Reset() {
 	*x = ListPlatformUserPoliciesResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[76]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4082,7 +3923,7 @@ func (x *ListPlatformUserPoliciesResponse) String() string {
 func (*ListPlatformUserPoliciesResponse) ProtoMessage() {}
 
 func (x *ListPlatformUserPoliciesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[76]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4095,7 +3936,7 @@ func (x *ListPlatformUserPoliciesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPlatformUserPoliciesResponse.ProtoReflect.Descriptor instead.
 func (*ListPlatformUserPoliciesResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{76}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *ListPlatformUserPoliciesResponse) GetPolicies() []*Policy {
@@ -4110,14 +3951,14 @@ type PutPlatformUserInlinePolicyRequest struct {
 	TargetUserId  uint64                 `protobuf:"varint,1,opt,name=target_user_id,json=targetUserId,proto3" json:"target_user_id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	Statements    []*PolicyStatement     `protobuf:"bytes,4,rep,name=statements,proto3" json:"statements,omitempty"`
+	Statements    []*v1.PolicyStatement  `protobuf:"bytes,4,rep,name=statements,proto3" json:"statements,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PutPlatformUserInlinePolicyRequest) Reset() {
 	*x = PutPlatformUserInlinePolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[77]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4129,7 +3970,7 @@ func (x *PutPlatformUserInlinePolicyRequest) String() string {
 func (*PutPlatformUserInlinePolicyRequest) ProtoMessage() {}
 
 func (x *PutPlatformUserInlinePolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[77]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4142,7 +3983,7 @@ func (x *PutPlatformUserInlinePolicyRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use PutPlatformUserInlinePolicyRequest.ProtoReflect.Descriptor instead.
 func (*PutPlatformUserInlinePolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{77}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *PutPlatformUserInlinePolicyRequest) GetTargetUserId() uint64 {
@@ -4166,7 +4007,7 @@ func (x *PutPlatformUserInlinePolicyRequest) GetDescription() string {
 	return ""
 }
 
-func (x *PutPlatformUserInlinePolicyRequest) GetStatements() []*PolicyStatement {
+func (x *PutPlatformUserInlinePolicyRequest) GetStatements() []*v1.PolicyStatement {
 	if x != nil {
 		return x.Statements
 	}
@@ -4181,7 +4022,7 @@ type PutPlatformUserInlinePolicyResponse struct {
 
 func (x *PutPlatformUserInlinePolicyResponse) Reset() {
 	*x = PutPlatformUserInlinePolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[78]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4193,7 +4034,7 @@ func (x *PutPlatformUserInlinePolicyResponse) String() string {
 func (*PutPlatformUserInlinePolicyResponse) ProtoMessage() {}
 
 func (x *PutPlatformUserInlinePolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[78]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4206,7 +4047,7 @@ func (x *PutPlatformUserInlinePolicyResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use PutPlatformUserInlinePolicyResponse.ProtoReflect.Descriptor instead.
 func (*PutPlatformUserInlinePolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{78}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{76}
 }
 
 type GetPlatformUserInlinePolicyRequest struct {
@@ -4219,7 +4060,7 @@ type GetPlatformUserInlinePolicyRequest struct {
 
 func (x *GetPlatformUserInlinePolicyRequest) Reset() {
 	*x = GetPlatformUserInlinePolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[79]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4231,7 +4072,7 @@ func (x *GetPlatformUserInlinePolicyRequest) String() string {
 func (*GetPlatformUserInlinePolicyRequest) ProtoMessage() {}
 
 func (x *GetPlatformUserInlinePolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[79]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4244,7 +4085,7 @@ func (x *GetPlatformUserInlinePolicyRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use GetPlatformUserInlinePolicyRequest.ProtoReflect.Descriptor instead.
 func (*GetPlatformUserInlinePolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{79}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *GetPlatformUserInlinePolicyRequest) GetTargetUserId() uint64 {
@@ -4270,7 +4111,7 @@ type GetPlatformUserInlinePolicyResponse struct {
 
 func (x *GetPlatformUserInlinePolicyResponse) Reset() {
 	*x = GetPlatformUserInlinePolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[80]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[78]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4282,7 +4123,7 @@ func (x *GetPlatformUserInlinePolicyResponse) String() string {
 func (*GetPlatformUserInlinePolicyResponse) ProtoMessage() {}
 
 func (x *GetPlatformUserInlinePolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[80]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[78]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4295,7 +4136,7 @@ func (x *GetPlatformUserInlinePolicyResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use GetPlatformUserInlinePolicyResponse.ProtoReflect.Descriptor instead.
 func (*GetPlatformUserInlinePolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{80}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *GetPlatformUserInlinePolicyResponse) GetPolicy() *UserInlinePolicy {
@@ -4314,7 +4155,7 @@ type ListPlatformUserInlinePoliciesRequest struct {
 
 func (x *ListPlatformUserInlinePoliciesRequest) Reset() {
 	*x = ListPlatformUserInlinePoliciesRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[81]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[79]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4326,7 +4167,7 @@ func (x *ListPlatformUserInlinePoliciesRequest) String() string {
 func (*ListPlatformUserInlinePoliciesRequest) ProtoMessage() {}
 
 func (x *ListPlatformUserInlinePoliciesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[81]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[79]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4339,7 +4180,7 @@ func (x *ListPlatformUserInlinePoliciesRequest) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use ListPlatformUserInlinePoliciesRequest.ProtoReflect.Descriptor instead.
 func (*ListPlatformUserInlinePoliciesRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{81}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *ListPlatformUserInlinePoliciesRequest) GetTargetUserId() uint64 {
@@ -4358,7 +4199,7 @@ type ListPlatformUserInlinePoliciesResponse struct {
 
 func (x *ListPlatformUserInlinePoliciesResponse) Reset() {
 	*x = ListPlatformUserInlinePoliciesResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[82]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[80]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4370,7 +4211,7 @@ func (x *ListPlatformUserInlinePoliciesResponse) String() string {
 func (*ListPlatformUserInlinePoliciesResponse) ProtoMessage() {}
 
 func (x *ListPlatformUserInlinePoliciesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[82]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[80]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4383,7 +4224,7 @@ func (x *ListPlatformUserInlinePoliciesResponse) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use ListPlatformUserInlinePoliciesResponse.ProtoReflect.Descriptor instead.
 func (*ListPlatformUserInlinePoliciesResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{82}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *ListPlatformUserInlinePoliciesResponse) GetPolicies() []*UserInlinePolicy {
@@ -4403,7 +4244,7 @@ type DeletePlatformUserInlinePolicyRequest struct {
 
 func (x *DeletePlatformUserInlinePolicyRequest) Reset() {
 	*x = DeletePlatformUserInlinePolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[83]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[81]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4415,7 +4256,7 @@ func (x *DeletePlatformUserInlinePolicyRequest) String() string {
 func (*DeletePlatformUserInlinePolicyRequest) ProtoMessage() {}
 
 func (x *DeletePlatformUserInlinePolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[83]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[81]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4428,7 +4269,7 @@ func (x *DeletePlatformUserInlinePolicyRequest) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use DeletePlatformUserInlinePolicyRequest.ProtoReflect.Descriptor instead.
 func (*DeletePlatformUserInlinePolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{83}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *DeletePlatformUserInlinePolicyRequest) GetTargetUserId() uint64 {
@@ -4453,7 +4294,7 @@ type DeletePlatformUserInlinePolicyResponse struct {
 
 func (x *DeletePlatformUserInlinePolicyResponse) Reset() {
 	*x = DeletePlatformUserInlinePolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[84]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[82]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4465,7 +4306,7 @@ func (x *DeletePlatformUserInlinePolicyResponse) String() string {
 func (*DeletePlatformUserInlinePolicyResponse) ProtoMessage() {}
 
 func (x *DeletePlatformUserInlinePolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[84]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[82]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4478,7 +4319,7 @@ func (x *DeletePlatformUserInlinePolicyResponse) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use DeletePlatformUserInlinePolicyResponse.ProtoReflect.Descriptor instead.
 func (*DeletePlatformUserInlinePolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{84}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{82}
 }
 
 type AttachPlatformUserPolicyRequest struct {
@@ -4491,7 +4332,7 @@ type AttachPlatformUserPolicyRequest struct {
 
 func (x *AttachPlatformUserPolicyRequest) Reset() {
 	*x = AttachPlatformUserPolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[85]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[83]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4503,7 +4344,7 @@ func (x *AttachPlatformUserPolicyRequest) String() string {
 func (*AttachPlatformUserPolicyRequest) ProtoMessage() {}
 
 func (x *AttachPlatformUserPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[85]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[83]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4516,7 +4357,7 @@ func (x *AttachPlatformUserPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttachPlatformUserPolicyRequest.ProtoReflect.Descriptor instead.
 func (*AttachPlatformUserPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{85}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *AttachPlatformUserPolicyRequest) GetTargetUserId() uint64 {
@@ -4541,7 +4382,7 @@ type AttachPlatformUserPolicyResponse struct {
 
 func (x *AttachPlatformUserPolicyResponse) Reset() {
 	*x = AttachPlatformUserPolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[86]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[84]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4553,7 +4394,7 @@ func (x *AttachPlatformUserPolicyResponse) String() string {
 func (*AttachPlatformUserPolicyResponse) ProtoMessage() {}
 
 func (x *AttachPlatformUserPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[86]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[84]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4566,7 +4407,7 @@ func (x *AttachPlatformUserPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttachPlatformUserPolicyResponse.ProtoReflect.Descriptor instead.
 func (*AttachPlatformUserPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{86}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{84}
 }
 
 type DetachPlatformUserPolicyRequest struct {
@@ -4579,7 +4420,7 @@ type DetachPlatformUserPolicyRequest struct {
 
 func (x *DetachPlatformUserPolicyRequest) Reset() {
 	*x = DetachPlatformUserPolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[87]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[85]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4591,7 +4432,7 @@ func (x *DetachPlatformUserPolicyRequest) String() string {
 func (*DetachPlatformUserPolicyRequest) ProtoMessage() {}
 
 func (x *DetachPlatformUserPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[87]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[85]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4604,7 +4445,7 @@ func (x *DetachPlatformUserPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DetachPlatformUserPolicyRequest.ProtoReflect.Descriptor instead.
 func (*DetachPlatformUserPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{87}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *DetachPlatformUserPolicyRequest) GetTargetUserId() uint64 {
@@ -4629,7 +4470,7 @@ type DetachPlatformUserPolicyResponse struct {
 
 func (x *DetachPlatformUserPolicyResponse) Reset() {
 	*x = DetachPlatformUserPolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[88]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[86]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4641,7 +4482,7 @@ func (x *DetachPlatformUserPolicyResponse) String() string {
 func (*DetachPlatformUserPolicyResponse) ProtoMessage() {}
 
 func (x *DetachPlatformUserPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[88]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[86]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4654,7 +4495,7 @@ func (x *DetachPlatformUserPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DetachPlatformUserPolicyResponse.ProtoReflect.Descriptor instead.
 func (*DetachPlatformUserPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{88}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{86}
 }
 
 type PutPlatformUserPermissionBoundaryRequest struct {
@@ -4667,7 +4508,7 @@ type PutPlatformUserPermissionBoundaryRequest struct {
 
 func (x *PutPlatformUserPermissionBoundaryRequest) Reset() {
 	*x = PutPlatformUserPermissionBoundaryRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[89]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[87]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4679,7 +4520,7 @@ func (x *PutPlatformUserPermissionBoundaryRequest) String() string {
 func (*PutPlatformUserPermissionBoundaryRequest) ProtoMessage() {}
 
 func (x *PutPlatformUserPermissionBoundaryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[89]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[87]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4692,7 +4533,7 @@ func (x *PutPlatformUserPermissionBoundaryRequest) ProtoReflect() protoreflect.M
 
 // Deprecated: Use PutPlatformUserPermissionBoundaryRequest.ProtoReflect.Descriptor instead.
 func (*PutPlatformUserPermissionBoundaryRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{89}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *PutPlatformUserPermissionBoundaryRequest) GetTargetUserId() uint64 {
@@ -4717,7 +4558,7 @@ type PutPlatformUserPermissionBoundaryResponse struct {
 
 func (x *PutPlatformUserPermissionBoundaryResponse) Reset() {
 	*x = PutPlatformUserPermissionBoundaryResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[90]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[88]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4729,7 +4570,7 @@ func (x *PutPlatformUserPermissionBoundaryResponse) String() string {
 func (*PutPlatformUserPermissionBoundaryResponse) ProtoMessage() {}
 
 func (x *PutPlatformUserPermissionBoundaryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[90]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[88]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4742,7 +4583,7 @@ func (x *PutPlatformUserPermissionBoundaryResponse) ProtoReflect() protoreflect.
 
 // Deprecated: Use PutPlatformUserPermissionBoundaryResponse.ProtoReflect.Descriptor instead.
 func (*PutPlatformUserPermissionBoundaryResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{90}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{88}
 }
 
 type GetPlatformUserPermissionBoundaryRequest struct {
@@ -4754,7 +4595,7 @@ type GetPlatformUserPermissionBoundaryRequest struct {
 
 func (x *GetPlatformUserPermissionBoundaryRequest) Reset() {
 	*x = GetPlatformUserPermissionBoundaryRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[91]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4766,7 +4607,7 @@ func (x *GetPlatformUserPermissionBoundaryRequest) String() string {
 func (*GetPlatformUserPermissionBoundaryRequest) ProtoMessage() {}
 
 func (x *GetPlatformUserPermissionBoundaryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[91]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4779,7 +4620,7 @@ func (x *GetPlatformUserPermissionBoundaryRequest) ProtoReflect() protoreflect.M
 
 // Deprecated: Use GetPlatformUserPermissionBoundaryRequest.ProtoReflect.Descriptor instead.
 func (*GetPlatformUserPermissionBoundaryRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{91}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *GetPlatformUserPermissionBoundaryRequest) GetTargetUserId() uint64 {
@@ -4798,7 +4639,7 @@ type GetPlatformUserPermissionBoundaryResponse struct {
 
 func (x *GetPlatformUserPermissionBoundaryResponse) Reset() {
 	*x = GetPlatformUserPermissionBoundaryResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[92]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4810,7 +4651,7 @@ func (x *GetPlatformUserPermissionBoundaryResponse) String() string {
 func (*GetPlatformUserPermissionBoundaryResponse) ProtoMessage() {}
 
 func (x *GetPlatformUserPermissionBoundaryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[92]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4823,7 +4664,7 @@ func (x *GetPlatformUserPermissionBoundaryResponse) ProtoReflect() protoreflect.
 
 // Deprecated: Use GetPlatformUserPermissionBoundaryResponse.ProtoReflect.Descriptor instead.
 func (*GetPlatformUserPermissionBoundaryResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{92}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{90}
 }
 
 func (x *GetPlatformUserPermissionBoundaryResponse) GetBoundary() *PermissionBoundary {
@@ -4842,7 +4683,7 @@ type DeletePlatformUserPermissionBoundaryRequest struct {
 
 func (x *DeletePlatformUserPermissionBoundaryRequest) Reset() {
 	*x = DeletePlatformUserPermissionBoundaryRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[93]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[91]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4854,7 +4695,7 @@ func (x *DeletePlatformUserPermissionBoundaryRequest) String() string {
 func (*DeletePlatformUserPermissionBoundaryRequest) ProtoMessage() {}
 
 func (x *DeletePlatformUserPermissionBoundaryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[93]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[91]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4867,7 +4708,7 @@ func (x *DeletePlatformUserPermissionBoundaryRequest) ProtoReflect() protoreflec
 
 // Deprecated: Use DeletePlatformUserPermissionBoundaryRequest.ProtoReflect.Descriptor instead.
 func (*DeletePlatformUserPermissionBoundaryRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{93}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{91}
 }
 
 func (x *DeletePlatformUserPermissionBoundaryRequest) GetTargetUserId() uint64 {
@@ -4885,7 +4726,7 @@ type DeletePlatformUserPermissionBoundaryResponse struct {
 
 func (x *DeletePlatformUserPermissionBoundaryResponse) Reset() {
 	*x = DeletePlatformUserPermissionBoundaryResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[94]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[92]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4897,7 +4738,7 @@ func (x *DeletePlatformUserPermissionBoundaryResponse) String() string {
 func (*DeletePlatformUserPermissionBoundaryResponse) ProtoMessage() {}
 
 func (x *DeletePlatformUserPermissionBoundaryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[94]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[92]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4910,7 +4751,7 @@ func (x *DeletePlatformUserPermissionBoundaryResponse) ProtoReflect() protorefle
 
 // Deprecated: Use DeletePlatformUserPermissionBoundaryResponse.ProtoReflect.Descriptor instead.
 func (*DeletePlatformUserPermissionBoundaryResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{94}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{92}
 }
 
 type CheckPermissionRequest struct {
@@ -4925,7 +4766,7 @@ type CheckPermissionRequest struct {
 
 func (x *CheckPermissionRequest) Reset() {
 	*x = CheckPermissionRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[95]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[93]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4937,7 +4778,7 @@ func (x *CheckPermissionRequest) String() string {
 func (*CheckPermissionRequest) ProtoMessage() {}
 
 func (x *CheckPermissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[95]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[93]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4950,7 +4791,7 @@ func (x *CheckPermissionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckPermissionRequest.ProtoReflect.Descriptor instead.
 func (*CheckPermissionRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{95}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{93}
 }
 
 func (x *CheckPermissionRequest) GetTenantId() string {
@@ -4991,7 +4832,7 @@ type CheckPlatformPermissionRequest struct {
 
 func (x *CheckPlatformPermissionRequest) Reset() {
 	*x = CheckPlatformPermissionRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[96]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[94]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5003,7 +4844,7 @@ func (x *CheckPlatformPermissionRequest) String() string {
 func (*CheckPlatformPermissionRequest) ProtoMessage() {}
 
 func (x *CheckPlatformPermissionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[96]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[94]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5016,7 +4857,7 @@ func (x *CheckPlatformPermissionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckPlatformPermissionRequest.ProtoReflect.Descriptor instead.
 func (*CheckPlatformPermissionRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{96}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{94}
 }
 
 func (x *CheckPlatformPermissionRequest) GetUserId() uint64 {
@@ -5042,7 +4883,7 @@ type CheckPermissionResponse struct {
 
 func (x *CheckPermissionResponse) Reset() {
 	*x = CheckPermissionResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[97]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[95]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5054,7 +4895,7 @@ func (x *CheckPermissionResponse) String() string {
 func (*CheckPermissionResponse) ProtoMessage() {}
 
 func (x *CheckPermissionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[97]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[95]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5067,7 +4908,7 @@ func (x *CheckPermissionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckPermissionResponse.ProtoReflect.Descriptor instead.
 func (*CheckPermissionResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{97}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{95}
 }
 
 func (x *CheckPermissionResponse) GetAllowed() bool {
@@ -5087,7 +4928,7 @@ type ListTenantUserPoliciesRequest struct {
 
 func (x *ListTenantUserPoliciesRequest) Reset() {
 	*x = ListTenantUserPoliciesRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[98]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[96]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5099,7 +4940,7 @@ func (x *ListTenantUserPoliciesRequest) String() string {
 func (*ListTenantUserPoliciesRequest) ProtoMessage() {}
 
 func (x *ListTenantUserPoliciesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[98]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[96]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5112,7 +4953,7 @@ func (x *ListTenantUserPoliciesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTenantUserPoliciesRequest.ProtoReflect.Descriptor instead.
 func (*ListTenantUserPoliciesRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{98}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{96}
 }
 
 func (x *ListTenantUserPoliciesRequest) GetTenantId() string {
@@ -5138,7 +4979,7 @@ type ListTenantUserPoliciesResponse struct {
 
 func (x *ListTenantUserPoliciesResponse) Reset() {
 	*x = ListTenantUserPoliciesResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[99]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[97]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5150,7 +4991,7 @@ func (x *ListTenantUserPoliciesResponse) String() string {
 func (*ListTenantUserPoliciesResponse) ProtoMessage() {}
 
 func (x *ListTenantUserPoliciesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[99]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[97]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5163,7 +5004,7 @@ func (x *ListTenantUserPoliciesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTenantUserPoliciesResponse.ProtoReflect.Descriptor instead.
 func (*ListTenantUserPoliciesResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{99}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{97}
 }
 
 func (x *ListTenantUserPoliciesResponse) GetPolicies() []*Policy {
@@ -5179,14 +5020,14 @@ type PutTenantUserInlinePolicyRequest struct {
 	UserId        uint64                 `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	Description   string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
-	Statements    []*PolicyStatement     `protobuf:"bytes,5,rep,name=statements,proto3" json:"statements,omitempty"`
+	Statements    []*v1.PolicyStatement  `protobuf:"bytes,5,rep,name=statements,proto3" json:"statements,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PutTenantUserInlinePolicyRequest) Reset() {
 	*x = PutTenantUserInlinePolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[100]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[98]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5198,7 +5039,7 @@ func (x *PutTenantUserInlinePolicyRequest) String() string {
 func (*PutTenantUserInlinePolicyRequest) ProtoMessage() {}
 
 func (x *PutTenantUserInlinePolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[100]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[98]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5211,7 +5052,7 @@ func (x *PutTenantUserInlinePolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PutTenantUserInlinePolicyRequest.ProtoReflect.Descriptor instead.
 func (*PutTenantUserInlinePolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{100}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{98}
 }
 
 func (x *PutTenantUserInlinePolicyRequest) GetTenantId() string {
@@ -5242,7 +5083,7 @@ func (x *PutTenantUserInlinePolicyRequest) GetDescription() string {
 	return ""
 }
 
-func (x *PutTenantUserInlinePolicyRequest) GetStatements() []*PolicyStatement {
+func (x *PutTenantUserInlinePolicyRequest) GetStatements() []*v1.PolicyStatement {
 	if x != nil {
 		return x.Statements
 	}
@@ -5257,7 +5098,7 @@ type PutTenantUserInlinePolicyResponse struct {
 
 func (x *PutTenantUserInlinePolicyResponse) Reset() {
 	*x = PutTenantUserInlinePolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[101]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[99]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5269,7 +5110,7 @@ func (x *PutTenantUserInlinePolicyResponse) String() string {
 func (*PutTenantUserInlinePolicyResponse) ProtoMessage() {}
 
 func (x *PutTenantUserInlinePolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[101]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[99]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5282,7 +5123,7 @@ func (x *PutTenantUserInlinePolicyResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use PutTenantUserInlinePolicyResponse.ProtoReflect.Descriptor instead.
 func (*PutTenantUserInlinePolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{101}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{99}
 }
 
 type GetTenantUserInlinePolicyRequest struct {
@@ -5296,7 +5137,7 @@ type GetTenantUserInlinePolicyRequest struct {
 
 func (x *GetTenantUserInlinePolicyRequest) Reset() {
 	*x = GetTenantUserInlinePolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[102]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[100]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5308,7 +5149,7 @@ func (x *GetTenantUserInlinePolicyRequest) String() string {
 func (*GetTenantUserInlinePolicyRequest) ProtoMessage() {}
 
 func (x *GetTenantUserInlinePolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[102]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[100]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5321,7 +5162,7 @@ func (x *GetTenantUserInlinePolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTenantUserInlinePolicyRequest.ProtoReflect.Descriptor instead.
 func (*GetTenantUserInlinePolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{102}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{100}
 }
 
 func (x *GetTenantUserInlinePolicyRequest) GetTenantId() string {
@@ -5354,7 +5195,7 @@ type GetTenantUserInlinePolicyResponse struct {
 
 func (x *GetTenantUserInlinePolicyResponse) Reset() {
 	*x = GetTenantUserInlinePolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[103]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[101]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5366,7 +5207,7 @@ func (x *GetTenantUserInlinePolicyResponse) String() string {
 func (*GetTenantUserInlinePolicyResponse) ProtoMessage() {}
 
 func (x *GetTenantUserInlinePolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[103]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[101]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5379,7 +5220,7 @@ func (x *GetTenantUserInlinePolicyResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GetTenantUserInlinePolicyResponse.ProtoReflect.Descriptor instead.
 func (*GetTenantUserInlinePolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{103}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{101}
 }
 
 func (x *GetTenantUserInlinePolicyResponse) GetPolicy() *UserInlinePolicy {
@@ -5399,7 +5240,7 @@ type ListTenantUserInlinePoliciesRequest struct {
 
 func (x *ListTenantUserInlinePoliciesRequest) Reset() {
 	*x = ListTenantUserInlinePoliciesRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[104]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[102]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5411,7 +5252,7 @@ func (x *ListTenantUserInlinePoliciesRequest) String() string {
 func (*ListTenantUserInlinePoliciesRequest) ProtoMessage() {}
 
 func (x *ListTenantUserInlinePoliciesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[104]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[102]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5424,7 +5265,7 @@ func (x *ListTenantUserInlinePoliciesRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use ListTenantUserInlinePoliciesRequest.ProtoReflect.Descriptor instead.
 func (*ListTenantUserInlinePoliciesRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{104}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{102}
 }
 
 func (x *ListTenantUserInlinePoliciesRequest) GetTenantId() string {
@@ -5450,7 +5291,7 @@ type ListTenantUserInlinePoliciesResponse struct {
 
 func (x *ListTenantUserInlinePoliciesResponse) Reset() {
 	*x = ListTenantUserInlinePoliciesResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[105]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[103]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5462,7 +5303,7 @@ func (x *ListTenantUserInlinePoliciesResponse) String() string {
 func (*ListTenantUserInlinePoliciesResponse) ProtoMessage() {}
 
 func (x *ListTenantUserInlinePoliciesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[105]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[103]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5475,7 +5316,7 @@ func (x *ListTenantUserInlinePoliciesResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use ListTenantUserInlinePoliciesResponse.ProtoReflect.Descriptor instead.
 func (*ListTenantUserInlinePoliciesResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{105}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{103}
 }
 
 func (x *ListTenantUserInlinePoliciesResponse) GetPolicies() []*UserInlinePolicy {
@@ -5496,7 +5337,7 @@ type DeleteTenantUserInlinePolicyRequest struct {
 
 func (x *DeleteTenantUserInlinePolicyRequest) Reset() {
 	*x = DeleteTenantUserInlinePolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[106]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[104]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5508,7 +5349,7 @@ func (x *DeleteTenantUserInlinePolicyRequest) String() string {
 func (*DeleteTenantUserInlinePolicyRequest) ProtoMessage() {}
 
 func (x *DeleteTenantUserInlinePolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[106]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[104]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5521,7 +5362,7 @@ func (x *DeleteTenantUserInlinePolicyRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use DeleteTenantUserInlinePolicyRequest.ProtoReflect.Descriptor instead.
 func (*DeleteTenantUserInlinePolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{106}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{104}
 }
 
 func (x *DeleteTenantUserInlinePolicyRequest) GetTenantId() string {
@@ -5553,7 +5394,7 @@ type DeleteTenantUserInlinePolicyResponse struct {
 
 func (x *DeleteTenantUserInlinePolicyResponse) Reset() {
 	*x = DeleteTenantUserInlinePolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[107]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[105]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5565,7 +5406,7 @@ func (x *DeleteTenantUserInlinePolicyResponse) String() string {
 func (*DeleteTenantUserInlinePolicyResponse) ProtoMessage() {}
 
 func (x *DeleteTenantUserInlinePolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[107]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[105]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5578,7 +5419,7 @@ func (x *DeleteTenantUserInlinePolicyResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use DeleteTenantUserInlinePolicyResponse.ProtoReflect.Descriptor instead.
 func (*DeleteTenantUserInlinePolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{107}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{105}
 }
 
 type AttachTenantUserPolicyRequest struct {
@@ -5592,7 +5433,7 @@ type AttachTenantUserPolicyRequest struct {
 
 func (x *AttachTenantUserPolicyRequest) Reset() {
 	*x = AttachTenantUserPolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[108]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[106]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5604,7 +5445,7 @@ func (x *AttachTenantUserPolicyRequest) String() string {
 func (*AttachTenantUserPolicyRequest) ProtoMessage() {}
 
 func (x *AttachTenantUserPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[108]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[106]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5617,7 +5458,7 @@ func (x *AttachTenantUserPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttachTenantUserPolicyRequest.ProtoReflect.Descriptor instead.
 func (*AttachTenantUserPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{108}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{106}
 }
 
 func (x *AttachTenantUserPolicyRequest) GetTenantId() string {
@@ -5649,7 +5490,7 @@ type AttachTenantUserPolicyResponse struct {
 
 func (x *AttachTenantUserPolicyResponse) Reset() {
 	*x = AttachTenantUserPolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[109]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[107]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5661,7 +5502,7 @@ func (x *AttachTenantUserPolicyResponse) String() string {
 func (*AttachTenantUserPolicyResponse) ProtoMessage() {}
 
 func (x *AttachTenantUserPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[109]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[107]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5674,7 +5515,7 @@ func (x *AttachTenantUserPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttachTenantUserPolicyResponse.ProtoReflect.Descriptor instead.
 func (*AttachTenantUserPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{109}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{107}
 }
 
 type DetachTenantUserPolicyRequest struct {
@@ -5688,7 +5529,7 @@ type DetachTenantUserPolicyRequest struct {
 
 func (x *DetachTenantUserPolicyRequest) Reset() {
 	*x = DetachTenantUserPolicyRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[110]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[108]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5700,7 +5541,7 @@ func (x *DetachTenantUserPolicyRequest) String() string {
 func (*DetachTenantUserPolicyRequest) ProtoMessage() {}
 
 func (x *DetachTenantUserPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[110]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[108]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5713,7 +5554,7 @@ func (x *DetachTenantUserPolicyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DetachTenantUserPolicyRequest.ProtoReflect.Descriptor instead.
 func (*DetachTenantUserPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{110}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{108}
 }
 
 func (x *DetachTenantUserPolicyRequest) GetTenantId() string {
@@ -5745,7 +5586,7 @@ type DetachTenantUserPolicyResponse struct {
 
 func (x *DetachTenantUserPolicyResponse) Reset() {
 	*x = DetachTenantUserPolicyResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[111]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[109]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5757,7 +5598,7 @@ func (x *DetachTenantUserPolicyResponse) String() string {
 func (*DetachTenantUserPolicyResponse) ProtoMessage() {}
 
 func (x *DetachTenantUserPolicyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[111]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[109]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5770,7 +5611,7 @@ func (x *DetachTenantUserPolicyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DetachTenantUserPolicyResponse.ProtoReflect.Descriptor instead.
 func (*DetachTenantUserPolicyResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{111}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{109}
 }
 
 type PutTenantUserPermissionBoundaryRequest struct {
@@ -5784,7 +5625,7 @@ type PutTenantUserPermissionBoundaryRequest struct {
 
 func (x *PutTenantUserPermissionBoundaryRequest) Reset() {
 	*x = PutTenantUserPermissionBoundaryRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[112]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[110]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5796,7 +5637,7 @@ func (x *PutTenantUserPermissionBoundaryRequest) String() string {
 func (*PutTenantUserPermissionBoundaryRequest) ProtoMessage() {}
 
 func (x *PutTenantUserPermissionBoundaryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[112]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[110]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5809,7 +5650,7 @@ func (x *PutTenantUserPermissionBoundaryRequest) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use PutTenantUserPermissionBoundaryRequest.ProtoReflect.Descriptor instead.
 func (*PutTenantUserPermissionBoundaryRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{112}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{110}
 }
 
 func (x *PutTenantUserPermissionBoundaryRequest) GetTenantId() string {
@@ -5841,7 +5682,7 @@ type PutTenantUserPermissionBoundaryResponse struct {
 
 func (x *PutTenantUserPermissionBoundaryResponse) Reset() {
 	*x = PutTenantUserPermissionBoundaryResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[113]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[111]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5853,7 +5694,7 @@ func (x *PutTenantUserPermissionBoundaryResponse) String() string {
 func (*PutTenantUserPermissionBoundaryResponse) ProtoMessage() {}
 
 func (x *PutTenantUserPermissionBoundaryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[113]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[111]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5866,7 +5707,7 @@ func (x *PutTenantUserPermissionBoundaryResponse) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use PutTenantUserPermissionBoundaryResponse.ProtoReflect.Descriptor instead.
 func (*PutTenantUserPermissionBoundaryResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{113}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{111}
 }
 
 type GetTenantUserPermissionBoundaryRequest struct {
@@ -5879,7 +5720,7 @@ type GetTenantUserPermissionBoundaryRequest struct {
 
 func (x *GetTenantUserPermissionBoundaryRequest) Reset() {
 	*x = GetTenantUserPermissionBoundaryRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[114]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[112]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5891,7 +5732,7 @@ func (x *GetTenantUserPermissionBoundaryRequest) String() string {
 func (*GetTenantUserPermissionBoundaryRequest) ProtoMessage() {}
 
 func (x *GetTenantUserPermissionBoundaryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[114]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[112]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5904,7 +5745,7 @@ func (x *GetTenantUserPermissionBoundaryRequest) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use GetTenantUserPermissionBoundaryRequest.ProtoReflect.Descriptor instead.
 func (*GetTenantUserPermissionBoundaryRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{114}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{112}
 }
 
 func (x *GetTenantUserPermissionBoundaryRequest) GetTenantId() string {
@@ -5930,7 +5771,7 @@ type GetTenantUserPermissionBoundaryResponse struct {
 
 func (x *GetTenantUserPermissionBoundaryResponse) Reset() {
 	*x = GetTenantUserPermissionBoundaryResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[115]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[113]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5942,7 +5783,7 @@ func (x *GetTenantUserPermissionBoundaryResponse) String() string {
 func (*GetTenantUserPermissionBoundaryResponse) ProtoMessage() {}
 
 func (x *GetTenantUserPermissionBoundaryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[115]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[113]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5955,7 +5796,7 @@ func (x *GetTenantUserPermissionBoundaryResponse) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use GetTenantUserPermissionBoundaryResponse.ProtoReflect.Descriptor instead.
 func (*GetTenantUserPermissionBoundaryResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{115}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{113}
 }
 
 func (x *GetTenantUserPermissionBoundaryResponse) GetBoundary() *PermissionBoundary {
@@ -5975,7 +5816,7 @@ type DeleteTenantUserPermissionBoundaryRequest struct {
 
 func (x *DeleteTenantUserPermissionBoundaryRequest) Reset() {
 	*x = DeleteTenantUserPermissionBoundaryRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[116]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[114]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5987,7 +5828,7 @@ func (x *DeleteTenantUserPermissionBoundaryRequest) String() string {
 func (*DeleteTenantUserPermissionBoundaryRequest) ProtoMessage() {}
 
 func (x *DeleteTenantUserPermissionBoundaryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[116]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[114]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6000,7 +5841,7 @@ func (x *DeleteTenantUserPermissionBoundaryRequest) ProtoReflect() protoreflect.
 
 // Deprecated: Use DeleteTenantUserPermissionBoundaryRequest.ProtoReflect.Descriptor instead.
 func (*DeleteTenantUserPermissionBoundaryRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{116}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{114}
 }
 
 func (x *DeleteTenantUserPermissionBoundaryRequest) GetTenantId() string {
@@ -6025,7 +5866,7 @@ type DeleteTenantUserPermissionBoundaryResponse struct {
 
 func (x *DeleteTenantUserPermissionBoundaryResponse) Reset() {
 	*x = DeleteTenantUserPermissionBoundaryResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[117]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[115]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6037,7 +5878,7 @@ func (x *DeleteTenantUserPermissionBoundaryResponse) String() string {
 func (*DeleteTenantUserPermissionBoundaryResponse) ProtoMessage() {}
 
 func (x *DeleteTenantUserPermissionBoundaryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[117]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[115]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6050,7 +5891,7 @@ func (x *DeleteTenantUserPermissionBoundaryResponse) ProtoReflect() protoreflect
 
 // Deprecated: Use DeleteTenantUserPermissionBoundaryResponse.ProtoReflect.Descriptor instead.
 func (*DeleteTenantUserPermissionBoundaryResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{117}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{115}
 }
 
 type PutRolePermissionBoundaryRequest struct {
@@ -6063,7 +5904,7 @@ type PutRolePermissionBoundaryRequest struct {
 
 func (x *PutRolePermissionBoundaryRequest) Reset() {
 	*x = PutRolePermissionBoundaryRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[118]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[116]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6075,7 +5916,7 @@ func (x *PutRolePermissionBoundaryRequest) String() string {
 func (*PutRolePermissionBoundaryRequest) ProtoMessage() {}
 
 func (x *PutRolePermissionBoundaryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[118]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[116]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6088,7 +5929,7 @@ func (x *PutRolePermissionBoundaryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PutRolePermissionBoundaryRequest.ProtoReflect.Descriptor instead.
 func (*PutRolePermissionBoundaryRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{118}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{116}
 }
 
 func (x *PutRolePermissionBoundaryRequest) GetRoleName() string {
@@ -6113,7 +5954,7 @@ type PutRolePermissionBoundaryResponse struct {
 
 func (x *PutRolePermissionBoundaryResponse) Reset() {
 	*x = PutRolePermissionBoundaryResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[119]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[117]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6125,7 +5966,7 @@ func (x *PutRolePermissionBoundaryResponse) String() string {
 func (*PutRolePermissionBoundaryResponse) ProtoMessage() {}
 
 func (x *PutRolePermissionBoundaryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[119]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[117]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6138,7 +5979,7 @@ func (x *PutRolePermissionBoundaryResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use PutRolePermissionBoundaryResponse.ProtoReflect.Descriptor instead.
 func (*PutRolePermissionBoundaryResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{119}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{117}
 }
 
 type GetRolePermissionBoundaryRequest struct {
@@ -6150,7 +5991,7 @@ type GetRolePermissionBoundaryRequest struct {
 
 func (x *GetRolePermissionBoundaryRequest) Reset() {
 	*x = GetRolePermissionBoundaryRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[120]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[118]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6162,7 +6003,7 @@ func (x *GetRolePermissionBoundaryRequest) String() string {
 func (*GetRolePermissionBoundaryRequest) ProtoMessage() {}
 
 func (x *GetRolePermissionBoundaryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[120]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[118]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6175,7 +6016,7 @@ func (x *GetRolePermissionBoundaryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRolePermissionBoundaryRequest.ProtoReflect.Descriptor instead.
 func (*GetRolePermissionBoundaryRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{120}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{118}
 }
 
 func (x *GetRolePermissionBoundaryRequest) GetRoleName() string {
@@ -6194,7 +6035,7 @@ type GetRolePermissionBoundaryResponse struct {
 
 func (x *GetRolePermissionBoundaryResponse) Reset() {
 	*x = GetRolePermissionBoundaryResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[121]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[119]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6206,7 +6047,7 @@ func (x *GetRolePermissionBoundaryResponse) String() string {
 func (*GetRolePermissionBoundaryResponse) ProtoMessage() {}
 
 func (x *GetRolePermissionBoundaryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[121]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[119]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6219,7 +6060,7 @@ func (x *GetRolePermissionBoundaryResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GetRolePermissionBoundaryResponse.ProtoReflect.Descriptor instead.
 func (*GetRolePermissionBoundaryResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{121}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{119}
 }
 
 func (x *GetRolePermissionBoundaryResponse) GetBoundary() *RolePermissionBoundary {
@@ -6238,7 +6079,7 @@ type DeleteRolePermissionBoundaryRequest struct {
 
 func (x *DeleteRolePermissionBoundaryRequest) Reset() {
 	*x = DeleteRolePermissionBoundaryRequest{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[122]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[120]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6250,7 +6091,7 @@ func (x *DeleteRolePermissionBoundaryRequest) String() string {
 func (*DeleteRolePermissionBoundaryRequest) ProtoMessage() {}
 
 func (x *DeleteRolePermissionBoundaryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[122]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[120]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6263,7 +6104,7 @@ func (x *DeleteRolePermissionBoundaryRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use DeleteRolePermissionBoundaryRequest.ProtoReflect.Descriptor instead.
 func (*DeleteRolePermissionBoundaryRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{122}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{120}
 }
 
 func (x *DeleteRolePermissionBoundaryRequest) GetRoleName() string {
@@ -6281,7 +6122,7 @@ type DeleteRolePermissionBoundaryResponse struct {
 
 func (x *DeleteRolePermissionBoundaryResponse) Reset() {
 	*x = DeleteRolePermissionBoundaryResponse{}
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[123]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[121]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6293,7 +6134,7 @@ func (x *DeleteRolePermissionBoundaryResponse) String() string {
 func (*DeleteRolePermissionBoundaryResponse) ProtoMessage() {}
 
 func (x *DeleteRolePermissionBoundaryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_iam_policy_proto_msgTypes[123]
+	mi := &file_iam_v1_iam_policy_proto_msgTypes[121]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6306,14 +6147,14 @@ func (x *DeleteRolePermissionBoundaryResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use DeleteRolePermissionBoundaryResponse.ProtoReflect.Descriptor instead.
 func (*DeleteRolePermissionBoundaryResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_iam_policy_proto_rawDescGZIP(), []int{123}
+	return file_iam_v1_iam_policy_proto_rawDescGZIP(), []int{121}
 }
 
-var File_auth_v1_iam_policy_proto protoreflect.FileDescriptor
+var File_iam_v1_iam_policy_proto protoreflect.FileDescriptor
 
-const file_auth_v1_iam_policy_proto_rawDesc = "" +
+const file_iam_v1_iam_policy_proto_rawDesc = "" +
 	"\n" +
-	"\x18auth/v1/iam_policy.proto\x12\x04auth\"\xbd\x01\n" +
+	"\x17iam/v1/iam_policy.proto\x12\x03iam\x1a\x1acommon/v1/iam_policy.proto\"\xbd\x01\n" +
 	"\x16PlatformRoleMembership\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x04R\x06userId\x12\x17\n" +
 	"\arole_id\x18\x02 \x01(\x04R\x06roleId\x12\x1b\n" +
@@ -6322,24 +6163,7 @@ const file_auth_v1_iam_policy_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x06 \x01(\tR\tupdatedAt\"\x9f\x02\n" +
-	"\x0fPolicyStatement\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1b\n" +
-	"\tpolicy_id\x18\x02 \x01(\x04R\bpolicyId\x12\x1f\n" +
-	"\vpolicy_name\x18\x03 \x01(\tR\n" +
-	"policyName\x12\x16\n" +
-	"\x06effect\x18\x04 \x01(\tR\x06effect\x12%\n" +
-	"\x0eaction_pattern\x18\x05 \x01(\tR\ractionPattern\x12)\n" +
-	"\x10resource_pattern\x18\x06 \x01(\tR\x0fresourcePattern\x125\n" +
-	"\n" +
-	"conditions\x18\a \x03(\v2\x15.auth.PolicyConditionR\n" +
-	"conditions\x12\x1d\n" +
-	"\n" +
-	"created_at\x18\b \x01(\tR\tcreatedAt\"U\n" +
-	"\x0fPolicyCondition\x12\x1a\n" +
-	"\boperator\x18\x01 \x01(\tR\boperator\x12\x10\n" +
-	"\x03key\x18\x02 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x03 \x01(\tR\x05value\"\xe8\x01\n" +
+	"updated_at\x18\x06 \x01(\tR\tupdatedAt\"\xe8\x01\n" +
 	"\x06Policy\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x14\n" +
 	"\x05scope\x18\x02 \x01(\tR\x05scope\x12\x12\n" +
@@ -6400,26 +6224,26 @@ const file_auth_v1_iam_policy_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\b \x01(\tR\tupdatedAt\"\xd9\x01\n" +
+	"updated_at\x18\b \x01(\tR\tupdatedAt\"\xdb\x01\n" +
 	"\x11GroupInlinePolicy\x12\x19\n" +
 	"\bgroup_id\x18\x01 \x01(\x04R\agroupId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\x125\n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x127\n" +
 	"\n" +
-	"statements\x18\x04 \x03(\v2\x15.auth.PolicyStatementR\n" +
+	"statements\x18\x04 \x03(\v2\x17.common.PolicyStatementR\n" +
 	"statements\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x06 \x01(\tR\tupdatedAt\"\x89\x02\n" +
+	"updated_at\x18\x06 \x01(\tR\tupdatedAt\"\x8b\x02\n" +
 	"\x10UserInlinePolicy\x12\x14\n" +
 	"\x05scope\x18\x01 \x01(\tR\x05scope\x12\x1b\n" +
 	"\ttenant_id\x18\x02 \x01(\tR\btenantId\x12\x17\n" +
 	"\auser_id\x18\x03 \x01(\x04R\x06userId\x12\x12\n" +
 	"\x04name\x18\x04 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x05 \x01(\tR\vdescription\x125\n" +
+	"\vdescription\x18\x05 \x01(\tR\vdescription\x127\n" +
 	"\n" +
-	"statements\x18\x06 \x03(\v2\x15.auth.PolicyStatementR\n" +
+	"statements\x18\x06 \x03(\v2\x17.common.PolicyStatementR\n" +
 	"statements\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x1d\n" +
@@ -6453,14 +6277,14 @@ const file_auth_v1_iam_policy_proto_rawDesc = "" +
 	"policyName\"$\n" +
 	"\"DetachServiceControlPolicyResponse\":\n" +
 	"!ListServiceControlPoliciesRequest\x12\x15\n" +
-	"\x06org_id\x18\x01 \x01(\tR\x05orgId\"N\n" +
-	"\"ListServiceControlPoliciesResponse\x12(\n" +
-	"\bpolicies\x18\x01 \x03(\v2\f.auth.PolicyR\bpolicies\"d\n" +
+	"\x06org_id\x18\x01 \x01(\tR\x05orgId\"M\n" +
+	"\"ListServiceControlPoliciesResponse\x12'\n" +
+	"\bpolicies\x18\x01 \x03(\v2\v.iam.PolicyR\bpolicies\"d\n" +
 	"\x18ListPlatformRolesRequest\x12\"\n" +
 	"\ractor_user_id\x18\x01 \x01(\x04R\vactorUserId\x12$\n" +
-	"\x0etarget_user_id\x18\x02 \x01(\x04R\ftargetUserId\"[\n" +
-	"\x19ListPlatformRolesResponse\x12>\n" +
-	"\vmemberships\x18\x01 \x03(\v2\x1c.auth.PlatformRoleMembershipR\vmemberships\"\x7f\n" +
+	"\x0etarget_user_id\x18\x02 \x01(\x04R\ftargetUserId\"Z\n" +
+	"\x19ListPlatformRolesResponse\x12=\n" +
+	"\vmemberships\x18\x01 \x03(\v2\x1b.iam.PlatformRoleMembershipR\vmemberships\"\x7f\n" +
 	"\x16AddPlatformRoleRequest\x12\"\n" +
 	"\ractor_user_id\x18\x01 \x01(\x04R\vactorUserId\x12$\n" +
 	"\x0etarget_user_id\x18\x02 \x01(\x04R\ftargetUserId\x12\x1b\n" +
@@ -6470,41 +6294,41 @@ const file_auth_v1_iam_policy_proto_rawDesc = "" +
 	"\ractor_user_id\x18\x01 \x01(\x04R\vactorUserId\x12$\n" +
 	"\x0etarget_user_id\x18\x02 \x01(\x04R\ftargetUserId\x12\x1b\n" +
 	"\trole_name\x18\x03 \x01(\tR\broleName\"\x1c\n" +
-	"\x1aRemovePlatformRoleResponse\"\x98\x01\n" +
+	"\x1aRemovePlatformRoleResponse\"\x9a\x01\n" +
 	"\x13CreatePolicyRequest\x12\x14\n" +
 	"\x05scope\x18\x01 \x01(\tR\x05scope\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\x125\n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x127\n" +
 	"\n" +
-	"statements\x18\x04 \x03(\v2\x15.auth.PolicyStatementR\n" +
-	"statements\"s\n" +
-	"\x14CreatePolicyResponse\x12$\n" +
-	"\x06policy\x18\x01 \x01(\v2\f.auth.PolicyR\x06policy\x125\n" +
+	"statements\x18\x04 \x03(\v2\x17.common.PolicyStatementR\n" +
+	"statements\"t\n" +
+	"\x14CreatePolicyResponse\x12#\n" +
+	"\x06policy\x18\x01 \x01(\v2\v.iam.PolicyR\x06policy\x127\n" +
 	"\n" +
-	"statements\x18\x02 \x03(\v2\x15.auth.PolicyStatementR\n" +
-	"statements\"\x8d\x01\n" +
+	"statements\x18\x02 \x03(\v2\x17.common.PolicyStatementR\n" +
+	"statements\"\x8f\x01\n" +
 	"\x1aCreatePolicyVersionRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x125\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x127\n" +
 	"\n" +
-	"statements\x18\x02 \x03(\v2\x15.auth.PolicyStatementR\n" +
+	"statements\x18\x02 \x03(\v2\x17.common.PolicyStatementR\n" +
 	"statements\x12$\n" +
-	"\x0eset_as_default\x18\x03 \x01(\bR\fsetAsDefault\"\x90\x01\n" +
-	"\x1bCreatePolicyVersionResponse\x12:\n" +
-	"\x0epolicy_version\x18\x01 \x01(\v2\x13.auth.PolicyVersionR\rpolicyVersion\x125\n" +
+	"\x0eset_as_default\x18\x03 \x01(\bR\fsetAsDefault\"\x91\x01\n" +
+	"\x1bCreatePolicyVersionResponse\x129\n" +
+	"\x0epolicy_version\x18\x01 \x01(\v2\x12.iam.PolicyVersionR\rpolicyVersion\x127\n" +
 	"\n" +
-	"statements\x18\x02 \x03(\v2\x15.auth.PolicyStatementR\n" +
+	"statements\x18\x02 \x03(\v2\x17.common.PolicyStatementR\n" +
 	"statements\"&\n" +
 	"\x10GetPolicyRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\"p\n" +
-	"\x11GetPolicyResponse\x12$\n" +
-	"\x06policy\x18\x01 \x01(\v2\f.auth.PolicyR\x06policy\x125\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"q\n" +
+	"\x11GetPolicyResponse\x12#\n" +
+	"\x06policy\x18\x01 \x01(\v2\v.iam.PolicyR\x06policy\x127\n" +
 	"\n" +
-	"statements\x18\x02 \x03(\v2\x15.auth.PolicyStatementR\n" +
+	"statements\x18\x02 \x03(\v2\x17.common.PolicyStatementR\n" +
 	"statements\"/\n" +
 	"\x19ListPolicyVersionsRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\"M\n" +
-	"\x1aListPolicyVersionsResponse\x12/\n" +
-	"\bversions\x18\x01 \x03(\v2\x13.auth.PolicyVersionR\bversions\"N\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"L\n" +
+	"\x1aListPolicyVersionsResponse\x12.\n" +
+	"\bversions\x18\x01 \x03(\v2\x12.iam.PolicyVersionR\bversions\"N\n" +
 	"\x1eSetDefaultPolicyVersionRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\tR\aversion\"!\n" +
@@ -6514,27 +6338,27 @@ const file_auth_v1_iam_policy_proto_rawDesc = "" +
 	"\aversion\x18\x02 \x01(\tR\aversion\"\x1d\n" +
 	"\x1bDeletePolicyVersionResponse\"+\n" +
 	"\x13ListPoliciesRequest\x12\x14\n" +
-	"\x05scope\x18\x01 \x01(\tR\x05scope\"@\n" +
-	"\x14ListPoliciesResponse\x12(\n" +
-	"\bpolicies\x18\x01 \x03(\v2\f.auth.PolicyR\bpolicies\"2\n" +
+	"\x05scope\x18\x01 \x01(\tR\x05scope\"?\n" +
+	"\x14ListPoliciesResponse\x12'\n" +
+	"\bpolicies\x18\x01 \x03(\v2\v.iam.PolicyR\bpolicies\"2\n" +
 	"\x1cListPolicyAttachmentsRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\"Y\n" +
-	"\x1dListPolicyAttachmentsResponse\x128\n" +
-	"\vattachments\x18\x01 \x03(\v2\x16.auth.PolicyAttachmentR\vattachments\")\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"X\n" +
+	"\x1dListPolicyAttachmentsResponse\x127\n" +
+	"\vattachments\x18\x01 \x03(\v2\x15.iam.PolicyAttachmentR\vattachments\")\n" +
 	"\x13DeletePolicyRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"\x16\n" +
-	"\x14DeletePolicyResponse\"r\n" +
+	"\x14DeletePolicyResponse\"q\n" +
 	"\x19PutRoleTrustPolicyRequest\x12\x1b\n" +
-	"\trole_name\x18\x01 \x01(\tR\broleName\x128\n" +
+	"\trole_name\x18\x01 \x01(\tR\broleName\x127\n" +
 	"\n" +
-	"statements\x18\x02 \x03(\v2\x18.auth.RoleTrustStatementR\n" +
+	"statements\x18\x02 \x03(\v2\x17.iam.RoleTrustStatementR\n" +
 	"statements\"\x1c\n" +
 	"\x1aPutRoleTrustPolicyResponse\"8\n" +
 	"\x19GetRoleTrustPolicyRequest\x12\x1b\n" +
-	"\trole_name\x18\x01 \x01(\tR\broleName\"V\n" +
-	"\x1aGetRoleTrustPolicyResponse\x128\n" +
+	"\trole_name\x18\x01 \x01(\tR\broleName\"U\n" +
+	"\x1aGetRoleTrustPolicyResponse\x127\n" +
 	"\n" +
-	"statements\x18\x01 \x03(\v2\x18.auth.RoleTrustStatementR\n" +
+	"statements\x18\x01 \x03(\v2\x17.iam.RoleTrustStatementR\n" +
 	"statements\";\n" +
 	"\x1cDeleteRoleTrustPolicyRequest\x12\x1b\n" +
 	"\trole_name\x18\x01 \x01(\tR\broleName\"\x1f\n" +
@@ -6543,14 +6367,16 @@ const file_auth_v1_iam_policy_proto_rawDesc = "" +
 	"\x05scope\x18\x01 \x01(\tR\x05scope\x12\x1b\n" +
 	"\ttenant_id\x18\x02 \x01(\tR\btenantId\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x04 \x01(\tR\vdescription\"8\n" +
-	"\x13CreateGroupResponse\x12!\n" +
-	"\x05group\x18\x01 \x01(\v2\v.auth.GroupR\x05group\"F\n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\"7\n" +
+	"\x13CreateGroupResponse\x12 \n" +
+	"\x05group\x18\x01 \x01(\v2\n" +
+	".iam.GroupR\x05group\"F\n" +
 	"\x11ListGroupsRequest\x12\x14\n" +
 	"\x05scope\x18\x01 \x01(\tR\x05scope\x12\x1b\n" +
-	"\ttenant_id\x18\x02 \x01(\tR\btenantId\"9\n" +
-	"\x12ListGroupsResponse\x12#\n" +
-	"\x06groups\x18\x01 \x03(\v2\v.auth.GroupR\x06groups\"/\n" +
+	"\ttenant_id\x18\x02 \x01(\tR\btenantId\"8\n" +
+	"\x12ListGroupsResponse\x12\"\n" +
+	"\x06groups\x18\x01 \x03(\v2\n" +
+	".iam.GroupR\x06groups\"/\n" +
 	"\x12DeleteGroupRequest\x12\x19\n" +
 	"\bgroup_id\x18\x01 \x01(\x04R\agroupId\"\x15\n" +
 	"\x13DeleteGroupResponse\"K\n" +
@@ -6572,56 +6398,56 @@ const file_auth_v1_iam_policy_proto_rawDesc = "" +
 	"policyName\"\x1b\n" +
 	"\x19AttachGroupPolicyResponse\"5\n" +
 	"\x18ListGroupPoliciesRequest\x12\x19\n" +
-	"\bgroup_id\x18\x01 \x01(\x04R\agroupId\"E\n" +
-	"\x19ListGroupPoliciesResponse\x12(\n" +
-	"\bpolicies\x18\x01 \x03(\v2\f.auth.PolicyR\bpolicies\"V\n" +
+	"\bgroup_id\x18\x01 \x01(\x04R\agroupId\"D\n" +
+	"\x19ListGroupPoliciesResponse\x12'\n" +
+	"\bpolicies\x18\x01 \x03(\v2\v.iam.PolicyR\bpolicies\"V\n" +
 	"\x18DetachGroupPolicyRequest\x12\x19\n" +
 	"\bgroup_id\x18\x01 \x01(\x04R\agroupId\x12\x1f\n" +
 	"\vpolicy_name\x18\x02 \x01(\tR\n" +
 	"policyName\"\x1b\n" +
-	"\x19DetachGroupPolicyResponse\"\xa5\x01\n" +
+	"\x19DetachGroupPolicyResponse\"\xa7\x01\n" +
 	"\x1bPutGroupInlinePolicyRequest\x12\x19\n" +
 	"\bgroup_id\x18\x01 \x01(\x04R\agroupId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\x125\n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x127\n" +
 	"\n" +
-	"statements\x18\x04 \x03(\v2\x15.auth.PolicyStatementR\n" +
+	"statements\x18\x04 \x03(\v2\x17.common.PolicyStatementR\n" +
 	"statements\"\x1e\n" +
 	"\x1cPutGroupInlinePolicyResponse\"L\n" +
 	"\x1bGetGroupInlinePolicyRequest\x12\x19\n" +
 	"\bgroup_id\x18\x01 \x01(\x04R\agroupId\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\"O\n" +
-	"\x1cGetGroupInlinePolicyResponse\x12/\n" +
-	"\x06policy\x18\x01 \x01(\v2\x17.auth.GroupInlinePolicyR\x06policy\";\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"N\n" +
+	"\x1cGetGroupInlinePolicyResponse\x12.\n" +
+	"\x06policy\x18\x01 \x01(\v2\x16.iam.GroupInlinePolicyR\x06policy\";\n" +
 	"\x1eListGroupInlinePoliciesRequest\x12\x19\n" +
-	"\bgroup_id\x18\x01 \x01(\x04R\agroupId\"V\n" +
-	"\x1fListGroupInlinePoliciesResponse\x123\n" +
-	"\bpolicies\x18\x01 \x03(\v2\x17.auth.GroupInlinePolicyR\bpolicies\"O\n" +
+	"\bgroup_id\x18\x01 \x01(\x04R\agroupId\"U\n" +
+	"\x1fListGroupInlinePoliciesResponse\x122\n" +
+	"\bpolicies\x18\x01 \x03(\v2\x16.iam.GroupInlinePolicyR\bpolicies\"O\n" +
 	"\x1eDeleteGroupInlinePolicyRequest\x12\x19\n" +
 	"\bgroup_id\x18\x01 \x01(\x04R\agroupId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\"!\n" +
 	"\x1fDeleteGroupInlinePolicyResponse\"G\n" +
 	"\x1fListPlatformUserPoliciesRequest\x12$\n" +
-	"\x0etarget_user_id\x18\x01 \x01(\x04R\ftargetUserId\"L\n" +
-	" ListPlatformUserPoliciesResponse\x12(\n" +
-	"\bpolicies\x18\x01 \x03(\v2\f.auth.PolicyR\bpolicies\"\xb7\x01\n" +
+	"\x0etarget_user_id\x18\x01 \x01(\x04R\ftargetUserId\"K\n" +
+	" ListPlatformUserPoliciesResponse\x12'\n" +
+	"\bpolicies\x18\x01 \x03(\v2\v.iam.PolicyR\bpolicies\"\xb9\x01\n" +
 	"\"PutPlatformUserInlinePolicyRequest\x12$\n" +
 	"\x0etarget_user_id\x18\x01 \x01(\x04R\ftargetUserId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\x125\n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x127\n" +
 	"\n" +
-	"statements\x18\x04 \x03(\v2\x15.auth.PolicyStatementR\n" +
+	"statements\x18\x04 \x03(\v2\x17.common.PolicyStatementR\n" +
 	"statements\"%\n" +
 	"#PutPlatformUserInlinePolicyResponse\"^\n" +
 	"\"GetPlatformUserInlinePolicyRequest\x12$\n" +
 	"\x0etarget_user_id\x18\x01 \x01(\x04R\ftargetUserId\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\"U\n" +
-	"#GetPlatformUserInlinePolicyResponse\x12.\n" +
-	"\x06policy\x18\x01 \x01(\v2\x16.auth.UserInlinePolicyR\x06policy\"M\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"T\n" +
+	"#GetPlatformUserInlinePolicyResponse\x12-\n" +
+	"\x06policy\x18\x01 \x01(\v2\x15.iam.UserInlinePolicyR\x06policy\"M\n" +
 	"%ListPlatformUserInlinePoliciesRequest\x12$\n" +
-	"\x0etarget_user_id\x18\x01 \x01(\x04R\ftargetUserId\"\\\n" +
-	"&ListPlatformUserInlinePoliciesResponse\x122\n" +
-	"\bpolicies\x18\x01 \x03(\v2\x16.auth.UserInlinePolicyR\bpolicies\"a\n" +
+	"\x0etarget_user_id\x18\x01 \x01(\x04R\ftargetUserId\"[\n" +
+	"&ListPlatformUserInlinePoliciesResponse\x121\n" +
+	"\bpolicies\x18\x01 \x03(\v2\x15.iam.UserInlinePolicyR\bpolicies\"a\n" +
 	"%DeletePlatformUserInlinePolicyRequest\x12$\n" +
 	"\x0etarget_user_id\x18\x01 \x01(\x04R\ftargetUserId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\"(\n" +
@@ -6642,9 +6468,9 @@ const file_auth_v1_iam_policy_proto_rawDesc = "" +
 	"policyName\"+\n" +
 	")PutPlatformUserPermissionBoundaryResponse\"P\n" +
 	"(GetPlatformUserPermissionBoundaryRequest\x12$\n" +
-	"\x0etarget_user_id\x18\x01 \x01(\x04R\ftargetUserId\"a\n" +
-	")GetPlatformUserPermissionBoundaryResponse\x124\n" +
-	"\bboundary\x18\x01 \x01(\v2\x18.auth.PermissionBoundaryR\bboundary\"S\n" +
+	"\x0etarget_user_id\x18\x01 \x01(\x04R\ftargetUserId\"`\n" +
+	")GetPlatformUserPermissionBoundaryResponse\x123\n" +
+	"\bboundary\x18\x01 \x01(\v2\x17.iam.PermissionBoundaryR\bboundary\"S\n" +
 	"+DeletePlatformUserPermissionBoundaryRequest\x12$\n" +
 	"\x0etarget_user_id\x18\x01 \x01(\x04R\ftargetUserId\".\n" +
 	",DeletePlatformUserPermissionBoundaryResponse\"\x8a\x01\n" +
@@ -6664,29 +6490,29 @@ const file_auth_v1_iam_policy_proto_rawDesc = "" +
 	"\aallowed\x18\x01 \x01(\bR\aallowed\"U\n" +
 	"\x1dListTenantUserPoliciesRequest\x12\x1b\n" +
 	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\x04R\x06userId\"J\n" +
-	"\x1eListTenantUserPoliciesResponse\x12(\n" +
-	"\bpolicies\x18\x01 \x03(\v2\f.auth.PolicyR\bpolicies\"\xc5\x01\n" +
+	"\auser_id\x18\x02 \x01(\x04R\x06userId\"I\n" +
+	"\x1eListTenantUserPoliciesResponse\x12'\n" +
+	"\bpolicies\x18\x01 \x03(\v2\v.iam.PolicyR\bpolicies\"\xc7\x01\n" +
 	" PutTenantUserInlinePolicyRequest\x12\x1b\n" +
 	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x04R\x06userId\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x04 \x01(\tR\vdescription\x125\n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\x127\n" +
 	"\n" +
-	"statements\x18\x05 \x03(\v2\x15.auth.PolicyStatementR\n" +
+	"statements\x18\x05 \x03(\v2\x17.common.PolicyStatementR\n" +
 	"statements\"#\n" +
 	"!PutTenantUserInlinePolicyResponse\"l\n" +
 	" GetTenantUserInlinePolicyRequest\x12\x1b\n" +
 	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x04R\x06userId\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\"S\n" +
-	"!GetTenantUserInlinePolicyResponse\x12.\n" +
-	"\x06policy\x18\x01 \x01(\v2\x16.auth.UserInlinePolicyR\x06policy\"[\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\"R\n" +
+	"!GetTenantUserInlinePolicyResponse\x12-\n" +
+	"\x06policy\x18\x01 \x01(\v2\x15.iam.UserInlinePolicyR\x06policy\"[\n" +
 	"#ListTenantUserInlinePoliciesRequest\x12\x1b\n" +
 	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\x04R\x06userId\"Z\n" +
-	"$ListTenantUserInlinePoliciesResponse\x122\n" +
-	"\bpolicies\x18\x01 \x03(\v2\x16.auth.UserInlinePolicyR\bpolicies\"o\n" +
+	"\auser_id\x18\x02 \x01(\x04R\x06userId\"Y\n" +
+	"$ListTenantUserInlinePoliciesResponse\x121\n" +
+	"\bpolicies\x18\x01 \x03(\v2\x15.iam.UserInlinePolicyR\bpolicies\"o\n" +
 	"#DeleteTenantUserInlinePolicyRequest\x12\x1b\n" +
 	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x04R\x06userId\x12\x12\n" +
@@ -6712,9 +6538,9 @@ const file_auth_v1_iam_policy_proto_rawDesc = "" +
 	"'PutTenantUserPermissionBoundaryResponse\"^\n" +
 	"&GetTenantUserPermissionBoundaryRequest\x12\x1b\n" +
 	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\x04R\x06userId\"_\n" +
-	"'GetTenantUserPermissionBoundaryResponse\x124\n" +
-	"\bboundary\x18\x01 \x01(\v2\x18.auth.PermissionBoundaryR\bboundary\"a\n" +
+	"\auser_id\x18\x02 \x01(\x04R\x06userId\"^\n" +
+	"'GetTenantUserPermissionBoundaryResponse\x123\n" +
+	"\bboundary\x18\x01 \x01(\v2\x17.iam.PermissionBoundaryR\bboundary\"a\n" +
 	")DeleteTenantUserPermissionBoundaryRequest\x12\x1b\n" +
 	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x04R\x06userId\",\n" +
@@ -6725,215 +6551,213 @@ const file_auth_v1_iam_policy_proto_rawDesc = "" +
 	"policyName\"#\n" +
 	"!PutRolePermissionBoundaryResponse\"?\n" +
 	" GetRolePermissionBoundaryRequest\x12\x1b\n" +
-	"\trole_name\x18\x01 \x01(\tR\broleName\"]\n" +
-	"!GetRolePermissionBoundaryResponse\x128\n" +
-	"\bboundary\x18\x01 \x01(\v2\x1c.auth.RolePermissionBoundaryR\bboundary\"B\n" +
+	"\trole_name\x18\x01 \x01(\tR\broleName\"\\\n" +
+	"!GetRolePermissionBoundaryResponse\x127\n" +
+	"\bboundary\x18\x01 \x01(\v2\x1b.iam.RolePermissionBoundaryR\bboundary\"B\n" +
 	"#DeleteRolePermissionBoundaryRequest\x12\x1b\n" +
 	"\trole_name\x18\x01 \x01(\tR\broleName\"&\n" +
-	"$DeleteRolePermissionBoundaryResponseB<Z:github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1b\x06proto3"
+	"$DeleteRolePermissionBoundaryResponseB:Z8github.com/tuannm99/podzone/pkg/api/proto/iam/v1;pbiamv1b\x06proto3"
 
 var (
-	file_auth_v1_iam_policy_proto_rawDescOnce sync.Once
-	file_auth_v1_iam_policy_proto_rawDescData []byte
+	file_iam_v1_iam_policy_proto_rawDescOnce sync.Once
+	file_iam_v1_iam_policy_proto_rawDescData []byte
 )
 
-func file_auth_v1_iam_policy_proto_rawDescGZIP() []byte {
-	file_auth_v1_iam_policy_proto_rawDescOnce.Do(func() {
-		file_auth_v1_iam_policy_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_auth_v1_iam_policy_proto_rawDesc), len(file_auth_v1_iam_policy_proto_rawDesc)))
+func file_iam_v1_iam_policy_proto_rawDescGZIP() []byte {
+	file_iam_v1_iam_policy_proto_rawDescOnce.Do(func() {
+		file_iam_v1_iam_policy_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_iam_v1_iam_policy_proto_rawDesc), len(file_iam_v1_iam_policy_proto_rawDesc)))
 	})
-	return file_auth_v1_iam_policy_proto_rawDescData
+	return file_iam_v1_iam_policy_proto_rawDescData
 }
 
-var file_auth_v1_iam_policy_proto_msgTypes = make([]protoimpl.MessageInfo, 124)
-var file_auth_v1_iam_policy_proto_goTypes = []any{
-	(*PlatformRoleMembership)(nil),                       // 0: auth.PlatformRoleMembership
-	(*PolicyStatement)(nil),                              // 1: auth.PolicyStatement
-	(*PolicyCondition)(nil),                              // 2: auth.PolicyCondition
-	(*Policy)(nil),                                       // 3: auth.Policy
-	(*PolicyVersion)(nil),                                // 4: auth.PolicyVersion
-	(*PolicyAttachment)(nil),                             // 5: auth.PolicyAttachment
-	(*ServiceControlPolicyAttachment)(nil),               // 6: auth.ServiceControlPolicyAttachment
-	(*RoleTrustStatement)(nil),                           // 7: auth.RoleTrustStatement
-	(*Group)(nil),                                        // 8: auth.Group
-	(*GroupInlinePolicy)(nil),                            // 9: auth.GroupInlinePolicy
-	(*UserInlinePolicy)(nil),                             // 10: auth.UserInlinePolicy
-	(*PermissionBoundary)(nil),                           // 11: auth.PermissionBoundary
-	(*RolePermissionBoundary)(nil),                       // 12: auth.RolePermissionBoundary
-	(*AttachServiceControlPolicyRequest)(nil),            // 13: auth.AttachServiceControlPolicyRequest
-	(*AttachServiceControlPolicyResponse)(nil),           // 14: auth.AttachServiceControlPolicyResponse
-	(*DetachServiceControlPolicyRequest)(nil),            // 15: auth.DetachServiceControlPolicyRequest
-	(*DetachServiceControlPolicyResponse)(nil),           // 16: auth.DetachServiceControlPolicyResponse
-	(*ListServiceControlPoliciesRequest)(nil),            // 17: auth.ListServiceControlPoliciesRequest
-	(*ListServiceControlPoliciesResponse)(nil),           // 18: auth.ListServiceControlPoliciesResponse
-	(*ListPlatformRolesRequest)(nil),                     // 19: auth.ListPlatformRolesRequest
-	(*ListPlatformRolesResponse)(nil),                    // 20: auth.ListPlatformRolesResponse
-	(*AddPlatformRoleRequest)(nil),                       // 21: auth.AddPlatformRoleRequest
-	(*AddPlatformRoleResponse)(nil),                      // 22: auth.AddPlatformRoleResponse
-	(*RemovePlatformRoleRequest)(nil),                    // 23: auth.RemovePlatformRoleRequest
-	(*RemovePlatformRoleResponse)(nil),                   // 24: auth.RemovePlatformRoleResponse
-	(*CreatePolicyRequest)(nil),                          // 25: auth.CreatePolicyRequest
-	(*CreatePolicyResponse)(nil),                         // 26: auth.CreatePolicyResponse
-	(*CreatePolicyVersionRequest)(nil),                   // 27: auth.CreatePolicyVersionRequest
-	(*CreatePolicyVersionResponse)(nil),                  // 28: auth.CreatePolicyVersionResponse
-	(*GetPolicyRequest)(nil),                             // 29: auth.GetPolicyRequest
-	(*GetPolicyResponse)(nil),                            // 30: auth.GetPolicyResponse
-	(*ListPolicyVersionsRequest)(nil),                    // 31: auth.ListPolicyVersionsRequest
-	(*ListPolicyVersionsResponse)(nil),                   // 32: auth.ListPolicyVersionsResponse
-	(*SetDefaultPolicyVersionRequest)(nil),               // 33: auth.SetDefaultPolicyVersionRequest
-	(*SetDefaultPolicyVersionResponse)(nil),              // 34: auth.SetDefaultPolicyVersionResponse
-	(*DeletePolicyVersionRequest)(nil),                   // 35: auth.DeletePolicyVersionRequest
-	(*DeletePolicyVersionResponse)(nil),                  // 36: auth.DeletePolicyVersionResponse
-	(*ListPoliciesRequest)(nil),                          // 37: auth.ListPoliciesRequest
-	(*ListPoliciesResponse)(nil),                         // 38: auth.ListPoliciesResponse
-	(*ListPolicyAttachmentsRequest)(nil),                 // 39: auth.ListPolicyAttachmentsRequest
-	(*ListPolicyAttachmentsResponse)(nil),                // 40: auth.ListPolicyAttachmentsResponse
-	(*DeletePolicyRequest)(nil),                          // 41: auth.DeletePolicyRequest
-	(*DeletePolicyResponse)(nil),                         // 42: auth.DeletePolicyResponse
-	(*PutRoleTrustPolicyRequest)(nil),                    // 43: auth.PutRoleTrustPolicyRequest
-	(*PutRoleTrustPolicyResponse)(nil),                   // 44: auth.PutRoleTrustPolicyResponse
-	(*GetRoleTrustPolicyRequest)(nil),                    // 45: auth.GetRoleTrustPolicyRequest
-	(*GetRoleTrustPolicyResponse)(nil),                   // 46: auth.GetRoleTrustPolicyResponse
-	(*DeleteRoleTrustPolicyRequest)(nil),                 // 47: auth.DeleteRoleTrustPolicyRequest
-	(*DeleteRoleTrustPolicyResponse)(nil),                // 48: auth.DeleteRoleTrustPolicyResponse
-	(*CreateGroupRequest)(nil),                           // 49: auth.CreateGroupRequest
-	(*CreateGroupResponse)(nil),                          // 50: auth.CreateGroupResponse
-	(*ListGroupsRequest)(nil),                            // 51: auth.ListGroupsRequest
-	(*ListGroupsResponse)(nil),                           // 52: auth.ListGroupsResponse
-	(*DeleteGroupRequest)(nil),                           // 53: auth.DeleteGroupRequest
-	(*DeleteGroupResponse)(nil),                          // 54: auth.DeleteGroupResponse
-	(*AddGroupMemberRequest)(nil),                        // 55: auth.AddGroupMemberRequest
-	(*AddGroupMemberResponse)(nil),                       // 56: auth.AddGroupMemberResponse
-	(*ListGroupMembersRequest)(nil),                      // 57: auth.ListGroupMembersRequest
-	(*ListGroupMembersResponse)(nil),                     // 58: auth.ListGroupMembersResponse
-	(*RemoveGroupMemberRequest)(nil),                     // 59: auth.RemoveGroupMemberRequest
-	(*RemoveGroupMemberResponse)(nil),                    // 60: auth.RemoveGroupMemberResponse
-	(*AttachGroupPolicyRequest)(nil),                     // 61: auth.AttachGroupPolicyRequest
-	(*AttachGroupPolicyResponse)(nil),                    // 62: auth.AttachGroupPolicyResponse
-	(*ListGroupPoliciesRequest)(nil),                     // 63: auth.ListGroupPoliciesRequest
-	(*ListGroupPoliciesResponse)(nil),                    // 64: auth.ListGroupPoliciesResponse
-	(*DetachGroupPolicyRequest)(nil),                     // 65: auth.DetachGroupPolicyRequest
-	(*DetachGroupPolicyResponse)(nil),                    // 66: auth.DetachGroupPolicyResponse
-	(*PutGroupInlinePolicyRequest)(nil),                  // 67: auth.PutGroupInlinePolicyRequest
-	(*PutGroupInlinePolicyResponse)(nil),                 // 68: auth.PutGroupInlinePolicyResponse
-	(*GetGroupInlinePolicyRequest)(nil),                  // 69: auth.GetGroupInlinePolicyRequest
-	(*GetGroupInlinePolicyResponse)(nil),                 // 70: auth.GetGroupInlinePolicyResponse
-	(*ListGroupInlinePoliciesRequest)(nil),               // 71: auth.ListGroupInlinePoliciesRequest
-	(*ListGroupInlinePoliciesResponse)(nil),              // 72: auth.ListGroupInlinePoliciesResponse
-	(*DeleteGroupInlinePolicyRequest)(nil),               // 73: auth.DeleteGroupInlinePolicyRequest
-	(*DeleteGroupInlinePolicyResponse)(nil),              // 74: auth.DeleteGroupInlinePolicyResponse
-	(*ListPlatformUserPoliciesRequest)(nil),              // 75: auth.ListPlatformUserPoliciesRequest
-	(*ListPlatformUserPoliciesResponse)(nil),             // 76: auth.ListPlatformUserPoliciesResponse
-	(*PutPlatformUserInlinePolicyRequest)(nil),           // 77: auth.PutPlatformUserInlinePolicyRequest
-	(*PutPlatformUserInlinePolicyResponse)(nil),          // 78: auth.PutPlatformUserInlinePolicyResponse
-	(*GetPlatformUserInlinePolicyRequest)(nil),           // 79: auth.GetPlatformUserInlinePolicyRequest
-	(*GetPlatformUserInlinePolicyResponse)(nil),          // 80: auth.GetPlatformUserInlinePolicyResponse
-	(*ListPlatformUserInlinePoliciesRequest)(nil),        // 81: auth.ListPlatformUserInlinePoliciesRequest
-	(*ListPlatformUserInlinePoliciesResponse)(nil),       // 82: auth.ListPlatformUserInlinePoliciesResponse
-	(*DeletePlatformUserInlinePolicyRequest)(nil),        // 83: auth.DeletePlatformUserInlinePolicyRequest
-	(*DeletePlatformUserInlinePolicyResponse)(nil),       // 84: auth.DeletePlatformUserInlinePolicyResponse
-	(*AttachPlatformUserPolicyRequest)(nil),              // 85: auth.AttachPlatformUserPolicyRequest
-	(*AttachPlatformUserPolicyResponse)(nil),             // 86: auth.AttachPlatformUserPolicyResponse
-	(*DetachPlatformUserPolicyRequest)(nil),              // 87: auth.DetachPlatformUserPolicyRequest
-	(*DetachPlatformUserPolicyResponse)(nil),             // 88: auth.DetachPlatformUserPolicyResponse
-	(*PutPlatformUserPermissionBoundaryRequest)(nil),     // 89: auth.PutPlatformUserPermissionBoundaryRequest
-	(*PutPlatformUserPermissionBoundaryResponse)(nil),    // 90: auth.PutPlatformUserPermissionBoundaryResponse
-	(*GetPlatformUserPermissionBoundaryRequest)(nil),     // 91: auth.GetPlatformUserPermissionBoundaryRequest
-	(*GetPlatformUserPermissionBoundaryResponse)(nil),    // 92: auth.GetPlatformUserPermissionBoundaryResponse
-	(*DeletePlatformUserPermissionBoundaryRequest)(nil),  // 93: auth.DeletePlatformUserPermissionBoundaryRequest
-	(*DeletePlatformUserPermissionBoundaryResponse)(nil), // 94: auth.DeletePlatformUserPermissionBoundaryResponse
-	(*CheckPermissionRequest)(nil),                       // 95: auth.CheckPermissionRequest
-	(*CheckPlatformPermissionRequest)(nil),               // 96: auth.CheckPlatformPermissionRequest
-	(*CheckPermissionResponse)(nil),                      // 97: auth.CheckPermissionResponse
-	(*ListTenantUserPoliciesRequest)(nil),                // 98: auth.ListTenantUserPoliciesRequest
-	(*ListTenantUserPoliciesResponse)(nil),               // 99: auth.ListTenantUserPoliciesResponse
-	(*PutTenantUserInlinePolicyRequest)(nil),             // 100: auth.PutTenantUserInlinePolicyRequest
-	(*PutTenantUserInlinePolicyResponse)(nil),            // 101: auth.PutTenantUserInlinePolicyResponse
-	(*GetTenantUserInlinePolicyRequest)(nil),             // 102: auth.GetTenantUserInlinePolicyRequest
-	(*GetTenantUserInlinePolicyResponse)(nil),            // 103: auth.GetTenantUserInlinePolicyResponse
-	(*ListTenantUserInlinePoliciesRequest)(nil),          // 104: auth.ListTenantUserInlinePoliciesRequest
-	(*ListTenantUserInlinePoliciesResponse)(nil),         // 105: auth.ListTenantUserInlinePoliciesResponse
-	(*DeleteTenantUserInlinePolicyRequest)(nil),          // 106: auth.DeleteTenantUserInlinePolicyRequest
-	(*DeleteTenantUserInlinePolicyResponse)(nil),         // 107: auth.DeleteTenantUserInlinePolicyResponse
-	(*AttachTenantUserPolicyRequest)(nil),                // 108: auth.AttachTenantUserPolicyRequest
-	(*AttachTenantUserPolicyResponse)(nil),               // 109: auth.AttachTenantUserPolicyResponse
-	(*DetachTenantUserPolicyRequest)(nil),                // 110: auth.DetachTenantUserPolicyRequest
-	(*DetachTenantUserPolicyResponse)(nil),               // 111: auth.DetachTenantUserPolicyResponse
-	(*PutTenantUserPermissionBoundaryRequest)(nil),       // 112: auth.PutTenantUserPermissionBoundaryRequest
-	(*PutTenantUserPermissionBoundaryResponse)(nil),      // 113: auth.PutTenantUserPermissionBoundaryResponse
-	(*GetTenantUserPermissionBoundaryRequest)(nil),       // 114: auth.GetTenantUserPermissionBoundaryRequest
-	(*GetTenantUserPermissionBoundaryResponse)(nil),      // 115: auth.GetTenantUserPermissionBoundaryResponse
-	(*DeleteTenantUserPermissionBoundaryRequest)(nil),    // 116: auth.DeleteTenantUserPermissionBoundaryRequest
-	(*DeleteTenantUserPermissionBoundaryResponse)(nil),   // 117: auth.DeleteTenantUserPermissionBoundaryResponse
-	(*PutRolePermissionBoundaryRequest)(nil),             // 118: auth.PutRolePermissionBoundaryRequest
-	(*PutRolePermissionBoundaryResponse)(nil),            // 119: auth.PutRolePermissionBoundaryResponse
-	(*GetRolePermissionBoundaryRequest)(nil),             // 120: auth.GetRolePermissionBoundaryRequest
-	(*GetRolePermissionBoundaryResponse)(nil),            // 121: auth.GetRolePermissionBoundaryResponse
-	(*DeleteRolePermissionBoundaryRequest)(nil),          // 122: auth.DeleteRolePermissionBoundaryRequest
-	(*DeleteRolePermissionBoundaryResponse)(nil),         // 123: auth.DeleteRolePermissionBoundaryResponse
+var file_iam_v1_iam_policy_proto_msgTypes = make([]protoimpl.MessageInfo, 122)
+var file_iam_v1_iam_policy_proto_goTypes = []any{
+	(*PlatformRoleMembership)(nil),                       // 0: iam.PlatformRoleMembership
+	(*Policy)(nil),                                       // 1: iam.Policy
+	(*PolicyVersion)(nil),                                // 2: iam.PolicyVersion
+	(*PolicyAttachment)(nil),                             // 3: iam.PolicyAttachment
+	(*ServiceControlPolicyAttachment)(nil),               // 4: iam.ServiceControlPolicyAttachment
+	(*RoleTrustStatement)(nil),                           // 5: iam.RoleTrustStatement
+	(*Group)(nil),                                        // 6: iam.Group
+	(*GroupInlinePolicy)(nil),                            // 7: iam.GroupInlinePolicy
+	(*UserInlinePolicy)(nil),                             // 8: iam.UserInlinePolicy
+	(*PermissionBoundary)(nil),                           // 9: iam.PermissionBoundary
+	(*RolePermissionBoundary)(nil),                       // 10: iam.RolePermissionBoundary
+	(*AttachServiceControlPolicyRequest)(nil),            // 11: iam.AttachServiceControlPolicyRequest
+	(*AttachServiceControlPolicyResponse)(nil),           // 12: iam.AttachServiceControlPolicyResponse
+	(*DetachServiceControlPolicyRequest)(nil),            // 13: iam.DetachServiceControlPolicyRequest
+	(*DetachServiceControlPolicyResponse)(nil),           // 14: iam.DetachServiceControlPolicyResponse
+	(*ListServiceControlPoliciesRequest)(nil),            // 15: iam.ListServiceControlPoliciesRequest
+	(*ListServiceControlPoliciesResponse)(nil),           // 16: iam.ListServiceControlPoliciesResponse
+	(*ListPlatformRolesRequest)(nil),                     // 17: iam.ListPlatformRolesRequest
+	(*ListPlatformRolesResponse)(nil),                    // 18: iam.ListPlatformRolesResponse
+	(*AddPlatformRoleRequest)(nil),                       // 19: iam.AddPlatformRoleRequest
+	(*AddPlatformRoleResponse)(nil),                      // 20: iam.AddPlatformRoleResponse
+	(*RemovePlatformRoleRequest)(nil),                    // 21: iam.RemovePlatformRoleRequest
+	(*RemovePlatformRoleResponse)(nil),                   // 22: iam.RemovePlatformRoleResponse
+	(*CreatePolicyRequest)(nil),                          // 23: iam.CreatePolicyRequest
+	(*CreatePolicyResponse)(nil),                         // 24: iam.CreatePolicyResponse
+	(*CreatePolicyVersionRequest)(nil),                   // 25: iam.CreatePolicyVersionRequest
+	(*CreatePolicyVersionResponse)(nil),                  // 26: iam.CreatePolicyVersionResponse
+	(*GetPolicyRequest)(nil),                             // 27: iam.GetPolicyRequest
+	(*GetPolicyResponse)(nil),                            // 28: iam.GetPolicyResponse
+	(*ListPolicyVersionsRequest)(nil),                    // 29: iam.ListPolicyVersionsRequest
+	(*ListPolicyVersionsResponse)(nil),                   // 30: iam.ListPolicyVersionsResponse
+	(*SetDefaultPolicyVersionRequest)(nil),               // 31: iam.SetDefaultPolicyVersionRequest
+	(*SetDefaultPolicyVersionResponse)(nil),              // 32: iam.SetDefaultPolicyVersionResponse
+	(*DeletePolicyVersionRequest)(nil),                   // 33: iam.DeletePolicyVersionRequest
+	(*DeletePolicyVersionResponse)(nil),                  // 34: iam.DeletePolicyVersionResponse
+	(*ListPoliciesRequest)(nil),                          // 35: iam.ListPoliciesRequest
+	(*ListPoliciesResponse)(nil),                         // 36: iam.ListPoliciesResponse
+	(*ListPolicyAttachmentsRequest)(nil),                 // 37: iam.ListPolicyAttachmentsRequest
+	(*ListPolicyAttachmentsResponse)(nil),                // 38: iam.ListPolicyAttachmentsResponse
+	(*DeletePolicyRequest)(nil),                          // 39: iam.DeletePolicyRequest
+	(*DeletePolicyResponse)(nil),                         // 40: iam.DeletePolicyResponse
+	(*PutRoleTrustPolicyRequest)(nil),                    // 41: iam.PutRoleTrustPolicyRequest
+	(*PutRoleTrustPolicyResponse)(nil),                   // 42: iam.PutRoleTrustPolicyResponse
+	(*GetRoleTrustPolicyRequest)(nil),                    // 43: iam.GetRoleTrustPolicyRequest
+	(*GetRoleTrustPolicyResponse)(nil),                   // 44: iam.GetRoleTrustPolicyResponse
+	(*DeleteRoleTrustPolicyRequest)(nil),                 // 45: iam.DeleteRoleTrustPolicyRequest
+	(*DeleteRoleTrustPolicyResponse)(nil),                // 46: iam.DeleteRoleTrustPolicyResponse
+	(*CreateGroupRequest)(nil),                           // 47: iam.CreateGroupRequest
+	(*CreateGroupResponse)(nil),                          // 48: iam.CreateGroupResponse
+	(*ListGroupsRequest)(nil),                            // 49: iam.ListGroupsRequest
+	(*ListGroupsResponse)(nil),                           // 50: iam.ListGroupsResponse
+	(*DeleteGroupRequest)(nil),                           // 51: iam.DeleteGroupRequest
+	(*DeleteGroupResponse)(nil),                          // 52: iam.DeleteGroupResponse
+	(*AddGroupMemberRequest)(nil),                        // 53: iam.AddGroupMemberRequest
+	(*AddGroupMemberResponse)(nil),                       // 54: iam.AddGroupMemberResponse
+	(*ListGroupMembersRequest)(nil),                      // 55: iam.ListGroupMembersRequest
+	(*ListGroupMembersResponse)(nil),                     // 56: iam.ListGroupMembersResponse
+	(*RemoveGroupMemberRequest)(nil),                     // 57: iam.RemoveGroupMemberRequest
+	(*RemoveGroupMemberResponse)(nil),                    // 58: iam.RemoveGroupMemberResponse
+	(*AttachGroupPolicyRequest)(nil),                     // 59: iam.AttachGroupPolicyRequest
+	(*AttachGroupPolicyResponse)(nil),                    // 60: iam.AttachGroupPolicyResponse
+	(*ListGroupPoliciesRequest)(nil),                     // 61: iam.ListGroupPoliciesRequest
+	(*ListGroupPoliciesResponse)(nil),                    // 62: iam.ListGroupPoliciesResponse
+	(*DetachGroupPolicyRequest)(nil),                     // 63: iam.DetachGroupPolicyRequest
+	(*DetachGroupPolicyResponse)(nil),                    // 64: iam.DetachGroupPolicyResponse
+	(*PutGroupInlinePolicyRequest)(nil),                  // 65: iam.PutGroupInlinePolicyRequest
+	(*PutGroupInlinePolicyResponse)(nil),                 // 66: iam.PutGroupInlinePolicyResponse
+	(*GetGroupInlinePolicyRequest)(nil),                  // 67: iam.GetGroupInlinePolicyRequest
+	(*GetGroupInlinePolicyResponse)(nil),                 // 68: iam.GetGroupInlinePolicyResponse
+	(*ListGroupInlinePoliciesRequest)(nil),               // 69: iam.ListGroupInlinePoliciesRequest
+	(*ListGroupInlinePoliciesResponse)(nil),              // 70: iam.ListGroupInlinePoliciesResponse
+	(*DeleteGroupInlinePolicyRequest)(nil),               // 71: iam.DeleteGroupInlinePolicyRequest
+	(*DeleteGroupInlinePolicyResponse)(nil),              // 72: iam.DeleteGroupInlinePolicyResponse
+	(*ListPlatformUserPoliciesRequest)(nil),              // 73: iam.ListPlatformUserPoliciesRequest
+	(*ListPlatformUserPoliciesResponse)(nil),             // 74: iam.ListPlatformUserPoliciesResponse
+	(*PutPlatformUserInlinePolicyRequest)(nil),           // 75: iam.PutPlatformUserInlinePolicyRequest
+	(*PutPlatformUserInlinePolicyResponse)(nil),          // 76: iam.PutPlatformUserInlinePolicyResponse
+	(*GetPlatformUserInlinePolicyRequest)(nil),           // 77: iam.GetPlatformUserInlinePolicyRequest
+	(*GetPlatformUserInlinePolicyResponse)(nil),          // 78: iam.GetPlatformUserInlinePolicyResponse
+	(*ListPlatformUserInlinePoliciesRequest)(nil),        // 79: iam.ListPlatformUserInlinePoliciesRequest
+	(*ListPlatformUserInlinePoliciesResponse)(nil),       // 80: iam.ListPlatformUserInlinePoliciesResponse
+	(*DeletePlatformUserInlinePolicyRequest)(nil),        // 81: iam.DeletePlatformUserInlinePolicyRequest
+	(*DeletePlatformUserInlinePolicyResponse)(nil),       // 82: iam.DeletePlatformUserInlinePolicyResponse
+	(*AttachPlatformUserPolicyRequest)(nil),              // 83: iam.AttachPlatformUserPolicyRequest
+	(*AttachPlatformUserPolicyResponse)(nil),             // 84: iam.AttachPlatformUserPolicyResponse
+	(*DetachPlatformUserPolicyRequest)(nil),              // 85: iam.DetachPlatformUserPolicyRequest
+	(*DetachPlatformUserPolicyResponse)(nil),             // 86: iam.DetachPlatformUserPolicyResponse
+	(*PutPlatformUserPermissionBoundaryRequest)(nil),     // 87: iam.PutPlatformUserPermissionBoundaryRequest
+	(*PutPlatformUserPermissionBoundaryResponse)(nil),    // 88: iam.PutPlatformUserPermissionBoundaryResponse
+	(*GetPlatformUserPermissionBoundaryRequest)(nil),     // 89: iam.GetPlatformUserPermissionBoundaryRequest
+	(*GetPlatformUserPermissionBoundaryResponse)(nil),    // 90: iam.GetPlatformUserPermissionBoundaryResponse
+	(*DeletePlatformUserPermissionBoundaryRequest)(nil),  // 91: iam.DeletePlatformUserPermissionBoundaryRequest
+	(*DeletePlatformUserPermissionBoundaryResponse)(nil), // 92: iam.DeletePlatformUserPermissionBoundaryResponse
+	(*CheckPermissionRequest)(nil),                       // 93: iam.CheckPermissionRequest
+	(*CheckPlatformPermissionRequest)(nil),               // 94: iam.CheckPlatformPermissionRequest
+	(*CheckPermissionResponse)(nil),                      // 95: iam.CheckPermissionResponse
+	(*ListTenantUserPoliciesRequest)(nil),                // 96: iam.ListTenantUserPoliciesRequest
+	(*ListTenantUserPoliciesResponse)(nil),               // 97: iam.ListTenantUserPoliciesResponse
+	(*PutTenantUserInlinePolicyRequest)(nil),             // 98: iam.PutTenantUserInlinePolicyRequest
+	(*PutTenantUserInlinePolicyResponse)(nil),            // 99: iam.PutTenantUserInlinePolicyResponse
+	(*GetTenantUserInlinePolicyRequest)(nil),             // 100: iam.GetTenantUserInlinePolicyRequest
+	(*GetTenantUserInlinePolicyResponse)(nil),            // 101: iam.GetTenantUserInlinePolicyResponse
+	(*ListTenantUserInlinePoliciesRequest)(nil),          // 102: iam.ListTenantUserInlinePoliciesRequest
+	(*ListTenantUserInlinePoliciesResponse)(nil),         // 103: iam.ListTenantUserInlinePoliciesResponse
+	(*DeleteTenantUserInlinePolicyRequest)(nil),          // 104: iam.DeleteTenantUserInlinePolicyRequest
+	(*DeleteTenantUserInlinePolicyResponse)(nil),         // 105: iam.DeleteTenantUserInlinePolicyResponse
+	(*AttachTenantUserPolicyRequest)(nil),                // 106: iam.AttachTenantUserPolicyRequest
+	(*AttachTenantUserPolicyResponse)(nil),               // 107: iam.AttachTenantUserPolicyResponse
+	(*DetachTenantUserPolicyRequest)(nil),                // 108: iam.DetachTenantUserPolicyRequest
+	(*DetachTenantUserPolicyResponse)(nil),               // 109: iam.DetachTenantUserPolicyResponse
+	(*PutTenantUserPermissionBoundaryRequest)(nil),       // 110: iam.PutTenantUserPermissionBoundaryRequest
+	(*PutTenantUserPermissionBoundaryResponse)(nil),      // 111: iam.PutTenantUserPermissionBoundaryResponse
+	(*GetTenantUserPermissionBoundaryRequest)(nil),       // 112: iam.GetTenantUserPermissionBoundaryRequest
+	(*GetTenantUserPermissionBoundaryResponse)(nil),      // 113: iam.GetTenantUserPermissionBoundaryResponse
+	(*DeleteTenantUserPermissionBoundaryRequest)(nil),    // 114: iam.DeleteTenantUserPermissionBoundaryRequest
+	(*DeleteTenantUserPermissionBoundaryResponse)(nil),   // 115: iam.DeleteTenantUserPermissionBoundaryResponse
+	(*PutRolePermissionBoundaryRequest)(nil),             // 116: iam.PutRolePermissionBoundaryRequest
+	(*PutRolePermissionBoundaryResponse)(nil),            // 117: iam.PutRolePermissionBoundaryResponse
+	(*GetRolePermissionBoundaryRequest)(nil),             // 118: iam.GetRolePermissionBoundaryRequest
+	(*GetRolePermissionBoundaryResponse)(nil),            // 119: iam.GetRolePermissionBoundaryResponse
+	(*DeleteRolePermissionBoundaryRequest)(nil),          // 120: iam.DeleteRolePermissionBoundaryRequest
+	(*DeleteRolePermissionBoundaryResponse)(nil),         // 121: iam.DeleteRolePermissionBoundaryResponse
+	(*v1.PolicyStatement)(nil),                           // 122: common.PolicyStatement
 }
-var file_auth_v1_iam_policy_proto_depIdxs = []int32{
-	2,  // 0: auth.PolicyStatement.conditions:type_name -> auth.PolicyCondition
-	1,  // 1: auth.GroupInlinePolicy.statements:type_name -> auth.PolicyStatement
-	1,  // 2: auth.UserInlinePolicy.statements:type_name -> auth.PolicyStatement
-	3,  // 3: auth.ListServiceControlPoliciesResponse.policies:type_name -> auth.Policy
-	0,  // 4: auth.ListPlatformRolesResponse.memberships:type_name -> auth.PlatformRoleMembership
-	1,  // 5: auth.CreatePolicyRequest.statements:type_name -> auth.PolicyStatement
-	3,  // 6: auth.CreatePolicyResponse.policy:type_name -> auth.Policy
-	1,  // 7: auth.CreatePolicyResponse.statements:type_name -> auth.PolicyStatement
-	1,  // 8: auth.CreatePolicyVersionRequest.statements:type_name -> auth.PolicyStatement
-	4,  // 9: auth.CreatePolicyVersionResponse.policy_version:type_name -> auth.PolicyVersion
-	1,  // 10: auth.CreatePolicyVersionResponse.statements:type_name -> auth.PolicyStatement
-	3,  // 11: auth.GetPolicyResponse.policy:type_name -> auth.Policy
-	1,  // 12: auth.GetPolicyResponse.statements:type_name -> auth.PolicyStatement
-	4,  // 13: auth.ListPolicyVersionsResponse.versions:type_name -> auth.PolicyVersion
-	3,  // 14: auth.ListPoliciesResponse.policies:type_name -> auth.Policy
-	5,  // 15: auth.ListPolicyAttachmentsResponse.attachments:type_name -> auth.PolicyAttachment
-	7,  // 16: auth.PutRoleTrustPolicyRequest.statements:type_name -> auth.RoleTrustStatement
-	7,  // 17: auth.GetRoleTrustPolicyResponse.statements:type_name -> auth.RoleTrustStatement
-	8,  // 18: auth.CreateGroupResponse.group:type_name -> auth.Group
-	8,  // 19: auth.ListGroupsResponse.groups:type_name -> auth.Group
-	3,  // 20: auth.ListGroupPoliciesResponse.policies:type_name -> auth.Policy
-	1,  // 21: auth.PutGroupInlinePolicyRequest.statements:type_name -> auth.PolicyStatement
-	9,  // 22: auth.GetGroupInlinePolicyResponse.policy:type_name -> auth.GroupInlinePolicy
-	9,  // 23: auth.ListGroupInlinePoliciesResponse.policies:type_name -> auth.GroupInlinePolicy
-	3,  // 24: auth.ListPlatformUserPoliciesResponse.policies:type_name -> auth.Policy
-	1,  // 25: auth.PutPlatformUserInlinePolicyRequest.statements:type_name -> auth.PolicyStatement
-	10, // 26: auth.GetPlatformUserInlinePolicyResponse.policy:type_name -> auth.UserInlinePolicy
-	10, // 27: auth.ListPlatformUserInlinePoliciesResponse.policies:type_name -> auth.UserInlinePolicy
-	11, // 28: auth.GetPlatformUserPermissionBoundaryResponse.boundary:type_name -> auth.PermissionBoundary
-	3,  // 29: auth.ListTenantUserPoliciesResponse.policies:type_name -> auth.Policy
-	1,  // 30: auth.PutTenantUserInlinePolicyRequest.statements:type_name -> auth.PolicyStatement
-	10, // 31: auth.GetTenantUserInlinePolicyResponse.policy:type_name -> auth.UserInlinePolicy
-	10, // 32: auth.ListTenantUserInlinePoliciesResponse.policies:type_name -> auth.UserInlinePolicy
-	11, // 33: auth.GetTenantUserPermissionBoundaryResponse.boundary:type_name -> auth.PermissionBoundary
-	12, // 34: auth.GetRolePermissionBoundaryResponse.boundary:type_name -> auth.RolePermissionBoundary
-	35, // [35:35] is the sub-list for method output_type
-	35, // [35:35] is the sub-list for method input_type
-	35, // [35:35] is the sub-list for extension type_name
-	35, // [35:35] is the sub-list for extension extendee
-	0,  // [0:35] is the sub-list for field type_name
+var file_iam_v1_iam_policy_proto_depIdxs = []int32{
+	122, // 0: iam.GroupInlinePolicy.statements:type_name -> common.PolicyStatement
+	122, // 1: iam.UserInlinePolicy.statements:type_name -> common.PolicyStatement
+	1,   // 2: iam.ListServiceControlPoliciesResponse.policies:type_name -> iam.Policy
+	0,   // 3: iam.ListPlatformRolesResponse.memberships:type_name -> iam.PlatformRoleMembership
+	122, // 4: iam.CreatePolicyRequest.statements:type_name -> common.PolicyStatement
+	1,   // 5: iam.CreatePolicyResponse.policy:type_name -> iam.Policy
+	122, // 6: iam.CreatePolicyResponse.statements:type_name -> common.PolicyStatement
+	122, // 7: iam.CreatePolicyVersionRequest.statements:type_name -> common.PolicyStatement
+	2,   // 8: iam.CreatePolicyVersionResponse.policy_version:type_name -> iam.PolicyVersion
+	122, // 9: iam.CreatePolicyVersionResponse.statements:type_name -> common.PolicyStatement
+	1,   // 10: iam.GetPolicyResponse.policy:type_name -> iam.Policy
+	122, // 11: iam.GetPolicyResponse.statements:type_name -> common.PolicyStatement
+	2,   // 12: iam.ListPolicyVersionsResponse.versions:type_name -> iam.PolicyVersion
+	1,   // 13: iam.ListPoliciesResponse.policies:type_name -> iam.Policy
+	3,   // 14: iam.ListPolicyAttachmentsResponse.attachments:type_name -> iam.PolicyAttachment
+	5,   // 15: iam.PutRoleTrustPolicyRequest.statements:type_name -> iam.RoleTrustStatement
+	5,   // 16: iam.GetRoleTrustPolicyResponse.statements:type_name -> iam.RoleTrustStatement
+	6,   // 17: iam.CreateGroupResponse.group:type_name -> iam.Group
+	6,   // 18: iam.ListGroupsResponse.groups:type_name -> iam.Group
+	1,   // 19: iam.ListGroupPoliciesResponse.policies:type_name -> iam.Policy
+	122, // 20: iam.PutGroupInlinePolicyRequest.statements:type_name -> common.PolicyStatement
+	7,   // 21: iam.GetGroupInlinePolicyResponse.policy:type_name -> iam.GroupInlinePolicy
+	7,   // 22: iam.ListGroupInlinePoliciesResponse.policies:type_name -> iam.GroupInlinePolicy
+	1,   // 23: iam.ListPlatformUserPoliciesResponse.policies:type_name -> iam.Policy
+	122, // 24: iam.PutPlatformUserInlinePolicyRequest.statements:type_name -> common.PolicyStatement
+	8,   // 25: iam.GetPlatformUserInlinePolicyResponse.policy:type_name -> iam.UserInlinePolicy
+	8,   // 26: iam.ListPlatformUserInlinePoliciesResponse.policies:type_name -> iam.UserInlinePolicy
+	9,   // 27: iam.GetPlatformUserPermissionBoundaryResponse.boundary:type_name -> iam.PermissionBoundary
+	1,   // 28: iam.ListTenantUserPoliciesResponse.policies:type_name -> iam.Policy
+	122, // 29: iam.PutTenantUserInlinePolicyRequest.statements:type_name -> common.PolicyStatement
+	8,   // 30: iam.GetTenantUserInlinePolicyResponse.policy:type_name -> iam.UserInlinePolicy
+	8,   // 31: iam.ListTenantUserInlinePoliciesResponse.policies:type_name -> iam.UserInlinePolicy
+	9,   // 32: iam.GetTenantUserPermissionBoundaryResponse.boundary:type_name -> iam.PermissionBoundary
+	10,  // 33: iam.GetRolePermissionBoundaryResponse.boundary:type_name -> iam.RolePermissionBoundary
+	34,  // [34:34] is the sub-list for method output_type
+	34,  // [34:34] is the sub-list for method input_type
+	34,  // [34:34] is the sub-list for extension type_name
+	34,  // [34:34] is the sub-list for extension extendee
+	0,   // [0:34] is the sub-list for field type_name
 }
 
-func init() { file_auth_v1_iam_policy_proto_init() }
-func file_auth_v1_iam_policy_proto_init() {
-	if File_auth_v1_iam_policy_proto != nil {
+func init() { file_iam_v1_iam_policy_proto_init() }
+func file_iam_v1_iam_policy_proto_init() {
+	if File_iam_v1_iam_policy_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_v1_iam_policy_proto_rawDesc), len(file_auth_v1_iam_policy_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_iam_v1_iam_policy_proto_rawDesc), len(file_iam_v1_iam_policy_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   124,
+			NumMessages:   122,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_auth_v1_iam_policy_proto_goTypes,
-		DependencyIndexes: file_auth_v1_iam_policy_proto_depIdxs,
-		MessageInfos:      file_auth_v1_iam_policy_proto_msgTypes,
+		GoTypes:           file_iam_v1_iam_policy_proto_goTypes,
+		DependencyIndexes: file_iam_v1_iam_policy_proto_depIdxs,
+		MessageInfos:      file_iam_v1_iam_policy_proto_msgTypes,
 	}.Build()
-	File_auth_v1_iam_policy_proto = out.File
-	file_auth_v1_iam_policy_proto_goTypes = nil
-	file_auth_v1_iam_policy_proto_depIdxs = nil
+	File_iam_v1_iam_policy_proto = out.File
+	file_iam_v1_iam_policy_proto_goTypes = nil
+	file_iam_v1_iam_policy_proto_depIdxs = nil
 }

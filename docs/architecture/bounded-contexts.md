@@ -29,12 +29,15 @@ flowchart TB
 flowchart LR
     AuthIdentity["Auth: identity, sessions, tokens"]
     AuthProjection["Auth: IAM local projection"]
-    IAMCore["IAM: tenants, memberships, policies, groups, orgs"]
+    IAMCommand["IAM command model: tenants, memberships, policies, groups, orgs"]
+    IAMQuery["IAM query model: policy evaluation and management reads"]
     IAMEvents["IAM commit-coupled Kafka events"]
 
-    IAMCore --> IAMEvents
+    IAMCommand --> IAMEvents
+    IAMEvents --> IAMQuery
     IAMEvents --> AuthProjection
-    AuthIdentity --> IAMCore
+    AuthIdentity --> IAMQuery
+    AuthIdentity --> IAMCommand
 ```
 
 ## Backoffice Boundary
@@ -59,6 +62,17 @@ flowchart LR
     Routing --> IAMAuthz
     Catalog --> IAMAuthz
 ```
+
+## DDD Rules
+
+- Each service-local bounded context owns its aggregate rules, commands, queries, and repository contracts.
+- Cross-context dependencies must stay behind adapters, projections, or explicit service APIs.
+- Backoffice remains one deployable service but is split into store, catalog, and routing contexts.
+- Backoffice context dependencies should point inward to domain input/output ports, not sideways into another context's repository.
+- IAM separates command contracts from query contracts. Commands mutate the write model and emit commit-coupled events; queries read/evaluate state or read models.
+- IAM inbound handlers are split into command and query handlers behind the gRPC service facade.
+- IAM exposes command/query gRPC services while keeping the legacy IAM service for REST compatibility during migration.
+- IAM read models can be rebuilt from the command model and event stream. They must not become the write source of truth.
 
 ## Partner and Routing Boundary
 

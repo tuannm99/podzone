@@ -40,7 +40,7 @@ func (s *interactor) CheckPermissionForResource(
 			Attributes: requestAttributesFromContext(ctx),
 		}, assumedRole.RoleID, permission)
 	}
-	tenant, err := s.tenants.GetByID(ctx, tenantID)
+	tenant, err := s.tenantQueries.GetByID(ctx, tenantID)
 	if err != nil {
 		return false, err
 	}
@@ -59,11 +59,11 @@ func (s *interactor) CheckPermissionForResource(
 		Resource:   resource,
 		Attributes: requestAttributesFromContext(ctx),
 	}
-	statements, err := s.policies.ListTenantUserStatements(ctx, tenantID, userID)
+	statements, err := s.policyQueries.ListTenantUserStatements(ctx, tenantID, userID)
 	if err != nil {
 		return false, err
 	}
-	groupStatements, err := s.policies.ListTenantGroupStatements(ctx, tenantID, userID)
+	groupStatements, err := s.policyQueries.ListTenantGroupStatements(ctx, tenantID, userID)
 	if err != nil {
 		return false, err
 	}
@@ -89,7 +89,7 @@ func (s *interactor) CheckPermissionForResource(
 		return true, nil
 	}
 tenantRoleEvaluation:
-	roleStatements, err := s.policies.ListRoleStatements(ctx, membership.RoleID)
+	roleStatements, err := s.policyQueries.ListRoleStatements(ctx, membership.RoleID)
 	if err != nil {
 		return false, err
 	}
@@ -112,7 +112,7 @@ tenantRoleEvaluation:
 			return true, nil
 		}
 	}
-	allowed, err := s.roles.RoleHasPermission(ctx, membership.RoleID, permission)
+	allowed, err := s.roleQueries.RoleHasPermission(ctx, membership.RoleID, permission)
 	if err != nil || !allowed {
 		return allowed, err
 	}
@@ -143,7 +143,10 @@ func (s *interactor) RequirePermission(ctx context.Context, tenantID string, use
 	return nil
 }
 
-func (s *interactor) SimulateAccess(ctx context.Context, input entity.SimulateAccessInput) (*entity.SimulateAccessResult, error) {
+func (s *interactor) SimulateAccess(
+	ctx context.Context,
+	input entity.SimulateAccessInput,
+) (*entity.SimulateAccessResult, error) {
 	scope := strings.TrimSpace(input.Scope)
 	if scope == "" {
 		scope = entity.PolicyScopeTenant
@@ -158,7 +161,7 @@ func (s *interactor) SimulateAccess(ctx context.Context, input entity.SimulateAc
 	result := entity.SimulateAccessResult{}
 
 	if scope == entity.PolicyScopeTenant && request.TenantID != "" {
-		tenant, err := s.tenants.GetByID(ctx, request.TenantID)
+		tenant, err := s.tenantQueries.GetByID(ctx, request.TenantID)
 		if err != nil {
 			return nil, err
 		}
@@ -168,7 +171,7 @@ func (s *interactor) SimulateAccess(ctx context.Context, input entity.SimulateAc
 	}
 
 	if input.UseAssumedRole && input.AssumedRole != nil {
-		statements, err := s.policies.ListRoleStatements(ctx, input.AssumedRole.RoleID)
+		statements, err := s.policyQueries.ListRoleStatements(ctx, input.AssumedRole.RoleID)
 		if err != nil {
 			return nil, err
 		}
@@ -178,9 +181,11 @@ func (s *interactor) SimulateAccess(ctx context.Context, input entity.SimulateAc
 			identity.Layers = result.Layers
 			return &identity, nil
 		}
-		if boundaryStatements, err := s.roles.GetPermissionBoundaryStatements(ctx, input.AssumedRole.RoleID); err != nil {
+		boundaryStatements, err := s.roleQueries.GetPermissionBoundaryStatements(ctx, input.AssumedRole.RoleID)
+		if err != nil {
 			return nil, err
-		} else if len(boundaryStatements) > 0 {
+		}
+		if len(boundaryStatements) > 0 {
 			boundary := explainPolicyStatements("role_permission_boundary", request, boundaryStatements)
 			result.Layers = append(result.Layers, decisionLayerFromResult("role_permission_boundary", boundary))
 			if !boundary.Allowed {
@@ -222,39 +227,39 @@ func (s *interactor) SimulateAccess(ctx context.Context, input entity.SimulateAc
 	var err error
 	switch scope {
 	case entity.PolicyScopePlatform:
-		statements, err = s.policies.ListPlatformUserStatements(ctx, input.UserID)
+		statements, err = s.policyQueries.ListPlatformUserStatements(ctx, input.UserID)
 		if err != nil {
 			return nil, err
 		}
-		groupStatements, err := s.policies.ListPlatformGroupStatements(ctx, input.UserID)
+		groupStatements, err := s.policyQueries.ListPlatformGroupStatements(ctx, input.UserID)
 		if err != nil {
 			return nil, err
 		}
 		statements = append(statements, groupStatements...)
-		roleIDs, err := s.platformMemberships.ListRoleIDsByUser(ctx, input.UserID)
+		roleIDs, err := s.platformMembershipQueries.ListRoleIDsByUser(ctx, input.UserID)
 		if err != nil {
 			return nil, err
 		}
 		for _, roleID := range roleIDs {
-			roleStatements, roleErr := s.policies.ListRoleStatements(ctx, roleID)
+			roleStatements, roleErr := s.policyQueries.ListRoleStatements(ctx, roleID)
 			if roleErr != nil {
 				return nil, roleErr
 			}
 			statements = append(statements, roleStatements...)
 		}
 	default:
-		statements, err = s.policies.ListTenantUserStatements(ctx, request.TenantID, input.UserID)
+		statements, err = s.policyQueries.ListTenantUserStatements(ctx, request.TenantID, input.UserID)
 		if err != nil {
 			return nil, err
 		}
-		groupStatements, err := s.policies.ListTenantGroupStatements(ctx, request.TenantID, input.UserID)
+		groupStatements, err := s.policyQueries.ListTenantGroupStatements(ctx, request.TenantID, input.UserID)
 		if err != nil {
 			return nil, err
 		}
 		statements = append(statements, groupStatements...)
-		membership, membershipErr := s.memberships.GetByTenantAndUser(ctx, request.TenantID, input.UserID)
+		membership, membershipErr := s.membershipQueries.GetByTenantAndUser(ctx, request.TenantID, input.UserID)
 		if membershipErr == nil && membership != nil {
-			roleStatements, roleErr := s.policies.ListRoleStatements(ctx, membership.RoleID)
+			roleStatements, roleErr := s.policyQueries.ListRoleStatements(ctx, membership.RoleID)
 			if roleErr != nil {
 				return nil, roleErr
 			}
@@ -270,7 +275,10 @@ func (s *interactor) SimulateAccess(ctx context.Context, input entity.SimulateAc
 	}
 
 	if scope == entity.PolicyScopePlatform {
-		boundaryStatements, boundaryErr := s.policies.GetPlatformUserPermissionBoundaryStatements(ctx, input.UserID)
+		boundaryStatements, boundaryErr := s.policyQueries.GetPlatformUserPermissionBoundaryStatements(
+			ctx,
+			input.UserID,
+		)
 		if boundaryErr != nil {
 			return nil, boundaryErr
 		}
@@ -284,7 +292,11 @@ func (s *interactor) SimulateAccess(ctx context.Context, input entity.SimulateAc
 			identity.MatchedStatements = append(identity.MatchedStatements, boundaryResult.MatchedStatements...)
 		}
 	} else {
-		boundaryStatements, boundaryErr := s.policies.GetTenantUserPermissionBoundaryStatements(ctx, request.TenantID, input.UserID)
+		boundaryStatements, boundaryErr := s.policyQueries.GetTenantUserPermissionBoundaryStatements(
+			ctx,
+			request.TenantID,
+			input.UserID,
+		)
 		if boundaryErr != nil {
 			return nil, boundaryErr
 		}
@@ -333,7 +345,7 @@ func (s *interactor) evaluateAssumedRolePermission(
 	roleID uint64,
 	permission string,
 ) (bool, error) {
-	statements, err := s.policies.ListRoleStatements(ctx, roleID)
+	statements, err := s.policyQueries.ListRoleStatements(ctx, roleID)
 	if err != nil {
 		return false, err
 	}
@@ -351,7 +363,7 @@ func (s *interactor) evaluateAssumedRolePermission(
 		}
 		return true, nil
 	}
-	allowed, err := s.roles.RoleHasPermission(ctx, roleID, permission)
+	allowed, err := s.roleQueries.RoleHasPermission(ctx, roleID, permission)
 	if err != nil || !allowed {
 		return allowed, err
 	}
@@ -366,7 +378,7 @@ func (s *interactor) evaluateAssumedRolePermission(
 }
 
 func (s *interactor) evaluatePlatformUserBoundary(ctx context.Context, request entity.AccessRequest, userID uint) bool {
-	statements, err := s.policies.GetPlatformUserPermissionBoundaryStatements(ctx, userID)
+	statements, err := s.policyQueries.GetPlatformUserPermissionBoundaryStatements(ctx, userID)
 	if err != nil {
 		return false
 	}
@@ -376,8 +388,13 @@ func (s *interactor) evaluatePlatformUserBoundary(ctx context.Context, request e
 	return evaluatePolicyStatements(request, statements)
 }
 
-func (s *interactor) evaluateTenantUserBoundary(ctx context.Context, request entity.AccessRequest, tenantID string, userID uint) bool {
-	statements, err := s.policies.GetTenantUserPermissionBoundaryStatements(ctx, tenantID, userID)
+func (s *interactor) evaluateTenantUserBoundary(
+	ctx context.Context,
+	request entity.AccessRequest,
+	tenantID string,
+	userID uint,
+) bool {
+	statements, err := s.policyQueries.GetTenantUserPermissionBoundaryStatements(ctx, tenantID, userID)
 	if err != nil {
 		return false
 	}
@@ -388,7 +405,7 @@ func (s *interactor) evaluateTenantUserBoundary(ctx context.Context, request ent
 }
 
 func (s *interactor) evaluateRoleBoundary(ctx context.Context, request entity.AccessRequest, roleID uint64) bool {
-	statements, err := s.roles.GetPermissionBoundaryStatements(ctx, roleID)
+	statements, err := s.roleQueries.GetPermissionBoundaryStatements(ctx, roleID)
 	if err != nil {
 		return false
 	}
@@ -403,7 +420,7 @@ func (s *interactor) evaluateOrganizationSCP(ctx context.Context, request entity
 	if orgID == "" {
 		return true
 	}
-	statements, err := s.orgs.ListServiceControlPolicyStatements(ctx, orgID)
+	statements, err := s.orgQueries.ListServiceControlPolicyStatements(ctx, orgID)
 	if err != nil {
 		return false
 	}
@@ -413,12 +430,16 @@ func (s *interactor) evaluateOrganizationSCP(ctx context.Context, request entity
 	return evaluatePolicyStatements(request, statements)
 }
 
-func (s *interactor) explainOrganizationSCP(ctx context.Context, request entity.AccessRequest, orgID string) (*entity.SimulateAccessResult, error) {
+func (s *interactor) explainOrganizationSCP(
+	ctx context.Context,
+	request entity.AccessRequest,
+	orgID string,
+) (*entity.SimulateAccessResult, error) {
 	orgID = strings.TrimSpace(orgID)
 	if orgID == "" {
 		return nil, nil
 	}
-	statements, err := s.orgs.ListServiceControlPolicyStatements(ctx, orgID)
+	statements, err := s.orgQueries.ListServiceControlPolicyStatements(ctx, orgID)
 	if err != nil {
 		return nil, err
 	}
@@ -450,15 +471,23 @@ func (s *interactor) canAssumeRole(
 		return false
 	}
 
-	platformMemberships, _ := s.platformMemberships.ListByUser(ctx, userID)
+	platformMemberships, _ := s.platformMembershipQueries.ListByUser(ctx, userID)
 	var tenantMembership *entity.Membership
 	if tenantID != "" {
-		tenantMembership, _ = s.memberships.GetByTenantAndUser(ctx, tenantID, userID)
+		tenantMembership, _ = s.membershipQueries.GetByTenantAndUser(ctx, tenantID, userID)
 	}
 
 	allowed := false
 	for _, statement := range statements {
-		if !matchesTrustStatement(statement, userID, tenantID, externalID, servicePrincipal, platformMemberships, tenantMembership) {
+		if !matchesTrustStatement(
+			statement,
+			userID,
+			tenantID,
+			externalID,
+			servicePrincipal,
+			platformMemberships,
+			tenantMembership,
+		) {
 			continue
 		}
 		if statement.Effect == entity.PolicyEffectDeny {

@@ -11,6 +11,7 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	inputport "github.com/tuannm99/podzone/internal/auth/domain/inputport"
 	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
+	pbcommonv1 "github.com/tuannm99/podzone/pkg/api/proto/common/v1"
 )
 
 func TestGoogleLogin_OK(t *testing.T) {
@@ -70,7 +71,7 @@ func TestAssumeSessionPolicy_OK(t *testing.T) {
 
 	res, err := srv.AssumeSessionPolicy(authContextForUser(t, 7), &pbauthv1.AssumeSessionPolicyRequest{
 		AccessToken: accessToken,
-		Statements: []*pbauthv1.PolicyStatement{{
+		Statements: []*pbcommonv1.PolicyStatement{{
 			Effect:          "allow",
 			ActionPattern:   "order:read",
 			ResourcePattern: "*",

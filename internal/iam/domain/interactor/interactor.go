@@ -13,18 +13,132 @@ import (
 )
 
 type interactor struct {
-	tenants             outputport.TenantRepository
-	roles               outputport.RoleRepository
-	policies            outputport.PolicyRepository
-	groups              outputport.GroupRepository
-	orgs                outputport.OrganizationRepository
-	platformMemberships outputport.PlatformMembershipRepository
-	memberships         outputport.MembershipRepository
-	invites             outputport.InviteRepository
-	outbox              outputport.OutboxRepository
+	tenantCommands             outputport.TenantCommandRepository
+	tenantQueries              outputport.TenantQueryRepository
+	roleCommands               outputport.RoleCommandRepository
+	roleQueries                outputport.RoleQueryRepository
+	policyCommands             outputport.PolicyCommandRepository
+	policyQueries              outputport.PolicyQueryRepository
+	groupCommands              outputport.GroupCommandRepository
+	groupQueries               outputport.GroupQueryRepository
+	orgCommands                outputport.OrganizationCommandRepository
+	orgQueries                 outputport.OrganizationQueryRepository
+	platformMembershipCommands outputport.PlatformMembershipCommandRepository
+	platformMembershipQueries  outputport.PlatformMembershipQueryRepository
+	membershipCommands         outputport.MembershipCommandRepository
+	membershipQueries          outputport.MembershipQueryRepository
+	inviteCommands             outputport.InviteCommandRepository
+	inviteQueries              outputport.InviteQueryRepository
+	outbox                     outputport.OutboxRepository
 }
 
-var _ inputport.IAMUsecase = (*interactor)(nil)
+var (
+	_ inputport.IAMUsecase        = (*interactor)(nil)
+	_ inputport.IAMCommandUsecase = (*interactor)(nil)
+	_ inputport.IAMQueryUsecase   = (*interactor)(nil)
+)
+
+func NewInteractor(
+	tenantCommands outputport.TenantCommandRepository,
+	tenantQueries outputport.TenantQueryRepository,
+	roleCommands outputport.RoleCommandRepository,
+	roleQueries outputport.RoleQueryRepository,
+	policyCommands outputport.PolicyCommandRepository,
+	policyQueries outputport.PolicyQueryRepository,
+	groupCommands outputport.GroupCommandRepository,
+	groupQueries outputport.GroupQueryRepository,
+	orgCommands outputport.OrganizationCommandRepository,
+	orgQueries outputport.OrganizationQueryRepository,
+	platformMembershipCommands outputport.PlatformMembershipCommandRepository,
+	platformMembershipQueries outputport.PlatformMembershipQueryRepository,
+	membershipCommands outputport.MembershipCommandRepository,
+	membershipQueries outputport.MembershipQueryRepository,
+	inviteCommands outputport.InviteCommandRepository,
+	inviteQueries outputport.InviteQueryRepository,
+	outbox outputport.OutboxRepository,
+) *interactor {
+	return &interactor{
+		tenantCommands:             tenantCommands,
+		tenantQueries:              tenantQueries,
+		roleCommands:               roleCommands,
+		roleQueries:                roleQueries,
+		policyCommands:             policyCommands,
+		policyQueries:              policyQueries,
+		groupCommands:              groupCommands,
+		groupQueries:               groupQueries,
+		orgCommands:                orgCommands,
+		orgQueries:                 orgQueries,
+		platformMembershipCommands: platformMembershipCommands,
+		platformMembershipQueries:  platformMembershipQueries,
+		membershipCommands:         membershipCommands,
+		membershipQueries:          membershipQueries,
+		inviteCommands:             inviteCommands,
+		inviteQueries:              inviteQueries,
+		outbox:                     outbox,
+	}
+}
+
+func NewCommandInteractor(
+	tenantCommands outputport.TenantCommandRepository,
+	tenantQueries outputport.TenantQueryRepository,
+	roleCommands outputport.RoleCommandRepository,
+	roleQueries outputport.RoleQueryRepository,
+	policyCommands outputport.PolicyCommandRepository,
+	policyQueries outputport.PolicyQueryRepository,
+	groupCommands outputport.GroupCommandRepository,
+	groupQueries outputport.GroupQueryRepository,
+	orgCommands outputport.OrganizationCommandRepository,
+	orgQueries outputport.OrganizationQueryRepository,
+	platformMembershipCommands outputport.PlatformMembershipCommandRepository,
+	platformMembershipQueries outputport.PlatformMembershipQueryRepository,
+	membershipCommands outputport.MembershipCommandRepository,
+	membershipQueries outputport.MembershipQueryRepository,
+	inviteCommands outputport.InviteCommandRepository,
+	inviteQueries outputport.InviteQueryRepository,
+	outbox outputport.OutboxRepository,
+) inputport.IAMCommandUsecase {
+	return NewInteractor(
+		tenantCommands,
+		tenantQueries,
+		roleCommands,
+		roleQueries,
+		policyCommands,
+		policyQueries,
+		groupCommands,
+		groupQueries,
+		orgCommands,
+		orgQueries,
+		platformMembershipCommands,
+		platformMembershipQueries,
+		membershipCommands,
+		membershipQueries,
+		inviteCommands,
+		inviteQueries,
+		outbox,
+	)
+}
+
+func NewQueryInteractor(
+	tenantQueries outputport.TenantQueryRepository,
+	roleQueries outputport.RoleQueryRepository,
+	policyQueries outputport.PolicyQueryRepository,
+	groupQueries outputport.GroupQueryRepository,
+	orgQueries outputport.OrganizationQueryRepository,
+	platformMembershipQueries outputport.PlatformMembershipQueryRepository,
+	membershipQueries outputport.MembershipQueryRepository,
+	inviteQueries outputport.InviteQueryRepository,
+) inputport.IAMQueryUsecase {
+	return &interactor{
+		tenantQueries:             tenantQueries,
+		roleQueries:               roleQueries,
+		policyQueries:             policyQueries,
+		groupQueries:              groupQueries,
+		orgQueries:                orgQueries,
+		platformMembershipQueries: platformMembershipQueries,
+		membershipQueries:         membershipQueries,
+		inviteQueries:             inviteQueries,
+	}
+}
 
 func NewIAMUsecase(
 	tenants outputport.TenantRepository,
@@ -37,17 +151,25 @@ func NewIAMUsecase(
 	invites outputport.InviteRepository,
 	outbox outputport.OutboxRepository,
 ) inputport.IAMUsecase {
-	return &interactor{
-		tenants:             tenants,
-		roles:               roles,
-		policies:            policies,
-		groups:              groups,
-		orgs:                orgs,
-		platformMemberships: platformMemberships,
-		memberships:         memberships,
-		invites:             invites,
-		outbox:              outbox,
-	}
+	return NewInteractor(
+		tenants,
+		tenants,
+		roles,
+		roles,
+		policies,
+		policies,
+		groups,
+		groups,
+		orgs,
+		orgs,
+		platformMemberships,
+		platformMemberships,
+		memberships,
+		memberships,
+		invites,
+		invites,
+		outbox,
+	)
 }
 
 func (s *interactor) CreateTenant(
@@ -68,7 +190,7 @@ func (s *interactor) CreateTenant(
 	}
 
 	now := time.Now().UTC()
-	tenant, err := s.tenants.Create(ctx, entity.Tenant{
+	tenant, err := s.tenantCommands.Create(ctx, entity.Tenant{
 		ID:        uuid.NewString(),
 		Name:      name,
 		Slug:      slug,
@@ -79,12 +201,12 @@ func (s *interactor) CreateTenant(
 		return nil, err
 	}
 
-	role, err := s.roles.GetByName(ctx, entity.RoleTenantOwner)
+	role, err := s.roleQueries.GetByName(ctx, entity.RoleTenantOwner)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := s.memberships.Upsert(ctx, entity.Membership{
+	if err := s.membershipCommands.Upsert(ctx, entity.Membership{
 		TenantID:  tenant.ID,
 		UserID:    ownerUserID,
 		RoleID:    role.ID,
@@ -126,7 +248,7 @@ func (s *interactor) AssumeRole(ctx context.Context, input entity.AssumeRoleInpu
 	if input.UserID == 0 {
 		return nil, entity.ErrInvalidUserID
 	}
-	role, err := s.roles.GetByName(ctx, strings.TrimSpace(input.RoleName))
+	role, err := s.roleQueries.GetByName(ctx, strings.TrimSpace(input.RoleName))
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +262,7 @@ func (s *interactor) AssumeRole(ctx context.Context, input entity.AssumeRoleInpu
 	if input.ServicePrincipal != "" && !validServicePrincipal(input.ServicePrincipal) {
 		return nil, entity.ErrInvalidServicePrincipal
 	}
-	trustStatements, err := s.roles.GetTrustPolicy(ctx, role.ID)
+	trustStatements, err := s.roleQueries.GetTrustPolicy(ctx, role.ID)
 	if err != nil {
 		return nil, err
 	}

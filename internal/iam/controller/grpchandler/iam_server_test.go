@@ -10,7 +10,8 @@ import (
 	"google.golang.org/grpc/status"
 
 	iamentity "github.com/tuannm99/podzone/internal/iam/domain/entity"
-	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
+	pbcommonv1 "github.com/tuannm99/podzone/pkg/api/proto/common/v1"
+	pbiamv1 "github.com/tuannm99/podzone/pkg/api/proto/iam/v1"
 )
 
 func TestCreateTenant_OK(t *testing.T) {
@@ -18,7 +19,11 @@ func TestCreateTenant_OK(t *testing.T) {
 		listUserTenantsFunc: func(ctx context.Context, userID uint) ([]iamentity.Membership, error) {
 			return nil, nil
 		},
-		createTenantFunc: func(ctx context.Context, ownerUserID uint, cmd iamentity.CreateTenantCmd) (*iamentity.Tenant, error) {
+		createTenantFunc: func(
+			ctx context.Context,
+			ownerUserID uint,
+			cmd iamentity.CreateTenantCmd,
+		) (*iamentity.Tenant, error) {
 			return &iamentity.Tenant{ID: "tenant-1", Name: cmd.Name, Slug: cmd.Slug}, nil
 		},
 		getMembershipFunc: func(ctx context.Context, tenantID string, userID uint) (*iamentity.Membership, error) {
@@ -31,7 +36,7 @@ func TestCreateTenant_OK(t *testing.T) {
 		},
 	}))
 
-	res, err := srv.CreateTenant(authContextForIAMUser(t, 7), &pbauthv1.CreateTenantRequest{
+	res, err := srv.CreateTenant(authContextForIAMUser(t, 7), &pbiamv1.CreateTenantRequest{
 		OwnerUserId: 7,
 		Name:        "Demo Tenant",
 		Slug:        "demo-tenant",
@@ -52,7 +57,7 @@ func TestCreateTenant_RequiresPlatformPermissionAfterFirstWorkspace(t *testing.T
 		},
 	}))
 
-	_, err := srv.CreateTenant(authContextForIAMUser(t, 7), &pbauthv1.CreateTenantRequest{
+	_, err := srv.CreateTenant(authContextForIAMUser(t, 7), &pbiamv1.CreateTenantRequest{
 		OwnerUserId: 7,
 		Name:        "Second Tenant",
 		Slug:        "second-tenant",
@@ -68,7 +73,7 @@ func TestCheckPermission_InactiveMembershipReturnsNotAllowed(t *testing.T) {
 		},
 	}))
 
-	res, err := srv.CheckPermission(context.Background(), &pbauthv1.CheckPermissionRequest{
+	res, err := srv.CheckPermission(context.Background(), &pbiamv1.CheckPermissionRequest{
 		TenantId:   "tenant-1",
 		UserId:     9,
 		Permission: "order:update",
@@ -81,15 +86,18 @@ func TestCheckPermission_InactiveMembershipReturnsNotAllowed(t *testing.T) {
 func TestCreatePolicy_OK(t *testing.T) {
 	srv := newIAMServerForTest(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
 		requirePlatformPermissionFunc: func(ctx context.Context, userID uint, permission string) error { return nil },
-		createPolicyFunc: func(ctx context.Context, input iamentity.CreatePolicyInput) (*iamentity.Policy, []iamentity.PolicyStatement, error) {
+		createPolicyFunc: func(
+			ctx context.Context,
+			input iamentity.CreatePolicyInput,
+		) (*iamentity.Policy, []iamentity.PolicyStatement, error) {
 			return &iamentity.Policy{Name: input.Name, Scope: input.Scope}, input.Statements, nil
 		},
 	}))
 
-	res, err := srv.CreatePolicy(authContextForIAMUser(t, 7), &pbauthv1.CreatePolicyRequest{
+	res, err := srv.CreatePolicy(authContextForIAMUser(t, 7), &pbiamv1.CreatePolicyRequest{
 		Scope: "platform",
 		Name:  "managed/test",
-		Statements: []*pbauthv1.PolicyStatement{{
+		Statements: []*pbcommonv1.PolicyStatement{{
 			Effect:          "allow",
 			ActionPattern:   "tenant:create",
 			ResourcePattern: "*",
@@ -113,7 +121,7 @@ func TestGetTenantMembership_OK(t *testing.T) {
 		},
 	}))
 
-	res, err := srv.GetTenantMembership(context.Background(), &pbauthv1.GetTenantMembershipRequest{
+	res, err := srv.GetTenantMembership(context.Background(), &pbiamv1.GetTenantMembershipRequest{
 		TenantId: "tenant-1",
 		UserId:   9,
 	})
@@ -137,7 +145,7 @@ func TestListUserTenants_OK(t *testing.T) {
 		},
 	}))
 
-	res, err := srv.ListUserTenants(authContextForIAMUser(t, 7), &pbauthv1.ListUserTenantsRequest{UserId: 7})
+	res, err := srv.ListUserTenants(authContextForIAMUser(t, 7), &pbiamv1.ListUserTenantsRequest{UserId: 7})
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	assert.Len(t, res.Memberships, 1)
@@ -157,7 +165,7 @@ func TestAssumeRoleRPC_OK(t *testing.T) {
 		},
 	}))
 
-	res, err := srv.AssumeRole(context.Background(), &pbauthv1.IAMAssumeRoleRequest{
+	res, err := srv.AssumeRole(context.Background(), &pbiamv1.IAMAssumeRoleRequest{
 		AccessToken: rawAccessTokenForIAMUser(t, 7),
 		RoleName:    iamentity.RoleTenantAdmin,
 		TenantId:    "tenant-1",

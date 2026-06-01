@@ -7,6 +7,7 @@
 package pbauthv1
 
 import (
+	v1 "github.com/tuannm99/podzone/pkg/api/proto/common/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -31,7 +32,7 @@ type Session struct {
 	UpdatedAt                   string                 `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	ExpiresAt                   string                 `protobuf:"bytes,7,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
 	RevokedAt                   string                 `protobuf:"bytes,8,opt,name=revoked_at,json=revokedAt,proto3" json:"revoked_at,omitempty"`
-	SessionPolicy               []*PolicyStatement     `protobuf:"bytes,9,rep,name=session_policy,json=sessionPolicy,proto3" json:"session_policy,omitempty"`
+	SessionPolicy               []*v1.PolicyStatement  `protobuf:"bytes,9,rep,name=session_policy,json=sessionPolicy,proto3" json:"session_policy,omitempty"`
 	AssumedRoleId               uint64                 `protobuf:"varint,10,opt,name=assumed_role_id,json=assumedRoleId,proto3" json:"assumed_role_id,omitempty"`
 	AssumedRoleScope            string                 `protobuf:"bytes,11,opt,name=assumed_role_scope,json=assumedRoleScope,proto3" json:"assumed_role_scope,omitempty"`
 	AssumedRoleName             string                 `protobuf:"bytes,12,opt,name=assumed_role_name,json=assumedRoleName,proto3" json:"assumed_role_name,omitempty"`
@@ -131,7 +132,7 @@ func (x *Session) GetRevokedAt() string {
 	return ""
 }
 
-func (x *Session) GetSessionPolicy() []*PolicyStatement {
+func (x *Session) GetSessionPolicy() []*v1.PolicyStatement {
 	if x != nil {
 		return x.SessionPolicy
 	}
@@ -432,7 +433,7 @@ func (x *SwitchActiveTenantResponse) GetRefreshToken() string {
 type AssumeSessionPolicyRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AccessToken   string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
-	Statements    []*PolicyStatement     `protobuf:"bytes,2,rep,name=statements,proto3" json:"statements,omitempty"`
+	Statements    []*v1.PolicyStatement  `protobuf:"bytes,2,rep,name=statements,proto3" json:"statements,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -474,7 +475,7 @@ func (x *AssumeSessionPolicyRequest) GetAccessToken() string {
 	return ""
 }
 
-func (x *AssumeSessionPolicyRequest) GetStatements() []*PolicyStatement {
+func (x *AssumeSessionPolicyRequest) GetStatements() []*v1.PolicyStatement {
 	if x != nil {
 		return x.Statements
 	}
@@ -634,7 +635,7 @@ type AssumeRoleRequest struct {
 	AccessToken      string                 `protobuf:"bytes,1,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
 	RoleName         string                 `protobuf:"bytes,2,opt,name=role_name,json=roleName,proto3" json:"role_name,omitempty"`
 	TenantId         string                 `protobuf:"bytes,3,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
-	SessionPolicy    []*PolicyStatement     `protobuf:"bytes,4,rep,name=session_policy,json=sessionPolicy,proto3" json:"session_policy,omitempty"`
+	SessionPolicy    []*v1.PolicyStatement  `protobuf:"bytes,4,rep,name=session_policy,json=sessionPolicy,proto3" json:"session_policy,omitempty"`
 	ExternalId       string                 `protobuf:"bytes,5,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
 	SessionName      string                 `protobuf:"bytes,6,opt,name=session_name,json=sessionName,proto3" json:"session_name,omitempty"`
 	SourceIdentity   string                 `protobuf:"bytes,7,opt,name=source_identity,json=sourceIdentity,proto3" json:"source_identity,omitempty"`
@@ -696,7 +697,7 @@ func (x *AssumeRoleRequest) GetTenantId() string {
 	return ""
 }
 
-func (x *AssumeRoleRequest) GetSessionPolicy() []*PolicyStatement {
+func (x *AssumeRoleRequest) GetSessionPolicy() []*v1.PolicyStatement {
 	if x != nil {
 		return x.SessionPolicy
 	}
@@ -1233,7 +1234,7 @@ var File_auth_v1_auth_session_proto protoreflect.FileDescriptor
 
 const file_auth_v1_auth_session_proto_rawDesc = "" +
 	"\n" +
-	"\x1aauth/v1/auth_session.proto\x12\x04auth\x1a\x12auth/v1/auth.proto\x1a\x18auth/v1/iam_policy.proto\"\xe0\x06\n" +
+	"\x1aauth/v1/auth_session.proto\x12\x04auth\x1a\x12auth/v1/auth.proto\x1a\x1acommon/v1/iam_policy.proto\"\xe2\x06\n" +
 	"\aSession\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x04R\x06userId\x12(\n" +
@@ -1246,8 +1247,8 @@ const file_auth_v1_auth_session_proto_rawDesc = "" +
 	"\n" +
 	"expires_at\x18\a \x01(\tR\texpiresAt\x12\x1d\n" +
 	"\n" +
-	"revoked_at\x18\b \x01(\tR\trevokedAt\x12<\n" +
-	"\x0esession_policy\x18\t \x03(\v2\x15.auth.PolicyStatementR\rsessionPolicy\x12&\n" +
+	"revoked_at\x18\b \x01(\tR\trevokedAt\x12>\n" +
+	"\x0esession_policy\x18\t \x03(\v2\x17.common.PolicyStatementR\rsessionPolicy\x12&\n" +
 	"\x0fassumed_role_id\x18\n" +
 	" \x01(\x04R\rassumedRoleId\x12,\n" +
 	"\x12assumed_role_scope\x18\v \x01(\tR\x10assumedRoleScope\x12*\n" +
@@ -1280,11 +1281,11 @@ const file_auth_v1_auth_session_proto_rawDesc = "" +
 	"\x1aSwitchActiveTenantResponse\x12\x1b\n" +
 	"\tjwt_token\x18\x01 \x01(\tR\bjwtToken\x12+\n" +
 	"\tuser_info\x18\x02 \x01(\v2\x0e.auth.UserInfoR\buserInfo\x12#\n" +
-	"\rrefresh_token\x18\x03 \x01(\tR\frefreshToken\"v\n" +
+	"\rrefresh_token\x18\x03 \x01(\tR\frefreshToken\"x\n" +
 	"\x1aAssumeSessionPolicyRequest\x12!\n" +
-	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x125\n" +
+	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x127\n" +
 	"\n" +
-	"statements\x18\x02 \x03(\v2\x15.auth.PolicyStatementR\n" +
+	"statements\x18\x02 \x03(\v2\x17.common.PolicyStatementR\n" +
 	"statements\"c\n" +
 	"\x1bAssumeSessionPolicyResponse\x12\x1b\n" +
 	"\tjwt_token\x18\x01 \x01(\tR\bjwtToken\x12'\n" +
@@ -1293,12 +1294,12 @@ const file_auth_v1_auth_session_proto_rawDesc = "" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"b\n" +
 	"\x1aClearSessionPolicyResponse\x12\x1b\n" +
 	"\tjwt_token\x18\x01 \x01(\tR\bjwtToken\x12'\n" +
-	"\asession\x18\x02 \x01(\v2\r.auth.SessionR\asession\"\x80\x04\n" +
+	"\asession\x18\x02 \x01(\v2\r.auth.SessionR\asession\"\x82\x04\n" +
 	"\x11AssumeRoleRequest\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12\x1b\n" +
 	"\trole_name\x18\x02 \x01(\tR\broleName\x12\x1b\n" +
-	"\ttenant_id\x18\x03 \x01(\tR\btenantId\x12<\n" +
-	"\x0esession_policy\x18\x04 \x03(\v2\x15.auth.PolicyStatementR\rsessionPolicy\x12\x1f\n" +
+	"\ttenant_id\x18\x03 \x01(\tR\btenantId\x12>\n" +
+	"\x0esession_policy\x18\x04 \x03(\v2\x17.common.PolicyStatementR\rsessionPolicy\x12\x1f\n" +
 	"\vexternal_id\x18\x05 \x01(\tR\n" +
 	"externalId\x12!\n" +
 	"\fsession_name\x18\x06 \x01(\tR\vsessionName\x12'\n" +
@@ -1371,17 +1372,17 @@ var file_auth_v1_auth_session_proto_goTypes = []any{
 	(*ListAuditLogsResponse)(nil),       // 19: auth.ListAuditLogsResponse
 	nil,                                 // 20: auth.Session.SessionTagsEntry
 	nil,                                 // 21: auth.AssumeRoleRequest.SessionTagsEntry
-	(*PolicyStatement)(nil),             // 22: auth.PolicyStatement
+	(*v1.PolicyStatement)(nil),          // 22: common.PolicyStatement
 	(*UserInfo)(nil),                    // 23: auth.UserInfo
 }
 var file_auth_v1_auth_session_proto_depIdxs = []int32{
-	22, // 0: auth.Session.session_policy:type_name -> auth.PolicyStatement
+	22, // 0: auth.Session.session_policy:type_name -> common.PolicyStatement
 	20, // 1: auth.Session.session_tags:type_name -> auth.Session.SessionTagsEntry
 	23, // 2: auth.SwitchActiveTenantResponse.user_info:type_name -> auth.UserInfo
-	22, // 3: auth.AssumeSessionPolicyRequest.statements:type_name -> auth.PolicyStatement
+	22, // 3: auth.AssumeSessionPolicyRequest.statements:type_name -> common.PolicyStatement
 	0,  // 4: auth.AssumeSessionPolicyResponse.session:type_name -> auth.Session
 	0,  // 5: auth.ClearSessionPolicyResponse.session:type_name -> auth.Session
-	22, // 6: auth.AssumeRoleRequest.session_policy:type_name -> auth.PolicyStatement
+	22, // 6: auth.AssumeRoleRequest.session_policy:type_name -> common.PolicyStatement
 	21, // 7: auth.AssumeRoleRequest.session_tags:type_name -> auth.AssumeRoleRequest.SessionTagsEntry
 	0,  // 8: auth.AssumeRoleResponse.session:type_name -> auth.Session
 	0,  // 9: auth.ClearAssumedRoleResponse.session:type_name -> auth.Session
@@ -1401,7 +1402,6 @@ func file_auth_v1_auth_session_proto_init() {
 		return
 	}
 	file_auth_v1_auth_proto_init()
-	file_auth_v1_iam_policy_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

@@ -12,7 +12,7 @@ plugins:
     out: pkg/api/proto
     opt:
       - paths=source_relative
-      - generate_unbound_methods=true
+      - generate_unbound_methods=false
 
   # Swagger/OpenAPI (grpc-gateway)
   - plugin: openapiv2

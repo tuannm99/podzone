@@ -44,8 +44,13 @@ flowchart LR
 ```mermaid
 flowchart LR
     IAMServer["controller/grpchandler"]
-    IAMInteractor["interactor"]
-    IAMRepo["infrastructure/repository"]
+    IAMCommandHandler["controller/grpchandler command handler"]
+    IAMQueryHandler["controller/grpchandler query handler"]
+    IAMCommand["domain/inputport command usecases"]
+    IAMQuery["domain/inputport query usecases"]
+    IAMInteractor["domain/interactor"]
+    IAMWriteRepo["infrastructure/repository write model"]
+    IAMReadRepo["infrastructure/repository read/evaluation model"]
     EventRelay["outbox CDC / fallback relay"]
     IAMAPI["cmd/iam"]
     IAMWorker["cmd/iam-worker"]
@@ -53,9 +58,17 @@ flowchart LR
     Kafka["kafka"]
 
     IAMAPI --> IAMServer
-    IAMServer --> IAMInteractor
-    IAMInteractor --> IAMRepo
-    IAMRepo --> IAMDB
+    IAMServer --> IAMCommandHandler
+    IAMServer --> IAMQueryHandler
+    IAMCommandHandler --> IAMCommand
+    IAMCommandHandler --> IAMQuery
+    IAMQueryHandler --> IAMQuery
+    IAMCommand --> IAMInteractor
+    IAMQuery --> IAMInteractor
+    IAMInteractor --> IAMWriteRepo
+    IAMInteractor --> IAMReadRepo
+    IAMWriteRepo --> IAMDB
+    IAMReadRepo --> IAMDB
     IAMWorker --> EventRelay
     IAMInteractor -->|"append outbox"| IAMDB
     IAMDB -->|"CDC preferred; bounded polling fallback"| EventRelay
@@ -65,9 +78,15 @@ flowchart LR
 ### Main modules
 
 - `entity`: authorization core types, policy statements, trust policies, memberships
-- `inputport`: IAM usecase contracts
-- `outputport`: repository and outbox contracts
-- `interactor`: policy lifecycle, authz evaluation, groups, tenants, org/SCP, assume-role
+- `inputport`: IAM command and query usecase contracts; `IAMUsecase` remains a compatibility facade during migration
+- `outputport`: command repository, query repository, and outbox contracts
+- `controller/grpchandler`: gRPC facade delegates to separate command and query handlers while preserving the public IAM service contract
+- `api/proto/iam/v1/iam_service.proto`: exposes `IAMCommandService` and `IAMQueryService` for CQRS gRPC clients; `IAMService` remains the REST/gateway compatibility contract
+- IAM currently runs as one API binary, but the module exposes separate command/query server registrations so it can become `cmd/iam-command` and `cmd/iam-query` later without changing proto contracts
+- Fx wiring mirrors that boundary: `internal/iam.CommandModule` and `internal/iam.QueryModule` wire domain dependencies separately, while `internal/iam/server.Module` keeps the current all-in-one `cmd/iam` runtime
+- `interactor`: command handling, policy lifecycle, authz evaluation, groups, tenants, org/SCP, assume-role
+- command side owns tenant, policy, group, membership, org, and boundary mutations
+- query side owns policy reads, membership reads, permission checks, simulations, and read-model access
 - `cmd/iam`: IAM API runtime
 - `cmd/iam-worker`: transactional event publisher runtime; polling relay is fallback until CDC is wired
 
@@ -97,9 +116,11 @@ flowchart LR
 
 ### Main modules
 
-- `catalog`: product setup draft/candidate flow
-- `routing`: routed orders, recommendation, shipment, settlement, audit feed
-- `store`: tenant store metadata and store-owned operations
+- `store`: store aggregate, store-scoped access, and workspace-facing store metadata
+- `catalog`: product setup draft/candidate flow inside the active store context
+- `routing`: routed order aggregate, recommendation, shipment, settlement, and audit feed
+- Backoffice DDD boundary: GraphQL maps transport DTOs to context usecases; repositories stay behind each context output port.
+- Cross-context calls should use domain ports or external adapters, not direct repository imports.
 
 ## Partner Service
 

@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package common;
+
+option go_package = "github.com/tuannm99/podzone/pkg/api/proto/common/v1;pbcommonv1";
+
+message PolicyStatement {
+  uint64 id = 1;
+  uint64 policy_id = 2;
+  string policy_name = 3;
+  string effect = 4;
+  string action_pattern = 5;
+  string resource_pattern = 6;
+  repeated PolicyCondition conditions = 7;
+  string created_at = 8;
+}
+
+message PolicyCondition {
+  string operator = 1;
+  string key = 2;
+  string value = 3;
+}

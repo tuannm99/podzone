@@ -8,7 +8,10 @@ import (
 
 type PolicyUsecase interface {
 	CreatePolicy(ctx context.Context, input entity.CreatePolicyInput) (*entity.Policy, []entity.PolicyStatement, error)
-	CreatePolicyVersion(ctx context.Context, input entity.CreatePolicyVersionInput) (*entity.PolicyVersion, []entity.PolicyStatement, error)
+	CreatePolicyVersion(
+		ctx context.Context,
+		input entity.CreatePolicyVersionInput,
+	) (*entity.PolicyVersion, []entity.PolicyStatement, error)
 	DeletePolicyVersion(ctx context.Context, name string, version string) error
 	GetPolicy(ctx context.Context, name string) (*entity.Policy, []entity.PolicyStatement, error)
 	ListPolicyVersions(ctx context.Context, name string) ([]entity.PolicyVersion, error)

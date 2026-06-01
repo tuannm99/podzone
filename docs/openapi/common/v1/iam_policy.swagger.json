@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "auth/v1/iam_policy.proto",
+    "title": "common/v1/iam_policy.proto",
     "version": "version not set"
   },
   "consumes": [

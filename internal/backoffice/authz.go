@@ -8,6 +8,7 @@ import (
 
 	boconfig "github.com/tuannm99/podzone/internal/backoffice/config"
 	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
+	pbiamv1 "github.com/tuannm99/podzone/pkg/api/proto/iam/v1"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
@@ -23,7 +24,7 @@ type TenantAuthorizer interface {
 
 type authTenantAuthorizer struct {
 	authClient pbauthv1.AuthServiceClient
-	iamClient  pbauthv1.IAMServiceClient
+	iamClient  pbiamv1.IAMQueryServiceClient
 }
 
 type authClientParams struct {
@@ -68,7 +69,7 @@ func NewTenantAuthorizer(p authClientParams) (TenantAuthorizer, error) {
 	p.Logger.Info("backoffice iam gRPC client connected", "addr", iamAddr)
 	return &authTenantAuthorizer{
 		authClient: pbauthv1.NewAuthServiceClient(authConn),
-		iamClient:  pbauthv1.NewIAMServiceClient(iamConn),
+		iamClient:  pbiamv1.NewIAMQueryServiceClient(iamConn),
 	}, nil
 }
 
@@ -96,7 +97,7 @@ func (a *authTenantAuthorizer) AuthorizeTenant(ctx context.Context, sessionID, u
 		return err
 	}
 
-	resp, err := a.iamClient.GetTenantMembership(ctx, &pbauthv1.GetTenantMembershipRequest{
+	resp, err := a.iamClient.GetTenantMembership(ctx, &pbiamv1.GetTenantMembershipRequest{
 		TenantId: tenantID,
 		UserId:   userIDNum,
 	})
@@ -125,7 +126,7 @@ func (a *authTenantAuthorizer) RequirePermission(
 		resource = "*"
 	}
 
-	resp, err := a.iamClient.CheckPermission(ctx, &pbauthv1.CheckPermissionRequest{
+	resp, err := a.iamClient.CheckPermission(ctx, &pbiamv1.CheckPermissionRequest{
 		TenantId:   tenantID,
 		UserId:     userIDNum,
 		Permission: permission,

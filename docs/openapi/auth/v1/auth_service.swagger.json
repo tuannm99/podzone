@@ -624,7 +624,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/authPolicyStatement"
+            "$ref": "#/definitions/commonPolicyStatement"
           }
         },
         "externalId": {
@@ -672,7 +672,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/authPolicyStatement"
+            "$ref": "#/definitions/commonPolicyStatement"
           }
         }
       }
@@ -926,55 +926,6 @@
         }
       }
     },
-    "authPolicyCondition": {
-      "type": "object",
-      "properties": {
-        "operator": {
-          "type": "string"
-        },
-        "key": {
-          "type": "string"
-        },
-        "value": {
-          "type": "string"
-        }
-      }
-    },
-    "authPolicyStatement": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "policyId": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "policyName": {
-          "type": "string"
-        },
-        "effect": {
-          "type": "string"
-        },
-        "actionPattern": {
-          "type": "string"
-        },
-        "resourcePattern": {
-          "type": "string"
-        },
-        "conditions": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authPolicyCondition"
-          }
-        },
-        "createdAt": {
-          "type": "string"
-        }
-      }
-    },
     "authRefreshTokenRequest": {
       "type": "object",
       "properties": {
@@ -1060,7 +1011,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/authPolicyStatement"
+            "$ref": "#/definitions/commonPolicyStatement"
           }
         },
         "assumedRoleId": {
@@ -1165,6 +1116,55 @@
         },
         "emailVerified": {
           "type": "boolean"
+        }
+      }
+    },
+    "commonPolicyCondition": {
+      "type": "object",
+      "properties": {
+        "operator": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "commonPolicyStatement": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "policyId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "policyName": {
+          "type": "string"
+        },
+        "effect": {
+          "type": "string"
+        },
+        "actionPattern": {
+          "type": "string"
+        },
+        "resourcePattern": {
+          "type": "string"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/commonPolicyCondition"
+          }
+        },
+        "createdAt": {
+          "type": "string"
         }
       }
     },

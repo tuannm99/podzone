@@ -256,7 +256,11 @@ func TestIAMService_AssumeRole_ExternalIDPattern(t *testing.T) {
 	t.Parallel()
 
 	svc, state := newIAMTestUsecase(t)
-	state.roleByName[entity.RoleTenantAdmin] = entity.Role{ID: 2, Scope: entity.PolicyScopeTenant, Name: entity.RoleTenantAdmin}
+	state.roleByName[entity.RoleTenantAdmin] = entity.Role{
+		ID:    2,
+		Scope: entity.PolicyScopeTenant,
+		Name:  entity.RoleTenantAdmin,
+	}
 	state.roleTrustStatements[2] = []entity.RoleTrustStatement{{
 		RoleID:            2,
 		Effect:            entity.PolicyEffectAllow,
@@ -286,7 +290,11 @@ func TestIAMService_SimulateAccess_WithConditionAndBoundary(t *testing.T) {
 
 	svc, state := newIAMTestUsecase(t)
 	state.tenants["t1"] = entity.Tenant{ID: "t1", Name: "Tenant", Slug: "tenant"}
-	state.roleByName[entity.RoleTenantEditor] = entity.Role{ID: 2, Scope: entity.PolicyScopeTenant, Name: entity.RoleTenantEditor}
+	state.roleByName[entity.RoleTenantEditor] = entity.Role{
+		ID:    2,
+		Scope: entity.PolicyScopeTenant,
+		Name:  entity.RoleTenantEditor,
+	}
 	state.memberships.items[membershipKey("t1", 9)] = entity.Membership{
 		TenantID: "t1", UserID: 9, RoleID: 2, RoleName: entity.RoleTenantEditor, Status: entity.MembershipStatusActive,
 	}

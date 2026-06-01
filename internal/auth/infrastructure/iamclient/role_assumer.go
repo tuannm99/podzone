@@ -7,7 +7,7 @@ import (
 
 	"github.com/tuannm99/podzone/internal/auth/config"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
-	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
+	pbiamv1 "github.com/tuannm99/podzone/pkg/api/proto/iam/v1"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
@@ -15,7 +15,7 @@ import (
 )
 
 type RoleAssumer struct {
-	client pbauthv1.IAMServiceClient
+	client pbiamv1.IAMCommandServiceClient
 }
 
 var _ outputport.RoleAssumer = (*RoleAssumer)(nil)
@@ -39,14 +39,14 @@ func NewRoleAssumer(p RoleAssumerParams) (outputport.RoleAssumer, error) {
 			return conn.Close()
 		},
 	})
-	return &RoleAssumer{client: pbauthv1.NewIAMServiceClient(conn)}, nil
+	return &RoleAssumer{client: pbiamv1.NewIAMCommandServiceClient(conn)}, nil
 }
 
 func (r *RoleAssumer) AssumeRole(
 	ctx context.Context,
 	input outputport.AssumeRoleInput,
 ) (*outputport.AssumedRole, error) {
-	resp, err := r.client.AssumeRole(ctx, &pbauthv1.IAMAssumeRoleRequest{
+	resp, err := r.client.AssumeRole(ctx, &pbiamv1.IAMAssumeRoleRequest{
 		AccessToken:      input.AccessToken,
 		RoleName:         input.RoleName,
 		TenantId:         input.TenantID,

@@ -30,16 +30,16 @@ func (s *interactor) CheckPlatformPermission(ctx context.Context, userID uint, p
 		Resource:   "*",
 		Attributes: requestAttributesFromContext(ctx),
 	}
-	statements, err := s.policies.ListPlatformUserStatements(ctx, userID)
+	statements, err := s.policyQueries.ListPlatformUserStatements(ctx, userID)
 	if err != nil {
 		return false, err
 	}
-	groupStatements, err := s.policies.ListPlatformGroupStatements(ctx, userID)
+	groupStatements, err := s.policyQueries.ListPlatformGroupStatements(ctx, userID)
 	if err != nil {
 		return false, err
 	}
 	statements = append(statements, groupStatements...)
-	roleIDs, err := s.platformMemberships.ListRoleIDsByUser(ctx, userID)
+	roleIDs, err := s.platformMembershipQueries.ListRoleIDsByUser(ctx, userID)
 	if err != nil {
 		return false, err
 	}
@@ -62,7 +62,7 @@ func (s *interactor) CheckPlatformPermission(ctx context.Context, userID uint, p
 	}
 roleEvaluation:
 	for _, roleID := range roleIDs {
-		roleStatements, err := s.policies.ListRoleStatements(ctx, roleID)
+		roleStatements, err := s.policyQueries.ListRoleStatements(ctx, roleID)
 		if err != nil {
 			return false, err
 		}
@@ -83,7 +83,7 @@ roleEvaluation:
 			}
 			return true, nil
 		}
-		allowed, err := s.roles.RoleHasPermission(ctx, roleID, permission)
+		allowed, err := s.roleQueries.RoleHasPermission(ctx, roleID, permission)
 		if err != nil {
 			return false, err
 		}
@@ -123,18 +123,18 @@ func (s *interactor) AddPlatformRole(ctx context.Context, userID uint, roleName 
 	if roleName == "" {
 		return entity.ErrInvalidRoleName
 	}
-	role, err := s.roles.GetByName(ctx, roleName)
+	role, err := s.roleQueries.GetByName(ctx, roleName)
 	if err != nil {
 		return err
 	}
-	return s.platformMemberships.Upsert(ctx, userID, role.ID, entity.MembershipStatusActive)
+	return s.platformMembershipCommands.Upsert(ctx, userID, role.ID, entity.MembershipStatusActive)
 }
 
 func (s *interactor) ListPlatformRoles(ctx context.Context, userID uint) ([]entity.PlatformMembership, error) {
 	if userID == 0 {
 		return nil, entity.ErrInvalidUserID
 	}
-	return s.platformMemberships.ListByUser(ctx, userID)
+	return s.platformMembershipQueries.ListByUser(ctx, userID)
 }
 
 func (s *interactor) RemovePlatformRole(ctx context.Context, userID uint, roleName string) error {
@@ -145,11 +145,11 @@ func (s *interactor) RemovePlatformRole(ctx context.Context, userID uint, roleNa
 	if roleName == "" {
 		return entity.ErrInvalidRoleName
 	}
-	role, err := s.roles.GetByName(ctx, roleName)
+	role, err := s.roleQueries.GetByName(ctx, roleName)
 	if err != nil {
 		return err
 	}
-	return s.platformMemberships.Delete(ctx, userID, role.ID)
+	return s.platformMembershipCommands.Delete(ctx, userID, role.ID)
 }
 
 func (s *interactor) PutPlatformUserInlinePolicy(
@@ -174,7 +174,7 @@ func (s *interactor) PutPlatformUserInlinePolicy(
 		}
 		statements = append(statements, normalized)
 	}
-	return s.policies.PutPlatformUserInlinePolicy(ctx, entity.PutPlatformUserInlinePolicyInput{
+	return s.policyCommands.PutPlatformUserInlinePolicy(ctx, entity.PutPlatformUserInlinePolicyInput{
 		UserID:      input.UserID,
 		Name:        strings.TrimSpace(input.Name),
 		Description: strings.TrimSpace(input.Description),
@@ -193,7 +193,7 @@ func (s *interactor) GetPlatformUserInlinePolicy(
 	if strings.TrimSpace(name) == "" {
 		return nil, entity.ErrInvalidPolicyName
 	}
-	return s.policies.GetPlatformUserInlinePolicy(ctx, userID, strings.TrimSpace(name))
+	return s.policyQueries.GetPlatformUserInlinePolicy(ctx, userID, strings.TrimSpace(name))
 }
 
 func (s *interactor) ListPlatformUserInlinePolicies(
@@ -203,7 +203,7 @@ func (s *interactor) ListPlatformUserInlinePolicies(
 	if userID == 0 {
 		return nil, entity.ErrInvalidUserID
 	}
-	return s.policies.ListPlatformUserInlinePolicies(ctx, userID)
+	return s.policyQueries.ListPlatformUserInlinePolicies(ctx, userID)
 }
 
 func (s *interactor) DeletePlatformUserInlinePolicy(ctx context.Context, userID uint, name string) error {
@@ -213,18 +213,18 @@ func (s *interactor) DeletePlatformUserInlinePolicy(ctx context.Context, userID 
 	if strings.TrimSpace(name) == "" {
 		return entity.ErrInvalidPolicyName
 	}
-	return s.policies.DeletePlatformUserInlinePolicy(ctx, userID, strings.TrimSpace(name))
+	return s.policyCommands.DeletePlatformUserInlinePolicy(ctx, userID, strings.TrimSpace(name))
 }
 
 func (s *interactor) AttachPlatformUserPolicy(ctx context.Context, userID uint, policyName string) error {
 	if userID == 0 {
 		return entity.ErrInvalidUserID
 	}
-	policy, err := s.policies.GetPolicyByName(ctx, strings.TrimSpace(policyName))
+	policy, err := s.policyQueries.GetPolicyByName(ctx, strings.TrimSpace(policyName))
 	if err != nil {
 		return err
 	}
-	if err := s.policies.AttachPlatformUserPolicy(ctx, userID, policy.ID); err != nil {
+	if err := s.policyCommands.AttachPlatformUserPolicy(ctx, userID, policy.ID); err != nil {
 		return err
 	}
 	now := time.Now().UTC()
@@ -246,32 +246,32 @@ func (s *interactor) DetachPlatformUserPolicy(ctx context.Context, userID uint, 
 	if userID == 0 {
 		return entity.ErrInvalidUserID
 	}
-	policy, err := s.policies.GetPolicyByName(ctx, strings.TrimSpace(policyName))
+	policy, err := s.policyQueries.GetPolicyByName(ctx, strings.TrimSpace(policyName))
 	if err != nil {
 		return err
 	}
-	return s.policies.DetachPlatformUserPolicy(ctx, userID, policy.ID)
+	return s.policyCommands.DetachPlatformUserPolicy(ctx, userID, policy.ID)
 }
 
 func (s *interactor) ListPlatformUserPolicies(ctx context.Context, userID uint) ([]entity.Policy, error) {
 	if userID == 0 {
 		return nil, entity.ErrInvalidUserID
 	}
-	return s.policies.ListPlatformUserPolicies(ctx, userID)
+	return s.policyQueries.ListPlatformUserPolicies(ctx, userID)
 }
 
 func (s *interactor) PutPlatformUserPermissionBoundary(ctx context.Context, userID uint, policyName string) error {
 	if userID == 0 {
 		return entity.ErrInvalidUserID
 	}
-	policy, err := s.policies.GetPolicyByName(ctx, strings.TrimSpace(policyName))
+	policy, err := s.policyQueries.GetPolicyByName(ctx, strings.TrimSpace(policyName))
 	if err != nil {
 		return err
 	}
 	if policy.Scope != entity.PolicyScopePlatform {
 		return entity.ErrPermissionDenied
 	}
-	return s.policies.PutPlatformUserPermissionBoundary(ctx, userID, policy.ID)
+	return s.policyCommands.PutPlatformUserPermissionBoundary(ctx, userID, policy.ID)
 }
 
 func (s *interactor) GetPlatformUserPermissionBoundary(
@@ -281,12 +281,12 @@ func (s *interactor) GetPlatformUserPermissionBoundary(
 	if userID == 0 {
 		return nil, entity.ErrInvalidUserID
 	}
-	return s.policies.GetPlatformUserPermissionBoundary(ctx, userID)
+	return s.policyQueries.GetPlatformUserPermissionBoundary(ctx, userID)
 }
 
 func (s *interactor) DeletePlatformUserPermissionBoundary(ctx context.Context, userID uint) error {
 	if userID == 0 {
 		return entity.ErrInvalidUserID
 	}
-	return s.policies.DeletePlatformUserPermissionBoundary(ctx, userID)
+	return s.policyCommands.DeletePlatformUserPermissionBoundary(ctx, userID)
 }

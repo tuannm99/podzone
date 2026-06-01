@@ -1,12 +1,18 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "auth/v1/iam_service.proto",
+    "title": "iam/v1/iam_service.proto",
     "version": "version not set"
   },
   "tags": [
     {
       "name": "IAMService"
+    },
+    {
+      "name": "IAMCommandService"
+    },
+    {
+      "name": "IAMQueryService"
     }
   ],
   "consumes": [
@@ -23,7 +29,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authSimulateAccessResponse"
+              "$ref": "#/definitions/iamSimulateAccessResponse"
             }
           },
           "default": {
@@ -39,7 +45,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/authSimulateAccessRequest"
+              "$ref": "#/definitions/iamSimulateAccessRequest"
             }
           }
         ],
@@ -55,7 +61,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authIAMAssumeRoleResponse"
+              "$ref": "#/definitions/iamIAMAssumeRoleResponse"
             }
           },
           "default": {
@@ -71,7 +77,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/authIAMAssumeRoleRequest"
+              "$ref": "#/definitions/iamIAMAssumeRoleRequest"
             }
           }
         ],
@@ -87,7 +93,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authListGroupsResponse"
+              "$ref": "#/definitions/iamListGroupsResponse"
             }
           },
           "default": {
@@ -121,7 +127,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authCreateGroupResponse"
+              "$ref": "#/definitions/iamCreateGroupResponse"
             }
           },
           "default": {
@@ -137,7 +143,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/authCreateGroupRequest"
+              "$ref": "#/definitions/iamCreateGroupRequest"
             }
           }
         ],
@@ -153,7 +159,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authDeleteGroupResponse"
+              "$ref": "#/definitions/iamDeleteGroupResponse"
             }
           },
           "default": {
@@ -184,7 +190,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authListGroupInlinePoliciesResponse"
+              "$ref": "#/definitions/iamListGroupInlinePoliciesResponse"
             }
           },
           "default": {
@@ -215,7 +221,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authGetGroupInlinePolicyResponse"
+              "$ref": "#/definitions/iamGetGroupInlinePolicyResponse"
             }
           },
           "default": {
@@ -250,7 +256,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authDeleteGroupInlinePolicyResponse"
+              "$ref": "#/definitions/iamDeleteGroupInlinePolicyResponse"
             }
           },
           "default": {
@@ -285,7 +291,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authPutGroupInlinePolicyResponse"
+              "$ref": "#/definitions/iamPutGroupInlinePolicyResponse"
             }
           },
           "default": {
@@ -314,7 +320,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/IAMServicePutGroupInlinePolicyBody"
+              "$ref": "#/definitions/iamIAMServicePutGroupInlinePolicyBody"
             }
           }
         ],
@@ -330,7 +336,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authListGroupMembersResponse"
+              "$ref": "#/definitions/iamListGroupMembersResponse"
             }
           },
           "default": {
@@ -359,7 +365,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authAddGroupMemberResponse"
+              "$ref": "#/definitions/iamAddGroupMemberResponse"
             }
           },
           "default": {
@@ -382,7 +388,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/IAMServiceAddGroupMemberBody"
+              "$ref": "#/definitions/iamIAMServiceAddGroupMemberBody"
             }
           }
         ],
@@ -398,7 +404,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authRemoveGroupMemberResponse"
+              "$ref": "#/definitions/iamRemoveGroupMemberResponse"
             }
           },
           "default": {
@@ -436,7 +442,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authListGroupPoliciesResponse"
+              "$ref": "#/definitions/iamListGroupPoliciesResponse"
             }
           },
           "default": {
@@ -465,7 +471,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authAttachGroupPolicyResponse"
+              "$ref": "#/definitions/iamAttachGroupPolicyResponse"
             }
           },
           "default": {
@@ -488,7 +494,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/IAMServiceAttachGroupPolicyBody"
+              "$ref": "#/definitions/iamIAMServiceAttachGroupPolicyBody"
             }
           }
         ],
@@ -504,7 +510,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authDetachGroupPolicyResponse"
+              "$ref": "#/definitions/iamDetachGroupPolicyResponse"
             }
           },
           "default": {
@@ -541,7 +547,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authRevokeTenantInviteResponse"
+              "$ref": "#/definitions/iamRevokeTenantInviteResponse"
             }
           },
           "default": {
@@ -571,7 +577,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authAcceptTenantInviteResponse"
+              "$ref": "#/definitions/iamAcceptTenantInviteResponse"
             }
           },
           "default": {
@@ -587,7 +593,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/authAcceptTenantInviteRequest"
+              "$ref": "#/definitions/iamAcceptTenantInviteRequest"
             }
           }
         ],
@@ -603,7 +609,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authListOrganizationsResponse"
+              "$ref": "#/definitions/iamListOrganizationsResponse"
             }
           },
           "default": {
@@ -623,7 +629,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authCreateOrganizationResponse"
+              "$ref": "#/definitions/iamCreateOrganizationResponse"
             }
           },
           "default": {
@@ -639,7 +645,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/authCreateOrganizationRequest"
+              "$ref": "#/definitions/iamCreateOrganizationRequest"
             }
           }
         ],
@@ -655,7 +661,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authListServiceControlPoliciesResponse"
+              "$ref": "#/definitions/iamListServiceControlPoliciesResponse"
             }
           },
           "default": {
@@ -683,7 +689,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authAttachServiceControlPolicyResponse"
+              "$ref": "#/definitions/iamAttachServiceControlPolicyResponse"
             }
           },
           "default": {
@@ -705,7 +711,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/IAMServiceAttachServiceControlPolicyBody"
+              "$ref": "#/definitions/iamIAMServiceAttachServiceControlPolicyBody"
             }
           }
         ],
@@ -721,7 +727,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authDetachServiceControlPolicyResponse"
+              "$ref": "#/definitions/iamDetachServiceControlPolicyResponse"
             }
           },
           "default": {
@@ -757,7 +763,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authDetachTenantFromOrganizationResponse"
+              "$ref": "#/definitions/iamDetachTenantFromOrganizationResponse"
             }
           },
           "default": {
@@ -791,7 +797,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authAttachTenantToOrganizationResponse"
+              "$ref": "#/definitions/iamAttachTenantToOrganizationResponse"
             }
           },
           "default": {
@@ -819,7 +825,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/IAMServiceAttachTenantToOrganizationBody"
+              "$ref": "#/definitions/iamIAMServiceAttachTenantToOrganizationBody"
             }
           }
         ],
@@ -835,7 +841,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authCheckPermissionResponse"
+              "$ref": "#/definitions/iamCheckPermissionResponse"
             }
           },
           "default": {
@@ -851,7 +857,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/authCheckPermissionRequest"
+              "$ref": "#/definitions/iamCheckPermissionRequest"
             }
           }
         ],
@@ -867,7 +873,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authCheckPermissionResponse"
+              "$ref": "#/definitions/iamCheckPermissionResponse"
             }
           },
           "default": {
@@ -883,7 +889,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/authCheckPlatformPermissionRequest"
+              "$ref": "#/definitions/iamCheckPlatformPermissionRequest"
             }
           }
         ],
@@ -899,7 +905,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authListPlatformUserInlinePoliciesResponse"
+              "$ref": "#/definitions/iamListPlatformUserInlinePoliciesResponse"
             }
           },
           "default": {
@@ -930,7 +936,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authGetPlatformUserInlinePolicyResponse"
+              "$ref": "#/definitions/iamGetPlatformUserInlinePolicyResponse"
             }
           },
           "default": {
@@ -965,7 +971,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authDeletePlatformUserInlinePolicyResponse"
+              "$ref": "#/definitions/iamDeletePlatformUserInlinePolicyResponse"
             }
           },
           "default": {
@@ -1000,7 +1006,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authPutPlatformUserInlinePolicyResponse"
+              "$ref": "#/definitions/iamPutPlatformUserInlinePolicyResponse"
             }
           },
           "default": {
@@ -1029,7 +1035,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/IAMServicePutPlatformUserInlinePolicyBody"
+              "$ref": "#/definitions/iamIAMServicePutPlatformUserInlinePolicyBody"
             }
           }
         ],
@@ -1045,7 +1051,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authGetPlatformUserPermissionBoundaryResponse"
+              "$ref": "#/definitions/iamGetPlatformUserPermissionBoundaryResponse"
             }
           },
           "default": {
@@ -1074,7 +1080,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authDeletePlatformUserPermissionBoundaryResponse"
+              "$ref": "#/definitions/iamDeletePlatformUserPermissionBoundaryResponse"
             }
           },
           "default": {
@@ -1103,7 +1109,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authPutPlatformUserPermissionBoundaryResponse"
+              "$ref": "#/definitions/iamPutPlatformUserPermissionBoundaryResponse"
             }
           },
           "default": {
@@ -1126,7 +1132,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/IAMServicePutPlatformUserPermissionBoundaryBody"
+              "$ref": "#/definitions/iamIAMServicePutPlatformUserPermissionBoundaryBody"
             }
           }
         ],
@@ -1142,7 +1148,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authListPlatformUserPoliciesResponse"
+              "$ref": "#/definitions/iamListPlatformUserPoliciesResponse"
             }
           },
           "default": {
@@ -1171,7 +1177,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authAttachPlatformUserPolicyResponse"
+              "$ref": "#/definitions/iamAttachPlatformUserPolicyResponse"
             }
           },
           "default": {
@@ -1194,7 +1200,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/IAMServiceAttachPlatformUserPolicyBody"
+              "$ref": "#/definitions/iamIAMServiceAttachPlatformUserPolicyBody"
             }
           }
         ],
@@ -1210,7 +1216,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authDetachPlatformUserPolicyResponse"
+              "$ref": "#/definitions/iamDetachPlatformUserPolicyResponse"
             }
           },
           "default": {
@@ -1247,7 +1253,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authListPlatformRolesResponse"
+              "$ref": "#/definitions/iamListPlatformRolesResponse"
             }
           },
           "default": {
@@ -1283,7 +1289,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authAddPlatformRoleResponse"
+              "$ref": "#/definitions/iamAddPlatformRoleResponse"
             }
           },
           "default": {
@@ -1306,7 +1312,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/IAMServiceAddPlatformRoleBody"
+              "$ref": "#/definitions/iamIAMServiceAddPlatformRoleBody"
             }
           }
         ],
@@ -1322,7 +1328,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authRemovePlatformRoleResponse"
+              "$ref": "#/definitions/iamRemovePlatformRoleResponse"
             }
           },
           "default": {
@@ -1366,7 +1372,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authListPoliciesResponse"
+              "$ref": "#/definitions/iamListPoliciesResponse"
             }
           },
           "default": {
@@ -1394,7 +1400,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authCreatePolicyResponse"
+              "$ref": "#/definitions/iamCreatePolicyResponse"
             }
           },
           "default": {
@@ -1410,7 +1416,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/authCreatePolicyRequest"
+              "$ref": "#/definitions/iamCreatePolicyRequest"
             }
           }
         ],
@@ -1426,7 +1432,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authGetPolicyResponse"
+              "$ref": "#/definitions/iamGetPolicyResponse"
             }
           },
           "default": {
@@ -1455,7 +1461,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authDeletePolicyResponse"
+              "$ref": "#/definitions/iamDeletePolicyResponse"
             }
           },
           "default": {
@@ -1486,7 +1492,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authListPolicyAttachmentsResponse"
+              "$ref": "#/definitions/iamListPolicyAttachmentsResponse"
             }
           },
           "default": {
@@ -1517,7 +1523,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authListPolicyVersionsResponse"
+              "$ref": "#/definitions/iamListPolicyVersionsResponse"
             }
           },
           "default": {
@@ -1546,7 +1552,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authCreatePolicyVersionResponse"
+              "$ref": "#/definitions/iamCreatePolicyVersionResponse"
             }
           },
           "default": {
@@ -1569,7 +1575,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/IAMServiceCreatePolicyVersionBody"
+              "$ref": "#/definitions/iamIAMServiceCreatePolicyVersionBody"
             }
           }
         ],
@@ -1585,7 +1591,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authDeletePolicyVersionResponse"
+              "$ref": "#/definitions/iamDeletePolicyVersionResponse"
             }
           },
           "default": {
@@ -1622,7 +1628,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authSetDefaultPolicyVersionResponse"
+              "$ref": "#/definitions/iamSetDefaultPolicyVersionResponse"
             }
           },
           "default": {
@@ -1651,7 +1657,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/IAMServiceSetDefaultPolicyVersionBody"
+              "$ref": "#/definitions/iamIAMServiceSetDefaultPolicyVersionBody"
             }
           }
         ],
@@ -1667,7 +1673,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authGetRolePermissionBoundaryResponse"
+              "$ref": "#/definitions/iamGetRolePermissionBoundaryResponse"
             }
           },
           "default": {
@@ -1695,7 +1701,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authDeleteRolePermissionBoundaryResponse"
+              "$ref": "#/definitions/iamDeleteRolePermissionBoundaryResponse"
             }
           },
           "default": {
@@ -1723,7 +1729,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authPutRolePermissionBoundaryResponse"
+              "$ref": "#/definitions/iamPutRolePermissionBoundaryResponse"
             }
           },
           "default": {
@@ -1745,7 +1751,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/IAMServicePutRolePermissionBoundaryBody"
+              "$ref": "#/definitions/iamIAMServicePutRolePermissionBoundaryBody"
             }
           }
         ],
@@ -1761,7 +1767,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authGetRoleTrustPolicyResponse"
+              "$ref": "#/definitions/iamGetRoleTrustPolicyResponse"
             }
           },
           "default": {
@@ -1789,7 +1795,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authDeleteRoleTrustPolicyResponse"
+              "$ref": "#/definitions/iamDeleteRoleTrustPolicyResponse"
             }
           },
           "default": {
@@ -1817,7 +1823,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authPutRoleTrustPolicyResponse"
+              "$ref": "#/definitions/iamPutRoleTrustPolicyResponse"
             }
           },
           "default": {
@@ -1839,7 +1845,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/IAMServicePutRoleTrustPolicyBody"
+              "$ref": "#/definitions/iamIAMServicePutRoleTrustPolicyBody"
             }
           }
         ],
@@ -1855,7 +1861,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authCreateTenantResponse"
+              "$ref": "#/definitions/iamCreateTenantResponse"
             }
           },
           "default": {
@@ -1871,7 +1877,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/authCreateTenantRequest"
+              "$ref": "#/definitions/iamCreateTenantRequest"
             }
           }
         ],
@@ -1887,7 +1893,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authListTenantInvitesResponse"
+              "$ref": "#/definitions/iamListTenantInvitesResponse"
             }
           },
           "default": {
@@ -1915,7 +1921,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authCreateTenantInviteResponse"
+              "$ref": "#/definitions/iamCreateTenantInviteResponse"
             }
           },
           "default": {
@@ -1937,7 +1943,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/IAMServiceCreateTenantInviteBody"
+              "$ref": "#/definitions/iamIAMServiceCreateTenantInviteBody"
             }
           }
         ],
@@ -1953,7 +1959,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authListTenantMembersResponse"
+              "$ref": "#/definitions/iamListTenantMembersResponse"
             }
           },
           "default": {
@@ -1981,7 +1987,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authAddTenantMemberResponse"
+              "$ref": "#/definitions/iamAddTenantMemberResponse"
             }
           },
           "default": {
@@ -2003,7 +2009,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/IAMServiceAddTenantMemberBody"
+              "$ref": "#/definitions/iamIAMServiceAddTenantMemberBody"
             }
           }
         ],
@@ -2019,7 +2025,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authGetTenantMembershipResponse"
+              "$ref": "#/definitions/iamGetTenantMembershipResponse"
             }
           },
           "default": {
@@ -2054,7 +2060,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authRemoveTenantMemberResponse"
+              "$ref": "#/definitions/iamRemoveTenantMemberResponse"
             }
           },
           "default": {
@@ -2091,7 +2097,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authListTenantUserInlinePoliciesResponse"
+              "$ref": "#/definitions/iamListTenantUserInlinePoliciesResponse"
             }
           },
           "default": {
@@ -2128,7 +2134,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authGetTenantUserInlinePolicyResponse"
+              "$ref": "#/definitions/iamGetTenantUserInlinePolicyResponse"
             }
           },
           "default": {
@@ -2169,7 +2175,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authDeleteTenantUserInlinePolicyResponse"
+              "$ref": "#/definitions/iamDeleteTenantUserInlinePolicyResponse"
             }
           },
           "default": {
@@ -2210,7 +2216,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authPutTenantUserInlinePolicyResponse"
+              "$ref": "#/definitions/iamPutTenantUserInlinePolicyResponse"
             }
           },
           "default": {
@@ -2245,7 +2251,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/IAMServicePutTenantUserInlinePolicyBody"
+              "$ref": "#/definitions/iamIAMServicePutTenantUserInlinePolicyBody"
             }
           }
         ],
@@ -2261,7 +2267,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authGetTenantUserPermissionBoundaryResponse"
+              "$ref": "#/definitions/iamGetTenantUserPermissionBoundaryResponse"
             }
           },
           "default": {
@@ -2296,7 +2302,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authDeleteTenantUserPermissionBoundaryResponse"
+              "$ref": "#/definitions/iamDeleteTenantUserPermissionBoundaryResponse"
             }
           },
           "default": {
@@ -2331,7 +2337,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authPutTenantUserPermissionBoundaryResponse"
+              "$ref": "#/definitions/iamPutTenantUserPermissionBoundaryResponse"
             }
           },
           "default": {
@@ -2360,7 +2366,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/IAMServicePutTenantUserPermissionBoundaryBody"
+              "$ref": "#/definitions/iamIAMServicePutTenantUserPermissionBoundaryBody"
             }
           }
         ],
@@ -2376,7 +2382,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authListTenantUserPoliciesResponse"
+              "$ref": "#/definitions/iamListTenantUserPoliciesResponse"
             }
           },
           "default": {
@@ -2411,7 +2417,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authAttachTenantUserPolicyResponse"
+              "$ref": "#/definitions/iamAttachTenantUserPolicyResponse"
             }
           },
           "default": {
@@ -2440,7 +2446,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/IAMServiceAttachTenantUserPolicyBody"
+              "$ref": "#/definitions/iamIAMServiceAttachTenantUserPolicyBody"
             }
           }
         ],
@@ -2456,7 +2462,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authDetachTenantUserPolicyResponse"
+              "$ref": "#/definitions/iamDetachTenantUserPolicyResponse"
             }
           },
           "default": {
@@ -2499,7 +2505,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authAddTenantMemberByIdentityResponse"
+              "$ref": "#/definitions/iamAddTenantMemberByIdentityResponse"
             }
           },
           "default": {
@@ -2521,7 +2527,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/IAMServiceAddTenantMemberByIdentityBody"
+              "$ref": "#/definitions/iamIAMServiceAddTenantMemberByIdentityBody"
             }
           }
         ],
@@ -2537,7 +2543,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/authListUserTenantsResponse"
+              "$ref": "#/definitions/iamListUserTenantsResponse"
             }
           },
           "default": {
@@ -2563,1185 +2569,6 @@
     }
   },
   "definitions": {
-    "IAMServiceAddGroupMemberBody": {
-      "type": "object",
-      "properties": {
-        "userId": {
-          "type": "string",
-          "format": "uint64"
-        }
-      }
-    },
-    "IAMServiceAddPlatformRoleBody": {
-      "type": "object",
-      "properties": {
-        "actorUserId": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "roleName": {
-          "type": "string"
-        }
-      }
-    },
-    "IAMServiceAddTenantMemberBody": {
-      "type": "object",
-      "properties": {
-        "userId": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "roleName": {
-          "type": "string"
-        }
-      }
-    },
-    "IAMServiceAddTenantMemberByIdentityBody": {
-      "type": "object",
-      "properties": {
-        "identity": {
-          "type": "string"
-        },
-        "roleName": {
-          "type": "string"
-        }
-      }
-    },
-    "IAMServiceAttachGroupPolicyBody": {
-      "type": "object",
-      "properties": {
-        "policyName": {
-          "type": "string"
-        }
-      }
-    },
-    "IAMServiceAttachPlatformUserPolicyBody": {
-      "type": "object",
-      "properties": {
-        "policyName": {
-          "type": "string"
-        }
-      }
-    },
-    "IAMServiceAttachServiceControlPolicyBody": {
-      "type": "object",
-      "properties": {
-        "policyName": {
-          "type": "string"
-        }
-      }
-    },
-    "IAMServiceAttachTenantToOrganizationBody": {
-      "type": "object"
-    },
-    "IAMServiceAttachTenantUserPolicyBody": {
-      "type": "object",
-      "properties": {
-        "policyName": {
-          "type": "string"
-        }
-      }
-    },
-    "IAMServiceCreatePolicyVersionBody": {
-      "type": "object",
-      "properties": {
-        "statements": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authPolicyStatement"
-          }
-        },
-        "setAsDefault": {
-          "type": "boolean"
-        }
-      }
-    },
-    "IAMServiceCreateTenantInviteBody": {
-      "type": "object",
-      "properties": {
-        "email": {
-          "type": "string"
-        },
-        "roleName": {
-          "type": "string"
-        }
-      }
-    },
-    "IAMServicePutGroupInlinePolicyBody": {
-      "type": "object",
-      "properties": {
-        "description": {
-          "type": "string"
-        },
-        "statements": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authPolicyStatement"
-          }
-        }
-      }
-    },
-    "IAMServicePutPlatformUserInlinePolicyBody": {
-      "type": "object",
-      "properties": {
-        "description": {
-          "type": "string"
-        },
-        "statements": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authPolicyStatement"
-          }
-        }
-      }
-    },
-    "IAMServicePutPlatformUserPermissionBoundaryBody": {
-      "type": "object",
-      "properties": {
-        "policyName": {
-          "type": "string"
-        }
-      }
-    },
-    "IAMServicePutRolePermissionBoundaryBody": {
-      "type": "object",
-      "properties": {
-        "policyName": {
-          "type": "string"
-        }
-      }
-    },
-    "IAMServicePutRoleTrustPolicyBody": {
-      "type": "object",
-      "properties": {
-        "statements": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authRoleTrustStatement"
-          }
-        }
-      }
-    },
-    "IAMServicePutTenantUserInlinePolicyBody": {
-      "type": "object",
-      "properties": {
-        "description": {
-          "type": "string"
-        },
-        "statements": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authPolicyStatement"
-          }
-        }
-      }
-    },
-    "IAMServicePutTenantUserPermissionBoundaryBody": {
-      "type": "object",
-      "properties": {
-        "policyName": {
-          "type": "string"
-        }
-      }
-    },
-    "IAMServiceSetDefaultPolicyVersionBody": {
-      "type": "object"
-    },
-    "authAcceptTenantInviteRequest": {
-      "type": "object",
-      "properties": {
-        "inviteToken": {
-          "type": "string"
-        }
-      }
-    },
-    "authAcceptTenantInviteResponse": {
-      "type": "object",
-      "properties": {
-        "membership": {
-          "$ref": "#/definitions/authTenantMembership"
-        }
-      }
-    },
-    "authAddGroupMemberResponse": {
-      "type": "object"
-    },
-    "authAddPlatformRoleResponse": {
-      "type": "object"
-    },
-    "authAddTenantMemberByIdentityResponse": {
-      "type": "object",
-      "properties": {
-        "userId": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "createdUser": {
-          "type": "boolean"
-        }
-      }
-    },
-    "authAddTenantMemberResponse": {
-      "type": "object"
-    },
-    "authAttachGroupPolicyResponse": {
-      "type": "object"
-    },
-    "authAttachPlatformUserPolicyResponse": {
-      "type": "object"
-    },
-    "authAttachServiceControlPolicyResponse": {
-      "type": "object"
-    },
-    "authAttachTenantToOrganizationResponse": {
-      "type": "object"
-    },
-    "authAttachTenantUserPolicyResponse": {
-      "type": "object"
-    },
-    "authCheckPermissionRequest": {
-      "type": "object",
-      "properties": {
-        "tenantId": {
-          "type": "string"
-        },
-        "userId": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "permission": {
-          "type": "string"
-        },
-        "resource": {
-          "type": "string"
-        }
-      }
-    },
-    "authCheckPermissionResponse": {
-      "type": "object",
-      "properties": {
-        "allowed": {
-          "type": "boolean"
-        }
-      }
-    },
-    "authCheckPlatformPermissionRequest": {
-      "type": "object",
-      "properties": {
-        "userId": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "permission": {
-          "type": "string"
-        }
-      }
-    },
-    "authCreateGroupRequest": {
-      "type": "object",
-      "properties": {
-        "scope": {
-          "type": "string"
-        },
-        "tenantId": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        }
-      }
-    },
-    "authCreateGroupResponse": {
-      "type": "object",
-      "properties": {
-        "group": {
-          "$ref": "#/definitions/authGroup"
-        }
-      }
-    },
-    "authCreateOrganizationRequest": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "slug": {
-          "type": "string"
-        }
-      }
-    },
-    "authCreateOrganizationResponse": {
-      "type": "object",
-      "properties": {
-        "organization": {
-          "$ref": "#/definitions/authOrganization"
-        }
-      }
-    },
-    "authCreatePolicyRequest": {
-      "type": "object",
-      "properties": {
-        "scope": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "statements": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authPolicyStatement"
-          }
-        }
-      }
-    },
-    "authCreatePolicyResponse": {
-      "type": "object",
-      "properties": {
-        "policy": {
-          "$ref": "#/definitions/authPolicy"
-        },
-        "statements": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authPolicyStatement"
-          }
-        }
-      }
-    },
-    "authCreatePolicyVersionResponse": {
-      "type": "object",
-      "properties": {
-        "policyVersion": {
-          "$ref": "#/definitions/authPolicyVersion"
-        },
-        "statements": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authPolicyStatement"
-          }
-        }
-      }
-    },
-    "authCreateTenantInviteResponse": {
-      "type": "object",
-      "properties": {
-        "invite": {
-          "$ref": "#/definitions/authTenantInvite"
-        },
-        "inviteToken": {
-          "type": "string"
-        },
-        "acceptUrl": {
-          "type": "string"
-        }
-      }
-    },
-    "authCreateTenantRequest": {
-      "type": "object",
-      "properties": {
-        "ownerUserId": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "slug": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        }
-      }
-    },
-    "authCreateTenantResponse": {
-      "type": "object",
-      "properties": {
-        "tenant": {
-          "$ref": "#/definitions/authTenant"
-        },
-        "ownerMembership": {
-          "$ref": "#/definitions/authTenantMembership"
-        }
-      }
-    },
-    "authDeleteGroupInlinePolicyResponse": {
-      "type": "object"
-    },
-    "authDeleteGroupResponse": {
-      "type": "object"
-    },
-    "authDeletePlatformUserInlinePolicyResponse": {
-      "type": "object"
-    },
-    "authDeletePlatformUserPermissionBoundaryResponse": {
-      "type": "object"
-    },
-    "authDeletePolicyResponse": {
-      "type": "object"
-    },
-    "authDeletePolicyVersionResponse": {
-      "type": "object"
-    },
-    "authDeleteRolePermissionBoundaryResponse": {
-      "type": "object"
-    },
-    "authDeleteRoleTrustPolicyResponse": {
-      "type": "object"
-    },
-    "authDeleteTenantUserInlinePolicyResponse": {
-      "type": "object"
-    },
-    "authDeleteTenantUserPermissionBoundaryResponse": {
-      "type": "object"
-    },
-    "authDetachGroupPolicyResponse": {
-      "type": "object"
-    },
-    "authDetachPlatformUserPolicyResponse": {
-      "type": "object"
-    },
-    "authDetachServiceControlPolicyResponse": {
-      "type": "object"
-    },
-    "authDetachTenantFromOrganizationResponse": {
-      "type": "object"
-    },
-    "authDetachTenantUserPolicyResponse": {
-      "type": "object"
-    },
-    "authGetGroupInlinePolicyResponse": {
-      "type": "object",
-      "properties": {
-        "policy": {
-          "$ref": "#/definitions/authGroupInlinePolicy"
-        }
-      }
-    },
-    "authGetPlatformUserInlinePolicyResponse": {
-      "type": "object",
-      "properties": {
-        "policy": {
-          "$ref": "#/definitions/authUserInlinePolicy"
-        }
-      }
-    },
-    "authGetPlatformUserPermissionBoundaryResponse": {
-      "type": "object",
-      "properties": {
-        "boundary": {
-          "$ref": "#/definitions/authPermissionBoundary"
-        }
-      }
-    },
-    "authGetPolicyResponse": {
-      "type": "object",
-      "properties": {
-        "policy": {
-          "$ref": "#/definitions/authPolicy"
-        },
-        "statements": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authPolicyStatement"
-          }
-        }
-      }
-    },
-    "authGetRolePermissionBoundaryResponse": {
-      "type": "object",
-      "properties": {
-        "boundary": {
-          "$ref": "#/definitions/authRolePermissionBoundary"
-        }
-      }
-    },
-    "authGetRoleTrustPolicyResponse": {
-      "type": "object",
-      "properties": {
-        "statements": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authRoleTrustStatement"
-          }
-        }
-      }
-    },
-    "authGetTenantMembershipResponse": {
-      "type": "object",
-      "properties": {
-        "membership": {
-          "$ref": "#/definitions/authTenantMembership"
-        }
-      }
-    },
-    "authGetTenantUserInlinePolicyResponse": {
-      "type": "object",
-      "properties": {
-        "policy": {
-          "$ref": "#/definitions/authUserInlinePolicy"
-        }
-      }
-    },
-    "authGetTenantUserPermissionBoundaryResponse": {
-      "type": "object",
-      "properties": {
-        "boundary": {
-          "$ref": "#/definitions/authPermissionBoundary"
-        }
-      }
-    },
-    "authGroup": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "scope": {
-          "type": "string"
-        },
-        "tenantId": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "isSystem": {
-          "type": "boolean"
-        },
-        "createdAt": {
-          "type": "string"
-        },
-        "updatedAt": {
-          "type": "string"
-        }
-      }
-    },
-    "authGroupInlinePolicy": {
-      "type": "object",
-      "properties": {
-        "groupId": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "name": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "statements": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authPolicyStatement"
-          }
-        },
-        "createdAt": {
-          "type": "string"
-        },
-        "updatedAt": {
-          "type": "string"
-        }
-      }
-    },
-    "authIAMAssumeRoleRequest": {
-      "type": "object",
-      "properties": {
-        "accessToken": {
-          "type": "string"
-        },
-        "roleName": {
-          "type": "string"
-        },
-        "tenantId": {
-          "type": "string"
-        },
-        "externalId": {
-          "type": "string"
-        },
-        "sessionName": {
-          "type": "string"
-        },
-        "sourceIdentity": {
-          "type": "string"
-        },
-        "durationSeconds": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "servicePrincipal": {
-          "type": "string"
-        },
-        "sessionTags": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "authIAMAssumeRoleResponse": {
-      "type": "object",
-      "properties": {
-        "assumedRole": {
-          "$ref": "#/definitions/authIAMAssumedRole"
-        }
-      }
-    },
-    "authIAMAssumedRole": {
-      "type": "object",
-      "properties": {
-        "roleId": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "roleScope": {
-          "type": "string"
-        },
-        "roleName": {
-          "type": "string"
-        },
-        "tenantId": {
-          "type": "string"
-        },
-        "servicePrincipal": {
-          "type": "string"
-        },
-        "sessionName": {
-          "type": "string"
-        },
-        "sourceIdentity": {
-          "type": "string"
-        },
-        "sessionTags": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "expiresAt": {
-          "type": "string"
-        }
-      }
-    },
-    "authListGroupInlinePoliciesResponse": {
-      "type": "object",
-      "properties": {
-        "policies": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authGroupInlinePolicy"
-          }
-        }
-      }
-    },
-    "authListGroupMembersResponse": {
-      "type": "object",
-      "properties": {
-        "userIds": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "format": "uint64"
-          }
-        }
-      }
-    },
-    "authListGroupPoliciesResponse": {
-      "type": "object",
-      "properties": {
-        "policies": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authPolicy"
-          }
-        }
-      }
-    },
-    "authListGroupsResponse": {
-      "type": "object",
-      "properties": {
-        "groups": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authGroup"
-          }
-        }
-      }
-    },
-    "authListOrganizationsResponse": {
-      "type": "object",
-      "properties": {
-        "organizations": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authOrganization"
-          }
-        }
-      }
-    },
-    "authListPlatformRolesResponse": {
-      "type": "object",
-      "properties": {
-        "memberships": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authPlatformRoleMembership"
-          }
-        }
-      }
-    },
-    "authListPlatformUserInlinePoliciesResponse": {
-      "type": "object",
-      "properties": {
-        "policies": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authUserInlinePolicy"
-          }
-        }
-      }
-    },
-    "authListPlatformUserPoliciesResponse": {
-      "type": "object",
-      "properties": {
-        "policies": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authPolicy"
-          }
-        }
-      }
-    },
-    "authListPoliciesResponse": {
-      "type": "object",
-      "properties": {
-        "policies": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authPolicy"
-          }
-        }
-      }
-    },
-    "authListPolicyAttachmentsResponse": {
-      "type": "object",
-      "properties": {
-        "attachments": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authPolicyAttachment"
-          }
-        }
-      }
-    },
-    "authListPolicyVersionsResponse": {
-      "type": "object",
-      "properties": {
-        "versions": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authPolicyVersion"
-          }
-        }
-      }
-    },
-    "authListServiceControlPoliciesResponse": {
-      "type": "object",
-      "properties": {
-        "policies": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authPolicy"
-          }
-        }
-      }
-    },
-    "authListTenantInvitesResponse": {
-      "type": "object",
-      "properties": {
-        "invites": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authTenantInvite"
-          }
-        }
-      }
-    },
-    "authListTenantMembersResponse": {
-      "type": "object",
-      "properties": {
-        "memberships": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authTenantMembership"
-          }
-        }
-      }
-    },
-    "authListTenantUserInlinePoliciesResponse": {
-      "type": "object",
-      "properties": {
-        "policies": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authUserInlinePolicy"
-          }
-        }
-      }
-    },
-    "authListTenantUserPoliciesResponse": {
-      "type": "object",
-      "properties": {
-        "policies": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authPolicy"
-          }
-        }
-      }
-    },
-    "authListUserTenantsResponse": {
-      "type": "object",
-      "properties": {
-        "memberships": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authTenantMembership"
-          }
-        }
-      }
-    },
-    "authOrganization": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "slug": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "createdAt": {
-          "type": "string"
-        },
-        "updatedAt": {
-          "type": "string"
-        }
-      }
-    },
-    "authPermissionBoundary": {
-      "type": "object",
-      "properties": {
-        "scope": {
-          "type": "string"
-        },
-        "tenantId": {
-          "type": "string"
-        },
-        "userId": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "policyId": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "policyName": {
-          "type": "string"
-        },
-        "createdAt": {
-          "type": "string"
-        }
-      }
-    },
-    "authPlatformRoleMembership": {
-      "type": "object",
-      "properties": {
-        "userId": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "roleId": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "roleName": {
-          "type": "string"
-        },
-        "status": {
-          "type": "string"
-        },
-        "createdAt": {
-          "type": "string"
-        },
-        "updatedAt": {
-          "type": "string"
-        }
-      }
-    },
-    "authPolicy": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "scope": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "isSystem": {
-          "type": "boolean"
-        },
-        "defaultVersion": {
-          "type": "string"
-        },
-        "createdAt": {
-          "type": "string"
-        },
-        "updatedAt": {
-          "type": "string"
-        }
-      }
-    },
-    "authPolicyAttachment": {
-      "type": "object",
-      "properties": {
-        "attachmentType": {
-          "type": "string"
-        },
-        "scope": {
-          "type": "string"
-        },
-        "tenantId": {
-          "type": "string"
-        },
-        "roleId": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "roleName": {
-          "type": "string"
-        },
-        "userId": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "groupId": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "groupName": {
-          "type": "string"
-        },
-        "createdAt": {
-          "type": "string"
-        }
-      }
-    },
-    "authPolicyCondition": {
-      "type": "object",
-      "properties": {
-        "operator": {
-          "type": "string"
-        },
-        "key": {
-          "type": "string"
-        },
-        "value": {
-          "type": "string"
-        }
-      }
-    },
-    "authPolicyStatement": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "policyId": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "policyName": {
-          "type": "string"
-        },
-        "effect": {
-          "type": "string"
-        },
-        "actionPattern": {
-          "type": "string"
-        },
-        "resourcePattern": {
-          "type": "string"
-        },
-        "conditions": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/authPolicyCondition"
-          }
-        },
-        "createdAt": {
-          "type": "string"
-        }
-      }
-    },
-    "authPolicyVersion": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "policyId": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "policyName": {
-          "type": "string"
-        },
-        "version": {
-          "type": "string"
-        },
-        "isDefault": {
-          "type": "boolean"
-        },
-        "createdAt": {
-          "type": "string"
-        }
-      }
-    },
-    "authPutGroupInlinePolicyResponse": {
-      "type": "object"
-    },
-    "authPutPlatformUserInlinePolicyResponse": {
-      "type": "object"
-    },
-    "authPutPlatformUserPermissionBoundaryResponse": {
-      "type": "object"
-    },
-    "authPutRolePermissionBoundaryResponse": {
-      "type": "object"
-    },
-    "authPutRoleTrustPolicyResponse": {
-      "type": "object"
-    },
-    "authPutTenantUserInlinePolicyResponse": {
-      "type": "object"
-    },
-    "authPutTenantUserPermissionBoundaryResponse": {
-      "type": "object"
-    },
-    "authRemoveGroupMemberResponse": {
-      "type": "object"
-    },
-    "authRemovePlatformRoleResponse": {
-      "type": "object"
-    },
-    "authRemoveTenantMemberResponse": {
-      "type": "object"
-    },
-    "authRevokeTenantInviteResponse": {
-      "type": "object"
-    },
-    "authRolePermissionBoundary": {
-      "type": "object",
-      "properties": {
-        "roleId": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "roleName": {
-          "type": "string"
-        },
-        "policyId": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "policyName": {
-          "type": "string"
-        },
-        "createdAt": {
-          "type": "string"
-        }
-      }
-    },
-    "authRoleTrustStatement": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "roleId": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "effect": {
-          "type": "string"
-        },
-        "principalType": {
-          "type": "string"
-        },
-        "principalPattern": {
-          "type": "string"
-        },
-        "tenantPattern": {
-          "type": "string"
-        },
-        "externalIdPattern": {
-          "type": "string"
-        },
-        "createdAt": {
-          "type": "string"
-        }
-      }
-    },
     "authSession": {
       "type": "object",
       "properties": {
@@ -3774,7 +2601,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/authPolicyStatement"
+            "$ref": "#/definitions/commonPolicyStatement"
           }
         },
         "assumedRoleId": {
@@ -3810,10 +2637,1189 @@
         }
       }
     },
-    "authSetDefaultPolicyVersionResponse": {
+    "commonPolicyCondition": {
+      "type": "object",
+      "properties": {
+        "operator": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "commonPolicyStatement": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "policyId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "policyName": {
+          "type": "string"
+        },
+        "effect": {
+          "type": "string"
+        },
+        "actionPattern": {
+          "type": "string"
+        },
+        "resourcePattern": {
+          "type": "string"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/commonPolicyCondition"
+          }
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      }
+    },
+    "iamAcceptTenantInviteRequest": {
+      "type": "object",
+      "properties": {
+        "inviteToken": {
+          "type": "string"
+        }
+      }
+    },
+    "iamAcceptTenantInviteResponse": {
+      "type": "object",
+      "properties": {
+        "membership": {
+          "$ref": "#/definitions/iamTenantMembership"
+        }
+      }
+    },
+    "iamAddGroupMemberResponse": {
       "type": "object"
     },
-    "authSimulateAccessRequest": {
+    "iamAddPlatformRoleResponse": {
+      "type": "object"
+    },
+    "iamAddTenantMemberByIdentityResponse": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "createdUser": {
+          "type": "boolean"
+        }
+      }
+    },
+    "iamAddTenantMemberResponse": {
+      "type": "object"
+    },
+    "iamAttachGroupPolicyResponse": {
+      "type": "object"
+    },
+    "iamAttachPlatformUserPolicyResponse": {
+      "type": "object"
+    },
+    "iamAttachServiceControlPolicyResponse": {
+      "type": "object"
+    },
+    "iamAttachTenantToOrganizationResponse": {
+      "type": "object"
+    },
+    "iamAttachTenantUserPolicyResponse": {
+      "type": "object"
+    },
+    "iamCheckPermissionRequest": {
+      "type": "object",
+      "properties": {
+        "tenantId": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "permission": {
+          "type": "string"
+        },
+        "resource": {
+          "type": "string"
+        }
+      }
+    },
+    "iamCheckPermissionResponse": {
+      "type": "object",
+      "properties": {
+        "allowed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "iamCheckPlatformPermissionRequest": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "permission": {
+          "type": "string"
+        }
+      }
+    },
+    "iamCreateGroupRequest": {
+      "type": "object",
+      "properties": {
+        "scope": {
+          "type": "string"
+        },
+        "tenantId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "iamCreateGroupResponse": {
+      "type": "object",
+      "properties": {
+        "group": {
+          "$ref": "#/definitions/iamGroup"
+        }
+      }
+    },
+    "iamCreateOrganizationRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        }
+      }
+    },
+    "iamCreateOrganizationResponse": {
+      "type": "object",
+      "properties": {
+        "organization": {
+          "$ref": "#/definitions/iamOrganization"
+        }
+      }
+    },
+    "iamCreatePolicyRequest": {
+      "type": "object",
+      "properties": {
+        "scope": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "statements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/commonPolicyStatement"
+          }
+        }
+      }
+    },
+    "iamCreatePolicyResponse": {
+      "type": "object",
+      "properties": {
+        "policy": {
+          "$ref": "#/definitions/iamPolicy"
+        },
+        "statements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/commonPolicyStatement"
+          }
+        }
+      }
+    },
+    "iamCreatePolicyVersionResponse": {
+      "type": "object",
+      "properties": {
+        "policyVersion": {
+          "$ref": "#/definitions/iamPolicyVersion"
+        },
+        "statements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/commonPolicyStatement"
+          }
+        }
+      }
+    },
+    "iamCreateTenantInviteResponse": {
+      "type": "object",
+      "properties": {
+        "invite": {
+          "$ref": "#/definitions/iamTenantInvite"
+        },
+        "inviteToken": {
+          "type": "string"
+        },
+        "acceptUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "iamCreateTenantRequest": {
+      "type": "object",
+      "properties": {
+        "ownerUserId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "iamCreateTenantResponse": {
+      "type": "object",
+      "properties": {
+        "tenant": {
+          "$ref": "#/definitions/iamTenant"
+        },
+        "ownerMembership": {
+          "$ref": "#/definitions/iamTenantMembership"
+        }
+      }
+    },
+    "iamDeleteGroupInlinePolicyResponse": {
+      "type": "object"
+    },
+    "iamDeleteGroupResponse": {
+      "type": "object"
+    },
+    "iamDeletePlatformUserInlinePolicyResponse": {
+      "type": "object"
+    },
+    "iamDeletePlatformUserPermissionBoundaryResponse": {
+      "type": "object"
+    },
+    "iamDeletePolicyResponse": {
+      "type": "object"
+    },
+    "iamDeletePolicyVersionResponse": {
+      "type": "object"
+    },
+    "iamDeleteRolePermissionBoundaryResponse": {
+      "type": "object"
+    },
+    "iamDeleteRoleTrustPolicyResponse": {
+      "type": "object"
+    },
+    "iamDeleteTenantUserInlinePolicyResponse": {
+      "type": "object"
+    },
+    "iamDeleteTenantUserPermissionBoundaryResponse": {
+      "type": "object"
+    },
+    "iamDetachGroupPolicyResponse": {
+      "type": "object"
+    },
+    "iamDetachPlatformUserPolicyResponse": {
+      "type": "object"
+    },
+    "iamDetachServiceControlPolicyResponse": {
+      "type": "object"
+    },
+    "iamDetachTenantFromOrganizationResponse": {
+      "type": "object"
+    },
+    "iamDetachTenantUserPolicyResponse": {
+      "type": "object"
+    },
+    "iamGetGroupInlinePolicyResponse": {
+      "type": "object",
+      "properties": {
+        "policy": {
+          "$ref": "#/definitions/iamGroupInlinePolicy"
+        }
+      }
+    },
+    "iamGetPlatformUserInlinePolicyResponse": {
+      "type": "object",
+      "properties": {
+        "policy": {
+          "$ref": "#/definitions/iamUserInlinePolicy"
+        }
+      }
+    },
+    "iamGetPlatformUserPermissionBoundaryResponse": {
+      "type": "object",
+      "properties": {
+        "boundary": {
+          "$ref": "#/definitions/iamPermissionBoundary"
+        }
+      }
+    },
+    "iamGetPolicyResponse": {
+      "type": "object",
+      "properties": {
+        "policy": {
+          "$ref": "#/definitions/iamPolicy"
+        },
+        "statements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/commonPolicyStatement"
+          }
+        }
+      }
+    },
+    "iamGetRolePermissionBoundaryResponse": {
+      "type": "object",
+      "properties": {
+        "boundary": {
+          "$ref": "#/definitions/iamRolePermissionBoundary"
+        }
+      }
+    },
+    "iamGetRoleTrustPolicyResponse": {
+      "type": "object",
+      "properties": {
+        "statements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/iamRoleTrustStatement"
+          }
+        }
+      }
+    },
+    "iamGetTenantMembershipResponse": {
+      "type": "object",
+      "properties": {
+        "membership": {
+          "$ref": "#/definitions/iamTenantMembership"
+        }
+      }
+    },
+    "iamGetTenantUserInlinePolicyResponse": {
+      "type": "object",
+      "properties": {
+        "policy": {
+          "$ref": "#/definitions/iamUserInlinePolicy"
+        }
+      }
+    },
+    "iamGetTenantUserPermissionBoundaryResponse": {
+      "type": "object",
+      "properties": {
+        "boundary": {
+          "$ref": "#/definitions/iamPermissionBoundary"
+        }
+      }
+    },
+    "iamGroup": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "tenantId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "isSystem": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      }
+    },
+    "iamGroupInlinePolicy": {
+      "type": "object",
+      "properties": {
+        "groupId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "statements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/commonPolicyStatement"
+          }
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      }
+    },
+    "iamIAMAssumeRoleRequest": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "roleName": {
+          "type": "string"
+        },
+        "tenantId": {
+          "type": "string"
+        },
+        "externalId": {
+          "type": "string"
+        },
+        "sessionName": {
+          "type": "string"
+        },
+        "sourceIdentity": {
+          "type": "string"
+        },
+        "durationSeconds": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "servicePrincipal": {
+          "type": "string"
+        },
+        "sessionTags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "iamIAMAssumeRoleResponse": {
+      "type": "object",
+      "properties": {
+        "assumedRole": {
+          "$ref": "#/definitions/iamIAMAssumedRole"
+        }
+      }
+    },
+    "iamIAMAssumedRole": {
+      "type": "object",
+      "properties": {
+        "roleId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "roleScope": {
+          "type": "string"
+        },
+        "roleName": {
+          "type": "string"
+        },
+        "tenantId": {
+          "type": "string"
+        },
+        "servicePrincipal": {
+          "type": "string"
+        },
+        "sessionName": {
+          "type": "string"
+        },
+        "sourceIdentity": {
+          "type": "string"
+        },
+        "sessionTags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "expiresAt": {
+          "type": "string"
+        }
+      }
+    },
+    "iamIAMServiceAddGroupMemberBody": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "format": "uint64"
+        }
+      }
+    },
+    "iamIAMServiceAddPlatformRoleBody": {
+      "type": "object",
+      "properties": {
+        "actorUserId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "roleName": {
+          "type": "string"
+        }
+      }
+    },
+    "iamIAMServiceAddTenantMemberBody": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "roleName": {
+          "type": "string"
+        }
+      }
+    },
+    "iamIAMServiceAddTenantMemberByIdentityBody": {
+      "type": "object",
+      "properties": {
+        "identity": {
+          "type": "string"
+        },
+        "roleName": {
+          "type": "string"
+        }
+      }
+    },
+    "iamIAMServiceAttachGroupPolicyBody": {
+      "type": "object",
+      "properties": {
+        "policyName": {
+          "type": "string"
+        }
+      }
+    },
+    "iamIAMServiceAttachPlatformUserPolicyBody": {
+      "type": "object",
+      "properties": {
+        "policyName": {
+          "type": "string"
+        }
+      }
+    },
+    "iamIAMServiceAttachServiceControlPolicyBody": {
+      "type": "object",
+      "properties": {
+        "policyName": {
+          "type": "string"
+        }
+      }
+    },
+    "iamIAMServiceAttachTenantToOrganizationBody": {
+      "type": "object"
+    },
+    "iamIAMServiceAttachTenantUserPolicyBody": {
+      "type": "object",
+      "properties": {
+        "policyName": {
+          "type": "string"
+        }
+      }
+    },
+    "iamIAMServiceCreatePolicyVersionBody": {
+      "type": "object",
+      "properties": {
+        "statements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/commonPolicyStatement"
+          }
+        },
+        "setAsDefault": {
+          "type": "boolean"
+        }
+      }
+    },
+    "iamIAMServiceCreateTenantInviteBody": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "roleName": {
+          "type": "string"
+        }
+      }
+    },
+    "iamIAMServicePutGroupInlinePolicyBody": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "statements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/commonPolicyStatement"
+          }
+        }
+      }
+    },
+    "iamIAMServicePutPlatformUserInlinePolicyBody": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "statements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/commonPolicyStatement"
+          }
+        }
+      }
+    },
+    "iamIAMServicePutPlatformUserPermissionBoundaryBody": {
+      "type": "object",
+      "properties": {
+        "policyName": {
+          "type": "string"
+        }
+      }
+    },
+    "iamIAMServicePutRolePermissionBoundaryBody": {
+      "type": "object",
+      "properties": {
+        "policyName": {
+          "type": "string"
+        }
+      }
+    },
+    "iamIAMServicePutRoleTrustPolicyBody": {
+      "type": "object",
+      "properties": {
+        "statements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/iamRoleTrustStatement"
+          }
+        }
+      }
+    },
+    "iamIAMServicePutTenantUserInlinePolicyBody": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "statements": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/commonPolicyStatement"
+          }
+        }
+      }
+    },
+    "iamIAMServicePutTenantUserPermissionBoundaryBody": {
+      "type": "object",
+      "properties": {
+        "policyName": {
+          "type": "string"
+        }
+      }
+    },
+    "iamIAMServiceSetDefaultPolicyVersionBody": {
+      "type": "object"
+    },
+    "iamListGroupInlinePoliciesResponse": {
+      "type": "object",
+      "properties": {
+        "policies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/iamGroupInlinePolicy"
+          }
+        }
+      }
+    },
+    "iamListGroupMembersResponse": {
+      "type": "object",
+      "properties": {
+        "userIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uint64"
+          }
+        }
+      }
+    },
+    "iamListGroupPoliciesResponse": {
+      "type": "object",
+      "properties": {
+        "policies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/iamPolicy"
+          }
+        }
+      }
+    },
+    "iamListGroupsResponse": {
+      "type": "object",
+      "properties": {
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/iamGroup"
+          }
+        }
+      }
+    },
+    "iamListOrganizationsResponse": {
+      "type": "object",
+      "properties": {
+        "organizations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/iamOrganization"
+          }
+        }
+      }
+    },
+    "iamListPlatformRolesResponse": {
+      "type": "object",
+      "properties": {
+        "memberships": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/iamPlatformRoleMembership"
+          }
+        }
+      }
+    },
+    "iamListPlatformUserInlinePoliciesResponse": {
+      "type": "object",
+      "properties": {
+        "policies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/iamUserInlinePolicy"
+          }
+        }
+      }
+    },
+    "iamListPlatformUserPoliciesResponse": {
+      "type": "object",
+      "properties": {
+        "policies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/iamPolicy"
+          }
+        }
+      }
+    },
+    "iamListPoliciesResponse": {
+      "type": "object",
+      "properties": {
+        "policies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/iamPolicy"
+          }
+        }
+      }
+    },
+    "iamListPolicyAttachmentsResponse": {
+      "type": "object",
+      "properties": {
+        "attachments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/iamPolicyAttachment"
+          }
+        }
+      }
+    },
+    "iamListPolicyVersionsResponse": {
+      "type": "object",
+      "properties": {
+        "versions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/iamPolicyVersion"
+          }
+        }
+      }
+    },
+    "iamListServiceControlPoliciesResponse": {
+      "type": "object",
+      "properties": {
+        "policies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/iamPolicy"
+          }
+        }
+      }
+    },
+    "iamListTenantInvitesResponse": {
+      "type": "object",
+      "properties": {
+        "invites": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/iamTenantInvite"
+          }
+        }
+      }
+    },
+    "iamListTenantMembersResponse": {
+      "type": "object",
+      "properties": {
+        "memberships": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/iamTenantMembership"
+          }
+        }
+      }
+    },
+    "iamListTenantUserInlinePoliciesResponse": {
+      "type": "object",
+      "properties": {
+        "policies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/iamUserInlinePolicy"
+          }
+        }
+      }
+    },
+    "iamListTenantUserPoliciesResponse": {
+      "type": "object",
+      "properties": {
+        "policies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/iamPolicy"
+          }
+        }
+      }
+    },
+    "iamListUserTenantsResponse": {
+      "type": "object",
+      "properties": {
+        "memberships": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/iamTenantMembership"
+          }
+        }
+      }
+    },
+    "iamOrganization": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      }
+    },
+    "iamPermissionBoundary": {
+      "type": "object",
+      "properties": {
+        "scope": {
+          "type": "string"
+        },
+        "tenantId": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "policyId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "policyName": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      }
+    },
+    "iamPlatformRoleMembership": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "roleId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "roleName": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      }
+    },
+    "iamPolicy": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "isSystem": {
+          "type": "boolean"
+        },
+        "defaultVersion": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      }
+    },
+    "iamPolicyAttachment": {
+      "type": "object",
+      "properties": {
+        "attachmentType": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "tenantId": {
+          "type": "string"
+        },
+        "roleId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "roleName": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "groupId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "groupName": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      }
+    },
+    "iamPolicyVersion": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "policyId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "policyName": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "isDefault": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      }
+    },
+    "iamPutGroupInlinePolicyResponse": {
+      "type": "object"
+    },
+    "iamPutPlatformUserInlinePolicyResponse": {
+      "type": "object"
+    },
+    "iamPutPlatformUserPermissionBoundaryResponse": {
+      "type": "object"
+    },
+    "iamPutRolePermissionBoundaryResponse": {
+      "type": "object"
+    },
+    "iamPutRoleTrustPolicyResponse": {
+      "type": "object"
+    },
+    "iamPutTenantUserInlinePolicyResponse": {
+      "type": "object"
+    },
+    "iamPutTenantUserPermissionBoundaryResponse": {
+      "type": "object"
+    },
+    "iamRemoveGroupMemberResponse": {
+      "type": "object"
+    },
+    "iamRemovePlatformRoleResponse": {
+      "type": "object"
+    },
+    "iamRemoveTenantMemberResponse": {
+      "type": "object"
+    },
+    "iamRevokeTenantInviteResponse": {
+      "type": "object"
+    },
+    "iamRolePermissionBoundary": {
+      "type": "object",
+      "properties": {
+        "roleId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "roleName": {
+          "type": "string"
+        },
+        "policyId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "policyName": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      }
+    },
+    "iamRoleTrustStatement": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "roleId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "effect": {
+          "type": "string"
+        },
+        "principalType": {
+          "type": "string"
+        },
+        "principalPattern": {
+          "type": "string"
+        },
+        "tenantPattern": {
+          "type": "string"
+        },
+        "externalIdPattern": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      }
+    },
+    "iamSetDefaultPolicyVersionResponse": {
+      "type": "object"
+    },
+    "iamSimulateAccessRequest": {
       "type": "object",
       "properties": {
         "scope": {
@@ -3842,7 +3848,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/authPolicyStatement"
+            "$ref": "#/definitions/commonPolicyStatement"
           }
         },
         "attributes": {
@@ -3862,7 +3868,7 @@
         }
       }
     },
-    "authSimulateAccessResponse": {
+    "iamSimulateAccessResponse": {
       "type": "object",
       "properties": {
         "allowed": {
@@ -3878,19 +3884,19 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/authSimulateMatchedStatement"
+            "$ref": "#/definitions/iamSimulateMatchedStatement"
           }
         },
         "layers": {
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/authSimulateDecisionLayer"
+            "$ref": "#/definitions/iamSimulateDecisionLayer"
           }
         }
       }
     },
-    "authSimulateDecisionLayer": {
+    "iamSimulateDecisionLayer": {
       "type": "object",
       "properties": {
         "layer": {
@@ -3906,12 +3912,12 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/authSimulateMatchedStatement"
+            "$ref": "#/definitions/iamSimulateMatchedStatement"
           }
         }
       }
     },
-    "authSimulateMatchedStatement": {
+    "iamSimulateMatchedStatement": {
       "type": "object",
       "properties": {
         "policyName": {
@@ -3930,7 +3936,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/authPolicyCondition"
+            "$ref": "#/definitions/commonPolicyCondition"
           }
         },
         "source": {
@@ -3938,7 +3944,7 @@
         }
       }
     },
-    "authTenant": {
+    "iamTenant": {
       "type": "object",
       "properties": {
         "id": {
@@ -3961,7 +3967,7 @@
         }
       }
     },
-    "authTenantInvite": {
+    "iamTenantInvite": {
       "type": "object",
       "properties": {
         "id": {
@@ -4008,7 +4014,7 @@
         }
       }
     },
-    "authTenantMembership": {
+    "iamTenantMembership": {
       "type": "object",
       "properties": {
         "tenantId": {
@@ -4036,7 +4042,7 @@
         }
       }
     },
-    "authUserInlinePolicy": {
+    "iamUserInlinePolicy": {
       "type": "object",
       "properties": {
         "scope": {
@@ -4059,7 +4065,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/authPolicyStatement"
+            "$ref": "#/definitions/commonPolicyStatement"
           }
         },
         "createdAt": {

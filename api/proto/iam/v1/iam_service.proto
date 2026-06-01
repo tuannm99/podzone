@@ -1,12 +1,12 @@
 syntax = "proto3";
 
-package auth;
+package iam;
 
-option go_package = "github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1";
+option go_package = "github.com/tuannm99/podzone/pkg/api/proto/iam/v1;pbiamv1";
 
-import "auth/v1/iam_policy.proto";
-import "auth/v1/iam_simulation.proto";
-import "auth/v1/iam_tenant.proto";
+import "iam/v1/iam_policy.proto";
+import "iam/v1/iam_simulation.proto";
+import "iam/v1/iam_tenant.proto";
 import "google/api/annotations.proto";
 
 // IAMService owns tenant memberships, role bindings, and permission evaluation.
@@ -477,4 +477,87 @@ service IAMService {
       body: "*"
     };
   }
+}
+
+// IAMCommandService exposes the write side of IAM CQRS.
+// It intentionally has no HTTP annotations; the legacy IAMService keeps REST compatibility.
+service IAMCommandService {
+  rpc AssumeRole(IAMAssumeRoleRequest) returns (IAMAssumeRoleResponse);
+  rpc CreateTenant(CreateTenantRequest) returns (CreateTenantResponse);
+  rpc CreateOrganization(CreateOrganizationRequest) returns (CreateOrganizationResponse);
+  rpc AttachTenantToOrganization(AttachTenantToOrganizationRequest) returns (AttachTenantToOrganizationResponse);
+  rpc DetachTenantFromOrganization(DetachTenantFromOrganizationRequest) returns (DetachTenantFromOrganizationResponse);
+  rpc AttachServiceControlPolicy(AttachServiceControlPolicyRequest) returns (AttachServiceControlPolicyResponse);
+  rpc DetachServiceControlPolicy(DetachServiceControlPolicyRequest) returns (DetachServiceControlPolicyResponse);
+  rpc AddTenantMember(AddTenantMemberRequest) returns (AddTenantMemberResponse);
+  rpc AddTenantMemberByIdentity(AddTenantMemberByIdentityRequest) returns (AddTenantMemberByIdentityResponse);
+  rpc CreateTenantInvite(CreateTenantInviteRequest) returns (CreateTenantInviteResponse);
+  rpc RevokeTenantInvite(RevokeTenantInviteRequest) returns (RevokeTenantInviteResponse);
+  rpc AcceptTenantInvite(AcceptTenantInviteRequest) returns (AcceptTenantInviteResponse);
+  rpc AddPlatformRole(AddPlatformRoleRequest) returns (AddPlatformRoleResponse);
+  rpc RemovePlatformRole(RemovePlatformRoleRequest) returns (RemovePlatformRoleResponse);
+  rpc CreatePolicy(CreatePolicyRequest) returns (CreatePolicyResponse);
+  rpc CreatePolicyVersion(CreatePolicyVersionRequest) returns (CreatePolicyVersionResponse);
+  rpc SetDefaultPolicyVersion(SetDefaultPolicyVersionRequest) returns (SetDefaultPolicyVersionResponse);
+  rpc DeletePolicyVersion(DeletePolicyVersionRequest) returns (DeletePolicyVersionResponse);
+  rpc DeletePolicy(DeletePolicyRequest) returns (DeletePolicyResponse);
+  rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse);
+  rpc DeleteGroup(DeleteGroupRequest) returns (DeleteGroupResponse);
+  rpc AddGroupMember(AddGroupMemberRequest) returns (AddGroupMemberResponse);
+  rpc RemoveGroupMember(RemoveGroupMemberRequest) returns (RemoveGroupMemberResponse);
+  rpc AttachGroupPolicy(AttachGroupPolicyRequest) returns (AttachGroupPolicyResponse);
+  rpc DetachGroupPolicy(DetachGroupPolicyRequest) returns (DetachGroupPolicyResponse);
+  rpc PutGroupInlinePolicy(PutGroupInlinePolicyRequest) returns (PutGroupInlinePolicyResponse);
+  rpc DeleteGroupInlinePolicy(DeleteGroupInlinePolicyRequest) returns (DeleteGroupInlinePolicyResponse);
+  rpc PutPlatformUserInlinePolicy(PutPlatformUserInlinePolicyRequest) returns (PutPlatformUserInlinePolicyResponse);
+  rpc DeletePlatformUserInlinePolicy(DeletePlatformUserInlinePolicyRequest) returns (DeletePlatformUserInlinePolicyResponse);
+  rpc AttachPlatformUserPolicy(AttachPlatformUserPolicyRequest) returns (AttachPlatformUserPolicyResponse);
+  rpc DetachPlatformUserPolicy(DetachPlatformUserPolicyRequest) returns (DetachPlatformUserPolicyResponse);
+  rpc PutPlatformUserPermissionBoundary(PutPlatformUserPermissionBoundaryRequest) returns (PutPlatformUserPermissionBoundaryResponse);
+  rpc DeletePlatformUserPermissionBoundary(DeletePlatformUserPermissionBoundaryRequest) returns (DeletePlatformUserPermissionBoundaryResponse);
+  rpc RemoveTenantMember(RemoveTenantMemberRequest) returns (RemoveTenantMemberResponse);
+  rpc PutTenantUserInlinePolicy(PutTenantUserInlinePolicyRequest) returns (PutTenantUserInlinePolicyResponse);
+  rpc DeleteTenantUserInlinePolicy(DeleteTenantUserInlinePolicyRequest) returns (DeleteTenantUserInlinePolicyResponse);
+  rpc AttachTenantUserPolicy(AttachTenantUserPolicyRequest) returns (AttachTenantUserPolicyResponse);
+  rpc DetachTenantUserPolicy(DetachTenantUserPolicyRequest) returns (DetachTenantUserPolicyResponse);
+  rpc PutTenantUserPermissionBoundary(PutTenantUserPermissionBoundaryRequest) returns (PutTenantUserPermissionBoundaryResponse);
+  rpc DeleteTenantUserPermissionBoundary(DeleteTenantUserPermissionBoundaryRequest) returns (DeleteTenantUserPermissionBoundaryResponse);
+  rpc PutRoleTrustPolicy(PutRoleTrustPolicyRequest) returns (PutRoleTrustPolicyResponse);
+  rpc DeleteRoleTrustPolicy(DeleteRoleTrustPolicyRequest) returns (DeleteRoleTrustPolicyResponse);
+  rpc PutRolePermissionBoundary(PutRolePermissionBoundaryRequest) returns (PutRolePermissionBoundaryResponse);
+  rpc DeleteRolePermissionBoundary(DeleteRolePermissionBoundaryRequest) returns (DeleteRolePermissionBoundaryResponse);
+}
+
+// IAMQueryService exposes the read and evaluation side of IAM CQRS.
+// It intentionally has no HTTP annotations; the legacy IAMService keeps REST compatibility.
+service IAMQueryService {
+  rpc ListOrganizations(ListOrganizationsRequest) returns (ListOrganizationsResponse);
+  rpc ListServiceControlPolicies(ListServiceControlPoliciesRequest) returns (ListServiceControlPoliciesResponse);
+  rpc ListTenantInvites(ListTenantInvitesRequest) returns (ListTenantInvitesResponse);
+  rpc GetTenantMembership(GetTenantMembershipRequest) returns (GetTenantMembershipResponse);
+  rpc CheckPermission(CheckPermissionRequest) returns (CheckPermissionResponse);
+  rpc CheckPlatformPermission(CheckPlatformPermissionRequest) returns (CheckPermissionResponse);
+  rpc ListUserTenants(ListUserTenantsRequest) returns (ListUserTenantsResponse);
+  rpc ListPlatformRoles(ListPlatformRolesRequest) returns (ListPlatformRolesResponse);
+  rpc GetPolicy(GetPolicyRequest) returns (GetPolicyResponse);
+  rpc ListPolicyVersions(ListPolicyVersionsRequest) returns (ListPolicyVersionsResponse);
+  rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse);
+  rpc ListPolicyAttachments(ListPolicyAttachmentsRequest) returns (ListPolicyAttachmentsResponse);
+  rpc ListGroups(ListGroupsRequest) returns (ListGroupsResponse);
+  rpc ListGroupMembers(ListGroupMembersRequest) returns (ListGroupMembersResponse);
+  rpc ListGroupPolicies(ListGroupPoliciesRequest) returns (ListGroupPoliciesResponse);
+  rpc GetGroupInlinePolicy(GetGroupInlinePolicyRequest) returns (GetGroupInlinePolicyResponse);
+  rpc ListGroupInlinePolicies(ListGroupInlinePoliciesRequest) returns (ListGroupInlinePoliciesResponse);
+  rpc ListPlatformUserPolicies(ListPlatformUserPoliciesRequest) returns (ListPlatformUserPoliciesResponse);
+  rpc GetPlatformUserInlinePolicy(GetPlatformUserInlinePolicyRequest) returns (GetPlatformUserInlinePolicyResponse);
+  rpc ListPlatformUserInlinePolicies(ListPlatformUserInlinePoliciesRequest) returns (ListPlatformUserInlinePoliciesResponse);
+  rpc GetPlatformUserPermissionBoundary(GetPlatformUserPermissionBoundaryRequest) returns (GetPlatformUserPermissionBoundaryResponse);
+  rpc ListTenantMembers(ListTenantMembersRequest) returns (ListTenantMembersResponse);
+  rpc ListTenantUserPolicies(ListTenantUserPoliciesRequest) returns (ListTenantUserPoliciesResponse);
+  rpc GetTenantUserInlinePolicy(GetTenantUserInlinePolicyRequest) returns (GetTenantUserInlinePolicyResponse);
+  rpc ListTenantUserInlinePolicies(ListTenantUserInlinePoliciesRequest) returns (ListTenantUserInlinePoliciesResponse);
+  rpc GetTenantUserPermissionBoundary(GetTenantUserPermissionBoundaryRequest) returns (GetTenantUserPermissionBoundaryResponse);
+  rpc GetRoleTrustPolicy(GetRoleTrustPolicyRequest) returns (GetRoleTrustPolicyResponse);
+  rpc GetRolePermissionBoundary(GetRolePermissionBoundaryRequest) returns (GetRolePermissionBoundaryResponse);
+  rpc SimulateAccess(SimulateAccessRequest) returns (SimulateAccessResponse);
 }

@@ -119,13 +119,29 @@ packages:
       AuditLogRepository:
       UserDirectory:
       TenantRepository:
+      TenantCommandRepository:
+      TenantQueryRepository:
       OrganizationRepository:
+      OrganizationCommandRepository:
+      OrganizationQueryRepository:
       RoleRepository:
+      RoleCommandRepository:
+      RoleQueryRepository:
       PolicyRepository:
+      PolicyCommandRepository:
+      PolicyQueryRepository:
       GroupRepository:
+      GroupCommandRepository:
+      GroupQueryRepository:
       PlatformMembershipRepository:
+      PlatformMembershipCommandRepository:
+      PlatformMembershipQueryRepository:
       MembershipRepository:
+      MembershipCommandRepository:
+      MembershipQueryRepository:
       InviteRepository:
+      InviteCommandRepository:
+      InviteQueryRepository:
       OutboxRepository:
 
   github.com/tuannm99/podzone/internal/iam/domain/inputport:
@@ -133,6 +149,8 @@ packages:
       dir: internal/iam/domain/inputport/mocks
     interfaces:
       IAMUsecase:
+      IAMCommandUsecase:
+      IAMQueryUsecase:
 
   github.com/tuannm99/podzone/internal/partner/domain:
     config:

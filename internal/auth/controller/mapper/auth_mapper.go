@@ -6,6 +6,7 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
 	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
+	pbcommonv1 "github.com/tuannm99/podzone/pkg/api/proto/common/v1"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
@@ -135,10 +136,10 @@ func ToPBAuditLog(a *entity.AuditLog) *pbauthv1.AuditLog {
 	}
 }
 
-func ToPBSessionPolicyStatements(items []entity.SessionPolicyStatement) []*pbauthv1.PolicyStatement {
-	out := make([]*pbauthv1.PolicyStatement, 0, len(items))
+func ToPBSessionPolicyStatements(items []entity.SessionPolicyStatement) []*pbcommonv1.PolicyStatement {
+	out := make([]*pbcommonv1.PolicyStatement, 0, len(items))
 	for _, item := range items {
-		out = append(out, &pbauthv1.PolicyStatement{
+		out = append(out, &pbcommonv1.PolicyStatement{
 			Effect:          item.Effect,
 			ActionPattern:   item.ActionPattern,
 			ResourcePattern: item.ResourcePattern,
@@ -148,7 +149,7 @@ func ToPBSessionPolicyStatements(items []entity.SessionPolicyStatement) []*pbaut
 	return out
 }
 
-func FromPBSessionPolicyStatements(items []*pbauthv1.PolicyStatement) []entity.SessionPolicyStatement {
+func FromPBSessionPolicyStatements(items []*pbcommonv1.PolicyStatement) []entity.SessionPolicyStatement {
 	out := make([]entity.SessionPolicyStatement, 0, len(items))
 	for _, item := range items {
 		if item == nil {
@@ -164,10 +165,10 @@ func FromPBSessionPolicyStatements(items []*pbauthv1.PolicyStatement) []entity.S
 	return out
 }
 
-func toPBSessionPolicyConditions(items []entity.SessionPolicyCondition) []*pbauthv1.PolicyCondition {
-	out := make([]*pbauthv1.PolicyCondition, 0, len(items))
+func toPBSessionPolicyConditions(items []entity.SessionPolicyCondition) []*pbcommonv1.PolicyCondition {
+	out := make([]*pbcommonv1.PolicyCondition, 0, len(items))
 	for _, item := range items {
-		out = append(out, &pbauthv1.PolicyCondition{
+		out = append(out, &pbcommonv1.PolicyCondition{
 			Operator: item.Operator,
 			Key:      item.Key,
 			Value:    item.Value,
@@ -176,7 +177,7 @@ func toPBSessionPolicyConditions(items []entity.SessionPolicyCondition) []*pbaut
 	return out
 }
 
-func fromPBSessionPolicyConditions(items []*pbauthv1.PolicyCondition) []entity.SessionPolicyCondition {
+func fromPBSessionPolicyConditions(items []*pbcommonv1.PolicyCondition) []entity.SessionPolicyCondition {
 	out := make([]entity.SessionPolicyCondition, 0, len(items))
 	for _, item := range items {
 		if item == nil {

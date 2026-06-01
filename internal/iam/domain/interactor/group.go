@@ -24,18 +24,18 @@ func (s *interactor) CreateGroup(ctx context.Context, input entity.CreateGroupIn
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
-	return s.groups.CreateGroup(ctx, group)
+	return s.groupCommands.CreateGroup(ctx, group)
 }
 
 func (s *interactor) ListGroups(ctx context.Context, scope string, tenantID string) ([]entity.Group, error) {
-	return s.groups.ListGroups(ctx, strings.TrimSpace(scope), strings.TrimSpace(tenantID))
+	return s.groupQueries.ListGroups(ctx, strings.TrimSpace(scope), strings.TrimSpace(tenantID))
 }
 
 func (s *interactor) DeleteGroup(ctx context.Context, groupID uint64) error {
 	if groupID == 0 {
 		return entity.ErrGroupNotFound
 	}
-	return s.groups.DeleteGroup(ctx, groupID)
+	return s.groupCommands.DeleteGroup(ctx, groupID)
 }
 
 func (s *interactor) PutGroupInlinePolicy(ctx context.Context, input entity.PutGroupInlinePolicyInput) error {
@@ -57,7 +57,7 @@ func (s *interactor) PutGroupInlinePolicy(ctx context.Context, input entity.PutG
 		}
 		statements = append(statements, normalized)
 	}
-	return s.groups.PutInlinePolicy(ctx, entity.PutGroupInlinePolicyInput{
+	return s.groupCommands.PutInlinePolicy(ctx, entity.PutGroupInlinePolicyInput{
 		GroupID:     input.GroupID,
 		Name:        strings.TrimSpace(input.Name),
 		Description: strings.TrimSpace(input.Description),
@@ -76,14 +76,14 @@ func (s *interactor) GetGroupInlinePolicy(
 	if strings.TrimSpace(name) == "" {
 		return nil, entity.ErrInvalidPolicyName
 	}
-	return s.groups.GetInlinePolicy(ctx, groupID, strings.TrimSpace(name))
+	return s.groupQueries.GetInlinePolicy(ctx, groupID, strings.TrimSpace(name))
 }
 
 func (s *interactor) ListGroupInlinePolicies(ctx context.Context, groupID uint64) ([]entity.GroupInlinePolicy, error) {
 	if groupID == 0 {
 		return nil, entity.ErrGroupNotFound
 	}
-	return s.groups.ListInlinePolicies(ctx, groupID)
+	return s.groupQueries.ListInlinePolicies(ctx, groupID)
 }
 
 func (s *interactor) DeleteGroupInlinePolicy(ctx context.Context, groupID uint64, name string) error {
@@ -93,7 +93,7 @@ func (s *interactor) DeleteGroupInlinePolicy(ctx context.Context, groupID uint64
 	if strings.TrimSpace(name) == "" {
 		return entity.ErrInvalidPolicyName
 	}
-	return s.groups.DeleteInlinePolicy(ctx, groupID, strings.TrimSpace(name))
+	return s.groupCommands.DeleteInlinePolicy(ctx, groupID, strings.TrimSpace(name))
 }
 
 func (s *interactor) AddGroupMember(ctx context.Context, groupID uint64, userID uint) error {
@@ -103,7 +103,7 @@ func (s *interactor) AddGroupMember(ctx context.Context, groupID uint64, userID 
 	if userID == 0 {
 		return entity.ErrInvalidUserID
 	}
-	return s.groups.AddMember(ctx, groupID, userID)
+	return s.groupCommands.AddMember(ctx, groupID, userID)
 }
 
 func (s *interactor) RemoveGroupMember(ctx context.Context, groupID uint64, userID uint) error {
@@ -113,29 +113,29 @@ func (s *interactor) RemoveGroupMember(ctx context.Context, groupID uint64, user
 	if userID == 0 {
 		return entity.ErrInvalidUserID
 	}
-	return s.groups.RemoveMember(ctx, groupID, userID)
+	return s.groupCommands.RemoveMember(ctx, groupID, userID)
 }
 
 func (s *interactor) ListGroupMembers(ctx context.Context, groupID uint64) ([]uint, error) {
 	if groupID == 0 {
 		return nil, entity.ErrRoleNotFound
 	}
-	return s.groups.ListMembers(ctx, groupID)
+	return s.groupQueries.ListMembers(ctx, groupID)
 }
 
 func (s *interactor) AttachGroupPolicy(ctx context.Context, groupID uint64, policyName string) error {
 	if groupID == 0 {
 		return entity.ErrRoleNotFound
 	}
-	policy, err := s.policies.GetPolicyByName(ctx, strings.TrimSpace(policyName))
+	policy, err := s.policyQueries.GetPolicyByName(ctx, strings.TrimSpace(policyName))
 	if err != nil {
 		return err
 	}
-	group, err := s.groups.GetByID(ctx, groupID)
+	group, err := s.groupQueries.GetByID(ctx, groupID)
 	if err != nil {
 		return err
 	}
-	if err := s.groups.AttachPolicy(ctx, groupID, policy.ID); err != nil {
+	if err := s.groupCommands.AttachPolicy(ctx, groupID, policy.ID); err != nil {
 		return err
 	}
 	now := time.Now().UTC()
@@ -159,16 +159,16 @@ func (s *interactor) DetachGroupPolicy(ctx context.Context, groupID uint64, poli
 	if groupID == 0 {
 		return entity.ErrRoleNotFound
 	}
-	policy, err := s.policies.GetPolicyByName(ctx, strings.TrimSpace(policyName))
+	policy, err := s.policyQueries.GetPolicyByName(ctx, strings.TrimSpace(policyName))
 	if err != nil {
 		return err
 	}
-	return s.groups.DetachPolicy(ctx, groupID, policy.ID)
+	return s.groupCommands.DetachPolicy(ctx, groupID, policy.ID)
 }
 
 func (s *interactor) ListGroupPolicies(ctx context.Context, groupID uint64) ([]entity.Policy, error) {
 	if groupID == 0 {
 		return nil, entity.ErrRoleNotFound
 	}
-	return s.groups.ListPolicies(ctx, groupID)
+	return s.groupQueries.ListPolicies(ctx, groupID)
 }

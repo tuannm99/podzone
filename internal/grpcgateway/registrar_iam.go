@@ -6,7 +6,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 
-	pb "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
+	pb "github.com/tuannm99/podzone/pkg/api/proto/iam/v1"
 )
 
 type IAMRegistrar struct {
@@ -14,6 +14,8 @@ type IAMRegistrar struct {
 }
 
 func (r *IAMRegistrar) Register(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+	// REST compatibility stays on IAMService. The CQRS command/query services are gRPC-only
+	// to avoid duplicate HTTP routes and to keep API migration explicit.
 	return pb.RegisterIAMServiceHandler(ctx, mux, conn)
 }
 

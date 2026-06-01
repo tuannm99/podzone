@@ -4,15 +4,16 @@ import (
 	"time"
 
 	iamdomain "github.com/tuannm99/podzone/internal/iam/domain/entity"
-	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
+	pbcommonv1 "github.com/tuannm99/podzone/pkg/api/proto/common/v1"
+	pbiamv1 "github.com/tuannm99/podzone/pkg/api/proto/iam/v1"
 	"github.com/tuannm99/podzone/pkg/pdauthn"
 )
 
-func ToPBTenant(t *iamdomain.Tenant) *pbauthv1.Tenant {
+func ToPBTenant(t *iamdomain.Tenant) *pbiamv1.Tenant {
 	if t == nil {
 		return nil
 	}
-	return &pbauthv1.Tenant{
+	return &pbiamv1.Tenant{
 		Id:        t.ID,
 		Slug:      t.Slug,
 		Name:      t.Name,
@@ -22,11 +23,11 @@ func ToPBTenant(t *iamdomain.Tenant) *pbauthv1.Tenant {
 	}
 }
 
-func ToPBOrganization(org *iamdomain.Organization) *pbauthv1.Organization {
+func ToPBOrganization(org *iamdomain.Organization) *pbiamv1.Organization {
 	if org == nil {
 		return nil
 	}
-	return &pbauthv1.Organization{
+	return &pbiamv1.Organization{
 		Id:        org.ID,
 		Slug:      org.Slug,
 		Name:      org.Name,
@@ -35,11 +36,11 @@ func ToPBOrganization(org *iamdomain.Organization) *pbauthv1.Organization {
 	}
 }
 
-func ToPBMembership(m *iamdomain.Membership) *pbauthv1.TenantMembership {
+func ToPBMembership(m *iamdomain.Membership) *pbiamv1.TenantMembership {
 	if m == nil {
 		return nil
 	}
-	return &pbauthv1.TenantMembership{
+	return &pbiamv1.TenantMembership{
 		TenantId:  m.TenantID,
 		UserId:    uint64(m.UserID),
 		RoleId:    m.RoleID,
@@ -50,11 +51,11 @@ func ToPBMembership(m *iamdomain.Membership) *pbauthv1.TenantMembership {
 	}
 }
 
-func ToPBPlatformMembership(m *iamdomain.PlatformMembership) *pbauthv1.PlatformRoleMembership {
+func ToPBPlatformMembership(m *iamdomain.PlatformMembership) *pbiamv1.PlatformRoleMembership {
 	if m == nil {
 		return nil
 	}
-	return &pbauthv1.PlatformRoleMembership{
+	return &pbiamv1.PlatformRoleMembership{
 		UserId:    uint64(m.UserID),
 		RoleId:    m.RoleID,
 		RoleName:  m.RoleName,
@@ -64,11 +65,11 @@ func ToPBPlatformMembership(m *iamdomain.PlatformMembership) *pbauthv1.PlatformR
 	}
 }
 
-func ToPBPolicy(policy *iamdomain.Policy) *pbauthv1.Policy {
+func ToPBPolicy(policy *iamdomain.Policy) *pbiamv1.Policy {
 	if policy == nil {
 		return nil
 	}
-	return &pbauthv1.Policy{
+	return &pbiamv1.Policy{
 		Id:             policy.ID,
 		Scope:          policy.Scope,
 		Name:           policy.Name,
@@ -80,11 +81,11 @@ func ToPBPolicy(policy *iamdomain.Policy) *pbauthv1.Policy {
 	}
 }
 
-func ToPBPolicyVersion(version *iamdomain.PolicyVersion) *pbauthv1.PolicyVersion {
+func ToPBPolicyVersion(version *iamdomain.PolicyVersion) *pbiamv1.PolicyVersion {
 	if version == nil {
 		return nil
 	}
-	return &pbauthv1.PolicyVersion{
+	return &pbiamv1.PolicyVersion{
 		Id:         version.ID,
 		PolicyId:   version.PolicyID,
 		PolicyName: version.PolicyName,
@@ -94,11 +95,11 @@ func ToPBPolicyVersion(version *iamdomain.PolicyVersion) *pbauthv1.PolicyVersion
 	}
 }
 
-func ToPBGroup(group *iamdomain.Group) *pbauthv1.Group {
+func ToPBGroup(group *iamdomain.Group) *pbiamv1.Group {
 	if group == nil {
 		return nil
 	}
-	return &pbauthv1.Group{
+	return &pbiamv1.Group{
 		Id:          group.ID,
 		Scope:       group.Scope,
 		TenantId:    group.TenantID,
@@ -110,11 +111,11 @@ func ToPBGroup(group *iamdomain.Group) *pbauthv1.Group {
 	}
 }
 
-func ToPBGroupInlinePolicy(policy *iamdomain.GroupInlinePolicy) *pbauthv1.GroupInlinePolicy {
+func ToPBGroupInlinePolicy(policy *iamdomain.GroupInlinePolicy) *pbiamv1.GroupInlinePolicy {
 	if policy == nil {
 		return nil
 	}
-	return &pbauthv1.GroupInlinePolicy{
+	return &pbiamv1.GroupInlinePolicy{
 		GroupId:     policy.GroupID,
 		Name:        policy.Name,
 		Description: policy.Description,
@@ -124,11 +125,11 @@ func ToPBGroupInlinePolicy(policy *iamdomain.GroupInlinePolicy) *pbauthv1.GroupI
 	}
 }
 
-func ToPBUserInlinePolicy(policy *iamdomain.UserInlinePolicy) *pbauthv1.UserInlinePolicy {
+func ToPBUserInlinePolicy(policy *iamdomain.UserInlinePolicy) *pbiamv1.UserInlinePolicy {
 	if policy == nil {
 		return nil
 	}
-	return &pbauthv1.UserInlinePolicy{
+	return &pbiamv1.UserInlinePolicy{
 		Scope:       policy.Scope,
 		TenantId:    policy.TenantID,
 		UserId:      uint64(policy.UserID),
@@ -140,11 +141,11 @@ func ToPBUserInlinePolicy(policy *iamdomain.UserInlinePolicy) *pbauthv1.UserInli
 	}
 }
 
-func ToPBPermissionBoundary(boundary *iamdomain.PermissionBoundary) *pbauthv1.PermissionBoundary {
+func ToPBPermissionBoundary(boundary *iamdomain.PermissionBoundary) *pbiamv1.PermissionBoundary {
 	if boundary == nil {
 		return nil
 	}
-	return &pbauthv1.PermissionBoundary{
+	return &pbiamv1.PermissionBoundary{
 		Scope:      boundary.Scope,
 		TenantId:   boundary.TenantID,
 		UserId:     uint64(boundary.UserID),
@@ -154,11 +155,11 @@ func ToPBPermissionBoundary(boundary *iamdomain.PermissionBoundary) *pbauthv1.Pe
 	}
 }
 
-func ToPBRolePermissionBoundary(boundary *iamdomain.RolePermissionBoundary) *pbauthv1.RolePermissionBoundary {
+func ToPBRolePermissionBoundary(boundary *iamdomain.RolePermissionBoundary) *pbiamv1.RolePermissionBoundary {
 	if boundary == nil {
 		return nil
 	}
-	return &pbauthv1.RolePermissionBoundary{
+	return &pbiamv1.RolePermissionBoundary{
 		RoleId:     boundary.RoleID,
 		RoleName:   boundary.RoleName,
 		PolicyId:   boundary.PolicyID,
@@ -167,14 +168,14 @@ func ToPBRolePermissionBoundary(boundary *iamdomain.RolePermissionBoundary) *pba
 	}
 }
 
-func ToPBSimulateAccessResponse(result *iamdomain.SimulateAccessResult) *pbauthv1.SimulateAccessResponse {
+func ToPBSimulateAccessResponse(result *iamdomain.SimulateAccessResult) *pbiamv1.SimulateAccessResponse {
 	if result == nil {
 		return nil
 	}
-	out := make([]*pbauthv1.SimulateMatchedStatement, 0, len(result.MatchedStatements))
+	out := make([]*pbiamv1.SimulateMatchedStatement, 0, len(result.MatchedStatements))
 	for i := range result.MatchedStatements {
 		item := result.MatchedStatements[i]
-		out = append(out, &pbauthv1.SimulateMatchedStatement{
+		out = append(out, &pbiamv1.SimulateMatchedStatement{
 			PolicyName:      item.PolicyName,
 			Effect:          item.Effect,
 			ActionPattern:   item.ActionPattern,
@@ -183,13 +184,13 @@ func ToPBSimulateAccessResponse(result *iamdomain.SimulateAccessResult) *pbauthv
 			Source:          item.Source,
 		})
 	}
-	layers := make([]*pbauthv1.SimulateDecisionLayer, 0, len(result.Layers))
+	layers := make([]*pbiamv1.SimulateDecisionLayer, 0, len(result.Layers))
 	for i := range result.Layers {
 		layer := result.Layers[i]
-		statements := make([]*pbauthv1.SimulateMatchedStatement, 0, len(layer.MatchedStatements))
+		statements := make([]*pbiamv1.SimulateMatchedStatement, 0, len(layer.MatchedStatements))
 		for j := range layer.MatchedStatements {
 			item := layer.MatchedStatements[j]
-			statements = append(statements, &pbauthv1.SimulateMatchedStatement{
+			statements = append(statements, &pbiamv1.SimulateMatchedStatement{
 				PolicyName:      item.PolicyName,
 				Effect:          item.Effect,
 				ActionPattern:   item.ActionPattern,
@@ -198,14 +199,14 @@ func ToPBSimulateAccessResponse(result *iamdomain.SimulateAccessResult) *pbauthv
 				Source:          item.Source,
 			})
 		}
-		layers = append(layers, &pbauthv1.SimulateDecisionLayer{
+		layers = append(layers, &pbiamv1.SimulateDecisionLayer{
 			Layer:             layer.Layer,
 			Allowed:           layer.Allowed,
 			Reason:            layer.Reason,
 			MatchedStatements: statements,
 		})
 	}
-	return &pbauthv1.SimulateAccessResponse{
+	return &pbiamv1.SimulateAccessResponse{
 		Allowed:           result.Allowed,
 		DecisionSource:    result.DecisionSource,
 		Reason:            result.Reason,
@@ -214,19 +215,19 @@ func ToPBSimulateAccessResponse(result *iamdomain.SimulateAccessResult) *pbauthv
 	}
 }
 
-func ToPBPolicies(items []iamdomain.Policy) []*pbauthv1.Policy {
-	out := make([]*pbauthv1.Policy, 0, len(items))
+func ToPBPolicies(items []iamdomain.Policy) []*pbiamv1.Policy {
+	out := make([]*pbiamv1.Policy, 0, len(items))
 	for i := range items {
 		out = append(out, ToPBPolicy(&items[i]))
 	}
 	return out
 }
 
-func ToPBPolicyAttachments(items []iamdomain.PolicyAttachment) []*pbauthv1.PolicyAttachment {
-	out := make([]*pbauthv1.PolicyAttachment, 0, len(items))
+func ToPBPolicyAttachments(items []iamdomain.PolicyAttachment) []*pbiamv1.PolicyAttachment {
+	out := make([]*pbiamv1.PolicyAttachment, 0, len(items))
 	for i := range items {
 		item := items[i]
-		out = append(out, &pbauthv1.PolicyAttachment{
+		out = append(out, &pbiamv1.PolicyAttachment{
 			AttachmentType: item.AttachmentType,
 			Scope:          item.Scope,
 			TenantId:       item.TenantID,
@@ -241,11 +242,11 @@ func ToPBPolicyAttachments(items []iamdomain.PolicyAttachment) []*pbauthv1.Polic
 	return out
 }
 
-func ToPBRoleTrustStatements(items []iamdomain.RoleTrustStatement) []*pbauthv1.RoleTrustStatement {
-	out := make([]*pbauthv1.RoleTrustStatement, 0, len(items))
+func ToPBRoleTrustStatements(items []iamdomain.RoleTrustStatement) []*pbiamv1.RoleTrustStatement {
+	out := make([]*pbiamv1.RoleTrustStatement, 0, len(items))
 	for i := range items {
 		item := items[i]
-		out = append(out, &pbauthv1.RoleTrustStatement{
+		out = append(out, &pbiamv1.RoleTrustStatement{
 			Id:                item.ID,
 			RoleId:            item.RoleID,
 			Effect:            item.Effect,
@@ -259,11 +260,11 @@ func ToPBRoleTrustStatements(items []iamdomain.RoleTrustStatement) []*pbauthv1.R
 	return out
 }
 
-func ToPBPolicyStatements(items []iamdomain.PolicyStatement) []*pbauthv1.PolicyStatement {
-	out := make([]*pbauthv1.PolicyStatement, 0, len(items))
+func ToPBPolicyStatements(items []iamdomain.PolicyStatement) []*pbcommonv1.PolicyStatement {
+	out := make([]*pbcommonv1.PolicyStatement, 0, len(items))
 	for i := range items {
 		item := items[i]
-		out = append(out, &pbauthv1.PolicyStatement{
+		out = append(out, &pbcommonv1.PolicyStatement{
 			Id:              item.ID,
 			PolicyId:        item.PolicyID,
 			PolicyName:      item.PolicyName,
@@ -277,7 +278,7 @@ func ToPBPolicyStatements(items []iamdomain.PolicyStatement) []*pbauthv1.PolicyS
 	return out
 }
 
-func FromPBPolicyStatements(items []*pbauthv1.PolicyStatement) []iamdomain.PolicyStatement {
+func FromPBPolicyStatements(items []*pbcommonv1.PolicyStatement) []iamdomain.PolicyStatement {
 	out := make([]iamdomain.PolicyStatement, 0, len(items))
 	for _, item := range items {
 		if item == nil {
@@ -293,7 +294,7 @@ func FromPBPolicyStatements(items []*pbauthv1.PolicyStatement) []iamdomain.Polic
 	return out
 }
 
-func FromPBRoleTrustStatements(items []*pbauthv1.RoleTrustStatement) []iamdomain.RoleTrustStatement {
+func FromPBRoleTrustStatements(items []*pbiamv1.RoleTrustStatement) []iamdomain.RoleTrustStatement {
 	out := make([]iamdomain.RoleTrustStatement, 0, len(items))
 	for _, item := range items {
 		if item == nil {
@@ -310,11 +311,11 @@ func FromPBRoleTrustStatements(items []*pbauthv1.RoleTrustStatement) []iamdomain
 	return out
 }
 
-func ToPBTenantInvite(invite *iamdomain.TenantInvite) *pbauthv1.TenantInvite {
+func ToPBTenantInvite(invite *iamdomain.TenantInvite) *pbiamv1.TenantInvite {
 	if invite == nil {
 		return nil
 	}
-	resp := &pbauthv1.TenantInvite{
+	resp := &pbiamv1.TenantInvite{
 		Id:              invite.ID,
 		TenantId:        invite.TenantID,
 		Email:           invite.Email,
@@ -351,10 +352,10 @@ func ToIAMSessionPolicyStatements(items []pdauthn.PolicyStatement) []iamdomain.P
 	return out
 }
 
-func ToPBPolicyConditions(items []iamdomain.PolicyCondition) []*pbauthv1.PolicyCondition {
-	out := make([]*pbauthv1.PolicyCondition, 0, len(items))
+func ToPBPolicyConditions(items []iamdomain.PolicyCondition) []*pbcommonv1.PolicyCondition {
+	out := make([]*pbcommonv1.PolicyCondition, 0, len(items))
 	for _, item := range items {
-		out = append(out, &pbauthv1.PolicyCondition{
+		out = append(out, &pbcommonv1.PolicyCondition{
 			Operator: item.Operator,
 			Key:      item.Key,
 			Value:    item.Value,
@@ -363,11 +364,11 @@ func ToPBPolicyConditions(items []iamdomain.PolicyCondition) []*pbauthv1.PolicyC
 	return out
 }
 
-func ToPBIAMAssumedRole(item *iamdomain.AssumedRole) *pbauthv1.IAMAssumedRole {
+func ToPBIAMAssumedRole(item *iamdomain.AssumedRole) *pbiamv1.IAMAssumedRole {
 	if item == nil {
 		return nil
 	}
-	return &pbauthv1.IAMAssumedRole{
+	return &pbiamv1.IAMAssumedRole{
 		RoleId:           item.RoleID,
 		RoleScope:        item.RoleScope,
 		RoleName:         item.RoleName,
@@ -391,7 +392,7 @@ func CloneStringMap(src map[string]string) map[string]string {
 	return out
 }
 
-func FromPBPolicyConditions(items []*pbauthv1.PolicyCondition) []iamdomain.PolicyCondition {
+func FromPBPolicyConditions(items []*pbcommonv1.PolicyCondition) []iamdomain.PolicyCondition {
 	out := make([]iamdomain.PolicyCondition, 0, len(items))
 	for _, item := range items {
 		if item == nil {

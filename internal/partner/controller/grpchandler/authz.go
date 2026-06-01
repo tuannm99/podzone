@@ -9,6 +9,7 @@ import (
 	"github.com/golang-jwt/jwt"
 	partnerconfig "github.com/tuannm99/podzone/internal/partner/config"
 	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
+	pbiamv1 "github.com/tuannm99/podzone/pkg/api/proto/iam/v1"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
@@ -41,7 +42,7 @@ type authzClientParams struct {
 type authTenantAuthorizer struct {
 	cfg        partnerconfig.Config
 	authClient pbauthv1.AuthServiceClient
-	iamClient  pbauthv1.IAMServiceClient
+	iamClient  pbiamv1.IAMQueryServiceClient
 }
 
 func NewTenantAuthorizer(p authzClientParams) (TenantAuthorizer, error) {
@@ -74,7 +75,7 @@ func NewTenantAuthorizer(p authzClientParams) (TenantAuthorizer, error) {
 	return &authTenantAuthorizer{
 		cfg:        p.Config,
 		authClient: pbauthv1.NewAuthServiceClient(authConn),
-		iamClient:  pbauthv1.NewIAMServiceClient(iamConn),
+		iamClient:  pbiamv1.NewIAMQueryServiceClient(iamConn),
 	}, nil
 }
 
@@ -113,7 +114,7 @@ func (a *authTenantAuthorizer) AuthorizeTenant(ctx context.Context, tenantID, pe
 		return "", err
 	}
 
-	membershipResp, err := a.iamClient.GetTenantMembership(ctx, &pbauthv1.GetTenantMembershipRequest{
+	membershipResp, err := a.iamClient.GetTenantMembership(ctx, &pbiamv1.GetTenantMembershipRequest{
 		TenantId: tenantID,
 		UserId:   userIDNum,
 	})
@@ -127,7 +128,7 @@ func (a *authTenantAuthorizer) AuthorizeTenant(ctx context.Context, tenantID, pe
 		return "", fmt.Errorf("tenant membership is inactive")
 	}
 
-	permResp, err := a.iamClient.CheckPermission(ctx, &pbauthv1.CheckPermissionRequest{
+	permResp, err := a.iamClient.CheckPermission(ctx, &pbiamv1.CheckPermissionRequest{
 		TenantId:   tenantID,
 		UserId:     userIDNum,
 		Permission: permission,

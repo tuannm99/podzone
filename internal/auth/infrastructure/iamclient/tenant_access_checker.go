@@ -7,7 +7,7 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/config"
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
-	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
+	pbiamv1 "github.com/tuannm99/podzone/pkg/api/proto/iam/v1"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
@@ -17,7 +17,7 @@ import (
 )
 
 type TenantAccessChecker struct {
-	client     pbauthv1.IAMServiceClient
+	client     pbiamv1.IAMQueryServiceClient
 	projection outputport.IAMProjectionRepository
 }
 
@@ -44,7 +44,7 @@ func NewTenantAccessChecker(p TenantAccessCheckerParams) (outputport.TenantAcces
 		},
 	})
 	return &TenantAccessChecker{
-		client:     pbauthv1.NewIAMServiceClient(conn),
+		client:     pbiamv1.NewIAMQueryServiceClient(conn),
 		projection: p.Projection,
 	}, nil
 }
@@ -63,7 +63,7 @@ func (c *TenantAccessChecker) EnsureActiveMembership(ctx context.Context, tenant
 		}
 	}
 
-	resp, err := c.client.GetTenantMembership(ctx, &pbauthv1.GetTenantMembershipRequest{
+	resp, err := c.client.GetTenantMembership(ctx, &pbiamv1.GetTenantMembershipRequest{
 		TenantId: tenantID,
 		UserId:   uint64(userID),
 	})

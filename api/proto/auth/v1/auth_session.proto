@@ -5,7 +5,7 @@ package auth;
 option go_package = "github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1";
 
 import "auth/v1/auth.proto";
-import "auth/v1/iam_policy.proto";
+import "common/v1/iam_policy.proto";
 
 message Session {
   string id = 1;
@@ -16,7 +16,7 @@ message Session {
   string updated_at = 6;
   string expires_at = 7;
   string revoked_at = 8;
-  repeated PolicyStatement session_policy = 9;
+  repeated common.PolicyStatement session_policy = 9;
   uint64 assumed_role_id = 10;
   string assumed_role_scope = 11;
   string assumed_role_name = 12;
@@ -54,7 +54,7 @@ message SwitchActiveTenantResponse {
 
 message AssumeSessionPolicyRequest {
   string access_token = 1;
-  repeated PolicyStatement statements = 2;
+  repeated common.PolicyStatement statements = 2;
 }
 
 message AssumeSessionPolicyResponse {
@@ -75,7 +75,7 @@ message AssumeRoleRequest {
   string access_token = 1;
   string role_name = 2;
   string tenant_id = 3;
-  repeated PolicyStatement session_policy = 4;
+  repeated common.PolicyStatement session_policy = 4;
   string external_id = 5;
   string session_name = 6;
   string source_identity = 7;

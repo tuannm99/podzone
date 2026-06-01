@@ -1,11 +1,11 @@
 syntax = "proto3";
 
-package auth;
+package iam;
 
-option go_package = "github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1";
+option go_package = "github.com/tuannm99/podzone/pkg/api/proto/iam/v1;pbiamv1";
 
 import "auth/v1/auth_session.proto";
-import "auth/v1/iam_policy.proto";
+import "common/v1/iam_policy.proto";
 
 message SimulateAccessRequest {
   string scope = 1;
@@ -14,8 +14,8 @@ message SimulateAccessRequest {
   string action = 4;
   string resource = 5;
   bool use_assumed_role = 6;
-  Session assumed_role_session = 7;
-  repeated PolicyStatement session_policy = 8;
+  auth.Session assumed_role_session = 7;
+  repeated common.PolicyStatement session_policy = 8;
   map<string, string> attributes = 9;
   string service_principal = 10;
   map<string, string> session_tags = 11;
@@ -26,7 +26,7 @@ message SimulateMatchedStatement {
   string effect = 2;
   string action_pattern = 3;
   string resource_pattern = 4;
-  repeated PolicyCondition conditions = 5;
+  repeated common.PolicyCondition conditions = 5;
   string source = 6;
 }
 
