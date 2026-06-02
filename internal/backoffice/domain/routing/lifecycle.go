@@ -2,7 +2,6 @@ package routing
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -26,40 +25,10 @@ func (i *OrderRoutingInteractor) AdvanceRoutedOrder(
 	if err := ensureOrderStore(order, storeID); err != nil {
 		return nil, err
 	}
-	if order.ExceptionStatus == routingentity.RoutedOrderExceptionStatusOpen ||
-		order.ExceptionStatus == routingentity.RoutedOrderExceptionStatusEscalated {
-		return nil, fmt.Errorf("resolve the active exception before advancing the routed order")
-	}
-
-	var nextStatus string
-	switch order.Status {
-	case routingentity.RoutedOrderStatusRoutingBlocked:
-		return nil, fmt.Errorf("resolve the routing block before advancing the routed order")
-	case routingentity.RoutedOrderStatusQueued:
-		nextStatus = routingentity.RoutedOrderStatusInProduction
-	case routingentity.RoutedOrderStatusInProduction:
-		nextStatus = routingentity.RoutedOrderStatusShipped
-	case routingentity.RoutedOrderStatusShipped:
-		nextStatus = routingentity.RoutedOrderStatusShipped
-	default:
-		return nil, fmt.Errorf("invalid routed order status")
-	}
-	if nextStatus == order.Status && order.Status == routingentity.RoutedOrderStatusShipped {
-		return order, nil
-	}
-
-	order.Status = nextStatus
-	entry := routingTimelineEntry(nextStatus, order.Partner)
 	now := time.Now().UTC()
-	order.Timeline = append(order.Timeline, entry)
-	order.ActivityLog = append(order.ActivityLog, newActivity(
-		routingentity.RoutedOrderActivityTypeSystem,
-		activityActorFromContext(ctx),
-		entry,
-		now,
-		activityDetails("status", nextStatus, "partner", order.Partner),
-	))
-	order.UpdatedAt = now
+	if err := order.Advance(activityActorFromContext(ctx), now); err != nil {
+		return nil, err
+	}
 	return i.orders.Update(ctx, *order)
 }
 
@@ -78,32 +47,10 @@ func (i *OrderRoutingInteractor) OpenOrderException(
 	if err := ensureOrderStore(order, storeID); err != nil {
 		return nil, err
 	}
-	exceptionType := normalizeExceptionType(cmd.ExceptionType)
-	if exceptionType == "" {
-		return nil, fmt.Errorf("invalid exception type")
-	}
-	if order.ExceptionStatus == routingentity.RoutedOrderExceptionStatusOpen {
-		return order, nil
-	}
-
-	order.ExceptionType = exceptionType
-	order.ExceptionStatus = routingentity.RoutedOrderExceptionStatusOpen
-	entry := fmt.Sprintf("Exception opened: %s", strings.ReplaceAll(exceptionType, "_", " "))
 	now := time.Now().UTC()
-	order.Timeline = append(order.Timeline, entry)
-	order.ActivityLog = append(order.ActivityLog, newActivity(
-		routingentity.RoutedOrderActivityTypeSystem,
-		activityActorFromContext(ctx),
-		entry,
-		now,
-		activityDetails(
-			"exception_type",
-			exceptionType,
-			"exception_status",
-			routingentity.RoutedOrderExceptionStatusOpen,
-		),
-	))
-	order.UpdatedAt = now
+	if err := order.OpenException(cmd.ExceptionType, activityActorFromContext(ctx), now); err != nil {
+		return nil, err
+	}
 	return i.orders.Update(ctx, *order)
 }
 
@@ -122,25 +69,9 @@ func (i *OrderRoutingInteractor) UpdateOrderExceptionStatus(
 	if err := ensureOrderStore(order, storeID); err != nil {
 		return nil, err
 	}
-	if order.ExceptionType == "" {
-		return nil, fmt.Errorf("routed order has no active exception type")
-	}
-
-	status := normalizeExceptionStatus(cmd.Status)
-	if status == "" {
-		return nil, fmt.Errorf("invalid exception status")
-	}
-	order.ExceptionStatus = status
-	entry := fmt.Sprintf("Exception %s: %s", status, strings.ReplaceAll(order.ExceptionType, "_", " "))
 	now := time.Now().UTC()
-	order.Timeline = append(order.Timeline, entry)
-	order.ActivityLog = append(order.ActivityLog, newActivity(
-		routingentity.RoutedOrderActivityTypeSystem,
-		activityActorFromContext(ctx),
-		entry,
-		now,
-		activityDetails("exception_type", order.ExceptionType, "exception_status", status),
-	))
-	order.UpdatedAt = now
+	if err := order.UpdateExceptionStatus(cmd.Status, activityActorFromContext(ctx), now); err != nil {
+		return nil, err
+	}
 	return i.orders.Update(ctx, *order)
 }

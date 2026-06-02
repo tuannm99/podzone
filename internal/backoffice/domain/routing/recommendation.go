@@ -8,7 +8,6 @@ import (
 
 	catalogentity "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/entity"
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
-	routinginputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport"
 )
 
 func newActivity(
@@ -40,13 +39,6 @@ func activityDetails(pairs ...string) []routingentity.RoutedOrderActivityDetail 
 	return details
 }
 
-func formatOptionalTime(value *time.Time) string {
-	if value == nil {
-		return ""
-	}
-	return value.UTC().Format(time.RFC3339)
-}
-
 func routingTimelineEntry(status, partner string) string {
 	switch status {
 	case routingentity.RoutedOrderStatusInProduction:
@@ -56,151 +48,6 @@ func routingTimelineEntry(status, partner string) string {
 	default:
 		return fmt.Sprintf("Queued for %s", partner)
 	}
-}
-
-func normalizeExceptionType(raw string) string {
-	switch strings.TrimSpace(raw) {
-	case "artwork_issue", "partner_delay", "address_hold", "reprint_request":
-		return raw
-	default:
-		return ""
-	}
-}
-
-func normalizeExceptionStatus(raw string) string {
-	switch strings.TrimSpace(raw) {
-	case routingentity.RoutedOrderExceptionStatusOpen,
-		routingentity.RoutedOrderExceptionStatusEscalated,
-		routingentity.RoutedOrderExceptionStatusResolved:
-		return raw
-	default:
-		return ""
-	}
-}
-
-func normalizeShipmentStatus(raw string) string {
-	switch strings.TrimSpace(raw) {
-	case routingentity.RoutedOrderShipmentStatusAwaitingLabel,
-		routingentity.RoutedOrderShipmentStatusLabelReady,
-		routingentity.RoutedOrderShipmentStatusInTransit,
-		routingentity.RoutedOrderShipmentStatusDelivered,
-		routingentity.RoutedOrderShipmentStatusDeliveryIssue:
-		return raw
-	default:
-		return ""
-	}
-}
-
-func normalizeSettlementStatus(raw string) string {
-	switch strings.TrimSpace(raw) {
-	case routingentity.RoutedOrderSettlementStatusPending,
-		routingentity.RoutedOrderSettlementStatusReconciled,
-		routingentity.RoutedOrderSettlementStatusPaid,
-		routingentity.RoutedOrderSettlementStatusDisputed:
-		return raw
-	default:
-		return ""
-	}
-}
-
-func normalizeIssueResolution(raw string) string {
-	switch strings.TrimSpace(raw) {
-	case routingentity.RoutedOrderIssueResolutionMonitor,
-		routingentity.RoutedOrderIssueResolutionReprint,
-		routingentity.RoutedOrderIssueResolutionRefund,
-		routingentity.RoutedOrderIssueResolutionCarrierClaim,
-		routingentity.RoutedOrderIssueResolutionAddressRetry:
-		return raw
-	default:
-		return ""
-	}
-}
-
-func shipmentTimelineEntry(order *routingentity.RoutedOrder) string {
-	switch order.ShipmentStatus {
-	case routingentity.RoutedOrderShipmentStatusLabelReady:
-		return fmt.Sprintf("Shipment prepared with %s", fallbackShipmentCarrier(order.ShipmentCarrier))
-	case routingentity.RoutedOrderShipmentStatusInTransit:
-		return fmt.Sprintf(
-			"Shipment is in transit via %s%s",
-			fallbackShipmentCarrier(order.ShipmentCarrier),
-			fallbackTrackingSuffix(order.ShipmentTrackingNumber),
-		)
-	case routingentity.RoutedOrderShipmentStatusDelivered:
-		return "Shipment marked delivered by store operator"
-	case routingentity.RoutedOrderShipmentStatusDeliveryIssue:
-		return "Shipment issue flagged for manual follow-up"
-	default:
-		return "Shipment is awaiting label assignment"
-	}
-}
-
-func settlementTimelineEntry(order *routingentity.RoutedOrder) string {
-	switch order.SettlementStatus {
-	case routingentity.RoutedOrderSettlementStatusPaid:
-		return fmt.Sprintf("Settlement marked paid with realized margin %s", order.RealizedMargin)
-	case routingentity.RoutedOrderSettlementStatusDisputed:
-		return "Settlement flagged for manual dispute follow-up"
-	case routingentity.RoutedOrderSettlementStatusReconciled:
-		return fmt.Sprintf("Settlement reconciled with realized margin %s", order.RealizedMargin)
-	default:
-		return fmt.Sprintf("Settlement remains pending with current margin %s", order.RealizedMargin)
-	}
-}
-
-func issueHandlingTimelineEntry(order *routingentity.RoutedOrder) string {
-	return fmt.Sprintf(
-		"Issue handling updated: %s with impact %s",
-		strings.ReplaceAll(order.IssueResolution, "_", " "),
-		order.IssueCost,
-	)
-}
-
-func queueControlTimelineEntry(order *routingentity.RoutedOrder) string {
-	shipmentDue := "none"
-	if order.ShipmentSlaDueAt != nil {
-		shipmentDue = order.ShipmentSlaDueAt.UTC().Format(time.RFC3339)
-	}
-	issueDue := "none"
-	if order.IssueSlaDueAt != nil {
-		issueDue = order.IssueSlaDueAt.UTC().Format(time.RFC3339)
-	}
-	return fmt.Sprintf(
-		"Queue ownership updated: %s · shipment SLA %s · issue SLA %s",
-		order.OperatorAssignee,
-		shipmentDue,
-		issueDue,
-	)
-}
-
-func bulkUpdateTimelineEntry(order *routingentity.RoutedOrder, cmd routinginputport.BulkUpdateRoutedOrdersCmd) string {
-	parts := make([]string, 0, 3)
-	if cmd.OperatorAssignee != nil {
-		parts = append(parts, fmt.Sprintf("owner %s", order.OperatorAssignee))
-	}
-	if cmd.ShipmentSlaDueAt != nil {
-		parts = append(parts, fmt.Sprintf("shipment SLA %s", cmd.ShipmentSlaDueAt.UTC().Format(time.RFC3339)))
-	}
-	if cmd.SettlementStatus != nil {
-		parts = append(parts, fmt.Sprintf("settlement %s", order.SettlementStatus))
-	}
-	return fmt.Sprintf("Bulk queue update applied: %s", strings.Join(parts, " · "))
-}
-
-func fallbackShipmentCarrier(carrier string) string {
-	carrier = strings.TrimSpace(carrier)
-	if carrier == "" {
-		return "manual carrier"
-	}
-	return carrier
-}
-
-func fallbackTrackingSuffix(trackingNumber string) string {
-	trackingNumber = strings.TrimSpace(trackingNumber)
-	if trackingNumber == "" {
-		return ""
-	}
-	return fmt.Sprintf(" (%s)", trackingNumber)
 }
 
 func buildRoutingRecommendation(
@@ -537,14 +384,6 @@ func calculateMargin(total, fulfillmentCost, shippingCost, issueCost string) str
 		return "TBD"
 	}
 	return formatMoney(totalValue - fulfillmentValue - shippingValue - issueValue)
-}
-
-func normalizeMoney(raw string) (string, error) {
-	value, ok := parseMoney(raw)
-	if !ok {
-		return "", fmt.Errorf("invalid money")
-	}
-	return formatMoney(value), nil
 }
 
 func parseMoney(raw string) (float64, bool) {

@@ -12,7 +12,8 @@ import (
 
 var Module = fx.Options(
 	RepositoryModule,
-	UsecaseModule,
+	CommandUsecaseModule,
+	QueryUsecaseModule,
 )
 
 var CommandModule = fx.Options(
@@ -25,11 +26,9 @@ var QueryModule = fx.Options(
 	QueryUsecaseModule,
 )
 
-var UsecaseModule = fx.Provide(
-	fx.Annotate(
-		interactor.NewInteractor,
-		fx.As(new(inputport.IAMCommandUsecase), new(inputport.IAMQueryUsecase)),
-	),
+var UsecaseModule = fx.Options(
+	CommandUsecaseModule,
+	QueryUsecaseModule,
 )
 
 var CommandUsecaseModule = fx.Provide(
@@ -41,39 +40,45 @@ var QueryUsecaseModule = fx.Provide(
 )
 
 var RepositoryModule = fx.Provide(
-	tenantRepositoryProvider(new(outputport.TenantCommandRepository), new(outputport.TenantQueryRepository)),
-	roleRepositoryProvider(new(outputport.RoleCommandRepository), new(outputport.RoleQueryRepository)),
-	policyRepositoryProvider(new(outputport.PolicyCommandRepository), new(outputport.PolicyQueryRepository)),
-	groupRepositoryProvider(new(outputport.GroupCommandRepository), new(outputport.GroupQueryRepository)),
-	organizationRepositoryProvider(
-		new(outputport.OrganizationCommandRepository),
-		new(outputport.OrganizationQueryRepository),
-	),
-	platformMembershipRepositoryProvider(
-		new(outputport.PlatformMembershipCommandRepository),
-		new(outputport.PlatformMembershipQueryRepository),
-	),
-	membershipRepositoryProvider(new(outputport.MembershipCommandRepository), new(outputport.MembershipQueryRepository)),
-	inviteRepositoryProvider(new(outputport.InviteCommandRepository), new(outputport.InviteQueryRepository)),
-	outboxRepositoryProvider(new(outputport.OutboxRepository), new(messaging.OutboxStore)),
+	tenantRepositoryProvider(new(outputport.TenantCommandRepository)),
+	tenantRepositoryProvider(new(outputport.TenantQueryRepository)),
+	roleRepositoryProvider(new(outputport.RoleCommandRepository)),
+	roleRepositoryProvider(new(outputport.RoleQueryRepository)),
+	policyRepositoryProvider(new(outputport.PolicyCommandRepository)),
+	policyRepositoryProvider(new(outputport.PolicyQueryRepository)),
+	groupRepositoryProvider(new(outputport.GroupCommandRepository)),
+	groupRepositoryProvider(new(outputport.GroupQueryRepository)),
+	organizationRepositoryProvider(new(outputport.OrganizationCommandRepository)),
+	organizationRepositoryProvider(new(outputport.OrganizationQueryRepository)),
+	platformMembershipRepositoryProvider(new(outputport.PlatformMembershipCommandRepository)),
+	platformMembershipRepositoryProvider(new(outputport.PlatformMembershipQueryRepository)),
+	membershipRepositoryProvider(new(outputport.MembershipCommandRepository)),
+	membershipRepositoryProvider(new(outputport.MembershipQueryRepository)),
+	inviteRepositoryProvider(new(outputport.InviteCommandRepository)),
+	inviteRepositoryProvider(new(outputport.InviteQueryRepository)),
+	outboxRepositoryProvider(new(outputport.OutboxRepository)),
+	outboxRepositoryProvider(new(messaging.OutboxStore)),
 )
 
 var CommandRepositoryModule = fx.Provide(
-	tenantRepositoryProvider(new(outputport.TenantCommandRepository), new(outputport.TenantQueryRepository)),
-	roleRepositoryProvider(new(outputport.RoleCommandRepository), new(outputport.RoleQueryRepository)),
-	policyRepositoryProvider(new(outputport.PolicyCommandRepository), new(outputport.PolicyQueryRepository)),
-	groupRepositoryProvider(new(outputport.GroupCommandRepository), new(outputport.GroupQueryRepository)),
-	organizationRepositoryProvider(
-		new(outputport.OrganizationCommandRepository),
-		new(outputport.OrganizationQueryRepository),
-	),
-	platformMembershipRepositoryProvider(
-		new(outputport.PlatformMembershipCommandRepository),
-		new(outputport.PlatformMembershipQueryRepository),
-	),
-	membershipRepositoryProvider(new(outputport.MembershipCommandRepository), new(outputport.MembershipQueryRepository)),
-	inviteRepositoryProvider(new(outputport.InviteCommandRepository), new(outputport.InviteQueryRepository)),
-	outboxRepositoryProvider(new(outputport.OutboxRepository), new(messaging.OutboxStore)),
+	tenantRepositoryProvider(new(outputport.TenantCommandRepository)),
+	tenantRepositoryProvider(new(outputport.TenantQueryRepository)),
+	roleRepositoryProvider(new(outputport.RoleCommandRepository)),
+	roleRepositoryProvider(new(outputport.RoleQueryRepository)),
+	policyRepositoryProvider(new(outputport.PolicyCommandRepository)),
+	policyRepositoryProvider(new(outputport.PolicyQueryRepository)),
+	groupRepositoryProvider(new(outputport.GroupCommandRepository)),
+	groupRepositoryProvider(new(outputport.GroupQueryRepository)),
+	organizationRepositoryProvider(new(outputport.OrganizationCommandRepository)),
+	organizationRepositoryProvider(new(outputport.OrganizationQueryRepository)),
+	platformMembershipRepositoryProvider(new(outputport.PlatformMembershipCommandRepository)),
+	platformMembershipRepositoryProvider(new(outputport.PlatformMembershipQueryRepository)),
+	membershipRepositoryProvider(new(outputport.MembershipCommandRepository)),
+	membershipRepositoryProvider(new(outputport.MembershipQueryRepository)),
+	inviteRepositoryProvider(new(outputport.InviteCommandRepository)),
+	inviteRepositoryProvider(new(outputport.InviteQueryRepository)),
+	outboxRepositoryProvider(new(outputport.OutboxRepository)),
+	outboxRepositoryProvider(new(messaging.OutboxStore)),
 )
 
 var QueryRepositoryModule = fx.Provide(

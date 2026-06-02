@@ -2,8 +2,10 @@ package pdserver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
+	"syscall"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -87,7 +89,12 @@ func TestRegisterHTTPServer_StartStop(t *testing.T) {
 	)
 
 	require.NotNil(t, lc.hook.OnStart)
-	require.NoError(t, lc.hook.OnStart(context.Background()))
+	if err := lc.hook.OnStart(context.Background()); err != nil {
+		if errors.Is(err, syscall.EPERM) {
+			t.Skipf("network bind is not permitted in this sandbox: %v", err)
+		}
+		require.NoError(t, err)
+	}
 
 	entries := *log.entries
 	require.NotEmpty(t, entries)

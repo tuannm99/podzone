@@ -93,7 +93,7 @@ services:
     restart: unless-stopped
 
   cdc-connect:
-    image: debezium/connect:3.4
+    image: debezium/connect:3.0.0.Final
     container_name: podzone-cdc-connect
     depends_on:
       kafka:

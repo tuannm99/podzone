@@ -6,6 +6,8 @@ Use this guide when changing Go code in this repo.
 
 - Follow clean architecture with service-local ownership.
 - Keep business rules in `internal/<service>/domain` or `internal/<service>/interactor`.
+- When applying DDD, follow `docs/architecture/ddd-clean-architecture.md`.
+- DDD names business boundaries; Clean Architecture controls dependency direction.
 - Use package shape consistently:
   - `entity`
   - `inputport`
@@ -30,6 +32,34 @@ Use this guide when changing Go code in this repo.
 - Do not import another service's interactor/domain directly. Cross-service calls must go through:
   - gRPC client adapters
   - Kafka events / projections
+
+## DDD + Clean Architecture
+
+- A bounded context owns its language, commands, events, aggregates, input ports, output ports, and interactor.
+- Prefer this context shape when a domain grows:
+  - `internal/<service>/domain/<context>/entity`
+  - `internal/<service>/domain/<context>/inputport`
+  - `internal/<service>/domain/<context>/outputport`
+  - `internal/<service>/domain/<context>/interactor`
+- Aggregates expose behavior methods for state transitions; handlers and repositories must not mutate business state directly.
+- Use value objects for validated business concepts and private fields when aggregate invariants need protection.
+- Repository implementations should rehydrate aggregates from snapshots/documents without emitting domain events.
+- Domain events are past-tense facts, e.g. `CustomerOrderReceived`, `PartnerRecommended`, `ShipmentDelivered`.
+- Commands and queries are explicit structs. Split command/query input ports when read/write dependencies differ meaningfully.
+- Query usecases may return read models/views directly; command usecases should use aggregates when enforcing invariants.
+- Interactors orchestrate load -> domain behavior -> save -> event append/publish. They must not parse transport DTOs, know HTTP/gRPC status codes, or contain SQL.
+- Interactors own transaction boundaries through output/application ports such as `TxManager`; do not inject DB clients into domain/interactor code.
+- Repositories are output ports owned by the consuming context. Infrastructure implements them under `infrastructure/repository/<context>`.
+- Avoid generic CRUD repositories at domain/application boundaries; use aggregate-specific repositories.
+- Controllers are inbound adapters only: extract scope, map DTOs, call one usecase, map response, translate errors.
+- Transport mapping belongs in `controller/mapper`; mapper code must not call repositories, usecases, or external services.
+- Cross-context communication uses input ports, domain events/process policies, or explicit projections. Do not import another context's repository or interactor as a shortcut.
+- Fx modules should mirror context boundaries and expose split command/query modules when the runtime boundary exists.
+- Name Fx modules by their real dependency graph; if command runtime requires query dependencies, do not call it command-only.
+- Every struct exposed via `fx.As(...)` must have a compile-time assertion near the concrete type.
+- Constructors should return concrete types by default; use `fx.As(...)` at module boundaries.
+- Add `fx.ValidateApp` tests for deployable modules and important split modules.
+- New tests should use mockery/testify-generated mocks for ports, not hand-written fakes, unless the fake is a reusable testkit implementation.
 
 ## Messaging Placement
 

@@ -58,6 +58,7 @@ func TestOrderRoutingRepositoryPersistsTenantScopedOrders(t *testing.T) {
 
 	order := routingentity.RoutedOrder{
 		ID:           "ord-repo-1",
+		StoreID:      "store-repo-1",
 		CandidateID:  "cand-1",
 		ProductTitle: "Vintage Tee",
 		Partner:      "Print Partner A",
@@ -119,6 +120,7 @@ func TestOrderRoutingRepositoryPersistsTenantScopedOrders(t *testing.T) {
 	got, err := repo.GetByID(ctxA, "ord-repo-1")
 	require.NoError(t, err)
 	require.Equal(t, order.CandidateID, got.CandidateID)
+	require.Equal(t, order.StoreID, got.StoreID)
 	require.Equal(t, order.OperatorAssignee, got.OperatorAssignee)
 	require.NotNil(t, got.ShipmentSlaDueAt)
 	require.True(t, got.ShipmentSlaDueAt.Equal(shipmentSLA))
@@ -227,6 +229,13 @@ func TestOrderRoutingRepositoryBackfillsLegacyActivityLogOnLegacyMigration(t *te
 				created_at TIMESTAMPTZ NOT NULL,
 				updated_at TIMESTAMPTZ NOT NULL
 			)`,
+			`CREATE TABLE IF NOT EXISTS stores (
+				id TEXT PRIMARY KEY,
+				name TEXT NOT NULL,
+				status TEXT NOT NULL,
+				created_at TIMESTAMPTZ NOT NULL,
+				updated_at TIMESTAMPTZ NOT NULL
+			)`,
 			`ALTER TABLE routed_orders
 				ADD COLUMN IF NOT EXISTS shipment_status TEXT NOT NULL DEFAULT 'awaiting_label',
 				ADD COLUMN IF NOT EXISTS shipment_carrier TEXT NOT NULL DEFAULT '',
@@ -273,6 +282,19 @@ func TestOrderRoutingRepositoryBackfillsLegacyActivityLogOnLegacyMigration(t *te
 			if _, err := tx.ExecContext(ctx, `INSERT INTO backoffice_schema_migrations (version) VALUES ($1)`, version); err != nil {
 				return err
 			}
+		}
+
+		if _, err := tx.ExecContext(ctx, `
+			INSERT INTO stores (id, name, status, created_at, updated_at)
+			VALUES ($1, $2, $3, $4, $5)
+		`,
+			"store-legacy-1",
+			"Legacy Store",
+			"active",
+			time.Date(2026, 5, 14, 6, 0, 0, 0, time.UTC),
+			time.Date(2026, 5, 14, 6, 0, 0, 0, time.UTC),
+		); err != nil {
+			return err
 		}
 
 		activityLogJSON := `[{"type":"system","actor":"system","message":"Order created for Legacy Tee","details":[{"key":"status","value":"queued"}],"createdAt":"2026-05-14T07:00:00Z"},{"type":"shipment_note","actor":"user:88","message":"Label printed","details":[{"key":"shipment_status","value":"label_ready"}],"createdAt":"2026-05-14T08:00:00Z"}]`

@@ -102,18 +102,23 @@ var (
 			},
 			fx.ResultTags(`name:"mongo-onboarding-db"`),
 		),
-		fx.Annotate(
-			infrarepository.NewMongoStore,
-			fx.As(
-				new(infrasoutputport.ConnectionStore),
-				new(infrasoutputport.PlacementRepository),
-				new(messaging.OutboxStore),
-			),
-		),
-		fx.Annotate(
-			placementprovider.NewProvider,
-			fx.As(new(infrasoutputport.PlacementPlanner), new(infrasoutputport.StorageProvisioner)),
-		),
+		infrarepository.NewMongoStore,
+		func(store *infrarepository.MongoStore) infrasoutputport.ConnectionStore {
+			return store
+		},
+		func(store *infrarepository.MongoStore) infrasoutputport.PlacementRepository {
+			return store
+		},
+		func(store *infrarepository.MongoStore) messaging.OutboxStore {
+			return store
+		},
+		placementprovider.NewProvider,
+		func(provider *placementprovider.Provider) infrasoutputport.PlacementPlanner {
+			return provider
+		},
+		func(provider *placementprovider.Provider) infrasoutputport.StorageProvisioner {
+			return provider
+		},
 		worker.NewOutboxWorker,
 		fx.Annotate(
 			worker.NewConsumerWorker,

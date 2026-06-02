@@ -34,6 +34,10 @@ The goal is not to restate implementation details. The goal is to clarify:
   Business requirements for turning Backoffice into a true tenant-and-store scoped operating surface.
 - [10-store-onboarding-pipeline.md](./10-store-onboarding-pipeline.md)
   Business requirements for store request, approval, provisioning, placement, and readiness.
+- [11-backoffice-event-storming.md](./11-backoffice-event-storming.md)
+  Event-storming table and DDD migration guide for Backoffice business workflows.
+- [12-backoffice-ddd-discovery.md](./12-backoffice-ddd-discovery.md)
+  Business decision log and migration gates for applying DDD to Backoffice safely.
 
 ## How to read these docs
 

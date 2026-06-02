@@ -277,35 +277,17 @@ func (i *OrderRoutingInteractor) ForceRerouteBlockedOrder(
 	}
 
 	now := time.Now().UTC()
-	previousPartner := order.Partner
-	previousBlockCode := order.RoutingBlockCode
-	previousBlockReason := order.RoutingBlockReason
-	order.Status = routingentity.RoutedOrderStatusQueued
-	order.Partner = recommendation.SelectedPartner
-	order.RoutingBlockCode = ""
-	order.RoutingBlockReason = ""
-	order.FulfillmentCost = multiplyMoney(selectedOption.EstimatedFulfillmentCost, order.Quantity)
-	order.ShippingCost = selectedOption.EstimatedShippingCost
-	order.RealizedMargin = calculateMargin(order.Total, order.FulfillmentCost, order.ShippingCost, order.IssueCost)
-	entry := fmt.Sprintf("Routing unblocked: manually rerouted to %s", recommendation.SelectedPartner)
-	order.Timeline = append(order.Timeline, entry)
-	order.ActivityLog = append(order.ActivityLog, newActivity(
-		routingentity.RoutedOrderActivityTypeSystem,
+	if err := order.ApplyManualReroute(
+		recommendation.SelectedPartner,
+		selectedOption.EstimatedFulfillmentCost,
+		selectedOption.EstimatedShippingCost,
+		selectedOption.EstimatedUnitMargin,
+		recommendation.Summary,
 		activityActorFromContext(ctx),
-		entry,
 		now,
-		activityDetails(
-			"status", routingentity.RoutedOrderStatusQueued,
-			"previous_partner", previousPartner,
-			"partner", recommendation.SelectedPartner,
-			"previous_routing_block_code", previousBlockCode,
-			"previous_routing_block_reason", previousBlockReason,
-			"routing_summary", recommendation.Summary,
-			"estimated_unit_margin", selectedOption.EstimatedUnitMargin,
-			"manual_reroute", "true",
-		),
-	))
-	order.UpdatedAt = now
+	); err != nil {
+		return nil, err
+	}
 	return i.orders.Update(ctx, *order)
 }
 

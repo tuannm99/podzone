@@ -5,11 +5,15 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/knadh/koanf/v2"
+	"github.com/stretchr/testify/require"
+	"github.com/tuannm99/podzone/internal/grpcgateway"
+	"github.com/tuannm99/podzone/pkg/pdconfig"
+	"github.com/tuannm99/podzone/pkg/pdglobalmiddleware"
+	"github.com/tuannm99/podzone/pkg/pdgrpcgateway"
 	pdlog "github.com/tuannm99/podzone/pkg/pdlog"
-	"github.com/tuannm99/podzone/pkg/toolkit"
+	"github.com/tuannm99/podzone/pkg/pdpprof"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 	"go.uber.org/fx/fxtest"
@@ -18,36 +22,24 @@ import (
 	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
 )
 
-var configAppTest = `
-logger:
-  app_name: "test"
-  provider: "slog"
-  level: "debug"
-  env: "dev"
-
-redis:
-  auth:
-    uri: redis://localhost:6379/0
-
-pprof:
-  enable: false
-  addr: "127.0.0.1:6060"
-`
-
-func TestMain(t *testing.T) {
-	toolkit.MakeConfigTestDir(t, configAppTest)
-
-	done := make(chan struct{})
-	go func() {
-		main()
-		close(done)
-	}()
-
-	select {
-	case <-done:
-	case <-time.After(200 * time.Millisecond):
-		t.Log("main() still running, test will stop here")
-	}
+func TestAppContainerGraph(t *testing.T) {
+	err := fx.ValidateApp(
+		fx.NopLogger,
+		pdconfig.Module,
+		pdlog.Module,
+		pdpprof.Module,
+		pdglobalmiddleware.CommonHttpModule,
+		pdgrpcgateway.Module,
+		gatewayRegistrarModule,
+		fx.Provide(
+			fx.Annotate(
+				NewRedirectResponseModifier,
+				fx.ResultTags(`group:"gateway-options"`),
+			),
+		),
+		fx.Invoke(grpcgateway.RegisterGWHandlers),
+	)
+	require.NoError(t, err)
 }
 
 func TestRedirectForwardFunc(t *testing.T) {

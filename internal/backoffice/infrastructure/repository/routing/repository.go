@@ -511,7 +511,7 @@ func mapRoutedOrderRow(
 	if row.IssueSlaDueAt.Valid {
 		issueSlaDueAt = &row.IssueSlaDueAt.Time
 	}
-	return routingentity.RoutedOrder{
+	order, err := routingentity.RehydrateRoutedOrder(routingentity.RoutedOrderSnapshot{
 		ID:                     row.ID,
 		StoreID:                row.StoreID,
 		CandidateID:            row.CandidateID,
@@ -548,7 +548,11 @@ func mapRoutedOrderRow(
 		DeliveredAt:            deliveredAt,
 		CreatedAt:              row.CreatedAt,
 		UpdatedAt:              row.UpdatedAt,
-	}, nil
+	})
+	if err != nil {
+		return routingentity.RoutedOrder{}, err
+	}
+	return *order, nil
 }
 
 func mapRoutedOrderActivityRow(row routedOrderActivityRow) (routingentity.RoutedOrderActivityFeedEntry, error) {

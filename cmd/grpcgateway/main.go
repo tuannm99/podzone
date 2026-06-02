@@ -25,6 +25,49 @@ func main() {
 	newAppContainer().Run()
 }
 
+var gatewayRegistrarModule = fx.Options(
+	fx.Provide(
+		fx.Annotate(
+			func() grpcgateway.GatewayRegistrar {
+				return &grpcgateway.AuthRegistrar{
+					AddrVal: toolkit.GetEnv("AUTH_GRPC_ADDR", "localhost:50051"),
+				}
+			},
+			fx.ResultTags(`group:"gateway-registrars"`),
+		),
+	),
+	fx.Provide(
+		fx.Annotate(
+			func() grpcgateway.GatewayRegistrar {
+				return &grpcgateway.IAMRegistrar{
+					AddrVal: toolkit.GetEnv("IAM_GRPC_ADDR", "localhost:50053"),
+				}
+			},
+			fx.ResultTags(`group:"gateway-registrars"`),
+		),
+	),
+	fx.Provide(
+		fx.Annotate(
+			func() grpcgateway.GatewayRegistrar {
+				return &grpcgateway.CatalogRegistrar{
+					AddrVal: toolkit.GetEnv("CATALOG_GRPC_ADDR", "localhost:50052"),
+				}
+			},
+			fx.ResultTags(`group:"gateway-registrars"`),
+		),
+	),
+	fx.Provide(
+		fx.Annotate(
+			func() grpcgateway.GatewayRegistrar {
+				return &grpcgateway.PartnerRegistrar{
+					AddrVal: toolkit.GetEnv("PARTNER_GRPC_ADDR", "localhost:50054"),
+				}
+			},
+			fx.ResultTags(`group:"gateway-registrars"`),
+		),
+	),
+)
+
 func newAppContainer() *fx.App {
 	return fx.New(
 		pdconfig.Module,
@@ -34,46 +77,7 @@ func newAppContainer() *fx.App {
 		pdglobalmiddleware.CommonHttpModule,
 		pdgrpcgateway.Module,
 
-		fx.Provide(
-			fx.Annotate(
-				func() grpcgateway.GatewayRegistrar {
-					return &grpcgateway.AuthRegistrar{
-						AddrVal: toolkit.GetEnv("AUTH_GRPC_ADDR", "localhost:50051"),
-					}
-				},
-				fx.ResultTags(`group:"gateway-registrars"`),
-			),
-		),
-		fx.Provide(
-			fx.Annotate(
-				func() grpcgateway.GatewayRegistrar {
-					return &grpcgateway.IAMRegistrar{
-						AddrVal: toolkit.GetEnv("IAM_GRPC_ADDR", "localhost:50053"),
-					}
-				},
-				fx.ResultTags(`group:"gateway-registrars"`),
-			),
-		),
-		fx.Provide(
-			fx.Annotate(
-				func() grpcgateway.GatewayRegistrar {
-					return &grpcgateway.CatalogRegistrar{
-						AddrVal: toolkit.GetEnv("CATALOG_GRPC_ADDR", "localhost:50052"),
-					}
-				},
-				fx.ResultTags(`group:"gateway-registrars"`),
-			),
-		),
-		fx.Provide(
-			fx.Annotate(
-				func() grpcgateway.GatewayRegistrar {
-					return &grpcgateway.PartnerRegistrar{
-						AddrVal: toolkit.GetEnv("PARTNER_GRPC_ADDR", "localhost:50054"),
-					}
-				},
-				fx.ResultTags(`group:"gateway-registrars"`),
-			),
-		),
+		gatewayRegistrarModule,
 
 		fx.Provide(
 			fx.Annotate(
