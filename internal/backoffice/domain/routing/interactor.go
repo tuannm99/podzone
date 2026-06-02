@@ -2,24 +2,33 @@ package routing
 
 import (
 	"context"
-	"fmt"
-	"strings"
-	"time"
 
-	"github.com/google/uuid"
-	catalogentity "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/entity"
+	activityinputport "github.com/tuannm99/podzone/internal/backoffice/domain/activity/inputport"
+	activityinteractor "github.com/tuannm99/podzone/internal/backoffice/domain/activity/interactor"
 	catalogoutputport "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/outputport"
+	exceptioninputport "github.com/tuannm99/podzone/internal/backoffice/domain/exception/inputport"
+	exceptioninteractor "github.com/tuannm99/podzone/internal/backoffice/domain/exception/interactor"
+	fulfillmentinputport "github.com/tuannm99/podzone/internal/backoffice/domain/fulfillment/inputport"
+	fulfillmentinteractor "github.com/tuannm99/podzone/internal/backoffice/domain/fulfillment/interactor"
+	orderinputport "github.com/tuannm99/podzone/internal/backoffice/domain/order/inputport"
+	orderinteractor "github.com/tuannm99/podzone/internal/backoffice/domain/order/interactor"
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
 	routinginputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport"
+	routinginteractor "github.com/tuannm99/podzone/internal/backoffice/domain/routing/interactor"
 	routingoutputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/outputport"
-	"github.com/tuannm99/podzone/internal/backoffice/runtime/scope"
-	"github.com/tuannm99/podzone/pkg/toolkit"
+	settlementinputport "github.com/tuannm99/podzone/internal/backoffice/domain/settlement/inputport"
+	settlementinteractor "github.com/tuannm99/podzone/internal/backoffice/domain/settlement/interactor"
 )
 
 type OrderRoutingInteractor struct {
-	orders   routingoutputport.OrderRoutingRepository
-	products catalogoutputport.ProductSetupRepository
-	partners routingoutputport.PartnerDirectory
+	orderCommands      orderinputport.CustomerOrderCommandUsecase
+	orderQueries       orderinputport.CustomerOrderQueryUsecase
+	activityQueries    activityinputport.ActivityFeedQueryUsecase
+	routingCommands    routinginputport.RoutingCommandUsecase
+	routingQueries     routinginputport.RoutingQueryUsecase
+	exceptionCommands  exceptioninputport.ExceptionCommandUsecase
+	fulfillmentCommand fulfillmentinputport.FulfillmentCommandUsecase
+	settlementCommands settlementinputport.SettlementCommandUsecase
 }
 
 var _ routinginputport.OrderRoutingUsecase = (*OrderRoutingInteractor)(nil)
@@ -29,326 +38,140 @@ func NewOrderRoutingInteractor(
 	products catalogoutputport.ProductSetupRepository,
 	partners routingoutputport.PartnerDirectory,
 ) routinginputport.OrderRoutingUsecase {
-	return &OrderRoutingInteractor{orders: orders, products: products, partners: partners}
+	orderUsecase := orderinteractor.New(orders, products, partners)
+	routingUsecase := routinginteractor.New(orders, products, partners)
+
+	return &OrderRoutingInteractor{
+		orderCommands:      orderUsecase,
+		orderQueries:       orderUsecase,
+		activityQueries:    activityinteractor.New(orders),
+		routingCommands:    routingUsecase,
+		routingQueries:     routingUsecase,
+		exceptionCommands:  exceptioninteractor.New(orders),
+		fulfillmentCommand: fulfillmentinteractor.New(orders),
+		settlementCommands: settlementinteractor.New(orders),
+	}
+}
+
+func (i *OrderRoutingInteractor) ListCustomerOrders(
+	ctx context.Context,
+	query orderinputport.ListCustomerOrdersQuery,
+) ([]routingentity.RoutedOrder, error) {
+	return i.orderQueries.ListCustomerOrders(ctx, query)
 }
 
 func (i *OrderRoutingInteractor) ListRoutedOrders(
 	ctx context.Context,
 	query routinginputport.ListRoutedOrdersQuery,
 ) ([]routingentity.RoutedOrder, error) {
-	storeID, err := requiredStoreScope(ctx, query.StoreID)
-	if err != nil {
-		return nil, err
-	}
-	return i.orders.ListByStore(ctx, storeID)
+	return i.orderQueries.ListCustomerOrders(ctx, query)
 }
 
 func (i *OrderRoutingInteractor) ListRoutedOrderActivities(
 	ctx context.Context,
 	query routingentity.RoutedOrderActivityFeedQuery,
 ) (*routingentity.RoutedOrderActivityFeedPage, error) {
-	storeID, err := requiredStoreScope(ctx, query.StoreID)
-	if err != nil {
-		return nil, err
-	}
-	query.StoreID = storeID
-	return i.orders.ListActivityFeed(ctx, query)
+	return i.activityQueries.ListRoutedOrderActivities(ctx, query)
 }
 
 func (i *OrderRoutingInteractor) RecommendRoutedOrderPartner(
 	ctx context.Context,
 	query routinginputport.RecommendRoutedOrderPartnerQuery,
 ) (*routingentity.RoutedOrderRecommendation, error) {
-	storeID, err := requiredStoreScope(ctx, query.StoreID)
-	if err != nil {
-		return nil, err
-	}
-	candidateID := strings.TrimSpace(query.CandidateID)
-	if candidateID == "" {
-		return nil, fmt.Errorf("candidate id is required")
-	}
-	candidate, err := i.products.GetCandidateByID(ctx, storeID, candidateID)
-	if err != nil {
-		return nil, err
-	}
-	if candidate == nil {
-		return nil, fmt.Errorf("product candidate not found")
-	}
-	tenantID, err := toolkit.GetTenantID(ctx)
-	if err != nil {
-		return nil, err
-	}
-	partners, err := i.partners.ListActivePartners(ctx, tenantID)
-	if err != nil {
-		return nil, err
-	}
-	return buildRoutingRecommendation(
-		candidate,
-		partners,
-		normalizeRoutingLabel(query.ProductType),
-		normalizeRoutingLabel(query.ShipRegion),
-		strings.TrimSpace(query.PreferredPartner),
-	), nil
+	return i.routingQueries.RecommendRoutedOrderPartner(ctx, query)
+}
+
+func (i *OrderRoutingInteractor) CreateCustomerOrder(
+	ctx context.Context,
+	cmd orderinputport.CreateCustomerOrderCmd,
+) (*routingentity.RoutedOrder, error) {
+	return i.orderCommands.CreateCustomerOrder(ctx, cmd)
 }
 
 func (i *OrderRoutingInteractor) CreateRoutedOrder(
 	ctx context.Context,
 	cmd routinginputport.CreateRoutedOrderCmd,
 ) (*routingentity.RoutedOrder, error) {
-	storeID, err := requiredStoreScope(ctx, cmd.StoreID)
-	if err != nil {
-		return nil, err
-	}
-	candidateID := strings.TrimSpace(cmd.CandidateID)
-	if candidateID == "" {
-		return nil, fmt.Errorf("candidate id is required")
-	}
-	candidate, err := i.products.GetCandidateByID(ctx, storeID, candidateID)
-	if err != nil {
-		return nil, err
-	}
-	if candidate == nil || candidate.Status != catalogentity.ProductSetupCandidateStatusPublishedMock {
-		return nil, fmt.Errorf("published mock product candidate is required")
-	}
-	tenantID, err := toolkit.GetTenantID(ctx)
-	if err != nil {
-		return nil, err
-	}
-	partners, err := i.partners.ListActivePartners(ctx, tenantID)
-	if err != nil {
-		return nil, err
-	}
-	recommendation := buildRoutingRecommendation(
-		candidate,
-		partners,
-		normalizeRoutingLabel(cmd.ProductType),
-		normalizeRoutingLabel(cmd.ShipRegion),
-		strings.TrimSpace(cmd.PreferredPartner),
-	)
-	selectedOption := findSelectedRoutingOption(recommendation)
-
-	qty := cmd.Quantity
-	if qty < 1 {
-		qty = 1
-	}
-	customerName := strings.TrimSpace(cmd.CustomerName)
-	if customerName == "" {
-		customerName = "Sample customer"
-	}
-	now := time.Now().UTC()
-	actor := activityActorFromContext(ctx)
-	status := routingentity.RoutedOrderStatusQueued
-	partner := recommendation.SelectedPartner
-	timelineEntry := routingTimelineEntry(routingentity.RoutedOrderStatusQueued, recommendation.SelectedPartner)
-	routingBlockCode := ""
-	routingBlockReason := ""
-	fulfillmentCost := "TBD"
-	shippingCost := "TBD"
-	estimatedMargin := "TBD"
-	if selectedOption != nil {
-		fulfillmentCost = multiplyMoney(selectedOption.EstimatedFulfillmentCost, qty)
-		shippingCost = selectedOption.EstimatedShippingCost
-		estimatedMargin = calculateMargin(
-			multiplyMoney(candidate.RetailPrice, qty),
-			fulfillmentCost,
-			shippingCost,
-			"$0.00",
-		)
-	}
-	if recommendation.SelectedPartner == "" {
-		status = routingentity.RoutedOrderStatusRoutingBlocked
-		partner = ""
-		timelineEntry = fmt.Sprintf("Routing blocked: %s", recommendation.BlockedReason)
-		routingBlockCode = recommendation.BlockedReasonCode
-		routingBlockReason = recommendation.BlockedReason
-	}
-	order := routingentity.RoutedOrder{
-		ID:                 fmt.Sprintf("ORD-%s", strings.ToUpper(uuid.NewString()[:8])),
-		StoreID:            storeID,
-		CandidateID:        candidate.ID,
-		ProductTitle:       candidate.Title,
-		Partner:            partner,
-		Quantity:           qty,
-		Total:              multiplyMoney(candidate.RetailPrice, qty),
-		CustomerName:       customerName,
-		Status:             status,
-		ShipmentStatus:     routingentity.RoutedOrderShipmentStatusAwaitingLabel,
-		OperatorAssignee:   "unassigned",
-		RoutingBlockCode:   routingBlockCode,
-		RoutingBlockReason: routingBlockReason,
-		BaseCostSnapshot:   multiplyMoney(candidate.BaseCost, qty),
-		FulfillmentCost:    fulfillmentCost,
-		ShippingCost:       shippingCost,
-		IssueCost:          "$0.00",
-		IssueResolution:    routingentity.RoutedOrderIssueResolutionMonitor,
-		SettlementStatus:   routingentity.RoutedOrderSettlementStatusPending,
-		Timeline: []string{
-			fmt.Sprintf("Order created for %s", candidate.Title),
-			timelineEntry,
-		},
-		ActivityLog: []routingentity.RoutedOrderActivity{
-			newActivity(
-				routingentity.RoutedOrderActivityTypeSystem,
-				actor,
-				fmt.Sprintf("Order created for %s", candidate.Title),
-				now,
-				activityDetails(
-					"candidate_id", candidate.ID,
-					"quantity", fmt.Sprintf("%d", qty),
-					"status", status,
-					"product_type", recommendation.ProductType,
-					"ship_region", recommendation.ShipRegion,
-				),
-			),
-			newActivity(
-				routingentity.RoutedOrderActivityTypeSystem,
-				actor,
-				timelineEntry,
-				now,
-				activityDetails(
-					"status", status,
-					"partner", partner,
-					"routing_summary", recommendation.Summary,
-					"candidate_partner", recommendation.CandidatePartner,
-					"estimated_unit_margin", estimatedMargin,
-					"routing_block_code", routingBlockCode,
-					"routing_block_reason", routingBlockReason,
-				),
-			),
-		},
-		CreatedAt: now,
-		UpdatedAt: now,
-	}
-	order.RealizedMargin = calculateMargin(order.Total, order.FulfillmentCost, order.ShippingCost, order.IssueCost)
-	return i.orders.Create(ctx, order)
+	return i.orderCommands.CreateCustomerOrder(ctx, cmd)
 }
 
 func (i *OrderRoutingInteractor) ForceRerouteBlockedOrder(
 	ctx context.Context,
 	cmd routinginputport.ForceRerouteBlockedOrderCmd,
 ) (*routingentity.RoutedOrder, error) {
-	storeID, err := requiredStoreScope(ctx, cmd.StoreID)
-	if err != nil {
-		return nil, err
-	}
-	order, err := i.orders.GetByID(ctx, strings.TrimSpace(cmd.OrderID))
-	if err != nil {
-		return nil, err
-	}
-	if err := ensureOrderStore(order, storeID); err != nil {
-		return nil, err
-	}
-	if order.Status != routingentity.RoutedOrderStatusRoutingBlocked {
-		return nil, fmt.Errorf("routed order is not in routing_blocked status")
-	}
-	preferredPartner := strings.TrimSpace(cmd.PreferredPartner)
-	if preferredPartner == "" {
-		return nil, fmt.Errorf("preferred partner is required")
-	}
-
-	candidate, err := i.products.GetCandidateByID(ctx, storeID, strings.TrimSpace(order.CandidateID))
-	if err != nil {
-		return nil, err
-	}
-	if candidate == nil {
-		return nil, fmt.Errorf("product candidate not found")
-	}
-	tenantID, err := toolkit.GetTenantID(ctx)
-	if err != nil {
-		return nil, err
-	}
-	partners, err := i.partners.ListActivePartners(ctx, tenantID)
-	if err != nil {
-		return nil, err
-	}
-	recommendation := buildRoutingRecommendation(
-		candidate,
-		partners,
-		normalizeRoutingLabel(orderRoutingLabel(order, candidate)),
-		normalizeRoutingLabel(shipRegionFromOrder(order)),
-		preferredPartner,
-	)
-	if recommendation.SelectedPartner == "" {
-		return nil, fmt.Errorf("preferred partner %s is not eligible for reroute", preferredPartner)
-	}
-	selectedOption := findSelectedRoutingOption(recommendation)
-	if selectedOption == nil {
-		return nil, fmt.Errorf("selected routing option not found")
-	}
-
-	now := time.Now().UTC()
-	if err := order.ApplyManualReroute(
-		recommendation.SelectedPartner,
-		selectedOption.EstimatedFulfillmentCost,
-		selectedOption.EstimatedShippingCost,
-		selectedOption.EstimatedUnitMargin,
-		recommendation.Summary,
-		activityActorFromContext(ctx),
-		now,
-	); err != nil {
-		return nil, err
-	}
-	return i.orders.Update(ctx, *order)
+	return i.routingCommands.ForceRerouteBlockedOrder(ctx, cmd)
 }
 
-func orderRoutingLabel(order *routingentity.RoutedOrder, candidate *catalogentity.ProductSetupCandidate) string {
-	for _, activity := range order.ActivityLog {
-		for _, detail := range activity.Details {
-			if detail.Key == "product_type" && strings.TrimSpace(detail.Value) != "" {
-				return detail.Value
-			}
-		}
-	}
-	if candidate != nil {
-		return inferProductType(candidate.Title)
-	}
-	return ""
+func (i *OrderRoutingInteractor) AdvanceCustomerOrder(
+	ctx context.Context,
+	cmd orderinputport.AdvanceCustomerOrderCmd,
+) (*routingentity.RoutedOrder, error) {
+	return i.orderCommands.AdvanceCustomerOrder(ctx, cmd)
 }
 
-func shipRegionFromOrder(order *routingentity.RoutedOrder) string {
-	for _, activity := range order.ActivityLog {
-		for _, detail := range activity.Details {
-			if detail.Key == "ship_region" && strings.TrimSpace(detail.Value) != "" {
-				return detail.Value
-			}
-		}
-	}
-	return ""
+func (i *OrderRoutingInteractor) AdvanceRoutedOrder(
+	ctx context.Context,
+	storeID string,
+	orderID string,
+) (*routingentity.RoutedOrder, error) {
+	return i.orderCommands.AdvanceCustomerOrder(ctx, orderinputport.AdvanceCustomerOrderCmd{
+		StoreID: storeID,
+		OrderID: orderID,
+	})
 }
 
-func inferProductType(title string) string {
-	normalized := strings.ToLower(strings.TrimSpace(title))
-	switch {
-	case strings.Contains(normalized, "hoodie"):
-		return "hoodie"
-	case strings.Contains(normalized, "poster"):
-		return "poster"
-	case strings.Contains(normalized, "tote"):
-		return "tote"
-	case strings.Contains(normalized, "tee"), strings.Contains(normalized, "shirt"):
-		return "tshirt"
-	default:
-		return ""
-	}
+func (i *OrderRoutingInteractor) OpenOrderException(
+	ctx context.Context,
+	cmd routinginputport.OpenOrderExceptionCmd,
+) (*routingentity.RoutedOrder, error) {
+	return i.exceptionCommands.OpenOrderException(ctx, cmd)
 }
 
-func requiredStoreScope(ctx context.Context, explicitStoreID string) (string, error) {
-	storeID := strings.TrimSpace(explicitStoreID)
-	if storeID == "" {
-		storeID = strings.TrimSpace(scope.CurrentStoreID(ctx))
-	}
-	if storeID == "" {
-		return "", fmt.Errorf("store scope is required")
-	}
-	return storeID, nil
+func (i *OrderRoutingInteractor) UpdateOrderExceptionStatus(
+	ctx context.Context,
+	cmd routinginputport.UpdateOrderExceptionStatusCmd,
+) (*routingentity.RoutedOrder, error) {
+	return i.exceptionCommands.UpdateOrderExceptionStatus(ctx, cmd)
 }
 
-func ensureOrderStore(order *routingentity.RoutedOrder, storeID string) error {
-	if order == nil {
-		return fmt.Errorf("routed order not found")
-	}
-	if strings.TrimSpace(order.StoreID) == "" || strings.TrimSpace(order.StoreID) != strings.TrimSpace(storeID) {
-		return fmt.Errorf("routed order not found")
-	}
-	return nil
+func (i *OrderRoutingInteractor) UpdateOrderShipment(
+	ctx context.Context,
+	cmd routinginputport.UpdateOrderShipmentCmd,
+) (*routingentity.RoutedOrder, error) {
+	return i.fulfillmentCommand.UpdateOrderShipment(ctx, cmd)
+}
+
+func (i *OrderRoutingInteractor) UpdateOrderSettlement(
+	ctx context.Context,
+	cmd routinginputport.UpdateOrderSettlementCmd,
+) (*routingentity.RoutedOrder, error) {
+	return i.settlementCommands.UpdateOrderSettlement(ctx, cmd)
+}
+
+func (i *OrderRoutingInteractor) UpdateOrderIssueHandling(
+	ctx context.Context,
+	cmd routinginputport.UpdateOrderIssueHandlingCmd,
+) (*routingentity.RoutedOrder, error) {
+	return i.settlementCommands.UpdateOrderIssueHandling(ctx, cmd)
+}
+
+func (i *OrderRoutingInteractor) UpdateOrderQueueControl(
+	ctx context.Context,
+	cmd routinginputport.UpdateOrderQueueControlCmd,
+) (*routingentity.RoutedOrder, error) {
+	return i.orderCommands.UpdateOrderQueueControl(ctx, cmd)
+}
+
+func (i *OrderRoutingInteractor) BulkUpdateOrders(
+	ctx context.Context,
+	cmd orderinputport.BulkUpdateOrdersCmd,
+) ([]routingentity.RoutedOrder, error) {
+	return i.orderCommands.BulkUpdateOrders(ctx, cmd)
+}
+
+func (i *OrderRoutingInteractor) BulkUpdateRoutedOrders(
+	ctx context.Context,
+	cmd routinginputport.BulkUpdateRoutedOrdersCmd,
+) ([]routingentity.RoutedOrder, error) {
+	return i.orderCommands.BulkUpdateOrders(ctx, cmd)
 }

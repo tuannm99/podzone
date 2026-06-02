@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	sharedentity "github.com/tuannm99/podzone/internal/backoffice/domain/shared/entity"
+	"github.com/tuannm99/podzone/internal/backoffice/domain/shared/valueobject"
 )
 
 const (
@@ -48,32 +51,39 @@ type SettlementRecordSnapshot struct {
 
 type SettlementRecord struct {
 	orderID         string
-	total           string
-	fulfillmentCost string
-	shippingCost    string
-	issueCost       string
+	total           valueobject.Money
+	fulfillmentCost valueobject.Money
+	shippingCost    valueobject.Money
+	issueCost       valueobject.Money
 	issueResolution string
 	issueNotes      string
-	realizedMargin  string
+	realizedMargin  valueobject.Money
 	status          string
 	notes           string
 	exceptionType   string
 	shipmentStatus  string
 }
 
+var _ sharedentity.AggregateRoot = (*SettlementRecord)(nil)
+
 func RehydrateSettlementRecord(snapshot SettlementRecordSnapshot) (*SettlementRecord, error) {
 	if strings.TrimSpace(snapshot.OrderID) == "" {
 		return nil, fmt.Errorf("settlement order id is required")
 	}
+	total := parseMoneyOrZero(snapshot.Total)
+	fulfillmentCost := parseMoneyOrZero(snapshot.FulfillmentCost)
+	shippingCost := parseMoneyOrZero(snapshot.ShippingCost)
+	issueCost := parseMoneyOrZero(snapshot.IssueCost)
+	realizedMargin := parseMoneyOrZero(snapshot.RealizedMargin)
 	return &SettlementRecord{
 		orderID:         snapshot.OrderID,
-		total:           snapshot.Total,
-		fulfillmentCost: snapshot.FulfillmentCost,
-		shippingCost:    snapshot.ShippingCost,
-		issueCost:       snapshot.IssueCost,
+		total:           total,
+		fulfillmentCost: fulfillmentCost,
+		shippingCost:    shippingCost,
+		issueCost:       issueCost,
 		issueResolution: snapshot.IssueResolution,
 		issueNotes:      snapshot.IssueNotes,
-		realizedMargin:  snapshot.RealizedMargin,
+		realizedMargin:  realizedMargin,
 		status:          snapshot.Status,
 		notes:           snapshot.Notes,
 		exceptionType:   snapshot.ExceptionType,
@@ -81,16 +91,20 @@ func RehydrateSettlementRecord(snapshot SettlementRecordSnapshot) (*SettlementRe
 	}, nil
 }
 
+func (r *SettlementRecord) AggregateID() string {
+	return r.orderID
+}
+
 func (r *SettlementRecord) Snapshot() SettlementRecordSnapshot {
 	return SettlementRecordSnapshot{
 		OrderID:         r.orderID,
-		Total:           r.total,
-		FulfillmentCost: r.fulfillmentCost,
-		ShippingCost:    r.shippingCost,
-		IssueCost:       r.issueCost,
+		Total:           r.total.Format(),
+		FulfillmentCost: r.fulfillmentCost.Format(),
+		ShippingCost:    r.shippingCost.Format(),
+		IssueCost:       r.issueCost.Format(),
 		IssueResolution: r.issueResolution,
 		IssueNotes:      r.issueNotes,
-		RealizedMargin:  r.realizedMargin,
+		RealizedMargin:  r.realizedMargin.Format(),
 		Status:          r.status,
 		Notes:           r.notes,
 		ExceptionType:   r.exceptionType,
@@ -105,11 +119,11 @@ func (r *SettlementRecord) UpdateSettlement(
 	notes string,
 	_ time.Time,
 ) (Change, *Change, error) {
-	normalizedFulfillmentCost, err := NormalizeMoney(fulfillmentCost)
+	normalizedFulfillmentCost, err := valueobject.ParseMoney(fulfillmentCost)
 	if err != nil {
 		return Change{}, nil, fmt.Errorf("invalid fulfillment cost")
 	}
-	normalizedShippingCost, err := NormalizeMoney(shippingCost)
+	normalizedShippingCost, err := valueobject.ParseMoney(shippingCost)
 	if err != nil {
 		return Change{}, nil, fmt.Errorf("invalid shipping cost")
 	}
@@ -120,7 +134,7 @@ func (r *SettlementRecord) UpdateSettlement(
 
 	r.fulfillmentCost = normalizedFulfillmentCost
 	r.shippingCost = normalizedShippingCost
-	r.realizedMargin = CalculateMargin(r.total, normalizedFulfillmentCost, normalizedShippingCost, r.issueCost)
+	r.realizedMargin = calculateMargin(r.total, normalizedFulfillmentCost, normalizedShippingCost, r.issueCost)
 	r.status = normalizedStatus
 	r.notes = strings.TrimSpace(notes)
 
@@ -128,9 +142,9 @@ func (r *SettlementRecord) UpdateSettlement(
 		Message: settlementTimelineEntry(r),
 		Details: details(
 			"settlement_status", r.status,
-			"fulfillment_cost", r.fulfillmentCost,
-			"shipping_cost", r.shippingCost,
-			"realized_margin", r.realizedMargin,
+			"fulfillment_cost", r.fulfillmentCost.Format(),
+			"shipping_cost", r.shippingCost.Format(),
+			"realized_margin", r.realizedMargin.Format(),
 		),
 	}
 	var noteChange *Change
@@ -139,7 +153,7 @@ func (r *SettlementRecord) UpdateSettlement(
 			Message: r.notes,
 			Details: details(
 				"settlement_status", r.status,
-				"realized_margin", r.realizedMargin,
+				"realized_margin", r.realizedMargin.Format(),
 			),
 		}
 	}
@@ -156,7 +170,7 @@ func (r *SettlementRecord) UpdateIssueHandling(
 		return Change{}, nil, fmt.Errorf("issue cost handling requires an active exception or delivery issue")
 	}
 
-	normalizedIssueCost, err := NormalizeMoney(issueCost)
+	normalizedIssueCost, err := valueobject.ParseMoney(issueCost)
 	if err != nil {
 		return Change{}, nil, fmt.Errorf("invalid issue cost")
 	}
@@ -168,60 +182,60 @@ func (r *SettlementRecord) UpdateIssueHandling(
 	r.issueCost = normalizedIssueCost
 	r.issueResolution = issueResolution
 	r.issueNotes = strings.TrimSpace(notes)
-	r.realizedMargin = CalculateMargin(r.total, r.fulfillmentCost, r.shippingCost, r.issueCost)
+	r.realizedMargin = calculateMargin(r.total, r.fulfillmentCost, r.shippingCost, r.issueCost)
 
 	systemChange := Change{
 		Message: issueHandlingTimelineEntry(r),
 		Details: details(
 			"issue_resolution", r.issueResolution,
-			"issue_cost", r.issueCost,
-			"realized_margin", r.realizedMargin,
+			"issue_cost", r.issueCost.Format(),
+			"realized_margin", r.realizedMargin.Format(),
 		),
 	}
 	var noteChange *Change
 	if r.issueNotes != "" {
 		noteChange = &Change{
 			Message: r.issueNotes,
-			Details: details("issue_resolution", r.issueResolution, "issue_cost", r.issueCost),
+			Details: details("issue_resolution", r.issueResolution, "issue_cost", r.issueCost.Format()),
 		}
 	}
 	return systemChange, noteChange, nil
 }
 
 func MultiplyMoney(raw string, qty int) string {
-	value, ok := parseMoney(raw)
-	if !ok {
+	value, err := valueobject.ParseMoney(raw)
+	if err != nil {
 		return "TBD"
 	}
-	return formatMoney(value * float64(qty))
+	return value.MulInt(qty).Format()
 }
 
 func CalculateMargin(total, fulfillmentCost, shippingCost, issueCost string) string {
-	totalValue, ok := parseMoney(total)
-	if !ok {
+	totalValue, err := valueobject.ParseMoney(total)
+	if err != nil {
 		return "TBD"
 	}
-	fulfillmentValue, ok := parseMoney(fulfillmentCost)
-	if !ok {
+	fulfillmentValue, err := valueobject.ParseMoney(fulfillmentCost)
+	if err != nil {
 		return "TBD"
 	}
-	shippingValue, ok := parseMoney(shippingCost)
-	if !ok {
+	shippingValue, err := valueobject.ParseMoney(shippingCost)
+	if err != nil {
 		return "TBD"
 	}
-	issueValue, ok := parseMoney(issueCost)
-	if !ok {
+	issueValue, err := valueobject.ParseMoney(issueCost)
+	if err != nil {
 		return "TBD"
 	}
-	return formatMoney(totalValue - fulfillmentValue - shippingValue - issueValue)
+	return calculateMargin(totalValue, fulfillmentValue, shippingValue, issueValue).Format()
 }
 
 func NormalizeMoney(raw string) (string, error) {
-	value, ok := parseMoney(raw)
-	if !ok {
-		return "", fmt.Errorf("invalid money")
+	value, err := valueobject.ParseMoney(raw)
+	if err != nil {
+		return "", err
 	}
-	return formatMoney(value), nil
+	return value.Format(), nil
 }
 
 func normalizeStatus(raw string) string {
@@ -249,13 +263,13 @@ func normalizeIssueResolution(raw string) string {
 func settlementTimelineEntry(record *SettlementRecord) string {
 	switch record.status {
 	case StatusPaid:
-		return fmt.Sprintf("Settlement marked paid with realized margin %s", record.realizedMargin)
+		return fmt.Sprintf("Settlement marked paid with realized margin %s", record.realizedMargin.Format())
 	case StatusDisputed:
 		return "Settlement flagged for manual dispute follow-up"
 	case StatusReconciled:
-		return fmt.Sprintf("Settlement reconciled with realized margin %s", record.realizedMargin)
+		return fmt.Sprintf("Settlement reconciled with realized margin %s", record.realizedMargin.Format())
 	default:
-		return fmt.Sprintf("Settlement remains pending with current margin %s", record.realizedMargin)
+		return fmt.Sprintf("Settlement remains pending with current margin %s", record.realizedMargin.Format())
 	}
 }
 
@@ -263,33 +277,38 @@ func issueHandlingTimelineEntry(record *SettlementRecord) string {
 	return fmt.Sprintf(
 		"Issue handling updated: %s with impact %s",
 		strings.ReplaceAll(record.issueResolution, "_", " "),
-		record.issueCost,
+		record.issueCost.Format(),
 	)
 }
 
-func parseMoney(raw string) (float64, bool) {
-	negative := strings.Contains(raw, "-")
-	cleaned := strings.Map(func(r rune) rune {
-		if (r >= '0' && r <= '9') || r == '.' {
-			return r
-		}
-		return -1
-	}, raw)
-	if cleaned == "" {
-		return 0, false
+func calculateMargin(
+	total valueobject.Money,
+	fulfillmentCost valueobject.Money,
+	shippingCost valueobject.Money,
+	issueCost valueobject.Money,
+) valueobject.Money {
+	margin, err := total.Sub(fulfillmentCost)
+	if err != nil {
+		return parseMoneyOrZero("")
 	}
-	var value float64
-	if _, err := fmt.Sscanf(cleaned, "%f", &value); err != nil {
-		return 0, false
+	margin, err = margin.Sub(shippingCost)
+	if err != nil {
+		return parseMoneyOrZero("")
 	}
-	if negative {
-		value = -value
+	margin, err = margin.Sub(issueCost)
+	if err != nil {
+		return parseMoneyOrZero("")
 	}
-	return value, true
+	return margin
 }
 
-func formatMoney(value float64) string {
-	return fmt.Sprintf("$%.2f", value)
+func parseMoneyOrZero(raw string) valueobject.Money {
+	value, err := valueobject.ParseMoney(raw)
+	if err == nil {
+		return value
+	}
+	zero, _ := valueobject.NewMoney("USD", 0)
+	return zero
 }
 
 func details(pairs ...string) []ActivityDetail {

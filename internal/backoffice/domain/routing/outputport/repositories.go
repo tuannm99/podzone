@@ -7,15 +7,8 @@ import (
 )
 
 type OrderRoutingRepository interface {
-	List(ctx context.Context) ([]routingentity.RoutedOrder, error)
-	ListByStore(ctx context.Context, storeID string) ([]routingentity.RoutedOrder, error)
-	ListActivityFeed(
-		ctx context.Context,
-		query routingentity.RoutedOrderActivityFeedQuery,
-	) (*routingentity.RoutedOrderActivityFeedPage, error)
-	GetByID(ctx context.Context, id string) (*routingentity.RoutedOrder, error)
-	Create(ctx context.Context, order routingentity.RoutedOrder) (*routingentity.RoutedOrder, error)
-	Update(ctx context.Context, order routingentity.RoutedOrder) (*routingentity.RoutedOrder, error)
+	RoutedOrderCommandRepository
+	RoutedOrderReadModelRepository
 }
 
 type PartnerDirectory interface {

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	sharedentity "github.com/tuannm99/podzone/internal/backoffice/domain/shared/entity"
 )
 
 const (
@@ -34,11 +36,17 @@ type OrderException struct {
 	status  string
 }
 
+var _ sharedentity.AggregateRoot = (*OrderException)(nil)
+
 func RehydrateOrderException(snapshot OrderExceptionSnapshot) (*OrderException, error) {
 	if strings.TrimSpace(snapshot.OrderID) == "" {
 		return nil, fmt.Errorf("order id is required")
 	}
 	return &OrderException{orderID: snapshot.OrderID, typ: snapshot.Type, status: snapshot.Status}, nil
+}
+
+func (e *OrderException) AggregateID() string {
+	return e.orderID
 }
 
 func (e *OrderException) Snapshot() OrderExceptionSnapshot {

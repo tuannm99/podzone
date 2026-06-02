@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	sharedentity "github.com/tuannm99/podzone/internal/backoffice/domain/shared/entity"
 )
 
 const (
@@ -56,6 +58,8 @@ type CustomerOrder struct {
 	updatedAt          time.Time
 }
 
+var _ sharedentity.AggregateRoot = (*CustomerOrder)(nil)
+
 func RehydrateCustomerOrder(snapshot CustomerOrderSnapshot) (*CustomerOrder, error) {
 	if strings.TrimSpace(snapshot.ID) == "" {
 		return nil, fmt.Errorf("customer order id is required")
@@ -77,6 +81,10 @@ func RehydrateCustomerOrder(snapshot CustomerOrderSnapshot) (*CustomerOrder, err
 		settlementStatus:   snapshot.SettlementStatus,
 		updatedAt:          snapshot.UpdatedAt,
 	}, nil
+}
+
+func (o *CustomerOrder) AggregateID() string {
+	return o.id
 }
 
 func (o *CustomerOrder) Snapshot() CustomerOrderSnapshot {
