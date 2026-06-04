@@ -75,42 +75,32 @@ packages:
       TenantAuthorizer:
       TenantBootstrapper:
 
-  github.com/tuannm99/podzone/internal/backoffice/domain/store/inputport:
+  github.com/tuannm99/podzone/internal/backoffice/domain/store:
     config:
-      dir: internal/backoffice/domain/store/inputport/mocks
+      dir: internal/backoffice/domain/store/mocks
     interfaces:
       StoreUsecase:
-
-  github.com/tuannm99/podzone/internal/backoffice/domain/catalog/inputport:
-    config:
-      dir: internal/backoffice/domain/catalog/inputport/mocks
-    interfaces:
-      ProductSetupUsecase:
-
-  github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport:
-    config:
-      dir: internal/backoffice/domain/routing/inputport/mocks
-    interfaces:
-      OrderRoutingUsecase:
-
-  github.com/tuannm99/podzone/internal/backoffice/domain/store/outputport:
-    config:
-      dir: internal/backoffice/domain/store/outputport/mocks
-    interfaces:
       StoreRepository:
 
-  github.com/tuannm99/podzone/internal/backoffice/domain/catalog/outputport:
+  github.com/tuannm99/podzone/internal/backoffice/domain/catalog:
     config:
-      dir: internal/backoffice/domain/catalog/outputport/mocks
+      dir: internal/backoffice/domain/catalog/mocks
     interfaces:
+      ProductSetupUsecase:
       ProductSetupRepository:
 
-  github.com/tuannm99/podzone/internal/backoffice/domain/routing/outputport:
+  github.com/tuannm99/podzone/internal/backoffice/domain/routing:
     config:
-      dir: internal/backoffice/domain/routing/outputport/mocks
+      dir: internal/backoffice/domain/routing/mocks
     interfaces:
       OrderRoutingRepository:
       PartnerDirectory:
+
+  github.com/tuannm99/podzone/internal/backoffice/application/operations:
+    config:
+      dir: internal/backoffice/application/operations/mocks
+    interfaces:
+      OrderRoutingUsecase:
 
   github.com/tuannm99/podzone/internal/iam/domain/outputport:
     config:

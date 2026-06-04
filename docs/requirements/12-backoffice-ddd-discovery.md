@@ -259,6 +259,32 @@ Recommended order:
 5. `SettlementRecord`
 6. `Activity` projection
 
+## Current Migration Status
+
+The first in-process DDD slice is implemented for the current Backoffice codebase.
+
+Implemented aggregate and domain-event coverage:
+
+| Context            | Aggregate / concept        | Current status                                                                 |
+| ------------------ | -------------------------- | ------------------------------------------------------------------------------ |
+| Store Workspace    | `Store`                    | Validated creation, activate/deactivate behavior, in-process domain events      |
+| Catalog Setup      | `ProductSetupDraft`        | Validated draft creation and candidate promotion events                         |
+| Order Operations   | `CustomerOrder`            | Create, advance, queue-control, manual reroute behavior and domain events       |
+| Routing            | `RoutingDecision`          | Recommendation decision, selected-partner event, routing-blocked event          |
+| Fulfillment        | `FulfillmentOrder`         | Shipment transition invariants and shipment status domain events                |
+| Exception Handling | `OrderException`           | Open/status lifecycle invariants and exception domain events                    |
+| Settlement         | `SettlementRecord`         | Money-based settlement/issue handling behavior and domain events                |
+
+The current `RoutedOrder` GraphQL type and repository remain a composed read model during this migration slice.
+Backoffice application workflows map aggregate snapshots into that read model to keep the API and existing tables stable.
+
+Not done in this slice:
+
+- durable domain-event publisher/outbox for Backoffice
+- activity feed rebuilt from domain-event projection
+- separate command persistence tables per aggregate
+- separate merchant/platform settlement query views
+
 ## Open Questions To Confirm
 
 | Question                                               | Recommended temporary answer                     |

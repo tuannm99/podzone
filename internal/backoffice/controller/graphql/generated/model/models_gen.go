@@ -41,8 +41,7 @@ type ForceRerouteBlockedOrderInput struct {
 	PreferredPartner string `json:"preferredPartner"`
 }
 
-type Mutation struct {
-}
+type Mutation struct{}
 
 type OpenOrderExceptionInput struct {
 	OrderID       string `json:"orderId"`
@@ -133,8 +132,7 @@ type PromoteProductSetupCandidateInput struct {
 	MerchandisingNotes string                             `json:"merchandisingNotes"`
 }
 
-type Query struct {
-}
+type Query struct{}
 
 type RoutedOrder struct {
 	ID                     string                 `json:"id"`

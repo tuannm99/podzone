@@ -4,11 +4,14 @@ import (
 	"context"
 
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/generated/model"
-	cataloginputport "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/inputport"
+	cataloginputport "github.com/tuannm99/podzone/internal/backoffice/domain/catalog"
 )
 
 // CreateProductSetupDraft is the resolver for the createProductSetupDraft field.
-func (r *mutationResolver) CreateProductSetupDraft(ctx context.Context, input model.CreateProductSetupDraftInput) (*model.ProductSetupDraft, error) {
+func (r *mutationResolver) CreateProductSetupDraft(
+	ctx context.Context,
+	input model.CreateProductSetupDraftInput,
+) (*model.ProductSetupDraft, error) {
 	storeID, err := requiredStoreID(ctx)
 	if err != nil {
 		return nil, err
@@ -30,7 +33,10 @@ func (r *mutationResolver) CreateProductSetupDraft(ctx context.Context, input mo
 }
 
 // PromoteProductSetupCandidate is the resolver for the promoteProductSetupCandidate field.
-func (r *mutationResolver) PromoteProductSetupCandidate(ctx context.Context, input model.PromoteProductSetupCandidateInput) (*model.ProductSetupCandidate, error) {
+func (r *mutationResolver) PromoteProductSetupCandidate(
+	ctx context.Context,
+	input model.PromoteProductSetupCandidateInput,
+) (*model.ProductSetupCandidate, error) {
 	storeID, err := requiredStoreID(ctx)
 	if err != nil {
 		return nil, err
@@ -52,7 +58,11 @@ func (r *mutationResolver) PromoteProductSetupCandidate(ctx context.Context, inp
 }
 
 // UpdateProductSetupCandidateStatus is the resolver for the updateProductSetupCandidateStatus field.
-func (r *mutationResolver) UpdateProductSetupCandidateStatus(ctx context.Context, id string, status string) (*model.ProductSetupCandidate, error) {
+func (r *mutationResolver) UpdateProductSetupCandidateStatus(
+	ctx context.Context,
+	id string,
+	status string,
+) (*model.ProductSetupCandidate, error) {
 	storeID, err := requiredStoreID(ctx)
 	if err != nil {
 		return nil, err

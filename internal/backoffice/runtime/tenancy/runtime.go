@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	storeentity "github.com/tuannm99/podzone/internal/backoffice/domain/store/entity"
+	storectx "github.com/tuannm99/podzone/internal/backoffice/domain/store"
 	"github.com/tuannm99/podzone/internal/backoffice/runtime/storeaccess"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 )
@@ -21,7 +21,7 @@ type Runtime interface {
 type RequestScope struct {
 	TenantID  string
 	Placement *pdtenantdb.Placement
-	Store     *storeentity.Store
+	Store     *storectx.Store
 }
 
 type Service struct {

@@ -9,8 +9,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 
-	storeentity "github.com/tuannm99/podzone/internal/backoffice/domain/store/entity"
-	storeoutputport "github.com/tuannm99/podzone/internal/backoffice/domain/store/outputport"
+	storectx "github.com/tuannm99/podzone/internal/backoffice/domain/store"
 	"github.com/tuannm99/podzone/internal/backoffice/migrations"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 	"github.com/tuannm99/podzone/pkg/toolkit"
@@ -34,13 +33,13 @@ type Repository struct {
 	mgr pdtenantdb.Manager
 }
 
-var _ storeoutputport.StoreRepository = (*Repository)(nil)
+var _ storectx.StoreRepository = (*Repository)(nil)
 
-func New(mgr pdtenantdb.Manager) storeoutputport.StoreRepository {
+func New(mgr pdtenantdb.Manager) storectx.StoreRepository {
 	return &Repository{mgr: mgr}
 }
 
-func (r *Repository) FindAll(ctx context.Context) ([]storeentity.Store, error) {
+func (r *Repository) FindAll(ctx context.Context) ([]storectx.Store, error) {
 	ownerID, err := toolkit.GetUserID(ctx)
 	if err != nil {
 		return nil, err
@@ -66,14 +65,14 @@ func (r *Repository) FindAll(ctx context.Context) ([]storeentity.Store, error) {
 		return nil, err
 	}
 
-	res := make([]storeentity.Store, 0, len(stores))
+	res := make([]storectx.Store, 0, len(stores))
 	for _, s := range stores {
 		res = append(res, toEntity(s))
 	}
 	return res, nil
 }
 
-func (r *Repository) FindByID(ctx context.Context, id string) (*storeentity.Store, error) {
+func (r *Repository) FindByID(ctx context.Context, id string) (*storectx.Store, error) {
 	ownerID, err := toolkit.GetUserID(ctx)
 	if err != nil {
 		return nil, err
@@ -108,7 +107,7 @@ func (r *Repository) FindByID(ctx context.Context, id string) (*storeentity.Stor
 	return &out, nil
 }
 
-func (r *Repository) Create(ctx context.Context, store storeentity.Store) error {
+func (r *Repository) Create(ctx context.Context, store storectx.Store) error {
 	query, args, err := psql.
 		Insert(storesTable).
 		Columns("id", "name", "description", "owner_id", "status", "created_at", "updated_at").
@@ -171,12 +170,12 @@ func ensureStoreTables(ctx context.Context, tx *sqlx.Tx) error {
 	return migrations.ApplyTx(ctx, tx)
 }
 
-func toEntity(s storeRow) storeentity.Store {
-	return storeentity.Store{
+func toEntity(s storeRow) storectx.Store {
+	return storectx.Store{
 		ID:          s.ID,
 		Name:        s.Name,
 		OwnerID:     s.OwnerID,
-		IsActive:    s.Status == storeentity.StoreStatusActive,
+		IsActive:    s.Status == storectx.StoreStatusActive,
 		Description: s.Description,
 		Status:      s.Status,
 		CreatedAt:   s.CreatedAt,

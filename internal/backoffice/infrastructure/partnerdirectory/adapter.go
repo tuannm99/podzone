@@ -5,8 +5,7 @@ import (
 	"fmt"
 
 	boconfig "github.com/tuannm99/podzone/internal/backoffice/config"
-	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
-	routingoutputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/outputport"
+	routingctx "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
 	pbpartnerv1 "github.com/tuannm99/podzone/pkg/api/proto/partner/v1"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
@@ -14,7 +13,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-var _ routingoutputport.PartnerDirectory = (*Adapter)(nil)
+var _ routingctx.PartnerDirectory = (*Adapter)(nil)
 
 type Adapter struct {
 	client pbpartnerv1.PartnerServiceClient
@@ -30,7 +29,7 @@ type params struct {
 
 func New(
 	p params,
-) (routingoutputport.PartnerDirectory, error) {
+) (routingctx.PartnerDirectory, error) {
 	addr := p.Config.Partner.GRPCHost + ":" + p.Config.Partner.GRPCPort
 	conn, err := grpc.NewClient(
 		addr,
@@ -53,7 +52,7 @@ func New(
 func (d *Adapter) ListActivePartners(
 	ctx context.Context,
 	tenantID string,
-) ([]routingentity.PartnerRoutingProfile, error) {
+) ([]routingctx.PartnerRoutingProfile, error) {
 	resp, err := d.client.ListPartners(ctx, &pbpartnerv1.ListPartnersRequest{
 		TenantId: tenantID,
 		Status:   "active",
@@ -62,9 +61,9 @@ func (d *Adapter) ListActivePartners(
 		return nil, err
 	}
 	items := resp.GetPartners()
-	out := make([]routingentity.PartnerRoutingProfile, 0, len(items))
+	out := make([]routingctx.PartnerRoutingProfile, 0, len(items))
 	for _, item := range items {
-		out = append(out, routingentity.PartnerRoutingProfile{
+		out = append(out, routingctx.PartnerRoutingProfile{
 			ID:                    item.GetId(),
 			Code:                  item.GetCode(),
 			Name:                  item.GetName(),
@@ -81,13 +80,13 @@ func (d *Adapter) ListActivePartners(
 	return out, nil
 }
 
-func toPartnerShippingCostRules(items []*pbpartnerv1.ShippingCostRule) []routingentity.PartnerShippingCostRule {
-	out := make([]routingentity.PartnerShippingCostRule, 0, len(items))
+func toPartnerShippingCostRules(items []*pbpartnerv1.ShippingCostRule) []routingctx.PartnerShippingCostRule {
+	out := make([]routingctx.PartnerShippingCostRule, 0, len(items))
 	for _, item := range items {
 		if item == nil {
 			continue
 		}
-		out = append(out, routingentity.PartnerShippingCostRule{
+		out = append(out, routingctx.PartnerShippingCostRule{
 			Region: item.GetRegion(),
 			Cost:   item.GetCost(),
 		})

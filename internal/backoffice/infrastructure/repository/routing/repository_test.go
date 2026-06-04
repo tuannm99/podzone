@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
+	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 	pdtenantdbmocks "github.com/tuannm99/podzone/pkg/pdtenantdb/mocks"
 	"github.com/tuannm99/podzone/pkg/testkit"

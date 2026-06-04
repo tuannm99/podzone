@@ -19,15 +19,15 @@ import (
 	authconfig "github.com/tuannm99/podzone/internal/auth/config"
 	authdomain "github.com/tuannm99/podzone/internal/auth/domain"
 	authentity "github.com/tuannm99/podzone/internal/auth/domain/entity"
+	backofficeoperations "github.com/tuannm99/podzone/internal/backoffice/application/operations"
+	operationsmocks "github.com/tuannm99/podzone/internal/backoffice/application/operations/mocks"
 	boconfig "github.com/tuannm99/podzone/internal/backoffice/config"
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/generated"
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/resolver"
-	cataloginputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/inputport/mocks"
-	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
-	routinginputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport"
-	routinginputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/routing/inputport/mocks"
-	storeentity "github.com/tuannm99/podzone/internal/backoffice/domain/store/entity"
-	storeoutputportmocks "github.com/tuannm99/podzone/internal/backoffice/domain/store/outputport/mocks"
+	cataloginputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/mocks"
+	routingctx "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
+	storectx "github.com/tuannm99/podzone/internal/backoffice/domain/store"
+	storemocks "github.com/tuannm99/podzone/internal/backoffice/domain/store/mocks"
 	backofficemocks "github.com/tuannm99/podzone/internal/backoffice/mocks"
 	"github.com/tuannm99/podzone/internal/backoffice/runtime/scope"
 	"github.com/tuannm99/podzone/internal/backoffice/runtime/storeaccess"
@@ -50,8 +50,8 @@ func TestTenantMiddlewareGraphQLInjectsIdentityAndChecksPermission(t *testing.T)
 
 	authz := backofficemocks.NewMockTenantAuthorizer(t)
 	bootstrapper := backofficemocks.NewMockTenantBootstrapper(t)
-	orderUC := routinginputmocks.NewMockOrderRoutingUsecase(t)
-	storeRepo := storeoutputportmocks.NewMockStoreRepository(t)
+	orderUC := operationsmocks.NewMockOrderRoutingUsecase(t)
+	storeRepo := storemocks.NewMockStoreRepository(t)
 	const storeID = "store-ops"
 	authz.EXPECT().AuthorizeTenant(mock.Anything, "session-1", "12", "tenant-ops").Return(nil).Once()
 	authz.EXPECT().
@@ -61,11 +61,14 @@ func TestTenantMiddlewareGraphQLInjectsIdentityAndChecksPermission(t *testing.T)
 	bootstrapper.EXPECT().EnsureReady(mock.Anything, "tenant-ops").Return(nil).Once()
 	storeRepo.EXPECT().
 		FindByID(mock.Anything, storeID).
-		Return(&storeentity.Store{ID: storeID, Name: "Ops Store"}, nil).
+		Return(&storectx.Store{ID: storeID, Name: "Ops Store"}, nil).
 		Once()
 	orderUC.EXPECT().
 		ListRoutedOrders(mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, query routinginputport.ListRoutedOrdersQuery) ([]routingentity.RoutedOrder, error) {
+		RunAndReturn(func(
+			ctx context.Context,
+			query backofficeoperations.ListRoutedOrdersQuery,
+		) ([]routingctx.RoutedOrder, error) {
 			tenantID, err := toolkit.GetTenantID(ctx)
 			require.NoError(t, err)
 			userID, err := toolkit.GetUserID(ctx)
@@ -73,7 +76,7 @@ func TestTenantMiddlewareGraphQLInjectsIdentityAndChecksPermission(t *testing.T)
 			require.Equal(t, "tenant-ops", tenantID)
 			require.Equal(t, "12", userID)
 			require.Equal(t, storeID, query.StoreID)
-			return []routingentity.RoutedOrder{
+			return []routingctx.RoutedOrder{
 				{
 					ID:               "ord-1",
 					CandidateID:      "cand-1",
@@ -82,16 +85,16 @@ func TestTenantMiddlewareGraphQLInjectsIdentityAndChecksPermission(t *testing.T)
 					Quantity:         1,
 					Total:            "$20.00",
 					CustomerName:     "Alex",
-					Status:           routingentity.RoutedOrderStatusQueued,
-					ShipmentStatus:   routingentity.RoutedOrderShipmentStatusAwaitingLabel,
+					Status:           routingctx.RoutedOrderStatusQueued,
+					ShipmentStatus:   routingctx.RoutedOrderShipmentStatusAwaitingLabel,
 					OperatorAssignee: "unassigned",
 					BaseCostSnapshot: "$8.00",
 					FulfillmentCost:  "$8.00",
 					ShippingCost:     "$0.00",
 					IssueCost:        "$0.00",
-					IssueResolution:  routingentity.RoutedOrderIssueResolutionMonitor,
+					IssueResolution:  routingctx.RoutedOrderIssueResolutionMonitor,
 					RealizedMargin:   "$12.00",
-					SettlementStatus: routingentity.RoutedOrderSettlementStatusPending,
+					SettlementStatus: routingctx.RoutedOrderSettlementStatusPending,
 				},
 			}, nil
 		}).
@@ -128,8 +131,8 @@ func TestTenantMiddlewareGraphQLInjectsStoreScope(t *testing.T) {
 
 	authz := backofficemocks.NewMockTenantAuthorizer(t)
 	bootstrapper := backofficemocks.NewMockTenantBootstrapper(t)
-	orderUC := routinginputmocks.NewMockOrderRoutingUsecase(t)
-	storeRepo := storeoutputportmocks.NewMockStoreRepository(t)
+	orderUC := operationsmocks.NewMockOrderRoutingUsecase(t)
+	storeRepo := storemocks.NewMockStoreRepository(t)
 	const storeID = "store-ops"
 
 	authz.EXPECT().AuthorizeTenant(mock.Anything, "session-1", "12", "tenant-ops").Return(nil).Once()
@@ -140,15 +143,18 @@ func TestTenantMiddlewareGraphQLInjectsStoreScope(t *testing.T) {
 	bootstrapper.EXPECT().EnsureReady(mock.Anything, "tenant-ops").Return(nil).Once()
 	storeRepo.EXPECT().
 		FindByID(mock.Anything, storeID).
-		Return(&storeentity.Store{ID: storeID, Name: "Ops Store"}, nil).
+		Return(&storectx.Store{ID: storeID, Name: "Ops Store"}, nil).
 		Once()
 	orderUC.EXPECT().
 		ListRoutedOrders(mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, query routinginputport.ListRoutedOrdersQuery) ([]routingentity.RoutedOrder, error) {
+		RunAndReturn(func(
+			ctx context.Context,
+			query backofficeoperations.ListRoutedOrdersQuery,
+		) ([]routingctx.RoutedOrder, error) {
 			currentStoreID := scope.CurrentStoreID(ctx)
 			require.Equal(t, storeID, currentStoreID)
 			require.Equal(t, storeID, query.StoreID)
-			return []routingentity.RoutedOrder{
+			return []routingctx.RoutedOrder{
 				{ID: "ord-1", CandidateID: "cand-1", ProductTitle: "Vintage Tee"},
 			}, nil
 		}).
@@ -174,7 +180,7 @@ func TestTenantMiddlewareGraphQLInjectsStoreScope(t *testing.T) {
 func TestTenantMiddlewareGraphQLRejectsMissingAuthorization(t *testing.T) {
 	srv := newBackofficeGraphQLTestServer(t, backofficemocks.NewMockTenantAuthorizer(t), &resolver.Resolver{
 		ProductSetupUsecase: cataloginputmocks.NewMockProductSetupUsecase(t),
-		OrderRoutingUsecase: routinginputmocks.NewMockOrderRoutingUsecase(t),
+		OrderRoutingUsecase: operationsmocks.NewMockOrderRoutingUsecase(t),
 	}, backofficemocks.NewMockTenantBootstrapper(t), nil)
 
 	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "", nil)
@@ -208,7 +214,7 @@ func TestTenantMiddlewareGraphQLRejectsPermissionDenied(t *testing.T) {
 	bootstrapper.EXPECT().EnsureReady(mock.Anything, "tenant-ops").Return(nil).Once()
 	srv := newBackofficeGraphQLTestServer(t, authz, &resolver.Resolver{
 		ProductSetupUsecase: cataloginputmocks.NewMockProductSetupUsecase(t),
-		OrderRoutingUsecase: routinginputmocks.NewMockOrderRoutingUsecase(t),
+		OrderRoutingUsecase: operationsmocks.NewMockOrderRoutingUsecase(t),
 	}, bootstrapper, nil)
 
 	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "Bearer "+token, nil)
@@ -234,14 +240,14 @@ func TestTenantMiddlewareGraphQLRejectsUnknownStore(t *testing.T) {
 
 	authz := backofficemocks.NewMockTenantAuthorizer(t)
 	bootstrapper := backofficemocks.NewMockTenantBootstrapper(t)
-	storeRepo := storeoutputportmocks.NewMockStoreRepository(t)
+	storeRepo := storemocks.NewMockStoreRepository(t)
 	storeRepo.EXPECT().FindByID(mock.Anything, "missing-store").Return(nil, nil).Once()
 	authz.EXPECT().AuthorizeTenant(mock.Anything, "session-3", "42", "tenant-ops").Return(nil).Once()
 	bootstrapper.EXPECT().EnsureReady(mock.Anything, "tenant-ops").Return(nil).Once()
 
 	srv := newBackofficeGraphQLTestServer(t, authz, &resolver.Resolver{
 		ProductSetupUsecase: cataloginputmocks.NewMockProductSetupUsecase(t),
-		OrderRoutingUsecase: routinginputmocks.NewMockOrderRoutingUsecase(t),
+		OrderRoutingUsecase: operationsmocks.NewMockOrderRoutingUsecase(t),
 	}, bootstrapper, storeaccess.New(storeRepo))
 
 	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "Bearer "+token, map[string]string{
@@ -273,7 +279,7 @@ func TestTenantMiddlewareGraphQLRejectsBootstrapFailure(t *testing.T) {
 	bootstrapper.EXPECT().EnsureReady(mock.Anything, "tenant-ops").Return(errors.New("tenant bootstrap failed")).Once()
 	srv := newBackofficeGraphQLTestServer(t, authz, &resolver.Resolver{
 		ProductSetupUsecase: cataloginputmocks.NewMockProductSetupUsecase(t),
-		OrderRoutingUsecase: routinginputmocks.NewMockOrderRoutingUsecase(t),
+		OrderRoutingUsecase: operationsmocks.NewMockOrderRoutingUsecase(t),
 	}, bootstrapper, nil)
 
 	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "Bearer "+token, nil)

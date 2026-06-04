@@ -14,8 +14,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 
-	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing/entity"
-	routingoutputport "github.com/tuannm99/podzone/internal/backoffice/domain/routing/outputport"
+	routingctx "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
 	"github.com/tuannm99/podzone/internal/backoffice/migrations"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 	"github.com/tuannm99/podzone/pkg/toolkit"
@@ -27,13 +26,13 @@ type OrderRoutingRepositoryImpl struct {
 	mgr pdtenantdb.Manager
 }
 
-var _ routingoutputport.OrderRoutingRepository = (*OrderRoutingRepositoryImpl)(nil)
+var _ routingctx.OrderRoutingRepository = (*OrderRoutingRepositoryImpl)(nil)
 
-func New(mgr pdtenantdb.Manager) routingoutputport.OrderRoutingRepository {
+func New(mgr pdtenantdb.Manager) routingctx.OrderRoutingRepository {
 	return &OrderRoutingRepositoryImpl{mgr: mgr}
 }
 
-func NewOrderRoutingRepository(mgr pdtenantdb.Manager) routingoutputport.OrderRoutingRepository {
+func NewOrderRoutingRepository(mgr pdtenantdb.Manager) routingctx.OrderRoutingRepository {
 	return New(mgr)
 }
 
@@ -89,18 +88,18 @@ type routedOrderActivityRow struct {
 	CreatedAt        time.Time `db:"created_at"`
 }
 
-func (r *OrderRoutingRepositoryImpl) List(ctx context.Context) ([]routingentity.RoutedOrder, error) {
+func (r *OrderRoutingRepositoryImpl) List(ctx context.Context) ([]routingctx.RoutedOrder, error) {
 	return r.list(ctx, "")
 }
 
 func (r *OrderRoutingRepositoryImpl) ListByStore(
 	ctx context.Context,
 	storeID string,
-) ([]routingentity.RoutedOrder, error) {
+) ([]routingctx.RoutedOrder, error) {
 	return r.list(ctx, strings.TrimSpace(storeID))
 }
 
-func (r *OrderRoutingRepositoryImpl) list(ctx context.Context, storeID string) ([]routingentity.RoutedOrder, error) {
+func (r *OrderRoutingRepositoryImpl) list(ctx context.Context, storeID string) ([]routingctx.RoutedOrder, error) {
 	builder := psql.
 		Select(
 			"id",
@@ -153,7 +152,7 @@ func (r *OrderRoutingRepositoryImpl) list(ctx context.Context, storeID string) (
 	}
 
 	var rows []routedOrderRow
-	var activitiesByOrderID map[string][]routingentity.RoutedOrderActivity
+	var activitiesByOrderID map[string][]routingctx.RoutedOrderActivity
 	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
 		if err := ensureRoutedOrderTables(ctx, tx); err != nil {
 			return err
@@ -168,7 +167,7 @@ func (r *OrderRoutingRepositoryImpl) list(ctx context.Context, storeID string) (
 		return nil, err
 	}
 
-	out := make([]routingentity.RoutedOrder, 0, len(rows))
+	out := make([]routingctx.RoutedOrder, 0, len(rows))
 	for _, row := range rows {
 		order, err := mapRoutedOrderRow(row, activitiesByOrderID[row.ID])
 		if err != nil {
@@ -179,7 +178,7 @@ func (r *OrderRoutingRepositoryImpl) list(ctx context.Context, storeID string) (
 	return out, nil
 }
 
-func (r *OrderRoutingRepositoryImpl) GetByID(ctx context.Context, id string) (*routingentity.RoutedOrder, error) {
+func (r *OrderRoutingRepositoryImpl) GetByID(ctx context.Context, id string) (*routingctx.RoutedOrder, error) {
 	query, args, err := psql.
 		Select(
 			"id",
@@ -226,7 +225,7 @@ func (r *OrderRoutingRepositoryImpl) GetByID(ctx context.Context, id string) (*r
 	}
 
 	var row routedOrderRow
-	var activitiesByOrderID map[string][]routingentity.RoutedOrderActivity
+	var activitiesByOrderID map[string][]routingctx.RoutedOrderActivity
 	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
 		if err := ensureRoutedOrderTables(ctx, tx); err != nil {
 			return err
@@ -256,8 +255,8 @@ func (r *OrderRoutingRepositoryImpl) GetByID(ctx context.Context, id string) (*r
 
 func (r *OrderRoutingRepositoryImpl) ListActivityFeed(
 	ctx context.Context,
-	query routingentity.RoutedOrderActivityFeedQuery,
-) (*routingentity.RoutedOrderActivityFeedPage, error) {
+	query routingctx.RoutedOrderActivityFeedQuery,
+) (*routingctx.RoutedOrderActivityFeedPage, error) {
 	limit := query.Limit
 	if limit <= 0 {
 		limit = 50
@@ -281,12 +280,12 @@ func (r *OrderRoutingRepositoryImpl) ListActivityFeed(
 	countBuilder := psql.Select("COUNT(*)").From("routed_order_activities")
 	applyFilters := func(b sq.SelectBuilder) sq.SelectBuilder {
 		if query.ActivityType == "notes" {
-			b = b.Where(sq.NotEq{"activity_type": routingentity.RoutedOrderActivityTypeSystem})
+			b = b.Where(sq.NotEq{"activity_type": routingctx.RoutedOrderActivityTypeSystem})
 		} else if query.ActivityType != "" && query.ActivityType != "all" {
 			b = b.Where(sq.Eq{"activity_type": query.ActivityType})
 		}
 		if !query.IncludeSystem && query.ActivityType != "system" && query.ActivityType != "notes" {
-			b = b.Where(sq.NotEq{"activity_type": routingentity.RoutedOrderActivityTypeSystem})
+			b = b.Where(sq.NotEq{"activity_type": routingctx.RoutedOrderActivityTypeSystem})
 		}
 		if query.Since != nil {
 			b = b.Where(sq.GtOrEq{"created_at": query.Since.UTC()})
@@ -347,7 +346,7 @@ func (r *OrderRoutingRepositoryImpl) ListActivityFeed(
 		return nil, err
 	}
 
-	entries := make([]routingentity.RoutedOrderActivityFeedEntry, 0, len(rows))
+	entries := make([]routingctx.RoutedOrderActivityFeedEntry, 0, len(rows))
 	for _, row := range rows {
 		entry, err := mapRoutedOrderActivityRow(row)
 		if err != nil {
@@ -361,7 +360,7 @@ func (r *OrderRoutingRepositoryImpl) ListActivityFeed(
 		value := encodeActivityCursor(rows[len(rows)-1].ID, rows[len(rows)-1].CreatedAt)
 		nextCursor = &value
 	}
-	return &routingentity.RoutedOrderActivityFeedPage{
+	return &routingctx.RoutedOrderActivityFeedPage{
 		Entries:    entries,
 		Total:      total,
 		NextCursor: nextCursor,
@@ -370,8 +369,8 @@ func (r *OrderRoutingRepositoryImpl) ListActivityFeed(
 
 func (r *OrderRoutingRepositoryImpl) Create(
 	ctx context.Context,
-	order routingentity.RoutedOrder,
-) (*routingentity.RoutedOrder, error) {
+	order routingctx.RoutedOrder,
+) (*routingctx.RoutedOrder, error) {
 	timelineJSON, err := json.Marshal(order.Timeline)
 	if err != nil {
 		return nil, err
@@ -400,8 +399,8 @@ func (r *OrderRoutingRepositoryImpl) Create(
 
 func (r *OrderRoutingRepositoryImpl) Update(
 	ctx context.Context,
-	order routingentity.RoutedOrder,
-) (*routingentity.RoutedOrder, error) {
+	order routingctx.RoutedOrder,
+) (*routingctx.RoutedOrder, error) {
 	timelineJSON, err := json.Marshal(order.Timeline)
 	if err != nil {
 		return nil, err
@@ -489,11 +488,11 @@ func ensureRoutedOrderTables(ctx context.Context, tx *sqlx.Tx) error {
 
 func mapRoutedOrderRow(
 	row routedOrderRow,
-	activities []routingentity.RoutedOrderActivity,
-) (routingentity.RoutedOrder, error) {
+	activities []routingctx.RoutedOrderActivity,
+) (routingctx.RoutedOrder, error) {
 	var timeline []string
 	if err := json.Unmarshal([]byte(row.TimelineJSON), &timeline); err != nil {
-		return routingentity.RoutedOrder{}, err
+		return routingctx.RoutedOrder{}, err
 	}
 	var shippedAt *time.Time
 	if row.ShippedAt.Valid {
@@ -511,7 +510,7 @@ func mapRoutedOrderRow(
 	if row.IssueSlaDueAt.Valid {
 		issueSlaDueAt = &row.IssueSlaDueAt.Time
 	}
-	order, err := routingentity.RehydrateRoutedOrder(routingentity.RoutedOrderSnapshot{
+	order, err := routingctx.RehydrateRoutedOrder(routingctx.RoutedOrderSnapshot{
 		ID:                     row.ID,
 		StoreID:                row.StoreID,
 		CandidateID:            row.CandidateID,
@@ -550,26 +549,26 @@ func mapRoutedOrderRow(
 		UpdatedAt:              row.UpdatedAt,
 	})
 	if err != nil {
-		return routingentity.RoutedOrder{}, err
+		return routingctx.RoutedOrder{}, err
 	}
 	return *order, nil
 }
 
-func mapRoutedOrderActivityRow(row routedOrderActivityRow) (routingentity.RoutedOrderActivityFeedEntry, error) {
-	var details []routingentity.RoutedOrderActivityDetail
+func mapRoutedOrderActivityRow(row routedOrderActivityRow) (routingctx.RoutedOrderActivityFeedEntry, error) {
+	var details []routingctx.RoutedOrderActivityDetail
 	if row.DetailsJSON == "" {
 		row.DetailsJSON = "[]"
 	}
 	if err := json.Unmarshal([]byte(row.DetailsJSON), &details); err != nil {
-		return routingentity.RoutedOrderActivityFeedEntry{}, err
+		return routingctx.RoutedOrderActivityFeedEntry{}, err
 	}
-	return routingentity.RoutedOrderActivityFeedEntry{
+	return routingctx.RoutedOrderActivityFeedEntry{
 		StoreID:          row.StoreID,
 		OrderID:          row.OrderID,
 		ProductTitle:     row.ProductTitle,
 		Partner:          row.Partner,
 		OperatorAssignee: row.OperatorAssignee,
-		Activity: routingentity.RoutedOrderActivity{
+		Activity: routingctx.RoutedOrderActivity{
 			Type:      row.ActivityType,
 			Actor:     row.Actor,
 			Message:   row.Message,
@@ -584,7 +583,7 @@ func insertOrderActivities(
 	tx *sqlx.Tx,
 	storeID string,
 	orderID, productTitle, partner, operatorAssignee string,
-	activities []routingentity.RoutedOrderActivity,
+	activities []routingctx.RoutedOrderActivity,
 ) error {
 	for _, activity := range activities {
 		detailsJSON, err := json.Marshal(activity.Details)
@@ -624,8 +623,8 @@ func loadOrderActivitiesByOrderIDs(
 	ctx context.Context,
 	tx *sqlx.Tx,
 	orderIDs []string,
-) (map[string][]routingentity.RoutedOrderActivity, error) {
-	activitiesByOrderID := make(map[string][]routingentity.RoutedOrderActivity, len(orderIDs))
+) (map[string][]routingctx.RoutedOrderActivity, error) {
+	activitiesByOrderID := make(map[string][]routingctx.RoutedOrderActivity, len(orderIDs))
 	if len(orderIDs) == 0 {
 		return activitiesByOrderID, nil
 	}

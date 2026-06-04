@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	storeentity "github.com/tuannm99/podzone/internal/backoffice/domain/store/entity"
+	storectx "github.com/tuannm99/podzone/internal/backoffice/domain/store"
 	"github.com/tuannm99/podzone/internal/backoffice/runtime/storeaccess"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 )
@@ -24,11 +24,11 @@ func (s *stubReadiness) EnsureReady(_ context.Context, tenantID string) error {
 
 type stubStoreAccess struct {
 	lastStoreID string
-	store       *storeentity.Store
+	store       *storectx.Store
 	returnErr   error
 }
 
-func (s *stubStoreAccess) ResolveStore(_ context.Context, storeID string) (*storeentity.Store, error) {
+func (s *stubStoreAccess) ResolveStore(_ context.Context, storeID string) (*storectx.Store, error) {
 	s.lastStoreID = storeID
 	return s.store, s.returnErr
 }
@@ -55,7 +55,7 @@ func TestResolveRequestScopeIncludesPlacementAndStore(t *testing.T) {
 
 	readiness := &stubReadiness{}
 	stores := &stubStoreAccess{
-		store: &storeentity.Store{ID: "store-ops", Name: "Ops"},
+		store: &storectx.Store{ID: "store-ops", Name: "Ops"},
 	}
 	placements := &stubPlacementResolver{
 		placement: pdtenantdb.Placement{
