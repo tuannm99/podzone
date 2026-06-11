@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tuannm99/podzone/internal/backoffice/domain/shared"
+	"github.com/tuannm99/podzone/pkg/ddd"
 )
 
 const (
@@ -31,27 +31,41 @@ type OrderExceptionSnapshot struct {
 }
 
 type OrderException struct {
-	orderID       string
-	typ           string
-	status        string
-	pendingEvents []DomainEvent
+	aggregate ddd.AggregateBase
+	orderID   string
+	typ       string
+	status    string
 }
 
-var _ shared.AggregateRoot = (*OrderException)(nil)
+var _ ddd.AggregateRoot = (*OrderException)(nil)
 
 func RehydrateOrderException(snapshot OrderExceptionSnapshot) (*OrderException, error) {
 	if strings.TrimSpace(snapshot.OrderID) == "" {
-		return nil, fmt.Errorf("order id is required")
+		return nil, ErrOrderIDRequired
 	}
 	status := normalizeStatus(snapshot.Status)
 	if strings.TrimSpace(snapshot.Status) != "" && status == "" {
-		return nil, fmt.Errorf("invalid exception status")
+		return nil, ErrStatusInvalid
 	}
-	return &OrderException{orderID: snapshot.OrderID, typ: snapshot.Type, status: status}, nil
+	aggregate, err := newAggregate(snapshot.OrderID)
+	if err != nil {
+		return nil, err
+	}
+	return &OrderException{aggregate: aggregate, orderID: snapshot.OrderID, typ: snapshot.Type, status: status}, nil
 }
 
-func (e *OrderException) AggregateID() string {
-	return e.orderID
+func (e *OrderException) AggregateID() ddd.ID {
+	if e == nil {
+		return ""
+	}
+	return e.aggregate.AggregateID()
+}
+
+func (e *OrderException) AggregateVersion() ddd.Version {
+	if e == nil {
+		return 0
+	}
+	return e.aggregate.AggregateVersion()
 }
 
 func (e *OrderException) Snapshot() OrderExceptionSnapshot {
@@ -59,15 +73,16 @@ func (e *OrderException) Snapshot() OrderExceptionSnapshot {
 }
 
 func (e *OrderException) PullEvents() []DomainEvent {
-	events := e.pendingEvents
-	e.pendingEvents = nil
-	return events
+	if e == nil {
+		return nil
+	}
+	return e.aggregate.PullEvents()
 }
 
 func (e *OrderException) Open(exceptionType string, now time.Time) (Change, error) {
 	exceptionType = normalizeType(exceptionType)
 	if exceptionType == "" {
-		return Change{}, fmt.Errorf("invalid exception type")
+		return Change{}, ErrTypeInvalid
 	}
 	if e.status == StatusOpen {
 		return Change{}, nil
@@ -87,14 +102,14 @@ func (e *OrderException) Open(exceptionType string, now time.Time) (Change, erro
 
 func (e *OrderException) UpdateStatus(status string, now time.Time) (Change, error) {
 	if e.typ == "" {
-		return Change{}, fmt.Errorf("routed order has no active exception type")
+		return Change{}, ErrNoActiveType
 	}
 	status = normalizeStatus(status)
 	if status == "" {
-		return Change{}, fmt.Errorf("invalid exception status")
+		return Change{}, ErrStatusInvalid
 	}
 	if e.status == StatusResolved && status != StatusResolved {
-		return Change{}, fmt.Errorf("resolved exception cannot be reopened by status update")
+		return Change{}, ErrResolvedCannotReopen
 	}
 	e.status = status
 	e.record(OrderExceptionStatusChanged{
@@ -110,7 +125,15 @@ func (e *OrderException) UpdateStatus(status string, now time.Time) (Change, err
 }
 
 func (e *OrderException) record(event DomainEvent) {
-	e.pendingEvents = append(e.pendingEvents, event)
+	e.aggregate.RecordEvent(event)
+}
+
+func newAggregate(rawID string) (ddd.AggregateBase, error) {
+	id, err := ddd.ParseID(rawID)
+	if err != nil {
+		return ddd.AggregateBase{}, err
+	}
+	return ddd.NewAggregateBase(id, 0)
 }
 
 func normalizeType(raw string) string {

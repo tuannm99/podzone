@@ -3,18 +3,24 @@ package operations
 import (
 	"context"
 	"strings"
-	"time"
 
 	exceptionctx "github.com/tuannm99/podzone/internal/backoffice/domain/exception"
 	routingctx "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
+	"github.com/tuannm99/podzone/pkg/ddd"
 )
 
 type ExceptionInteractor struct {
 	orders routingctx.OrderRoutingRepository
+	events ddd.EventDispatcher
+	clock  ddd.Clock
 }
 
-func NewExceptionInteractor(orders routingctx.OrderRoutingRepository) *ExceptionInteractor {
-	return &ExceptionInteractor{orders: orders}
+func NewExceptionInteractor(
+	orders routingctx.OrderRoutingRepository,
+	dispatcher ddd.EventDispatcher,
+	clock ddd.Clock,
+) *ExceptionInteractor {
+	return &ExceptionInteractor{orders: orders, events: dispatcher, clock: clock}
 }
 
 func (i *ExceptionInteractor) OpenOrderException(
@@ -32,11 +38,19 @@ func (i *ExceptionInteractor) OpenOrderException(
 	if err := routingctx.EnsureOrderStore(order, storeID); err != nil {
 		return nil, err
 	}
-	now := time.Now().UTC()
-	if err := openOrderException(order, cmd.ExceptionType, routingctx.ActivityActorFromContext(ctx), now); err != nil {
+	now := i.clock.Now()
+	domainEvents, err := openOrderException(order, cmd.ExceptionType, routingctx.ActivityActorFromContext(ctx), now)
+	if err != nil {
 		return nil, err
 	}
-	return i.orders.Update(ctx, *order)
+	saved, err := i.orders.Update(ctx, *order)
+	if err != nil {
+		return nil, err
+	}
+	if err := dispatchDomainEvents(ctx, i.events, domainEvents); err != nil {
+		return nil, err
+	}
+	return saved, nil
 }
 
 func (i *ExceptionInteractor) UpdateOrderExceptionStatus(
@@ -54,9 +68,17 @@ func (i *ExceptionInteractor) UpdateOrderExceptionStatus(
 	if err := routingctx.EnsureOrderStore(order, storeID); err != nil {
 		return nil, err
 	}
-	now := time.Now().UTC()
-	if err := updateOrderExceptionStatus(order, cmd.Status, routingctx.ActivityActorFromContext(ctx), now); err != nil {
+	now := i.clock.Now()
+	domainEvents, err := updateOrderExceptionStatus(order, cmd.Status, routingctx.ActivityActorFromContext(ctx), now)
+	if err != nil {
 		return nil, err
 	}
-	return i.orders.Update(ctx, *order)
+	saved, err := i.orders.Update(ctx, *order)
+	if err != nil {
+		return nil, err
+	}
+	if err := dispatchDomainEvents(ctx, i.events, domainEvents); err != nil {
+		return nil, err
+	}
+	return saved, nil
 }

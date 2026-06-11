@@ -14,21 +14,29 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 
+	orderctx "github.com/tuannm99/podzone/internal/backoffice/domain/order"
 	routingctx "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
 	"github.com/tuannm99/podzone/internal/backoffice/migrations"
+	"github.com/tuannm99/podzone/pkg/ddd"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
+const aggregateVersionColumn = "COALESCE((SELECT aggregate_version FROM customer_orders " +
+	"WHERE customer_orders.id = routed_orders.id), 0) AS aggregate_version"
+
 type OrderRoutingRepositoryImpl struct {
 	mgr pdtenantdb.Manager
 }
 
-var _ routingctx.OrderRoutingRepository = (*OrderRoutingRepositoryImpl)(nil)
+var (
+	_ routingctx.OrderRoutingRepository     = (*OrderRoutingRepositoryImpl)(nil)
+	_ orderctx.CustomerOrderQueryRepository = (*OrderRoutingRepositoryImpl)(nil)
+)
 
-func New(mgr pdtenantdb.Manager) routingctx.OrderRoutingRepository {
+func New(mgr pdtenantdb.Manager) *OrderRoutingRepositoryImpl {
 	return &OrderRoutingRepositoryImpl{mgr: mgr}
 }
 
@@ -38,6 +46,7 @@ func NewOrderRoutingRepository(mgr pdtenantdb.Manager) routingctx.OrderRoutingRe
 
 type routedOrderRow struct {
 	ID                     string       `db:"id"`
+	AggregateVersion       ddd.Version  `db:"aggregate_version"`
 	StoreID                string       `db:"store_id"`
 	CandidateID            string       `db:"candidate_id"`
 	ProductTitle           string       `db:"product_title"`
@@ -88,6 +97,106 @@ type routedOrderActivityRow struct {
 	CreatedAt        time.Time `db:"created_at"`
 }
 
+type customerOrderRow struct {
+	ID                 string       `db:"id"`
+	AggregateVersion   ddd.Version  `db:"aggregate_version"`
+	StoreID            string       `db:"store_id"`
+	CandidateID        string       `db:"candidate_id"`
+	ProductTitle       string       `db:"product_title"`
+	Quantity           int          `db:"quantity"`
+	Total              string       `db:"total"`
+	CustomerName       string       `db:"customer_name"`
+	Status             string       `db:"status"`
+	Partner            string       `db:"partner"`
+	OperatorAssignee   string       `db:"operator_assignee"`
+	ShipmentSlaDueAt   sql.NullTime `db:"shipment_sla_due_at"`
+	IssueSlaDueAt      sql.NullTime `db:"issue_sla_due_at"`
+	ExceptionStatus    string       `db:"exception_status"`
+	RoutingBlockCode   string       `db:"routing_block_code"`
+	RoutingBlockReason string       `db:"routing_block_reason"`
+	SettlementStatus   string       `db:"settlement_status"`
+	UpdatedAt          time.Time    `db:"updated_at"`
+}
+
+func (r *OrderRoutingRepositoryImpl) GetCustomerOrder(
+	ctx context.Context,
+	storeID string,
+	orderID string,
+) (*orderctx.CustomerOrder, error) {
+	query, args, err := psql.
+		Select(
+			"id",
+			"aggregate_version",
+			"store_id",
+			"candidate_id",
+			"product_title",
+			"quantity",
+			"total",
+			"customer_name",
+			"status",
+			"partner",
+			"operator_assignee",
+			"shipment_sla_due_at",
+			"issue_sla_due_at",
+			"exception_status",
+			"routing_block_code",
+			"routing_block_reason",
+			"settlement_status",
+			"updated_at",
+		).
+		From("customer_orders").
+		Where(sq.Eq{"id": strings.TrimSpace(orderID), "store_id": strings.TrimSpace(storeID)}).
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	var row customerOrderRow
+	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
+		if err := ensureRoutedOrderTables(ctx, tx); err != nil {
+			return err
+		}
+		if err := tx.GetContext(ctx, &row, query, args...); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return ddd.ErrNotFound
+			}
+			return err
+		}
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	var shipmentSlaDueAt *time.Time
+	if row.ShipmentSlaDueAt.Valid {
+		shipmentSlaDueAt = &row.ShipmentSlaDueAt.Time
+	}
+	var issueSlaDueAt *time.Time
+	if row.IssueSlaDueAt.Valid {
+		issueSlaDueAt = &row.IssueSlaDueAt.Time
+	}
+	return orderctx.RehydrateCustomerOrder(orderctx.CustomerOrderSnapshot{
+		ID:                 row.ID,
+		Version:            row.AggregateVersion,
+		StoreID:            row.StoreID,
+		CandidateID:        row.CandidateID,
+		ProductTitle:       row.ProductTitle,
+		Quantity:           row.Quantity,
+		Total:              row.Total,
+		CustomerName:       row.CustomerName,
+		Status:             row.Status,
+		Partner:            row.Partner,
+		OperatorAssignee:   row.OperatorAssignee,
+		ShipmentSlaDueAt:   shipmentSlaDueAt,
+		IssueSlaDueAt:      issueSlaDueAt,
+		ExceptionStatus:    row.ExceptionStatus,
+		RoutingBlockCode:   row.RoutingBlockCode,
+		RoutingBlockReason: row.RoutingBlockReason,
+		SettlementStatus:   row.SettlementStatus,
+		UpdatedAt:          row.UpdatedAt,
+	})
+}
+
 func (r *OrderRoutingRepositoryImpl) List(ctx context.Context) ([]routingctx.RoutedOrder, error) {
 	return r.list(ctx, "")
 }
@@ -103,6 +212,7 @@ func (r *OrderRoutingRepositoryImpl) list(ctx context.Context, storeID string) (
 	builder := psql.
 		Select(
 			"id",
+			aggregateVersionColumn,
 			"store_id",
 			"candidate_id",
 			"product_title",
@@ -182,6 +292,7 @@ func (r *OrderRoutingRepositoryImpl) GetByID(ctx context.Context, id string) (*r
 	query, args, err := psql.
 		Select(
 			"id",
+			aggregateVersionColumn,
 			"store_id",
 			"candidate_id",
 			"product_title",
@@ -383,8 +494,59 @@ func (r *OrderRoutingRepositoryImpl) Create(
 	if err != nil {
 		return nil, err
 	}
+	aggregateQuery, aggregateArgs, err := psql.
+		Insert("customer_orders").
+		Columns(
+			"id",
+			"aggregate_version",
+			"store_id",
+			"candidate_id",
+			"product_title",
+			"quantity",
+			"total",
+			"customer_name",
+			"status",
+			"partner",
+			"operator_assignee",
+			"shipment_sla_due_at",
+			"issue_sla_due_at",
+			"exception_status",
+			"routing_block_code",
+			"routing_block_reason",
+			"settlement_status",
+			"created_at",
+			"updated_at",
+		).
+		Values(
+			order.ID,
+			order.AggregateVersion,
+			order.StoreID,
+			order.CandidateID,
+			order.ProductTitle,
+			order.Quantity,
+			order.Total,
+			order.CustomerName,
+			order.Status,
+			order.Partner,
+			order.OperatorAssignee,
+			order.ShipmentSlaDueAt,
+			order.IssueSlaDueAt,
+			order.ExceptionStatus,
+			order.RoutingBlockCode,
+			order.RoutingBlockReason,
+			order.SettlementStatus,
+			order.CreatedAt,
+			order.UpdatedAt,
+		).
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
 	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
 		if err := ensureRoutedOrderTables(ctx, tx); err != nil {
+			return err
+		}
+		if _, err = tx.ExecContext(ctx, aggregateQuery, aggregateArgs...); err != nil {
 			return err
 		}
 		if _, err = tx.ExecContext(ctx, query, args...); err != nil {
@@ -445,6 +607,30 @@ func (r *OrderRoutingRepositoryImpl) Update(
 	if err != nil {
 		return nil, err
 	}
+	aggregateQuery, aggregateArgs, err := psql.
+		Update("customer_orders").
+		Set("aggregate_version", order.AggregateVersion+1).
+		Set("store_id", order.StoreID).
+		Set("candidate_id", order.CandidateID).
+		Set("product_title", order.ProductTitle).
+		Set("quantity", order.Quantity).
+		Set("total", order.Total).
+		Set("customer_name", order.CustomerName).
+		Set("status", order.Status).
+		Set("partner", order.Partner).
+		Set("operator_assignee", order.OperatorAssignee).
+		Set("shipment_sla_due_at", order.ShipmentSlaDueAt).
+		Set("issue_sla_due_at", order.IssueSlaDueAt).
+		Set("exception_status", order.ExceptionStatus).
+		Set("routing_block_code", order.RoutingBlockCode).
+		Set("routing_block_reason", order.RoutingBlockReason).
+		Set("settlement_status", order.SettlementStatus).
+		Set("updated_at", order.UpdatedAt).
+		Where(sq.Eq{"id": order.ID, "aggregate_version": order.AggregateVersion}).
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
 	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
 		if err := ensureRoutedOrderTables(ctx, tx); err != nil {
 			return err
@@ -456,13 +642,28 @@ func (r *OrderRoutingRepositoryImpl) Update(
 			}
 			return err
 		}
-		res, err := tx.ExecContext(ctx, query, args...)
+		res, err := tx.ExecContext(ctx, aggregateQuery, aggregateArgs...)
 		if err != nil {
 			return err
 		}
 		rows, _ := res.RowsAffected()
 		if rows == 0 {
-			return fmt.Errorf("routed order not found")
+			var exists bool
+			if checkErr := tx.GetContext(
+				ctx,
+				&exists,
+				`SELECT EXISTS (SELECT 1 FROM routed_orders WHERE id = $1)`,
+				order.ID,
+			); checkErr != nil {
+				return checkErr
+			}
+			if exists {
+				return ddd.ErrVersionConflict
+			}
+			return ddd.ErrNotFound
+		}
+		if _, err := tx.ExecContext(ctx, query, args...); err != nil {
+			return err
 		}
 		if len(order.ActivityLog) > existingActivityCount {
 			return insertOrderActivities(ctx, tx, order.StoreID, order.ID, order.ProductTitle, order.Partner, order.OperatorAssignee, order.ActivityLog[existingActivityCount:])
@@ -471,6 +672,7 @@ func (r *OrderRoutingRepositoryImpl) Update(
 	}); err != nil {
 		return nil, err
 	}
+	order.AggregateVersion++
 	return &order, nil
 }
 
@@ -512,6 +714,7 @@ func mapRoutedOrderRow(
 	}
 	order, err := routingctx.RehydrateRoutedOrder(routingctx.RoutedOrderSnapshot{
 		ID:                     row.ID,
+		AggregateVersion:       row.AggregateVersion,
 		StoreID:                row.StoreID,
 		CandidateID:            row.CandidateID,
 		ProductTitle:           row.ProductTitle,

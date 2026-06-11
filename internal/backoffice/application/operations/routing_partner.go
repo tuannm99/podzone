@@ -4,17 +4,21 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	catalogctx "github.com/tuannm99/podzone/internal/backoffice/domain/catalog"
+	orderctx "github.com/tuannm99/podzone/internal/backoffice/domain/order"
 	routingctx "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
+	"github.com/tuannm99/podzone/pkg/ddd"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 type RoutingInteractor struct {
-	orders   routingctx.OrderRoutingRepository
-	products catalogctx.ProductSetupRepository
-	partners routingctx.PartnerDirectory
+	orders         routingctx.OrderRoutingRepository
+	customerOrders orderctx.CustomerOrderQueryRepository
+	products       catalogctx.ProductSetupRepository
+	partners       routingctx.PartnerDirectory
+	events         ddd.EventDispatcher
+	clock          ddd.Clock
 }
 
 var (
@@ -24,10 +28,20 @@ var (
 
 func NewRoutingInteractor(
 	orders routingctx.OrderRoutingRepository,
+	customerOrders orderctx.CustomerOrderQueryRepository,
 	products catalogctx.ProductSetupRepository,
 	partners routingctx.PartnerDirectory,
+	dispatcher ddd.EventDispatcher,
+	clock ddd.Clock,
 ) *RoutingInteractor {
-	return &RoutingInteractor{orders: orders, products: products, partners: partners}
+	return &RoutingInteractor{
+		orders:         orders,
+		customerOrders: customerOrders,
+		products:       products,
+		partners:       partners,
+		events:         dispatcher,
+		clock:          clock,
+	}
 }
 
 func (i *RoutingInteractor) RecommendRoutedOrderPartner(
@@ -63,6 +77,7 @@ func (i *RoutingInteractor) RecommendRoutedOrderPartner(
 		routingctx.NormalizeRoutingLabel(query.ProductType),
 		routingctx.NormalizeRoutingLabel(query.ShipRegion),
 		strings.TrimSpace(query.PreferredPartner),
+		i.clock.Now(),
 	), nil
 }
 
@@ -79,6 +94,10 @@ func (i *RoutingInteractor) ForceRerouteBlockedOrder(
 		return nil, err
 	}
 	if err := routingctx.EnsureOrderStore(order, storeID); err != nil {
+		return nil, err
+	}
+	customerOrder, err := i.customerOrders.GetCustomerOrder(ctx, storeID, order.ID)
+	if err != nil {
 		return nil, err
 	}
 	if order.Status != routingctx.RoutedOrderStatusRoutingBlocked {
@@ -110,6 +129,7 @@ func (i *RoutingInteractor) ForceRerouteBlockedOrder(
 		routingctx.NormalizeRoutingLabel(routingctx.OrderRoutingLabel(order, candidate)),
 		routingctx.NormalizeRoutingLabel(routingctx.ShipRegionFromOrder(order)),
 		preferredPartner,
+		i.clock.Now(),
 	)
 	if recommendation.SelectedPartner == "" {
 		return nil, fmt.Errorf("preferred partner %s is not eligible for reroute", preferredPartner)
@@ -119,8 +139,10 @@ func (i *RoutingInteractor) ForceRerouteBlockedOrder(
 		return nil, fmt.Errorf("selected routing option not found")
 	}
 
-	now := time.Now().UTC()
-	if err := applyManualReroute(order,
+	now := i.clock.Now()
+	domainEvents, err := applyManualReroute(
+		order,
+		customerOrder,
 		recommendation.SelectedPartner,
 		selectedOption.EstimatedFulfillmentCost,
 		selectedOption.EstimatedShippingCost,
@@ -128,8 +150,16 @@ func (i *RoutingInteractor) ForceRerouteBlockedOrder(
 		recommendation.Summary,
 		routingctx.ActivityActorFromContext(ctx),
 		now,
-	); err != nil {
+	)
+	if err != nil {
 		return nil, err
 	}
-	return i.orders.Update(ctx, *order)
+	saved, err := i.orders.Update(ctx, *order)
+	if err != nil {
+		return nil, err
+	}
+	if err := dispatchDomainEvents(ctx, i.events, domainEvents); err != nil {
+		return nil, err
+	}
+	return saved, nil
 }

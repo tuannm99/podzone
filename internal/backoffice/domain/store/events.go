@@ -1,11 +1,12 @@
 package store
 
-import "time"
+import (
+	"time"
 
-type DomainEvent interface {
-	EventType() string
-	OccurredAtTime() time.Time
-}
+	"github.com/tuannm99/podzone/pkg/ddd"
+)
+
+type DomainEvent = ddd.DomainEvent
 
 type StoreCreated struct {
 	StoreID    string
@@ -13,6 +14,8 @@ type StoreCreated struct {
 	Name       string
 	OccurredAt time.Time
 }
+
+var _ DomainEvent = StoreCreated{}
 
 func (e StoreCreated) EventType() string {
 	return "StoreCreated"
@@ -27,6 +30,8 @@ type StoreActivated struct {
 	OccurredAt time.Time
 }
 
+var _ DomainEvent = StoreActivated{}
+
 func (e StoreActivated) EventType() string {
 	return "StoreActivated"
 }
@@ -39,6 +44,8 @@ type StoreDeactivated struct {
 	StoreID    string
 	OccurredAt time.Time
 }
+
+var _ DomainEvent = StoreDeactivated{}
 
 func (e StoreDeactivated) EventType() string {
 	return "StoreDeactivated"

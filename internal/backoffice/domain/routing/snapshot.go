@@ -1,13 +1,15 @@
 package routing
 
 import (
-	"fmt"
 	"strings"
 	"time"
+
+	"github.com/tuannm99/podzone/pkg/ddd"
 )
 
 type RoutedOrderSnapshot struct {
 	ID                     string
+	AggregateVersion       ddd.Version
 	StoreID                string
 	CandidateID            string
 	ProductTitle           string
@@ -47,17 +49,18 @@ type RoutedOrderSnapshot struct {
 
 func RehydrateRoutedOrder(snapshot RoutedOrderSnapshot) (*RoutedOrder, error) {
 	if strings.TrimSpace(snapshot.ID) == "" {
-		return nil, fmt.Errorf("routed order id is required")
+		return nil, ErrRoutedOrderIDRequired
 	}
 	if strings.TrimSpace(snapshot.StoreID) == "" {
-		return nil, fmt.Errorf("routed order store id is required")
+		return nil, ErrRoutedOrderStoreRequired
 	}
 	if snapshot.Quantity < 0 {
-		return nil, fmt.Errorf("routed order quantity is invalid")
+		return nil, ErrRoutedOrderQuantityInvalid
 	}
 
 	return &RoutedOrder{
 		ID:                     snapshot.ID,
+		AggregateVersion:       snapshot.AggregateVersion,
 		StoreID:                snapshot.StoreID,
 		CandidateID:            snapshot.CandidateID,
 		ProductTitle:           snapshot.ProductTitle,

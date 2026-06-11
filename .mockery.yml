@@ -89,6 +89,12 @@ packages:
       ProductSetupUsecase:
       ProductSetupRepository:
 
+  github.com/tuannm99/podzone/internal/backoffice/domain/order:
+    config:
+      dir: internal/backoffice/domain/order/mocks
+    interfaces:
+      CustomerOrderQueryRepository:
+
   github.com/tuannm99/podzone/internal/backoffice/domain/routing:
     config:
       dir: internal/backoffice/domain/routing/mocks

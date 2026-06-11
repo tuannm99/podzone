@@ -1,11 +1,12 @@
 package fulfillment
 
-import "time"
+import (
+	"time"
 
-type DomainEvent interface {
-	EventType() string
-	OccurredAtTime() time.Time
-}
+	"github.com/tuannm99/podzone/pkg/ddd"
+)
+
+type DomainEvent = ddd.DomainEvent
 
 type ShipmentStatusUpdated struct {
 	OrderID    string
@@ -13,6 +14,8 @@ type ShipmentStatusUpdated struct {
 	Status     string
 	OccurredAt time.Time
 }
+
+var _ DomainEvent = ShipmentStatusUpdated{}
 
 func (e ShipmentStatusUpdated) EventType() string {
 	return "ShipmentStatusUpdated"
@@ -30,6 +33,8 @@ type ShipmentInTransit struct {
 	OccurredAt     time.Time
 }
 
+var _ DomainEvent = ShipmentInTransit{}
+
 func (e ShipmentInTransit) EventType() string {
 	return "ShipmentInTransit"
 }
@@ -45,6 +50,8 @@ type ShipmentDelivered struct {
 	TrackingNumber string
 	OccurredAt     time.Time
 }
+
+var _ DomainEvent = ShipmentDelivered{}
 
 func (e ShipmentDelivered) EventType() string {
 	return "ShipmentDelivered"

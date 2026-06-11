@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tuannm99/podzone/internal/backoffice/domain/shared"
+	"github.com/tuannm99/podzone/pkg/ddd"
 )
 
 const (
@@ -47,6 +47,7 @@ type ShipmentUpdate struct {
 }
 
 type FulfillmentOrder struct {
+	aggregate      ddd.AggregateBase
 	orderID        string
 	partner        string
 	status         string
@@ -56,20 +57,24 @@ type FulfillmentOrder struct {
 	notes          string
 	shippedAt      *time.Time
 	deliveredAt    *time.Time
-	pendingEvents  []DomainEvent
 }
 
-var _ shared.AggregateRoot = (*FulfillmentOrder)(nil)
+var _ ddd.AggregateRoot = (*FulfillmentOrder)(nil)
 
 func RehydrateFulfillmentOrder(snapshot FulfillmentOrderSnapshot) (*FulfillmentOrder, error) {
 	if strings.TrimSpace(snapshot.OrderID) == "" {
-		return nil, fmt.Errorf("fulfillment order id is required")
+		return nil, ErrOrderIDRequired
 	}
 	status := normalizeStatus(snapshot.Status)
 	if strings.TrimSpace(snapshot.Status) != "" && status == "" {
-		return nil, fmt.Errorf("invalid shipment status")
+		return nil, ErrShipmentStatusInvalid
+	}
+	aggregate, err := newAggregate(snapshot.OrderID)
+	if err != nil {
+		return nil, err
 	}
 	return &FulfillmentOrder{
+		aggregate:      aggregate,
 		orderID:        snapshot.OrderID,
 		partner:        snapshot.Partner,
 		status:         status,
@@ -82,8 +87,18 @@ func RehydrateFulfillmentOrder(snapshot FulfillmentOrderSnapshot) (*FulfillmentO
 	}, nil
 }
 
-func (o *FulfillmentOrder) AggregateID() string {
-	return o.orderID
+func (o *FulfillmentOrder) AggregateID() ddd.ID {
+	if o == nil {
+		return ""
+	}
+	return o.aggregate.AggregateID()
+}
+
+func (o *FulfillmentOrder) AggregateVersion() ddd.Version {
+	if o == nil {
+		return 0
+	}
+	return o.aggregate.AggregateVersion()
 }
 
 func (o *FulfillmentOrder) Snapshot() FulfillmentOrderSnapshot {
@@ -101,25 +116,26 @@ func (o *FulfillmentOrder) Snapshot() FulfillmentOrderSnapshot {
 }
 
 func (o *FulfillmentOrder) PullEvents() []DomainEvent {
-	events := o.pendingEvents
-	o.pendingEvents = nil
-	return events
+	if o == nil {
+		return nil
+	}
+	return o.aggregate.PullEvents()
 }
 
 func (o *FulfillmentOrder) UpdateShipment(update ShipmentUpdate, now time.Time) (Change, *Change, bool, error) {
 	status := normalizeStatus(update.Status)
 	if status == "" {
-		return Change{}, nil, false, fmt.Errorf("invalid shipment status")
+		return Change{}, nil, false, ErrShipmentStatusInvalid
 	}
 	if requiresAssignedPartner(status) && strings.TrimSpace(o.partner) == "" {
-		return Change{}, nil, false, fmt.Errorf("fulfillment partner is required before shipping")
+		return Change{}, nil, false, ErrPartnerRequired
 	}
 	carrier := strings.TrimSpace(update.Carrier)
 	if carrier == "" {
 		carrier = strings.TrimSpace(o.carrier)
 	}
 	if requiresCarrier(status) && carrier == "" {
-		return Change{}, nil, false, fmt.Errorf("shipment carrier is required")
+		return Change{}, nil, false, ErrCarrierRequired
 	}
 
 	o.status = status
@@ -189,7 +205,15 @@ func (o *FulfillmentOrder) UpdateShipment(update ShipmentUpdate, now time.Time) 
 }
 
 func (o *FulfillmentOrder) record(event DomainEvent) {
-	o.pendingEvents = append(o.pendingEvents, event)
+	o.aggregate.RecordEvent(event)
+}
+
+func newAggregate(rawID string) (ddd.AggregateBase, error) {
+	id, err := ddd.ParseID(rawID)
+	if err != nil {
+		return ddd.AggregateBase{}, err
+	}
+	return ddd.NewAggregateBase(id, 0)
 }
 
 func requiresAssignedPartner(status string) bool {

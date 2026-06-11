@@ -11,6 +11,7 @@ func TestCreateStoreValidatesAndEmitsEvent(t *testing.T) {
 	t.Parallel()
 
 	store, events, err := CreateStore(
+		"store-1",
 		"Urban Finds",
 		"Print-on-demand storefront",
 		"user-1",
@@ -18,8 +19,9 @@ func TestCreateStoreValidatesAndEmitsEvent(t *testing.T) {
 	)
 
 	require.NoError(t, err)
-	require.NotEmpty(t, store.ID)
-	require.Equal(t, StoreStatusDraft, store.Status)
+	snapshot := store.Snapshot()
+	require.Equal(t, "store-1", snapshot.ID)
+	require.Equal(t, StoreStatusDraft, snapshot.Status)
 	require.Len(t, events, 1)
 	require.Equal(t, "StoreCreated", events[0].EventType())
 
@@ -32,10 +34,13 @@ func TestCreateStoreValidatesAndEmitsEvent(t *testing.T) {
 func TestCreateStoreRequiresNameAndOwner(t *testing.T) {
 	t.Parallel()
 
-	_, _, err := CreateStore("", "description", "user-1", time.Date(2026, 6, 4, 10, 30, 0, 0, time.UTC))
+	_, _, err := CreateStore("store-1", "", "description", "user-1", time.Date(2026, 6, 4, 10, 30, 0, 0, time.UTC))
 	require.Error(t, err)
 
-	_, _, err = CreateStore("Urban Finds", "description", "", time.Date(2026, 6, 4, 10, 30, 0, 0, time.UTC))
+	_, _, err = CreateStore("store-1", "Urban Finds", "description", "", time.Date(2026, 6, 4, 10, 30, 0, 0, time.UTC))
+	require.Error(t, err)
+
+	_, _, err = CreateStore("", "Urban Finds", "description", "user-1", time.Date(2026, 6, 4, 10, 30, 0, 0, time.UTC))
 	require.Error(t, err)
 }
 
@@ -43,6 +48,7 @@ func TestStoreActivationEmitsEvents(t *testing.T) {
 	t.Parallel()
 
 	store, _, err := CreateStore(
+		"store-1",
 		"Urban Finds",
 		"Print-on-demand storefront",
 		"user-1",
@@ -52,12 +58,14 @@ func TestStoreActivationEmitsEvents(t *testing.T) {
 	store.PullEvents()
 
 	store.Activate(time.Date(2026, 6, 4, 11, 0, 0, 0, time.UTC))
-	require.True(t, store.IsActive)
-	require.Equal(t, StoreStatusActive, store.Status)
+	snapshot := store.Snapshot()
+	require.True(t, snapshot.IsActive)
+	require.Equal(t, StoreStatusActive, snapshot.Status)
 	require.Equal(t, "StoreActivated", store.PullEvents()[0].EventType())
 
 	store.Deactivate(time.Date(2026, 6, 4, 12, 0, 0, 0, time.UTC))
-	require.False(t, store.IsActive)
-	require.Equal(t, StoreStatusInactive, store.Status)
+	snapshot = store.Snapshot()
+	require.False(t, snapshot.IsActive)
+	require.Equal(t, StoreStatusInactive, snapshot.Status)
 	require.Equal(t, "StoreDeactivated", store.PullEvents()[0].EventType())
 }

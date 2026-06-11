@@ -89,6 +89,7 @@ func TestBuildRoutingRecommendationUsesDecisionForBlockedResult(t *testing.T) {
 		"poster",
 		"us",
 		"",
+		time.Date(2026, 6, 4, 10, 30, 0, 0, time.UTC),
 	)
 
 	require.Empty(t, recommendation.SelectedPartner)

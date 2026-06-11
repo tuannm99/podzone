@@ -2,7 +2,6 @@ package routing
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	catalogentity "github.com/tuannm99/podzone/internal/backoffice/domain/catalog"
@@ -16,17 +15,17 @@ func RequiredStoreScope(ctx context.Context, explicitStoreID string) (string, er
 		storeID = strings.TrimSpace(scope.CurrentStoreID(ctx))
 	}
 	if storeID == "" {
-		return "", fmt.Errorf("store scope is required")
+		return "", ErrStoreScopeRequired
 	}
 	return storeID, nil
 }
 
 func EnsureOrderStore(order *RoutedOrder, storeID string) error {
 	if order == nil {
-		return fmt.Errorf("routed order not found")
+		return ErrRoutedOrderNotFound
 	}
 	if strings.TrimSpace(order.StoreID) == "" || strings.TrimSpace(order.StoreID) != strings.TrimSpace(storeID) {
-		return fmt.Errorf("routed order not found")
+		return ErrRoutedOrderNotFound
 	}
 	return nil
 }

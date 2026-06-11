@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/tuannm99/podzone/pkg/ddd"
 )
 
 const (
@@ -69,26 +69,49 @@ type ProductSetupSnapshot struct {
 	Candidates []ProductSetupCandidate `json:"candidates"`
 }
 
+type ProductSetupDraftAggregate struct {
+	aggregate ddd.AggregateBase
+	draft     ProductSetupDraft
+}
+
+var _ ddd.AggregateRoot = (*ProductSetupDraftAggregate)(nil)
+
+type ProductSetupCandidateAggregate struct {
+	aggregate ddd.AggregateBase
+	candidate ProductSetupCandidate
+}
+
+var _ ddd.AggregateRoot = (*ProductSetupCandidateAggregate)(nil)
+
 func NewProductSetupDraft(
+	id string,
 	cmd CreateProductSetupDraftCmd,
 	status string,
 	now time.Time,
-) (ProductSetupDraft, []DomainEvent, error) {
+) (*ProductSetupDraftAggregate, []DomainEvent, error) {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return nil, nil, ErrDraftIDRequired
+	}
 	storeID := strings.TrimSpace(cmd.StoreID)
 	if storeID == "" {
-		return ProductSetupDraft{}, nil, fmt.Errorf("product setup store id is required")
+		return nil, nil, ErrStoreIDRequired
 	}
 	name := strings.TrimSpace(cmd.Name)
 	if name == "" {
-		return ProductSetupDraft{}, nil, fmt.Errorf("product setup name is required")
+		return nil, nil, ErrProductNameRequired
 	}
-	status = normalizeDraftStatus(status)
+	status = NormalizeDraftStatus(status)
 	if status == "" {
-		return ProductSetupDraft{}, nil, fmt.Errorf("invalid product setup draft status")
+		return nil, nil, ErrDraftStatusInvalid
 	}
 	now = now.UTC()
+	aggregate, err := newDraftAggregate(id)
+	if err != nil {
+		return nil, nil, err
+	}
 	draft := ProductSetupDraft{
-		ID:          uuid.NewString(),
+		ID:          id,
 		StoreID:     storeID,
 		Name:        name,
 		Partner:     strings.TrimSpace(cmd.Partner),
@@ -102,7 +125,8 @@ func NewProductSetupDraft(
 	if draft.Partner == "" {
 		draft.Partner = "Unassigned"
 	}
-	return draft, []DomainEvent{
+	root := &ProductSetupDraftAggregate{aggregate: aggregate, draft: draft}
+	return root, []DomainEvent{
 		ProductSetupDraftCreated{
 			DraftID:    draft.ID,
 			StoreID:    draft.StoreID,
@@ -112,46 +136,90 @@ func NewProductSetupDraft(
 	}, nil
 }
 
-func (d ProductSetupDraft) PromoteCandidate(
+func RehydrateProductSetupDraft(draft ProductSetupDraft) (*ProductSetupDraftAggregate, error) {
+	aggregate, err := newDraftAggregate(draft.ID)
+	if err != nil {
+		return nil, err
+	}
+	return &ProductSetupDraftAggregate{aggregate: aggregate, draft: draft}, nil
+}
+
+func (d *ProductSetupDraftAggregate) AggregateID() ddd.ID {
+	if d == nil {
+		return ""
+	}
+	return d.aggregate.AggregateID()
+}
+
+func (d *ProductSetupDraftAggregate) AggregateVersion() ddd.Version {
+	if d == nil {
+		return 0
+	}
+	return d.aggregate.AggregateVersion()
+}
+
+func (d *ProductSetupDraftAggregate) Snapshot() ProductSetupDraft {
+	return d.draft
+}
+
+func (d *ProductSetupDraftAggregate) PullEvents() []DomainEvent {
+	if d == nil {
+		return nil
+	}
+	return d.aggregate.PullEvents()
+}
+
+func (d *ProductSetupDraftAggregate) PromoteCandidate(
+	candidateID string,
+	variantID string,
 	cmd PromoteProductSetupCandidateCmd,
 	now time.Time,
 ) (ProductSetupCandidate, []DomainEvent, error) {
-	if strings.TrimSpace(d.ID) == "" {
-		return ProductSetupCandidate{}, nil, fmt.Errorf("product setup draft id is required")
+	draft := d.draft
+	candidateID = strings.TrimSpace(candidateID)
+	if candidateID == "" {
+		return ProductSetupCandidate{}, nil, ErrCandidateIDRequired
 	}
-	if strings.TrimSpace(d.StoreID) == "" {
-		return ProductSetupCandidate{}, nil, fmt.Errorf("product setup store id is required")
+	variantID = strings.TrimSpace(variantID)
+	if variantID == "" {
+		return ProductSetupCandidate{}, nil, ErrVariantIDRequired
 	}
-	if strings.TrimSpace(d.Name) == "" {
-		return ProductSetupCandidate{}, nil, fmt.Errorf("product setup name is required")
+	if strings.TrimSpace(draft.ID) == "" {
+		return ProductSetupCandidate{}, nil, ErrDraftIDRequired
+	}
+	if strings.TrimSpace(draft.StoreID) == "" {
+		return ProductSetupCandidate{}, nil, ErrStoreIDRequired
+	}
+	if strings.TrimSpace(draft.Name) == "" {
+		return ProductSetupCandidate{}, nil, ErrProductNameRequired
 	}
 	color := fallbackValue(cmd.VariantColor, "Black")
 	size := fallbackValue(cmd.VariantSize, "M")
 	notes := strings.TrimSpace(cmd.MerchandisingNotes)
 	if notes == "" {
-		if d.Notes != "" {
-			notes = d.Notes
+		if draft.Notes != "" {
+			notes = draft.Notes
 		} else {
 			notes = "No extra merchandising notes yet."
 		}
 	}
 
 	candidate := ProductSetupCandidate{
-		ID:              uuid.NewString(),
-		StoreID:         d.StoreID,
-		DraftID:         d.ID,
-		Title:           d.Name,
-		SKU:             buildSKU(d.Name),
-		Partner:         d.Partner,
-		BaseCost:        d.BaseCost,
-		RetailPrice:     d.RetailPrice,
-		EstimatedMargin: estimateMargin(d.BaseCost, d.RetailPrice),
+		ID:              candidateID,
+		StoreID:         draft.StoreID,
+		DraftID:         draft.ID,
+		Title:           draft.Name,
+		SKU:             buildSKU(draft.Name, candidateID),
+		Partner:         draft.Partner,
+		BaseCost:        draft.BaseCost,
+		RetailPrice:     draft.RetailPrice,
+		EstimatedMargin: estimateMargin(draft.BaseCost, draft.RetailPrice),
 		Status:          ProductSetupCandidateStatusReady,
 		Channel:         fallbackValue(cmd.Channel, "website_store"),
 		UpdatedAt:       now.UTC(),
 		Variants: []ProductSetupVariant{
 			{
-				ID:     uuid.NewString(),
+				ID:     variantID,
 				Label:  fmt.Sprintf("%s / %s", color, size),
 				Color:  color,
 				Size:   size,
@@ -164,14 +232,71 @@ func (d ProductSetupDraft) PromoteCandidate(
 	return candidate, []DomainEvent{
 		ProductSetupCandidatePromoted{
 			CandidateID: candidate.ID,
-			DraftID:     d.ID,
-			StoreID:     d.StoreID,
+			DraftID:     draft.ID,
+			StoreID:     draft.StoreID,
 			OccurredAt:  now.UTC(),
 		},
 	}, nil
 }
 
-func normalizeDraftStatus(raw string) string {
+func RehydrateProductSetupCandidate(
+	candidate ProductSetupCandidate,
+) (*ProductSetupCandidateAggregate, error) {
+	id, err := ddd.ParseID(candidate.ID)
+	if err != nil {
+		return nil, err
+	}
+	aggregate, err := ddd.NewAggregateBase(id, 0)
+	if err != nil {
+		return nil, err
+	}
+	return &ProductSetupCandidateAggregate{aggregate: aggregate, candidate: candidate}, nil
+}
+
+func (c *ProductSetupCandidateAggregate) AggregateID() ddd.ID {
+	if c == nil {
+		return ""
+	}
+	return c.aggregate.AggregateID()
+}
+
+func (c *ProductSetupCandidateAggregate) AggregateVersion() ddd.Version {
+	if c == nil {
+		return 0
+	}
+	return c.aggregate.AggregateVersion()
+}
+
+func (c *ProductSetupCandidateAggregate) Snapshot() ProductSetupCandidate {
+	return c.candidate
+}
+
+func (c *ProductSetupCandidateAggregate) PullEvents() []DomainEvent {
+	if c == nil {
+		return nil
+	}
+	return c.aggregate.PullEvents()
+}
+
+func (c *ProductSetupCandidateAggregate) ChangeStatus(status string, now time.Time) error {
+	status = NormalizeCandidateStatus(status)
+	if status == "" {
+		return ddd.NewDomainError("PRODUCT_CANDIDATE_STATUS_INVALID", "invalid candidate status")
+	}
+	c.candidate.Status = status
+	c.candidate.UpdatedAt = now.UTC()
+	return nil
+}
+
+func newDraftAggregate(rawID string) (ddd.AggregateBase, error) {
+	id, err := ddd.ParseID(rawID)
+	if err != nil {
+		return ddd.AggregateBase{}, err
+	}
+	return ddd.NewAggregateBase(id, 0)
+}
+
+func NormalizeDraftStatus(raw string) string {
 	switch strings.TrimSpace(raw) {
 	case ProductSetupDraftStatusDraft,
 		ProductSetupDraftStatusReadyForReview,
@@ -190,7 +315,7 @@ func fallbackValue(raw, fallback string) string {
 	return raw
 }
 
-func buildSKU(name string) string {
+func buildSKU(name string, suffix string) string {
 	slug := strings.ToLower(strings.TrimSpace(name))
 	slug = strings.Map(func(r rune) rune {
 		switch {
@@ -206,7 +331,14 @@ func buildSKU(name string) string {
 	if slug == "" {
 		slug = "product"
 	}
-	return fmt.Sprintf("%s-%s", slug, strings.ToLower(uuid.NewString()[:8]))
+	suffix = strings.Trim(strings.ToLower(strings.TrimSpace(suffix)), "_-")
+	if len(suffix) > 8 {
+		suffix = suffix[len(suffix)-8:]
+	}
+	if suffix == "" {
+		suffix = "draft"
+	}
+	return fmt.Sprintf("%s-%s", slug, suffix)
 }
 
 func estimateMargin(baseCost, retailPrice string) string {

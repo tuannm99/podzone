@@ -15,10 +15,12 @@ import (
 	catalogoutputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/catalog/mocks"
 	exceptionctx "github.com/tuannm99/podzone/internal/backoffice/domain/exception"
 	orderctx "github.com/tuannm99/podzone/internal/backoffice/domain/order"
+	orderoutputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/order/mocks"
 	routingctx "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
 	routingoutputmocks "github.com/tuannm99/podzone/internal/backoffice/domain/routing/mocks"
 	settlementctx "github.com/tuannm99/podzone/internal/backoffice/domain/settlement"
 	"github.com/tuannm99/podzone/internal/backoffice/runtime/scope"
+	"github.com/tuannm99/podzone/pkg/ddd"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
@@ -99,6 +101,7 @@ func newOrderRoutingTestInteractor(
 	t.Helper()
 
 	ordersMock := routingoutputmocks.NewMockOrderRoutingRepository(t)
+	customerOrdersMock := orderoutputmocks.NewMockCustomerOrderQueryRepository(t)
 	productsMock := catalogoutputmocks.NewMockProductSetupRepository(t)
 	partnersMock := routingoutputmocks.NewMockPartnerDirectory(t)
 	orderState := newTestOrderRoutingHarness()
@@ -268,6 +271,17 @@ func newOrderRoutingTestInteractor(
 		}).
 		Maybe()
 
+	customerOrdersMock.EXPECT().
+		GetCustomerOrder(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(_ context.Context, storeID string, id string) (*orderctx.CustomerOrder, error) {
+			order, ok := orderState.orders[id]
+			if !ok || order.StoreID != storeID {
+				return nil, ddd.ErrNotFound
+			}
+			return rehydrateTestCustomerOrder(order)
+		}).
+		Maybe()
+
 	productsMock.EXPECT().
 		GetCandidateByID(mock.Anything, mock.Anything, mock.Anything).
 		RunAndReturn(func(_ context.Context, storeID string, id string) (*catalogentity.ProductSetupCandidate, error) {
@@ -334,8 +348,39 @@ func newOrderRoutingTestInteractor(
 		}).
 		Maybe()
 
-	interactor := operations.NewOrderRoutingInteractor(ordersMock, productsMock, partnersMock)
+	interactor := operations.NewOrderRoutingInteractor(
+		ordersMock,
+		customerOrdersMock,
+		productsMock,
+		partnersMock,
+		ddd.EventDispatcher(nil),
+		ddd.NewUUIDGenerator(),
+		ddd.NewFixedClock(time.Date(2026, 6, 4, 10, 30, 0, 0, time.UTC)),
+	)
 	return interactor, orderState
+}
+
+func rehydrateTestCustomerOrder(order RoutedOrder) (*orderctx.CustomerOrder, error) {
+	return orderctx.RehydrateCustomerOrder(orderctx.CustomerOrderSnapshot{
+		ID:                 order.ID,
+		Version:            order.AggregateVersion,
+		StoreID:            order.StoreID,
+		CandidateID:        order.CandidateID,
+		ProductTitle:       order.ProductTitle,
+		Quantity:           order.Quantity,
+		Total:              order.Total,
+		CustomerName:       order.CustomerName,
+		Status:             order.Status,
+		Partner:            order.Partner,
+		OperatorAssignee:   order.OperatorAssignee,
+		ShipmentSlaDueAt:   order.ShipmentSlaDueAt,
+		IssueSlaDueAt:      order.IssueSlaDueAt,
+		ExceptionStatus:    order.ExceptionStatus,
+		RoutingBlockCode:   order.RoutingBlockCode,
+		RoutingBlockReason: order.RoutingBlockReason,
+		SettlementStatus:   order.SettlementStatus,
+		UpdatedAt:          order.UpdatedAt,
+	})
 }
 
 func cloneOrder(order RoutedOrder) RoutedOrder {

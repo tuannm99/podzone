@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tuannm99/podzone/internal/backoffice/domain/shared"
+	"github.com/tuannm99/podzone/pkg/ddd"
 )
 
 const (
@@ -32,6 +32,7 @@ type Change struct {
 
 type CustomerOrderSnapshot struct {
 	ID                 string
+	Version            ddd.Version
 	StoreID            string
 	CandidateID        string
 	ProductTitle       string
@@ -51,6 +52,7 @@ type CustomerOrderSnapshot struct {
 }
 
 type CustomerOrder struct {
+	aggregate          ddd.AggregateBase
 	id                 string
 	storeID            string
 	candidateID        string
@@ -68,25 +70,29 @@ type CustomerOrder struct {
 	routingBlockReason string
 	settlementStatus   string
 	updatedAt          time.Time
-	pendingEvents      []DomainEvent
 }
 
-var _ shared.AggregateRoot = (*CustomerOrder)(nil)
+var _ ddd.AggregateRoot = (*CustomerOrder)(nil)
 
 func RehydrateCustomerOrder(snapshot CustomerOrderSnapshot) (*CustomerOrder, error) {
 	if strings.TrimSpace(snapshot.ID) == "" {
-		return nil, fmt.Errorf("customer order id is required")
+		return nil, ErrOrderIDRequired
 	}
 	if strings.TrimSpace(snapshot.StoreID) == "" {
-		return nil, fmt.Errorf("customer order store id is required")
+		return nil, ErrStoreIDRequired
 	}
 	if snapshot.Quantity < 0 {
-		return nil, fmt.Errorf("customer order quantity is invalid")
+		return nil, ErrQuantityInvalid
 	}
 	if err := validateStatus(snapshot.Status); err != nil {
 		return nil, err
 	}
+	aggregate, err := newAggregate(snapshot.ID, snapshot.Version)
+	if err != nil {
+		return nil, err
+	}
 	return &CustomerOrder{
+		aggregate:          aggregate,
 		id:                 snapshot.ID,
 		storeID:            snapshot.StoreID,
 		candidateID:        snapshot.CandidateID,
@@ -124,19 +130,19 @@ type ReceiveCustomerOrderInput struct {
 func ReceiveCustomerOrder(input ReceiveCustomerOrderInput) (*CustomerOrder, []Change, error) {
 	id := strings.TrimSpace(input.ID)
 	if id == "" {
-		return nil, nil, fmt.Errorf("customer order id is required")
+		return nil, nil, ErrOrderIDRequired
 	}
 	storeID := strings.TrimSpace(input.StoreID)
 	if storeID == "" {
-		return nil, nil, fmt.Errorf("customer order store id is required")
+		return nil, nil, ErrStoreIDRequired
 	}
 	candidateID := strings.TrimSpace(input.CandidateID)
 	if candidateID == "" {
-		return nil, nil, fmt.Errorf("customer order candidate id is required")
+		return nil, nil, ErrCandidateIDRequired
 	}
 	productTitle := strings.TrimSpace(input.ProductTitle)
 	if productTitle == "" {
-		return nil, nil, fmt.Errorf("customer order product title is required")
+		return nil, nil, ErrProductTitleRequired
 	}
 	quantity := input.Quantity
 	if quantity < 1 {
@@ -148,7 +154,7 @@ func ReceiveCustomerOrder(input ReceiveCustomerOrderInput) (*CustomerOrder, []Ch
 	}
 	now := input.Now.UTC()
 	if now.IsZero() {
-		now = time.Now().UTC()
+		return nil, nil, ddd.NewDomainError("ORDER_TIME_REQUIRED", "customer order time is required")
 	}
 
 	partner := strings.TrimSpace(input.Partner)
@@ -157,12 +163,17 @@ func ReceiveCustomerOrder(input ReceiveCustomerOrderInput) (*CustomerOrder, []Ch
 	status := StatusQueued
 	if partner == "" {
 		if routingBlockReason == "" {
-			return nil, nil, fmt.Errorf("routing block reason is required when partner is empty")
+			return nil, nil, ErrRoutingReasonRequired
 		}
 		status = StatusRoutingBlocked
 	}
 
+	aggregate, err := newAggregate(id, 0)
+	if err != nil {
+		return nil, nil, err
+	}
 	order := &CustomerOrder{
+		aggregate:          aggregate,
 		id:                 id,
 		storeID:            storeID,
 		candidateID:        candidateID,
@@ -226,13 +237,24 @@ func ReceiveCustomerOrder(input ReceiveCustomerOrderInput) (*CustomerOrder, []Ch
 	return order, changes, nil
 }
 
-func (o *CustomerOrder) AggregateID() string {
-	return o.id
+func (o *CustomerOrder) AggregateID() ddd.ID {
+	if o == nil {
+		return ""
+	}
+	return o.aggregate.AggregateID()
+}
+
+func (o *CustomerOrder) AggregateVersion() ddd.Version {
+	if o == nil {
+		return 0
+	}
+	return o.aggregate.AggregateVersion()
 }
 
 func (o *CustomerOrder) Snapshot() CustomerOrderSnapshot {
 	return CustomerOrderSnapshot{
 		ID:                 o.id,
+		Version:            o.aggregate.AggregateVersion(),
 		StoreID:            o.storeID,
 		CandidateID:        o.candidateID,
 		ProductTitle:       o.productTitle,
@@ -253,20 +275,21 @@ func (o *CustomerOrder) Snapshot() CustomerOrderSnapshot {
 }
 
 func (o *CustomerOrder) PullEvents() []DomainEvent {
-	events := o.pendingEvents
-	o.pendingEvents = nil
-	return events
+	if o == nil {
+		return nil
+	}
+	return o.aggregate.PullEvents()
 }
 
 func (o *CustomerOrder) Advance(now time.Time) (Change, error) {
 	if o.exceptionStatus == ExceptionStatusOpen || o.exceptionStatus == ExceptionStatusEscalated {
-		return Change{}, fmt.Errorf("resolve the active exception before advancing the routed order")
+		return Change{}, ErrActiveException
 	}
 
 	var nextStatus string
 	switch o.status {
 	case StatusRoutingBlocked:
-		return Change{}, fmt.Errorf("resolve the routing block before advancing the routed order")
+		return Change{}, ErrRoutingBlocked
 	case StatusQueued:
 		nextStatus = StatusInProduction
 	case StatusInProduction:
@@ -274,7 +297,7 @@ func (o *CustomerOrder) Advance(now time.Time) (Change, error) {
 	case StatusShipped:
 		return Change{}, nil
 	default:
-		return Change{}, fmt.Errorf("invalid routed order status")
+		return Change{}, ErrStatusInvalid
 	}
 
 	o.status = nextStatus
@@ -311,7 +334,15 @@ func (o *CustomerOrder) MarkShipped(now time.Time) (Change, bool) {
 }
 
 func (o *CustomerOrder) record(event DomainEvent) {
-	o.pendingEvents = append(o.pendingEvents, event)
+	o.aggregate.RecordEvent(event)
+}
+
+func newAggregate(rawID string, version ddd.Version) (ddd.AggregateBase, error) {
+	id, err := ddd.ParseID(rawID)
+	if err != nil {
+		return ddd.AggregateBase{}, err
+	}
+	return ddd.NewAggregateBase(id, version)
 }
 
 func validateStatus(status string) error {
@@ -319,7 +350,7 @@ func validateStatus(status string) error {
 	case "", StatusQueued, StatusRoutingBlocked, StatusInProduction, StatusShipped:
 		return nil
 	default:
-		return fmt.Errorf("invalid customer order status")
+		return ErrStatusInvalid
 	}
 }
 
@@ -373,7 +404,7 @@ func (o *CustomerOrder) ApplyBulkQueueControl(
 	if settlementStatus != nil {
 		normalizedSettlementStatus := strings.TrimSpace(*settlementStatus)
 		if normalizedSettlementStatus == "" {
-			return Change{}, fmt.Errorf("invalid settlement status")
+			return Change{}, ErrSettlementStatusInvalid
 		}
 		o.settlementStatus = normalizedSettlementStatus
 	}
@@ -398,10 +429,10 @@ func (o *CustomerOrder) ApplyBulkQueueControl(
 func (o *CustomerOrder) RouteManually(partner string, now time.Time) (Change, error) {
 	partner = strings.TrimSpace(partner)
 	if o.status != StatusRoutingBlocked {
-		return Change{}, fmt.Errorf("customer order is not routing blocked")
+		return Change{}, ErrNotRoutingBlocked
 	}
 	if partner == "" {
-		return Change{}, fmt.Errorf("selected routing partner is required")
+		return Change{}, ErrRoutingPartnerRequired
 	}
 
 	previousPartner := o.partner

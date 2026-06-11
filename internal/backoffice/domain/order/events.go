@@ -1,11 +1,12 @@
 package order
 
-import "time"
+import (
+	"time"
 
-type DomainEvent interface {
-	EventType() string
-	OccurredAtTime() time.Time
-}
+	"github.com/tuannm99/podzone/pkg/ddd"
+)
+
+type DomainEvent = ddd.DomainEvent
 
 type CustomerOrderReceived struct {
 	OrderID     string
@@ -14,6 +15,8 @@ type CustomerOrderReceived struct {
 	Quantity    int
 	OccurredAt  time.Time
 }
+
+var _ DomainEvent = CustomerOrderReceived{}
 
 func (e CustomerOrderReceived) EventType() string {
 	return "CustomerOrderReceived"
@@ -29,6 +32,8 @@ type CustomerOrderQueued struct {
 	Partner    string
 	OccurredAt time.Time
 }
+
+var _ DomainEvent = CustomerOrderQueued{}
 
 func (e CustomerOrderQueued) EventType() string {
 	return "CustomerOrderQueued"
@@ -46,6 +51,8 @@ type CustomerOrderRoutingBlocked struct {
 	OccurredAt time.Time
 }
 
+var _ DomainEvent = CustomerOrderRoutingBlocked{}
+
 func (e CustomerOrderRoutingBlocked) EventType() string {
 	return "CustomerOrderRoutingBlocked"
 }
@@ -60,6 +67,8 @@ type CustomerOrderShipped struct {
 	Partner    string
 	OccurredAt time.Time
 }
+
+var _ DomainEvent = CustomerOrderShipped{}
 
 func (e CustomerOrderShipped) EventType() string {
 	return "CustomerOrderShipped"
@@ -77,6 +86,8 @@ type CustomerOrderAdvanced struct {
 	OccurredAt time.Time
 }
 
+var _ DomainEvent = CustomerOrderAdvanced{}
+
 func (e CustomerOrderAdvanced) EventType() string {
 	return "CustomerOrderAdvanced"
 }
@@ -91,6 +102,8 @@ type CustomerOrderQueueControlUpdated struct {
 	OperatorAssignee string
 	OccurredAt       time.Time
 }
+
+var _ DomainEvent = CustomerOrderQueueControlUpdated{}
 
 func (e CustomerOrderQueueControlUpdated) EventType() string {
 	return "CustomerOrderQueueControlUpdated"
@@ -108,6 +121,8 @@ type CustomerOrderRoutingResolved struct {
 	PreviousRoutingBlockCode string
 	OccurredAt               time.Time
 }
+
+var _ DomainEvent = CustomerOrderRoutingResolved{}
 
 func (e CustomerOrderRoutingResolved) EventType() string {
 	return "CustomerOrderRoutingResolved"

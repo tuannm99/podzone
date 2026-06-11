@@ -1,11 +1,12 @@
 package catalog
 
-import "time"
+import (
+	"time"
 
-type DomainEvent interface {
-	EventType() string
-	OccurredAtTime() time.Time
-}
+	"github.com/tuannm99/podzone/pkg/ddd"
+)
+
+type DomainEvent = ddd.DomainEvent
 
 type ProductSetupDraftCreated struct {
 	DraftID    string
@@ -13,6 +14,8 @@ type ProductSetupDraftCreated struct {
 	Name       string
 	OccurredAt time.Time
 }
+
+var _ DomainEvent = ProductSetupDraftCreated{}
 
 func (e ProductSetupDraftCreated) EventType() string {
 	return "ProductSetupDraftCreated"
@@ -28,6 +31,8 @@ type ProductSetupCandidatePromoted struct {
 	StoreID     string
 	OccurredAt  time.Time
 }
+
+var _ DomainEvent = ProductSetupCandidatePromoted{}
 
 func (e ProductSetupCandidatePromoted) EventType() string {
 	return "ProductSetupCandidatePromoted"

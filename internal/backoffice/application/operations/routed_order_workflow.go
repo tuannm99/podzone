@@ -9,54 +9,67 @@ import (
 	orderentity "github.com/tuannm99/podzone/internal/backoffice/domain/order"
 	routingctx "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
 	settlemententity "github.com/tuannm99/podzone/internal/backoffice/domain/settlement"
+	"github.com/tuannm99/podzone/pkg/ddd"
 )
 
-func advanceRoutedOrder(o *routingctx.RoutedOrder, actor string, now time.Time) error {
-	customerOrder, err := customerOrderAggregate(o)
-	if err != nil {
-		return err
-	}
+func advanceRoutedOrder(
+	o *routingctx.RoutedOrder,
+	customerOrder *orderentity.CustomerOrder,
+	actor string,
+	now time.Time,
+) ([]ddd.DomainEvent, error) {
 	change, err := customerOrder.Advance(now)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	applyCustomerOrderSnapshot(o, customerOrder.Snapshot())
 	recordOrderChange(o, actor, change, now)
-	return nil
+	return collectDomainEvents(customerOrder.PullEvents()), nil
 }
 
-func openOrderException(o *routingctx.RoutedOrder, exceptionType string, actor string, now time.Time) error {
+func openOrderException(
+	o *routingctx.RoutedOrder,
+	exceptionType string,
+	actor string,
+	now time.Time,
+) ([]ddd.DomainEvent, error) {
 	exceptionAggregate, err := exceptionAggregate(o)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	change, err := exceptionAggregate.Open(exceptionType, now)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	applyExceptionSnapshot(o, exceptionAggregate.Snapshot())
 	recordExceptionChange(o, actor, change, now)
 	o.UpdatedAt = now
-	return nil
+	return collectDomainEvents(exceptionAggregate.PullEvents()), nil
 }
 
-func updateOrderExceptionStatus(o *routingctx.RoutedOrder, status string, actor string, now time.Time) error {
+func updateOrderExceptionStatus(
+	o *routingctx.RoutedOrder,
+	status string,
+	actor string,
+	now time.Time,
+) ([]ddd.DomainEvent, error) {
 	exceptionAggregate, err := exceptionAggregate(o)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	change, err := exceptionAggregate.UpdateStatus(status, now)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	applyExceptionSnapshot(o, exceptionAggregate.Snapshot())
 	recordExceptionChange(o, actor, change, now)
 	o.UpdatedAt = now
-	return nil
+	return collectDomainEvents(exceptionAggregate.PullEvents()), nil
 }
 
 func updateOrderShipment(
 	o *routingctx.RoutedOrder,
+	customerOrder *orderentity.CustomerOrder,
 	shipmentStatus string,
 	carrier string,
 	trackingNumber string,
@@ -64,10 +77,10 @@ func updateOrderShipment(
 	notes string,
 	actor string,
 	now time.Time,
-) error {
+) ([]ddd.DomainEvent, error) {
 	fulfillmentOrder, err := fulfillmentOrderAggregate(o)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	systemChange, noteChange, shouldMarkOrderShipped, err := fulfillmentOrder.UpdateShipment(
 		fulfillmententity.ShipmentUpdate{
@@ -80,10 +93,11 @@ func updateOrderShipment(
 		now,
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	domainEvents := collectDomainEvents(fulfillmentOrder.PullEvents())
 	if shouldMarkOrderShipped {
-		markOrderShipped(o, actor, now)
+		domainEvents = append(domainEvents, markOrderShipped(o, customerOrder, actor, now)...)
 	}
 	applyFulfillmentSnapshot(o, fulfillmentOrder.Snapshot())
 	recordFulfillmentChange(o, actor, systemChange, now)
@@ -98,45 +112,40 @@ func updateOrderShipment(
 		)
 	}
 	o.UpdatedAt = now
-	return nil
+	return domainEvents, nil
 }
 
 func updateOrderQueueControl(
 	o *routingctx.RoutedOrder,
+	customerOrder *orderentity.CustomerOrder,
 	assignee string,
 	shipmentSlaDueAt *time.Time,
 	issueSlaDueAt *time.Time,
 	actor string,
 	now time.Time,
-) {
-	customerOrder, err := customerOrderAggregate(o)
-	if err != nil {
-		return
-	}
+) []ddd.DomainEvent {
 	change := customerOrder.UpdateQueueControl(assignee, shipmentSlaDueAt, issueSlaDueAt, now)
 	applyCustomerOrderSnapshot(o, customerOrder.Snapshot())
 	recordOrderChange(o, actor, change, now)
+	return collectDomainEvents(customerOrder.PullEvents())
 }
 
 func applyBulkQueueControl(
 	o *routingctx.RoutedOrder,
+	customerOrder *orderentity.CustomerOrder,
 	assignee *string,
 	shipmentSlaDueAt *time.Time,
 	settlementStatus *string,
 	actor string,
 	now time.Time,
-) error {
-	customerOrder, err := customerOrderAggregate(o)
-	if err != nil {
-		return err
-	}
+) ([]ddd.DomainEvent, error) {
 	change, err := customerOrder.ApplyBulkQueueControl(assignee, shipmentSlaDueAt, settlementStatus, now)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	applyCustomerOrderSnapshot(o, customerOrder.Snapshot())
 	recordOrderChange(o, actor, change, now)
-	return nil
+	return collectDomainEvents(customerOrder.PullEvents()), nil
 }
 
 func updateOrderSettlement(
@@ -147,10 +156,10 @@ func updateOrderSettlement(
 	notes string,
 	actor string,
 	now time.Time,
-) error {
+) ([]ddd.DomainEvent, error) {
 	settlementRecord, err := settlementRecordAggregate(o)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	systemChange, noteChange, err := settlementRecord.UpdateSettlement(
 		fulfillmentCost,
@@ -160,8 +169,9 @@ func updateOrderSettlement(
 		now,
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	domainEvents := collectDomainEvents(settlementRecord.PullEvents())
 	applySettlementSnapshot(o, settlementRecord.Snapshot())
 	recordSettlementChange(o, actor, systemChange, now)
 	if noteChange != nil {
@@ -175,7 +185,7 @@ func updateOrderSettlement(
 		)
 	}
 	o.UpdatedAt = now
-	return nil
+	return domainEvents, nil
 }
 
 func updateOrderIssueHandling(
@@ -185,15 +195,16 @@ func updateOrderIssueHandling(
 	notes string,
 	actor string,
 	now time.Time,
-) error {
+) ([]ddd.DomainEvent, error) {
 	settlementRecord, err := settlementRecordAggregate(o)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	systemChange, noteChange, err := settlementRecord.UpdateIssueHandling(issueCost, issueResolution, notes, now)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	domainEvents := collectDomainEvents(settlementRecord.PullEvents())
 	applySettlementSnapshot(o, settlementRecord.Snapshot())
 	recordSettlementChange(o, actor, systemChange, now)
 	if noteChange != nil {
@@ -207,11 +218,12 @@ func updateOrderIssueHandling(
 		)
 	}
 	o.UpdatedAt = now
-	return nil
+	return domainEvents, nil
 }
 
 func applyManualReroute(
 	o *routingctx.RoutedOrder,
+	customerOrder *orderentity.CustomerOrder,
 	partner string,
 	fulfillmentCost string,
 	shippingCost string,
@@ -219,16 +231,13 @@ func applyManualReroute(
 	routingSummary string,
 	actor string,
 	now time.Time,
-) error {
+) ([]ddd.DomainEvent, error) {
 	partner = strings.TrimSpace(partner)
-	customerOrder, err := customerOrderAggregate(o)
-	if err != nil {
-		return err
-	}
 	change, err := customerOrder.RouteManually(partner, now)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	domainEvents := collectDomainEvents(customerOrder.PullEvents())
 	applyCustomerOrderSnapshot(o, customerOrder.Snapshot())
 	o.FulfillmentCost = routingctx.MultiplyMoney(fulfillmentCost, o.Quantity)
 	o.ShippingCost = shippingCost
@@ -241,20 +250,22 @@ func applyManualReroute(
 	)
 	recordSystemTimelineActivity(o, actor, change.Message, now, details)
 	o.UpdatedAt = now
-	return nil
+	return domainEvents, nil
 }
 
-func markOrderShipped(o *routingctx.RoutedOrder, actor string, now time.Time) {
-	customerOrder, err := customerOrderAggregate(o)
-	if err != nil {
-		return
-	}
+func markOrderShipped(
+	o *routingctx.RoutedOrder,
+	customerOrder *orderentity.CustomerOrder,
+	actor string,
+	now time.Time,
+) []ddd.DomainEvent {
 	change, changed := customerOrder.MarkShipped(now)
 	if !changed {
-		return
+		return nil
 	}
 	applyCustomerOrderSnapshot(o, customerOrder.Snapshot())
 	recordOrderChange(o, actor, change, now)
+	return collectDomainEvents(customerOrder.PullEvents())
 }
 
 func recordActivity(
@@ -275,29 +286,8 @@ func recordActivity(
 	})
 }
 
-func customerOrderAggregate(o *routingctx.RoutedOrder) (*orderentity.CustomerOrder, error) {
-	return orderentity.RehydrateCustomerOrder(orderentity.CustomerOrderSnapshot{
-		ID:                 o.ID,
-		StoreID:            o.StoreID,
-		CandidateID:        o.CandidateID,
-		ProductTitle:       o.ProductTitle,
-		Quantity:           o.Quantity,
-		Total:              o.Total,
-		CustomerName:       o.CustomerName,
-		Status:             o.Status,
-		Partner:            o.Partner,
-		OperatorAssignee:   o.OperatorAssignee,
-		ShipmentSlaDueAt:   o.ShipmentSlaDueAt,
-		IssueSlaDueAt:      o.IssueSlaDueAt,
-		ExceptionStatus:    o.ExceptionStatus,
-		RoutingBlockCode:   o.RoutingBlockCode,
-		RoutingBlockReason: o.RoutingBlockReason,
-		SettlementStatus:   o.SettlementStatus,
-		UpdatedAt:          o.UpdatedAt,
-	})
-}
-
 func applyCustomerOrderSnapshot(o *routingctx.RoutedOrder, snapshot orderentity.CustomerOrderSnapshot) {
+	o.AggregateVersion = snapshot.Version
 	o.CandidateID = snapshot.CandidateID
 	o.ProductTitle = snapshot.ProductTitle
 	o.Quantity = snapshot.Quantity

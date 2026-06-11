@@ -275,14 +275,19 @@ Implemented aggregate and domain-event coverage:
 | Exception Handling | `OrderException`           | Open/status lifecycle invariants and exception domain events                    |
 | Settlement         | `SettlementRecord`         | Money-based settlement/issue handling behavior and domain events                |
 
-The current `RoutedOrder` GraphQL type and repository remain a composed read model during this migration slice.
-Backoffice application workflows map aggregate snapshots into that read model to keep the API and existing tables stable.
+The current `RoutedOrder` GraphQL type remains a composed read model during this migration slice.
+`CustomerOrder` now has a dedicated `customer_orders` aggregate store with optimistic versioning. Order command workflows
+load that aggregate store instead of reconstructing the aggregate from `RoutedOrder`, then persist the aggregate state and
+the existing projection in one tenant transaction.
+
+The other workflow aggregates still map snapshots into the existing `routed_orders` projection while their dedicated
+command persistence is introduced incrementally. The GraphQL API remains stable throughout this transition.
 
 Not done in this slice:
 
 - durable domain-event publisher/outbox for Backoffice
 - activity feed rebuilt from domain-event projection
-- separate command persistence tables per aggregate
+- separate command persistence tables for routing, fulfillment, exception, and settlement aggregates
 - separate merchant/platform settlement query views
 
 ## Open Questions To Confirm

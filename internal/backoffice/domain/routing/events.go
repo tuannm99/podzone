@@ -1,11 +1,12 @@
 package routing
 
-import "time"
+import (
+	"time"
 
-type DomainEvent interface {
-	EventType() string
-	OccurredAtTime() time.Time
-}
+	"github.com/tuannm99/podzone/pkg/ddd"
+)
+
+type DomainEvent = ddd.DomainEvent
 
 type RoutingPartnerSelected struct {
 	CandidateID           string
@@ -14,6 +15,8 @@ type RoutingPartnerSelected struct {
 	EstimatedShippingCost string
 	OccurredAt            time.Time
 }
+
+var _ DomainEvent = RoutingPartnerSelected{}
 
 func (e RoutingPartnerSelected) EventType() string {
 	return "RoutingPartnerSelected"
@@ -29,6 +32,8 @@ type RoutingBlocked struct {
 	Reason      string
 	OccurredAt  time.Time
 }
+
+var _ DomainEvent = RoutingBlocked{}
 
 func (e RoutingBlocked) EventType() string {
 	return "RoutingBlocked"

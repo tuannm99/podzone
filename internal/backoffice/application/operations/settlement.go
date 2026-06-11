@@ -3,18 +3,24 @@ package operations
 import (
 	"context"
 	"strings"
-	"time"
 
 	routingctx "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
 	settlementctx "github.com/tuannm99/podzone/internal/backoffice/domain/settlement"
+	"github.com/tuannm99/podzone/pkg/ddd"
 )
 
 type SettlementInteractor struct {
 	orders routingctx.OrderRoutingRepository
+	events ddd.EventDispatcher
+	clock  ddd.Clock
 }
 
-func NewSettlementInteractor(orders routingctx.OrderRoutingRepository) *SettlementInteractor {
-	return &SettlementInteractor{orders: orders}
+func NewSettlementInteractor(
+	orders routingctx.OrderRoutingRepository,
+	dispatcher ddd.EventDispatcher,
+	clock ddd.Clock,
+) *SettlementInteractor {
+	return &SettlementInteractor{orders: orders, events: dispatcher, clock: clock}
 }
 
 func (i *SettlementInteractor) UpdateOrderSettlement(
@@ -33,18 +39,26 @@ func (i *SettlementInteractor) UpdateOrderSettlement(
 		return nil, err
 	}
 
-	now := time.Now().UTC()
-	if err := updateOrderSettlement(order,
+	now := i.clock.Now()
+	domainEvents, err := updateOrderSettlement(order,
 		cmd.FulfillmentCost,
 		cmd.ShippingCost,
 		cmd.SettlementStatus,
 		cmd.Notes,
 		routingctx.ActivityActorFromContext(ctx),
 		now,
-	); err != nil {
+	)
+	if err != nil {
 		return nil, err
 	}
-	return i.orders.Update(ctx, *order)
+	saved, err := i.orders.Update(ctx, *order)
+	if err != nil {
+		return nil, err
+	}
+	if err := dispatchDomainEvents(ctx, i.events, domainEvents); err != nil {
+		return nil, err
+	}
+	return saved, nil
 }
 
 func (i *SettlementInteractor) UpdateOrderIssueHandling(
@@ -63,15 +77,23 @@ func (i *SettlementInteractor) UpdateOrderIssueHandling(
 		return nil, err
 	}
 
-	now := time.Now().UTC()
-	if err := updateOrderIssueHandling(order,
+	now := i.clock.Now()
+	domainEvents, err := updateOrderIssueHandling(order,
 		cmd.IssueCost,
 		cmd.IssueResolution,
 		cmd.Notes,
 		routingctx.ActivityActorFromContext(ctx),
 		now,
-	); err != nil {
+	)
+	if err != nil {
 		return nil, err
 	}
-	return i.orders.Update(ctx, *order)
+	saved, err := i.orders.Update(ctx, *order)
+	if err != nil {
+		return nil, err
+	}
+	if err := dispatchDomainEvents(ctx, i.events, domainEvents); err != nil {
+		return nil, err
+	}
+	return saved, nil
 }

@@ -6,6 +6,7 @@ import (
 	catalogctx "github.com/tuannm99/podzone/internal/backoffice/domain/catalog"
 	orderctx "github.com/tuannm99/podzone/internal/backoffice/domain/order"
 	routingctx "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
+	"github.com/tuannm99/podzone/pkg/ddd"
 )
 
 type OrderRoutingInteractor struct {
@@ -22,20 +23,24 @@ var _ OrderRoutingUsecase = (*OrderRoutingInteractor)(nil)
 
 func NewOrderRoutingInteractor(
 	orders routingctx.OrderRoutingRepository,
+	customerOrders orderctx.CustomerOrderQueryRepository,
 	products catalogctx.ProductSetupRepository,
 	partners routingctx.PartnerDirectory,
+	dispatcher ddd.EventDispatcher,
+	ids ddd.IDGenerator,
+	clock ddd.Clock,
 ) OrderRoutingUsecase {
-	orderUsecase := NewOrderInteractor(orders, products, partners)
-	routingUsecase := NewRoutingInteractor(orders, products, partners)
+	orderUsecase := NewOrderInteractor(orders, customerOrders, products, partners, dispatcher, ids, clock)
+	routingUsecase := NewRoutingInteractor(orders, customerOrders, products, partners, dispatcher, clock)
 
 	return &OrderRoutingInteractor{
 		orderOperations:    orderUsecase,
 		activityQueries:    NewActivityInteractor(orders),
 		routingCommands:    routingUsecase,
 		routingQueries:     routingUsecase,
-		exceptionCommands:  NewExceptionInteractor(orders),
-		fulfillmentCommand: NewFulfillmentInteractor(orders),
-		settlementCommands: NewSettlementInteractor(orders),
+		exceptionCommands:  NewExceptionInteractor(orders, dispatcher, clock),
+		fulfillmentCommand: NewFulfillmentInteractor(orders, customerOrders, dispatcher, clock),
+		settlementCommands: NewSettlementInteractor(orders, dispatcher, clock),
 	}
 }
 

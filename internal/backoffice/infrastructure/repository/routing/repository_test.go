@@ -13,7 +13,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	orderentity "github.com/tuannm99/podzone/internal/backoffice/domain/order"
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
+	"github.com/tuannm99/podzone/pkg/ddd"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 	pdtenantdbmocks "github.com/tuannm99/podzone/pkg/pdtenantdb/mocks"
 	"github.com/tuannm99/podzone/pkg/testkit"
@@ -48,7 +50,7 @@ func TestOrderRoutingRepositoryPersistsTenantScopedOrders(t *testing.T) {
 	})
 	t.Cleanup(func() { _ = manager.CloseAll() })
 
-	repo := NewOrderRoutingRepository(manager)
+	repo := New(manager)
 	shipmentSLA := time.Date(2026, 5, 15, 18, 0, 0, 0, time.UTC)
 	issueSLA := shipmentSLA.Add(3 * time.Hour)
 	shippedAt := time.Date(2026, 5, 15, 8, 30, 0, 0, time.UTC)
@@ -116,6 +118,13 @@ func TestOrderRoutingRepositoryPersistsTenantScopedOrders(t *testing.T) {
 	saved, err := repo.Create(ctxA, order)
 	require.NoError(t, err)
 	require.Equal(t, "ord-repo-1", saved.ID)
+	require.Equal(t, ddd.Version(0), saved.AggregateVersion)
+
+	customerOrder, err := repo.GetCustomerOrder(ctxA, order.StoreID, order.ID)
+	require.NoError(t, err)
+	require.Equal(t, order.ID, customerOrder.AggregateID().String())
+	require.Equal(t, ddd.Version(0), customerOrder.AggregateVersion())
+	require.Equal(t, orderentity.StatusShipped, customerOrder.Snapshot().Status)
 
 	got, err := repo.GetByID(ctxA, "ord-repo-1")
 	require.NoError(t, err)
@@ -142,6 +151,22 @@ func TestOrderRoutingRepositoryPersistsTenantScopedOrders(t *testing.T) {
 	require.Equal(t, routingentity.RoutedOrderShipmentStatusDelivered, got.ActivityLog[1].Details[0].Value)
 	require.Equal(t, routingentity.RoutedOrderSettlementStatusPaid, got.SettlementStatus)
 	require.Equal(t, routingentity.RoutedOrderIssueResolutionReprint, got.IssueResolution)
+
+	staleOrder := *got
+	got.OperatorAssignee = "ops.next"
+	got.UpdatedAt = updatedAt.Add(time.Hour)
+	updated, err := repo.Update(ctxA, *got)
+	require.NoError(t, err)
+	require.Equal(t, ddd.Version(1), updated.AggregateVersion)
+
+	customerOrder, err = repo.GetCustomerOrder(ctxA, order.StoreID, order.ID)
+	require.NoError(t, err)
+	require.Equal(t, ddd.Version(1), customerOrder.AggregateVersion())
+	require.Equal(t, "ops.next", customerOrder.Snapshot().OperatorAssignee)
+
+	staleOrder.OperatorAssignee = "ops.stale"
+	_, err = repo.Update(ctxA, staleOrder)
+	require.ErrorIs(t, err, ddd.ErrVersionConflict)
 
 	list, err := repo.List(ctxA)
 	require.NoError(t, err)

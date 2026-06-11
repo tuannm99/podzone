@@ -3,18 +3,32 @@ package operations
 import (
 	"context"
 	"strings"
-	"time"
 
 	fulfillmentctx "github.com/tuannm99/podzone/internal/backoffice/domain/fulfillment"
+	orderctx "github.com/tuannm99/podzone/internal/backoffice/domain/order"
 	routingctx "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
+	"github.com/tuannm99/podzone/pkg/ddd"
 )
 
 type FulfillmentInteractor struct {
-	orders routingctx.OrderRoutingRepository
+	orders         routingctx.OrderRoutingRepository
+	customerOrders orderctx.CustomerOrderQueryRepository
+	events         ddd.EventDispatcher
+	clock          ddd.Clock
 }
 
-func NewFulfillmentInteractor(orders routingctx.OrderRoutingRepository) *FulfillmentInteractor {
-	return &FulfillmentInteractor{orders: orders}
+func NewFulfillmentInteractor(
+	orders routingctx.OrderRoutingRepository,
+	customerOrders orderctx.CustomerOrderQueryRepository,
+	dispatcher ddd.EventDispatcher,
+	clock ddd.Clock,
+) *FulfillmentInteractor {
+	return &FulfillmentInteractor{
+		orders:         orders,
+		customerOrders: customerOrders,
+		events:         dispatcher,
+		clock:          clock,
+	}
 }
 
 func (i *FulfillmentInteractor) UpdateOrderShipment(
@@ -32,8 +46,14 @@ func (i *FulfillmentInteractor) UpdateOrderShipment(
 	if err := routingctx.EnsureOrderStore(order, storeID); err != nil {
 		return nil, err
 	}
-	now := time.Now().UTC()
-	if err := updateOrderShipment(order,
+	customerOrder, err := i.customerOrders.GetCustomerOrder(ctx, storeID, order.ID)
+	if err != nil {
+		return nil, err
+	}
+	now := i.clock.Now()
+	domainEvents, err := updateOrderShipment(
+		order,
+		customerOrder,
 		cmd.ShipmentStatus,
 		cmd.Carrier,
 		cmd.TrackingNumber,
@@ -41,8 +61,16 @@ func (i *FulfillmentInteractor) UpdateOrderShipment(
 		cmd.Notes,
 		routingctx.ActivityActorFromContext(ctx),
 		now,
-	); err != nil {
+	)
+	if err != nil {
 		return nil, err
 	}
-	return i.orders.Update(ctx, *order)
+	saved, err := i.orders.Update(ctx, *order)
+	if err != nil {
+		return nil, err
+	}
+	if err := dispatchDomainEvents(ctx, i.events, domainEvents); err != nil {
+		return nil, err
+	}
+	return saved, nil
 }

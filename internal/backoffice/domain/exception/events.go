@@ -1,17 +1,20 @@
 package exception
 
-import "time"
+import (
+	"time"
 
-type DomainEvent interface {
-	EventType() string
-	OccurredAtTime() time.Time
-}
+	"github.com/tuannm99/podzone/pkg/ddd"
+)
+
+type DomainEvent = ddd.DomainEvent
 
 type OrderExceptionOpened struct {
 	OrderID       string
 	ExceptionType string
 	OccurredAt    time.Time
 }
+
+var _ DomainEvent = OrderExceptionOpened{}
 
 func (e OrderExceptionOpened) EventType() string {
 	return "OrderExceptionOpened"
@@ -27,6 +30,8 @@ type OrderExceptionStatusChanged struct {
 	Status        string
 	OccurredAt    time.Time
 }
+
+var _ DomainEvent = OrderExceptionStatusChanged{}
 
 func (e OrderExceptionStatusChanged) EventType() string {
 	return "OrderExceptionStatusChanged"

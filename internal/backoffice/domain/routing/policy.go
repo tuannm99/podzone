@@ -55,6 +55,7 @@ func BuildRoutingRecommendation(
 	productType string,
 	shipRegion string,
 	preferredPartner string,
+	now time.Time,
 ) *RoutedOrderRecommendation {
 	options := make([]RoutingPartnerOption, 0, len(partners))
 
@@ -124,7 +125,7 @@ func BuildRoutingRecommendation(
 			Options:           options,
 		}
 	}
-	now := time.Now().UTC()
+	now = now.UTC()
 	preferredPartner = strings.TrimSpace(preferredPartner)
 	if preferredPartner != "" {
 		if decision.SelectPreferred(preferredPartner, now) {

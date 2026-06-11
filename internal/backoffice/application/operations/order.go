@@ -4,27 +4,42 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
-	"github.com/google/uuid"
 	catalogctx "github.com/tuannm99/podzone/internal/backoffice/domain/catalog"
 	orderctx "github.com/tuannm99/podzone/internal/backoffice/domain/order"
 	routingctx "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
+	"github.com/tuannm99/podzone/pkg/ddd"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 type OrderInteractor struct {
-	orders   routingctx.OrderRoutingRepository
-	products catalogctx.ProductSetupRepository
-	partners routingctx.PartnerDirectory
+	orders         routingctx.OrderRoutingRepository
+	customerOrders orderctx.CustomerOrderQueryRepository
+	products       catalogctx.ProductSetupRepository
+	partners       routingctx.PartnerDirectory
+	events         ddd.EventDispatcher
+	ids            ddd.IDGenerator
+	clock          ddd.Clock
 }
 
 func NewOrderInteractor(
 	orders routingctx.OrderRoutingRepository,
+	customerOrders orderctx.CustomerOrderQueryRepository,
 	products catalogctx.ProductSetupRepository,
 	partners routingctx.PartnerDirectory,
+	dispatcher ddd.EventDispatcher,
+	ids ddd.IDGenerator,
+	clock ddd.Clock,
 ) *OrderInteractor {
-	return &OrderInteractor{orders: orders, products: products, partners: partners}
+	return &OrderInteractor{
+		orders:         orders,
+		customerOrders: customerOrders,
+		products:       products,
+		partners:       partners,
+		events:         dispatcher,
+		ids:            ids,
+		clock:          clock,
+	}
 }
 
 func (i *OrderInteractor) ListCustomerOrders(
@@ -71,6 +86,7 @@ func (i *OrderInteractor) CreateCustomerOrder(
 		routingctx.NormalizeRoutingLabel(cmd.ProductType),
 		routingctx.NormalizeRoutingLabel(cmd.ShipRegion),
 		strings.TrimSpace(cmd.PreferredPartner),
+		i.clock.Now(),
 	)
 	selectedOption := routingctx.FindSelectedRoutingOption(recommendation)
 
@@ -78,7 +94,7 @@ func (i *OrderInteractor) CreateCustomerOrder(
 	if qty < 1 {
 		qty = 1
 	}
-	now := time.Now().UTC()
+	now := i.clock.Now()
 	actor := routingctx.ActivityActorFromContext(ctx)
 	partner := recommendation.SelectedPartner
 	routingBlockCode := ""
@@ -102,8 +118,12 @@ func (i *OrderInteractor) CreateCustomerOrder(
 		routingBlockReason = recommendation.BlockedReason
 	}
 	total := routingctx.MultiplyMoney(candidate.RetailPrice, qty)
+	orderID, err := i.ids.NewID("order")
+	if err != nil {
+		return nil, err
+	}
 	customerOrder, changes, err := orderctx.ReceiveCustomerOrder(orderctx.ReceiveCustomerOrderInput{
-		ID:                 fmt.Sprintf("ORD-%s", strings.ToUpper(uuid.NewString()[:8])),
+		ID:                 orderID.String(),
 		StoreID:            storeID,
 		CandidateID:        candidate.ID,
 		ProductTitle:       candidate.Title,
@@ -118,6 +138,7 @@ func (i *OrderInteractor) CreateCustomerOrder(
 	if err != nil {
 		return nil, err
 	}
+	domainEvents := collectDomainEvents(customerOrder.PullEvents())
 	orderSnapshot := customerOrder.Snapshot()
 
 	timeline := make([]string, 0, len(changes))
@@ -192,7 +213,14 @@ func (i *OrderInteractor) CreateCustomerOrder(
 		order.ShippingCost,
 		order.IssueCost,
 	)
-	return i.orders.Create(ctx, order)
+	saved, err := i.orders.Create(ctx, order)
+	if err != nil {
+		return nil, err
+	}
+	if err := dispatchDomainEvents(ctx, i.events, domainEvents); err != nil {
+		return nil, err
+	}
+	return saved, nil
 }
 
 func (i *OrderInteractor) AdvanceCustomerOrder(
@@ -210,11 +238,28 @@ func (i *OrderInteractor) AdvanceCustomerOrder(
 	if err := routingctx.EnsureOrderStore(order, storeID); err != nil {
 		return nil, err
 	}
-	now := time.Now().UTC()
-	if err := advanceRoutedOrder(order, routingctx.ActivityActorFromContext(ctx), now); err != nil {
+	customerOrder, err := i.customerOrders.GetCustomerOrder(ctx, storeID, order.ID)
+	if err != nil {
 		return nil, err
 	}
-	return i.orders.Update(ctx, *order)
+	now := i.clock.Now()
+	domainEvents, err := advanceRoutedOrder(
+		order,
+		customerOrder,
+		routingctx.ActivityActorFromContext(ctx),
+		now,
+	)
+	if err != nil {
+		return nil, err
+	}
+	saved, err := i.orders.Update(ctx, *order)
+	if err != nil {
+		return nil, err
+	}
+	if err := dispatchDomainEvents(ctx, i.events, domainEvents); err != nil {
+		return nil, err
+	}
+	return saved, nil
 }
 
 func (i *OrderInteractor) UpdateOrderQueueControl(
@@ -232,16 +277,29 @@ func (i *OrderInteractor) UpdateOrderQueueControl(
 	if err := routingctx.EnsureOrderStore(order, storeID); err != nil {
 		return nil, err
 	}
+	customerOrder, err := i.customerOrders.GetCustomerOrder(ctx, storeID, order.ID)
+	if err != nil {
+		return nil, err
+	}
 
-	now := time.Now().UTC()
-	updateOrderQueueControl(order,
+	now := i.clock.Now()
+	domainEvents := updateOrderQueueControl(
+		order,
+		customerOrder,
 		cmd.OperatorAssignee,
 		cmd.ShipmentSlaDueAt,
 		cmd.IssueSlaDueAt,
 		routingctx.ActivityActorFromContext(ctx),
 		now,
 	)
-	return i.orders.Update(ctx, *order)
+	saved, err := i.orders.Update(ctx, *order)
+	if err != nil {
+		return nil, err
+	}
+	if err := dispatchDomainEvents(ctx, i.events, domainEvents); err != nil {
+		return nil, err
+	}
+	return saved, nil
 }
 
 func (i *OrderInteractor) BulkUpdateOrders(
@@ -272,19 +330,29 @@ func (i *OrderInteractor) BulkUpdateOrders(
 		if err := routingctx.EnsureOrderStore(order, storeID); err != nil {
 			return nil, err
 		}
+		customerOrder, err := i.customerOrders.GetCustomerOrder(ctx, storeID, order.ID)
+		if err != nil {
+			return nil, err
+		}
 
-		now := time.Now().UTC()
-		if err := applyBulkQueueControl(order,
+		now := i.clock.Now()
+		domainEvents, err := applyBulkQueueControl(
+			order,
+			customerOrder,
 			cmd.OperatorAssignee,
 			cmd.ShipmentSlaDueAt,
 			cmd.SettlementStatus,
 			routingctx.ActivityActorFromContext(ctx),
 			now,
-		); err != nil {
+		)
+		if err != nil {
 			return nil, err
 		}
 		saved, err := i.orders.Update(ctx, *order)
 		if err != nil {
+			return nil, err
+		}
+		if err := dispatchDomainEvents(ctx, i.events, domainEvents); err != nil {
 			return nil, err
 		}
 		updated = append(updated, *saved)

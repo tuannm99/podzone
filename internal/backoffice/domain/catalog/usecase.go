@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"context"
+	"strings"
 )
 
 type CreateProductSetupDraftCmd struct {
@@ -32,4 +33,15 @@ type ProductSetupUsecase interface {
 		cmd PromoteProductSetupCandidateCmd,
 	) (*ProductSetupCandidate, error)
 	UpdateCandidateStatus(ctx context.Context, storeID, id, status string) (*ProductSetupCandidate, error)
+}
+
+func NormalizeCandidateStatus(raw string) string {
+	switch strings.TrimSpace(raw) {
+	case ProductSetupCandidateStatusReady,
+		ProductSetupCandidateStatusPublishedMock,
+		ProductSetupCandidateStatusArchived:
+		return raw
+	default:
+		return ""
+	}
 }

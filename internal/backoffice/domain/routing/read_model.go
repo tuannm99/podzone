@@ -1,6 +1,10 @@
 package routing
 
-import "time"
+import (
+	"time"
+
+	"github.com/tuannm99/podzone/pkg/ddd"
+)
 
 const (
 	RoutedOrderStatusQueued         = "queued"
@@ -65,6 +69,7 @@ type RoutedOrderActivityFeedPage struct {
 
 type RoutedOrder struct {
 	ID                     string                `json:"id"`
+	AggregateVersion       ddd.Version           `json:"-"`
 	StoreID                string                `json:"storeId"`
 	CandidateID            string                `json:"candidateId"`
 	ProductTitle           string                `json:"productTitle"`

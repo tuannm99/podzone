@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/tuannm99/podzone/pkg/ddd"
 )
 
 type RoutingDecisionSnapshot struct {
@@ -20,6 +22,7 @@ type RoutingDecisionSnapshot struct {
 }
 
 type RoutingDecision struct {
+	aggregate         ddd.AggregateBase
 	candidateID       string
 	productTitle      string
 	candidatePartner  string
@@ -30,8 +33,9 @@ type RoutingDecision struct {
 	blockedReason     string
 	summary           string
 	options           []RoutingPartnerOption
-	pendingEvents     []DomainEvent
 }
+
+var _ ddd.AggregateRoot = (*RoutingDecision)(nil)
 
 func NewRoutingDecision(
 	candidateID string,
@@ -43,9 +47,14 @@ func NewRoutingDecision(
 ) (*RoutingDecision, error) {
 	candidateID = strings.TrimSpace(candidateID)
 	if candidateID == "" {
-		return nil, fmt.Errorf("routing candidate id is required")
+		return nil, ErrRoutingCandidateRequired
+	}
+	aggregate, err := newAggregate(candidateID)
+	if err != nil {
+		return nil, err
 	}
 	return &RoutingDecision{
+		aggregate:        aggregate,
 		candidateID:      candidateID,
 		productTitle:     strings.TrimSpace(productTitle),
 		candidatePartner: strings.TrimSpace(candidatePartner),
@@ -117,10 +126,25 @@ func (d *RoutingDecision) Snapshot() RoutingDecisionSnapshot {
 	}
 }
 
+func (d *RoutingDecision) AggregateID() ddd.ID {
+	if d == nil {
+		return ""
+	}
+	return d.aggregate.AggregateID()
+}
+
+func (d *RoutingDecision) AggregateVersion() ddd.Version {
+	if d == nil {
+		return 0
+	}
+	return d.aggregate.AggregateVersion()
+}
+
 func (d *RoutingDecision) PullEvents() []DomainEvent {
-	events := d.pendingEvents
-	d.pendingEvents = nil
-	return events
+	if d == nil {
+		return nil
+	}
+	return d.aggregate.PullEvents()
 }
 
 func (d *RoutingDecision) selectPartner(option RoutingPartnerOption, summary string, now time.Time) {
@@ -138,7 +162,15 @@ func (d *RoutingDecision) selectPartner(option RoutingPartnerOption, summary str
 }
 
 func (d *RoutingDecision) record(event DomainEvent) {
-	d.pendingEvents = append(d.pendingEvents, event)
+	d.aggregate.RecordEvent(event)
+}
+
+func newAggregate(rawID string) (ddd.AggregateBase, error) {
+	id, err := ddd.ParseID(rawID)
+	if err != nil {
+		return ddd.AggregateBase{}, err
+	}
+	return ddd.NewAggregateBase(id, 0)
 }
 
 func preferredPartnerSummary(option RoutingPartnerOption, productType string, shipRegion string) string {

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/tuannm99/podzone/internal/backoffice/domain/shared"
+	"github.com/tuannm99/podzone/pkg/ddd"
 )
 
 const (
@@ -49,6 +50,7 @@ type SettlementRecordSnapshot struct {
 }
 
 type SettlementRecord struct {
+	aggregate       ddd.AggregateBase
 	orderID         string
 	total           shared.Money
 	fulfillmentCost shared.Money
@@ -61,14 +63,13 @@ type SettlementRecord struct {
 	notes           string
 	exceptionType   string
 	shipmentStatus  string
-	pendingEvents   []DomainEvent
 }
 
-var _ shared.AggregateRoot = (*SettlementRecord)(nil)
+var _ ddd.AggregateRoot = (*SettlementRecord)(nil)
 
 func RehydrateSettlementRecord(snapshot SettlementRecordSnapshot) (*SettlementRecord, error) {
 	if strings.TrimSpace(snapshot.OrderID) == "" {
-		return nil, fmt.Errorf("settlement order id is required")
+		return nil, ErrOrderIDRequired
 	}
 	total := parseMoneyOrZero(snapshot.Total)
 	fulfillmentCost := parseMoneyOrZero(snapshot.FulfillmentCost)
@@ -77,9 +78,14 @@ func RehydrateSettlementRecord(snapshot SettlementRecordSnapshot) (*SettlementRe
 	realizedMargin := parseMoneyOrZero(snapshot.RealizedMargin)
 	status := normalizeStatus(snapshot.Status)
 	if strings.TrimSpace(snapshot.Status) != "" && status == "" {
-		return nil, fmt.Errorf("invalid settlement status")
+		return nil, ErrStatusInvalid
+	}
+	aggregate, err := newAggregate(snapshot.OrderID)
+	if err != nil {
+		return nil, err
 	}
 	return &SettlementRecord{
+		aggregate:       aggregate,
 		orderID:         snapshot.OrderID,
 		total:           total,
 		fulfillmentCost: fulfillmentCost,
@@ -95,8 +101,18 @@ func RehydrateSettlementRecord(snapshot SettlementRecordSnapshot) (*SettlementRe
 	}, nil
 }
 
-func (r *SettlementRecord) AggregateID() string {
-	return r.orderID
+func (r *SettlementRecord) AggregateID() ddd.ID {
+	if r == nil {
+		return ""
+	}
+	return r.aggregate.AggregateID()
+}
+
+func (r *SettlementRecord) AggregateVersion() ddd.Version {
+	if r == nil {
+		return 0
+	}
+	return r.aggregate.AggregateVersion()
 }
 
 func (r *SettlementRecord) Snapshot() SettlementRecordSnapshot {
@@ -117,9 +133,10 @@ func (r *SettlementRecord) Snapshot() SettlementRecordSnapshot {
 }
 
 func (r *SettlementRecord) PullEvents() []DomainEvent {
-	events := r.pendingEvents
-	r.pendingEvents = nil
-	return events
+	if r == nil {
+		return nil
+	}
+	return r.aggregate.PullEvents()
 }
 
 func (r *SettlementRecord) UpdateSettlement(
@@ -131,15 +148,15 @@ func (r *SettlementRecord) UpdateSettlement(
 ) (Change, *Change, error) {
 	normalizedFulfillmentCost, err := shared.ParseMoney(fulfillmentCost)
 	if err != nil {
-		return Change{}, nil, fmt.Errorf("invalid fulfillment cost")
+		return Change{}, nil, ErrFulfillmentCostInvalid
 	}
 	normalizedShippingCost, err := shared.ParseMoney(shippingCost)
 	if err != nil {
-		return Change{}, nil, fmt.Errorf("invalid shipping cost")
+		return Change{}, nil, ErrShippingCostInvalid
 	}
 	normalizedStatus := normalizeStatus(status)
 	if normalizedStatus == "" {
-		return Change{}, nil, fmt.Errorf("invalid settlement status")
+		return Change{}, nil, ErrStatusInvalid
 	}
 
 	r.fulfillmentCost = normalizedFulfillmentCost
@@ -183,16 +200,16 @@ func (r *SettlementRecord) UpdateIssueHandling(
 	now time.Time,
 ) (Change, *Change, error) {
 	if r.exceptionType == "" && r.shipmentStatus != ShipmentStatusDeliveryIssue {
-		return Change{}, nil, fmt.Errorf("issue cost handling requires an active exception or delivery issue")
+		return Change{}, nil, ErrIssueContextRequired
 	}
 
 	normalizedIssueCost, err := shared.ParseMoney(issueCost)
 	if err != nil {
-		return Change{}, nil, fmt.Errorf("invalid issue cost")
+		return Change{}, nil, ErrIssueCostInvalid
 	}
 	issueResolution = normalizeIssueResolution(issueResolution)
 	if issueResolution == "" {
-		return Change{}, nil, fmt.Errorf("invalid issue resolution")
+		return Change{}, nil, ErrIssueResolutionInvalid
 	}
 
 	r.issueCost = normalizedIssueCost
@@ -226,7 +243,15 @@ func (r *SettlementRecord) UpdateIssueHandling(
 }
 
 func (r *SettlementRecord) record(event DomainEvent) {
-	r.pendingEvents = append(r.pendingEvents, event)
+	r.aggregate.RecordEvent(event)
+}
+
+func newAggregate(rawID string) (ddd.AggregateBase, error) {
+	id, err := ddd.ParseID(rawID)
+	if err != nil {
+		return ddd.AggregateBase{}, err
+	}
+	return ddd.NewAggregateBase(id, 0)
 }
 
 func MultiplyMoney(raw string, qty int) string {

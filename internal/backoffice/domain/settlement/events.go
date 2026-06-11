@@ -1,11 +1,12 @@
 package settlement
 
-import "time"
+import (
+	"time"
 
-type DomainEvent interface {
-	EventType() string
-	OccurredAtTime() time.Time
-}
+	"github.com/tuannm99/podzone/pkg/ddd"
+)
+
+type DomainEvent = ddd.DomainEvent
 
 type SettlementUpdated struct {
 	OrderID        string
@@ -13,6 +14,8 @@ type SettlementUpdated struct {
 	RealizedMargin string
 	OccurredAt     time.Time
 }
+
+var _ DomainEvent = SettlementUpdated{}
 
 func (e SettlementUpdated) EventType() string {
 	return "SettlementUpdated"
@@ -29,6 +32,8 @@ type IssueHandlingUpdated struct {
 	RealizedMargin  string
 	OccurredAt      time.Time
 }
+
+var _ DomainEvent = IssueHandlingUpdated{}
 
 func (e IssueHandlingUpdated) EventType() string {
 	return "IssueHandlingUpdated"
