@@ -16,8 +16,7 @@ import (
 func NewMockCustomerOrderQueryRepository(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *MockCustomerOrderQueryRepository {
+}) *MockCustomerOrderQueryRepository {
 	mock := &MockCustomerOrderQueryRepository{}
 	mock.Mock.Test(t)
 

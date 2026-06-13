@@ -56,4 +56,3 @@ var CommonGinMiddlewareModule = fx.Options(
 		),
 	),
 )
-

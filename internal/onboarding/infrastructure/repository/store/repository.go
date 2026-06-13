@@ -65,7 +65,10 @@ func (r *MongoRepository) FindBySubdomain(ctx context.Context, subdomain string)
 	return &request, nil
 }
 
-func (r *MongoRepository) Create(ctx context.Context, request storeentity.StoreRequest) (*storeentity.StoreRequest, error) {
+func (r *MongoRepository) Create(
+	ctx context.Context,
+	request storeentity.StoreRequest,
+) (*storeentity.StoreRequest, error) {
 	result, err := r.collection.InsertOne(ctx, request)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {

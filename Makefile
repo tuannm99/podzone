@@ -1,6 +1,17 @@
-.PHONY: all proto swagger build test lint dev down clean help docker-dev docker-dev-infra docker-dev-down mocks dev-backoffice-seed dev-backoffice-sample dev-auth-bootstrap dev-ui-auth-sync dev-pod-sample dev-pod-up
+.PHONY: all proto swagger build test coverage lint fmt dev down clean help
+.PHONY: docker-dev docker-dev-infra docker-dev-down mocks mocks-gen
+.PHONY: dev-backoffice-seed dev-backoffice-sample dev-auth-bootstrap
+.PHONY: dev-ui-auth-sync dev-pod-sample dev-pod-up
 
 GO := go
+GO_CACHE ?= /tmp/podzone-gocache
+BUF_CACHE_DIR ?= /tmp/podzone-buf-cache
+COVERAGE_MIN ?= 90
+
+LINT_PKGS = $(shell GOCACHE=$(GO_CACHE) $(GO) list -f '{{.Dir}}' ./... | \
+	sed '\#/generated$$#d; \#/mocks$$#d; \#/node_modules/#d; s#$(CURDIR)#.#')
+COVER_PKGS = $(shell GOCACHE=$(GO_CACHE) $(GO) list -f '{{.Dir}}' ./internal/... ./pkg/... | \
+	sed '\#/generated$$#d; \#/mocks$$#d; \#/node_modules/#d; \#/internal/bootstrap$$#d; s#$(CURDIR)#.#')
 
 # Colors for output
 COLOR_RESET = \033[0m
@@ -10,19 +21,16 @@ COLOR_YELLOW = \033[33m
 SVC ?= none
 .PHONY: svc help
 
-BUF ?= buf
-MOCKERY ?= mockery
-
 proto:
 	@echo "Generating protobuf via buf..."
-	@$(BUF) generate
+	@BUF_CACHE_DIR=$(BUF_CACHE_DIR) GOCACHE=$(GO_CACHE) $(GO) tool buf generate
 
 proto_lint:
-	@$(BUF) lint
+	@BUF_CACHE_DIR=$(BUF_CACHE_DIR) GOCACHE=$(GO_CACHE) $(GO) tool buf lint
 
 proto_svc:
 	@echo "$(COLOR_GREEN)Generating protobuf for $(SVC)...$(COLOR_RESET)"
-	@$(BUF) generate --path api/proto/$(SVC)
+	@BUF_CACHE_DIR=$(BUF_CACHE_DIR) GOCACHE=$(GO_CACHE) $(GO) tool buf generate --path api/proto/$(SVC)
 
 
 # Run tests for all packages
@@ -30,12 +38,27 @@ test:
 	@echo "$(COLOR_GREEN)Running tests...$(COLOR_RESET)"
 	@set -e; \
 	export PODZONE_TC_REUSE=1; \
-	$(GO) test -v -cover ./pkg/... ./internal/... ./cmd/...
+	GOCACHE=$(GO_CACHE) $(GO) test ./... -v -cover
+
+coverage:
+	@echo "$(COLOR_GREEN)Checking test coverage...$(COLOR_RESET)"
+	@GOCACHE=$(GO_CACHE) $(GO) test $(COVER_PKGS) \
+		-covermode=atomic -coverprofile=/tmp/podzone-coverage.out
+	@coverage=$$(GOCACHE=$(GO_CACHE) $(GO) tool cover \
+		-func=/tmp/podzone-coverage.out | awk '/^total:/ {gsub("%", "", $$3); print $$3}'); \
+	echo "coverage: $${coverage}% (minimum: $(COVERAGE_MIN)%)"; \
+	awk -v coverage="$$coverage" -v minimum="$(COVERAGE_MIN)" \
+		'BEGIN { if (coverage + 0 < minimum + 0) exit 1 }'
 
 # Run linter
 lint:
 	@echo "$(COLOR_GREEN)Running linter...$(COLOR_RESET)"
-	golangci-lint run ./...
+	GOCACHE=$(GO_CACHE) $(GO) tool golangci-lint run --timeout=5m $(LINT_PKGS)
+
+fmt:
+	@echo "$(COLOR_GREEN)Formatting Go code...$(COLOR_RESET)"
+	@$(GO) tool golines -w --max-len=120 .
+	@$(GO) tool gofumpt -w .
 
 docker-dev-infra:
 	docker compose -f deployments/docker/infras.yml up -d
@@ -145,11 +168,12 @@ dev-pod-sample:
 		UI_AUTH_BOOTSTRAP_TARGET=$(UI_AUTH_BOOTSTRAP_TARGET)
 
 gql-backoffice:
-	go run github.com/99designs/gqlgen generate
+	$(GO) tool gqlgen generate
 
-mocks:
+
+mocks-gen: mocks
 	@echo "$(COLOR_GREEN)Generating mocks via mockery...$(COLOR_RESET)"
-	@GOCACHE=$${GOCACHE:-/tmp/podzone-mockery-cache} $(MOCKERY)
+	@GOCACHE=$(GO_CACHE) $(GO) tool mockery
 
 dev:
 	@echo "🔁 Starting services in parallel..."
@@ -164,9 +188,9 @@ migrate:
 	@set -e; \
 	export GOOSE_DRIVER=postgres; \
 	export GOOSE_DBSTRING="postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"; \
-	go run github.com/pressly/goose/v3/cmd/goose -dir ./internal/auth/migrations/authsql status; \
-	go run github.com/pressly/goose/v3/cmd/goose -dir ./internal/auth/migrations/authsql up
-# 	go run github.com/pressly/goose/v3/cmd/goose -dir ./internal/auth/migrations/authsql down
+	$(GO) tool goose -dir ./internal/auth/migrations/authsql status; \
+	$(GO) tool goose -dir ./internal/auth/migrations/authsql up
+# 	$(GO) tool goose -dir ./internal/auth/migrations/authsql down
 
 sonar:
 	@echo "🔁 Starting quality check..."
@@ -244,7 +268,10 @@ help:
 	@echo "$(COLOR_YELLOW)Available commands:$(COLOR_RESET)"
 	@echo "  make api                              - Generate protobuf code, swagger api"
 	@echo "  make test                             - Run tests"
+	@echo "  make coverage                         - Enforce aggregate coverage (default: $(COVERAGE_MIN)%)"
 	@echo "  make lint                             - Run linter"
+	@echo "  make fmt                              - Format Go code with golines and gofumpt"
+	@echo "  make mocks-gen                        - Generate mocks with the pinned mockery tool"
 	@echo "  make portfw                           - Portfowrding"
 	@echo "  make dev SVC=${service}               - Run service"
 	@echo "  make docker-dev                       - Run dockerized dev infra + hot reload services"

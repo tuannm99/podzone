@@ -71,10 +71,12 @@ func TestOrderRoutingRepositoryPersistsTenantScopedOrders(t *testing.T) {
 		Timeline:     []string{"created", "shipment delivered"},
 		ActivityLog: []routingentity.RoutedOrderActivity{
 			{
-				Type:      routingentity.RoutedOrderActivityTypeSystem,
-				Actor:     "system",
-				Message:   "created",
-				Details:   []routingentity.RoutedOrderActivityDetail{{Key: "status", Value: routingentity.RoutedOrderStatusQueued}},
+				Type:    routingentity.RoutedOrderActivityTypeSystem,
+				Actor:   "system",
+				Message: "created",
+				Details: []routingentity.RoutedOrderActivityDetail{
+					{Key: "status", Value: routingentity.RoutedOrderStatusQueued},
+				},
 				CreatedAt: createdAt,
 			},
 			{

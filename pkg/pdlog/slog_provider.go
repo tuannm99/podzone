@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"os"
 	"strings"
-
 )
 
 func NewSlogLogger(cfg Config) (Logger, error) {

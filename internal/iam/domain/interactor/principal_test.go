@@ -29,16 +29,40 @@ func TestIAMService_PlatformUserPermissionBoundaryScopesDown(t *testing.T) {
 
 	svc, state := newIAMTestUsecase(t)
 	state.platformDirect[11] = []entity.PolicyStatement{
-		{PolicyID: 20, PolicyName: "inline/platform-direct", Effect: entity.PolicyEffectAllow, ActionPattern: "tenant:create", ResourcePattern: "*"},
+		{
+			PolicyID:        20,
+			PolicyName:      "inline/platform-direct",
+			Effect:          entity.PolicyEffectAllow,
+			ActionPattern:   "tenant:create",
+			ResourcePattern: "*",
+		},
 	}
-	state.policiesByName["managed/platform-readonly-boundary"] = entity.Policy{ID: 21, Scope: entity.PolicyScopePlatform, Name: "managed/platform-readonly-boundary"}
+	state.policiesByName["managed/platform-readonly-boundary"] = entity.Policy{
+		ID:    21,
+		Scope: entity.PolicyScopePlatform,
+		Name:  "managed/platform-readonly-boundary",
+	}
 	state.policiesByID[21] = state.policiesByName["managed/platform-readonly-boundary"]
 	state.policyStatements[21] = []entity.PolicyStatement{
-		{ID: 1, PolicyID: 21, PolicyName: "managed/platform-readonly-boundary", Effect: entity.PolicyEffectAllow, ActionPattern: "tenant:read", ResourcePattern: "*"},
+		{
+			ID:              1,
+			PolicyID:        21,
+			PolicyName:      "managed/platform-readonly-boundary",
+			Effect:          entity.PolicyEffectAllow,
+			ActionPattern:   "tenant:read",
+			ResourcePattern: "*",
+		},
 	}
 
-	require.NoError(t, svc.PutPlatformUserPermissionBoundary(context.Background(), 11, "managed/platform-readonly-boundary"))
-	require.ErrorIs(t, svc.RequirePlatformPermission(context.Background(), 11, "tenant:create"), entity.ErrPermissionDenied)
+	require.NoError(
+		t,
+		svc.PutPlatformUserPermissionBoundary(context.Background(), 11, "managed/platform-readonly-boundary"),
+	)
+	require.ErrorIs(
+		t,
+		svc.RequirePlatformPermission(context.Background(), 11, "tenant:create"),
+		entity.ErrPermissionDenied,
+	)
 }
 
 func TestIAMService_AddAndRemovePlatformRole(t *testing.T) {
@@ -241,14 +265,34 @@ func TestIAMService_TenantUserPermissionBoundaryScopesDown(t *testing.T) {
 		Status:   entity.MembershipStatusActive,
 	}
 	state.roleStatements[4] = []entity.PolicyStatement{
-		{PolicyID: 15, PolicyName: "managed/tenant_editor", Effect: entity.PolicyEffectAllow, ActionPattern: "order:update", ResourcePattern: "*"},
+		{
+			PolicyID:        15,
+			PolicyName:      "managed/tenant_editor",
+			Effect:          entity.PolicyEffectAllow,
+			ActionPattern:   "order:update",
+			ResourcePattern: "*",
+		},
 	}
-	state.policiesByName["tenant/orders-readonly-boundary"] = entity.Policy{ID: 22, Scope: entity.PolicyScopeTenant, Name: "tenant/orders-readonly-boundary"}
+	state.policiesByName["tenant/orders-readonly-boundary"] = entity.Policy{
+		ID:    22,
+		Scope: entity.PolicyScopeTenant,
+		Name:  "tenant/orders-readonly-boundary",
+	}
 	state.policiesByID[22] = state.policiesByName["tenant/orders-readonly-boundary"]
 	state.policyStatements[22] = []entity.PolicyStatement{
-		{ID: 1, PolicyID: 22, PolicyName: "tenant/orders-readonly-boundary", Effect: entity.PolicyEffectAllow, ActionPattern: "order:read", ResourcePattern: "*"},
+		{
+			ID:              1,
+			PolicyID:        22,
+			PolicyName:      "tenant/orders-readonly-boundary",
+			Effect:          entity.PolicyEffectAllow,
+			ActionPattern:   "order:read",
+			ResourcePattern: "*",
+		},
 	}
 
-	require.NoError(t, svc.PutTenantUserPermissionBoundary(context.Background(), "t1", 9, "tenant/orders-readonly-boundary"))
+	require.NoError(
+		t,
+		svc.PutTenantUserPermissionBoundary(context.Background(), "t1", 9, "tenant/orders-readonly-boundary"),
+	)
 	require.ErrorIs(t, svc.RequirePermission(context.Background(), "t1", 9, "order:update"), entity.ErrPermissionDenied)
 }

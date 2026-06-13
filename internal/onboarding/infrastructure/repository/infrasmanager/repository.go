@@ -15,9 +15,11 @@ import (
 	"go.uber.org/fx"
 )
 
-var _ storeoutputport.ConnectionStore = (*MongoStore)(nil)
-var _ storeoutputport.PlacementRepository = (*MongoStore)(nil)
-var _ messaging.OutboxStore = (*MongoStore)(nil)
+var (
+	_ storeoutputport.ConnectionStore     = (*MongoStore)(nil)
+	_ storeoutputport.PlacementRepository = (*MongoStore)(nil)
+	_ messaging.OutboxStore               = (*MongoStore)(nil)
+)
 
 type MongoStore struct {
 	db *mongo.Database

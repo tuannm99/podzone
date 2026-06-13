@@ -44,5 +44,7 @@ type Usecase interface {
 	ProcessNextStoreRequest(ctx context.Context) (*Request, error)
 }
 
-type StoreStatus = RequestStatus
-type Store = Request
+type (
+	StoreStatus = RequestStatus
+	Store       = Request
+)

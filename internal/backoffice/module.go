@@ -50,7 +50,10 @@ var Module = fx.Options(
 		// --- Domain layer ---
 		fx.Annotate(backofficestore.NewInteractor, fx.As(new(storectx.StoreUsecase))),
 		fx.Annotate(backofficecatalog.NewInteractor, fx.As(new(catalogctx.ProductSetupUsecase))),
-		fx.Annotate(backofficeoperations.NewOrderRoutingInteractor, fx.As(new(backofficeoperations.OrderRoutingUsecase))),
+		fx.Annotate(
+			backofficeoperations.NewOrderRoutingInteractor,
+			fx.As(new(backofficeoperations.OrderRoutingUsecase)),
+		),
 
 		// --- GraphQL resolver root ---
 		resolver.NewResolver,

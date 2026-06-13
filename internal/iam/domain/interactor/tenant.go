@@ -133,7 +133,12 @@ func (s *interactor) DeleteTenantUserInlinePolicy(
 	if strings.TrimSpace(name) == "" {
 		return entity.ErrInvalidPolicyName
 	}
-	return s.policyCommands.DeleteTenantUserInlinePolicy(ctx, strings.TrimSpace(tenantID), userID, strings.TrimSpace(name))
+	return s.policyCommands.DeleteTenantUserInlinePolicy(
+		ctx,
+		strings.TrimSpace(tenantID),
+		userID,
+		strings.TrimSpace(name),
+	)
 }
 
 func (s *interactor) AttachTenantUserPolicy(

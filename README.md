@@ -129,31 +129,43 @@ This is a Go monorepo containing a collection of microservices for an e-commerce
 
 ### Prerequisites
 
-- Go 1.25
+- Go 1.26
 - Docker, Kind, kubectl, helm
 
-````bash
+```text
 Docker version 28.0.2, build 0442a73
 Docker Compose version v2.34.0
 
-- helm version
 version.BuildInfo{Version:"v3.17.0", GitCommit:"301108edc7ac2a8ba79e4ebf5701b0b6ce6a31e4", GitTreeState:"clean", GoVersion:"go1.23.4"}
 
-- kubectl version
 Client Version: v1.32.0
 Kustomize Version: v5.5.0
 Server Version: v1.32.0
+```
 
-- Golang CLI tools (go1.25.1)
-go install github.com/99designs/gqlgen@v0.17.81
-go install github.com/vektra/mockery/v3@v3.6.1
+Project Go tools are pinned in `go.mod` and run with `go tool`:
+
+```bash
+go tool gqlgen --help
+go tool goose --help
+go tool mockery --help
+go tool golangci-lint --help
+go tool gofumpt -h
+go tool golines --help
+go tool buf --help
+go tool protoc-gen-go --version
+go tool protoc-gen-go-grpc --version
+go tool protoc-gen-grpc-gateway --version
+go tool protoc-gen-openapiv2 --version
+```
+
+Additional CLI tools:
+
+```bash
+# protoc is only required for workflows that invoke it directly.
+# buf generation uses the Go tools pinned in go.mod.
 go install github.com/air-verse/air@v1.63.0
-go install github.com/bufbuild/buf/cmd/buf@v1.61.0
-go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.7.2
-go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.27.3
-go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.27.3
-go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+```
 
 ### Development Workflow
 
@@ -162,8 +174,7 @@ go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 ```bash
 # Hot reload with air
 air --build.cmd "go build -o ./bin/${svc} ./cmd/${svc}/main.go" --build.bin "./bin/${svc}"
-
-````
+```
 
 #### Setup Development Environment
 

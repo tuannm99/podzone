@@ -1,21 +1,21 @@
-version: v1
+version: v2
 plugins:
-  - plugin: go
+  - local: ["go", "tool", "protoc-gen-go"]
     out: pkg/api/proto
     opt: paths=source_relative
 
-  - plugin: go-grpc
+  - local: ["go", "tool", "protoc-gen-go-grpc"]
     out: pkg/api/proto
     opt: paths=source_relative
 
-  - plugin: grpc-gateway
+  - local: ["go", "tool", "protoc-gen-grpc-gateway"]
     out: pkg/api/proto
     opt:
       - paths=source_relative
       - generate_unbound_methods=false
 
   # Swagger/OpenAPI (grpc-gateway)
-  - plugin: openapiv2
+  - local: ["go", "tool", "protoc-gen-openapiv2"]
     out: docs/openapi
     opt:
       - logtostderr=true

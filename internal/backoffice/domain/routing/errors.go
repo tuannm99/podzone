@@ -3,8 +3,8 @@ package routing
 import "github.com/tuannm99/podzone/pkg/ddd"
 
 var (
-	ErrStoreScopeRequired = ddd.NewDomainError("STORE_SCOPE_REQUIRED", "store scope is required")
-	ErrRoutedOrderNotFound = ddd.NewDomainError("ROUTED_ORDER_NOT_FOUND", "routed order not found")
+	ErrStoreScopeRequired    = ddd.NewDomainError("STORE_SCOPE_REQUIRED", "store scope is required")
+	ErrRoutedOrderNotFound   = ddd.NewDomainError("ROUTED_ORDER_NOT_FOUND", "routed order not found")
 	ErrRoutedOrderIDRequired = ddd.NewDomainError(
 		"ROUTED_ORDER_ID_REQUIRED",
 		"routed order id is required",

@@ -62,7 +62,18 @@ type productSetupCandidateRow struct {
 
 func (r *Repository) ListDrafts(ctx context.Context, storeID string) ([]catalogctx.ProductSetupDraft, error) {
 	query, args, err := psql.
-		Select("id", "store_id", "name", "partner", "base_cost", "retail_price", "status", "notes", "created_at", "updated_at").
+		Select(
+			"id",
+			"store_id",
+			"name",
+			"partner",
+			"base_cost",
+			"retail_price",
+			"status",
+			"notes",
+			"created_at",
+			"updated_at",
+		).
 		From("product_setup_drafts").
 		Where(sq.Eq{"store_id": storeID}).
 		OrderBy("created_at DESC").
@@ -90,7 +101,18 @@ func (r *Repository) ListDrafts(ctx context.Context, storeID string) ([]catalogc
 
 func (r *Repository) GetDraftByID(ctx context.Context, storeID, id string) (*catalogctx.ProductSetupDraft, error) {
 	query, args, err := psql.
-		Select("id", "store_id", "name", "partner", "base_cost", "retail_price", "status", "notes", "created_at", "updated_at").
+		Select(
+			"id",
+			"store_id",
+			"name",
+			"partner",
+			"base_cost",
+			"retail_price",
+			"status",
+			"notes",
+			"created_at",
+			"updated_at",
+		).
 		From("product_setup_drafts").
 		Where(sq.Eq{"id": id, "store_id": storeID}).
 		ToSql()

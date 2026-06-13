@@ -3,7 +3,7 @@ package fulfillment
 import "github.com/tuannm99/podzone/pkg/ddd"
 
 var (
-	ErrOrderIDRequired = ddd.NewDomainError("FULFILLMENT_ORDER_ID_REQUIRED", "fulfillment order id is required")
+	ErrOrderIDRequired       = ddd.NewDomainError("FULFILLMENT_ORDER_ID_REQUIRED", "fulfillment order id is required")
 	ErrShipmentStatusInvalid = ddd.NewDomainError(
 		"FULFILLMENT_STATUS_INVALID",
 		"invalid shipment status",

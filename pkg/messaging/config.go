@@ -7,11 +7,11 @@ import (
 )
 
 type ObservabilityConfig struct {
-	Enabled        bool `koanf:"enabled"           mapstructure:"enabled"`
-	LogHandled     bool `koanf:"log_handled"       mapstructure:"log_handled"`
-	LogRetries     bool `koanf:"log_retries"       mapstructure:"log_retries"`
-	LogDeadLetters bool `koanf:"log_dead_letters"  mapstructure:"log_dead_letters"`
-	LogDrops       bool `koanf:"log_drops"         mapstructure:"log_drops"`
+	Enabled        bool `koanf:"enabled"          mapstructure:"enabled"`
+	LogHandled     bool `koanf:"log_handled"      mapstructure:"log_handled"`
+	LogRetries     bool `koanf:"log_retries"      mapstructure:"log_retries"`
+	LogDeadLetters bool `koanf:"log_dead_letters" mapstructure:"log_dead_letters"`
+	LogDrops       bool `koanf:"log_drops"        mapstructure:"log_drops"`
 }
 
 type IdempotencyConfig struct {
@@ -21,11 +21,11 @@ type IdempotencyConfig struct {
 }
 
 type ConsumerRuntimeConfig struct {
-	Enabled       bool                `koanf:"enabled"         mapstructure:"enabled"`
-	MaxAttempts   int                 `koanf:"max_attempts"    mapstructure:"max_attempts"`
-	BaseDelay     time.Duration       `koanf:"base_delay"      mapstructure:"base_delay"`
-	Observability ObservabilityConfig `koanf:"observability"   mapstructure:"observability"`
-	Idempotency   IdempotencyConfig   `koanf:"idempotency"     mapstructure:"idempotency"`
+	Enabled       bool                `koanf:"enabled"       mapstructure:"enabled"`
+	MaxAttempts   int                 `koanf:"max_attempts"  mapstructure:"max_attempts"`
+	BaseDelay     time.Duration       `koanf:"base_delay"    mapstructure:"base_delay"`
+	Observability ObservabilityConfig `koanf:"observability" mapstructure:"observability"`
+	Idempotency   IdempotencyConfig   `koanf:"idempotency"   mapstructure:"idempotency"`
 }
 
 type TopicBootstrapConfig struct {

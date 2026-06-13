@@ -42,7 +42,7 @@ type Config struct {
 	Compression         Compression                    `koanf:"compression"           mapstructure:"compression"`
 	AutoCreateTopics    bool                           `koanf:"auto_create_topics"    mapstructure:"auto_create_topics"`
 	ConsumerGroupPrefix string                         `koanf:"consumer_group_prefix" mapstructure:"consumer_group_prefix"`
-	Topics              messaging.TopicBootstrapConfig `koanf:"topics"       mapstructure:"topics"`
+	Topics              messaging.TopicBootstrapConfig `koanf:"topics"                mapstructure:"topics"`
 	ProducerIdempotent  *bool                          `koanf:"producer_idempotent"   mapstructure:"producer_idempotent"`
 	ProducerRetryMax    int                            `koanf:"producer_retry_max"    mapstructure:"producer_retry_max"`
 	NetMaxOpenRequests  int                            `koanf:"net_max_open_requests" mapstructure:"net_max_open_requests"`

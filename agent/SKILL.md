@@ -124,7 +124,7 @@ internal/<service>/controller/eventhandler/<consumer>/
 
 ## Formatting
 
-- Prefer `gofumpt -w` for touched Go files.
+- Prefer `go tool gofumpt -w` for touched Go files.
 - If `gofumpt` is unavailable in the environment, at least run `gofmt -w`.
 - Follow the repo line-length rule enforced by `golangci-lint`:
   - max line length: `120`
@@ -377,7 +377,7 @@ return fmt.Errorf("load tenant membership: %w", err)
 - Run:
 
 ```bash
-golangci-lint run ./...
+go tool golangci-lint run ./...
 ```
 
 - Current repo lint set explicitly enables:
@@ -418,7 +418,7 @@ make test
 
 ## Mocks
 
-- Use `mockery`.
+- Use `go tool mockery`.
 - Update interfaces before regenerating mocks.
 - Generate with:
 
@@ -434,7 +434,7 @@ make mocks
 - Regenerate with:
 
 ```bash
-buf generate api/proto
+go tool buf generate api/proto
 ```
 
 - Keep RPC ownership strict:
@@ -446,7 +446,7 @@ buf generate api/proto
 - Backoffice GraphQL generation:
 
 ```bash
-go run github.com/99designs/gqlgen generate
+go tool gqlgen generate
 ```
 
 - Keep resolvers thin. Mapping and orchestration can live in resolver support files, but business rules should stay in domain/interactor packages.

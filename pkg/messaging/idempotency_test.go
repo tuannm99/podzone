@@ -17,16 +17,32 @@ type fakeInboxStore struct {
 	failed        []string
 }
 
-func (f *fakeInboxStore) Begin(ctx context.Context, consumerName string, messageID string, now time.Time) (InboxDecision, error) {
+func (f *fakeInboxStore) Begin(
+	ctx context.Context,
+	consumerName string,
+	messageID string,
+	now time.Time,
+) (InboxDecision, error) {
 	return f.beginDecision, f.beginErr
 }
 
-func (f *fakeInboxStore) Complete(ctx context.Context, consumerName string, messageID string, processedAt time.Time) error {
+func (f *fakeInboxStore) Complete(
+	ctx context.Context,
+	consumerName string,
+	messageID string,
+	processedAt time.Time,
+) error {
 	f.completed = append(f.completed, consumerName+":"+messageID)
 	return nil
 }
 
-func (f *fakeInboxStore) Fail(ctx context.Context, consumerName string, messageID string, errText string, failedAt time.Time) error {
+func (f *fakeInboxStore) Fail(
+	ctx context.Context,
+	consumerName string,
+	messageID string,
+	errText string,
+	failedAt time.Time,
+) error {
 	f.failed = append(f.failed, consumerName+":"+messageID)
 	return nil
 }

@@ -22,7 +22,11 @@ type TenantUsecase interface {
 	DetachTenantUserPolicy(ctx context.Context, tenantID string, userID uint, policyName string) error
 	ListTenantUserPolicies(ctx context.Context, tenantID string, userID uint) ([]entity.Policy, error)
 	PutTenantUserPermissionBoundary(ctx context.Context, tenantID string, userID uint, policyName string) error
-	GetTenantUserPermissionBoundary(ctx context.Context, tenantID string, userID uint) (*entity.PermissionBoundary, error)
+	GetTenantUserPermissionBoundary(
+		ctx context.Context,
+		tenantID string,
+		userID uint,
+	) (*entity.PermissionBoundary, error)
 	DeleteTenantUserPermissionBoundary(ctx context.Context, tenantID string, userID uint) error
 	CreateInvite(
 		ctx context.Context,

@@ -30,7 +30,13 @@ func newAuthServer(
 	sessionRepo := outputmocks.NewMockSessionRepository(t)
 	auditRepo := outputmocks.NewMockAuditLogRepository(t)
 	userRepo := outputmocks.NewMockUserRepository(t)
-	return NewAuthServer(authUC, sessionRepo, auditRepo, userRepo, testAuthCfg), authUC, sessionRepo, auditRepo, userRepo
+	return NewAuthServer(
+		authUC,
+		sessionRepo,
+		auditRepo,
+		userRepo,
+		testAuthCfg,
+	), authUC, sessionRepo, auditRepo, userRepo
 }
 
 func authContextForUser(t *testing.T, userID uint) context.Context {
