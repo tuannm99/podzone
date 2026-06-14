@@ -14,12 +14,18 @@ import (
 	storeentity "github.com/tuannm99/podzone/internal/onboarding/domain/store/entity"
 	storeinputport "github.com/tuannm99/podzone/internal/onboarding/domain/store/inputport"
 	storemocks "github.com/tuannm99/podzone/internal/onboarding/domain/store/outputport/mocks"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 func setupStoreInteractor(t *testing.T) (*StoreInteractor, *storemocks.MockStoreRepository) {
 	t.Helper()
 	repo := storemocks.NewMockStoreRepository(t)
 	return &StoreInteractor{repo: repo}, repo
+}
+
+func authenticatedContext(workspaceID string, userID string) context.Context {
+	ctx := toolkit.WithTenantID(context.Background(), workspaceID)
+	return toolkit.WithUserID(ctx, userID)
 }
 
 func TestCreateStoreRequest_ReturnsErrSubdomainTaken_WhenExistingRequestFound(t *testing.T) {
@@ -35,7 +41,10 @@ func TestCreateStoreRequest_ReturnsErrSubdomainTaken_WhenExistingRequestFound(t 
 	}
 	repo.EXPECT().FindBySubdomain(mock.Anything, "taken").Return(&existing, nil)
 
-	_, err := svc.CreateStoreRequest(context.Background(), "New", "taken", "workspace-2", "user-2")
+	_, err := svc.CreateStoreRequest(
+		authenticatedContext("workspace-2", "2"),
+		storeinputport.CreateStoreRequestCommand{Name: "New", Subdomain: "taken"},
+	)
 	require.ErrorIs(t, err, ErrSubdomainTaken)
 }
 
@@ -48,7 +57,7 @@ func TestCreateStoreRequest_Success(t *testing.T) {
 			return request.Name == "New" &&
 				request.Subdomain == "new" &&
 				request.WorkspaceID == "workspace-1" &&
-				request.RequestedBy == "user-1" &&
+				request.RequestedBy == "1" &&
 				request.Status == storeentity.RequestStatusRequested
 		})).
 		RunAndReturn(func(_ context.Context, request storeentity.StoreRequest) (*storeentity.StoreRequest, error) {
@@ -56,11 +65,31 @@ func TestCreateStoreRequest_Success(t *testing.T) {
 			return &request, nil
 		})
 
-	request, err := svc.CreateStoreRequest(context.Background(), "New", "new", "workspace-1", "user-1")
+	request, err := svc.CreateStoreRequest(
+		authenticatedContext("workspace-1", "1"),
+		storeinputport.CreateStoreRequestCommand{Name: "New", Subdomain: "new"},
+	)
 	require.NoError(t, err)
 	require.NotNil(t, request)
 	require.NotEmpty(t, request.ID)
 	require.Equal(t, storeinputport.RequestStatusRequested, request.Status)
+}
+
+func TestCreateStoreRequest_AuthorizesAuthenticatedWorkspace(t *testing.T) {
+	repo := storemocks.NewMockStoreRepository(t)
+	authorizer := storemocks.NewMockAccessAuthorizer(t)
+	svc := &StoreInteractor{repo: repo, authorizer: authorizer}
+	ctx := authenticatedContext("workspace-1", "7")
+
+	authorizer.EXPECT().
+		AuthorizeStoreRequest(mock.Anything, "workspace-1", "7").
+		Return(context.Canceled)
+
+	_, err := svc.CreateStoreRequest(
+		ctx,
+		storeinputport.CreateStoreRequestCommand{Name: "New", Subdomain: "new"},
+	)
+	require.ErrorIs(t, err, context.Canceled)
 }
 
 func TestApproveStoreRequest_TransitionsToQueued(t *testing.T) {
@@ -85,10 +114,13 @@ func TestApproveStoreRequest_TransitionsToQueued(t *testing.T) {
 	repo.EXPECT().UpdateStatus(mock.Anything, request.ID.Hex(), storeentity.RequestStatusQueued).Return(nil)
 	repo.EXPECT().FindByID(mock.Anything, request.ID.Hex()).Return(&queued, nil).Once()
 
-	err := svc.ApproveStoreRequest(context.Background(), request.ID.Hex())
+	err := svc.ApproveStoreRequest(toolkit.WithUserID(context.Background(), "1"), request.ID.Hex())
 	require.NoError(t, err)
 
-	updated, err := svc.GetStoreRequest(context.Background(), request.ID.Hex())
+	updated, err := svc.GetStoreRequest(
+		authenticatedContext(request.WorkspaceID, request.RequestedBy),
+		request.ID.Hex(),
+	)
 	require.NoError(t, err)
 	require.Equal(t, storeinputport.RequestStatusQueued, updated.Status)
 	require.NotNil(t, updated.ApprovedAt)
@@ -118,10 +150,6 @@ func TestProcessNextStoreRequest_ProvisionsQueuedRequest(t *testing.T) {
 		RequestedBy: "user-1",
 		Status:      storeentity.RequestStatusProvisioning,
 	}
-	ready := *request
-	ready.Status = storeentity.RequestStatusReady
-	ready.StoreID = &id
-
 	repo.EXPECT().ClaimNextQueued(mock.Anything).Return(request, nil)
 	infra.EXPECT().
 		ProvisionStorePlacement(
@@ -143,12 +171,37 @@ func TestProcessNextStoreRequest_ProvisionsQueuedRequest(t *testing.T) {
 			Status:        "ready",
 			Queued:        true,
 		}, nil)
-	repo.EXPECT().MarkReady(mock.Anything, id.Hex(), id.Hex()).Return(nil)
-	repo.EXPECT().FindByID(mock.Anything, id.Hex()).Return(&ready, nil)
-
 	processed, err := svc.ProcessNextStoreRequest(context.Background())
 	require.NoError(t, err)
 	require.NotNil(t, processed)
-	require.Equal(t, storeinputport.RequestStatusReady, processed.Status)
-	require.Equal(t, id.Hex(), processed.StoreID)
+	require.Equal(t, storeinputport.RequestStatusProvisioning, processed.Status)
+	require.Empty(t, processed.StoreID)
+}
+
+func TestFinalizeNextStoreRequest_BootstrapsOperationalStoreBeforeReady(t *testing.T) {
+	repo := storemocks.NewMockStoreRepository(t)
+	finalizer := storemocks.NewMockOperationalStoreFinalizer(t)
+	svc := &StoreInteractor{
+		repo:      repo,
+		finalizer: finalizer,
+	}
+
+	id := primitive.NewObjectID()
+	request := &storeentity.StoreRequest{
+		ID:          id,
+		Name:        "Urban Finds",
+		Subdomain:   "urban-finds",
+		WorkspaceID: "workspace-1",
+		RequestedBy: "user-1",
+		Status:      storeentity.RequestStatusProvisioning,
+	}
+	repo.EXPECT().FindNextProvisioning(mock.Anything).Return(request, nil)
+	finalizer.EXPECT().FinalizeStore(mock.Anything, *request).Return(nil)
+	repo.EXPECT().MarkReady(mock.Anything, id.Hex(), id.Hex()).Return(nil)
+
+	finalized, err := svc.FinalizeNextStoreRequest(context.Background())
+	require.NoError(t, err)
+	require.NotNil(t, finalized)
+	require.Equal(t, storeinputport.RequestStatusReady, finalized.Status)
+	require.Equal(t, id.Hex(), finalized.StoreID)
 }

@@ -1,11 +1,13 @@
 package config
 
 import (
+	"strings"
 	"time"
 
 	"github.com/knadh/koanf/v2"
 
 	storeentity "github.com/tuannm99/podzone/internal/onboarding/domain/store/entity"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 type StoreProvisioningConfig struct {
@@ -17,6 +19,7 @@ type StoreProvisioningConfig struct {
 	Mode         string        `koanf:"mode"          mapstructure:"mode"`
 	DBName       string        `koanf:"db_name"       mapstructure:"db_name"`
 	SchemaPrefix string        `koanf:"schema_prefix" mapstructure:"schema_prefix"`
+	AdminDSN     string        `koanf:"admin_dsn"     mapstructure:"admin_dsn"`
 
 	DockerNetwork       string `koanf:"docker_network"       mapstructure:"docker_network"`
 	KubernetesNamespace string `koanf:"kubernetes_namespace" mapstructure:"kubernetes_namespace"`
@@ -45,6 +48,11 @@ func NewStoreProvisioningConfig(k *koanf.Koanf) StoreProvisioningConfig {
 	cfg := DefaultStoreProvisioningConfig()
 	if k != nil {
 		_ = k.Unmarshal("onboarding.store_provisioning", &cfg)
+	}
+	if adminDSN := toolkit.GetEnv("ONBOARDING_POSTGRES_ADMIN_DSN", ""); adminDSN != "" {
+		cfg.AdminDSN = adminDSN
+	} else if strings.HasPrefix(cfg.AdminDSN, "${") {
+		cfg.AdminDSN = ""
 	}
 	if cfg.Interval <= 0 {
 		cfg.Interval = 5 * time.Second

@@ -26,6 +26,7 @@ pprof:
   addr: '127.0.0.1:6060'
 
 backoffice:
+  internal_service_token: 'dev-onboarding-token'
   auth:
     jwt_secret: 'dev-secret'
     jwt_key: ''

@@ -9,6 +9,7 @@ import (
 
 	onboardingconfig "github.com/tuannm99/podzone/internal/onboarding/config"
 	consulbridge "github.com/tuannm99/podzone/internal/onboarding/controller/eventhandler/consulbridge"
+	"github.com/tuannm99/podzone/internal/onboarding/controller/httphandler"
 	infrascontroller "github.com/tuannm99/podzone/internal/onboarding/controller/httphandler/infrasmanager"
 	storecontroller "github.com/tuannm99/podzone/internal/onboarding/controller/httphandler/store"
 	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager"
@@ -17,6 +18,8 @@ import (
 	"github.com/tuannm99/podzone/internal/onboarding/domain/store"
 	storeinputport "github.com/tuannm99/podzone/internal/onboarding/domain/store/inputport"
 	storeoutputport "github.com/tuannm99/podzone/internal/onboarding/domain/store/outputport"
+	"github.com/tuannm99/podzone/internal/onboarding/infrastructure/backofficeclient"
+	"github.com/tuannm99/podzone/internal/onboarding/infrastructure/iamclient"
 	"github.com/tuannm99/podzone/internal/onboarding/infrastructure/messaging/publisher"
 	"github.com/tuannm99/podzone/internal/onboarding/infrastructure/messaging/worker"
 	placementprovider "github.com/tuannm99/podzone/internal/onboarding/infrastructure/provisioning/provider"
@@ -40,6 +43,9 @@ var Module = fx.Options(
 	InfrasCtrlProvider,
 
 	fx.Provide(
+		onboardingconfig.NewAuthConfig,
+		httphandler.NewAuthentication,
+		fx.Annotate(provideCORSMiddleware, fx.ResultTags(`group:"gin-middleware"`)),
 		fx.Annotate(
 			RegisterHTTPRoutes,
 			fx.ResultTags(`group:"gin-routes"`),
@@ -140,6 +146,11 @@ var (
 		// --- Infrastructure layer ---
 		onboardingconfig.NewStoreProvisioningConfig,
 		onboardingconfig.NewStoreProvisioningDomainConfig,
+		fx.Annotate(iamclient.NewAccessAuthorizer, fx.As(new(storeoutputport.AccessAuthorizer))),
+		fx.Annotate(
+			backofficeclient.NewStoreFinalizer,
+			fx.As(new(storeoutputport.OperationalStoreFinalizer)),
+		),
 		fx.Annotate(
 			storerepository.New,
 			fx.As(new(storeoutputport.StoreRepository)),
@@ -166,6 +177,7 @@ type RegisterRoutesParams struct {
 	fx.In
 
 	Logger      pdlog.Logger
+	Auth        *httphandler.Authentication
 	Controllers []Controller `group:"onboarding-controllers"`
 }
 
@@ -173,6 +185,7 @@ func RegisterHTTPRoutes(p RegisterRoutesParams) pdhttp.RouteRegistrar {
 	p.Logger.Info("Registering Onboarding HTTP handler")
 	return func(r *gin.Engine) {
 		v1 := r.Group("/onboarding/v1")
+		v1.Use(p.Auth.RequireUser)
 		for _, ctrl := range p.Controllers {
 			ctrl.RegisterRoutes(v1)
 		}

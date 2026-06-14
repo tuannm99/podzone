@@ -355,6 +355,68 @@ func (_c *MockStoreRepository_FindBySubdomain_Call) RunAndReturn(run func(ctx co
 	return _c
 }
 
+// FindNextProvisioning provides a mock function for the type MockStoreRepository
+func (_mock *MockStoreRepository) FindNextProvisioning(ctx context.Context) (*entity.StoreRequest, error) {
+	ret := _mock.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindNextProvisioning")
+	}
+
+	var r0 *entity.StoreRequest
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) (*entity.StoreRequest, error)); ok {
+		return returnFunc(ctx)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context) *entity.StoreRequest); ok {
+		r0 = returnFunc(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.StoreRequest)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = returnFunc(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStoreRepository_FindNextProvisioning_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindNextProvisioning'
+type MockStoreRepository_FindNextProvisioning_Call struct {
+	*mock.Call
+}
+
+// FindNextProvisioning is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *MockStoreRepository_Expecter) FindNextProvisioning(ctx interface{}) *MockStoreRepository_FindNextProvisioning_Call {
+	return &MockStoreRepository_FindNextProvisioning_Call{Call: _e.mock.On("FindNextProvisioning", ctx)}
+}
+
+func (_c *MockStoreRepository_FindNextProvisioning_Call) Run(run func(ctx context.Context)) *MockStoreRepository_FindNextProvisioning_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStoreRepository_FindNextProvisioning_Call) Return(storeRequest *entity.StoreRequest, err error) *MockStoreRepository_FindNextProvisioning_Call {
+	_c.Call.Return(storeRequest, err)
+	return _c
+}
+
+func (_c *MockStoreRepository_FindNextProvisioning_Call) RunAndReturn(run func(ctx context.Context) (*entity.StoreRequest, error)) *MockStoreRepository_FindNextProvisioning_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // List provides a mock function for the type MockStoreRepository
 func (_mock *MockStoreRepository) List(ctx context.Context, workspaceID string) ([]entity.StoreRequest, error) {
 	ret := _mock.Called(ctx, workspaceID)

@@ -9,11 +9,11 @@ import {
 } from '../../../services/iam';
 import { getRoutedOrders } from '../../../services/orders';
 import {
-  activateStore,
-  createStore,
-  listStores,
-  type StoreInfo,
-} from '../../../services/store';
+  createStoreRequest,
+  listStoreRequests,
+  type StoreRequest,
+} from '../../../services/onboarding';
+import { listStores, type StoreInfo } from '../../../services/store';
 import { storeStorage } from '../../../services/storeStorage';
 import { tenantStorage } from '../../../services/tenantStorage';
 import { tokenStorage } from '../../../services/tokenStorage';
@@ -87,6 +87,7 @@ type WorkspaceSummary = {
   status: string;
   userId: number;
   stores: StoreInfo[];
+  storeRequests: StoreRequest[];
   storeCount: number;
   activeStoreCount: number;
 };
@@ -171,17 +172,17 @@ export default function AdminHomePage() {
         if (!switched.success) {
           continue;
         }
+        const requestsResult = await listStoreRequests(membership.tenantId);
+        const storeRequests = requestsResult.success ? requestsResult.data : [];
         const storesResult = await listStores();
-        if (!storesResult.success) {
-          continue;
-        }
-        const stores = storesResult.data;
+        const stores = storesResult.success ? storesResult.data : [];
         summaries.push({
           tenantId: membership.tenantId,
           roleName: membership.roleName,
           status: membership.status,
           userId: membership.userId,
           stores,
+          storeRequests,
           storeCount: stores.length,
           activeStoreCount: stores.filter((store) => store.isActive).length,
         });
@@ -381,19 +382,20 @@ export default function AdminHomePage() {
         setTenantError(switched.data.message || 'Failed to load workspace');
         return;
       }
-      const created = await createStore({ name: normalizedStoreName });
+      const created = await createStoreRequest({
+        tenantId: normalizedTenantID,
+        name: normalizedStoreName,
+        subdomain: slugify(normalizedStoreName),
+      });
       if (!created.success) {
         setTenantError(created.message);
         return;
       }
-      const activated = await activateStore(created.data.id);
-      if (!activated.success) {
-        setTenantError(activated.message);
-        return;
-      }
       setDraftStoreName(normalizedTenantID, '');
+      setTenantMessage(
+        `Store request ${created.data.name} is ${created.data.status}. It will become selectable after provisioning completes.`
+      );
       await loadMemberships();
-      await openStore(normalizedTenantID, activated.data.id);
     } finally {
       setCreatingStoreTenantId('');
     }
@@ -744,6 +746,33 @@ export default function AdminHomePage() {
                       {workspace.storeCount} stores · {workspace.activeStoreCount} active
                     </p>
                     <div class="mt-4 space-y-3">
+                      <Show when={workspace.storeRequests.length > 0}>
+                        <For each={workspace.storeRequests}>
+                          {(request) => (
+                            <div class="rounded-md border border-gray-200 bg-white p-3">
+                              <div class="flex flex-wrap items-center justify-between gap-2">
+                                <div class="min-w-0">
+                                  <div class="truncate text-sm font-semibold text-gray-950">
+                                    {request.name}
+                                  </div>
+                                  <div class="mt-1 text-xs text-gray-500">
+                                    {request.subdomain}
+                                  </div>
+                                </div>
+                                <Badge
+                                  content={request.status}
+                                  color={request.status === 'ready' ? 'green' : request.status === 'failed' ? 'red' : 'yellow'}
+                                />
+                              </div>
+                              <Show when={request.last_error}>
+                                <p class="mt-2 text-sm text-red-700">
+                                  {request.last_error}
+                                </p>
+                              </Show>
+                            </div>
+                          )}
+                        </For>
+                      </Show>
                       <Show
                         when={workspace.stores.length > 0}
                         fallback={

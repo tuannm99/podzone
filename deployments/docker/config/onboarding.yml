@@ -18,6 +18,16 @@ mongo:
     connect_timeout: 5s
 
 onboarding:
+  auth:
+    jwt_secret: 'dev-secret'
+    jwt_key: ''
+    service_token: 'dev-bootstrap-token'
+  iam:
+    grpc_host: 'iam-service'
+    grpc_port: '50053'
+  backoffice:
+    url: 'http://backoffice-service:8000'
+    service_token: 'dev-onboarding-token'
   store_provisioning:
     enabled: true
     auto_approve: true
@@ -27,9 +37,56 @@ onboarding:
     mode: schema
     db_name: postgres
     schema_prefix: t_
+    admin_dsn: postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
     docker_network: docker_default
     kubernetes_namespace: default
     terraform_workspace: default
+
+messaging:
+  onboarding:
+    consumers:
+      consul_bridge:
+        enabled: true
+        max_attempts: 5
+        base_delay: 1s
+        observability:
+          enabled: true
+          log_handled: false
+          log_retries: true
+          log_dead_letters: true
+          log_drops: true
+        idempotency:
+          enabled: false
+          consumer_name: onboarding.consul-bridge
+          table_name: message_inbox
+  kafka:
+    onboarding:
+      topics:
+        enabled: true
+        main_topics:
+          - podzone.onboarding.events
+        retry_attempts: [1, 2, 3, 4, 5]
+        create_dead_letter: true
+        default_partitions: 3
+        default_replication: 1
+
+kafka:
+  onboarding:
+    brokers:
+      - kafka:9092
+    client_id: podzone-onboarding
+    version: 3.7.0
+    required_acks: all
+    compression: zstd
+    auto_create_topics: false
+    consumer_group_prefix: podzone.onboarding
+    sasl:
+      enabled: false
+      mechanism: ''
+      username: ''
+      password: ''
+    tls:
+      enabled: false
 
 http:
   address: ':8800'

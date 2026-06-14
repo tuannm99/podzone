@@ -126,6 +126,31 @@ func (r *Repository) Create(ctx context.Context, store storectx.Store) error {
 	})
 }
 
+func (r *Repository) Bootstrap(ctx context.Context, store storectx.Store) error {
+	query, args, err := psql.
+		Insert(storesTable).
+		Columns("id", "name", "description", "owner_id", "status", "created_at", "updated_at").
+		Values(store.ID, store.Name, store.Description, store.OwnerID, store.Status, store.CreatedAt, store.UpdatedAt).
+		Suffix(`
+ON CONFLICT (id) DO UPDATE SET
+	name = EXCLUDED.name,
+	owner_id = EXCLUDED.owner_id,
+	status = EXCLUDED.status,
+	updated_at = EXCLUDED.updated_at`).
+		ToSql()
+	if err != nil {
+		return err
+	}
+
+	return r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
+		if err := ensureStoreTables(ctx, tx); err != nil {
+			return err
+		}
+		_, err = tx.ExecContext(ctx, query, args...)
+		return err
+	})
+}
+
 func (r *Repository) UpdateStatus(ctx context.Context, id string, status string) error {
 	ownerID, err := toolkit.GetUserID(ctx)
 	if err != nil {

@@ -11,6 +11,7 @@ import (
 	onboardingconfig "github.com/tuannm99/podzone/internal/onboarding/config"
 	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/entity"
 	infrasoutputport "github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/outputport"
+	"github.com/tuannm99/podzone/pkg/pdsql"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
@@ -44,20 +45,39 @@ func (p *Provider) PlanStorePlacement(
 }
 
 func (p *Provider) ProvisionStorePlacement(
-	_ context.Context,
+	ctx context.Context,
 	request entity.StorePlacementRequest,
 	plan entity.PlacementPlan,
 ) (entity.PlacementAllocation, error) {
 	switch normalizeRuntime(string(plan.Runtime)) {
 	case entity.PlacementRuntimeLocalDocker, entity.PlacementRuntimeDocker:
+		if err := p.provisionPostgresSchema(ctx, plan); err != nil {
+			return entity.PlacementAllocation{}, err
+		}
 		return p.allocate(request, plan, p.dockerConnection(plan), "ready"), nil
 	case entity.PlacementRuntimeKubernetes, entity.PlacementRuntimeK8s:
+		if err := p.provisionPostgresSchema(ctx, plan); err != nil {
+			return entity.PlacementAllocation{}, err
+		}
 		return p.allocate(request, plan, p.kubernetesConnection(plan), "ready"), nil
 	case entity.PlacementRuntimeTerraform:
 		return entity.PlacementAllocation{}, fmt.Errorf("terraform placement provider is declared but not implemented")
 	default:
 		return entity.PlacementAllocation{}, fmt.Errorf("unsupported placement runtime: %s", plan.Runtime)
 	}
+}
+
+func (p *Provider) provisionPostgresSchema(ctx context.Context, plan entity.PlacementPlan) error {
+	if strings.TrimSpace(p.cfg.AdminDSN) == "" {
+		return fmt.Errorf("postgres admin_dsn is required for %s placement provisioning", plan.Runtime)
+	}
+	if plan.Mode != "schema" {
+		return fmt.Errorf("unsupported postgres placement mode %q", plan.Mode)
+	}
+	if err := pdsql.EnsurePostgresSchema(ctx, p.cfg.AdminDSN, plan.SchemaName); err != nil {
+		return fmt.Errorf("provision postgres schema %q: %w", plan.SchemaName, err)
+	}
+	return nil
 }
 
 func (p *Provider) planDocker(request entity.StorePlacementRequest) entity.PlacementPlan {

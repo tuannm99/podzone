@@ -330,7 +330,9 @@ export async function createOrganization(
   }
 }
 
-export async function listOrganizations(): Promise<IamResult<OrganizationInfo[]>> {
+export async function listOrganizations(): Promise<
+  IamResult<OrganizationInfo[]>
+> {
   try {
     const { data } = await http.get<{ organizations?: OrganizationInfo[] }>(
       '/auth/v1/iam/organizations'
@@ -352,7 +354,10 @@ export async function attachTenantToOrganization(
     });
     return { success: true, data: true };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to attach tenant to organization');
+    return toFailure(
+      error as HttpError,
+      'Failed to attach tenant to organization'
+    );
   }
 }
 
@@ -361,10 +366,15 @@ export async function detachTenantFromOrganization(
   tenantId: string
 ): Promise<IamResult<true>> {
   try {
-    await http.delete(`/auth/v1/iam/organizations/${orgId}/tenants/${tenantId}`);
+    await http.delete(
+      `/auth/v1/iam/organizations/${orgId}/tenants/${tenantId}`
+    );
     return { success: true, data: true };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to detach tenant from organization');
+    return toFailure(
+      error as HttpError,
+      'Failed to detach tenant from organization'
+    );
   }
 }
 
@@ -379,7 +389,10 @@ export async function attachServiceControlPolicy(
     );
     return { success: true, data: true };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to attach service control policy');
+    return toFailure(
+      error as HttpError,
+      'Failed to attach service control policy'
+    );
   }
 }
 
@@ -393,7 +406,10 @@ export async function detachServiceControlPolicy(
     );
     return { success: true, data: true };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to detach service control policy');
+    return toFailure(
+      error as HttpError,
+      'Failed to detach service control policy'
+    );
   }
 }
 
@@ -406,7 +422,10 @@ export async function listServiceControlPolicies(
     );
     return { success: true, data: data.policies || [] };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to load service control policies');
+    return toFailure(
+      error as HttpError,
+      'Failed to load service control policies'
+    );
   }
 }
 
@@ -451,7 +470,12 @@ export async function getPolicy(name: string): Promise<IamResult<PolicyInfo>> {
 
 export async function createPolicyVersion(
   payload: CreatePolicyVersionPayload
-): Promise<IamResult<{ policyVersion?: PolicyVersionInfo; statements?: PolicyStatement[] }>> {
+): Promise<
+  IamResult<{
+    policyVersion?: PolicyVersionInfo;
+    statements?: PolicyStatement[];
+  }>
+> {
   try {
     const { data } = await http.post<{
       policyVersion?: PolicyVersionInfo;
@@ -481,13 +505,19 @@ export async function setDefaultPolicyVersion(
   version: string
 ): Promise<IamResult<true>> {
   try {
-    await http.post(`/auth/v1/iam/policies/${name}/versions/${version}:set-default`, {
-      name,
-      version,
-    });
+    await http.post(
+      `/auth/v1/iam/policies/${name}/versions/${version}:set-default`,
+      {
+        name,
+        version,
+      }
+    );
     return { success: true, data: true };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to set default policy version');
+    return toFailure(
+      error as HttpError,
+      'Failed to set default policy version'
+    );
   }
 }
 
@@ -569,7 +599,10 @@ export async function addGroupMember(
   userId: number
 ): Promise<IamResult<true>> {
   try {
-    await http.post(`/auth/v1/iam/groups/${groupId}/members`, { groupId, userId });
+    await http.post(`/auth/v1/iam/groups/${groupId}/members`, {
+      groupId,
+      userId,
+    });
     return { success: true, data: true };
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to add group member');
@@ -606,7 +639,10 @@ export async function attachGroupPolicy(
   policyName: string
 ): Promise<IamResult<true>> {
   try {
-    await http.post(`/auth/v1/iam/groups/${groupId}/policies`, { groupId, policyName });
+    await http.post(`/auth/v1/iam/groups/${groupId}/policies`, {
+      groupId,
+      policyName,
+    });
     return { success: true, data: true };
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to attach group policy');
@@ -647,7 +683,10 @@ export async function listGroupInlinePolicies(
     );
     return { success: true, data: data.policies || [] };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to load group inline policies');
+    return toFailure(
+      error as HttpError,
+      'Failed to load group inline policies'
+    );
   }
 }
 
@@ -678,7 +717,10 @@ export async function deleteGroupInlinePolicy(
     await http.delete(`/auth/v1/iam/groups/${groupId}/inline-policies/${name}`);
     return { success: true, data: true };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to delete group inline policy');
+    return toFailure(
+      error as HttpError,
+      'Failed to delete group inline policy'
+    );
   }
 }
 
@@ -691,7 +733,10 @@ export async function listPlatformUserPolicies(
     );
     return { success: true, data: data.policies || [] };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to load platform user policies');
+    return toFailure(
+      error as HttpError,
+      'Failed to load platform user policies'
+    );
   }
 }
 
@@ -706,7 +751,10 @@ export async function attachPlatformUserPolicy(
     });
     return { success: true, data: true };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to attach platform user policy');
+    return toFailure(
+      error as HttpError,
+      'Failed to attach platform user policy'
+    );
   }
 }
 
@@ -715,10 +763,15 @@ export async function detachPlatformUserPolicy(
   policyName: string
 ): Promise<IamResult<true>> {
   try {
-    await http.delete(`/auth/v1/iam/platform-users/${targetUserId}/policies/${policyName}`);
+    await http.delete(
+      `/auth/v1/iam/platform-users/${targetUserId}/policies/${policyName}`
+    );
     return { success: true, data: true };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to detach platform user policy');
+    return toFailure(
+      error as HttpError,
+      'Failed to detach platform user policy'
+    );
   }
 }
 
@@ -731,7 +784,10 @@ export async function listPlatformUserInlinePolicies(
     );
     return { success: true, data: data.policies || [] };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to load platform user inline policies');
+    return toFailure(
+      error as HttpError,
+      'Failed to load platform user inline policies'
+    );
   }
 }
 
@@ -742,15 +798,21 @@ export async function putPlatformUserInlinePolicy(
   statements: PolicyStatement[]
 ): Promise<IamResult<true>> {
   try {
-    await http.put(`/auth/v1/iam/platform-users/${targetUserId}/inline-policies/${name}`, {
-      targetUserId,
-      name,
-      description,
-      statements,
-    });
+    await http.put(
+      `/auth/v1/iam/platform-users/${targetUserId}/inline-policies/${name}`,
+      {
+        targetUserId,
+        name,
+        description,
+        statements,
+      }
+    );
     return { success: true, data: true };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to save platform user inline policy');
+    return toFailure(
+      error as HttpError,
+      'Failed to save platform user inline policy'
+    );
   }
 }
 
@@ -759,10 +821,15 @@ export async function deletePlatformUserInlinePolicy(
   name: string
 ): Promise<IamResult<true>> {
   try {
-    await http.delete(`/auth/v1/iam/platform-users/${targetUserId}/inline-policies/${name}`);
+    await http.delete(
+      `/auth/v1/iam/platform-users/${targetUserId}/inline-policies/${name}`
+    );
     return { success: true, data: true };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to delete platform user inline policy');
+    return toFailure(
+      error as HttpError,
+      'Failed to delete platform user inline policy'
+    );
   }
 }
 
@@ -771,13 +838,19 @@ export async function putPlatformUserPermissionBoundary(
   policyName: string
 ): Promise<IamResult<true>> {
   try {
-    await http.put(`/auth/v1/iam/platform-users/${targetUserId}/permission-boundary`, {
-      targetUserId,
-      policyName,
-    });
+    await http.put(
+      `/auth/v1/iam/platform-users/${targetUserId}/permission-boundary`,
+      {
+        targetUserId,
+        policyName,
+      }
+    );
     return { success: true, data: true };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to save platform user boundary');
+    return toFailure(
+      error as HttpError,
+      'Failed to save platform user boundary'
+    );
   }
 }
 
@@ -790,7 +863,10 @@ export async function getPlatformUserPermissionBoundary(
     );
     return { success: true, data: data.boundary || null };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to load platform user boundary');
+    return toFailure(
+      error as HttpError,
+      'Failed to load platform user boundary'
+    );
   }
 }
 
@@ -798,10 +874,15 @@ export async function deletePlatformUserPermissionBoundary(
   targetUserId: number
 ): Promise<IamResult<true>> {
   try {
-    await http.delete(`/auth/v1/iam/platform-users/${targetUserId}/permission-boundary`);
+    await http.delete(
+      `/auth/v1/iam/platform-users/${targetUserId}/permission-boundary`
+    );
     return { success: true, data: true };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to delete platform user boundary');
+    return toFailure(
+      error as HttpError,
+      'Failed to delete platform user boundary'
+    );
   }
 }
 
@@ -825,11 +906,14 @@ export async function attachTenantUserPolicy(
   policyName: string
 ): Promise<IamResult<true>> {
   try {
-    await http.post(`/auth/v1/iam/tenants/${tenantId}/members/${userId}/policies`, {
-      tenantId,
-      userId,
-      policyName,
-    });
+    await http.post(
+      `/auth/v1/iam/tenants/${tenantId}/members/${userId}/policies`,
+      {
+        tenantId,
+        userId,
+        policyName,
+      }
+    );
     return { success: true, data: true };
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to attach tenant user policy');
@@ -842,7 +926,9 @@ export async function detachTenantUserPolicy(
   policyName: string
 ): Promise<IamResult<true>> {
   try {
-    await http.delete(`/auth/v1/iam/tenants/${tenantId}/members/${userId}/policies/${policyName}`);
+    await http.delete(
+      `/auth/v1/iam/tenants/${tenantId}/members/${userId}/policies/${policyName}`
+    );
     return { success: true, data: true };
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to detach tenant user policy');
@@ -859,7 +945,10 @@ export async function listTenantUserInlinePolicies(
     );
     return { success: true, data: data.policies || [] };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to load tenant user inline policies');
+    return toFailure(
+      error as HttpError,
+      'Failed to load tenant user inline policies'
+    );
   }
 }
 
@@ -871,16 +960,22 @@ export async function putTenantUserInlinePolicy(
   statements: PolicyStatement[]
 ): Promise<IamResult<true>> {
   try {
-    await http.put(`/auth/v1/iam/tenants/${tenantId}/members/${userId}/inline-policies/${name}`, {
-      tenantId,
-      userId,
-      name,
-      description,
-      statements,
-    });
+    await http.put(
+      `/auth/v1/iam/tenants/${tenantId}/members/${userId}/inline-policies/${name}`,
+      {
+        tenantId,
+        userId,
+        name,
+        description,
+        statements,
+      }
+    );
     return { success: true, data: true };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to save tenant user inline policy');
+    return toFailure(
+      error as HttpError,
+      'Failed to save tenant user inline policy'
+    );
   }
 }
 
@@ -890,10 +985,15 @@ export async function deleteTenantUserInlinePolicy(
   name: string
 ): Promise<IamResult<true>> {
   try {
-    await http.delete(`/auth/v1/iam/tenants/${tenantId}/members/${userId}/inline-policies/${name}`);
+    await http.delete(
+      `/auth/v1/iam/tenants/${tenantId}/members/${userId}/inline-policies/${name}`
+    );
     return { success: true, data: true };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to delete tenant user inline policy');
+    return toFailure(
+      error as HttpError,
+      'Failed to delete tenant user inline policy'
+    );
   }
 }
 
@@ -903,11 +1003,14 @@ export async function putTenantUserPermissionBoundary(
   policyName: string
 ): Promise<IamResult<true>> {
   try {
-    await http.put(`/auth/v1/iam/tenants/${tenantId}/members/${userId}/permission-boundary`, {
-      tenantId,
-      userId,
-      policyName,
-    });
+    await http.put(
+      `/auth/v1/iam/tenants/${tenantId}/members/${userId}/permission-boundary`,
+      {
+        tenantId,
+        userId,
+        policyName,
+      }
+    );
     return { success: true, data: true };
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to save tenant user boundary');
@@ -933,10 +1036,15 @@ export async function deleteTenantUserPermissionBoundary(
   userId: number
 ): Promise<IamResult<true>> {
   try {
-    await http.delete(`/auth/v1/iam/tenants/${tenantId}/members/${userId}/permission-boundary`);
+    await http.delete(
+      `/auth/v1/iam/tenants/${tenantId}/members/${userId}/permission-boundary`
+    );
     return { success: true, data: true };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to delete tenant user boundary');
+    return toFailure(
+      error as HttpError,
+      'Failed to delete tenant user boundary'
+    );
   }
 }
 
@@ -944,7 +1052,10 @@ export async function putRoleTrustPolicy(
   payload: PutRoleTrustPolicyPayload
 ): Promise<IamResult<true>> {
   try {
-    await http.put(`/auth/v1/iam/roles/${payload.roleName}/trust-policy`, payload);
+    await http.put(
+      `/auth/v1/iam/roles/${payload.roleName}/trust-policy`,
+      payload
+    );
     return { success: true, data: true };
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to save role trust policy');
@@ -975,7 +1086,10 @@ export async function putRolePermissionBoundary(
     });
     return { success: true, data: true };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to save role permission boundary');
+    return toFailure(
+      error as HttpError,
+      'Failed to save role permission boundary'
+    );
   }
 }
 
@@ -988,7 +1102,10 @@ export async function getRolePermissionBoundary(
     );
     return { success: true, data: data.boundary || null };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to load role permission boundary');
+    return toFailure(
+      error as HttpError,
+      'Failed to load role permission boundary'
+    );
   }
 }
 
@@ -999,7 +1116,10 @@ export async function deleteRolePermissionBoundary(
     await http.delete(`/auth/v1/iam/roles/${roleName}/permission-boundary`);
     return { success: true, data: true };
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to delete role permission boundary');
+    return toFailure(
+      error as HttpError,
+      'Failed to delete role permission boundary'
+    );
   }
 }
 

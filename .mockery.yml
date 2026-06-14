@@ -174,4 +174,12 @@ packages:
     config:
       dir: internal/onboarding/domain/store/outputport/mocks
     interfaces:
+      AccessAuthorizer:
+      OperationalStoreFinalizer:
       StoreRepository:
+
+  github.com/tuannm99/podzone/internal/onboarding/domain/store/inputport:
+    config:
+      dir: internal/onboarding/domain/store/inputport/mocks
+    interfaces:
+      Usecase:

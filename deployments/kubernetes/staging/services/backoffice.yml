@@ -28,6 +28,11 @@ spec:
               value: '8000'
             - name: GRAPHQL_QUERY_URI
               value: '/api/backoffice/query'
+            - name: BACKOFFICE_INTERNAL_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: global-secrets
+                  key: BACKOFFICE_INTERNAL_SERVICE_TOKEN
 
           resources:
             requests:

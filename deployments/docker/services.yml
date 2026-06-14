@@ -32,8 +32,8 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-    ports:
-      - '50051:50051'
+    # ports:
+    #   - '50051:50051'
 
   auth-worker:
     <<: *go-dev-common
@@ -68,8 +68,8 @@ services:
         condition: service_healthy
       auth-service:
         condition: service_started
-    ports:
-      - '50053:50053'
+    # ports:
+    #   - '50053:50053'
 
   iam-worker:
     <<: *go-dev-common
@@ -102,8 +102,8 @@ services:
         condition: service_healthy
       mongo:
         condition: service_healthy
-    ports:
-      - '50052:50051'
+    # ports:
+    #   - '50052:50051'
 
   partner-service:
     <<: *go-dev-common
@@ -125,8 +125,8 @@ services:
         condition: service_started
       iam-service:
         condition: service_started
-    ports:
-      - '50054:50054'
+    # ports:
+    #   - '50054:50054'
 
   onboarding-service:
     <<: *go-dev-common
@@ -137,11 +137,20 @@ services:
       GOMODCACHE: /go/pkg/mod
       GOCACHE: /root/.cache/go-build
       CONFIG_PATH: deployments/docker/config/onboarding.yml
+      JWT_SECRET: ${JWT_SECRET:-dev-secret}
+      JWT_KEY: ${JWT_KEY:-}
+      IAM_GRPC_HOST: iam-service
+      IAM_GRPC_PORT: '50053'
+      BACKOFFICE_INTERNAL_URL: http://backoffice-service:8000
+      BACKOFFICE_INTERNAL_SERVICE_TOKEN: ${BACKOFFICE_INTERNAL_SERVICE_TOKEN:-dev-onboarding-token}
+      ONBOARDING_SERVICE_TOKEN: ${ONBOARDING_SERVICE_TOKEN:-dev-bootstrap-token}
     depends_on:
       mongo:
         condition: service_healthy
       consul:
         condition: service_healthy
+      iam-service:
+        condition: service_started
     ports:
       - '8800:8800'
 
@@ -160,6 +169,7 @@ services:
       AUTH_GRPC_PORT: '50051'
       IAM_GRPC_HOST: iam-service
       IAM_GRPC_PORT: '50053'
+      BACKOFFICE_INTERNAL_SERVICE_TOKEN: ${BACKOFFICE_INTERNAL_SERVICE_TOKEN:-dev-onboarding-token}
     depends_on:
       postgres:
         condition: service_healthy
@@ -203,6 +213,7 @@ services:
       PG_SSL_MODE: disable
       CONSUL_URL: http://consul:8500
       ONBOARDING_URL: http://onboarding-service:8800
+      ONBOARDING_SERVICE_TOKEN: ${ONBOARDING_SERVICE_TOKEN:-dev-bootstrap-token}
       JWT_SECRET: ${JWT_SECRET:-dev-secret}
       JWT_KEY: ${JWT_KEY:-}
       AUTH_BOOTSTRAP_OUTPUT: /workspace/internal/ui-podzone/public/dev-auth-bootstrap.json

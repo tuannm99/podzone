@@ -25,11 +25,12 @@ type Params struct {
 	fx.In
 
 	MongoClient *mongo.Client `name:"mongo-onboarding"`
+	DB          string        `name:"mongo-onboarding-db"`
 }
 
 func New(p Params) *MongoRepository {
 	return &MongoRepository{
-		collection: p.MongoClient.Database("podzone").Collection("store_requests"),
+		collection: p.MongoClient.Database(p.DB).Collection("store_requests"),
 	}
 }
 
@@ -136,6 +137,22 @@ func (r *MongoRepository) ClaimNextQueued(ctx context.Context) (*storeentity.Sto
 		options.FindOneAndUpdate().
 			SetSort(bson.D{{Key: "updated_at", Value: 1}}).
 			SetReturnDocument(options.After),
+	).Decode(&request)
+	if err == mongo.ErrNoDocuments {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &request, nil
+}
+
+func (r *MongoRepository) FindNextProvisioning(ctx context.Context) (*storeentity.StoreRequest, error) {
+	var request storeentity.StoreRequest
+	err := r.collection.FindOne(
+		ctx,
+		bson.M{"status": storeentity.RequestStatusProvisioning},
+		options.FindOne().SetSort(bson.D{{Key: "updated_at", Value: 1}}),
 	).Decode(&request)
 	if err == mongo.ErrNoDocuments {
 		return nil, nil

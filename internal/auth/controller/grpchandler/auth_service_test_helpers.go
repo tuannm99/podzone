@@ -22,9 +22,13 @@ var testAuthCfg = config.AuthConfig{
 	AppRedirectURL: "https://app.example.com/auth/google/callback",
 }
 
-func newAuthServer(
-	t *testing.T,
-) (*AuthServer, *inputmocks.MockAuthUsecase, *outputmocks.MockSessionRepository, *outputmocks.MockAuditLogRepository, *outputmocks.MockUserRepository) {
+func newAuthServer(t *testing.T) (
+	*AuthServer,
+	*inputmocks.MockAuthUsecase,
+	*outputmocks.MockSessionRepository,
+	*outputmocks.MockAuditLogRepository,
+	*outputmocks.MockUserRepository,
+) {
 	t.Helper()
 	authUC := inputmocks.NewMockAuthUsecase(t)
 	sessionRepo := outputmocks.NewMockSessionRepository(t)

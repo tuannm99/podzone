@@ -34,14 +34,20 @@ type Request struct {
 	CompletedAt *time.Time    `json:"completed_at,omitempty"`
 }
 
+type CreateStoreRequestCommand struct {
+	Name      string
+	Subdomain string
+}
+
 type Usecase interface {
-	CreateStoreRequest(ctx context.Context, name, subdomain, workspaceID, requestedBy string) (*Request, error)
+	CreateStoreRequest(ctx context.Context, cmd CreateStoreRequestCommand) (*Request, error)
 	GetStoreRequest(ctx context.Context, id string) (*Request, error)
 	ListStoreRequests(ctx context.Context, workspaceID string) ([]*Request, error)
 	ApproveStoreRequest(ctx context.Context, id string) error
 	RejectStoreRequest(ctx context.Context, id string) error
 	UpdateStoreRequestStatus(ctx context.Context, id string, status RequestStatus) error
 	ProcessNextStoreRequest(ctx context.Context) (*Request, error)
+	FinalizeNextStoreRequest(ctx context.Context) (*Request, error)
 }
 
 type (

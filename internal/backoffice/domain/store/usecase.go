@@ -6,6 +6,7 @@ type StoreUsecase interface {
 	ListStores(ctx context.Context, query ListStoresQuery) ([]Store, error)
 	GetStore(ctx context.Context, query GetStoreQuery) (*Store, error)
 	CreateStoreFromCommand(ctx context.Context, cmd CreateStoreCmd) (*Store, error)
+	BootstrapStore(ctx context.Context, cmd BootstrapStoreCmd) (*Store, error)
 	UpdateStoreStatusFromCommand(ctx context.Context, cmd UpdateStoreStatusCmd) (*Store, error)
 
 	// Compatibility methods for the current GraphQL surface.

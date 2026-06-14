@@ -265,15 +265,15 @@ The first in-process DDD slice is implemented for the current Backoffice codebas
 
 Implemented aggregate and domain-event coverage:
 
-| Context            | Aggregate / concept        | Current status                                                                 |
-| ------------------ | -------------------------- | ------------------------------------------------------------------------------ |
-| Store Workspace    | `Store`                    | Validated creation, activate/deactivate behavior, in-process domain events      |
-| Catalog Setup      | `ProductSetupDraft`        | Validated draft creation and candidate promotion events                         |
-| Order Operations   | `CustomerOrder`            | Create, advance, queue-control, manual reroute behavior and domain events       |
-| Routing            | `RoutingDecision`          | Recommendation decision, selected-partner event, routing-blocked event          |
-| Fulfillment        | `FulfillmentOrder`         | Shipment transition invariants and shipment status domain events                |
-| Exception Handling | `OrderException`           | Open/status lifecycle invariants and exception domain events                    |
-| Settlement         | `SettlementRecord`         | Money-based settlement/issue handling behavior and domain events                |
+| Context            | Aggregate / concept | Current status                                                             |
+| ------------------ | ------------------- | -------------------------------------------------------------------------- |
+| Store Workspace    | `Store`             | Validated creation, activate/deactivate behavior, in-process domain events |
+| Catalog Setup      | `ProductSetupDraft` | Validated draft creation and candidate promotion events                    |
+| Order Operations   | `CustomerOrder`     | Create, advance, queue-control, manual reroute behavior and domain events  |
+| Routing            | `RoutingDecision`   | Recommendation decision, selected-partner event, routing-blocked event     |
+| Fulfillment        | `FulfillmentOrder`  | Shipment transition invariants and shipment status domain events           |
+| Exception Handling | `OrderException`    | Open/status lifecycle invariants and exception domain events               |
+| Settlement         | `SettlementRecord`  | Money-based settlement/issue handling behavior and domain events           |
 
 The current `RoutedOrder` GraphQL type remains a composed read model during this migration slice.
 `CustomerOrder` now has a dedicated `customer_orders` aggregate store with optimistic versioning. Order command workflows

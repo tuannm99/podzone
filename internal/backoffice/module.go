@@ -8,6 +8,7 @@ import (
 	backofficestore "github.com/tuannm99/podzone/internal/backoffice/application/store"
 	boconfig "github.com/tuannm99/podzone/internal/backoffice/config"
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/resolver"
+	backofficehttp "github.com/tuannm99/podzone/internal/backoffice/controller/httphandler"
 	catalogctx "github.com/tuannm99/podzone/internal/backoffice/domain/catalog"
 	orderctx "github.com/tuannm99/podzone/internal/backoffice/domain/order"
 	routingctx "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
@@ -20,6 +21,7 @@ import (
 	"github.com/tuannm99/podzone/internal/backoffice/runtime/tenancy"
 	"github.com/tuannm99/podzone/pkg/ddd"
 	dddinprocess "github.com/tuannm99/podzone/pkg/ddd/inprocess"
+	"github.com/tuannm99/podzone/pkg/pdhttp"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 )
 
@@ -57,6 +59,13 @@ var Module = fx.Options(
 
 		// --- GraphQL resolver root ---
 		resolver.NewResolver,
+		backofficehttp.NewStoreBootstrapHandler,
+		fx.Annotate(
+			func(handler *backofficehttp.StoreBootstrapHandler) pdhttp.RouteRegistrar {
+				return handler.RegisterRoutes()
+			},
+			fx.ResultTags(`group:"gin-routes"`),
+		),
 	),
 
 	pdtenantdb.Module,

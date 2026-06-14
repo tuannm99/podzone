@@ -38,6 +38,74 @@ func (_m *MockStoreUsecase) EXPECT() *MockStoreUsecase_Expecter {
 	return &MockStoreUsecase_Expecter{mock: &_m.Mock}
 }
 
+// BootstrapStore provides a mock function for the type MockStoreUsecase
+func (_mock *MockStoreUsecase) BootstrapStore(ctx context.Context, cmd store.BootstrapStoreCmd) (*store.Store, error) {
+	ret := _mock.Called(ctx, cmd)
+
+	if len(ret) == 0 {
+		panic("no return value specified for BootstrapStore")
+	}
+
+	var r0 *store.Store
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, store.BootstrapStoreCmd) (*store.Store, error)); ok {
+		return returnFunc(ctx, cmd)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, store.BootstrapStoreCmd) *store.Store); ok {
+		r0 = returnFunc(ctx, cmd)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*store.Store)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, store.BootstrapStoreCmd) error); ok {
+		r1 = returnFunc(ctx, cmd)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStoreUsecase_BootstrapStore_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BootstrapStore'
+type MockStoreUsecase_BootstrapStore_Call struct {
+	*mock.Call
+}
+
+// BootstrapStore is a helper method to define mock.On call
+//   - ctx context.Context
+//   - cmd store.BootstrapStoreCmd
+func (_e *MockStoreUsecase_Expecter) BootstrapStore(ctx interface{}, cmd interface{}) *MockStoreUsecase_BootstrapStore_Call {
+	return &MockStoreUsecase_BootstrapStore_Call{Call: _e.mock.On("BootstrapStore", ctx, cmd)}
+}
+
+func (_c *MockStoreUsecase_BootstrapStore_Call) Run(run func(ctx context.Context, cmd store.BootstrapStoreCmd)) *MockStoreUsecase_BootstrapStore_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 store.BootstrapStoreCmd
+		if args[1] != nil {
+			arg1 = args[1].(store.BootstrapStoreCmd)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStoreUsecase_BootstrapStore_Call) Return(store1 *store.Store, err error) *MockStoreUsecase_BootstrapStore_Call {
+	_c.Call.Return(store1, err)
+	return _c
+}
+
+func (_c *MockStoreUsecase_BootstrapStore_Call) RunAndReturn(run func(ctx context.Context, cmd store.BootstrapStoreCmd) (*store.Store, error)) *MockStoreUsecase_BootstrapStore_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateStore provides a mock function for the type MockStoreUsecase
 func (_mock *MockStoreUsecase) CreateStore(ctx context.Context, name string, description string) (*store.Store, error) {
 	ret := _mock.Called(ctx, name, description)

@@ -63,7 +63,23 @@ func (w *StoreProvisioningWorker) tick(ctx context.Context) {
 	}
 	if request != nil {
 		w.log.Info(
-			"onboarding store request provisioned",
+			"onboarding store placement requested",
+			"request_id", request.ID,
+			"workspace_id", request.WorkspaceID,
+		)
+	}
+
+	request, err = w.store.FinalizeNextStoreRequest(ctx)
+	if err != nil {
+		if errors.Is(err, context.Canceled) {
+			return
+		}
+		w.log.Error("onboarding store finalization tick failed", "error", err)
+		return
+	}
+	if request != nil {
+		w.log.Info(
+			"onboarding store request ready",
 			"request_id", request.ID,
 			"workspace_id", request.WorkspaceID,
 			"store_id", request.StoreID,

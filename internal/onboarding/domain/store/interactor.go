@@ -11,12 +11,15 @@ import (
 	storeentity "github.com/tuannm99/podzone/internal/onboarding/domain/store/entity"
 	storeinputport "github.com/tuannm99/podzone/internal/onboarding/domain/store/inputport"
 	storeoutputport "github.com/tuannm99/podzone/internal/onboarding/domain/store/outputport"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 var _ storeinputport.Usecase = (*StoreInteractor)(nil)
 
 type StoreInteractor struct {
 	repo        storeoutputport.StoreRepository
+	authorizer  storeoutputport.AccessAuthorizer
+	finalizer   storeoutputport.OperationalStoreFinalizer
 	infra       infrasinputport.Usecase
 	provisioner storeentity.ProvisioningConfig
 }
@@ -24,14 +27,18 @@ type StoreInteractor struct {
 type StoreInteractorParams struct {
 	fx.In
 
-	StoreRepo storeoutputport.StoreRepository
-	Infra     infrasinputport.Usecase
-	Config    storeentity.ProvisioningConfig
+	StoreRepo  storeoutputport.StoreRepository
+	Authorizer storeoutputport.AccessAuthorizer
+	Finalizer  storeoutputport.OperationalStoreFinalizer
+	Infra      infrasinputport.Usecase
+	Config     storeentity.ProvisioningConfig
 }
 
 func NewStoreInteractor(params StoreInteractorParams) *StoreInteractor {
 	return &StoreInteractor{
 		repo:        params.StoreRepo,
+		authorizer:  params.Authorizer,
+		finalizer:   params.Finalizer,
 		infra:       params.Infra,
 		provisioner: params.Config,
 	}
@@ -39,19 +46,34 @@ func NewStoreInteractor(params StoreInteractorParams) *StoreInteractor {
 
 func (s *StoreInteractor) CreateStoreRequest(
 	ctx context.Context,
-	name, subdomain, workspaceID, requestedBy string,
+	cmd storeinputport.CreateStoreRequestCommand,
 ) (*storeinputport.Request, error) {
+	name := strings.TrimSpace(cmd.Name)
+	subdomain := strings.TrimSpace(cmd.Subdomain)
 	if name == "" {
 		return nil, ErrNameRequired
 	}
 	if subdomain == "" {
 		return nil, ErrSubdomainRequired
 	}
+	workspaceID, err := toolkit.GetTenantID(ctx)
+	if err != nil {
+		return nil, ErrWorkspaceIDRequired
+	}
 	if workspaceID == "" {
 		return nil, ErrWorkspaceIDRequired
 	}
+	requestedBy, err := toolkit.GetUserID(ctx)
+	if err != nil {
+		return nil, ErrRequestedByRequired
+	}
 	if requestedBy == "" {
 		return nil, ErrRequestedByRequired
+	}
+	if s.authorizer != nil {
+		if err := s.authorizer.AuthorizeStoreRequest(ctx, workspaceID, requestedBy); err != nil {
+			return nil, err
+		}
 	}
 
 	existing, err := s.repo.FindBySubdomain(ctx, subdomain)
@@ -87,6 +109,9 @@ func (s *StoreInteractor) CreateStoreRequest(
 }
 
 func (s *StoreInteractor) GetStoreRequest(ctx context.Context, id string) (*storeinputport.Request, error) {
+	if err := s.authorizeRead(ctx); err != nil {
+		return nil, err
+	}
 	request, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -98,10 +123,16 @@ func (s *StoreInteractor) GetStoreRequest(ctx context.Context, id string) (*stor
 }
 
 func (s *StoreInteractor) ApproveStoreRequest(ctx context.Context, id string) error {
+	if err := s.authorizeApproval(ctx); err != nil {
+		return err
+	}
 	return s.UpdateStoreRequestStatus(ctx, id, storeinputport.RequestStatusQueued)
 }
 
 func (s *StoreInteractor) RejectStoreRequest(ctx context.Context, id string) error {
+	if err := s.authorizeApproval(ctx); err != nil {
+		return err
+	}
 	return s.UpdateStoreRequestStatus(ctx, id, storeinputport.RequestStatusRejected)
 }
 
@@ -109,6 +140,15 @@ func (s *StoreInteractor) ListStoreRequests(
 	ctx context.Context,
 	workspaceID string,
 ) ([]*storeinputport.Request, error) {
+	requestedBy, err := toolkit.GetUserID(ctx)
+	if err != nil {
+		return nil, ErrRequestedByRequired
+	}
+	if s.authorizer != nil {
+		if err := s.authorizer.AuthorizeStoreRead(ctx, workspaceID, requestedBy); err != nil {
+			return nil, err
+		}
+	}
 	requests, err := s.repo.List(ctx, workspaceID)
 	if err != nil {
 		return nil, err
@@ -169,25 +209,6 @@ func isValidStatusTransition(current, next storeinputport.RequestStatus) bool {
 	}
 }
 
-func (s *StoreInteractor) CreateStore(
-	ctx context.Context,
-	name, subdomain, ownerID string,
-) (*storeinputport.Request, error) {
-	return s.CreateStoreRequest(ctx, name, subdomain, ownerID, ownerID)
-}
-
-func (s *StoreInteractor) GetStore(ctx context.Context, id string) (*storeinputport.Request, error) {
-	return s.GetStoreRequest(ctx, id)
-}
-
-func (s *StoreInteractor) GetStoresByOwner(ctx context.Context, ownerID string) ([]*storeinputport.Request, error) {
-	return s.ListStoreRequests(ctx, ownerID)
-}
-
-func (s *StoreInteractor) UpdateStoreStatus(ctx context.Context, id string, status storeinputport.StoreStatus) error {
-	return s.UpdateStoreRequestStatus(ctx, id, status)
-}
-
 func (s *StoreInteractor) ProcessNextStoreRequest(ctx context.Context) (*storeinputport.Request, error) {
 	if !s.provisioner.Enabled {
 		return nil, ErrProvisionerDisabled
@@ -224,11 +245,53 @@ func (s *StoreInteractor) ProcessNextStoreRequest(ctx context.Context) (*storein
 		return nil, err
 	}
 
+	return toInputPortRequest(request), nil
+}
+
+func (s *StoreInteractor) FinalizeNextStoreRequest(ctx context.Context) (*storeinputport.Request, error) {
+	if s.finalizer == nil {
+		return nil, ErrProvisionerMissing
+	}
+	request, err := s.repo.FindNextProvisioning(ctx)
+	if err != nil || request == nil {
+		return nil, err
+	}
+	if err := s.finalizer.FinalizeStore(ctx, *request); err != nil {
+		return nil, err
+	}
+	storeID := request.ID.Hex()
 	if err := s.repo.MarkReady(ctx, request.ID.Hex(), storeID); err != nil {
 		return nil, err
 	}
+	request.Status = storeentity.RequestStatusReady
+	request.StoreID = &request.ID
+	return toInputPortRequest(request), nil
+}
 
-	return s.GetStoreRequest(ctx, request.ID.Hex())
+func (s *StoreInteractor) authorizeApproval(ctx context.Context) error {
+	requestedBy, err := toolkit.GetUserID(ctx)
+	if err != nil {
+		return ErrRequestedByRequired
+	}
+	if s.authorizer == nil {
+		return nil
+	}
+	return s.authorizer.AuthorizeStoreApproval(ctx, requestedBy)
+}
+
+func (s *StoreInteractor) authorizeRead(ctx context.Context) error {
+	workspaceID, err := toolkit.GetTenantID(ctx)
+	if err != nil {
+		return ErrWorkspaceIDRequired
+	}
+	requestedBy, err := toolkit.GetUserID(ctx)
+	if err != nil {
+		return ErrRequestedByRequired
+	}
+	if s.authorizer == nil {
+		return nil
+	}
+	return s.authorizer.AuthorizeStoreRead(ctx, workspaceID, requestedBy)
 }
 
 func isDuplicateStoreError(err error) bool {

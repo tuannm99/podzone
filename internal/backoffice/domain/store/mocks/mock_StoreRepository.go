@@ -38,6 +38,63 @@ func (_m *MockStoreRepository) EXPECT() *MockStoreRepository_Expecter {
 	return &MockStoreRepository_Expecter{mock: &_m.Mock}
 }
 
+// Bootstrap provides a mock function for the type MockStoreRepository
+func (_mock *MockStoreRepository) Bootstrap(ctx context.Context, store1 store.Store) error {
+	ret := _mock.Called(ctx, store1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Bootstrap")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, store.Store) error); ok {
+		r0 = returnFunc(ctx, store1)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStoreRepository_Bootstrap_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Bootstrap'
+type MockStoreRepository_Bootstrap_Call struct {
+	*mock.Call
+}
+
+// Bootstrap is a helper method to define mock.On call
+//   - ctx context.Context
+//   - store1 store.Store
+func (_e *MockStoreRepository_Expecter) Bootstrap(ctx interface{}, store1 interface{}) *MockStoreRepository_Bootstrap_Call {
+	return &MockStoreRepository_Bootstrap_Call{Call: _e.mock.On("Bootstrap", ctx, store1)}
+}
+
+func (_c *MockStoreRepository_Bootstrap_Call) Run(run func(ctx context.Context, store1 store.Store)) *MockStoreRepository_Bootstrap_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 store.Store
+		if args[1] != nil {
+			arg1 = args[1].(store.Store)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStoreRepository_Bootstrap_Call) Return(err error) *MockStoreRepository_Bootstrap_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStoreRepository_Bootstrap_Call) RunAndReturn(run func(ctx context.Context, store1 store.Store) error) *MockStoreRepository_Bootstrap_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Create provides a mock function for the type MockStoreRepository
 func (_mock *MockStoreRepository) Create(ctx context.Context, store1 store.Store) error {
 	ret := _mock.Called(ctx, store1)

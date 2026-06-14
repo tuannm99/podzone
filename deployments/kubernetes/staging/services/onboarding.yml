@@ -43,6 +43,23 @@ spec:
                   name: global-secrets
                   key: JWT_SECRET
 
+            - name: IAM_GRPC_HOST
+              value: 'iam-service'
+            - name: IAM_GRPC_PORT
+              value: '50053'
+            - name: BACKOFFICE_INTERNAL_URL
+              value: 'http://backoffice-service:8000'
+            - name: BACKOFFICE_INTERNAL_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: global-secrets
+                  key: BACKOFFICE_INTERNAL_SERVICE_TOKEN
+            - name: ONBOARDING_POSTGRES_ADMIN_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: global-secrets
+                  key: ONBOARDING_POSTGRES_ADMIN_DSN
+
             - name: GIN_MODE
               value: 'release'
             - name: HTTP_PORT

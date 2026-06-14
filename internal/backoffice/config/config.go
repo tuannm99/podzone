@@ -2,14 +2,18 @@ package config
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/knadh/koanf/v2"
+
+	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 type Config struct {
-	Auth    RPCConfig `mapstructure:"auth"`
-	IAM     RPCConfig `mapstructure:"iam"`
-	Partner RPCConfig `mapstructure:"partner"`
+	Auth                 RPCConfig `mapstructure:"auth"`
+	IAM                  RPCConfig `mapstructure:"iam"`
+	Partner              RPCConfig `mapstructure:"partner"`
+	InternalServiceToken string    `mapstructure:"internal_service_token"`
 }
 
 type RPCConfig struct {
@@ -26,6 +30,11 @@ func NewConfigFromKoanf(k *koanf.Koanf) (Config, error) {
 	}
 	if err := k.Unmarshal("backoffice", &cfg); err != nil {
 		return cfg, fmt.Errorf("unmarshal backoffice config failed: %w", err)
+	}
+	if token := toolkit.GetEnv("BACKOFFICE_INTERNAL_SERVICE_TOKEN", ""); token != "" {
+		cfg.InternalServiceToken = token
+	} else if strings.HasPrefix(cfg.InternalServiceToken, "${") {
+		cfg.InternalServiceToken = ""
 	}
 	if cfg.Auth.JWTSecret == "" {
 		cfg.Auth.JWTSecret = k.String("backoffice.auth.jwt_secret")

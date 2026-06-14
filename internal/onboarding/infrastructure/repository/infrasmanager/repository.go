@@ -485,21 +485,11 @@ func (s *MongoStore) ListPending(ctx context.Context, limit int) ([]messaging.Ou
 	}
 	out := make([]messaging.OutboxRecord, 0, len(msgs))
 	for _, msg := range msgs {
-		payload, err := json.Marshal(msg.Payload)
+		record, err := outboxMessageToRecord(msg)
 		if err != nil {
-			return nil, fmt.Errorf("marshal onboarding outbox payload: %w", err)
+			return nil, err
 		}
-		out = append(out, messaging.OutboxRecord{
-			ID:            msg.EventID,
-			Topic:         msg.Topic,
-			MessageKey:    outboxMessageKey(msg),
-			Envelope:      outboxMessageEnvelope(msg, payload),
-			Status:        msg.Status,
-			Attempts:      msg.RetryCount,
-			NextAttemptAt: msg.NextRetry,
-			CreatedAt:     msg.CreatedAt,
-			UpdatedAt:     msg.UpdatedAt,
-		})
+		out = append(out, record)
 	}
 	return out, nil
 }
@@ -627,9 +617,9 @@ func (s *MongoStore) SavePlacementAllocation(
 		bson.M{"tenant_id": allocation.TenantID, "store_id": allocation.StoreID},
 		bson.M{
 			"$set": doc,
-			"$setOnInsert": bson.M{
-				"created_at": allocation.CreatedAt,
-			},
+			// "$setOnInsert": bson.M{
+			// 	"created_at": allocation.CreatedAt,
+			// },
 		},
 		options.Update().SetUpsert(true),
 	)
@@ -734,6 +724,24 @@ func outboxMessageEnvelope(msg entity.OutboxMessage, payload []byte) messaging.E
 		},
 		Payload: payload,
 	}
+}
+
+func outboxMessageToRecord(msg entity.OutboxMessage) (messaging.OutboxRecord, error) {
+	payload, err := json.Marshal(msg.Payload)
+	if err != nil {
+		return messaging.OutboxRecord{}, fmt.Errorf("marshal onboarding outbox payload: %w", err)
+	}
+	return messaging.OutboxRecord{
+		ID:            msg.EventID,
+		Topic:         messaging.EventTopic("onboarding"),
+		MessageKey:    outboxMessageKey(msg),
+		Envelope:      outboxMessageEnvelope(msg, payload),
+		Status:        msg.Status,
+		Attempts:      msg.RetryCount,
+		NextAttemptAt: msg.NextRetry,
+		CreatedAt:     msg.CreatedAt,
+		UpdatedAt:     msg.UpdatedAt,
+	}, nil
 }
 
 func outboxMessageKey(msg entity.OutboxMessage) string {

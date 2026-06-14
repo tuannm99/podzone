@@ -93,6 +93,28 @@ func (i *Interactor) UpdateStoreStatusFromCommand(
 	return i.repo.FindByID(ctx, updated.ID)
 }
 
+func (i *Interactor) BootstrapStore(
+	ctx context.Context,
+	cmd storectx.BootstrapStoreCmd,
+) (*storectx.Store, error) {
+	aggregate, _, err := storectx.CreateStore(
+		strings.TrimSpace(cmd.ID),
+		cmd.Name,
+		"",
+		strings.TrimSpace(cmd.OwnerID),
+		i.clock.Now(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	aggregate.Activate(i.clock.Now())
+	store := aggregate.Snapshot()
+	if err := i.repo.Bootstrap(ctx, store); err != nil {
+		return nil, err
+	}
+	return i.repo.FindByID(ctx, store.ID)
+}
+
 func (i *Interactor) GetAllStores(ctx context.Context) ([]storectx.Store, error) {
 	return i.ListStores(ctx, storectx.ListStoresQuery{})
 }

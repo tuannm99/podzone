@@ -391,6 +391,7 @@ Backoffice should have an internal runtime layer that can answer:
 - is this store valid inside the resolved tenant placement?
 
 This runtime layer should sit between edge resolution and business usecases.
+
 - role/permission combinations per store
 
 ### 5. Tenant-shared, store-scoped split
