@@ -11,7 +11,8 @@ COVERAGE_MIN ?= 90
 LINT_PKGS = $(shell GOCACHE=$(GO_CACHE) $(GO) list -f '{{.Dir}}' ./... | \
 	sed '\#/generated$$#d; \#/mocks$$#d; \#/node_modules/#d; s#$(CURDIR)#.#')
 COVER_PKGS = $(shell GOCACHE=$(GO_CACHE) $(GO) list -f '{{.Dir}}' ./internal/... ./pkg/... | \
-	sed '\#/generated$$#d; \#/mocks$$#d; \#/node_modules/#d; \#/internal/bootstrap$$#d; s#$(CURDIR)#.#')
+	sed '\#/generated$$#d; \#/generated/#d; \#/mocks$$#d; \#/node_modules/#d; \
+		\#/internal/bootstrap$$#d; \#/pkg/api/proto/#d; s#$(CURDIR)#.#')
 
 # Colors for output
 COLOR_RESET = \033[0m
