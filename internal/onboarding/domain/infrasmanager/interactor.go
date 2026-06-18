@@ -22,6 +22,8 @@ type Interactor struct {
 	placements  storeoutputport.PlacementRepository
 	planner     storeoutputport.PlacementPlanner
 	provisioner storeoutputport.StorageProvisioner
+	routeReader storeoutputport.PlacementRouteReader
+	routeWriter storeoutputport.PlacementRouteWriter
 }
 
 func NewInteractor(st storeoutputport.ConnectionStore) *Interactor {
@@ -35,6 +37,8 @@ type InteractorParams struct {
 	Placements  storeoutputport.PlacementRepository
 	Planner     storeoutputport.PlacementPlanner
 	Provisioner storeoutputport.StorageProvisioner
+	RouteReader storeoutputport.PlacementRouteReader
+	RouteWriter storeoutputport.PlacementRouteWriter
 }
 
 func NewInteractorWithParams(p InteractorParams) *Interactor {
@@ -43,6 +47,8 @@ func NewInteractorWithParams(p InteractorParams) *Interactor {
 		placements:  p.Placements,
 		planner:     p.Planner,
 		provisioner: p.Provisioner,
+		routeReader: p.RouteReader,
+		routeWriter: p.RouteWriter,
 	}
 }
 
@@ -118,6 +124,28 @@ func (s *Interactor) ProvisionStorePlacement(
 		return nil, err
 	}
 	return allocationResponse(&allocation, upsertResp.CorrelationID, upsertResp.Queued), nil
+}
+
+func (s *Interactor) IsPlacementRouteReady(ctx context.Context, tenantID string) (bool, error) {
+	if s.routeReader == nil {
+		return false, nil
+	}
+	return s.routeReader.IsPlacementRouteReady(ctx, tenantID)
+}
+
+func (s *Interactor) EnsurePlacementRoute(ctx context.Context, tenantID string, storeID string) (bool, error) {
+	if s.placements == nil || s.routeWriter == nil {
+		return s.IsPlacementRouteReady(ctx, tenantID)
+	}
+
+	allocation, err := s.placements.GetPlacementAllocation(ctx, tenantID, storeID)
+	if err != nil || allocation == nil {
+		return false, err
+	}
+	if err := s.routeWriter.PublishPlacementRoute(ctx, tenantID, *allocation); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 // ManualUpsertConnection stores connection and enqueues publish snapshot to Consul.

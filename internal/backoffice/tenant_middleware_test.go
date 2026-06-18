@@ -72,3 +72,82 @@ func TestPermissionForField(t *testing.T) {
 	assert.False(t, ok)
 	assert.Empty(t, permission)
 }
+
+func TestBackofficeGraphQLRootFieldsRequirePermissionMapping(t *testing.T) {
+	tests := []struct {
+		object string
+		fields []string
+	}{
+		{
+			object: "Query",
+			fields: []string{
+				"stores",
+				"store",
+				"productSetupSnapshot",
+				"routedOrders",
+				"routedOrderActivities",
+				"routedOrderRecommendation",
+			},
+		},
+		{
+			object: "Mutation",
+			fields: []string{
+				"createStore",
+				"activateStore",
+				"deactivateStore",
+				"createProductSetupDraft",
+				"promoteProductSetupCandidate",
+				"updateProductSetupCandidateStatus",
+				"createRoutedOrder",
+				"forceRerouteBlockedOrder",
+				"advanceRoutedOrder",
+				"openOrderException",
+				"updateOrderExceptionStatus",
+				"updateOrderShipment",
+				"updateOrderSettlement",
+				"updateOrderIssueHandling",
+				"updateOrderQueueControl",
+				"bulkUpdateRoutedOrders",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		for _, field := range tt.fields {
+			t.Run(tt.object+"."+field, func(t *testing.T) {
+				permission, ok := permissionForField(tt.object, field)
+				require.True(t, ok)
+				assert.NotEmpty(t, permission)
+			})
+		}
+	}
+}
+
+func TestRequiresPermissionMapping(t *testing.T) {
+	assert.True(t, requiresPermissionMapping("Query"))
+	assert.True(t, requiresPermissionMapping("Mutation"))
+	assert.False(t, requiresPermissionMapping("Store"))
+}
+
+func TestPermissionDeniedErrorIncludesPermissionAndResource(t *testing.T) {
+	err := &PermissionDeniedError{
+		Permission: "store_config:update",
+		Resource:   "podzone:tenant/tenant-1/store/store-1",
+	}
+
+	require.Equal(
+		t,
+		"missing permission: store_config:update on podzone:tenant/tenant-1/store/store-1",
+		err.Error(),
+	)
+}
+
+func TestPermissionMappingErrorIncludesGraphQLField(t *testing.T) {
+	err := &PermissionMappingError{Object: "Query", Field: "newField"}
+
+	require.Equal(
+		t,
+		"permission mapping is missing for GraphQL field: Query.newField",
+		err.Error(),
+	)
+}

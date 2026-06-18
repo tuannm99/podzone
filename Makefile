@@ -188,7 +188,7 @@ dev:
 migrate:
 	@set -e; \
 	export GOOSE_DRIVER=postgres; \
-	export GOOSE_DBSTRING="postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"; \
+	export GOOSE_DBSTRING="postgres://postgres:postgres@localhost:5432/auth?sslmode=disable"; \
 	$(GO) tool goose -dir ./internal/auth/migrations/authsql status; \
 	$(GO) tool goose -dir ./internal/auth/migrations/authsql up
 # 	$(GO) tool goose -dir ./internal/auth/migrations/authsql down

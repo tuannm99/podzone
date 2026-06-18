@@ -1,4 +1,11 @@
-import { For, Show, createEffect, createSignal, onMount } from 'solid-js';
+import {
+  For,
+  Show,
+  createEffect,
+  createSignal,
+  onCleanup,
+  onMount,
+} from 'solid-js';
 import { GW_API_URL, TENANT_GQL_URL } from '../../../services/baseurl';
 import { ensureActiveTenant } from '../../../services/auth';
 import {
@@ -11,7 +18,9 @@ import { getRoutedOrders } from '../../../services/orders';
 import {
   createStoreRequest,
   listStoreRequests,
+  retryStoreRequest,
   type StoreRequest,
+  type StoreRequestStatus,
 } from '../../../services/onboarding';
 import { listStores, type StoreInfo } from '../../../services/store';
 import { storeStorage } from '../../../services/storeStorage';
@@ -54,6 +63,36 @@ function slugify(value: string): string {
 
 function membershipStatusColor(status: string) {
   return status === 'active' ? 'green' : 'dark';
+}
+
+const provisioningSteps: StoreRequestStatus[] = [
+  'requested',
+  'queued',
+  'provisioning',
+  'ready',
+];
+
+function provisioningStepIndex(status: StoreRequestStatus) {
+  if (status === 'pending_approval') return 0;
+  if (status === 'failed') return 2;
+  return provisioningSteps.indexOf(status);
+}
+
+function provisioningStatusLabel(status: StoreRequestStatus) {
+  switch (status) {
+    case 'pending_approval':
+      return 'Pending approval';
+    case 'queued':
+      return 'Queued';
+    case 'provisioning':
+      return 'Provisioning infrastructure';
+    case 'ready':
+      return 'Ready';
+    case 'failed':
+      return 'Provisioning failed';
+    default:
+      return status.charAt(0).toUpperCase() + status.slice(1);
+  }
 }
 
 function isOverdue(value?: string) {
@@ -103,6 +142,7 @@ export default function AdminHomePage() {
   const [switchingTenant, setSwitchingTenant] = createSignal(false);
   const [creatingTenant, setCreatingTenant] = createSignal(false);
   const [creatingStoreTenantId, setCreatingStoreTenantId] = createSignal('');
+  const [retryingStoreRequestId, setRetryingStoreRequestId] = createSignal('');
   const [storeNameByTenant, setStoreNameByTenant] = createSignal<
     Record<string, string>
   >({});
@@ -401,6 +441,31 @@ export default function AdminHomePage() {
     }
   };
 
+  const retryStore = async (tenantID: string, requestID: string) => {
+    setRetryingStoreRequestId(requestID);
+    setTenantError('');
+    setTenantMessage('');
+    try {
+      const switched = await ensureActiveTenant(tenantID);
+      if (!switched.success) {
+        setTenantError(switched.data.message || 'Failed to load workspace');
+        return;
+      }
+      const result = await retryStoreRequest({
+        tenantId: tenantID,
+        requestId: requestID,
+      });
+      if (!result.success) {
+        setTenantError(result.message);
+        return;
+      }
+      setTenantMessage('Store provisioning has been queued again.');
+      await loadMemberships();
+    } finally {
+      setRetryingStoreRequestId('');
+    }
+  };
+
   const submitCreateTenant = async (event: SubmitEvent) => {
     event.preventDefault();
 
@@ -455,6 +520,20 @@ export default function AdminHomePage() {
       await loadMemberships();
       await loadPlatformAccess();
     })();
+
+    const refreshTimer = window.setInterval(() => {
+      const hasActiveProvisioning = workspaceSummaries().some((workspace) =>
+        workspace.storeRequests.some((request) =>
+          ['requested', 'pending_approval', 'queued', 'provisioning'].includes(
+            request.status
+          )
+        )
+      );
+      if (hasActiveProvisioning && !loadingTenants()) {
+        void loadMemberships();
+      }
+    }, 10000);
+    onCleanup(() => window.clearInterval(refreshTimer));
   });
 
   return (
@@ -760,14 +839,55 @@ export default function AdminHomePage() {
                                   </div>
                                 </div>
                                 <Badge
-                                  content={request.status}
+                                  content={provisioningStatusLabel(request.status)}
                                   color={request.status === 'ready' ? 'green' : request.status === 'failed' ? 'red' : 'yellow'}
                                 />
+                              </div>
+                              <div
+                                class="mt-3 grid grid-cols-4 gap-1"
+                                aria-label={`Provisioning progress: ${provisioningStatusLabel(request.status)}`}
+                              >
+                                <For each={provisioningSteps}>
+                                  {(step, index) => (
+                                    <div>
+                                      <div
+                                        class={`h-1.5 rounded-full ${
+                                          index() <= provisioningStepIndex(request.status)
+                                            ? request.status === 'failed'
+                                              ? 'bg-red-500'
+                                              : 'bg-gray-950'
+                                            : 'bg-gray-200'
+                                        }`}
+                                      />
+                                      <p class="mt-1 truncate text-[11px] text-gray-500">
+                                        {provisioningStatusLabel(step)}
+                                      </p>
+                                    </div>
+                                  )}
+                                </For>
                               </div>
                               <Show when={request.last_error}>
                                 <p class="mt-2 text-sm text-red-700">
                                   {request.last_error}
                                 </p>
+                              </Show>
+                              <Show when={request.status === 'failed'}>
+                                <div class="mt-3">
+                                  <Button
+                                    size="xs"
+                                    color="alternative"
+                                    loading={retryingStoreRequestId() === request.id}
+                                    disabled={retryingStoreRequestId() === request.id}
+                                    onClick={() => {
+                                      void retryStore(
+                                        workspace.tenantId,
+                                        request.id
+                                      );
+                                    }}
+                                  >
+                                    Retry provisioning
+                                  </Button>
+                                </div>
                               </Show>
                             </div>
                           )}

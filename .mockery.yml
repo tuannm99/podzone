@@ -163,6 +163,8 @@ packages:
       PlacementPlanner:
       StorageProvisioner:
       PlacementRepository:
+      PlacementRouteReader:
+      PlacementRouteWriter:
 
   github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/inputport:
     config:

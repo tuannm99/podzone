@@ -96,6 +96,8 @@ type Usecase interface {
 		req ProvisionStorePlacementRequest,
 		actor map[string]string,
 	) (*ProvisionStorePlacementResponse, error)
+	IsPlacementRouteReady(ctx context.Context, tenantID string) (bool, error)
+	EnsurePlacementRoute(ctx context.Context, tenantID string, storeID string) (bool, error)
 	ManualUpsertConnection(
 		ctx context.Context,
 		tenantID string,

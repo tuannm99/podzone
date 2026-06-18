@@ -51,7 +51,10 @@ type iamUsecaseMockConfig struct {
 		ctx context.Context,
 		input iamentity.CreatePolicyInput,
 	) (*iamentity.Policy, []iamentity.PolicyStatement, error)
-	assumeRoleFunc                func(ctx context.Context, input iamentity.AssumeRoleInput) (*iamentity.AssumedRole, error)
+	assumeRoleFunc func(
+		ctx context.Context,
+		input iamentity.AssumeRoleInput,
+	) (*iamentity.AssumedRole, error)
 	checkPlatformPermissionFunc   func(ctx context.Context, userID uint, permission string) (bool, error)
 	requirePlatformPermissionFunc func(
 		ctx context.Context,

@@ -24,7 +24,7 @@ func provideCORSMiddleware() pdhttp.Middleware {
 		r.Use(cors.New(cors.Config{
 			AllowOrigins:     []string{"*"},
 			AllowMethods:     []string{"POST", "GET", "PATCH", "OPTIONS"},
-			AllowHeaders:     []string{"Content-Type", "Authorization"},
+			AllowHeaders:     []string{"Content-Type", "Authorization", "X-Tenant-ID", "X-Store-ID"},
 			ExposeHeaders:    []string{"Content-Length"},
 			AllowCredentials: true,
 		}))
@@ -48,6 +48,7 @@ func graphQLRegistrar(p gqlRegistrarParams) pdhttp.RouteRegistrar {
 
 		schema := generated.NewExecutableSchema(generated.Config{Resolvers: p.Resolver})
 		srv := handler.New(schema)
+		srv.SetErrorPresenter(graphQLError)
 
 		// transports
 		srv.AddTransport(transport.Options{})

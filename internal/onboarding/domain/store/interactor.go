@@ -136,6 +136,36 @@ func (s *StoreInteractor) RejectStoreRequest(ctx context.Context, id string) err
 	return s.UpdateStoreRequestStatus(ctx, id, storeinputport.RequestStatusRejected)
 }
 
+func (s *StoreInteractor) RetryStoreRequest(ctx context.Context, id string) error {
+	workspaceID, err := toolkit.GetTenantID(ctx)
+	if err != nil {
+		return ErrWorkspaceIDRequired
+	}
+	requestedBy, err := toolkit.GetUserID(ctx)
+	if err != nil {
+		return ErrRequestedByRequired
+	}
+	request, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if request == nil || request.WorkspaceID != workspaceID {
+		return ErrStoreNotFound
+	}
+	if s.authorizer != nil {
+		if err := s.authorizer.AuthorizeStoreRequest(ctx, workspaceID, requestedBy); err != nil {
+			return err
+		}
+	}
+	if !isValidStatusTransition(
+		storeinputport.RequestStatus(request.Status),
+		storeinputport.RequestStatusQueued,
+	) {
+		return ErrInvalidStatus
+	}
+	return s.repo.UpdateStatus(ctx, id, storeentity.RequestStatusQueued)
+}
+
 func (s *StoreInteractor) ListStoreRequests(
 	ctx context.Context,
 	workspaceID string,
@@ -255,6 +285,15 @@ func (s *StoreInteractor) FinalizeNextStoreRequest(ctx context.Context) (*storei
 	request, err := s.repo.FindNextProvisioning(ctx)
 	if err != nil || request == nil {
 		return nil, err
+	}
+	if s.infra != nil {
+		ready, err := s.infra.EnsurePlacementRoute(ctx, request.WorkspaceID, request.ID.Hex())
+		if err != nil {
+			return nil, err
+		}
+		if !ready {
+			return nil, nil
+		}
 	}
 	if err := s.finalizer.FinalizeStore(ctx, *request); err != nil {
 		return nil, err

@@ -37,6 +37,7 @@ func (c *Controller) RegisterRoutes(r *gin.RouterGroup) {
 		requests.POST("", c.CreateStoreRequest)
 		requests.GET("", c.ListStoreRequests)
 		requests.GET("/:id", c.GetStoreRequest)
+		requests.POST("/:id/retry", c.RetryStoreRequest)
 		requests.POST("/:id/approve", c.ApproveStoreRequest)
 		requests.POST("/:id/reject", c.RejectStoreRequest)
 	}
@@ -46,6 +47,7 @@ func (c *Controller) RegisterRoutes(r *gin.RouterGroup) {
 		legacy.POST("", c.CreateStoreRequest)
 		legacy.GET("", c.ListStoreRequests)
 		legacy.GET("/:id", c.GetStoreRequest)
+		legacy.POST("/:id/retry", c.RetryStoreRequest)
 		legacy.POST("/:id/approve", c.ApproveStoreRequest)
 		legacy.POST("/:id/reject", c.RejectStoreRequest)
 	}
@@ -69,16 +71,7 @@ func (c *Controller) CreateStoreRequest(ctx *gin.Context) {
 		Subdomain: req.Subdomain,
 	})
 	if err != nil {
-		if err == storedomain.ErrSubdomainTaken {
-			ctx.JSON(http.StatusConflict, gin.H{"error": err.Error()})
-			return
-		}
-		if errors.Is(err, storedomain.ErrWorkspaceIDRequired) || errors.Is(err, storedomain.ErrRequestedByRequired) ||
-			errors.Is(err, storedomain.ErrNameRequired) || errors.Is(err, storedomain.ErrSubdomainRequired) {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create store"})
+		writeStoreError(ctx, err, "Failed to create store")
 		return
 	}
 
@@ -95,7 +88,7 @@ func (c *Controller) ListStoreRequests(ctx *gin.Context) {
 
 	requests, err := c.service.ListStoreRequests(requestCtx, workspaceID)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list stores"})
+		writeStoreError(ctx, err, "Failed to list stores")
 		return
 	}
 
@@ -113,11 +106,7 @@ func (c *Controller) GetStoreRequest(ctx *gin.Context) {
 
 	request, err := c.service.GetStoreRequest(requestCtx, id)
 	if err != nil {
-		if err == storedomain.ErrStoreNotFound {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "Store request not found"})
-			return
-		}
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get store"})
+		writeStoreError(ctx, err, "Failed to get store")
 		return
 	}
 	if request.WorkspaceID != workspaceID {
@@ -126,6 +115,15 @@ func (c *Controller) GetStoreRequest(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, request)
+}
+
+func (c *Controller) RetryStoreRequest(ctx *gin.Context) {
+	if err := c.service.RetryStoreRequest(ctx.Request.Context(), ctx.Param("id")); err != nil {
+		writeStoreError(ctx, err, "Failed to retry store request")
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
 }
 
 type UpdateStoreStatusRequest struct {
@@ -143,14 +141,7 @@ func (c *Controller) UpdateStoreRequestStatus(ctx *gin.Context) {
 
 	err := c.service.UpdateStoreRequestStatus(ctx.Request.Context(), id, req.Status)
 	if err != nil {
-		switch err {
-		case storedomain.ErrStoreNotFound:
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "Store request not found"})
-		case storedomain.ErrInvalidStatus:
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid status transition"})
-		default:
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update store status"})
-		}
+		writeStoreError(ctx, err, "Failed to update store status")
 		return
 	}
 
@@ -159,14 +150,7 @@ func (c *Controller) UpdateStoreRequestStatus(ctx *gin.Context) {
 
 func (c *Controller) ApproveStoreRequest(ctx *gin.Context) {
 	if err := c.service.ApproveStoreRequest(ctx.Request.Context(), ctx.Param("id")); err != nil {
-		switch err {
-		case storedomain.ErrStoreNotFound:
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "Store request not found"})
-		case storedomain.ErrInvalidStatus:
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid status transition"})
-		default:
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to approve store request"})
-		}
+		writeStoreError(ctx, err, "Failed to approve store request")
 		return
 	}
 
@@ -175,16 +159,30 @@ func (c *Controller) ApproveStoreRequest(ctx *gin.Context) {
 
 func (c *Controller) RejectStoreRequest(ctx *gin.Context) {
 	if err := c.service.RejectStoreRequest(ctx.Request.Context(), ctx.Param("id")); err != nil {
-		switch err {
-		case storedomain.ErrStoreNotFound:
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "Store request not found"})
-		case storedomain.ErrInvalidStatus:
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid status transition"})
-		default:
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to reject store request"})
-		}
+		writeStoreError(ctx, err, "Failed to reject store request")
 		return
 	}
 
 	ctx.Status(http.StatusNoContent)
+}
+
+func writeStoreError(ctx *gin.Context, err error, fallback string) {
+	switch {
+	case errors.Is(err, storedomain.ErrAccessDenied):
+		ctx.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+	case errors.Is(err, storedomain.ErrWorkspaceIDRequired),
+		errors.Is(err, storedomain.ErrRequestedByRequired):
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "authenticated workspace and user are required"})
+	case errors.Is(err, storedomain.ErrStoreNotFound):
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Store request not found"})
+	case errors.Is(err, storedomain.ErrSubdomainTaken):
+		ctx.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+	case errors.Is(err, storedomain.ErrInvalidStatus):
+		ctx.JSON(http.StatusConflict, gin.H{"error": "Invalid store request status transition"})
+	case errors.Is(err, storedomain.ErrNameRequired),
+		errors.Is(err, storedomain.ErrSubdomainRequired):
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	default:
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": fallback})
+	}
 }

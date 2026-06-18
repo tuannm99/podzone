@@ -43,6 +43,7 @@ type Usecase interface {
 	CreateStoreRequest(ctx context.Context, cmd CreateStoreRequestCommand) (*Request, error)
 	GetStoreRequest(ctx context.Context, id string) (*Request, error)
 	ListStoreRequests(ctx context.Context, workspaceID string) ([]*Request, error)
+	RetryStoreRequest(ctx context.Context, id string) error
 	ApproveStoreRequest(ctx context.Context, id string) error
 	RejectStoreRequest(ctx context.Context, id string) error
 	UpdateStoreRequestStatus(ctx context.Context, id string, status RequestStatus) error

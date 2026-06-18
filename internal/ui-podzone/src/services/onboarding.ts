@@ -69,3 +69,19 @@ export async function createStoreRequest(input: {
     return { success: false, message: errorMessage(error) };
   }
 }
+
+export async function retryStoreRequest(input: {
+  tenantId: string;
+  requestId: string;
+}): Promise<Result<void>> {
+  try {
+    await http.post(
+      `${ONBOARDING_API_URL}/onboarding/v1/requests/${encodeURIComponent(input.requestId)}/retry`,
+      undefined,
+      { headers: tenantHeaders(input.tenantId) }
+    );
+    return { success: true, data: undefined };
+  } catch (error) {
+    return { success: false, message: errorMessage(error) };
+  }
+}

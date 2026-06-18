@@ -141,3 +141,29 @@ func TestDeleteConnection_PostgresEnqueuesPlacementDelete(t *testing.T) {
 	require.Equal(t, "consul.delete", state.outbox[1].Topic)
 	require.Equal(t, "podzone/tenants/tenant-1/connections/postgres/default", state.outbox[1].Payload["key"])
 }
+
+func TestEnsurePlacementRoute_RepairsMissingRouteFromAllocation(t *testing.T) {
+	placements := coremocks.NewMockPlacementRepository(t)
+	writer := coremocks.NewMockPlacementRouteWriter(t)
+	svc := &Interactor{
+		placements:  placements,
+		routeWriter: writer,
+	}
+	allocation := entity.PlacementAllocation{
+		ID:          "allocation-1",
+		TenantID:    "tenant-1",
+		StoreID:     "store-1",
+		ClusterName: "pg-default",
+		Mode:        "schema",
+		DBName:      "postgres",
+		SchemaName:  "t_tenant_1",
+		Status:      "ready",
+	}
+
+	placements.EXPECT().GetPlacementAllocation(mock.Anything, "tenant-1", "store-1").Return(&allocation, nil)
+	writer.EXPECT().PublishPlacementRoute(mock.Anything, "tenant-1", allocation).Return(nil)
+
+	ready, err := svc.EnsurePlacementRoute(context.Background(), "tenant-1", "store-1")
+	require.NoError(t, err)
+	require.True(t, ready)
+}

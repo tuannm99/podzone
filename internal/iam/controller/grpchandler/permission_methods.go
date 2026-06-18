@@ -16,9 +16,16 @@ func (s *IAMQueryServer) CheckPermission(
 	ctx context.Context,
 	req *pbiamv1.CheckPermissionRequest,
 ) (*pbiamv1.CheckPermissionResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
 	userID, err := toUint(req.UserId)
 	if err != nil {
 		return nil, err
+	}
+	if userID != actorUserID {
+		return nil, status.Error(codes.PermissionDenied, "cannot check permission for another user")
 	}
 
 	allowed, err := s.queries.CheckPermissionForResource(
@@ -29,7 +36,9 @@ func (s *IAMQueryServer) CheckPermission(
 		req.Resource,
 	)
 	if err != nil {
-		if errors.Is(err, iamdomain.ErrPermissionDenied) || errors.Is(err, iamdomain.ErrInactiveMembership) {
+		if errors.Is(err, iamdomain.ErrPermissionDenied) ||
+			errors.Is(err, iamdomain.ErrInactiveMembership) ||
+			errors.Is(err, iamdomain.ErrMembershipNotFound) {
 			return &pbiamv1.CheckPermissionResponse{Allowed: false}, nil
 		}
 		return nil, iamStatusError(err)

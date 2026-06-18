@@ -73,7 +73,7 @@ func TestCheckPermission_InactiveMembershipReturnsNotAllowed(t *testing.T) {
 		},
 	}))
 
-	res, err := srv.CheckPermission(context.Background(), &pbiamv1.CheckPermissionRequest{
+	res, err := srv.CheckPermission(authContextForIAMUser(t, 9), &pbiamv1.CheckPermissionRequest{
 		TenantId:   "tenant-1",
 		UserId:     9,
 		Permission: "order:update",
@@ -81,6 +81,51 @@ func TestCheckPermission_InactiveMembershipReturnsNotAllowed(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	assert.False(t, res.Allowed)
+}
+
+func TestCheckPermission_MissingMembershipReturnsNotAllowed(t *testing.T) {
+	srv := newIAMServerForTest(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPermissionFunc: func(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
+			return false, iamentity.ErrMembershipNotFound
+		},
+	}))
+
+	res, err := srv.CheckPermission(authContextForIAMUser(t, 9), &pbiamv1.CheckPermissionRequest{
+		TenantId:   "tenant-1",
+		UserId:     9,
+		Permission: "store:read",
+	})
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	assert.False(t, res.Allowed)
+}
+
+func TestCheckPermission_RequiresAuthenticatedActor(t *testing.T) {
+	srv := newIAMServerForTest(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{}))
+
+	res, err := srv.CheckPermission(context.Background(), &pbiamv1.CheckPermissionRequest{
+		TenantId:   "tenant-1",
+		UserId:     9,
+		Permission: "store:read",
+	})
+
+	require.Error(t, err)
+	assert.Nil(t, res)
+	assert.Equal(t, codes.Unauthenticated, status.Code(err))
+}
+
+func TestCheckPermission_RejectsDifferentActor(t *testing.T) {
+	srv := newIAMServerForTest(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{}))
+
+	res, err := srv.CheckPermission(authContextForIAMUser(t, 7), &pbiamv1.CheckPermissionRequest{
+		TenantId:   "tenant-1",
+		UserId:     9,
+		Permission: "store:read",
+	})
+
+	require.Error(t, err)
+	assert.Nil(t, res)
+	assert.Equal(t, codes.PermissionDenied, status.Code(err))
 }
 
 func TestCreatePolicy_OK(t *testing.T) {

@@ -23,6 +23,7 @@ import (
 	"github.com/tuannm99/podzone/internal/onboarding/infrastructure/messaging/publisher"
 	"github.com/tuannm99/podzone/internal/onboarding/infrastructure/messaging/worker"
 	placementprovider "github.com/tuannm99/podzone/internal/onboarding/infrastructure/provisioning/provider"
+	placementrouter "github.com/tuannm99/podzone/internal/onboarding/infrastructure/provisioning/router"
 	infrarepository "github.com/tuannm99/podzone/internal/onboarding/infrastructure/repository/infrasmanager"
 	storerepository "github.com/tuannm99/podzone/internal/onboarding/infrastructure/repository/store"
 	"github.com/tuannm99/podzone/pkg/messaging"
@@ -125,6 +126,11 @@ var (
 		func(provider *placementprovider.Provider) infrasoutputport.StorageProvisioner {
 			return provider
 		},
+		fx.Annotate(
+			placementrouter.NewPlacementRouteReader,
+			fx.As(new(infrasoutputport.PlacementRouteReader)),
+			fx.As(new(infrasoutputport.PlacementRouteWriter)),
+		),
 		worker.NewOutboxWorker,
 		fx.Annotate(
 			worker.NewConsumerWorker,

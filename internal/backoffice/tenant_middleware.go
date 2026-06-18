@@ -12,6 +12,7 @@ import (
 	"github.com/tuannm99/podzone/internal/backoffice/runtime/scope"
 	"github.com/tuannm99/podzone/internal/backoffice/runtime/tenancy"
 	"github.com/tuannm99/podzone/pkg/toolkit"
+	"google.golang.org/grpc/metadata"
 )
 
 // TenantMiddleware is an app-level GraphQL extension.
@@ -56,23 +57,25 @@ func (m *TenantMiddleware) InterceptOperation(
 		return next(ctx)
 	}
 
-	userID, activeTenantID, sessionID, err := m.identityFromAuthorization(op.Headers.Get("Authorization"))
+	authHeader := op.Headers.Get("Authorization")
+	userID, activeTenantID, sessionID, err := m.identityFromAuthorization(authHeader)
 	if err != nil {
 		return func(ctx context.Context) *graphql.Response {
-			return graphql.ErrorResponse(ctx, "%s", err.Error())
+			return graphQLErrorResponse(ctx, err)
 		}
 	}
+	ctx = metadata.AppendToOutgoingContext(ctx, "authorization", authHeader)
 
 	tenantID, err := resolveTenantID(activeTenantID)
 	if err != nil {
 		return func(ctx context.Context) *graphql.Response {
-			return graphql.ErrorResponse(ctx, "%s", err.Error())
+			return graphQLErrorResponse(ctx, err)
 		}
 	}
 
 	if err := m.authorizer.AuthorizeTenant(ctx, sessionID, userID, tenantID); err != nil {
 		return func(ctx context.Context) *graphql.Response {
-			return graphql.ErrorResponse(ctx, "%s", err.Error())
+			return graphQLErrorResponse(ctx, err)
 		}
 	}
 	ctx = toolkit.WithTenantID(ctx, tenantID)
@@ -82,7 +85,7 @@ func (m *TenantMiddleware) InterceptOperation(
 	requestScope, err := m.tenancy.ResolveRequestScope(ctx, tenantID, storeID)
 	if err != nil {
 		return func(ctx context.Context) *graphql.Response {
-			return graphql.ErrorResponse(ctx, "%s", err.Error())
+			return graphQLErrorResponse(ctx, err)
 		}
 	}
 
@@ -112,6 +115,12 @@ func (m *TenantMiddleware) InterceptField(ctx context.Context, next graphql.Reso
 
 	permission, ok := permissionForField(fc.Object, fc.Field.Name)
 	if !ok {
+		if requiresPermissionMapping(fc.Object) {
+			return nil, &PermissionMappingError{
+				Object: fc.Object,
+				Field:  fc.Field.Name,
+			}
+		}
 		return next(ctx)
 	}
 
@@ -133,6 +142,10 @@ func (m *TenantMiddleware) InterceptField(ctx context.Context, next graphql.Reso
 		return nil, err
 	}
 	return next(ctx)
+}
+
+func requiresPermissionMapping(objectName string) bool {
+	return objectName == "Query" || objectName == "Mutation"
 }
 
 func (m *TenantMiddleware) identityFromAuthorization(header string) (string, string, string, error) {

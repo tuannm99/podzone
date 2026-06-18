@@ -437,7 +437,7 @@ export default function AdminIamPage() {
     setAllowed(permission.data);
     if (!permission.data) {
       setLoading(false);
-      setPageError('You do not have permission to manage IAM.');
+      setPageError('Missing permission: platform:manage_roles');
       return;
     }
 

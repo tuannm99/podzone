@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,6 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	storedomain "github.com/tuannm99/podzone/internal/onboarding/domain/store"
 	storeinputport "github.com/tuannm99/podzone/internal/onboarding/domain/store/inputport"
 	storemocks "github.com/tuannm99/podzone/internal/onboarding/domain/store/inputport/mocks"
 	"github.com/tuannm99/podzone/pkg/toolkit"
@@ -46,4 +48,27 @@ func TestController_ListStoreRequestsUsesRequestContext(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, response.Code)
 	require.JSONEq(t, `[]`, response.Body.String())
+}
+
+func TestController_ListStoreRequestsReturnsForbiddenForAccessDenied(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	usecase := storemocks.NewMockUsecase(t)
+	controller := &Controller{service: usecase}
+	router := gin.New()
+	controller.RegisterRoutes(router.Group("/onboarding/v1"))
+
+	usecase.EXPECT().
+		ListStoreRequests(mock.Anything, "tenant-1").
+		Return(nil, errors.Join(storedomain.ErrAccessDenied, errors.New("store:read")))
+
+	request := httptest.NewRequest(http.MethodGet, "/onboarding/v1/requests", nil)
+	requestCtx := toolkit.WithTenantID(request.Context(), "tenant-1")
+	requestCtx = toolkit.WithUserID(requestCtx, "7")
+	request = request.WithContext(requestCtx)
+	response := httptest.NewRecorder()
+
+	router.ServeHTTP(response, request)
+
+	require.Equal(t, http.StatusForbidden, response.Code)
+	require.Contains(t, response.Body.String(), storedomain.ErrAccessDenied.Error())
 }

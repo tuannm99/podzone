@@ -29,3 +29,15 @@ type PlacementRepository interface {
 	) (*entity.PlacementAllocation, error)
 	SavePlacementAllocation(ctx context.Context, allocation entity.PlacementAllocation) error
 }
+
+type PlacementRouteReader interface {
+	IsPlacementRouteReady(ctx context.Context, tenantID string) (bool, error)
+}
+
+type PlacementRouteWriter interface {
+	PublishPlacementRoute(
+		ctx context.Context,
+		tenantID string,
+		allocation entity.PlacementAllocation,
+	) error
+}

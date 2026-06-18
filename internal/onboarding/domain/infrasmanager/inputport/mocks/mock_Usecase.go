@@ -17,7 +17,8 @@ import (
 func NewMockUsecase(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockUsecase {
+},
+) *MockUsecase {
 	mock := &MockUsecase{}
 	mock.Mock.Test(t)
 
@@ -123,6 +124,78 @@ func (_c *MockUsecase_DeleteConnection_Call) RunAndReturn(run func(ctx context.C
 	return _c
 }
 
+// EnsurePlacementRoute provides a mock function for the type MockUsecase
+func (_mock *MockUsecase) EnsurePlacementRoute(ctx context.Context, tenantID string, storeID string) (bool, error) {
+	ret := _mock.Called(ctx, tenantID, storeID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EnsurePlacementRoute")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (bool, error)); ok {
+		return returnFunc(ctx, tenantID, storeID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) bool); ok {
+		r0 = returnFunc(ctx, tenantID, storeID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = returnFunc(ctx, tenantID, storeID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockUsecase_EnsurePlacementRoute_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EnsurePlacementRoute'
+type MockUsecase_EnsurePlacementRoute_Call struct {
+	*mock.Call
+}
+
+// EnsurePlacementRoute is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - storeID string
+func (_e *MockUsecase_Expecter) EnsurePlacementRoute(ctx interface{}, tenantID interface{}, storeID interface{}) *MockUsecase_EnsurePlacementRoute_Call {
+	return &MockUsecase_EnsurePlacementRoute_Call{Call: _e.mock.On("EnsurePlacementRoute", ctx, tenantID, storeID)}
+}
+
+func (_c *MockUsecase_EnsurePlacementRoute_Call) Run(run func(ctx context.Context, tenantID string, storeID string)) *MockUsecase_EnsurePlacementRoute_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUsecase_EnsurePlacementRoute_Call) Return(b bool, err error) *MockUsecase_EnsurePlacementRoute_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *MockUsecase_EnsurePlacementRoute_Call) RunAndReturn(run func(ctx context.Context, tenantID string, storeID string) (bool, error)) *MockUsecase_EnsurePlacementRoute_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetConnection provides a mock function for the type MockUsecase
 func (_mock *MockUsecase) GetConnection(ctx context.Context, tenantID string, infraType entity.InfraType, name string) (*inputport.Connection, error) {
 	ret := _mock.Called(ctx, tenantID, infraType, name)
@@ -199,6 +272,72 @@ func (_c *MockUsecase_GetConnection_Call) Return(connection *inputport.Connectio
 }
 
 func (_c *MockUsecase_GetConnection_Call) RunAndReturn(run func(ctx context.Context, tenantID string, infraType entity.InfraType, name string) (*inputport.Connection, error)) *MockUsecase_GetConnection_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// IsPlacementRouteReady provides a mock function for the type MockUsecase
+func (_mock *MockUsecase) IsPlacementRouteReady(ctx context.Context, tenantID string) (bool, error) {
+	ret := _mock.Called(ctx, tenantID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsPlacementRouteReady")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
+		return returnFunc(ctx, tenantID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) bool); ok {
+		r0 = returnFunc(ctx, tenantID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, tenantID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockUsecase_IsPlacementRouteReady_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsPlacementRouteReady'
+type MockUsecase_IsPlacementRouteReady_Call struct {
+	*mock.Call
+}
+
+// IsPlacementRouteReady is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+func (_e *MockUsecase_Expecter) IsPlacementRouteReady(ctx interface{}, tenantID interface{}) *MockUsecase_IsPlacementRouteReady_Call {
+	return &MockUsecase_IsPlacementRouteReady_Call{Call: _e.mock.On("IsPlacementRouteReady", ctx, tenantID)}
+}
+
+func (_c *MockUsecase_IsPlacementRouteReady_Call) Run(run func(ctx context.Context, tenantID string)) *MockUsecase_IsPlacementRouteReady_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUsecase_IsPlacementRouteReady_Call) Return(b bool, err error) *MockUsecase_IsPlacementRouteReady_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *MockUsecase_IsPlacementRouteReady_Call) RunAndReturn(run func(ctx context.Context, tenantID string) (bool, error)) *MockUsecase_IsPlacementRouteReady_Call {
 	_c.Call.Return(run)
 	return _c
 }

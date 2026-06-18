@@ -126,6 +126,67 @@ func TestApproveStoreRequest_TransitionsToQueued(t *testing.T) {
 	require.NotNil(t, updated.ApprovedAt)
 }
 
+func TestRetryStoreRequest_TransitionsOwnedFailedRequestToQueued(t *testing.T) {
+	repo := storemocks.NewMockStoreRepository(t)
+	authorizer := storemocks.NewMockAccessAuthorizer(t)
+	svc := &StoreInteractor{repo: repo, authorizer: authorizer}
+	ctx := authenticatedContext("workspace-1", "7")
+	request := storeentity.StoreRequest{
+		ID:          primitive.NewObjectID(),
+		WorkspaceID: "workspace-1",
+		RequestedBy: "7",
+		Status:      storeentity.RequestStatusFailed,
+	}
+
+	repo.EXPECT().FindByID(mock.Anything, request.ID.Hex()).Return(&request, nil)
+	authorizer.EXPECT().
+		AuthorizeStoreRequest(mock.Anything, "workspace-1", "7").
+		Return(nil)
+	repo.EXPECT().
+		UpdateStatus(mock.Anything, request.ID.Hex(), storeentity.RequestStatusQueued).
+		Return(nil)
+
+	require.NoError(t, svc.RetryStoreRequest(ctx, request.ID.Hex()))
+}
+
+func TestRetryStoreRequest_HidesRequestOwnedByAnotherWorkspace(t *testing.T) {
+	repo := storemocks.NewMockStoreRepository(t)
+	svc := &StoreInteractor{repo: repo}
+	request := storeentity.StoreRequest{
+		ID:          primitive.NewObjectID(),
+		WorkspaceID: "workspace-2",
+		Status:      storeentity.RequestStatusFailed,
+	}
+
+	repo.EXPECT().FindByID(mock.Anything, request.ID.Hex()).Return(&request, nil)
+
+	err := svc.RetryStoreRequest(
+		authenticatedContext("workspace-1", "7"),
+		request.ID.Hex(),
+	)
+	require.ErrorIs(t, err, ErrStoreNotFound)
+}
+
+func TestRetryStoreRequest_RejectsNonFailedRequest(t *testing.T) {
+	repo := storemocks.NewMockStoreRepository(t)
+	authorizer := storemocks.NewMockAccessAuthorizer(t)
+	svc := &StoreInteractor{repo: repo, authorizer: authorizer}
+	ctx := authenticatedContext("workspace-1", "7")
+	request := storeentity.StoreRequest{
+		ID:          primitive.NewObjectID(),
+		WorkspaceID: "workspace-1",
+		Status:      storeentity.RequestStatusProvisioning,
+	}
+
+	repo.EXPECT().FindByID(mock.Anything, request.ID.Hex()).Return(&request, nil)
+	authorizer.EXPECT().
+		AuthorizeStoreRequest(mock.Anything, "workspace-1", "7").
+		Return(nil)
+
+	err := svc.RetryStoreRequest(ctx, request.ID.Hex())
+	require.ErrorIs(t, err, ErrInvalidStatus)
+}
+
 func TestProcessNextStoreRequest_ProvisionsQueuedRequest(t *testing.T) {
 	repo := storemocks.NewMockStoreRepository(t)
 	infra := infrasmocks.NewMockUsecase(t)
@@ -180,9 +241,11 @@ func TestProcessNextStoreRequest_ProvisionsQueuedRequest(t *testing.T) {
 
 func TestFinalizeNextStoreRequest_BootstrapsOperationalStoreBeforeReady(t *testing.T) {
 	repo := storemocks.NewMockStoreRepository(t)
+	infra := infrasmocks.NewMockUsecase(t)
 	finalizer := storemocks.NewMockOperationalStoreFinalizer(t)
 	svc := &StoreInteractor{
 		repo:      repo,
+		infra:     infra,
 		finalizer: finalizer,
 	}
 
@@ -196,6 +259,7 @@ func TestFinalizeNextStoreRequest_BootstrapsOperationalStoreBeforeReady(t *testi
 		Status:      storeentity.RequestStatusProvisioning,
 	}
 	repo.EXPECT().FindNextProvisioning(mock.Anything).Return(request, nil)
+	infra.EXPECT().EnsurePlacementRoute(mock.Anything, "workspace-1", id.Hex()).Return(true, nil)
 	finalizer.EXPECT().FinalizeStore(mock.Anything, *request).Return(nil)
 	repo.EXPECT().MarkReady(mock.Anything, id.Hex(), id.Hex()).Return(nil)
 
@@ -204,4 +268,30 @@ func TestFinalizeNextStoreRequest_BootstrapsOperationalStoreBeforeReady(t *testi
 	require.NotNil(t, finalized)
 	require.Equal(t, storeinputport.RequestStatusReady, finalized.Status)
 	require.Equal(t, id.Hex(), finalized.StoreID)
+}
+
+func TestFinalizeNextStoreRequest_WaitsForPlacementRoute(t *testing.T) {
+	repo := storemocks.NewMockStoreRepository(t)
+	infra := infrasmocks.NewMockUsecase(t)
+	finalizer := storemocks.NewMockOperationalStoreFinalizer(t)
+	svc := &StoreInteractor{
+		repo:      repo,
+		infra:     infra,
+		finalizer: finalizer,
+	}
+
+	request := &storeentity.StoreRequest{
+		ID:          primitive.NewObjectID(),
+		Name:        "Urban Finds",
+		Subdomain:   "urban-finds",
+		WorkspaceID: "workspace-1",
+		RequestedBy: "user-1",
+		Status:      storeentity.RequestStatusProvisioning,
+	}
+	repo.EXPECT().FindNextProvisioning(mock.Anything).Return(request, nil)
+	infra.EXPECT().EnsurePlacementRoute(mock.Anything, "workspace-1", request.ID.Hex()).Return(false, nil)
+
+	finalized, err := svc.FinalizeNextStoreRequest(context.Background())
+	require.NoError(t, err)
+	require.Nil(t, finalized)
 }

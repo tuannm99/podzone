@@ -5,6 +5,11 @@ import { tokenStorage } from './tokenStorage';
 
 type GraphQLErrorItem = {
   message?: string;
+  extensions?: {
+    code?: string;
+    permission?: string;
+    resource?: string;
+  };
 };
 
 type GraphQLPayload<T> = {
@@ -22,6 +27,25 @@ function toMessage(error: unknown, fallback: string): string {
     return error.message;
   }
   return fallback;
+}
+
+function graphQLErrorMessage(error?: GraphQLErrorItem): string {
+  if (!error) return 'GraphQL request failed';
+  const code = error.extensions?.code;
+  const permission = error.extensions?.permission;
+  const resource = error.extensions?.resource;
+
+  if (code === 'FORBIDDEN' && permission) {
+    return resource && resource !== '*'
+      ? `Missing permission: ${permission} on ${resource}`
+      : `Missing permission: ${permission}`;
+  }
+
+  if (code === 'UNAUTHENTICATED') {
+    return error.message || 'Authentication is required.';
+  }
+
+  return error.message || 'GraphQL request failed';
 }
 
 export async function postBackofficeGraphQL<T>(
@@ -46,7 +70,7 @@ export async function postBackofficeGraphQL<T>(
     if (data.errors && data.errors.length > 0) {
       return {
         success: false,
-        message: data.errors[0]?.message || 'GraphQL request failed',
+        message: graphQLErrorMessage(data.errors[0]),
       };
     }
 

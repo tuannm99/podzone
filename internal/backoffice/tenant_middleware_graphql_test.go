@@ -106,7 +106,7 @@ func TestTenantMiddlewareGraphQLInjectsIdentityAndChecksPermission(t *testing.T)
 		OrderRoutingUsecase: orderUC,
 	}, bootstrapper, storeaccess.New(storeRepo))
 
-	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "Bearer "+token, map[string]string{
+	rec := doGraphQLRequest(t, srv, "Bearer "+token, map[string]string{
 		"X-Store-ID": storeID,
 	})
 	require.Equal(t, http.StatusOK, rec.Code)
@@ -166,7 +166,7 @@ func TestTenantMiddlewareGraphQLInjectsStoreScope(t *testing.T) {
 		OrderRoutingUsecase: orderUC,
 	}, bootstrapper, storeaccess.New(storeRepo))
 
-	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "Bearer "+token, map[string]string{
+	rec := doGraphQLRequest(t, srv, "Bearer "+token, map[string]string{
 		"X-Store-ID": storeID,
 	})
 	require.Equal(t, http.StatusOK, rec.Code)
@@ -183,7 +183,7 @@ func TestTenantMiddlewareGraphQLRejectsMissingAuthorization(t *testing.T) {
 		OrderRoutingUsecase: operationsmocks.NewMockOrderRoutingUsecase(t),
 	}, backofficemocks.NewMockTenantBootstrapper(t), nil)
 
-	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "", nil)
+	rec := doGraphQLRequest(t, srv, "", nil)
 	require.Equal(t, http.StatusOK, rec.Code)
 
 	var payload graphQLResponse
@@ -209,7 +209,7 @@ func TestTenantMiddlewareGraphQLRejectsPermissionDenied(t *testing.T) {
 	authz.EXPECT().AuthorizeTenant(mock.Anything, "session-2", "99", "tenant-ops").Return(nil).Once()
 	authz.EXPECT().
 		RequirePermission(mock.Anything, "99", "tenant-ops", "store:read", "*").
-		Return(errors.New("permission denied")).
+		Return(&PermissionDeniedError{Permission: "store:read", Resource: "*"}).
 		Once()
 	bootstrapper.EXPECT().EnsureReady(mock.Anything, "tenant-ops").Return(nil).Once()
 	srv := newBackofficeGraphQLTestServer(t, authz, &resolver.Resolver{
@@ -217,13 +217,28 @@ func TestTenantMiddlewareGraphQLRejectsPermissionDenied(t *testing.T) {
 		OrderRoutingUsecase: operationsmocks.NewMockOrderRoutingUsecase(t),
 	}, bootstrapper, nil)
 
-	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "Bearer "+token, nil)
+	rec := doGraphQLRequest(t, srv, "Bearer "+token, nil)
 	require.Equal(t, http.StatusOK, rec.Code)
 
 	var payload graphQLResponse
 	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &payload))
 	require.Len(t, payload.Errors, 1)
-	assert.Contains(t, payload.Errors[0].Message, "permission denied")
+	assert.Contains(t, payload.Errors[0].Message, "missing permission: store:read")
+	assert.Equal(t, graphQLErrorCodeForbidden, payload.Errors[0].Extensions["code"])
+	assert.Equal(t, "store:read", payload.Errors[0].Extensions["permission"])
+	assert.Equal(t, "*", payload.Errors[0].Extensions["resource"])
+}
+
+func TestGraphQLErrorReportsPermissionMappingFailure(t *testing.T) {
+	err := graphQLError(
+		context.Background(),
+		&PermissionMappingError{Object: "Query", Field: "newField"},
+	)
+
+	require.NotNil(t, err)
+	assert.Equal(t, "permission mapping is missing for GraphQL field: Query.newField", err.Message)
+	assert.Equal(t, graphQLErrorCodeInternal, err.Extensions["code"])
+	assert.Equal(t, "Query.newField", err.Extensions["field"])
 }
 
 func TestTenantMiddlewareGraphQLRejectsUnknownStore(t *testing.T) {
@@ -250,7 +265,7 @@ func TestTenantMiddlewareGraphQLRejectsUnknownStore(t *testing.T) {
 		OrderRoutingUsecase: operationsmocks.NewMockOrderRoutingUsecase(t),
 	}, bootstrapper, storeaccess.New(storeRepo))
 
-	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "Bearer "+token, map[string]string{
+	rec := doGraphQLRequest(t, srv, "Bearer "+token, map[string]string{
 		"X-Store-ID": "missing-store",
 	})
 	require.Equal(t, http.StatusOK, rec.Code)
@@ -282,7 +297,7 @@ func TestTenantMiddlewareGraphQLRejectsBootstrapFailure(t *testing.T) {
 		OrderRoutingUsecase: operationsmocks.NewMockOrderRoutingUsecase(t),
 	}, bootstrapper, nil)
 
-	rec := doGraphQLRequest(t, srv, "query { routedOrders { id } }", "Bearer "+token, nil)
+	rec := doGraphQLRequest(t, srv, "Bearer "+token, nil)
 	require.Equal(t, http.StatusOK, rec.Code)
 
 	var payload graphQLResponse
@@ -302,6 +317,7 @@ func newBackofficeGraphQLTestServer(
 
 	schema := generated.NewExecutableSchema(generated.Config{Resolvers: r})
 	srv := handler.New(schema)
+	srv.SetErrorPresenter(graphQLError)
 	srv.AddTransport(transport.POST{})
 	srv.SetQueryCache(lru.New[*ast.QueryDocument](100))
 	srv.Use(extension.Introspection{})
@@ -317,14 +333,13 @@ func newBackofficeGraphQLTestServer(
 func doGraphQLRequest(
 	t *testing.T,
 	srv http.Handler,
-	query string,
 	authHeader string,
 	headers map[string]string,
 ) *httptest.ResponseRecorder {
 	t.Helper()
 
 	body, err := json.Marshal(map[string]any{
-		"query": query,
+		"query": "query { routedOrders { id } }",
 	})
 	require.NoError(t, err)
 
@@ -348,6 +363,7 @@ type graphQLResponse struct {
 		} `json:"routedOrders"`
 	} `json:"data"`
 	Errors []struct {
-		Message string `json:"message"`
+		Message    string         `json:"message"`
+		Extensions map[string]any `json:"extensions"`
 	} `json:"errors"`
 }

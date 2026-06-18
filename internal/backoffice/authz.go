@@ -22,6 +22,30 @@ type TenantAuthorizer interface {
 	RequirePermission(ctx context.Context, userID, tenantID, permission, resource string) error
 }
 
+type PermissionDeniedError struct {
+	Permission string
+	Resource   string
+}
+
+func (e *PermissionDeniedError) Error() string {
+	if strings.TrimSpace(e.Resource) == "" || e.Resource == "*" {
+		return fmt.Sprintf("missing permission: %s", e.Permission)
+	}
+	return fmt.Sprintf("missing permission: %s on %s", e.Permission, e.Resource)
+}
+
+type PermissionMappingError struct {
+	Object string
+	Field  string
+}
+
+func (e *PermissionMappingError) Error() string {
+	if e == nil || strings.TrimSpace(e.Object) == "" || strings.TrimSpace(e.Field) == "" {
+		return "permission mapping is missing"
+	}
+	return fmt.Sprintf("permission mapping is missing for GraphQL field: %s.%s", e.Object, e.Field)
+}
+
 type authTenantAuthorizer struct {
 	authClient pbauthv1.AuthServiceClient
 	iamClient  pbiamv1.IAMQueryServiceClient
@@ -136,7 +160,7 @@ func (a *authTenantAuthorizer) RequirePermission(
 		return mapAuthzError("permission check failed", err)
 	}
 	if !resp.GetAllowed() {
-		return fmt.Errorf("permission denied: %s", permission)
+		return &PermissionDeniedError{Permission: permission, Resource: resource}
 	}
 	return nil
 }

@@ -80,10 +80,11 @@ func NewTenantAuthorizer(p authzClientParams) (TenantAuthorizer, error) {
 }
 
 func (a *authTenantAuthorizer) AuthorizeTenant(ctx context.Context, tenantID, permission string) (string, error) {
-	userID, activeTenantID, sessionID, err := a.identityFromContext(ctx)
+	userID, activeTenantID, sessionID, authHeader, err := a.identityFromContext(ctx)
 	if err != nil {
 		return "", err
 	}
+	ctx = metadata.AppendToOutgoingContext(ctx, "authorization", authHeader)
 	if strings.TrimSpace(tenantID) == "" {
 		return "", fmt.Errorf("tenant id is required")
 	}
@@ -143,23 +144,23 @@ func (a *authTenantAuthorizer) AuthorizeTenant(ctx context.Context, tenantID, pe
 	return userID, nil
 }
 
-func (a *authTenantAuthorizer) identityFromContext(ctx context.Context) (string, string, string, error) {
+func (a *authTenantAuthorizer) identityFromContext(ctx context.Context) (string, string, string, string, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		return "", "", "", fmt.Errorf("missing request metadata")
+		return "", "", "", "", fmt.Errorf("missing request metadata")
 	}
 	values := md.Get("authorization")
 	if len(values) == 0 {
-		return "", "", "", fmt.Errorf("missing authorization header")
+		return "", "", "", "", fmt.Errorf("missing authorization header")
 	}
 	header := values[0]
 	const bearerPrefix = "Bearer "
 	if !strings.HasPrefix(header, bearerPrefix) {
-		return "", "", "", fmt.Errorf("invalid authorization header")
+		return "", "", "", "", fmt.Errorf("invalid authorization header")
 	}
 	tokenStr := strings.TrimSpace(strings.TrimPrefix(header, bearerPrefix))
 	if tokenStr == "" {
-		return "", "", "", fmt.Errorf("missing authorization bearer token")
+		return "", "", "", "", fmt.Errorf("missing authorization bearer token")
 	}
 
 	claims := &partnerJWTClaims{}
@@ -170,21 +171,21 @@ func (a *authTenantAuthorizer) identityFromContext(ctx context.Context) (string,
 		return []byte(a.cfg.Auth.JWTSecret), nil
 	})
 	if err != nil || !token.Valid {
-		return "", "", "", fmt.Errorf("invalid authorization token")
+		return "", "", "", "", fmt.Errorf("invalid authorization token")
 	}
 	if a.cfg.Auth.JWTKey != "" && claims.Key != a.cfg.Auth.JWTKey {
-		return "", "", "", fmt.Errorf("invalid authorization token")
+		return "", "", "", "", fmt.Errorf("invalid authorization token")
 	}
 	if claims.UserID == 0 {
-		return "", "", "", fmt.Errorf("authorization token missing user_id")
+		return "", "", "", "", fmt.Errorf("authorization token missing user_id")
 	}
 	if claims.ActiveTenantID == "" {
-		return "", "", "", fmt.Errorf("authorization token missing active_tenant_id")
+		return "", "", "", "", fmt.Errorf("authorization token missing active_tenant_id")
 	}
 	if claims.SessionID == "" {
-		return "", "", "", fmt.Errorf("authorization token missing session_id")
+		return "", "", "", "", fmt.Errorf("authorization token missing session_id")
 	}
-	return strconv.FormatUint(uint64(claims.UserID), 10), claims.ActiveTenantID, claims.SessionID, nil
+	return strconv.FormatUint(uint64(claims.UserID), 10), claims.ActiveTenantID, claims.SessionID, header, nil
 }
 
 func parseUserID(userID string) (uint64, error) {

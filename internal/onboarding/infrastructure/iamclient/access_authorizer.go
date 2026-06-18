@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	onboardingconfig "github.com/tuannm99/podzone/internal/onboarding/config"
+	storedomain "github.com/tuannm99/podzone/internal/onboarding/domain/store"
 	storeoutputport "github.com/tuannm99/podzone/internal/onboarding/domain/store/outputport"
 	"github.com/tuannm99/podzone/internal/onboarding/runtime/identity"
 	pbiamv1 "github.com/tuannm99/podzone/pkg/api/proto/iam/v1"
@@ -69,7 +70,7 @@ func (a *AccessAuthorizer) AuthorizeStoreRequest(
 		return fmt.Errorf("check store creation permission: %w", err)
 	}
 	if !response.GetAllowed() {
-		return fmt.Errorf("permission denied: store:create")
+		return fmt.Errorf("%w: store:create", storedomain.ErrAccessDenied)
 	}
 	return nil
 }
@@ -96,7 +97,7 @@ func (a *AccessAuthorizer) AuthorizeStoreRead(
 		return fmt.Errorf("check store read permission: %w", err)
 	}
 	if !response.GetAllowed() {
-		return fmt.Errorf("permission denied: store:read")
+		return fmt.Errorf("%w: store:read", storedomain.ErrAccessDenied)
 	}
 	return nil
 }
@@ -117,7 +118,7 @@ func (a *AccessAuthorizer) AuthorizeStoreApproval(ctx context.Context, requested
 		return fmt.Errorf("check store approval permission: %w", err)
 	}
 	if !response.GetAllowed() {
-		return fmt.Errorf("permission denied: %s", storeApprovalPermission)
+		return fmt.Errorf("%w: %s", storedomain.ErrAccessDenied, storeApprovalPermission)
 	}
 	return nil
 }
