@@ -183,6 +183,9 @@ flowchart LR
 - `controller/eventhandler/consulbridge`: router projection publisher; Consul is rebuilt from onboarding allocation state
 - `infrastructure/messaging`: CDC/fallback publisher and background worker wiring
 
+Local Docker and Kubernetes schema-mode placement use the `podzone_tenants` Postgres database for tenant schemas.
+The `postgres` database remains the admin/default connection database and must not host service-owned public tables.
+
 ## Catalog Service
 
 ```mermaid

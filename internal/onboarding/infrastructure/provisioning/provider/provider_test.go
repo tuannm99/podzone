@@ -15,7 +15,7 @@ func TestProvider_DockerProvisionProducesConnectionFromRuntime(t *testing.T) {
 		Runtime:       "local_docker",
 		ClusterName:   "pg-default",
 		Mode:          "schema",
-		DBName:        "postgres",
+		DBName:        "podzone_tenants",
 		SchemaPrefix:  "t_",
 		DockerNetwork: "podzone_default",
 	})
@@ -30,8 +30,8 @@ func TestProvider_DockerProvisionProducesConnectionFromRuntime(t *testing.T) {
 	require.Equal(t, entity.PlacementRuntimeLocalDocker, plan.Runtime)
 	require.Equal(t, "t_tenant_2e0df8f6_4964_447d_a287_67eabd0e65c9", plan.SchemaName)
 
-	allocation := p.allocate(request, plan, p.dockerConnection(plan), "ready")
-	require.Equal(t, "postgres://postgres:***@pgbouncer:6432/postgres", allocation.Endpoint)
+	allocation := p.allocate(request, plan, p.dockerConnection(plan))
+	require.Equal(t, "postgres://postgres:***@pgbouncer:6432/podzone_tenants", allocation.Endpoint)
 	require.Equal(t, "docker/postgres/default", allocation.SecretRef)
 	require.Equal(t, "docker_runtime", allocation.ProviderMeta["connection_source"])
 }
@@ -41,7 +41,7 @@ func TestProvider_KubernetesProvisionProducesConnectionFromRuntime(t *testing.T)
 		Runtime:             "kubernetes",
 		ClusterName:         "pg-default",
 		Mode:                "schema",
-		DBName:              "postgres",
+		DBName:              "podzone_tenants",
 		SchemaPrefix:        "t_",
 		KubernetesNamespace: "podzone",
 	})
@@ -53,9 +53,13 @@ func TestProvider_KubernetesProvisionProducesConnectionFromRuntime(t *testing.T)
 
 	plan, err := p.PlanStorePlacement(context.Background(), request)
 	require.NoError(t, err)
-	allocation := p.allocate(request, plan, p.kubernetesConnection(plan), "ready")
+	allocation := p.allocate(request, plan, p.kubernetesConnection(plan))
 
-	require.Equal(t, "postgres://postgres:***@pgbouncer.podzone.svc.cluster.local:6432/postgres", allocation.Endpoint)
+	require.Equal(
+		t,
+		"postgres://postgres:***@pgbouncer.podzone.svc.cluster.local:6432/podzone_tenants",
+		allocation.Endpoint,
+	)
 	require.Equal(t, "k8s/podzone/postgres/default", allocation.SecretRef)
 	require.Equal(t, "kubernetes_service", allocation.ProviderMeta["connection_source"])
 }
@@ -65,7 +69,7 @@ func TestProvider_ProvisionRequiresAdminDSN(t *testing.T) {
 		Runtime:      "local_docker",
 		ClusterName:  "pg-default",
 		Mode:         "schema",
-		DBName:       "postgres",
+		DBName:       "podzone_tenants",
 		SchemaPrefix: "t_",
 	})
 	request := entity.StorePlacementRequest{
@@ -85,7 +89,7 @@ func TestProvider_TerraformRuntimeRequiresFutureAdapter(t *testing.T) {
 		Runtime:         "terraform",
 		ClusterName:     "pg-cloud",
 		Mode:            "schema",
-		DBName:          "postgres",
+		DBName:          "podzone_tenants",
 		SchemaPrefix:    "t_",
 		TerraformModule: "modules/postgres-tenant",
 	})

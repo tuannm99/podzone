@@ -205,7 +205,7 @@ services:
       DEV_PASSWORD: ${DEV_PASSWORD:-DevPass123!}
       DEV_FULL_NAME: ${DEV_FULL_NAME:-Dev Owner}
       CLUSTER_NAME: ${CLUSTER_NAME:-pg-default}
-      DB_NAME: ${DB_NAME:-postgres}
+      DB_NAME: ${DB_NAME:-podzone_tenants}
       PG_HOST: pgbouncer
       PG_PORT: '6432'
       PG_USER: postgres

@@ -68,14 +68,14 @@ func TestPlacementRouteReader_PublishPlacementRoute(t *testing.T) {
 	kv.EXPECT().
 		Put(
 			"podzone/tenants/tenant-1/placement",
-			[]byte(`{"cluster_name":"pg-default","db_name":"postgres","mode":"schema","schema_name":"t_tenant_1"}`),
+			[]byte(`{"cluster_name":"pg-default","db_name":"podzone_tenants","mode":"schema","schema_name":"t_tenant_1"}`),
 		).
 		Return(nil)
 
 	err := reader.PublishPlacementRoute(context.Background(), "tenant-1", entity.PlacementAllocation{
 		ClusterName: "pg-default",
 		Mode:        "schema",
-		DBName:      "postgres",
+		DBName:      "podzone_tenants",
 		SchemaName:  "t_tenant_1",
 	})
 	require.NoError(t, err)
@@ -95,7 +95,7 @@ func TestPlacementRouteReader_PublishPlacementRoutePublishesClusterRegistry(t *t
 	kv.EXPECT().
 		Put(
 			"podzone/tenants/tenant-1/placement",
-			[]byte(`{"cluster_name":"pg-default","db_name":"postgres","mode":"schema","schema_name":"t_tenant_1"}`),
+			[]byte(`{"cluster_name":"pg-default","db_name":"podzone_tenants","mode":"schema","schema_name":"t_tenant_1"}`),
 		).
 		Return(nil)
 	kv.EXPECT().
@@ -108,7 +108,7 @@ func TestPlacementRouteReader_PublishPlacementRoutePublishesClusterRegistry(t *t
 	err := reader.PublishPlacementRoute(context.Background(), "tenant-1", entity.PlacementAllocation{
 		ClusterName: "pg-default",
 		Mode:        "schema",
-		DBName:      "postgres",
+		DBName:      "podzone_tenants",
 		SchemaName:  "t_tenant_1",
 	})
 	require.NoError(t, err)

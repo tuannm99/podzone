@@ -58,6 +58,293 @@ The product must distinguish between:
 - `store ready`
 - `store active`
 
+## Core resource model
+
+Onboarding must treat platform resources as finite inventory, not as unlimited shared defaults.
+
+The resource model must distinguish:
+
+- tenant workspace
+- store
+- database cluster
+- database or schema placement
+- Kubernetes cluster
+- Kubernetes namespace
+- application runtime pool
+- connection route
+- secret reference
+- resource quota
+- placement policy
+
+Consul or any other routing KV store is not the resource inventory.
+
+The source of truth for resource inventory and placement allocation belongs to the onboarding/platform resource manager.
+Routing KV entries are projections that can be rebuilt.
+
+## Functional requirements
+
+### FR-ONB-001 Store request intake
+
+The system must let an authorized workspace owner or operator submit a store onboarding request.
+
+The request must capture:
+
+- workspace ID
+- requested store name and slug
+- requester identity
+- requested environment
+- requested isolation level, if provided
+- requested runtime preferences, if provided
+- requested data placement preferences, if provided
+
+The request must be persisted before any long-running provisioning work starts.
+
+### FR-ONB-002 Request lifecycle tracking
+
+The system must track the lifecycle of every onboarding request from submission to terminal state.
+
+Minimum lifecycle states:
+
+- `requested`
+- `validating`
+- `planning`
+- `pending_approval`
+- `approved`
+- `provisioning`
+- `ready`
+- `failed`
+- `cancelled`
+
+Each state transition must record:
+
+- actor or system component
+- timestamp
+- reason
+- correlation ID
+- previous state
+- next state
+
+### FR-ONB-003 Capacity discovery
+
+Before selecting placement, onboarding must discover current capacity for:
+
+- database clusters
+- database instances or databases
+- schema count per placement database
+- database connection limits
+- Kubernetes clusters
+- Kubernetes namespaces
+- namespace CPU and memory quota
+- application runtime pools
+- existing tenant and store assignments
+
+Capacity data may come from a resource manager database, Kubernetes API, cloud API, or local Docker provider,
+depending on environment.
+
+### FR-ONB-004 Placement planning
+
+Onboarding must produce a placement plan before provisioning.
+
+The placement plan must answer:
+
+- which DB cluster will host tenant data
+- which database or schema will host tenant data
+- whether the tenant uses shared schema mode, database-per-tenant, or cluster-per-tenant
+- which Kubernetes cluster will host runtime resources
+- which namespace will host runtime resources
+- whether an existing namespace can be reused
+- whether a new namespace must be created
+- which application runtime pool will serve the tenant/store
+- which secret reference will be used for runtime connection credentials
+
+The plan must be persisted and auditable before execution.
+
+### FR-ONB-005 Placement policy evaluation
+
+Onboarding must evaluate placement policy before approval or provisioning.
+
+Policies must be able to express:
+
+- max stores per workspace
+- max tenants per DB cluster
+- max schemas per placement database
+- max connections per DB cluster
+- max tenants per Kubernetes namespace
+- CPU and memory quota thresholds
+- reserved capacity for platform or VIP tenants
+- isolation level requirements
+- environment-specific rules for local, staging, and production
+
+### FR-ONB-006 Approval routing
+
+Onboarding must support both automatic approval and manual platform approval.
+
+Automatic approval is allowed only when:
+
+- requester has permission
+- workspace quota passes
+- placement policy passes
+- selected DB target has capacity
+- selected Kubernetes target has capacity
+- requested isolation level is allowed
+- no high-risk or expensive resource creation is required
+
+Manual approval is required when policy cannot auto-approve the plan.
+
+### FR-ONB-007 Provisioning execution
+
+After approval, onboarding must execute the placement plan through the selected provider.
+
+The provider must support environment-specific execution:
+
+- local Docker for development
+- Kubernetes for shared and isolated runtime placement
+- Terraform or cloud provider integration in the future
+
+Provisioning must create or bind:
+
+- tenant database or schema
+- DB role or connection identity, when required
+- Kubernetes namespace, when required
+- Kubernetes ResourceQuota and LimitRange, when required
+- app runtime assignment
+- secret reference
+- router projection payload
+
+### FR-ONB-008 Runtime route publication
+
+After provisioning succeeds, onboarding must publish runtime placement metadata for tenant resolution.
+
+The published route must include:
+
+- tenant ID
+- store ID when store-specific routing is required
+- cluster name
+- placement mode
+- database name
+- schema name or database target
+- runtime pool
+- Kubernetes cluster and namespace, when applicable
+- secret reference
+- version
+
+The route must not contain plaintext DB passwords.
+
+### FR-ONB-009 Readiness verification
+
+A store can become selectable only after onboarding verifies:
+
+- placement allocation exists
+- DB target is reachable
+- schema or database exists
+- required migrations or bootstrap data have completed
+- runtime namespace or runtime pool is available
+- route projection has been published
+- Backoffice can resolve the placement
+
+### FR-ONB-010 Failure and retry handling
+
+Onboarding must persist provisioning failures with enough detail for operators to act.
+
+The system must support:
+
+- retryable failure classification
+- non-retryable failure classification
+- retry count
+- last error message
+- failed step
+- manual retry
+- cancellation before provisioning
+- operator-visible failure reason
+
+### FR-ONB-011 Reconciliation
+
+Onboarding must support reconciliation between source-of-truth placement allocation and runtime projections.
+
+Reconciliation must detect:
+
+- missing Consul or router KV entry
+- stale router version
+- missing DB schema or database
+- missing Kubernetes namespace
+- quota drift
+- placement marked ready while runtime checks fail
+
+### FR-ONB-012 Store selection integration
+
+Backoffice must not show a store as openable until onboarding marks it ready and placement resolution succeeds.
+
+Backoffice may show pending or failed store requests, but those entries must be clearly labelled and must not enter
+store-scoped workspace mode.
+
+## Non-functional requirements
+
+### NFR-ONB-001 Source-of-truth integrity
+
+Placement allocation must have one source of truth.
+
+Consul and similar KV systems are projections only.
+
+### NFR-ONB-002 Capacity safety
+
+Onboarding must fail closed when capacity cannot be determined.
+
+The system must not place a new tenant into a DB cluster, namespace, or runtime pool when capacity state is unknown.
+
+### NFR-ONB-003 Idempotency
+
+Request processing and provisioning steps must be idempotent.
+
+Retrying the same request must not create duplicate stores, duplicate schemas, duplicate namespaces, or conflicting
+route entries.
+
+### NFR-ONB-004 Auditability
+
+Every approval, placement decision, provisioning action, failure, retry, and readiness transition must be auditable.
+
+### NFR-ONB-005 Security
+
+Routing projections must not contain plaintext credentials.
+
+Secrets must be represented as references and resolved through the appropriate secret provider at runtime.
+
+### NFR-ONB-006 Availability
+
+Tenant placement resolution must tolerate projection-store outages for already resolved tenants where a valid local cache
+exists.
+
+New tenant provisioning must not rely on stale routing projection data as source of truth.
+
+### NFR-ONB-007 Observability
+
+Onboarding must expose operational visibility for:
+
+- queue depth
+- request state distribution
+- approval backlog
+- provisioning duration
+- failure rate by provider
+- capacity usage by DB cluster
+- capacity usage by Kubernetes cluster and namespace
+- route projection lag
+
+### NFR-ONB-008 Environment portability
+
+The same onboarding domain flow must work across local Docker, Kubernetes, and future Terraform/cloud providers.
+
+Provider differences must stay behind provider-specific adapters.
+
+### NFR-ONB-009 Bounded resource growth
+
+The system must prevent unbounded tenant growth in a single DB cluster, namespace, runtime pool, or application
+deployment.
+
+Placement policy must be configurable per environment.
+
+### NFR-ONB-010 Operator recovery
+
+Operators must be able to inspect, retry, cancel, or manually approve blocked requests without direct database edits.
+
 ## Request tracking model
 
 Every store provisioning request must be traceable.
@@ -203,6 +490,10 @@ Onboarding owns:
 - infra readiness tracking
 - approval-driven provisioning flow
 - resource checks and placement selection
+
+For the local Docker and Kubernetes shared-Postgres strategy, onboarding provisions tenant backoffice schemas in
+the dedicated placement database `podzone_tenants`. The default `postgres` database is treated as an admin/default
+database only; service tables must live in service-owned databases such as `auth`, `iam`, and `partner`.
 
 ### Queue or worker runtime
 

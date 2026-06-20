@@ -167,6 +167,9 @@ The backoffice must support:
 Backoffice must not assume that a newly submitted store request is immediately usable.
 The workspace can exist before any store becomes selectable.
 
+Backoffice tenant data is addressed through onboarding placement metadata. In local Docker and Kubernetes shared
+Postgres mode, that placement points at `podzone_tenants.<tenant_schema>` rather than `postgres.public`.
+
 Store creation may require admin approval when:
 
 - workspace quota is exceeded

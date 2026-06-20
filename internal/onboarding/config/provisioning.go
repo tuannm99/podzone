@@ -35,7 +35,7 @@ func DefaultStoreProvisioningConfig() StoreProvisioningConfig {
 		Runtime:      "local_docker",
 		ClusterName:  "pg-default",
 		Mode:         "schema",
-		DBName:       "postgres",
+		DBName:       "podzone_tenants",
 		SchemaPrefix: "t_",
 
 		DockerNetwork:       "docker_default",
@@ -67,7 +67,7 @@ func NewStoreProvisioningConfig(k *koanf.Koanf) StoreProvisioningConfig {
 		cfg.Mode = "schema"
 	}
 	if cfg.DBName == "" {
-		cfg.DBName = "postgres"
+		cfg.DBName = "podzone_tenants"
 	}
 	if cfg.SchemaPrefix == "" {
 		cfg.SchemaPrefix = "t_"

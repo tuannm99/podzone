@@ -197,7 +197,7 @@ func TestProcessNextStoreRequest_ProvisionsQueuedRequest(t *testing.T) {
 			Enabled:      true,
 			ClusterName:  "pg-default",
 			Mode:         "schema",
-			DBName:       "postgres",
+			DBName:       "podzone_tenants",
 			SchemaPrefix: "t_",
 		},
 	}

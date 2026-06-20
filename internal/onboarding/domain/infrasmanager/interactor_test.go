@@ -42,7 +42,12 @@ func newConnectionStoreMock(t *testing.T, state *connectionStoreState) *coremock
 		Maybe()
 	store.EXPECT().
 		Get(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-		RunAndReturn(func(_ context.Context, tenantID string, infraType entity.InfraType, name string) (*entity.ConnectionInfo, error) {
+		RunAndReturn(func(
+			_ context.Context,
+			tenantID string,
+			infraType entity.InfraType,
+			name string,
+		) (*entity.ConnectionInfo, error) {
 			if state.lastConn == nil {
 				return nil, nil
 			}
@@ -155,7 +160,7 @@ func TestEnsurePlacementRoute_RepairsMissingRouteFromAllocation(t *testing.T) {
 		StoreID:     "store-1",
 		ClusterName: "pg-default",
 		Mode:        "schema",
-		DBName:      "postgres",
+		DBName:      "podzone_tenants",
 		SchemaName:  "t_tenant_1",
 		Status:      "ready",
 	}

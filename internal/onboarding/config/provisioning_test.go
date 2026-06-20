@@ -21,6 +21,12 @@ func TestNewStoreProvisioningConfig_UsesAdminDSNFromEnvironment(t *testing.T) {
 	)
 }
 
+func TestNewStoreProvisioningConfig_DefaultsTenantPlacementDatabase(t *testing.T) {
+	cfg := NewStoreProvisioningConfig(koanf.New("."))
+
+	require.Equal(t, "podzone_tenants", cfg.DBName)
+}
+
 func TestNewStoreProvisioningConfig_DropsUnexpandedAdminDSN(t *testing.T) {
 	k := koanf.New(".")
 	require.NoError(t, k.Set("onboarding.store_provisioning.admin_dsn", "${ONBOARDING_POSTGRES_ADMIN_DSN}"))

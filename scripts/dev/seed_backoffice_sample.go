@@ -17,6 +17,7 @@ import (
 	_ "github.com/lib/pq"
 
 	"github.com/tuannm99/podzone/internal/backoffice/migrations"
+	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
 type cfg struct {
@@ -84,8 +85,8 @@ func loadCfg() cfg {
 		TenantID:       tenantID,
 		StoreName:      envOr("STORE_NAME", "Demo POD Store"),
 		StoreSubdomain: envOr("STORE_SUBDOMAIN", "demo-pod-store"),
-		SchemaName:     envOr("SCHEMA_NAME", "t_"+tenantID),
-		BackofficeDB:   envOr("DB_NAME", "postgres"),
+		SchemaName:     envOr("SCHEMA_NAME", toolkit.SchemaName("t_", tenantID)),
+		BackofficeDB:   envOr("DB_NAME", "podzone_tenants"),
 		PGHost:         envOr("PG_HOST", "localhost"),
 		PGPort:         envOr("PG_PORT", "5432"),
 		PGUser:         envOr("PG_USER", "postgres"),
@@ -104,6 +105,12 @@ func envOr(key, fallback string) string {
 }
 
 func openPostgres(cfg cfg, dbName string) (*sqlx.DB, error) {
+	if dbName != "postgres" {
+		if err := ensureDatabase(cfg, dbName); err != nil {
+			return nil, err
+		}
+	}
+
 	dsn := (&url.URL{
 		Scheme: "postgres",
 		User:   url.UserPassword(cfg.PGUser, cfg.PGPassword),
@@ -126,6 +133,26 @@ func openPostgres(cfg cfg, dbName string) (*sqlx.DB, error) {
 		return nil, err
 	}
 	return db, nil
+}
+
+func ensureDatabase(cfg cfg, dbName string) error {
+	admin, err := openPostgres(cfg, "postgres")
+	if err != nil {
+		return fmt.Errorf("open postgres admin database: %w", err)
+	}
+	defer admin.Close()
+
+	var exists bool
+	if err := admin.QueryRow(`SELECT EXISTS (SELECT 1 FROM pg_database WHERE datname = $1)`, dbName).Scan(&exists); err != nil {
+		return fmt.Errorf("check database %q: %w", dbName, err)
+	}
+	if exists {
+		return nil
+	}
+	if _, err := admin.Exec(`CREATE DATABASE ` + quoteIdent(dbName)); err != nil {
+		return fmt.Errorf("create database %q: %w", dbName, err)
+	}
+	return nil
 }
 
 func seedBackoffice(ctx context.Context, db *sqlx.DB, cfg cfg) error {

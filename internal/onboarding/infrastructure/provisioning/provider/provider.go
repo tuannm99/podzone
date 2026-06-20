@@ -54,12 +54,12 @@ func (p *Provider) ProvisionStorePlacement(
 		if err := p.provisionPostgresSchema(ctx, plan); err != nil {
 			return entity.PlacementAllocation{}, err
 		}
-		return p.allocate(request, plan, p.dockerConnection(plan), "ready"), nil
+		return p.allocate(request, plan, p.dockerConnection(plan)), nil
 	case entity.PlacementRuntimeKubernetes, entity.PlacementRuntimeK8s:
 		if err := p.provisionPostgresSchema(ctx, plan); err != nil {
 			return entity.PlacementAllocation{}, err
 		}
-		return p.allocate(request, plan, p.kubernetesConnection(plan), "ready"), nil
+		return p.allocate(request, plan, p.kubernetesConnection(plan)), nil
 	case entity.PlacementRuntimeTerraform:
 		return entity.PlacementAllocation{}, fmt.Errorf("terraform placement provider is declared but not implemented")
 	default:
@@ -74,7 +74,14 @@ func (p *Provider) provisionPostgresSchema(ctx context.Context, plan entity.Plac
 	if plan.Mode != "schema" {
 		return fmt.Errorf("unsupported postgres placement mode %q", plan.Mode)
 	}
-	if err := pdsql.EnsurePostgresSchema(ctx, p.cfg.AdminDSN, plan.SchemaName); err != nil {
+	if err := pdsql.EnsurePostgresDatabase(p.cfg.AdminDSN, plan.DBName); err != nil {
+		return fmt.Errorf("ensure postgres database %q: %w", plan.DBName, err)
+	}
+	targetDSN, err := pdsql.PostgresDSNWithDatabase(p.cfg.AdminDSN, plan.DBName)
+	if err != nil {
+		return fmt.Errorf("build postgres dsn for database %q: %w", plan.DBName, err)
+	}
+	if err := pdsql.EnsurePostgresSchema(ctx, targetDSN, plan.SchemaName); err != nil {
 		return fmt.Errorf("provision postgres schema %q: %w", plan.SchemaName, err)
 	}
 	return nil
@@ -85,7 +92,7 @@ func (p *Provider) planDocker(request entity.StorePlacementRequest) entity.Place
 		Runtime:     entity.PlacementRuntimeLocalDocker,
 		ClusterName: toolkit.FirstNonEmpty(p.cfg.ClusterName, "pg-default"),
 		Mode:        toolkit.FirstNonEmpty(p.cfg.Mode, "schema"),
-		DBName:      toolkit.FirstNonEmpty(p.cfg.DBName, "postgres"),
+		DBName:      toolkit.FirstNonEmpty(p.cfg.DBName, "podzone_tenants"),
 		SchemaName:  toolkit.SchemaName(toolkit.FirstNonEmpty(p.cfg.SchemaPrefix, "t_"), request.TenantID),
 		ProviderMeta: map[string]string{
 			"provider":          "docker",
@@ -104,7 +111,7 @@ func (p *Provider) planKubernetes(request entity.StorePlacementRequest) entity.P
 		Runtime:     entity.PlacementRuntimeKubernetes,
 		ClusterName: toolkit.FirstNonEmpty(p.cfg.ClusterName, "pg-default"),
 		Mode:        toolkit.FirstNonEmpty(p.cfg.Mode, "schema"),
-		DBName:      toolkit.FirstNonEmpty(p.cfg.DBName, "postgres"),
+		DBName:      toolkit.FirstNonEmpty(p.cfg.DBName, "podzone_tenants"),
 		SchemaName:  toolkit.SchemaName(toolkit.FirstNonEmpty(p.cfg.SchemaPrefix, "t_"), request.TenantID),
 		ProviderMeta: map[string]string{
 			"provider":           "kubernetes",
@@ -125,7 +132,7 @@ func (p *Provider) planTerraform(request entity.StorePlacementRequest) (entity.P
 		Runtime:     entity.PlacementRuntimeTerraform,
 		ClusterName: toolkit.FirstNonEmpty(p.cfg.ClusterName, "pg-default"),
 		Mode:        toolkit.FirstNonEmpty(p.cfg.Mode, "schema"),
-		DBName:      toolkit.FirstNonEmpty(p.cfg.DBName, "postgres"),
+		DBName:      toolkit.FirstNonEmpty(p.cfg.DBName, "podzone_tenants"),
 		SchemaName:  toolkit.SchemaName(toolkit.FirstNonEmpty(p.cfg.SchemaPrefix, "t_"), request.TenantID),
 		ProviderMeta: map[string]string{
 			"provider":  "terraform",
@@ -167,7 +174,6 @@ func (p *Provider) allocate(
 	request entity.StorePlacementRequest,
 	plan entity.PlacementPlan,
 	conn connectionResult,
-	status string,
 ) entity.PlacementAllocation {
 	now := time.Now().UTC()
 	return entity.PlacementAllocation{
@@ -182,7 +188,7 @@ func (p *Provider) allocate(
 		SchemaName:   plan.SchemaName,
 		Endpoint:     conn.endpoint,
 		SecretRef:    conn.secretRef,
-		Status:       status,
+		Status:       "ready",
 		ProviderMeta: plan.ProviderMeta,
 		CreatedAt:    now,
 		UpdatedAt:    now,

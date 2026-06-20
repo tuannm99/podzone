@@ -35,7 +35,7 @@ onboarding:
     runtime: local_docker
     cluster_name: pg-default
     mode: schema
-    db_name: postgres
+    db_name: podzone_tenants
     schema_prefix: t_
     admin_dsn: postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable
     docker_network: docker_default

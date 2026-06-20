@@ -24,3 +24,5 @@ spec:
               # Create DB if missing
               psql -v ON_ERROR_STOP=1 -tAc "SELECT 1 FROM pg_database WHERE datname='auth'" | grep -q 1 \
                 || psql -v ON_ERROR_STOP=1 -c "CREATE DATABASE auth;"
+              psql -v ON_ERROR_STOP=1 -tAc "SELECT 1 FROM pg_database WHERE datname='podzone_tenants'" | grep -q 1 \
+                || psql -v ON_ERROR_STOP=1 -c "CREATE DATABASE podzone_tenants;"
