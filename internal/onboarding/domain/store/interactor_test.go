@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -20,7 +21,12 @@ import (
 func setupStoreInteractor(t *testing.T) (*StoreInteractor, *storemocks.MockStoreRepository) {
 	t.Helper()
 	repo := storemocks.NewMockStoreRepository(t)
+	allowTransitionLog(repo)
 	return &StoreInteractor{repo: repo}, repo
+}
+
+func allowTransitionLog(repo *storemocks.MockStoreRepository) {
+	repo.EXPECT().RecordTransition(mock.Anything, mock.Anything).Return(nil).Maybe()
 }
 
 func authenticatedContext(workspaceID string, userID string) context.Context {
@@ -77,6 +83,7 @@ func TestCreateStoreRequest_Success(t *testing.T) {
 
 func TestCreateStoreRequest_AuthorizesAuthenticatedWorkspace(t *testing.T) {
 	repo := storemocks.NewMockStoreRepository(t)
+	allowTransitionLog(repo)
 	authorizer := storemocks.NewMockAccessAuthorizer(t)
 	svc := &StoreInteractor{repo: repo, authorizer: authorizer}
 	ctx := authenticatedContext("workspace-1", "7")
@@ -128,6 +135,7 @@ func TestApproveStoreRequest_TransitionsToQueued(t *testing.T) {
 
 func TestRetryStoreRequest_TransitionsOwnedFailedRequestToQueued(t *testing.T) {
 	repo := storemocks.NewMockStoreRepository(t)
+	allowTransitionLog(repo)
 	authorizer := storemocks.NewMockAccessAuthorizer(t)
 	svc := &StoreInteractor{repo: repo, authorizer: authorizer}
 	ctx := authenticatedContext("workspace-1", "7")
@@ -151,6 +159,7 @@ func TestRetryStoreRequest_TransitionsOwnedFailedRequestToQueued(t *testing.T) {
 
 func TestRetryStoreRequest_HidesRequestOwnedByAnotherWorkspace(t *testing.T) {
 	repo := storemocks.NewMockStoreRepository(t)
+	allowTransitionLog(repo)
 	svc := &StoreInteractor{repo: repo}
 	request := storeentity.StoreRequest{
 		ID:          primitive.NewObjectID(),
@@ -169,6 +178,7 @@ func TestRetryStoreRequest_HidesRequestOwnedByAnotherWorkspace(t *testing.T) {
 
 func TestRetryStoreRequest_RejectsNonFailedRequest(t *testing.T) {
 	repo := storemocks.NewMockStoreRepository(t)
+	allowTransitionLog(repo)
 	authorizer := storemocks.NewMockAccessAuthorizer(t)
 	svc := &StoreInteractor{repo: repo, authorizer: authorizer}
 	ctx := authenticatedContext("workspace-1", "7")
@@ -189,6 +199,7 @@ func TestRetryStoreRequest_RejectsNonFailedRequest(t *testing.T) {
 
 func TestProcessNextStoreRequest_ProvisionsQueuedRequest(t *testing.T) {
 	repo := storemocks.NewMockStoreRepository(t)
+	allowTransitionLog(repo)
 	infra := infrasmocks.NewMockUsecase(t)
 	svc := &StoreInteractor{
 		repo:  repo,
@@ -209,7 +220,7 @@ func TestProcessNextStoreRequest_ProvisionsQueuedRequest(t *testing.T) {
 		Subdomain:   "urban-finds",
 		WorkspaceID: "2e0df8f6-4964-447d-a287-67eabd0e65c9",
 		RequestedBy: "user-1",
-		Status:      storeentity.RequestStatusProvisioning,
+		Status:      storeentity.RequestStatusPlanning,
 	}
 	repo.EXPECT().ClaimNextQueued(mock.Anything).Return(request, nil)
 	infra.EXPECT().
@@ -232,6 +243,8 @@ func TestProcessNextStoreRequest_ProvisionsQueuedRequest(t *testing.T) {
 			Status:        "ready",
 			Queued:        true,
 		}, nil)
+	repo.EXPECT().UpdateStatus(mock.Anything, id.Hex(), storeentity.RequestStatusPlanned).Return(nil)
+	repo.EXPECT().UpdateStatus(mock.Anything, id.Hex(), storeentity.RequestStatusProvisioning).Return(nil)
 	processed, err := svc.ProcessNextStoreRequest(context.Background())
 	require.NoError(t, err)
 	require.NotNil(t, processed)
@@ -239,8 +252,51 @@ func TestProcessNextStoreRequest_ProvisionsQueuedRequest(t *testing.T) {
 	require.Empty(t, processed.StoreID)
 }
 
+func TestProcessNextStoreRequest_MarksPlatformSetupWhenProviderUnavailable(t *testing.T) {
+	repo := storemocks.NewMockStoreRepository(t)
+	allowTransitionLog(repo)
+	infra := infrasmocks.NewMockUsecase(t)
+	svc := &StoreInteractor{
+		repo:  repo,
+		infra: infra,
+		provisioner: storeentity.ProvisioningConfig{
+			Enabled: true,
+		},
+	}
+
+	id := primitive.NewObjectID()
+	request := &storeentity.StoreRequest{
+		ID:          id,
+		Name:        "Urban Finds",
+		Subdomain:   "urban-finds",
+		WorkspaceID: "workspace-1",
+		RequestedBy: "user-1",
+		Status:      storeentity.RequestStatusPlanning,
+	}
+	providerErr := errors.New("kubernetes placement provider is declared but not implemented")
+
+	repo.EXPECT().ClaimNextQueued(mock.Anything).Return(request, nil)
+	infra.EXPECT().
+		ProvisionStorePlacement(mock.Anything, mock.Anything, mock.Anything).
+		Return(nil, providerErr)
+	repo.EXPECT().
+		MarkBlocked(
+			mock.Anything,
+			id.Hex(),
+			storeentity.RequestStatusPendingPlatformSetup,
+			providerErr.Error(),
+		).
+		Return(nil)
+
+	processed, err := svc.ProcessNextStoreRequest(context.Background())
+
+	require.ErrorIs(t, err, providerErr)
+	require.Nil(t, processed)
+}
+
 func TestFinalizeNextStoreRequest_BootstrapsOperationalStoreBeforeReady(t *testing.T) {
 	repo := storemocks.NewMockStoreRepository(t)
+	allowTransitionLog(repo)
 	infra := infrasmocks.NewMockUsecase(t)
 	finalizer := storemocks.NewMockOperationalStoreFinalizer(t)
 	svc := &StoreInteractor{
@@ -272,6 +328,7 @@ func TestFinalizeNextStoreRequest_BootstrapsOperationalStoreBeforeReady(t *testi
 
 func TestFinalizeNextStoreRequest_WaitsForPlacementRoute(t *testing.T) {
 	repo := storemocks.NewMockStoreRepository(t)
+	allowTransitionLog(repo)
 	infra := infrasmocks.NewMockUsecase(t)
 	finalizer := storemocks.NewMockOperationalStoreFinalizer(t)
 	svc := &StoreInteractor{

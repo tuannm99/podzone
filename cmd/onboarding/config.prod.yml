@@ -38,6 +38,13 @@ onboarding:
     docker_network: docker_default
     kubernetes_namespace: default
     terraform_workspace: default
+    max_tenants_per_db_cluster: 100
+    max_schemas_per_database: 500
+    max_connections_per_db_cluster: 1000
+    max_tenants_per_namespace: 25
+    namespace_cpu_milli: 1000
+    namespace_memory_mi: 1024
+    runtime_pool_capacity: 100
 
 messaging:
   onboarding:

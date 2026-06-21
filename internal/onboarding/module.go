@@ -62,6 +62,23 @@ var Module = fx.Options(
 		})
 	}),
 
+	fx.Invoke(func(
+		lc fx.Lifecycle,
+		store *infrarepository.MongoStore,
+		cfg onboardingconfig.StoreProvisioningConfig,
+		log pdlog.Logger,
+	) {
+		lc.Append(fx.Hook{
+			OnStart: func(ctx context.Context) error {
+				log.Info("Ensuring onboarding infrastructure inventory...")
+				if err := store.EnsureIndexes(ctx); err != nil {
+					return err
+				}
+				return store.EnsureConfiguredResourceInventory(ctx, cfg)
+			},
+		})
+	}),
+
 	fx.Invoke(func(lc fx.Lifecycle, log pdlog.Logger, w *worker.OutboxWorker) {
 		pdworker.StartWorker(lc, log, w)
 	}),
@@ -114,6 +131,12 @@ var (
 			return store
 		},
 		func(store *infrarepository.MongoStore) infrasoutputport.PlacementRepository {
+			return store
+		},
+		func(store *infrarepository.MongoStore) infrasoutputport.PlacementPlanRepository {
+			return store
+		},
+		func(store *infrarepository.MongoStore) infrasoutputport.ResourceInventoryRepository {
 			return store
 		},
 		func(store *infrarepository.MongoStore) messaging.OutboxStore {

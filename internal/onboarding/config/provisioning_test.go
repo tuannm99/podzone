@@ -27,6 +27,18 @@ func TestNewStoreProvisioningConfig_DefaultsTenantPlacementDatabase(t *testing.T
 	require.Equal(t, "podzone_tenants", cfg.DBName)
 }
 
+func TestNewStoreProvisioningConfig_DefaultsPlacementCapacityPolicy(t *testing.T) {
+	cfg := NewStoreProvisioningConfig(koanf.New("."))
+
+	require.Equal(t, 100, cfg.MaxTenantsPerDBCluster)
+	require.Equal(t, 500, cfg.MaxSchemasPerDatabase)
+	require.Equal(t, 1000, cfg.MaxConnectionsPerDBCluster)
+	require.Equal(t, 25, cfg.MaxTenantsPerNamespace)
+	require.Equal(t, 1000, cfg.NamespaceCPUMilli)
+	require.Equal(t, 1024, cfg.NamespaceMemoryMi)
+	require.Equal(t, 100, cfg.RuntimePoolCapacity)
+}
+
 func TestNewStoreProvisioningConfig_DropsUnexpandedAdminDSN(t *testing.T) {
 	k := koanf.New(".")
 	require.NoError(t, k.Set("onboarding.store_provisioning.admin_dsn", "${ONBOARDING_POSTGRES_ADMIN_DSN}"))

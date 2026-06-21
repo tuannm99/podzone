@@ -27,4 +27,6 @@ type StoreRepository interface {
 	UpdateStatus(ctx context.Context, id string, status storeentity.RequestStatus) error
 	MarkReady(ctx context.Context, id string, storeID string) error
 	MarkFailed(ctx context.Context, id string, reason string) error
+	MarkBlocked(ctx context.Context, id string, status storeentity.RequestStatus, reason string) error
+	RecordTransition(ctx context.Context, transition storeentity.StoreRequestTransition) error
 }

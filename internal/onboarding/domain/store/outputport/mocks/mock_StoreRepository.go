@@ -16,7 +16,8 @@ import (
 func NewMockStoreRepository(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockStoreRepository {
+},
+) *MockStoreRepository {
 	mock := &MockStoreRepository{}
 	mock.Mock.Test(t)
 
@@ -485,6 +486,75 @@ func (_c *MockStoreRepository_List_Call) RunAndReturn(run func(ctx context.Conte
 	return _c
 }
 
+// MarkBlocked provides a mock function for the type MockStoreRepository
+func (_mock *MockStoreRepository) MarkBlocked(ctx context.Context, id string, status entity.RequestStatus, reason string) error {
+	ret := _mock.Called(ctx, id, status, reason)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MarkBlocked")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, entity.RequestStatus, string) error); ok {
+		r0 = returnFunc(ctx, id, status, reason)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStoreRepository_MarkBlocked_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MarkBlocked'
+type MockStoreRepository_MarkBlocked_Call struct {
+	*mock.Call
+}
+
+// MarkBlocked is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+//   - status entity.RequestStatus
+//   - reason string
+func (_e *MockStoreRepository_Expecter) MarkBlocked(ctx interface{}, id interface{}, status interface{}, reason interface{}) *MockStoreRepository_MarkBlocked_Call {
+	return &MockStoreRepository_MarkBlocked_Call{Call: _e.mock.On("MarkBlocked", ctx, id, status, reason)}
+}
+
+func (_c *MockStoreRepository_MarkBlocked_Call) Run(run func(ctx context.Context, id string, status entity.RequestStatus, reason string)) *MockStoreRepository_MarkBlocked_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 entity.RequestStatus
+		if args[2] != nil {
+			arg2 = args[2].(entity.RequestStatus)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStoreRepository_MarkBlocked_Call) Return(err error) *MockStoreRepository_MarkBlocked_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStoreRepository_MarkBlocked_Call) RunAndReturn(run func(ctx context.Context, id string, status entity.RequestStatus, reason string) error) *MockStoreRepository_MarkBlocked_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // MarkFailed provides a mock function for the type MockStoreRepository
 func (_mock *MockStoreRepository) MarkFailed(ctx context.Context, id string, reason string) error {
 	ret := _mock.Called(ctx, id, reason)
@@ -607,6 +677,63 @@ func (_c *MockStoreRepository_MarkReady_Call) Return(err error) *MockStoreReposi
 }
 
 func (_c *MockStoreRepository_MarkReady_Call) RunAndReturn(run func(ctx context.Context, id string, storeID string) error) *MockStoreRepository_MarkReady_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// RecordTransition provides a mock function for the type MockStoreRepository
+func (_mock *MockStoreRepository) RecordTransition(ctx context.Context, transition entity.StoreRequestTransition) error {
+	ret := _mock.Called(ctx, transition)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RecordTransition")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.StoreRequestTransition) error); ok {
+		r0 = returnFunc(ctx, transition)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStoreRepository_RecordTransition_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RecordTransition'
+type MockStoreRepository_RecordTransition_Call struct {
+	*mock.Call
+}
+
+// RecordTransition is a helper method to define mock.On call
+//   - ctx context.Context
+//   - transition entity.StoreRequestTransition
+func (_e *MockStoreRepository_Expecter) RecordTransition(ctx interface{}, transition interface{}) *MockStoreRepository_RecordTransition_Call {
+	return &MockStoreRepository_RecordTransition_Call{Call: _e.mock.On("RecordTransition", ctx, transition)}
+}
+
+func (_c *MockStoreRepository_RecordTransition_Call) Run(run func(ctx context.Context, transition entity.StoreRequestTransition)) *MockStoreRepository_RecordTransition_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 entity.StoreRequestTransition
+		if args[1] != nil {
+			arg1 = args[1].(entity.StoreRequestTransition)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStoreRepository_RecordTransition_Call) Return(err error) *MockStoreRepository_RecordTransition_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStoreRepository_RecordTransition_Call) RunAndReturn(run func(ctx context.Context, transition entity.StoreRequestTransition) error) *MockStoreRepository_RecordTransition_Call {
 	_c.Call.Return(run)
 	return _c
 }

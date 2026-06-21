@@ -18,7 +18,8 @@ import (
 var _ storeoutputport.StoreRepository = (*MongoRepository)(nil)
 
 type MongoRepository struct {
-	collection *mongo.Collection
+	collection    *mongo.Collection
+	transitionCol *mongo.Collection
 }
 
 type Params struct {
@@ -29,8 +30,10 @@ type Params struct {
 }
 
 func New(p Params) *MongoRepository {
+	db := p.MongoClient.Database(p.DB)
 	return &MongoRepository{
-		collection: p.MongoClient.Database(p.DB).Collection("store_requests"),
+		collection:    db.Collection("store_requests"),
+		transitionCol: db.Collection("store_request_transitions"),
 	}
 }
 
@@ -50,6 +53,12 @@ func (r *MongoRepository) EnsureIndexes(ctx context.Context) error {
 	}
 	_, err = r.collection.Indexes().CreateOne(ctx, mongo.IndexModel{
 		Keys: bson.D{{Key: "workspace_id", Value: 1}, {Key: "updated_at", Value: -1}},
+	})
+	if err != nil {
+		return err
+	}
+	_, err = r.transitionCol.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys: bson.D{{Key: "request_id", Value: 1}, {Key: "created_at", Value: -1}},
 	})
 	return err
 }
@@ -129,7 +138,7 @@ func (r *MongoRepository) ClaimNextQueued(ctx context.Context) (*storeentity.Sto
 		bson.M{"status": storeentity.RequestStatusQueued},
 		bson.M{
 			"$set": bson.M{
-				"status":     storeentity.RequestStatusProvisioning,
+				"status":     storeentity.RequestStatusPlanning,
 				"last_error": "",
 				"updated_at": now,
 			},
@@ -179,7 +188,7 @@ func (r *MongoRepository) UpdateStatus(ctx context.Context, id string, status st
 	if status == storeentity.RequestStatusQueued {
 		update["$set"].(bson.M)["approved_at"] = now
 	}
-	if status == storeentity.RequestStatusReady || status == storeentity.RequestStatusFailed {
+	if isTerminalStatus(status) {
 		update["$set"].(bson.M)["completed_at"] = now
 	}
 
@@ -215,23 +224,63 @@ func (r *MongoRepository) MarkReady(ctx context.Context, id string, storeID stri
 }
 
 func (r *MongoRepository) MarkFailed(ctx context.Context, id string, reason string) error {
+	return r.MarkBlocked(ctx, id, storeentity.RequestStatusFailed, reason)
+}
+
+func (r *MongoRepository) MarkBlocked(
+	ctx context.Context,
+	id string,
+	status storeentity.RequestStatus,
+	reason string,
+) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
 	}
 
 	now := time.Now().UTC()
+	update := bson.M{
+		"$set": bson.M{
+			"status":     status,
+			"last_error": reason,
+			"updated_at": now,
+		},
+	}
+	if isTerminalStatus(status) {
+		update["$set"].(bson.M)["completed_at"] = now
+	}
 	_, err = r.collection.UpdateOne(
 		ctx,
 		bson.M{"_id": objectID},
-		bson.M{
-			"$set": bson.M{
-				"status":       storeentity.RequestStatusFailed,
-				"last_error":   reason,
-				"updated_at":   now,
-				"completed_at": now,
-			},
-		},
+		update,
 	)
 	return err
+}
+
+func (r *MongoRepository) RecordTransition(
+	ctx context.Context,
+	transition storeentity.StoreRequestTransition,
+) error {
+	if transition.RequestID == "" {
+		return nil
+	}
+	if transition.CreatedAt.IsZero() {
+		transition.CreatedAt = time.Now().UTC()
+	}
+	_, err := r.transitionCol.InsertOne(ctx, transition)
+	return err
+}
+
+func isTerminalStatus(status storeentity.RequestStatus) bool {
+	switch status {
+	case storeentity.RequestStatusReady,
+		storeentity.RequestStatusFailed,
+		storeentity.RequestStatusFailedNonRetryable,
+		storeentity.RequestStatusRejected,
+		storeentity.RequestStatusArchived,
+		storeentity.RequestStatusCancelled:
+		return true
+	default:
+		return false
+	}
 }

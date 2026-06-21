@@ -21,12 +21,20 @@ type StorePlacementRequest struct {
 }
 
 type PlacementPlan struct {
-	Runtime      PlacementRuntime
-	ClusterName  string
-	Mode         string
-	DBName       string
-	SchemaName   string
-	ProviderMeta map[string]string
+	RequestID         string
+	TenantID          string
+	StoreID           string
+	Runtime           PlacementRuntime
+	ClusterName       string
+	Mode              string
+	DBName            string
+	SchemaName        string
+	ProviderMeta      map[string]string
+	InventorySnapshot ResourceInventory
+	CapacitySnapshot  CapacitySnapshot
+	PolicyDecision    PlacementPolicyDecision
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
 }
 
 type PlacementAllocation struct {

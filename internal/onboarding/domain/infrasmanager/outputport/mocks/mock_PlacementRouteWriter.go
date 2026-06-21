@@ -16,8 +16,7 @@ import (
 func NewMockPlacementRouteWriter(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *MockPlacementRouteWriter {
+}) *MockPlacementRouteWriter {
 	mock := &MockPlacementRouteWriter{}
 	mock.Mock.Test(t)
 

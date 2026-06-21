@@ -182,6 +182,7 @@ flowchart LR
 - `infrastructure/provisioning/provider`: runtime-specific placement provider for local Docker, Kubernetes, and future Terraform/cloud
 - `controller/eventhandler/consulbridge`: router projection publisher; Consul is rebuilt from onboarding allocation state
 - `infrastructure/messaging`: CDC/fallback publisher and background worker wiring
+- `internal/onboarding/README.md`: implementation guide for the resource inventory, capacity, and placement planner backbone
 
 Local Docker and Kubernetes schema-mode placement use the `podzone_tenants` Postgres database for tenant schemas.
 The `postgres` database remains the admin/default connection database and must not host service-owned public tables.

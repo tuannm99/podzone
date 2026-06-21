@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.uber.org/fx"
 
 	onboardingconfig "github.com/tuannm99/podzone/internal/onboarding/config"
 	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/entity"
@@ -16,32 +17,134 @@ import (
 )
 
 var (
-	_ infrasoutputport.PlacementPlanner   = (*Provider)(nil)
-	_ infrasoutputport.StorageProvisioner = (*Provider)(nil)
+	_ infrasoutputport.CapacityChecker          = (*Provider)(nil)
+	_ infrasoutputport.PlacementPolicyEvaluator = (*Provider)(nil)
+	_ infrasoutputport.PlacementPlanner         = (*Provider)(nil)
+	_ infrasoutputport.StorageProvisioner       = (*Provider)(nil)
 )
 
 type Provider struct {
-	cfg onboardingconfig.StoreProvisioningConfig
+	cfg       onboardingconfig.StoreProvisioningConfig
+	inventory infrasoutputport.ResourceInventoryRepository
 }
 
-func NewProvider(cfg onboardingconfig.StoreProvisioningConfig) *Provider {
-	return &Provider{cfg: cfg}
+type ProviderParams struct {
+	fx.In
+
+	Config    onboardingconfig.StoreProvisioningConfig
+	Inventory infrasoutputport.ResourceInventoryRepository
+}
+
+func NewProvider(p ProviderParams) *Provider {
+	return &Provider{
+		cfg:       p.Config,
+		inventory: p.Inventory,
+	}
 }
 
 func (p *Provider) PlanStorePlacement(
-	_ context.Context,
+	ctx context.Context,
 	request entity.StorePlacementRequest,
 ) (entity.PlacementPlan, error) {
+	if p.inventory == nil {
+		return entity.PlacementPlan{}, fmt.Errorf("resource inventory repository is not configured")
+	}
+	inventory, err := p.inventory.LoadResourceInventory(ctx, request)
+	if err != nil {
+		return entity.PlacementPlan{}, err
+	}
+	capacity, err := p.CheckPlacementCapacity(ctx, request, inventory)
+	if err != nil {
+		return entity.PlacementPlan{}, err
+	}
+	decision, err := p.EvaluatePlacementPolicy(ctx, request, inventory, capacity)
+	if err != nil {
+		return entity.PlacementPlan{}, err
+	}
+	if !capacity.CanPlace {
+		return entity.PlacementPlan{}, fmt.Errorf(
+			"placement capacity unavailable: %s",
+			strings.Join(capacity.Reasons, "; "),
+		)
+	}
+	if decision.ApprovalRequired && !decision.AutoApproved {
+		return entity.PlacementPlan{}, fmt.Errorf(
+			"placement requires approval: %s",
+			strings.Join(decision.Reasons, "; "),
+		)
+	}
+
 	switch normalizeRuntime(p.cfg.Runtime) {
 	case entity.PlacementRuntimeLocalDocker, entity.PlacementRuntimeDocker:
-		return p.planDocker(request), nil
+		return p.planDocker(request, inventory, capacity, decision), nil
 	case entity.PlacementRuntimeKubernetes, entity.PlacementRuntimeK8s:
-		return p.planKubernetes(request), nil
+		return p.planKubernetes(request, inventory, capacity, decision), nil
 	case entity.PlacementRuntimeTerraform:
-		return p.planTerraform(request)
+		return p.planTerraform(request, inventory, capacity, decision)
 	default:
 		return entity.PlacementPlan{}, fmt.Errorf("unsupported placement runtime: %s", p.cfg.Runtime)
 	}
+}
+
+func (p *Provider) CheckPlacementCapacity(
+	_ context.Context,
+	_ entity.StorePlacementRequest,
+	inventory entity.ResourceInventory,
+) (entity.CapacitySnapshot, error) {
+	snapshot := entity.CapacitySnapshot{
+		CanPlace: true,
+	}
+
+	dbCluster := selectDatabaseCluster(inventory, p.cfg.ClusterName)
+	if dbCluster == nil {
+		snapshot.CanPlace = false
+		snapshot.Reasons = append(snapshot.Reasons, "database cluster not found")
+	} else {
+		snapshot.DBClusterName = dbCluster.Name
+		snapshot.DatabaseName = toolkit.FirstNonEmpty(dbCluster.PlacementDB, p.cfg.DBName, "podzone_tenants")
+		appendDBCapacityReasons(&snapshot, *dbCluster)
+	}
+
+	namespace := selectNamespace(inventory, p.cfg.KubernetesNamespace)
+	if namespace == nil {
+		snapshot.CanPlace = false
+		snapshot.Reasons = append(snapshot.Reasons, "kubernetes namespace not found")
+	} else {
+		snapshot.NamespaceName = namespace.Name
+		appendNamespaceCapacityReasons(&snapshot, *namespace)
+	}
+
+	runtimePool := selectRuntimePool(
+		inventory,
+		runtimePoolName(normalizeRuntime(p.cfg.Runtime), snapshot.NamespaceName),
+		normalizeRuntime(p.cfg.Runtime),
+	)
+	if runtimePool == nil {
+		snapshot.CanPlace = false
+		snapshot.Reasons = append(snapshot.Reasons, "runtime pool not found")
+	} else {
+		snapshot.RuntimePool = runtimePool.Name
+		appendRuntimePoolCapacityReasons(&snapshot, *runtimePool)
+	}
+
+	return snapshot, nil
+}
+
+func (p *Provider) EvaluatePlacementPolicy(
+	_ context.Context,
+	_ entity.StorePlacementRequest,
+	_ entity.ResourceInventory,
+	capacity entity.CapacitySnapshot,
+) (entity.PlacementPolicyDecision, error) {
+	if !capacity.CanPlace {
+		return entity.PlacementPolicyDecision{
+			ApprovalRequired: true,
+			Reasons:          capacity.Reasons,
+		}, nil
+	}
+	return entity.PlacementPolicyDecision{
+		AutoApproved: true,
+	}, nil
 }
 
 func (p *Provider) ProvisionStorePlacement(
@@ -56,10 +159,7 @@ func (p *Provider) ProvisionStorePlacement(
 		}
 		return p.allocate(request, plan, p.dockerConnection(plan)), nil
 	case entity.PlacementRuntimeKubernetes, entity.PlacementRuntimeK8s:
-		if err := p.provisionPostgresSchema(ctx, plan); err != nil {
-			return entity.PlacementAllocation{}, err
-		}
-		return p.allocate(request, plan, p.kubernetesConnection(plan)), nil
+		return entity.PlacementAllocation{}, fmt.Errorf("kubernetes placement provider is declared but not implemented")
 	case entity.PlacementRuntimeTerraform:
 		return entity.PlacementAllocation{}, fmt.Errorf("terraform placement provider is declared but not implemented")
 	default:
@@ -87,12 +187,21 @@ func (p *Provider) provisionPostgresSchema(ctx context.Context, plan entity.Plac
 	return nil
 }
 
-func (p *Provider) planDocker(request entity.StorePlacementRequest) entity.PlacementPlan {
+func (p *Provider) planDocker(
+	request entity.StorePlacementRequest,
+	inventory entity.ResourceInventory,
+	capacity entity.CapacitySnapshot,
+	decision entity.PlacementPolicyDecision,
+) entity.PlacementPlan {
+	now := time.Now().UTC()
 	return entity.PlacementPlan{
+		RequestID:   request.RequestID,
+		TenantID:    request.TenantID,
+		StoreID:     request.StoreID,
 		Runtime:     entity.PlacementRuntimeLocalDocker,
-		ClusterName: toolkit.FirstNonEmpty(p.cfg.ClusterName, "pg-default"),
+		ClusterName: capacity.DBClusterName,
 		Mode:        toolkit.FirstNonEmpty(p.cfg.Mode, "schema"),
-		DBName:      toolkit.FirstNonEmpty(p.cfg.DBName, "podzone_tenants"),
+		DBName:      capacity.DatabaseName,
 		SchemaName:  toolkit.SchemaName(toolkit.FirstNonEmpty(p.cfg.SchemaPrefix, "t_"), request.TenantID),
 		ProviderMeta: map[string]string{
 			"provider":          "docker",
@@ -101,17 +210,32 @@ func (p *Provider) planDocker(request entity.StorePlacementRequest) entity.Place
 			"postgres_service":  "postgres",
 			"pgbouncer_service": "pgbouncer",
 			"strategy":          "shared_postgres_schema",
+			"runtime_pool":      capacity.RuntimePool,
 		},
+		InventorySnapshot: inventory,
+		CapacitySnapshot:  capacity,
+		PolicyDecision:    decision,
+		CreatedAt:         now,
+		UpdatedAt:         now,
 	}
 }
 
-func (p *Provider) planKubernetes(request entity.StorePlacementRequest) entity.PlacementPlan {
-	namespace := toolkit.FirstNonEmpty(p.cfg.KubernetesNamespace, "default")
+func (p *Provider) planKubernetes(
+	request entity.StorePlacementRequest,
+	inventory entity.ResourceInventory,
+	capacity entity.CapacitySnapshot,
+	decision entity.PlacementPolicyDecision,
+) entity.PlacementPlan {
+	namespace := capacity.NamespaceName
+	now := time.Now().UTC()
 	return entity.PlacementPlan{
+		RequestID:   request.RequestID,
+		TenantID:    request.TenantID,
+		StoreID:     request.StoreID,
 		Runtime:     entity.PlacementRuntimeKubernetes,
-		ClusterName: toolkit.FirstNonEmpty(p.cfg.ClusterName, "pg-default"),
+		ClusterName: capacity.DBClusterName,
 		Mode:        toolkit.FirstNonEmpty(p.cfg.Mode, "schema"),
-		DBName:      toolkit.FirstNonEmpty(p.cfg.DBName, "podzone_tenants"),
+		DBName:      capacity.DatabaseName,
 		SchemaName:  toolkit.SchemaName(toolkit.FirstNonEmpty(p.cfg.SchemaPrefix, "t_"), request.TenantID),
 		ProviderMeta: map[string]string{
 			"provider":           "kubernetes",
@@ -120,27 +244,48 @@ func (p *Provider) planKubernetes(request entity.StorePlacementRequest) entity.P
 			"postgres_service":   "postgres",
 			"pgbouncer_service":  "pgbouncer",
 			"provision_strategy": "service_backed_schema",
+			"runtime_pool":       capacity.RuntimePool,
 		},
+		InventorySnapshot: inventory,
+		CapacitySnapshot:  capacity,
+		PolicyDecision:    decision,
+		CreatedAt:         now,
+		UpdatedAt:         now,
 	}
 }
 
-func (p *Provider) planTerraform(request entity.StorePlacementRequest) (entity.PlacementPlan, error) {
+func (p *Provider) planTerraform(
+	request entity.StorePlacementRequest,
+	inventory entity.ResourceInventory,
+	capacity entity.CapacitySnapshot,
+	decision entity.PlacementPolicyDecision,
+) (entity.PlacementPlan, error) {
 	if p.cfg.TerraformModule == "" {
 		return entity.PlacementPlan{}, fmt.Errorf("terraform_module is required for terraform placement runtime")
 	}
+	now := time.Now().UTC()
 	return entity.PlacementPlan{
+		RequestID:   request.RequestID,
+		TenantID:    request.TenantID,
+		StoreID:     request.StoreID,
 		Runtime:     entity.PlacementRuntimeTerraform,
-		ClusterName: toolkit.FirstNonEmpty(p.cfg.ClusterName, "pg-default"),
+		ClusterName: capacity.DBClusterName,
 		Mode:        toolkit.FirstNonEmpty(p.cfg.Mode, "schema"),
-		DBName:      toolkit.FirstNonEmpty(p.cfg.DBName, "podzone_tenants"),
+		DBName:      capacity.DatabaseName,
 		SchemaName:  toolkit.SchemaName(toolkit.FirstNonEmpty(p.cfg.SchemaPrefix, "t_"), request.TenantID),
 		ProviderMeta: map[string]string{
-			"provider":  "terraform",
-			"runtime":   string(entity.PlacementRuntimeTerraform),
-			"workspace": toolkit.FirstNonEmpty(p.cfg.TerraformWorkspace, "default"),
-			"module":    p.cfg.TerraformModule,
-			"strategy":  "future_adapter",
+			"provider":     "terraform",
+			"runtime":      string(entity.PlacementRuntimeTerraform),
+			"workspace":    toolkit.FirstNonEmpty(p.cfg.TerraformWorkspace, "default"),
+			"module":       p.cfg.TerraformModule,
+			"strategy":     "future_adapter",
+			"runtime_pool": capacity.RuntimePool,
 		},
+		InventorySnapshot: inventory,
+		CapacitySnapshot:  capacity,
+		PolicyDecision:    decision,
+		CreatedAt:         now,
+		UpdatedAt:         now,
 	}, nil
 }
 
@@ -154,19 +299,6 @@ func (p *Provider) dockerConnection(plan entity.PlacementPlan) connectionResult 
 	return connectionResult{
 		endpoint:  fmt.Sprintf("postgres://postgres:***@pgbouncer:6432/%s", plan.DBName),
 		secretRef: "docker/postgres/default",
-	}
-}
-
-func (p *Provider) kubernetesConnection(plan entity.PlacementPlan) connectionResult {
-	namespace := toolkit.FirstNonEmpty(plan.ProviderMeta["namespace"], p.cfg.KubernetesNamespace, "default")
-	plan.ProviderMeta["connection_source"] = "kubernetes_service"
-	return connectionResult{
-		endpoint: fmt.Sprintf(
-			"postgres://postgres:***@pgbouncer.%s.svc.cluster.local:6432/%s",
-			namespace,
-			plan.DBName,
-		),
-		secretRef: fmt.Sprintf("k8s/%s/postgres/default", namespace),
 	}
 }
 

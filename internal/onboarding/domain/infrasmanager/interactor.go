@@ -20,6 +20,7 @@ var _ inputport.Usecase = (*Interactor)(nil)
 type Interactor struct {
 	st          storeoutputport.ConnectionStore
 	placements  storeoutputport.PlacementRepository
+	plans       storeoutputport.PlacementPlanRepository
 	planner     storeoutputport.PlacementPlanner
 	provisioner storeoutputport.StorageProvisioner
 	routeReader storeoutputport.PlacementRouteReader
@@ -35,6 +36,7 @@ type InteractorParams struct {
 
 	Store       storeoutputport.ConnectionStore
 	Placements  storeoutputport.PlacementRepository
+	Plans       storeoutputport.PlacementPlanRepository
 	Planner     storeoutputport.PlacementPlanner
 	Provisioner storeoutputport.StorageProvisioner
 	RouteReader storeoutputport.PlacementRouteReader
@@ -45,6 +47,7 @@ func NewInteractorWithParams(p InteractorParams) *Interactor {
 	return &Interactor{
 		st:          p.Store,
 		placements:  p.Placements,
+		plans:       p.Plans,
 		planner:     p.Planner,
 		provisioner: p.Provisioner,
 		routeReader: p.RouteReader,
@@ -59,6 +62,9 @@ func (s *Interactor) ProvisionStorePlacement(
 ) (*inputport.ProvisionStorePlacementResponse, error) {
 	if s.placements == nil || s.planner == nil || s.provisioner == nil {
 		return nil, fmt.Errorf("placement provisioning runtime is not configured")
+	}
+	if s.plans == nil {
+		return nil, fmt.Errorf("placement plan repository is not configured")
 	}
 
 	placementReq := entity.StorePlacementRequest{
@@ -76,7 +82,7 @@ func (s *Interactor) ProvisionStorePlacement(
 		return allocationResponse(existing, "", false), nil
 	}
 
-	plan, err := s.planner.PlanStorePlacement(ctx, placementReq)
+	plan, err := s.getOrCreatePlacementPlan(ctx, placementReq)
 	if err != nil {
 		return nil, err
 	}
@@ -124,6 +130,39 @@ func (s *Interactor) ProvisionStorePlacement(
 		return nil, err
 	}
 	return allocationResponse(&allocation, upsertResp.CorrelationID, upsertResp.Queued), nil
+}
+
+func (s *Interactor) getOrCreatePlacementPlan(
+	ctx context.Context,
+	req entity.StorePlacementRequest,
+) (entity.PlacementPlan, error) {
+	if req.RequestID != "" {
+		existing, err := s.plans.GetPlacementPlanByRequestID(ctx, req.RequestID)
+		if err != nil {
+			return entity.PlacementPlan{}, err
+		}
+		if existing != nil {
+			return *existing, nil
+		}
+	}
+
+	plan, err := s.planner.PlanStorePlacement(ctx, req)
+	if err != nil {
+		return entity.PlacementPlan{}, err
+	}
+	if plan.RequestID == "" {
+		plan.RequestID = req.RequestID
+	}
+	if plan.TenantID == "" {
+		plan.TenantID = req.TenantID
+	}
+	if plan.StoreID == "" {
+		plan.StoreID = req.StoreID
+	}
+	if err := s.plans.SavePlacementPlan(ctx, plan); err != nil {
+		return entity.PlacementPlan{}, err
+	}
+	return plan, nil
 }
 
 func (s *Interactor) IsPlacementRouteReady(ctx context.Context, tenantID string) (bool, error) {

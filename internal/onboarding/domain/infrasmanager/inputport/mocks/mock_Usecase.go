@@ -17,8 +17,7 @@ import (
 func NewMockUsecase(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *MockUsecase {
+}) *MockUsecase {
 	mock := &MockUsecase{}
 	mock.Mock.Test(t)
 

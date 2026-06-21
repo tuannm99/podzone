@@ -104,6 +104,15 @@ func (s *StoreInteractor) CreateStoreRequest(
 		}
 		return nil, err
 	}
+	s.recordTransition(
+		ctx,
+		request.ID.Hex(),
+		"",
+		request.Status,
+		map[string]string{"user": requestedBy},
+		"store request created",
+		"",
+	)
 
 	return toInputPortRequest(request), nil
 }
@@ -163,7 +172,19 @@ func (s *StoreInteractor) RetryStoreRequest(ctx context.Context, id string) erro
 	) {
 		return ErrInvalidStatus
 	}
-	return s.repo.UpdateStatus(ctx, id, storeentity.RequestStatusQueued)
+	if err := s.repo.UpdateStatus(ctx, id, storeentity.RequestStatusQueued); err != nil {
+		return err
+	}
+	s.recordTransition(
+		ctx,
+		id,
+		request.Status,
+		storeentity.RequestStatusQueued,
+		map[string]string{"user": requestedBy},
+		"retry requested",
+		"",
+	)
+	return nil
 }
 
 func (s *StoreInteractor) ListStoreRequests(
@@ -209,7 +230,20 @@ func (s *StoreInteractor) UpdateStoreRequestStatus(
 		return ErrInvalidStatus
 	}
 
-	return s.repo.UpdateStatus(ctx, id, storeentity.RequestStatus(status))
+	next := storeentity.RequestStatus(status)
+	if err := s.repo.UpdateStatus(ctx, id, next); err != nil {
+		return err
+	}
+	s.recordTransition(
+		ctx,
+		id,
+		current.Status,
+		next,
+		map[string]string{"system": "onboarding"},
+		"status updated",
+		"",
+	)
+	return nil
 }
 
 func isValidStatusTransition(current, next storeinputport.RequestStatus) bool {
@@ -221,13 +255,33 @@ func isValidStatusTransition(current, next storeinputport.RequestStatus) bool {
 	case storeinputport.RequestStatusPendingApproval:
 		return next == storeinputport.RequestStatusQueued || next == storeinputport.RequestStatusRejected
 	case storeinputport.RequestStatusQueued:
-		return next == storeinputport.RequestStatusProvisioning || next == storeinputport.RequestStatusFailed
+		return next == storeinputport.RequestStatusPlanning ||
+			next == storeinputport.RequestStatusProvisioning ||
+			next == storeinputport.RequestStatusFailed
+	case storeinputport.RequestStatusPlanning:
+		return next == storeinputport.RequestStatusPlanned ||
+			next == storeinputport.RequestStatusPendingPlatformSetup ||
+			next == storeinputport.RequestStatusFailedRetryable ||
+			next == storeinputport.RequestStatusFailedNonRetryable ||
+			next == storeinputport.RequestStatusFailed
+	case storeinputport.RequestStatusPlanned:
+		return next == storeinputport.RequestStatusProvisioning ||
+			next == storeinputport.RequestStatusPendingApproval ||
+			next == storeinputport.RequestStatusPendingPlatformSetup
 	case storeinputport.RequestStatusProvisioning:
-		return next == storeinputport.RequestStatusReady || next == storeinputport.RequestStatusFailed
+		return next == storeinputport.RequestStatusReady ||
+			next == storeinputport.RequestStatusFailed ||
+			next == storeinputport.RequestStatusFailedRetryable ||
+			next == storeinputport.RequestStatusFailedNonRetryable ||
+			next == storeinputport.RequestStatusPendingPlatformSetup
 	case storeinputport.RequestStatusReady:
 		return next == storeinputport.RequestStatusSuspended || next == storeinputport.RequestStatusArchived
-	case storeinputport.RequestStatusFailed:
+	case storeinputport.RequestStatusFailed,
+		storeinputport.RequestStatusFailedRetryable,
+		storeinputport.RequestStatusPendingPlatformSetup:
 		return next == storeinputport.RequestStatusQueued || next == storeinputport.RequestStatusPendingApproval
+	case storeinputport.RequestStatusFailedNonRetryable:
+		return next == storeinputport.RequestStatusPendingApproval
 	case storeinputport.RequestStatusRejected:
 		return next == storeinputport.RequestStatusQueued
 	case storeinputport.RequestStatusSuspended:
@@ -254,6 +308,15 @@ func (s *StoreInteractor) ProcessNextStoreRequest(ctx context.Context) (*storein
 	if request == nil {
 		return nil, nil
 	}
+	s.recordTransition(
+		ctx,
+		request.ID.Hex(),
+		storeentity.RequestStatusQueued,
+		storeentity.RequestStatusPlanning,
+		map[string]string{"service": "onboarding", "worker": "store-provisioner"},
+		"worker claimed queued request",
+		"",
+	)
 
 	storeID := request.ID.Hex()
 	_, err = s.infra.ProvisionStorePlacement(
@@ -271,10 +334,45 @@ func (s *StoreInteractor) ProcessNextStoreRequest(ctx context.Context) (*storein
 		},
 	)
 	if err != nil {
-		_ = s.repo.MarkFailed(ctx, request.ID.Hex(), err.Error())
+		status, errorCode := classifyProvisioningFailure(err)
+		_ = s.repo.MarkBlocked(ctx, request.ID.Hex(), status, err.Error())
+		s.recordTransition(
+			ctx,
+			request.ID.Hex(),
+			storeentity.RequestStatusPlanning,
+			status,
+			map[string]string{"service": "onboarding", "worker": "store-provisioner"},
+			err.Error(),
+			errorCode,
+		)
 		return nil, err
 	}
 
+	if err := s.repo.UpdateStatus(ctx, request.ID.Hex(), storeentity.RequestStatusPlanned); err != nil {
+		return nil, err
+	}
+	s.recordTransition(
+		ctx,
+		request.ID.Hex(),
+		storeentity.RequestStatusPlanning,
+		storeentity.RequestStatusPlanned,
+		map[string]string{"service": "onboarding", "worker": "store-provisioner"},
+		"placement plan persisted and provisioning completed",
+		"",
+	)
+	if err := s.repo.UpdateStatus(ctx, request.ID.Hex(), storeentity.RequestStatusProvisioning); err != nil {
+		return nil, err
+	}
+	s.recordTransition(
+		ctx,
+		request.ID.Hex(),
+		storeentity.RequestStatusPlanned,
+		storeentity.RequestStatusProvisioning,
+		map[string]string{"service": "onboarding", "worker": "store-provisioner"},
+		"waiting for route readiness and store finalization",
+		"",
+	)
+	request.Status = storeentity.RequestStatusProvisioning
 	return toInputPortRequest(request), nil
 }
 
@@ -335,4 +433,50 @@ func (s *StoreInteractor) authorizeRead(ctx context.Context) error {
 
 func isDuplicateStoreError(err error) bool {
 	return strings.Contains(strings.ToLower(err.Error()), "duplicate")
+}
+
+func classifyProvisioningFailure(err error) (storeentity.RequestStatus, string) {
+	if err == nil {
+		return storeentity.RequestStatusFailedRetryable, ""
+	}
+	message := strings.ToLower(err.Error())
+	switch {
+	case strings.Contains(message, "not implemented"),
+		strings.Contains(message, "resource inventory"),
+		strings.Contains(message, "capacity unavailable"),
+		strings.Contains(message, "admin_dsn is required"),
+		strings.Contains(message, "cluster not found"),
+		strings.Contains(message, "namespace not found"),
+		strings.Contains(message, "runtime pool not found"):
+		return storeentity.RequestStatusPendingPlatformSetup, "platform_setup_required"
+	case strings.Contains(message, "invalid"),
+		strings.Contains(message, "unsupported placement runtime"),
+		strings.Contains(message, "unsupported postgres placement mode"):
+		return storeentity.RequestStatusFailedNonRetryable, "non_retryable"
+	default:
+		return storeentity.RequestStatusFailedRetryable, "retryable"
+	}
+}
+
+func (s *StoreInteractor) recordTransition(
+	ctx context.Context,
+	requestID string,
+	from storeentity.RequestStatus,
+	to storeentity.RequestStatus,
+	actor map[string]string,
+	reason string,
+	errorCode string,
+) {
+	if s.repo == nil {
+		return
+	}
+	_ = s.repo.RecordTransition(ctx, storeentity.StoreRequestTransition{
+		RequestID: requestID,
+		From:      from,
+		To:        to,
+		Actor:     actor,
+		Reason:    reason,
+		ErrorCode: errorCode,
+		CreatedAt: time.Now().UTC(),
+	})
 }

@@ -172,3 +172,138 @@ func TestEnsurePlacementRoute_RepairsMissingRouteFromAllocation(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, ready)
 }
+
+func TestProvisionStorePlacement_SavesPlanBeforeProvisioning(t *testing.T) {
+	state := &connectionStoreState{}
+	store := newConnectionStoreMock(t, state)
+	placements := coremocks.NewMockPlacementRepository(t)
+	plans := coremocks.NewMockPlacementPlanRepository(t)
+	planner := coremocks.NewMockPlacementPlanner(t)
+	provisioner := coremocks.NewMockStorageProvisioner(t)
+	svc := &Interactor{
+		st:          store,
+		placements:  placements,
+		plans:       plans,
+		planner:     planner,
+		provisioner: provisioner,
+	}
+	req := inputport.ProvisionStorePlacementRequest{
+		RequestID:   "request-1",
+		TenantID:    "tenant-1",
+		StoreID:     "store-1",
+		Subdomain:   "tenant-one",
+		RequestedBy: "user-1",
+	}
+	placementReq := entity.StorePlacementRequest{
+		RequestID:   req.RequestID,
+		TenantID:    req.TenantID,
+		StoreID:     req.StoreID,
+		Subdomain:   req.Subdomain,
+		RequestedBy: req.RequestedBy,
+	}
+	plan := entity.PlacementPlan{
+		RequestID:   req.RequestID,
+		TenantID:    req.TenantID,
+		StoreID:     req.StoreID,
+		Runtime:     entity.PlacementRuntimeLocalDocker,
+		ClusterName: "pg-default",
+		Mode:        "schema",
+		DBName:      "podzone_tenants",
+		SchemaName:  "t_tenant_1",
+	}
+	allocation := entity.PlacementAllocation{
+		ID:          "allocation-1",
+		RequestID:   req.RequestID,
+		TenantID:    req.TenantID,
+		StoreID:     req.StoreID,
+		Runtime:     entity.PlacementRuntimeLocalDocker,
+		ClusterName: "pg-default",
+		Mode:        "schema",
+		DBName:      "podzone_tenants",
+		SchemaName:  "t_tenant_1",
+		Endpoint:    "postgres://postgres:***@pgbouncer:6432/podzone_tenants",
+		SecretRef:   "docker/postgres/default",
+		Status:      "ready",
+	}
+
+	placements.EXPECT().GetPlacementAllocation(mock.Anything, req.TenantID, req.StoreID).Return(nil, nil)
+	plans.EXPECT().GetPlacementPlanByRequestID(mock.Anything, req.RequestID).Return(nil, nil)
+	planner.EXPECT().PlanStorePlacement(mock.Anything, placementReq).Return(plan, nil)
+	plans.EXPECT().SavePlacementPlan(mock.Anything, plan).Return(nil)
+	provisioner.EXPECT().ProvisionStorePlacement(mock.Anything, placementReq, plan).Return(allocation, nil)
+	placements.EXPECT().SavePlacementAllocation(mock.Anything, mock.Anything).Return(nil)
+
+	resp, err := svc.ProvisionStorePlacement(context.Background(), req, map[string]string{"service": "test"})
+
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, "allocation-1", resp.AllocationID)
+	require.Len(t, state.outbox, 2)
+}
+
+func TestProvisionStorePlacement_ReusesPersistedPlanOnRetry(t *testing.T) {
+	state := &connectionStoreState{}
+	store := newConnectionStoreMock(t, state)
+	placements := coremocks.NewMockPlacementRepository(t)
+	plans := coremocks.NewMockPlacementPlanRepository(t)
+	planner := coremocks.NewMockPlacementPlanner(t)
+	provisioner := coremocks.NewMockStorageProvisioner(t)
+	svc := &Interactor{
+		st:          store,
+		placements:  placements,
+		plans:       plans,
+		planner:     planner,
+		provisioner: provisioner,
+	}
+	req := inputport.ProvisionStorePlacementRequest{
+		RequestID:   "request-1",
+		TenantID:    "tenant-1",
+		StoreID:     "store-1",
+		Subdomain:   "tenant-one",
+		RequestedBy: "user-1",
+	}
+	placementReq := entity.StorePlacementRequest{
+		RequestID:   req.RequestID,
+		TenantID:    req.TenantID,
+		StoreID:     req.StoreID,
+		Subdomain:   req.Subdomain,
+		RequestedBy: req.RequestedBy,
+	}
+	plan := entity.PlacementPlan{
+		RequestID:   req.RequestID,
+		TenantID:    req.TenantID,
+		StoreID:     req.StoreID,
+		Runtime:     entity.PlacementRuntimeLocalDocker,
+		ClusterName: "pg-default",
+		Mode:        "schema",
+		DBName:      "podzone_tenants",
+		SchemaName:  "t_tenant_1",
+	}
+	allocation := entity.PlacementAllocation{
+		ID:          "allocation-1",
+		RequestID:   req.RequestID,
+		TenantID:    req.TenantID,
+		StoreID:     req.StoreID,
+		Runtime:     entity.PlacementRuntimeLocalDocker,
+		ClusterName: "pg-default",
+		Mode:        "schema",
+		DBName:      "podzone_tenants",
+		SchemaName:  "t_tenant_1",
+		Endpoint:    "postgres://postgres:***@pgbouncer:6432/podzone_tenants",
+		SecretRef:   "docker/postgres/default",
+		Status:      "ready",
+	}
+
+	placements.EXPECT().GetPlacementAllocation(mock.Anything, req.TenantID, req.StoreID).Return(nil, nil)
+	plans.EXPECT().GetPlacementPlanByRequestID(mock.Anything, req.RequestID).Return(&plan, nil)
+	provisioner.EXPECT().ProvisionStorePlacement(mock.Anything, placementReq, plan).Return(allocation, nil)
+	placements.EXPECT().SavePlacementAllocation(mock.Anything, mock.Anything).Return(nil)
+	planner.EXPECT().PlanStorePlacement(mock.Anything, mock.Anything).Maybe()
+
+	resp, err := svc.ProvisionStorePlacement(context.Background(), req, map[string]string{"service": "test"})
+
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, "allocation-1", resp.AllocationID)
+	planner.AssertNotCalled(t, "PlanStorePlacement", mock.Anything, mock.Anything)
+}

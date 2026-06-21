@@ -16,9 +16,11 @@ import (
 )
 
 var (
-	_ storeoutputport.ConnectionStore     = (*MongoStore)(nil)
-	_ storeoutputport.PlacementRepository = (*MongoStore)(nil)
-	_ messaging.OutboxStore               = (*MongoStore)(nil)
+	_ storeoutputport.ConnectionStore             = (*MongoStore)(nil)
+	_ storeoutputport.PlacementRepository         = (*MongoStore)(nil)
+	_ storeoutputport.PlacementPlanRepository     = (*MongoStore)(nil)
+	_ storeoutputport.ResourceInventoryRepository = (*MongoStore)(nil)
+	_ messaging.OutboxStore                       = (*MongoStore)(nil)
 )
 
 type MongoStore struct {
@@ -28,6 +30,10 @@ type MongoStore struct {
 	eventCol  *mongo.Collection
 	outboxCol *mongo.Collection
 	placeCol  *mongo.Collection
+	planCol   *mongo.Collection
+	dbCol     *mongo.Collection
+	k8sCol    *mongo.Collection
+	poolCol   *mongo.Collection
 }
 
 type MongoStoreParams struct {
@@ -45,6 +51,10 @@ func NewMongoStore(p MongoStoreParams) *MongoStore {
 		eventCol:  db.Collection("connection_events"),
 		outboxCol: db.Collection("connection_outbox"),
 		placeCol:  db.Collection("placement_allocations"),
+		planCol:   db.Collection("placement_plans"),
+		dbCol:     db.Collection("resource_db_clusters"),
+		k8sCol:    db.Collection("resource_k8s_clusters"),
+		poolCol:   db.Collection("resource_runtime_pools"),
 	}
 }
 
@@ -110,6 +120,59 @@ func (s *MongoStore) EnsureIndexes(ctx context.Context) error {
 		{
 			Keys:    bson.D{{Key: "status", Value: 1}, {Key: "updated_at", Value: -1}},
 			Options: options.Index().SetName("placement_allocation_status_updated"),
+		},
+	})
+	if err != nil {
+		return err
+	}
+	if _, err := s.planCol.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys:    bson.D{{Key: "request_id", Value: 1}},
+			Options: options.Index().SetUnique(true).SetName("uniq_placement_plan_request"),
+		},
+		{
+			Keys: bson.D{
+				{Key: "tenant_id", Value: 1},
+				{Key: "store_id", Value: 1},
+				{Key: "updated_at", Value: -1},
+			},
+			Options: options.Index().SetName("placement_plan_tenant_store_updated"),
+		},
+	}); err != nil {
+		return err
+	}
+	if _, err := s.dbCol.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys:    bson.D{{Key: "name", Value: 1}},
+			Options: options.Index().SetUnique(true).SetName("uniq_resource_db_cluster_name"),
+		},
+		{
+			Keys:    bson.D{{Key: "status", Value: 1}, {Key: "healthy", Value: 1}},
+			Options: options.Index().SetName("resource_db_cluster_status_health"),
+		},
+	}); err != nil {
+		return err
+	}
+	if _, err := s.k8sCol.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys:    bson.D{{Key: "name", Value: 1}},
+			Options: options.Index().SetUnique(true).SetName("uniq_resource_k8s_cluster_name"),
+		},
+		{
+			Keys:    bson.D{{Key: "status", Value: 1}, {Key: "healthy", Value: 1}},
+			Options: options.Index().SetName("resource_k8s_cluster_status_health"),
+		},
+	}); err != nil {
+		return err
+	}
+	_, err = s.poolCol.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys:    bson.D{{Key: "name", Value: 1}},
+			Options: options.Index().SetUnique(true).SetName("uniq_resource_runtime_pool_name"),
+		},
+		{
+			Keys:    bson.D{{Key: "status", Value: 1}, {Key: "healthy", Value: 1}},
+			Options: options.Index().SetName("resource_runtime_pool_status_health"),
 		},
 	})
 	return err

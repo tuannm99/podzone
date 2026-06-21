@@ -163,6 +163,8 @@ packages:
       PlacementPlanner:
       StorageProvisioner:
       PlacementRepository:
+      PlacementPlanRepository:
+      ResourceInventoryRepository:
       PlacementRouteReader:
       PlacementRouteWriter:
 

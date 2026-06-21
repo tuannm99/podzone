@@ -30,6 +30,11 @@ type PlacementRepository interface {
 	SavePlacementAllocation(ctx context.Context, allocation entity.PlacementAllocation) error
 }
 
+type PlacementPlanRepository interface {
+	GetPlacementPlanByRequestID(ctx context.Context, requestID string) (*entity.PlacementPlan, error)
+	SavePlacementPlan(ctx context.Context, plan entity.PlacementPlan) error
+}
+
 type PlacementRouteReader interface {
 	IsPlacementRouteReady(ctx context.Context, tenantID string) (bool, error)
 }

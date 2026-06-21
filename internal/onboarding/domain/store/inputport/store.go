@@ -8,15 +8,21 @@ import (
 type RequestStatus string
 
 const (
-	RequestStatusRequested       RequestStatus = "requested"
-	RequestStatusPendingApproval RequestStatus = "pending_approval"
-	RequestStatusQueued          RequestStatus = "queued"
-	RequestStatusProvisioning    RequestStatus = "provisioning"
-	RequestStatusReady           RequestStatus = "ready"
-	RequestStatusFailed          RequestStatus = "failed"
-	RequestStatusRejected        RequestStatus = "rejected"
-	RequestStatusSuspended       RequestStatus = "suspended"
-	RequestStatusArchived        RequestStatus = "archived"
+	RequestStatusRequested            RequestStatus = "requested"
+	RequestStatusPlanning             RequestStatus = "planning"
+	RequestStatusPlanned              RequestStatus = "planned"
+	RequestStatusPendingApproval      RequestStatus = "pending_approval"
+	RequestStatusQueued               RequestStatus = "queued"
+	RequestStatusProvisioning         RequestStatus = "provisioning"
+	RequestStatusReady                RequestStatus = "ready"
+	RequestStatusFailed               RequestStatus = "failed"
+	RequestStatusFailedRetryable      RequestStatus = "failed_retryable"
+	RequestStatusFailedNonRetryable   RequestStatus = "failed_non_retryable"
+	RequestStatusPendingPlatformSetup RequestStatus = "pending_platform_setup"
+	RequestStatusRejected             RequestStatus = "rejected"
+	RequestStatusSuspended            RequestStatus = "suspended"
+	RequestStatusArchived             RequestStatus = "archived"
+	RequestStatusCancelled            RequestStatus = "cancelled"
 )
 
 type Request struct {
