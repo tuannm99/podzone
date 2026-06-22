@@ -146,16 +146,33 @@ services:
     restart: unless-stopped
 
   elasticsearch:
-    image: elasticsearch:8.12.0
+    image: elasticsearch:9.0.0
     container_name: podzone-elasticsearch
+    profiles:
+      - search
     environment:
       discovery.type: single-node
+      xpack.security.enabled: 'false'
+      xpack.security.enrollment.enabled: 'false'
       ES_JAVA_OPTS: -Xms512m -Xmx512m
     ports:
       - '9200:9200'
       - '9300:9300'
     volumes:
       - podzone_elasticsearch_data:/usr/share/elasticsearch/data
+    restart: unless-stopped
+
+  kibana:
+    image: kibana:9.0.0
+    container_name: podzone-kibana
+    profiles:
+      - search
+    depends_on:
+      - elasticsearch
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    ports:
+      - '5601:5601'
     restart: unless-stopped
 
   etcd:
@@ -191,12 +208,17 @@ services:
     container_name: podzone-consul
     command:
       - agent
-      - -dev
+      - -server
+      - -bootstrap-expect=1
+      - -node=podzone-consul
       - -client=0.0.0.0
       - -ui
+      - -data-dir=/consul/data
     ports:
       - '8500:8500'
       - '8600:8600/udp'
+    volumes:
+      - ../../.data/consul:/consul/data
     healthcheck:
       test: ['CMD', 'consul', 'info']
       interval: 5s

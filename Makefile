@@ -1,6 +1,6 @@
 .PHONY: all proto swagger build test coverage lint fmt dev down clean help
 .PHONY: docker-dev docker-dev-infra docker-dev-down mocks mocks-gen
-.PHONY: dev-backoffice-seed dev-backoffice-sample dev-auth-bootstrap
+.PHONY: dev-backoffice-seed dev-backoffice-sample dev-consul-refresh dev-auth-bootstrap
 .PHONY: dev-ui-auth-sync dev-pod-sample dev-pod-up
 
 GO := go
@@ -83,6 +83,16 @@ dev-backoffice-seed:
 	PG_SSL_MODE=$(PG_SSL_MODE) \
 	CREATE_STORE=$(CREATE_STORE) \
 	sh scripts/dev/seed_backoffice_tenant.sh "$(TENANT_ID)" "$(STORE_NAME)" "$(STORE_SUBDOMAIN)" "$(CLUSTER_NAME)" "$(CONSUL_URL)" "$(ONBOARDING_URL)"
+
+dev-consul-refresh:
+	@MONGO_URI=$(MONGO_URI) \
+	CONSUL_URL=$(CONSUL_URL) \
+	PG_HOST=$(PG_HOST) \
+	PG_PORT=$(PG_PORT) \
+	PG_USER=$(PG_USER) \
+	PG_PASSWORD=$(PG_PASSWORD) \
+	PG_SSL_MODE=$(PG_SSL_MODE) \
+	sh scripts/dev/refresh_consul_from_onboarding.sh
 
 dev-backoffice-sample:
 	@DB_NAME=$(DB_NAME) \
@@ -280,6 +290,7 @@ help:
 	@echo "  make docker-dev-down                  - Stop dockerized dev infra + services"
 	@echo "  make dev-pod-up TENANT_ID=t1          - Start local docker stack and auto-bootstrap tenant/sample/auth"
 	@echo "  make dev-backoffice-seed TENANT_ID=t1 - Seed Consul placement + onboarding connection for one tenant"
+	@echo "  make dev-consul-refresh TENANT_ID=t1  - Republish Consul placement + connection without creating a store"
 	@echo "  make dev-backoffice-sample TENANT_ID=t1 - Seed placement plus sample POD partners/products/orders"
 	@echo "  make dev-auth-bootstrap TENANT_ID=t1 - Seed user, tenant membership, session, and token bundle"
 	@echo "  make dev-ui-auth-sync                - Copy the dev auth bundle into the UI public assets"
