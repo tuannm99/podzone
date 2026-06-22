@@ -1,14 +1,14 @@
-import type { ParentProps } from 'solid-js';
-import { classes } from '../../shared/utils';
+import type { ParentProps } from 'solid-js'
+import { classes } from '../../shared/utils'
 
-type ContainerWidth = 'lg' | 'xl' | '2xl' | '7xl';
+type ContainerWidth = 'lg' | 'xl' | '2xl' | '7xl'
 
 const widthClasses: Record<ContainerWidth, string> = {
   lg: 'max-w-5xl',
   xl: 'max-w-6xl',
   '2xl': 'max-w-[96rem]',
   '7xl': 'max-w-7xl',
-};
+}
 
 export function Container(
   props: ParentProps<{ class?: string; width?: ContainerWidth }>
@@ -23,7 +23,7 @@ export function Container(
     >
       {props.children}
     </div>
-  );
+  )
 }
 
 export function AppShell(
@@ -35,5 +35,5 @@ export function AppShell(
         {props.children}
       </div>
     </div>
-  );
+  )
 }

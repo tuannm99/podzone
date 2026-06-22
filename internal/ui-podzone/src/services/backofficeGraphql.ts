@@ -60,12 +60,16 @@ export async function postBackofficeGraphQL<T>(
     const includeStoreHeader = options?.includeStoreHeader ?? true;
     const storeId =
       includeStoreHeader && tenantId ? storeStorage.getStoreID(tenantId) : '';
-    const { data } = await http.post<GraphQLPayload<T>>(TENANT_GQL_URL, {
-      query,
-      variables,
-    }, {
-      headers: storeId ? { 'X-Store-ID': storeId } : undefined,
-    });
+    const { data } = await http.post<GraphQLPayload<T>>(
+      TENANT_GQL_URL,
+      {
+        query,
+        variables,
+      },
+      {
+        headers: storeId ? { 'X-Store-ID': storeId } : undefined,
+      }
+    );
 
     if (data.errors && data.errors.length > 0) {
       return {

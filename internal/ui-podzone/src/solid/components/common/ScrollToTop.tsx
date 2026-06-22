@@ -1,25 +1,25 @@
-import { createSignal, onCleanup, onMount } from 'solid-js';
-import { classes } from '../../shared/utils';
-import { Button } from './Primitives';
+import { createSignal, onCleanup, onMount } from 'solid-js'
+import { classes } from '../../shared/utils'
+import { Button } from './Primitives'
 
 export function ScrollToTopButton(props: {
-  threshold?: number;
-  class?: string;
+  threshold?: number
+  class?: string
 }) {
-  const [visible, setVisible] = createSignal(false);
+  const [visible, setVisible] = createSignal(false)
 
   onMount(() => {
     const updateVisibility = () => {
-      setVisible(window.scrollY > (props.threshold ?? 280));
-    };
+      setVisible(window.scrollY > (props.threshold ?? 280))
+    }
 
-    updateVisibility();
-    window.addEventListener('scroll', updateVisibility, { passive: true });
+    updateVisibility()
+    window.addEventListener('scroll', updateVisibility, { passive: true })
 
     onCleanup(() => {
-      window.removeEventListener('scroll', updateVisibility);
-    });
-  });
+      window.removeEventListener('scroll', updateVisibility)
+    })
+  })
 
   return (
     <Button
@@ -39,10 +39,10 @@ export function ScrollToTopButton(props: {
           top: 0,
           left: 0,
           behavior: 'smooth',
-        });
+        })
       }}
     >
       Top
     </Button>
-  );
+  )
 }

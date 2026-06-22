@@ -26,7 +26,9 @@ export function Hero(props: {
           {props.title}
         </h1>
         <Show when={props.copy}>
-          <p class="text-base leading-7 text-gray-600 sm:text-lg">{props.copy}</p>
+          <p class="text-base leading-7 text-gray-600 sm:text-lg">
+            {props.copy}
+          </p>
         </Show>
         <Show when={props.action || props.secondaryAction}>
           <div class="flex flex-wrap gap-3 pt-2">

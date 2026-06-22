@@ -37,7 +37,10 @@ export function Avatar(props: {
         </Show>
       </div>
       <Show when={props.status}>
-        <Indicator color={statusColor()} class="absolute bottom-0 right-0 ring-2 ring-white" />
+        <Indicator
+          color={statusColor()}
+          class="absolute bottom-0 right-0 ring-2 ring-white"
+        />
       </Show>
     </div>
   )

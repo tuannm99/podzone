@@ -112,7 +112,10 @@ export async function createPartner(
   payload: CreatePartnerPayload
 ): Promise<PartnerResult<PartnerInfo>> {
   try {
-    const { data } = await http.post<PartnerInfo>('/partner/v1/partners', payload);
+    const { data } = await http.post<PartnerInfo>(
+      '/partner/v1/partners',
+      payload
+    );
     return { success: true, data };
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to create partner');
@@ -124,9 +127,12 @@ export async function updatePartnerStatus(
   status: string
 ): Promise<PartnerResult<PartnerInfo>> {
   try {
-    const { data } = await http.patch<PartnerInfo>(`/partner/v1/partners/${id}/status`, {
-      status,
-    });
+    const { data } = await http.patch<PartnerInfo>(
+      `/partner/v1/partners/${id}/status`,
+      {
+        status,
+      }
+    );
     return { success: true, data };
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to update partner status');

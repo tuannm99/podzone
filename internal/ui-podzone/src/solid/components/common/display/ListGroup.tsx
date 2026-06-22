@@ -23,7 +23,9 @@ export function ListGroup(props: { items: ListGroupItem[]; class?: string }) {
         {(item) => {
           const itemClass = classes(
             'flex w-full items-center justify-between gap-4 border-b border-gray-100 px-4 py-3 text-left transition last:border-b-0',
-            item.active ? 'bg-blue-50 text-blue-900' : 'text-gray-700 hover:bg-gray-50'
+            item.active
+              ? 'bg-blue-50 text-blue-900'
+              : 'text-gray-700 hover:bg-gray-50'
           )
 
           const content = (

@@ -1,82 +1,82 @@
-import { For, Show, createEffect, createMemo, createSignal } from 'solid-js';
-import { Tabs } from './Tabs';
-import { Badge, Button, Card, InputField, TextareaField } from './Primitives';
+import { For, Show, createEffect, createMemo, createSignal } from 'solid-js'
+import { Tabs } from './Tabs'
+import { Badge, Button, Card, InputField, TextareaField } from './Primitives'
 
 type KeyValueEntry = {
-  key: string;
-  value: string;
-};
+  key: string
+  value: string
+}
 
 function normalizeEntries(raw: string): KeyValueEntry[] {
   try {
-    const parsed = JSON.parse(raw || '{}');
+    const parsed = JSON.parse(raw || '{}')
     if (!parsed || Array.isArray(parsed) || typeof parsed !== 'object') {
-      return [];
+      return []
     }
     return Object.entries(parsed).map(([key, value]) => ({
       key,
       value: typeof value === 'string' ? value : JSON.stringify(value),
-    }));
+    }))
   } catch {
-    return [];
+    return []
   }
 }
 
 function serializeEntries(entries: KeyValueEntry[]) {
   return JSON.stringify(
     entries.reduce<Record<string, string>>((acc, entry) => {
-      if (!entry.key.trim()) return acc;
-      acc[entry.key.trim()] = entry.value;
-      return acc;
+      if (!entry.key.trim()) return acc
+      acc[entry.key.trim()] = entry.value
+      return acc
     }, {}),
     null,
     2
-  );
+  )
 }
 
 export function IamKeyValueBuilder(props: {
-  label: string;
-  value: string;
-  helper?: string;
-  emptyKeyPlaceholder?: string;
-  emptyValuePlaceholder?: string;
-  addLabel?: string;
-  badgeLabel?: string;
-  onChange: (value: string) => void;
+  label: string
+  value: string
+  helper?: string
+  emptyKeyPlaceholder?: string
+  emptyValuePlaceholder?: string
+  addLabel?: string
+  badgeLabel?: string
+  onChange: (value: string) => void
 }) {
-  const [mode, setMode] = createSignal<'builder' | 'json'>('builder');
+  const [mode, setMode] = createSignal<'builder' | 'json'>('builder')
   const [entries, setEntries] = createSignal<KeyValueEntry[]>(
     normalizeEntries(props.value)
-  );
+  )
 
   createEffect(() => {
-    setEntries(normalizeEntries(props.value));
-  });
+    setEntries(normalizeEntries(props.value))
+  })
 
   const count = createMemo(
     () => entries().filter((entry) => entry.key.trim()).length
-  );
+  )
 
   const commit = (next: KeyValueEntry[]) => {
-    setEntries(next);
-    props.onChange(serializeEntries(next));
-  };
+    setEntries(next)
+    props.onChange(serializeEntries(next))
+  }
 
   const updateEntry = (index: number, patch: Partial<KeyValueEntry>) => {
     commit(
       entries().map((entry, currentIndex) =>
         currentIndex === index ? { ...entry, ...patch } : entry
       )
-    );
-  };
+    )
+  }
 
   const removeEntry = (index: number) => {
-    commit(entries().filter((_, currentIndex) => currentIndex !== index));
-  };
+    commit(entries().filter((_, currentIndex) => currentIndex !== index))
+  }
 
   const addEntry = () => {
-    commit([...entries(), { key: '', value: '' }]);
-  };
+    commit([...entries(), { key: '', value: '' }])
+  }
 
   return (
     <div class="space-y-3">
@@ -158,5 +158,5 @@ export function IamKeyValueBuilder(props: {
         />
       </Show>
     </div>
-  );
+  )
 }

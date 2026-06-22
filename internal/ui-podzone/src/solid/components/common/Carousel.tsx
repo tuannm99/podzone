@@ -5,53 +5,53 @@ import {
   createSignal,
   onCleanup,
   type JSX,
-} from 'solid-js';
-import { classes } from '../../shared/utils';
+} from 'solid-js'
+import { classes } from '../../shared/utils'
 
 export type CarouselSlide = {
-  id?: string;
-  eyebrow?: string;
-  title?: string;
-  copy?: string;
-  imageSrc?: string;
-  imageAlt?: string;
-  content?: JSX.Element;
-  action?: JSX.Element;
-};
+  id?: string
+  eyebrow?: string
+  title?: string
+  copy?: string
+  imageSrc?: string
+  imageAlt?: string
+  content?: JSX.Element
+  action?: JSX.Element
+}
 
 export function Carousel(props: {
-  slides: CarouselSlide[];
-  autoPlay?: boolean;
-  intervalMs?: number;
-  class?: string;
+  slides: CarouselSlide[]
+  autoPlay?: boolean
+  intervalMs?: number
+  class?: string
 }) {
-  const [currentIndex, setCurrentIndex] = createSignal(0);
+  const [currentIndex, setCurrentIndex] = createSignal(0)
 
   createEffect(() => {
-    if (!props.autoPlay || props.slides.length <= 1) return;
+    if (!props.autoPlay || props.slides.length <= 1) return
 
     const timer = window.setInterval(() => {
-      setCurrentIndex((index) => (index + 1) % props.slides.length);
-    }, props.intervalMs ?? 5000);
+      setCurrentIndex((index) => (index + 1) % props.slides.length)
+    }, props.intervalMs ?? 5000)
 
     onCleanup(() => {
-      window.clearInterval(timer);
-    });
-  });
+      window.clearInterval(timer)
+    })
+  })
 
   const goTo = (index: number) => {
-    setCurrentIndex(index);
-  };
+    setCurrentIndex(index)
+  }
 
   const previous = () => {
     setCurrentIndex(
       (index) => (index - 1 + props.slides.length) % props.slides.length
-    );
-  };
+    )
+  }
 
   const next = () => {
-    setCurrentIndex((index) => (index + 1) % props.slides.length);
-  };
+    setCurrentIndex((index) => (index + 1) % props.slides.length)
+  }
 
   return (
     <section
@@ -155,5 +155,5 @@ export function Carousel(props: {
         </div>
       </Show>
     </section>
-  );
+  )
 }

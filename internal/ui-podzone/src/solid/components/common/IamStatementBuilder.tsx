@@ -1,5 +1,5 @@
-import { For, Show, createEffect, createMemo, createSignal } from 'solid-js';
-import { Tabs } from './Tabs';
+import { For, Show, createEffect, createMemo, createSignal } from 'solid-js'
+import { Tabs } from './Tabs'
 import {
   Badge,
   Button,
@@ -7,25 +7,25 @@ import {
   InputField,
   SelectField,
   TextareaField,
-} from './Primitives';
+} from './Primitives'
 
 type Condition = {
-  operator: string;
-  key: string;
-  value: string;
-};
+  operator: string
+  key: string
+  value: string
+}
 
 type Statement = {
-  effect: string;
-  actionPattern: string;
-  resourcePattern: string;
-  conditions?: Condition[];
-};
+  effect: string
+  actionPattern: string
+  resourcePattern: string
+  conditions?: Condition[]
+}
 
 const effectOptions = [
   { name: 'Allow', value: 'allow' },
   { name: 'Deny', value: 'deny' },
-];
+]
 
 const conditionOperatorOptions = [
   { name: 'StringEquals', value: 'StringEquals' },
@@ -40,12 +40,12 @@ const conditionOperatorOptions = [
   { name: 'DateLessThan', value: 'DateLessThan' },
   { name: 'IpAddress', value: 'IpAddress' },
   { name: 'Null', value: 'Null' },
-];
+]
 
 function normalizeStatements(raw: string): Statement[] {
   try {
-    const parsed = JSON.parse(raw || '[]');
-    if (!Array.isArray(parsed)) return [];
+    const parsed = JSON.parse(raw || '[]')
+    if (!Array.isArray(parsed)) return []
     return parsed.map((item) => ({
       effect: typeof item?.effect === 'string' ? item.effect : 'allow',
       actionPattern:
@@ -55,67 +55,67 @@ function normalizeStatements(raw: string): Statement[] {
       conditions: Array.isArray(item?.conditions)
         ? item.conditions
             .map((condition: unknown) => {
-              const current = condition as Partial<Condition> | null;
+              const current = condition as Partial<Condition> | null
               return {
-              operator:
-                typeof current?.operator === 'string'
-                  ? current.operator
-                  : 'StringEquals',
-              key: typeof current?.key === 'string' ? current.key : '',
-              value: typeof current?.value === 'string' ? current.value : '',
-            };
+                operator:
+                  typeof current?.operator === 'string'
+                    ? current.operator
+                    : 'StringEquals',
+                key: typeof current?.key === 'string' ? current.key : '',
+                value: typeof current?.value === 'string' ? current.value : '',
+              }
             })
             .filter((condition: Condition) => condition.key.trim() !== '')
         : [],
-    }));
+    }))
   } catch {
-    return [];
+    return []
   }
 }
 
 function serializeStatements(items: Statement[]) {
-  return JSON.stringify(items, null, 2);
+  return JSON.stringify(items, null, 2)
 }
 
 export function IamStatementBuilder(props: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  builderCopy?: string;
+  label: string
+  value: string
+  onChange: (value: string) => void
+  builderCopy?: string
 }) {
-  const [mode, setMode] = createSignal<'builder' | 'json'>('builder');
+  const [mode, setMode] = createSignal<'builder' | 'json'>('builder')
   const [statements, setStatements] = createSignal<Statement[]>(
     normalizeStatements(props.value)
-  );
-  const [parseError, setParseError] = createSignal('');
+  )
+  const [parseError, setParseError] = createSignal('')
 
   createEffect(() => {
     try {
-      const next = normalizeStatements(props.value);
-      setStatements(next);
-      setParseError('');
+      const next = normalizeStatements(props.value)
+      setStatements(next)
+      setParseError('')
     } catch {
-      setParseError('Invalid JSON');
+      setParseError('Invalid JSON')
     }
-  });
+  })
 
-  const statementCount = createMemo(() => statements().length);
+  const statementCount = createMemo(() => statements().length)
 
   const commit = (next: Statement[]) => {
-    setStatements(next);
-    props.onChange(serializeStatements(next));
-  };
+    setStatements(next)
+    props.onChange(serializeStatements(next))
+  }
 
   const updateStatement = (index: number, patch: Partial<Statement>) => {
     const next = statements().map((item, currentIndex) =>
       currentIndex === index ? { ...item, ...patch } : item
-    );
-    commit(next);
-  };
+    )
+    commit(next)
+  }
 
   const removeStatement = (index: number) => {
-    commit(statements().filter((_, currentIndex) => currentIndex !== index));
-  };
+    commit(statements().filter((_, currentIndex) => currentIndex !== index))
+  }
 
   const addStatement = () => {
     commit([
@@ -126,50 +126,51 @@ export function IamStatementBuilder(props: {
         resourcePattern: '*',
         conditions: [],
       },
-    ]);
-  };
+    ])
+  }
 
   const addCondition = (index: number) => {
-    const current = statements()[index];
+    const current = statements()[index]
     updateStatement(index, {
       conditions: [
         ...(current.conditions || []),
         { operator: 'StringEquals', key: '', value: '' },
       ],
-    });
-  };
+    })
+  }
 
   const updateCondition = (
     statementIndex: number,
     conditionIndex: number,
     patch: Partial<Condition>
   ) => {
-    const current = statements()[statementIndex];
-    const nextConditions = (current.conditions || []).map((item, currentIndex) =>
-      currentIndex === conditionIndex ? { ...item, ...patch } : item
-    );
-    updateStatement(statementIndex, { conditions: nextConditions });
-  };
+    const current = statements()[statementIndex]
+    const nextConditions = (current.conditions || []).map(
+      (item, currentIndex) =>
+        currentIndex === conditionIndex ? { ...item, ...patch } : item
+    )
+    updateStatement(statementIndex, { conditions: nextConditions })
+  }
 
   const removeCondition = (statementIndex: number, conditionIndex: number) => {
-    const current = statements()[statementIndex];
+    const current = statements()[statementIndex]
     updateStatement(statementIndex, {
       conditions: (current.conditions || []).filter(
         (_, currentIndex) => currentIndex !== conditionIndex
       ),
-    });
-  };
+    })
+  }
 
   const handleJsonInput = (value: string) => {
-    props.onChange(value);
+    props.onChange(value)
     try {
-      const next = normalizeStatements(value);
-      setStatements(next);
-      setParseError('');
+      const next = normalizeStatements(value)
+      setStatements(next)
+      setParseError('')
     } catch {
-      setParseError('Invalid JSON');
+      setParseError('Invalid JSON')
     }
-  };
+  }
 
   return (
     <div class="space-y-3">
@@ -200,8 +201,14 @@ export function IamStatementBuilder(props: {
               <Card class="space-y-4 border border-gray-200 bg-gray-50 p-4 shadow-none">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                   <div class="flex flex-wrap gap-2">
-                    <Badge content={`Statement ${statementIndex() + 1}`} color="dark" />
-                    <Badge content={statement.effect} color={statement.effect === 'deny' ? 'red' : 'green'} />
+                    <Badge
+                      content={`Statement ${statementIndex() + 1}`}
+                      color="dark"
+                    />
+                    <Badge
+                      content={statement.effect}
+                      color={statement.effect === 'deny' ? 'red' : 'green'}
+                    />
                   </div>
                   <Button
                     size="xs"
@@ -247,7 +254,9 @@ export function IamStatementBuilder(props: {
 
                 <div class="space-y-3">
                   <div class="flex flex-wrap items-center justify-between gap-3">
-                    <p class="text-sm font-semibold text-gray-900">Conditions</p>
+                    <p class="text-sm font-semibold text-gray-900">
+                      Conditions
+                    </p>
                     <Button
                       size="xs"
                       color="light"
@@ -274,9 +283,13 @@ export function IamStatementBuilder(props: {
                               value={condition.operator}
                               options={conditionOperatorOptions}
                               onChange={(event) =>
-                                updateCondition(statementIndex(), conditionIndex(), {
-                                  operator: event.currentTarget.value,
-                                })
+                                updateCondition(
+                                  statementIndex(),
+                                  conditionIndex(),
+                                  {
+                                    operator: event.currentTarget.value,
+                                  }
+                                )
                               }
                             />
                             <InputField
@@ -284,9 +297,13 @@ export function IamStatementBuilder(props: {
                               value={condition.key}
                               placeholder="principal_tag:team"
                               onInput={(event) =>
-                                updateCondition(statementIndex(), conditionIndex(), {
-                                  key: event.currentTarget.value,
-                                })
+                                updateCondition(
+                                  statementIndex(),
+                                  conditionIndex(),
+                                  {
+                                    key: event.currentTarget.value,
+                                  }
+                                )
                               }
                             />
                             <InputField
@@ -294,16 +311,23 @@ export function IamStatementBuilder(props: {
                               value={condition.value}
                               placeholder="ops"
                               onInput={(event) =>
-                                updateCondition(statementIndex(), conditionIndex(), {
-                                  value: event.currentTarget.value,
-                                })
+                                updateCondition(
+                                  statementIndex(),
+                                  conditionIndex(),
+                                  {
+                                    value: event.currentTarget.value,
+                                  }
+                                )
                               }
                             />
                             <Button
                               size="xs"
                               color="red"
                               onClick={() =>
-                                removeCondition(statementIndex(), conditionIndex())
+                                removeCondition(
+                                  statementIndex(),
+                                  conditionIndex()
+                                )
                               }
                             >
                               Remove
@@ -338,5 +362,5 @@ export function IamStatementBuilder(props: {
         </div>
       </Show>
     </div>
-  );
+  )
 }

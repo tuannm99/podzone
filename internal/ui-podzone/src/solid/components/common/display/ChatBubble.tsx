@@ -13,11 +13,19 @@ export function ChatBubble(props: ChatBubbleProps) {
   const isEnd = () => props.align === 'end'
 
   return (
-    <div class={classes('flex w-full', isEnd() ? 'justify-end' : 'justify-start', props.class)}>
+    <div
+      class={classes(
+        'flex w-full',
+        isEnd() ? 'justify-end' : 'justify-start',
+        props.class
+      )}
+    >
       <div
         class={classes(
           'max-w-xl rounded-lg px-4 py-3 shadow-sm',
-          isEnd() ? 'bg-gray-950 text-white' : 'bg-white text-gray-900 ring-1 ring-gray-200'
+          isEnd()
+            ? 'bg-gray-950 text-white'
+            : 'bg-white text-gray-900 ring-1 ring-gray-200'
         )}
       >
         <Show when={props.author || props.meta}>

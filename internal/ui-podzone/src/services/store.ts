@@ -16,7 +16,8 @@ type StoreResult<T> =
   | { success: false; message: string };
 
 export async function listStores(): Promise<StoreResult<StoreInfo[]>> {
-  const result = await postBackofficeGraphQL<{ stores: StoreInfo[] }>(`
+  const result = await postBackofficeGraphQL<{ stores: StoreInfo[] }>(
+    `
     query Stores {
       stores {
         id
@@ -29,7 +30,10 @@ export async function listStores(): Promise<StoreResult<StoreInfo[]>> {
         updatedAt: updated_at
       }
     }
-  `, undefined, { includeStoreHeader: false });
+  `,
+    undefined,
+    { includeStoreHeader: false }
+  );
   if (!result.success) {
     return { success: false, message: result.message };
   }
@@ -40,7 +44,8 @@ export async function createStore(input: {
   name: string;
   description?: string;
 }): Promise<StoreResult<StoreInfo>> {
-  const result = await postBackofficeGraphQL<{ createStore: StoreInfo }>(`
+  const result = await postBackofficeGraphQL<{ createStore: StoreInfo }>(
+    `
     mutation CreateStore($input: CreateStoreInput!) {
       createStore(input: $input) {
         id
@@ -53,20 +58,26 @@ export async function createStore(input: {
         updatedAt: updated_at
       }
     }
-  `, {
-    input: {
-      name: input.name,
-      description: input.description || '',
+  `,
+    {
+      input: {
+        name: input.name,
+        description: input.description || '',
+      },
     },
-  }, { includeStoreHeader: false });
+    { includeStoreHeader: false }
+  );
   if (!result.success) {
     return { success: false, message: result.message };
   }
   return { success: true, data: result.data.createStore };
 }
 
-export async function activateStore(id: string): Promise<StoreResult<StoreInfo>> {
-  const result = await postBackofficeGraphQL<{ activateStore: StoreInfo }>(`
+export async function activateStore(
+  id: string
+): Promise<StoreResult<StoreInfo>> {
+  const result = await postBackofficeGraphQL<{ activateStore: StoreInfo }>(
+    `
     mutation ActivateStore($id: ID!) {
       activateStore(id: $id) {
         id
@@ -79,7 +90,10 @@ export async function activateStore(id: string): Promise<StoreResult<StoreInfo>>
         updatedAt: updated_at
       }
     }
-  `, { id }, { includeStoreHeader: false });
+  `,
+    { id },
+    { includeStoreHeader: false }
+  );
   if (!result.success) {
     return { success: false, message: result.message };
   }

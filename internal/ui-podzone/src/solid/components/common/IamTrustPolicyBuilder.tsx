@@ -1,73 +1,76 @@
-import { For, Show, createEffect, createMemo, createSignal } from 'solid-js';
-import type { RoleTrustStatement } from '../../../services/iam';
-import { Tabs } from './Tabs';
-import { Badge, Button, Card, InputField, SelectField, TextareaField } from './Primitives';
+import { For, Show, createEffect, createMemo, createSignal } from 'solid-js'
+import type { RoleTrustStatement } from '../../../services/iam'
+import { Tabs } from './Tabs'
+import {
+  Badge,
+  Button,
+  Card,
+  InputField,
+  SelectField,
+  TextareaField,
+} from './Primitives'
 
 const effectOptions = [
   { name: 'Allow', value: 'allow' },
   { name: 'Deny', value: 'deny' },
-];
+]
 
 const principalTypeOptions = [
   { name: 'User', value: 'user' },
   { name: 'Platform role', value: 'platform_role' },
   { name: 'Tenant role', value: 'tenant_role' },
   { name: 'Service', value: 'service' },
-];
+]
 
 function normalizeTrustStatements(raw: string): RoleTrustStatement[] {
   try {
-    const parsed = JSON.parse(raw || '[]');
-    if (!Array.isArray(parsed)) return [];
+    const parsed = JSON.parse(raw || '[]')
+    if (!Array.isArray(parsed)) return []
     return parsed.map((item) => ({
       effect: typeof item?.effect === 'string' ? item.effect : 'allow',
       principalType:
-        typeof item?.principalType === 'string'
-          ? item.principalType
-          : 'user',
+        typeof item?.principalType === 'string' ? item.principalType : 'user',
       principalPattern:
-        typeof item?.principalPattern === 'string'
-          ? item.principalPattern
-          : '',
+        typeof item?.principalPattern === 'string' ? item.principalPattern : '',
       tenantPattern:
         typeof item?.tenantPattern === 'string' ? item.tenantPattern : '*',
       externalIdPattern:
         typeof item?.externalIdPattern === 'string'
           ? item.externalIdPattern
           : '',
-    }));
+    }))
   } catch {
-    return [];
+    return []
   }
 }
 
 function serializeTrustStatements(items: RoleTrustStatement[]) {
-  return JSON.stringify(items, null, 2);
+  return JSON.stringify(items, null, 2)
 }
 
 export function IamTrustPolicyBuilder(props: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
+  label: string
+  value: string
+  onChange: (value: string) => void
 }) {
-  const [mode, setMode] = createSignal<'builder' | 'json'>('builder');
+  const [mode, setMode] = createSignal<'builder' | 'json'>('builder')
   const [statements, setStatements] = createSignal<RoleTrustStatement[]>(
     normalizeTrustStatements(props.value)
-  );
-  const [parseError, setParseError] = createSignal('');
+  )
+  const [parseError, setParseError] = createSignal('')
 
   createEffect(() => {
-    const next = normalizeTrustStatements(props.value);
-    setStatements(next);
-    setParseError('');
-  });
+    const next = normalizeTrustStatements(props.value)
+    setStatements(next)
+    setParseError('')
+  })
 
-  const count = createMemo(() => statements().length);
+  const count = createMemo(() => statements().length)
 
   const commit = (next: RoleTrustStatement[]) => {
-    setStatements(next);
-    props.onChange(serializeTrustStatements(next));
-  };
+    setStatements(next)
+    props.onChange(serializeTrustStatements(next))
+  }
 
   const updateStatement = (
     index: number,
@@ -77,12 +80,12 @@ export function IamTrustPolicyBuilder(props: {
       statements().map((item, currentIndex) =>
         currentIndex === index ? { ...item, ...patch } : item
       )
-    );
-  };
+    )
+  }
 
   const removeStatement = (index: number) => {
-    commit(statements().filter((_, currentIndex) => currentIndex !== index));
-  };
+    commit(statements().filter((_, currentIndex) => currentIndex !== index))
+  }
 
   const addStatement = () => {
     commit([
@@ -94,18 +97,18 @@ export function IamTrustPolicyBuilder(props: {
         tenantPattern: '*',
         externalIdPattern: '',
       },
-    ]);
-  };
+    ])
+  }
 
   const handleJsonInput = (value: string) => {
-    props.onChange(value);
+    props.onChange(value)
     try {
-      setStatements(normalizeTrustStatements(value));
-      setParseError('');
+      setStatements(normalizeTrustStatements(value))
+      setParseError('')
     } catch {
-      setParseError('Invalid JSON');
+      setParseError('Invalid JSON')
     }
-  };
+  }
 
   return (
     <div class="space-y-3">
@@ -113,7 +116,8 @@ export function IamTrustPolicyBuilder(props: {
         <div>
           <p class="text-sm font-medium text-gray-700">{props.label}</p>
           <p class="mt-1 text-xs text-gray-500">
-            Define who may assume the role, with tenant and external ID patterns.
+            Define who may assume the role, with tenant and external ID
+            patterns.
           </p>
         </div>
         <Badge content={`${count()} trust statements`} color="blue" />
@@ -135,7 +139,10 @@ export function IamTrustPolicyBuilder(props: {
               <Card class="space-y-4 border border-gray-200 bg-gray-50 p-4 shadow-none">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                   <div class="flex flex-wrap gap-2">
-                    <Badge content={`Trust ${statementIndex() + 1}`} color="dark" />
+                    <Badge
+                      content={`Trust ${statementIndex() + 1}`}
+                      color="dark"
+                    />
                     <Badge
                       content={statement.effect}
                       color={statement.effect === 'deny' ? 'red' : 'green'}
@@ -230,5 +237,5 @@ export function IamTrustPolicyBuilder(props: {
         </div>
       </Show>
     </div>
-  );
+  )
 }

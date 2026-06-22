@@ -1,47 +1,48 @@
-import { Link } from '@tanstack/solid-router';
-import { For, Show } from 'solid-js';
-import { logout } from '../../services/auth';
-import { tokenStorage } from '../../services/tokenStorage';
-import { useTenantWorkspace } from '../workspace/context';
-import { Button } from '../components/common/Primitives';
-import { classes } from '../shared/utils';
+import { Link } from '@tanstack/solid-router'
+import { For, Show } from 'solid-js'
+import { logout } from '../../services/auth'
+import { tokenStorage } from '../../services/tokenStorage'
+import { useTenantWorkspace } from '../workspace/context'
+import { Button } from '../components/common/Primitives'
+import { classes } from '../shared/utils'
 
 type NavItem = {
-  href: string;
-  label: string;
-  section: 'Platform' | 'Operations';
-  active: () => boolean;
-};
+  href: string
+  label: string
+  section: 'Platform' | 'Operations'
+  active: () => boolean
+}
 
 function initials(value: string) {
-  const cleaned = value.trim();
-  if (!cleaned) return 'PZ';
+  const cleaned = value.trim()
+  if (!cleaned) return 'PZ'
   return cleaned
     .split(/\s+/)
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
-    .join('');
+    .join('')
 }
 
 export function PodzoneNavbar(props: { currentPath: string }) {
-  const workspace = useTenantWorkspace();
-  const user = tokenStorage.getUser();
+  const workspace = useTenantWorkspace()
+  const user = tokenStorage.getUser()
 
   const hasTenant = () =>
-    (workspace?.tenantId() || tokenStorage.getActiveTenantID()).trim().length > 0;
+    (workspace?.tenantId() || tokenStorage.getActiveTenantID()).trim().length >
+    0
   const activeTenantId = () =>
-    workspace?.tenantId() || tokenStorage.getActiveTenantID();
-  const currentStore = () => workspace?.currentStore();
-  const currentStoreId = () => workspace?.currentStoreId() || '';
+    workspace?.tenantId() || tokenStorage.getActiveTenantID()
+  const currentStore = () => workspace?.currentStore()
+  const currentStoreId = () => workspace?.currentStoreId() || ''
   const storeName = () =>
-    currentStore()?.name || currentStoreId() || 'Choose a store';
-  const accountLabel = () => user?.username || user?.email || 'Account';
+    currentStore()?.name || currentStoreId() || 'Choose a store'
+  const accountLabel = () => user?.username || user?.email || 'Account'
   const scopedHref = (path = '') => {
-    const tenant = activeTenantId().trim();
-    const storeId = currentStoreId().trim();
-    const params = storeId ? `?storeId=${encodeURIComponent(storeId)}` : '';
-    return `/t/${tenant}${path}${params}`;
-  };
+    const tenant = activeTenantId().trim()
+    const storeId = currentStoreId().trim()
+    const params = storeId ? `?storeId=${encodeURIComponent(storeId)}` : ''
+    return `/t/${tenant}${path}${params}`
+  }
 
   const links = (): NavItem[] => [
     {
@@ -102,11 +103,12 @@ export function PodzoneNavbar(props: { currentPath: string }) {
           },
         ]
       : []),
-  ];
+  ]
 
-  const platformLinks = () => links().filter((item) => item.section === 'Platform');
+  const platformLinks = () =>
+    links().filter((item) => item.section === 'Platform')
   const operationLinks = () =>
-    links().filter((item) => item.section === 'Operations');
+    links().filter((item) => item.section === 'Operations')
 
   const navLinkClass = (active: boolean) =>
     classes(
@@ -114,7 +116,7 @@ export function PodzoneNavbar(props: { currentPath: string }) {
       active
         ? 'bg-gray-900 text-white shadow-sm'
         : 'text-gray-600 hover:bg-gray-100 hover:text-gray-950'
-    );
+    )
 
   return (
     <>
@@ -142,7 +144,12 @@ export function PodzoneNavbar(props: { currentPath: string }) {
                 <label class="text-xs font-semibold uppercase text-gray-500">
                   Workspace
                 </label>
-                <Button href="/admin" color="alternative" size="sm" class="w-full">
+                <Button
+                  href="/admin"
+                  color="alternative"
+                  size="sm"
+                  class="w-full"
+                >
                   Choose store
                 </Button>
               </div>
@@ -158,7 +165,12 @@ export function PodzoneNavbar(props: { currentPath: string }) {
               <div class="truncate text-xs text-gray-500">
                 {activeTenantId().trim()}
               </div>
-              <Button href="/admin" color="alternative" size="sm" class="w-full">
+              <Button
+                href="/admin"
+                color="alternative"
+                size="sm"
+                class="w-full"
+              >
                 Change store
               </Button>
             </div>
@@ -212,7 +224,7 @@ export function PodzoneNavbar(props: { currentPath: string }) {
             size="sm"
             class="mt-3 w-full"
             onClick={() => {
-              void logout();
+              void logout()
             }}
           >
             Sign out
@@ -265,5 +277,5 @@ export function PodzoneNavbar(props: { currentPath: string }) {
         </div>
       </header>
     </>
-  );
+  )
 }

@@ -1,10 +1,10 @@
-import { PageShell } from '../components/common/PageShell';
-import { Button, Card } from '../components/common/Primitives';
-import { SectionLead } from '../components/common/SectionLead';
+import { PageShell } from '../components/common/PageShell'
+import { Button, Card } from '../components/common/Primitives'
+import { SectionLead } from '../components/common/SectionLead'
 
 export function NotFoundPage(props: {
-  navigate: (to: string) => void;
-  path: string;
+  navigate: (to: string) => void
+  path: string
 }) {
   return (
     <PageShell>
@@ -21,5 +21,5 @@ export function NotFoundPage(props: {
         </div>
       </Card>
     </PageShell>
-  );
+  )
 }

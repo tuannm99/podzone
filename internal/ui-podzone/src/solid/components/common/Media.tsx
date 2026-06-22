@@ -1,22 +1,22 @@
-import { For } from 'solid-js';
-import { classes } from '../../shared/utils';
+import { For } from 'solid-js'
+import { classes } from '../../shared/utils'
 
 type GalleryItem = {
-  src: string;
-  alt: string;
-  caption?: string;
-};
+  src: string
+  alt: string
+  caption?: string
+}
 
 const columnClasses = {
   2: 'sm:grid-cols-2',
   3: 'sm:grid-cols-2 lg:grid-cols-3',
   4: 'sm:grid-cols-2 lg:grid-cols-4',
-} as const;
+} as const
 
 export function GalleryGrid(props: {
-  items: GalleryItem[];
-  columns?: 2 | 3 | 4;
-  class?: string;
+  items: GalleryItem[]
+  columns?: 2 | 3 | 4
+  class?: string
 }) {
   return (
     <div
@@ -43,20 +43,20 @@ export function GalleryGrid(props: {
         )}
       </For>
     </div>
-  );
+  )
 }
 
 export function VideoEmbed(props: {
-  title: string;
-  src: string;
-  aspect?: 'video' | 'wide' | 'square';
-  class?: string;
+  title: string
+  src: string
+  aspect?: 'video' | 'wide' | 'square'
+  class?: string
 }) {
   const aspectClass = () => {
-    if (props.aspect === 'square') return 'aspect-square';
-    if (props.aspect === 'wide') return 'aspect-[21/9]';
-    return 'aspect-video';
-  };
+    if (props.aspect === 'square') return 'aspect-square'
+    if (props.aspect === 'wide') return 'aspect-[21/9]'
+    return 'aspect-video'
+  }
 
   return (
     <div
@@ -73,5 +73,5 @@ export function VideoEmbed(props: {
         class={classes('w-full', aspectClass())}
       />
     </div>
-  );
+  )
 }

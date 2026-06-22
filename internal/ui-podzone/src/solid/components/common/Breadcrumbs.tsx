@@ -1,15 +1,15 @@
-import { For } from 'solid-js';
-import { classes } from '../../shared/utils';
+import { For } from 'solid-js'
+import { classes } from '../../shared/utils'
 
 export type BreadcrumbItem = {
-  label: string;
-  href?: string;
-  current?: boolean;
-};
+  label: string
+  href?: string
+  current?: boolean
+}
 
 export function Breadcrumbs(props: {
-  items: BreadcrumbItem[];
-  class?: string;
+  items: BreadcrumbItem[]
+  class?: string
 }) {
   return (
     <nav aria-label="Breadcrumb" class={props.class}>
@@ -17,7 +17,7 @@ export function Breadcrumbs(props: {
         <For each={props.items}>
           {(item, index) => {
             const current = () =>
-              item.current || index() === props.items.length - 1;
+              item.current || index() === props.items.length - 1
 
             return (
               <>
@@ -49,10 +49,10 @@ export function Breadcrumbs(props: {
                   /
                 </li>
               </>
-            );
+            )
           }}
         </For>
       </ol>
     </nav>
-  );
+  )
 }

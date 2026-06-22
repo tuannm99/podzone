@@ -1,8 +1,8 @@
-import { For, Show, splitProps, type JSX, type ParentProps } from 'solid-js';
-import { classes } from '../../shared/utils';
+import { For, Show, splitProps, type JSX, type ParentProps } from 'solid-js'
+import { classes } from '../../shared/utils'
 
-type ButtonColor = 'blue' | 'alternative' | 'light' | 'dark' | 'green' | 'red';
-type ButtonSize = 'xs' | 'sm' | 'md';
+type ButtonColor = 'blue' | 'alternative' | 'light' | 'dark' | 'green' | 'red'
+type ButtonSize = 'xs' | 'sm' | 'md'
 type BadgeColor =
   | 'blue'
   | 'indigo'
@@ -10,7 +10,7 @@ type BadgeColor =
   | 'yellow'
   | 'pink'
   | 'dark'
-  | 'red';
+  | 'red'
 
 const buttonColorClasses: Record<ButtonColor, string> = {
   blue: 'bg-gray-950 text-white hover:bg-gray-800 focus:ring-gray-300',
@@ -21,13 +21,13 @@ const buttonColorClasses: Record<ButtonColor, string> = {
   dark: 'bg-gray-950 text-white hover:bg-gray-800 focus:ring-gray-300',
   green: 'bg-green-700 text-white hover:bg-green-800 focus:ring-green-300',
   red: 'bg-red-700 text-white hover:bg-red-800 focus:ring-red-300',
-};
+}
 
 const buttonSizeClasses: Record<ButtonSize, string> = {
   xs: 'h-8 px-3 text-xs',
   sm: 'h-9 px-3 text-sm',
   md: 'h-10 px-4 text-sm',
-};
+}
 
 const badgeColorClasses: Record<BadgeColor, string> = {
   blue: 'bg-blue-100 text-blue-800',
@@ -37,7 +37,7 @@ const badgeColorClasses: Record<BadgeColor, string> = {
   pink: 'bg-pink-100 text-pink-800',
   dark: 'bg-gray-100 text-gray-800',
   red: 'bg-red-100 text-red-800',
-};
+}
 
 function fieldBaseClasses(hasError?: boolean) {
   return classes(
@@ -45,7 +45,7 @@ function fieldBaseClasses(hasError?: boolean) {
     hasError
       ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-100'
       : 'border-gray-300 focus:border-gray-950 focus:ring-2 focus:ring-gray-100'
-  );
+  )
 }
 
 export function Spinner(props: { class?: string }) {
@@ -57,7 +57,7 @@ export function Spinner(props: { class?: string }) {
       )}
       aria-hidden="true"
     />
-  );
+  )
 }
 
 export function Card(props: ParentProps<{ class?: string }>) {
@@ -70,13 +70,13 @@ export function Card(props: ParentProps<{ class?: string }>) {
     >
       {props.children}
     </section>
-  );
+  )
 }
 
 export function Badge(props: {
-  content: string;
-  color?: BadgeColor;
-  class?: string;
+  content: string
+  color?: BadgeColor
+  class?: string
 }) {
   return (
     <span
@@ -88,24 +88,24 @@ export function Badge(props: {
     >
       {props.content}
     </span>
-  );
+  )
 }
 
 type ButtonProps = ParentProps<{
-  color?: ButtonColor;
-  size?: ButtonSize;
-  pill?: boolean;
-  href?: string;
-  target?: string;
-  type?: 'button' | 'submit' | 'reset';
-  loading?: boolean;
-  disabled?: boolean;
-  class?: string;
+  color?: ButtonColor
+  size?: ButtonSize
+  pill?: boolean
+  href?: string
+  target?: string
+  type?: 'button' | 'submit' | 'reset'
+  loading?: boolean
+  disabled?: boolean
+  class?: string
   onClick?: JSX.EventHandlerUnion<
     HTMLButtonElement | HTMLAnchorElement,
     MouseEvent
-  >;
-}>;
+  >
+}>
 
 export function Button(props: ButtonProps) {
   const [local, rest] = splitProps(props, [
@@ -120,7 +120,7 @@ export function Button(props: ButtonProps) {
     'disabled',
     'class',
     'onClick',
-  ]);
+  ])
 
   const className = classes(
     'inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus:outline-none focus:ring-2 disabled:pointer-events-none disabled:opacity-60',
@@ -128,7 +128,7 @@ export function Button(props: ButtonProps) {
     buttonSizeClasses[local.size ?? 'md'],
     local.pill ? 'rounded-full' : 'rounded-md',
     local.class
-  );
+  )
 
   const content = (
     <>
@@ -137,7 +137,7 @@ export function Button(props: ButtonProps) {
       </Show>
       {local.children}
     </>
-  );
+  )
 
   return local.href ? (
     <a
@@ -169,7 +169,7 @@ export function Button(props: ButtonProps) {
     >
       {content}
     </button>
-  );
+  )
 }
 
 export function FieldLabel(props: ParentProps<{ label: string }>) {
@@ -180,17 +180,17 @@ export function FieldLabel(props: ParentProps<{ label: string }>) {
       </span>
       {props.children}
     </label>
-  );
+  )
 }
 
 export type InputFieldProps = {
-  label: string;
-  value: string;
-  type?: string;
-  placeholder?: string;
-  error?: boolean;
-  onInput: JSX.EventHandlerUnion<HTMLInputElement, InputEvent>;
-};
+  label: string
+  value: string
+  type?: string
+  placeholder?: string
+  error?: boolean
+  onInput: JSX.EventHandlerUnion<HTMLInputElement, InputEvent>
+}
 
 export function InputField(props: InputFieldProps) {
   return (
@@ -203,20 +203,20 @@ export function InputField(props: InputFieldProps) {
         onInput={props.onInput}
       />
     </FieldLabel>
-  );
+  )
 }
 
 export type SelectOption = {
-  name: string;
-  value: string;
-};
+  name: string
+  value: string
+}
 
 export type SelectFieldProps = {
-  label: string;
-  value: string;
-  options: SelectOption[];
-  onChange: JSX.EventHandlerUnion<HTMLSelectElement, Event>;
-};
+  label: string
+  value: string
+  options: SelectOption[]
+  onChange: JSX.EventHandlerUnion<HTMLSelectElement, Event>
+}
 
 export function SelectField(props: SelectFieldProps) {
   return (
@@ -231,15 +231,15 @@ export function SelectField(props: SelectFieldProps) {
         ))}
       </select>
     </FieldLabel>
-  );
+  )
 }
 
 export type TextareaFieldProps = {
-  label: string;
-  value: string;
-  rows?: number;
-  onInput: JSX.EventHandlerUnion<HTMLTextAreaElement, InputEvent>;
-};
+  label: string
+  value: string
+  rows?: number
+  onInput: JSX.EventHandlerUnion<HTMLTextAreaElement, InputEvent>
+}
 
 export function TextareaField(props: TextareaFieldProps) {
   return (
@@ -251,14 +251,14 @@ export function TextareaField(props: TextareaFieldProps) {
         onInput={props.onInput}
       />
     </FieldLabel>
-  );
+  )
 }
 
 export type CheckboxFieldProps = {
-  label: string;
-  checked: boolean;
-  onChange: JSX.EventHandlerUnion<HTMLInputElement, Event>;
-};
+  label: string
+  checked: boolean
+  onChange: JSX.EventHandlerUnion<HTMLInputElement, Event>
+}
 
 export function CheckboxField(props: CheckboxFieldProps) {
   return (
@@ -271,35 +271,35 @@ export function CheckboxField(props: CheckboxFieldProps) {
       />
       <span>{props.label}</span>
     </label>
-  );
+  )
 }
 
 export function SearchInputField(props: Omit<InputFieldProps, 'type'>) {
-  return <InputField {...props} type="search" />;
+  return <InputField {...props} type="search" />
 }
 
 export function NumberInputField(props: Omit<InputFieldProps, 'type'>) {
-  return <InputField {...props} type="number" />;
+  return <InputField {...props} type="number" />
 }
 
 export function PhoneInputField(props: Omit<InputFieldProps, 'type'>) {
-  return <InputField {...props} type="tel" />;
+  return <InputField {...props} type="tel" />
 }
 
 export function DateInputField(props: Omit<InputFieldProps, 'type'>) {
-  return <InputField {...props} type="date" />;
+  return <InputField {...props} type="date" />
 }
 
 export function TimeInputField(props: Omit<InputFieldProps, 'type'>) {
-  return <InputField {...props} type="time" />;
+  return <InputField {...props} type="time" />
 }
 
 export type FileInputFieldProps = {
-  label: string;
-  accept?: string;
-  multiple?: boolean;
-  onChange: JSX.EventHandlerUnion<HTMLInputElement, Event>;
-};
+  label: string
+  accept?: string
+  multiple?: boolean
+  onChange: JSX.EventHandlerUnion<HTMLInputElement, Event>
+}
 
 export function FileInputField(props: FileInputFieldProps) {
   return (
@@ -315,22 +315,22 @@ export function FileInputField(props: FileInputFieldProps) {
         onChange={props.onChange}
       />
     </FieldLabel>
-  );
+  )
 }
 
 export type RadioOption = {
-  label: string;
-  value: string;
-  hint?: string;
-};
+  label: string
+  value: string
+  hint?: string
+}
 
 export type RadioGroupFieldProps = {
-  label: string;
-  name: string;
-  value: string;
-  options: RadioOption[];
-  onChange: JSX.EventHandlerUnion<HTMLInputElement, Event>;
-};
+  label: string
+  name: string
+  value: string
+  options: RadioOption[]
+  onChange: JSX.EventHandlerUnion<HTMLInputElement, Event>
+}
 
 export function RadioGroupField(props: RadioGroupFieldProps) {
   return (
@@ -360,14 +360,14 @@ export function RadioGroupField(props: RadioGroupFieldProps) {
         </For>
       </div>
     </FieldLabel>
-  );
+  )
 }
 
 export type ToggleFieldProps = {
-  label: string;
-  checked: boolean;
-  onChange: JSX.EventHandlerUnion<HTMLInputElement, Event>;
-};
+  label: string
+  checked: boolean
+  onChange: JSX.EventHandlerUnion<HTMLInputElement, Event>
+}
 
 export function ToggleField(props: ToggleFieldProps) {
   return (
@@ -384,17 +384,17 @@ export function ToggleField(props: ToggleFieldProps) {
         <span class="pointer-events-none absolute left-0.5 top-0.5 size-5 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
       </span>
     </label>
-  );
+  )
 }
 
 export type RangeFieldProps = {
-  label: string;
-  value: string | number;
-  min?: number;
-  max?: number;
-  step?: number;
-  onInput: JSX.EventHandlerUnion<HTMLInputElement, InputEvent>;
-};
+  label: string
+  value: string | number
+  min?: number
+  max?: number
+  step?: number
+  onInput: JSX.EventHandlerUnion<HTMLInputElement, InputEvent>
+}
 
 export function RangeField(props: RangeFieldProps) {
   return (
@@ -409,15 +409,15 @@ export function RangeField(props: RangeFieldProps) {
         class="h-2 w-full cursor-pointer appearance-none rounded-full bg-gray-200 accent-gray-950"
       />
     </FieldLabel>
-  );
+  )
 }
 
 export type FloatingLabelFieldProps = {
-  label: string;
-  value: string;
-  type?: string;
-  onInput: JSX.EventHandlerUnion<HTMLInputElement, InputEvent>;
-};
+  label: string
+  value: string
+  type?: string
+  onInput: JSX.EventHandlerUnion<HTMLInputElement, InputEvent>
+}
 
 export function FloatingLabelField(props: FloatingLabelFieldProps) {
   return (
@@ -433,5 +433,5 @@ export function FloatingLabelField(props: FloatingLabelFieldProps) {
         {props.label}
       </span>
     </label>
-  );
+  )
 }

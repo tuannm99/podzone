@@ -4,167 +4,151 @@ import {
   createRouter,
   lazyRouteComponent,
   redirect,
-} from '@tanstack/solid-router';
-import { ensureActiveTenant } from '../services/auth';
-import Root from './root';
-import { tokenStorage } from '../services/tokenStorage';
+} from '@tanstack/solid-router'
+import { backofficeRouteComponents } from '../modules/backoffice/routes'
+import { iamRouteComponents } from '../modules/iam/routes'
+import { onboardingRouteComponents } from '../modules/onboarding/routes'
+import { shellRouteComponents } from '../modules/shell/routes'
+import { ensureActiveTenant } from '../services/auth'
+import Root from './root'
+import { tokenStorage } from '../services/tokenStorage'
 
 function requireAuth() {
   if (!tokenStorage.getToken()) {
-    throw redirect({ to: '/auth/login' });
+    throw redirect({ to: '/auth/login' })
   }
 }
 
 function requireGuest() {
   if (tokenStorage.getToken()) {
-    throw redirect({ to: '/admin' });
+    throw redirect({ to: '/admin' })
   }
 }
 
 async function requireTenantAccess(tenantId: string) {
-  requireAuth();
+  requireAuth()
 
-  const { success } = await ensureActiveTenant(tenantId);
+  const { success } = await ensureActiveTenant(tenantId)
   if (!success) {
-    throw redirect({ to: '/admin' });
+    throw redirect({ to: '/admin' })
   }
 }
 
 const rootRoute = createRootRoute({
   component: Root,
   notFoundComponent: lazyRouteComponent(() => import('./routes/NotFoundRoute')),
-});
+})
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   beforeLoad: () => {
-    throw redirect({ to: tokenStorage.getToken() ? '/admin' : '/auth/login' });
+    throw redirect({ to: tokenStorage.getToken() ? '/admin' : '/auth/login' })
   },
-});
+})
 
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/auth/login',
   beforeLoad: requireGuest,
-  component: lazyRouteComponent(() => import('./pages/podzone/LoginPage')),
-});
+  component: lazyRouteComponent(shellRouteComponents.login),
+})
 
 const registerRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/auth/register',
   beforeLoad: requireGuest,
-  component: lazyRouteComponent(() => import('./pages/podzone/RegisterPage')),
-});
+  component: lazyRouteComponent(shellRouteComponents.register),
+})
 
 const googleCallbackRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/auth/google/callback',
   beforeLoad: requireGuest,
-  component: lazyRouteComponent(
-    () => import('./pages/podzone/GoogleCallbackPage')
-  ),
-});
+  component: lazyRouteComponent(shellRouteComponents.googleCallback),
+})
 
 const acceptInviteRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/auth/invite/accept',
-  component: lazyRouteComponent(
-    () => import('./pages/podzone/AcceptInvitePage')
-  ),
-});
+  component: lazyRouteComponent(shellRouteComponents.acceptInvite),
+})
 
 const devAuthBootstrapRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/auth/dev/bootstrap',
-  component: lazyRouteComponent(
-    () => import('./pages/podzone/DevAuthBootstrapPage')
-  ),
-});
+  component: lazyRouteComponent(shellRouteComponents.devAuthBootstrap),
+})
 
 const adminHomeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/admin',
   beforeLoad: requireAuth,
-  component: lazyRouteComponent(() => import('./pages/podzone/AdminHomePage')),
-});
+  component: lazyRouteComponent(onboardingRouteComponents.adminHome),
+})
 
 const adminSettingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/admin/settings',
   beforeLoad: requireAuth,
-  component: lazyRouteComponent(
-    () => import('./pages/podzone/AdminSettingsPage')
-  ),
-});
+  component: lazyRouteComponent(onboardingRouteComponents.adminSettings),
+})
 
 const adminIamRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/admin/iam',
   beforeLoad: requireAuth,
-  component: lazyRouteComponent(() => import('./pages/podzone/AdminIamPage')),
-});
+  component: lazyRouteComponent(iamRouteComponents.adminIam),
+})
 
 const tenantHomeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/t/$tenantId',
   beforeLoad: async ({ params }) => requireTenantAccess(params.tenantId),
-  component: lazyRouteComponent(() => import('./pages/podzone/TenantHomePage')),
-});
+  component: lazyRouteComponent(backofficeRouteComponents.tenantHome),
+})
 
 const tenantOrdersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/t/$tenantId/orders',
   beforeLoad: async ({ params }) => requireTenantAccess(params.tenantId),
-  component: lazyRouteComponent(
-    () => import('./pages/podzone/TenantOrdersPage')
-  ),
-});
+  component: lazyRouteComponent(backofficeRouteComponents.tenantOrders),
+})
 
 const tenantOrderAuditRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/t/$tenantId/orders/audit',
   beforeLoad: async ({ params }) => requireTenantAccess(params.tenantId),
-  component: lazyRouteComponent(
-    () => import('./pages/podzone/TenantOrderAuditPage')
-  ),
-});
+  component: lazyRouteComponent(backofficeRouteComponents.tenantOrderAudit),
+})
 
 const tenantOrderFinanceRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/t/$tenantId/orders/finance',
   beforeLoad: async ({ params }) => requireTenantAccess(params.tenantId),
-  component: lazyRouteComponent(
-    () => import('./pages/podzone/TenantOrderFinancePage')
-  ),
-});
+  component: lazyRouteComponent(backofficeRouteComponents.tenantOrderFinance),
+})
 
 const tenantPartnersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/t/$tenantId/partners',
   beforeLoad: async ({ params }) => requireTenantAccess(params.tenantId),
-  component: lazyRouteComponent(
-    () => import('./pages/podzone/TenantPartnersPage')
-  ),
-});
+  component: lazyRouteComponent(backofficeRouteComponents.tenantPartners),
+})
 
 const tenantPartnerDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/t/$tenantId/partners/$partnerId',
   beforeLoad: async ({ params }) => requireTenantAccess(params.tenantId),
-  component: lazyRouteComponent(
-    () => import('./pages/podzone/TenantPartnerDetailPage')
-  ),
-});
+  component: lazyRouteComponent(backofficeRouteComponents.tenantPartnerDetail),
+})
 
 const tenantProductSetupRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/t/$tenantId/products/setup',
   beforeLoad: async ({ params }) => requireTenantAccess(params.tenantId),
-  component: lazyRouteComponent(
-    () => import('./pages/podzone/TenantProductSetupPage')
-  ),
-});
+  component: lazyRouteComponent(backofficeRouteComponents.tenantProductSetup),
+})
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -183,16 +167,16 @@ const routeTree = rootRoute.addChildren([
   tenantPartnersRoute,
   tenantPartnerDetailRoute,
   tenantProductSetupRoute,
-]);
+])
 
 export const router = createRouter({
   routeTree,
   defaultPreload: 'intent',
   scrollRestoration: false,
-});
+})
 
 declare module '@tanstack/solid-router' {
   interface Register {
-    router: typeof router;
+    router: typeof router
   }
 }

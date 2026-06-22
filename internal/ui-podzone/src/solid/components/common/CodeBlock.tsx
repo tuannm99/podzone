@@ -1,9 +1,9 @@
-import { Show } from 'solid-js';
+import { Show } from 'solid-js'
 
 export function CodeBlock(props: {
-  code: string;
-  label?: string;
-  class?: string;
+  code: string
+  label?: string
+  class?: string
 }) {
   return (
     <div class={props.class}>
@@ -16,5 +16,5 @@ export function CodeBlock(props: {
         {props.code || '—'}
       </pre>
     </div>
-  );
+  )
 }

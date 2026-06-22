@@ -20,7 +20,10 @@ export function SkeletonText(props: { lines?: number; class?: string }) {
       <For each={Array.from({ length: props.lines ?? 3 }, (_, index) => index)}>
         {(index) => (
           <Skeleton
-            class={classes('h-4 rounded-lg', index === (props.lines ?? 3) - 1 ? 'w-3/4' : 'w-full')}
+            class={classes(
+              'h-4 rounded-lg',
+              index === (props.lines ?? 3) - 1 ? 'w-3/4' : 'w-full'
+            )}
           />
         )}
       </For>

@@ -1,5 +1,5 @@
-import type { ParentProps } from 'solid-js';
-import { classes } from '../../shared/utils';
+import type { ParentProps } from 'solid-js'
+import { classes } from '../../shared/utils'
 
 export function DataTable(props: ParentProps<{ class?: string }>) {
   return (
@@ -13,21 +13,21 @@ export function DataTable(props: ParentProps<{ class?: string }>) {
         {props.children}
       </table>
     </div>
-  );
+  )
 }
 
 export function TableHead(props: ParentProps) {
-  return <thead class="bg-gray-50 text-gray-600">{props.children}</thead>;
+  return <thead class="bg-gray-50 text-gray-600">{props.children}</thead>
 }
 
 export function TableBody(props: ParentProps) {
   return (
     <tbody class="divide-y divide-gray-200 bg-white">{props.children}</tbody>
-  );
+  )
 }
 
 export function TableRow(props: ParentProps) {
-  return <tr>{props.children}</tr>;
+  return <tr>{props.children}</tr>
 }
 
 export function TableHeaderCell(props: ParentProps<{ class?: string }>) {
@@ -35,7 +35,7 @@ export function TableHeaderCell(props: ParentProps<{ class?: string }>) {
     <th class={classes('px-4 py-3 font-medium', props.class)}>
       {props.children}
     </th>
-  );
+  )
 }
 
 export function TableCell(props: ParentProps<{ class?: string }>) {
@@ -43,5 +43,5 @@ export function TableCell(props: ParentProps<{ class?: string }>) {
     <td class={classes('px-4 py-3 align-top', props.class)}>
       {props.children}
     </td>
-  );
+  )
 }

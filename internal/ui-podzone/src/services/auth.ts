@@ -62,9 +62,7 @@ function persistAuth(data: AuthResponseData) {
     const existing = tokenStorage.getUserID();
     tokenStorage.setUser({
       ...data.userInfo,
-      id:
-        data.userInfo.id ??
-        (existing != null ? String(existing) : undefined),
+      id: data.userInfo.id ?? (existing != null ? String(existing) : undefined),
     });
   }
   const activeTenantID = tokenStorage.getActiveTenantID();
@@ -91,9 +89,12 @@ export async function exchangeGoogleLogin(
   exchangeCode: string
 ): Promise<AuthResult> {
   try {
-    const { data } = await http.post<AuthResponseData>('/auth/v1/google/exchange', {
-      exchangeCode,
-    });
+    const { data } = await http.post<AuthResponseData>(
+      '/auth/v1/google/exchange',
+      {
+        exchangeCode,
+      }
+    );
     persistAuth(data);
     return { success: true, data };
   } catch (error) {
@@ -154,7 +155,9 @@ async function switchTenantRequest(
   }
 }
 
-export async function switchActiveTenant(tenantId: string): Promise<AuthResult> {
+export async function switchActiveTenant(
+  tenantId: string
+): Promise<AuthResult> {
   const normalizedTenantID = tenantId.trim();
   if (!normalizedTenantID) {
     return { success: false, data: { message: 'Tenant id is required' } };
@@ -166,7 +169,10 @@ export async function switchActiveTenant(tenantId: string): Promise<AuthResult> 
   }
   const accessToken = tokenStorage.getToken();
   if (!accessToken) {
-    return { success: false, data: { message: 'No active session token found' } };
+    return {
+      success: false,
+      data: { message: 'No active session token found' },
+    };
   }
 
   return switchTenantRequest({
@@ -176,7 +182,9 @@ export async function switchActiveTenant(tenantId: string): Promise<AuthResult> 
   });
 }
 
-export async function ensureActiveTenant(tenantId: string): Promise<AuthResult> {
+export async function ensureActiveTenant(
+  tenantId: string
+): Promise<AuthResult> {
   const normalizedTenantID = tenantId.trim();
   if (!normalizedTenantID) {
     return { success: false, data: { message: 'Tenant id is required' } };
@@ -233,10 +241,17 @@ export async function listSessions(): Promise<
   | { success: false; data: { message: string } }
 > {
   try {
-    const { data } = await http.get<{ sessions?: SessionInfo[] }>('/auth/v1/sessions');
+    const { data } = await http.get<{ sessions?: SessionInfo[] }>(
+      '/auth/v1/sessions'
+    );
     return { success: true, data: data.sessions || [] };
   } catch (error) {
-    return { success: false, data: { message: (error as HttpError).message || 'Failed to load sessions' } };
+    return {
+      success: false,
+      data: {
+        message: (error as HttpError).message || 'Failed to load sessions',
+      },
+    };
   }
 }
 
@@ -261,11 +276,19 @@ export async function listAuditLogs(
   | { success: false; data: { message: string } }
 > {
   try {
-    const { data } = await http.get<{ logs?: AuditLogInfo[] }>('/auth/v1/audit-logs', {
-      params: { pageSize },
-    });
+    const { data } = await http.get<{ logs?: AuditLogInfo[] }>(
+      '/auth/v1/audit-logs',
+      {
+        params: { pageSize },
+      }
+    );
     return { success: true, data: data.logs || [] };
   } catch (error) {
-    return { success: false, data: { message: (error as HttpError).message || 'Failed to load audit logs' } };
+    return {
+      success: false,
+      data: {
+        message: (error as HttpError).message || 'Failed to load audit logs',
+      },
+    };
   }
 }

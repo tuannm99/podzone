@@ -1,31 +1,31 @@
-import { Outlet, useRouterState } from '@tanstack/solid-router';
-import { Match, Switch, createEffect, createMemo } from 'solid-js';
-import { AppShell, Container } from './components/common/AppShell';
-import { ScrollToTopButton } from './components/common/ScrollToTop';
-import { PodzoneNavbar } from './layout/PodzoneNavbar';
-import { TenantWorkspaceProvider } from './workspace/context';
+import { Outlet, useRouterState } from '@tanstack/solid-router'
+import { Match, Switch, createEffect, createMemo } from 'solid-js'
+import { AppShell, Container } from './components/common/AppShell'
+import { ScrollToTopButton } from './components/common/ScrollToTop'
+import { PodzoneNavbar } from './layout/PodzoneNavbar'
+import { TenantWorkspaceProvider } from './workspace/context'
 
 function parseTenantId(pathname: string) {
-  const match = pathname.match(/^\/t\/([^/]+)/);
-  return match?.[1] || '';
+  const match = pathname.match(/^\/t\/([^/]+)/)
+  return match?.[1] || ''
 }
 
 export default function Root() {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
-  });
+  })
 
-  const isAuthRoute = () => pathname().startsWith('/auth/');
-  const tenantId = createMemo(() => parseTenantId(pathname()));
+  const isAuthRoute = () => pathname().startsWith('/auth/')
+  const tenantId = createMemo(() => parseTenantId(pathname()))
 
   createEffect(() => {
-    pathname();
+    pathname()
     window.scrollTo({
       top: 0,
       left: 0,
       behavior: 'auto',
-    });
-  });
+    })
+  })
 
   return (
     <AppShell class="bg-gray-50">
@@ -59,5 +59,5 @@ export default function Root() {
         </Match>
       </Switch>
     </AppShell>
-  );
+  )
 }

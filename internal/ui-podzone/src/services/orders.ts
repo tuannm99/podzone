@@ -229,7 +229,7 @@ ${routedOrderFields}
 
 export async function getRoutedOrderActivities(
   input: RoutedOrderActivityFeedQuery
-) : Promise<OrdersResult<RoutedOrderActivityFeedPage>> {
+): Promise<OrdersResult<RoutedOrderActivityFeedPage>> {
   const result = await postBackofficeGraphQL<{
     routedOrderActivities: RoutedOrderActivityFeedPage;
   }>(
@@ -268,7 +268,9 @@ export async function getRoutedOrderActivities(
 export async function createRoutedOrder(
   payload: CreateRoutedOrderPayload
 ): Promise<OrdersResult<RoutedOrder>> {
-  const result = await postBackofficeGraphQL<{ createRoutedOrder: RoutedOrder }>(
+  const result = await postBackofficeGraphQL<{
+    createRoutedOrder: RoutedOrder;
+  }>(
     `
       mutation CreateRoutedOrder($input: CreateRoutedOrderInput!) {
         createRoutedOrder(input: $input) {
@@ -342,7 +344,9 @@ export async function getRoutedOrderRecommendation(input: {
 export async function advanceRoutedOrder(
   id: string
 ): Promise<OrdersResult<RoutedOrder>> {
-  const result = await postBackofficeGraphQL<{ advanceRoutedOrder: RoutedOrder }>(
+  const result = await postBackofficeGraphQL<{
+    advanceRoutedOrder: RoutedOrder;
+  }>(
     `
       mutation AdvanceRoutedOrder($id: ID!) {
         advanceRoutedOrder(id: $id) {
@@ -383,7 +387,9 @@ export async function openRoutedOrderException(
   id: string,
   exceptionType: string
 ): Promise<OrdersResult<RoutedOrder>> {
-  const result = await postBackofficeGraphQL<{ openOrderException: RoutedOrder }>(
+  const result = await postBackofficeGraphQL<{
+    openOrderException: RoutedOrder;
+  }>(
     `
       mutation OpenOrderException($input: OpenOrderExceptionInput!) {
         openOrderException(input: $input) {

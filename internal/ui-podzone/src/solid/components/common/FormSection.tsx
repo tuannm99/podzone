@@ -1,13 +1,13 @@
-import type { JSX, ParentProps } from 'solid-js';
-import { classes } from '../../shared/utils';
+import type { JSX, ParentProps } from 'solid-js'
+import { classes } from '../../shared/utils'
 
 export function FormSection(
   props: ParentProps<{
-    title: string;
-    description?: string;
-    aside?: JSX.Element;
-    class?: string;
-    contentClass?: string;
+    title: string
+    description?: string
+    aside?: JSX.Element
+    class?: string
+    contentClass?: string
   }>
 ) {
   return (
@@ -31,5 +31,5 @@ export function FormSection(
         {props.children}
       </div>
     </section>
-  );
+  )
 }

@@ -17,6 +17,7 @@
 }
 
 @layer base {
+
   html,
   body,
   #root {
@@ -73,7 +74,9 @@
 
   .problem-statement-editor .toastui-editor-defaultUI-toolbar {
     border-bottom: 1px solid #e2e8f0;
-    background: linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(255, 255, 255, 0.94));
+    background: linear-gradient(180deg,
+        rgba(248, 250, 252, 0.96),
+        rgba(255, 255, 255, 0.94));
     padding: 0.75rem 0.85rem;
   }
 
@@ -165,8 +168,8 @@
     color: #334155;
   }
 
-  .problem-statement-surface .toastui-editor-contents ul > li::before,
-  .problem-statement-surface .toastui-editor-contents ol > li::before {
+  .problem-statement-surface .toastui-editor-contents ul>li::before,
+  .problem-statement-surface .toastui-editor-contents ol>li::before {
     color: #2563eb;
   }
 
@@ -193,7 +196,8 @@
     background: #eff6ff;
     padding: 0.15rem 0.42rem;
     font-family:
-      'JetBrains Mono', 'SFMono-Regular', ui-monospace, Menlo, Monaco, Consolas, monospace;
+      'JetBrains Mono', 'SFMono-Regular', ui-monospace, Menlo, Monaco, Consolas,
+      monospace;
     font-size: 0.92em;
     color: #1e3a8a;
   }

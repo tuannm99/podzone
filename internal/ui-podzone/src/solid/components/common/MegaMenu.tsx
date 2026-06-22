@@ -5,52 +5,52 @@ import {
   createSignal,
   onCleanup,
   type JSX,
-} from 'solid-js';
-import { classes } from '../../shared/utils';
+} from 'solid-js'
+import { classes } from '../../shared/utils'
 
 export type MegaMenuLink = {
-  label: string;
-  href: string;
-  description?: string;
-  icon?: JSX.Element;
-};
+  label: string
+  href: string
+  description?: string
+  icon?: JSX.Element
+}
 
 export type MegaMenuSection = {
-  title: string;
-  links: MegaMenuLink[];
-};
+  title: string
+  links: MegaMenuLink[]
+}
 
 export type MegaMenuItem = {
-  label: string;
-  href?: string;
-  active?: boolean;
-  sections?: MegaMenuSection[];
-};
+  label: string
+  href?: string
+  active?: boolean
+  sections?: MegaMenuSection[]
+}
 
 export function MegaMenu(props: {
-  brand?: JSX.Element;
-  items: MegaMenuItem[];
-  actions?: JSX.Element;
-  class?: string;
+  brand?: JSX.Element
+  items: MegaMenuItem[]
+  actions?: JSX.Element
+  class?: string
 }) {
-  const [openIndex, setOpenIndex] = createSignal<number | null>(null);
-  let container: HTMLDivElement | undefined;
+  const [openIndex, setOpenIndex] = createSignal<number | null>(null)
+  let container: HTMLDivElement | undefined
 
   createEffect(() => {
-    const current = openIndex();
-    if (current === null) return;
+    const current = openIndex()
+    if (current === null) return
 
     const handlePointerDown = (event: MouseEvent) => {
       if (container && !container.contains(event.target as Node)) {
-        setOpenIndex(null);
+        setOpenIndex(null)
       }
-    };
+    }
 
-    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('mousedown', handlePointerDown)
     onCleanup(() => {
-      document.removeEventListener('mousedown', handlePointerDown);
-    });
-  });
+      document.removeEventListener('mousedown', handlePointerDown)
+    })
+  })
 
   return (
     <div
@@ -161,5 +161,5 @@ export function MegaMenu(props: {
         </div>
       </Show>
     </div>
-  );
+  )
 }

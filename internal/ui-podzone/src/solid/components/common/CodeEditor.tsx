@@ -1,11 +1,11 @@
-import { basicSetup, EditorView } from 'codemirror';
-import { go } from '@codemirror/lang-go';
-import { javascript } from '@codemirror/lang-javascript';
-import { python } from '@codemirror/lang-python';
-import { rust } from '@codemirror/lang-rust';
-import { Vim, getCM, vim } from '@replit/codemirror-vim';
-import { Compartment, EditorState, type Extension } from '@codemirror/state';
-import { indentUnit } from '@codemirror/language';
+import { basicSetup, EditorView } from 'codemirror'
+import { go } from '@codemirror/lang-go'
+import { javascript } from '@codemirror/lang-javascript'
+import { python } from '@codemirror/lang-python'
+import { rust } from '@codemirror/lang-rust'
+import { Vim, getCM, vim } from '@replit/codemirror-vim'
+import { Compartment, EditorState, type Extension } from '@codemirror/state'
+import { indentUnit } from '@codemirror/language'
 import {
   Show,
   createEffect,
@@ -13,80 +13,80 @@ import {
   createSignal,
   onCleanup,
   onMount,
-} from 'solid-js';
-import { classes } from '../../shared/utils';
+} from 'solid-js'
+import { classes } from '../../shared/utils'
 
-type VimMode = 'insert' | 'normal' | 'visual' | 'replace';
+type VimMode = 'insert' | 'normal' | 'visual' | 'replace'
 
 type CodeEditorProps = {
-  label?: string;
-  language?: string;
-  value: string;
-  rows?: number;
-  class?: string;
-  hint?: string;
-  onInput: (value: string) => void;
-};
+  label?: string
+  language?: string
+  value: string
+  rows?: number
+  class?: string
+  hint?: string
+  onInput: (value: string) => void
+}
 
 type VimModeChange = {
-  mode?: string;
-  subMode?: string;
-};
+  mode?: string
+  subMode?: string
+}
 
 function resolveLanguageExtension(language: string | undefined): Extension {
   switch ((language ?? '').toLowerCase()) {
     case 'go':
-      return go();
+      return go()
     case 'javascript':
-      return javascript();
+      return javascript()
     case 'python':
-      return python();
+      return python()
     case 'rust':
-      return rust();
+      return rust()
     case 'typescript':
-      return javascript({ typescript: true });
+      return javascript({ typescript: true })
     default:
-      return [];
+      return []
   }
 }
 
 function normalizeMode(mode: string | undefined): VimMode {
   if (mode === 'insert' || mode === 'visual' || mode === 'replace') {
-    return mode;
+    return mode
   }
-  return 'normal';
+  return 'normal'
 }
 
 export function CodeEditor(props: CodeEditorProps) {
-  let containerRef: HTMLDivElement | undefined;
-  let view: EditorView | undefined;
-  let applyingExternalValue = false;
-  let vimListener: ((event: VimModeChange) => void) | undefined;
-  const languageCompartment = new Compartment();
+  let containerRef: HTMLDivElement | undefined
+  let view: EditorView | undefined
+  let applyingExternalValue = false
+  let vimListener: ((event: VimModeChange) => void) | undefined
+  const languageCompartment = new Compartment()
 
-  const [mode, setMode] = createSignal<VimMode>('insert');
+  const [mode, setMode] = createSignal<VimMode>('insert')
   const lineCount = createMemo(() =>
     props.value === '' ? 1 : props.value.split('\n').length
-  );
+  )
   const minHeight = createMemo(
     () => `${Math.max(props.rows ?? 22, 16) * 24 + 32}px`
-  );
+  )
   const modeHint = createMemo(() => {
-    if (props.hint) return props.hint;
+    if (props.hint) return props.hint
     if (mode() === 'insert') {
-      return 'Insert mode. Esc switches to Vim normal mode.';
+      return 'Insert mode. Esc switches to Vim normal mode.'
     }
     if (mode() === 'visual') {
-      return 'Visual mode. Use h/j/k/l to move and y/d to act on the selection.';
+      return 'Visual mode. Use h/j/k/l to move and y/d to act on the selection.'
     }
     if (mode() === 'replace') {
-      return 'Replace mode. Characters overwrite existing content until Esc.';
+      return 'Replace mode. Characters overwrite existing content until Esc.'
     }
-    return 'Normal mode. Press i to type, a to append, o to open a new line.';
-  });
+    return 'Normal mode. Press i to type, a to append, o to open a new line.'
+  })
 
   onMount(() => {
-    if (!containerRef) return;
+    if (!containerRef) return
 
     const editorTheme = EditorView.theme({
       '&': {
@@ -138,7 +138,7 @@ export function CodeEditor(props: CodeEditorProps) {
         outline: '2px solid rgb(147 197 253)',
         'outline-offset': '0',
       },
-    });
+    })
 
     view = new EditorView({
       state: EditorState.create({
@@ -151,74 +151,74 @@ export function CodeEditor(props: CodeEditorProps) {
           editorTheme,
           EditorView.updateListener.of((update) => {
             if (update.docChanged && !applyingExternalValue) {
-              props.onInput(update.state.doc.toString());
+              props.onInput(update.state.doc.toString())
             }
           }),
         ],
       }),
       parent: containerRef,
-    });
+    })
 
-    const cm = getCM(view);
+    const cm = getCM(view)
     if (cm) {
       vimListener = (event: VimModeChange) => {
-        setMode(normalizeMode(event.mode));
-      };
-      cm.on('vim-mode-change', vimListener);
-      Vim.handleKey(cm, 'i', 'user');
-      setMode('insert');
+        setMode(normalizeMode(event.mode))
+      }
+      cm.on('vim-mode-change', vimListener)
+      Vim.handleKey(cm, 'i', 'user')
+      setMode('insert')
     }
 
     onCleanup(() => {
-      const currentView = view;
+      const currentView = view
       if (currentView && vimListener) {
-        const currentCM = getCM(currentView);
-        currentCM?.off('vim-mode-change', vimListener);
+        const currentCM = getCM(currentView)
+        currentCM?.off('vim-mode-change', vimListener)
       }
-      view?.destroy();
-      view = undefined;
-    });
-  });
+      view?.destroy()
+      view = undefined
+    })
+  })
 
   createEffect(() => {
-    const nextValue = props.value;
-    const currentView = view;
-    if (!currentView) return;
+    const nextValue = props.value
+    const currentView = view
+    if (!currentView) return
 
-    const currentValue = currentView.state.doc.toString();
-    if (currentValue === nextValue) return;
+    const currentValue = currentView.state.doc.toString()
+    if (currentValue === nextValue) return
 
-    applyingExternalValue = true;
+    applyingExternalValue = true
     currentView.dispatch({
       changes: {
         from: 0,
         to: currentValue.length,
         insert: nextValue,
       },
-    });
-    applyingExternalValue = false;
-  });
+    })
+    applyingExternalValue = false
+  })
 
   createEffect(() => {
-    const currentView = view;
-    if (!currentView) return;
+    const currentView = view
+    if (!currentView) return
 
     currentView.dispatch({
       effects: languageCompartment.reconfigure(
         resolveLanguageExtension(props.language)
       ),
-    });
-  });
+    })
+  })
 
   createEffect(() => {
-    const nextHeight = minHeight();
-    const currentView = view;
-    if (!currentView) return;
+    const nextHeight = minHeight()
+    const currentView = view
+    if (!currentView) return
 
-    currentView.dom.style.minHeight = nextHeight;
-    const scroller = currentView.scrollDOM;
-    scroller.style.minHeight = nextHeight;
-  });
+    currentView.dom.style.minHeight = nextHeight
+    const scroller = currentView.scrollDOM
+    scroller.style.minHeight = nextHeight
+  })
 
   return (
     <div class={classes('space-y-3', props.class)}>
@@ -267,5 +267,5 @@ export function CodeEditor(props: CodeEditorProps) {
         </div>
       </Show>
     </div>
-  );
+  )
 }

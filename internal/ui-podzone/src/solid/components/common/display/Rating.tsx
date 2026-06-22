@@ -12,7 +12,10 @@ export function Rating(props: { value: number; max?: number; class?: string }) {
       <For each={Array.from({ length: max() }, (_, index) => index + 1)}>
         {(item) => (
           <span
-            class={classes('text-lg', item <= props.value ? 'text-amber-400' : 'text-gray-300')}
+            class={classes(
+              'text-lg',
+              item <= props.value ? 'text-amber-400' : 'text-gray-300'
+            )}
           >
             ★
           </span>

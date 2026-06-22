@@ -1,21 +1,21 @@
-import { Show, createSignal, type ParentProps } from 'solid-js';
-import { classes } from '../../shared/utils';
+import { Show, createSignal, type ParentProps } from 'solid-js'
+import { classes } from '../../shared/utils'
 
 export function ClipboardButton(props: {
-  text: string;
-  label?: string;
-  copiedLabel?: string;
-  class?: string;
+  text: string
+  label?: string
+  copiedLabel?: string
+  class?: string
 }) {
-  const [copied, setCopied] = createSignal(false);
+  const [copied, setCopied] = createSignal(false)
 
   async function handleCopy() {
     try {
-      await navigator.clipboard.writeText(props.text);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1500);
+      await navigator.clipboard.writeText(props.text)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1500)
     } catch {
-      setCopied(false);
+      setCopied(false)
     }
   }
 
@@ -33,14 +33,14 @@ export function ClipboardButton(props: {
         {copied() ? (props.copiedLabel ?? 'Copied') : (props.label ?? 'Copy')}
       </span>
     </button>
-  );
+  )
 }
 
 export function DeviceMockup(
   props: ParentProps<{
-    label?: string;
-    class?: string;
-    screenClass?: string;
+    label?: string
+    class?: string
+    screenClass?: string
   }>
 ) {
   return (
@@ -62,5 +62,5 @@ export function DeviceMockup(
         <p class="text-sm font-medium text-gray-500">{props.label}</p>
       </Show>
     </div>
-  );
+  )
 }
