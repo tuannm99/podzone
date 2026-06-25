@@ -1,12 +1,41 @@
 import { For, Show } from 'solid-js';
 import { EmptyBlock, InfoAlert, LoadingInline } from '@/solid/components/common/Feedback';
-import { Badge, Button, Card, InputField, SelectField } from '@/solid/components/common/Primitives';
+import { Badge, Button, Card } from '@/solid/components/common/Primitives';
 import { SectionTitle } from '@/solid/components/common/SectionTitle';
+import {
+  FormInputField,
+  FormSelectField,
+  createFormStore,
+  numberValue,
+  required,
+} from '@/solid/forms';
+import type { PlatformRoleFormValues } from './forms';
 import { membershipStatusColor, platformRoleOptions } from './presentation';
 import { useAdminSettings } from './context';
 
 export function PlatformAdminPanel() {
   const vm = useAdminSettings();
+  const platformRoleForm = createFormStore<PlatformRoleFormValues>({
+    initialValues: {
+      userId: vm.platformUserId(),
+      roleName: vm.platformRoleName(),
+    },
+    validators: {
+      userId: [
+        required('Target user id is required.'),
+        numberValue('Target user id must be a number.'),
+      ],
+      roleName: [required('Choose a platform role.')],
+    },
+  });
+
+  const submitPlatformRole = async (event: SubmitEvent) => {
+    event.preventDefault();
+    if (!platformRoleForm.validate()) return;
+    platformRoleForm.setSubmitting(true);
+    await vm.savePlatformRoleFromForm({ ...platformRoleForm.values });
+    platformRoleForm.setSubmitting(false);
+  };
 
   return (
     <Card class="space-y-4">
@@ -19,19 +48,21 @@ export function PlatformAdminPanel() {
           Platform administration requires dedicated platform access.
         </InfoAlert>
       </Show>
-      <form class="space-y-4" onSubmit={vm.submitPlatformRole}>
+      <form class="space-y-4" onSubmit={submitPlatformRole}>
         <div class="grid gap-4 md:grid-cols-2">
-          <InputField
+          <FormInputField
+            form={platformRoleForm}
+            name="userId"
             label="Target user id"
-            value={vm.platformUserId()}
             placeholder="1"
-            onInput={(event) => vm.setPlatformUserId(event.currentTarget.value)}
+            onValueInput={(value) => vm.setPlatformUserId(value)}
           />
-          <SelectField
+          <FormSelectField
+            form={platformRoleForm}
+            name="roleName"
             label="Platform admin role"
-            value={vm.platformRoleName()}
             options={platformRoleOptions}
-            onChange={(event) => vm.setPlatformRoleName(event.currentTarget.value)}
+            onValueChange={(value) => vm.setPlatformRoleName(value)}
           />
         </div>
         <div class="flex flex-wrap gap-3">
@@ -39,7 +70,11 @@ export function PlatformAdminPanel() {
             type="button"
             color="light"
             disabled={!vm.userID}
-            onClick={() => vm.setPlatformUserId(String(vm.userID))}
+            onClick={() => {
+              const userId = String(vm.userID);
+              platformRoleForm.setValue('userId', userId);
+              vm.setPlatformUserId(userId);
+            }}
           >
             Use my user id
           </Button>

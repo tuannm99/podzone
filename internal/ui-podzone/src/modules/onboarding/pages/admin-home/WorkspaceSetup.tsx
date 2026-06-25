@@ -1,10 +1,37 @@
 import { Show } from 'solid-js';
-import { Badge, Button, Card, InputField } from '@/solid/components/common/Primitives';
+import { Badge, Button, Card } from '@/solid/components/common/Primitives';
 import { SectionTitle } from '@/solid/components/common/SectionTitle';
+import {
+  FormInputField,
+  createFormStore,
+  required,
+} from '@/solid/forms';
+import type { CreateWorkspaceFormValues } from './forms';
 import { useAdminHome } from './context';
 
 export function WorkspaceSetup() {
   const vm = useAdminHome();
+  const workspaceForm = createFormStore<CreateWorkspaceFormValues>({
+    initialValues: {
+      name: vm.tenantName(),
+      slug: vm.tenantSlug(),
+    },
+    validators: {
+      name: [required('Enter a workspace name.')],
+      slug: [required('Enter a workspace slug.')],
+    },
+  });
+
+  const submitWorkspace = async (event: SubmitEvent) => {
+    event.preventDefault();
+    if (!workspaceForm.validate()) return;
+    workspaceForm.setSubmitting(true);
+    const created = await vm.createTenantFromForm({ ...workspaceForm.values });
+    workspaceForm.setSubmitting(false);
+    if (created) {
+      workspaceForm.reset({ name: '', slug: '' });
+    }
+  };
 
   return (
     <Show when={vm.canCreateTenant() || vm.canBootstrapFirstWorkspace()}>
@@ -14,25 +41,25 @@ export function WorkspaceSetup() {
             title="Create workspace"
             subtitle="Create the tenant workspace that will own your stores and IAM memberships."
           />
-          <form class="space-y-4" onSubmit={vm.submitCreateTenant}>
-            <InputField
+          <form class="space-y-4" onSubmit={submitWorkspace}>
+            <FormInputField
+              form={workspaceForm}
+              name="name"
               label="Workspace name"
-              value={vm.tenantName()}
               placeholder="Urban Finds"
-              onInput={(event) => {
-                const value = event.currentTarget.value;
-                vm.setTenantName(value);
-                if (!vm.tenantSlug().trim()) {
-                  vm.setTenantSlug(vm.slugify(value));
+              onValueInput={(value) => {
+                if (!workspaceForm.values.slug.trim()) {
+                  workspaceForm.setValue('slug', vm.slugify(value));
                 }
               }}
             />
-            <InputField
+            <FormInputField
+              form={workspaceForm}
+              name="slug"
               label="Workspace slug"
-              value={vm.tenantSlug()}
               placeholder="urban-finds"
-              onInput={(event) =>
-                vm.setTenantSlug(vm.slugify(event.currentTarget.value))
+              onValueInput={(value) =>
+                workspaceForm.setValue('slug', vm.slugify(value))
               }
             />
             <div class="flex flex-wrap gap-3">
@@ -40,7 +67,7 @@ export function WorkspaceSetup() {
                 type="submit"
                 loading={vm.creatingTenant()}
                 disabled={
-                  !vm.tenantName().trim() ||
+                  !workspaceForm.values.name.trim() ||
                   (!vm.canCreateTenant() && !vm.canBootstrapFirstWorkspace())
                 }
               >
@@ -48,11 +75,11 @@ export function WorkspaceSetup() {
               </Button>
               <Badge
                 content={
-                  vm.tenantSlug().trim()
-                    ? `slug ${vm.tenantSlug().trim()}`
+                  workspaceForm.values.slug.trim()
+                    ? `slug ${workspaceForm.values.slug.trim()}`
                     : 'slug pending'
                 }
-                color={vm.tenantSlug().trim() ? 'indigo' : 'dark'}
+                color={workspaceForm.values.slug.trim() ? 'indigo' : 'dark'}
               />
             </div>
           </form>

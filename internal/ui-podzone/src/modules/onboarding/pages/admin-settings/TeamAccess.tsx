@@ -1,8 +1,16 @@
 import { For, Show } from 'solid-js';
 import { tokenStorage } from '@/services/tokenStorage';
 import { EmptyBlock, InfoAlert, LoadingInline } from '@/solid/components/common/Feedback';
-import { Badge, Button, Card, InputField, SelectField } from '@/solid/components/common/Primitives';
+import { Badge, Button, Card } from '@/solid/components/common/Primitives';
 import { SectionTitle } from '@/solid/components/common/SectionTitle';
+import {
+  FormInputField,
+  FormSelectField,
+  createFormStore,
+  numberValue,
+  required,
+} from '@/solid/forms';
+import type { TeamMemberFormValues } from './forms';
 import { membershipStatusColor, roleOptions } from './presentation';
 import { useAdminSettings } from './context';
 
@@ -73,6 +81,33 @@ function MyWorkspaceAccess() {
 
 function TeamAccessEditor() {
   const vm = useAdminSettings();
+  const memberForm = createFormStore<TeamMemberFormValues>({
+    initialValues: {
+      tenantId: vm.memberTenantId(),
+      userId: vm.memberUserId(),
+      roleName: vm.roleName(),
+      identity: vm.memberIdentity(),
+    },
+    validators: {
+      tenantId: [required('Choose a workspace.')],
+      userId: [numberValue('User id must be a number.')],
+      roleName: [required('Choose a role.')],
+      identity: [
+        (value, values) =>
+          !value.trim() && !values.userId.trim()
+            ? 'Enter teammate email/username or user id.'
+            : undefined,
+      ],
+    },
+  });
+
+  const submitMember = async (event: SubmitEvent) => {
+    event.preventDefault();
+    if (!memberForm.validate()) return;
+    memberForm.setSubmitting(true);
+    await vm.saveMemberFromForm({ ...memberForm.values });
+    memberForm.setSubmitting(false);
+  };
 
   return (
     <Card class="space-y-4">
@@ -81,47 +116,49 @@ function TeamAccessEditor() {
         subtitle="List, add, update, or remove workspace teammates. Start from one of your workspaces instead of typing technical IDs by hand."
       />
 
-      <form class="space-y-4" onSubmit={vm.submitMember}>
+      <form class="space-y-4" onSubmit={submitMember}>
         <Show when={vm.tenantOptions().length > 0}>
-          <SelectField
+          <FormSelectField
+            form={memberForm}
+            name="tenantId"
             label="Workspace"
-            value={vm.memberTenantId()}
             options={vm.tenantOptions()}
-            onChange={(event) => vm.setMemberTenantId(event.currentTarget.value)}
+            onValueChange={(value) => vm.setMemberTenantId(value)}
           />
         </Show>
-        <InputField
+        <FormInputField
+          form={memberForm}
+          name="tenantId"
           label="Workspace id override"
-          value={vm.memberTenantId()}
           placeholder="workspace id"
-          onInput={(event) => vm.setMemberTenantId(event.currentTarget.value)}
+          onValueInput={(value) => vm.setMemberTenantId(value)}
         />
         <div class="grid gap-4 md:grid-cols-2">
-          <InputField
+          <FormInputField
+            form={memberForm}
+            name="userId"
             label="User id"
-            value={vm.memberUserId()}
             placeholder="42"
-            onInput={(event) => vm.setMemberUserId(event.currentTarget.value)}
           />
-          <SelectField
+          <FormSelectField
+            form={memberForm}
+            name="roleName"
             label="Role"
-            value={vm.roleName()}
             options={roleOptions}
-            onChange={(event) => vm.setRoleName(event.currentTarget.value)}
           />
         </div>
-        <InputField
+        <FormInputField
+          form={memberForm}
+          name="identity"
           label="Teammate email or username"
-          value={vm.memberIdentity()}
           placeholder="ops@workspace.com or store_operator"
-          onInput={(event) => vm.setMemberIdentity(event.currentTarget.value)}
         />
         <div class="flex flex-wrap gap-3">
           <Button
             type="button"
             color="light"
             disabled={!vm.userID}
-            onClick={() => vm.setMemberUserId(String(vm.userID))}
+            onClick={() => memberForm.setValue('userId', String(vm.userID))}
           >
             Use my user id
           </Button>
@@ -129,7 +166,9 @@ function TeamAccessEditor() {
             type="button"
             color="light"
             disabled={!tokenStorage.getUser()?.email}
-            onClick={() => vm.setMemberIdentity(tokenStorage.getUser()?.email || '')}
+            onClick={() =>
+              memberForm.setValue('identity', tokenStorage.getUser()?.email || '')
+            }
           >
             Use my email
           </Button>

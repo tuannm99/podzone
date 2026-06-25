@@ -1,7 +1,13 @@
 import { Show } from 'solid-js';
 import { Button, Card, SelectField } from '@/solid/components/common/Primitives';
 import { SectionTitle } from '@/solid/components/common/SectionTitle';
+import {
+  FormInputField,
+  createFormStore,
+  required,
+} from '@/solid/forms';
 import { useAdminHome } from './context';
+import type { CreateStoreFormValues } from './forms';
 
 export function StoreChooser() {
   const vm = useAdminHome();
@@ -72,6 +78,26 @@ export function StoreChooser() {
 
 function CreateFirstStore() {
   const vm = useAdminHome();
+  const storeForm = createFormStore<CreateStoreFormValues>({
+    initialValues: {
+      name: vm.storeNameByTenant()[vm.selectedWorkspaceId()] || '',
+    },
+    validators: {
+      name: [required('Enter a store name.')],
+    },
+  });
+
+  const createStore = async () => {
+    if (!storeForm.validate()) return;
+    storeForm.setSubmitting(true);
+    const created = await vm.createStoreFromForm(vm.selectedWorkspaceId(), {
+      ...storeForm.values,
+    });
+    storeForm.setSubmitting(false);
+    if (created) {
+      storeForm.reset({ name: '' });
+    }
+  };
 
   return (
     <div class="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -82,17 +108,17 @@ function CreateFirstStore() {
         Create the first store below, then select it from this workspace.
       </p>
       <div class="flex flex-col gap-3 sm:flex-row">
-        <input
-          class="block h-10 min-w-0 flex-1 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none transition focus:border-gray-950 focus:ring-2 focus:ring-gray-100"
-          value={vm.storeNameByTenant()[vm.selectedWorkspaceId()] || ''}
-          placeholder="New store name"
-          onInput={(event) =>
-            vm.setDraftStoreName(
-              vm.selectedWorkspaceId(),
-              event.currentTarget.value
-            )
-          }
-        />
+        <div class="min-w-0 flex-1">
+          <FormInputField
+            form={storeForm}
+            name="name"
+            label="Store name"
+            placeholder="New store name"
+            onValueInput={(value) =>
+              vm.setDraftStoreName(vm.selectedWorkspaceId(), value)
+            }
+          />
+        </div>
         <Button
           size="sm"
           color="dark"
@@ -100,10 +126,10 @@ function CreateFirstStore() {
           disabled={
             !vm.selectedWorkspaceId() ||
             vm.creatingStoreTenantId() === vm.selectedWorkspaceId() ||
-            !(vm.storeNameByTenant()[vm.selectedWorkspaceId()] || '').trim()
+            !storeForm.values.name.trim()
           }
           onClick={() => {
-            void vm.submitCreateStore(vm.selectedWorkspaceId());
+            void createStore();
           }}
         >
           Create store

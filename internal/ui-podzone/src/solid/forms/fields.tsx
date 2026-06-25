@@ -23,6 +23,7 @@ export function FormInputField<TValues extends Record<string, unknown>>(
   props: FormFieldProps<TValues> & {
     type?: string;
     placeholder?: string;
+    onValueInput?: (value: string) => void;
   }
 ) {
   return (
@@ -33,12 +34,14 @@ export function FormInputField<TValues extends Record<string, unknown>>(
       value={stringValue(props.form.value(props.name))}
       error={props.form.hasError(props.name)}
       errorText={props.form.error(props.name)}
-      onInput={(event) =>
+      onInput={(event) => {
+        const value = event.currentTarget.value;
         props.form.setValue(
           props.name,
-          event.currentTarget.value as TValues[typeof props.name]
-        )
-      }
+          value as TValues[typeof props.name]
+        );
+        props.onValueInput?.(value);
+      }}
     />
   );
 }
@@ -46,6 +49,7 @@ export function FormInputField<TValues extends Record<string, unknown>>(
 export function FormSelectField<TValues extends Record<string, unknown>>(
   props: FormFieldProps<TValues> & {
     options: SelectOption[];
+    onValueChange?: (value: string) => void;
   }
 ) {
   return (
@@ -55,12 +59,14 @@ export function FormSelectField<TValues extends Record<string, unknown>>(
       value={stringValue(props.form.value(props.name))}
       error={props.form.hasError(props.name)}
       errorText={props.form.error(props.name)}
-      onChange={(event) =>
+      onChange={(event) => {
+        const value = event.currentTarget.value;
         props.form.setValue(
           props.name,
-          event.currentTarget.value as TValues[typeof props.name]
-        )
-      }
+          value as TValues[typeof props.name]
+        );
+        props.onValueChange?.(value);
+      }}
     />
   );
 }

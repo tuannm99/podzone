@@ -1,13 +1,41 @@
 import { For, Show } from 'solid-js';
 import { tokenStorage } from '@/services/tokenStorage';
 import { EmptyBlock, InfoAlert, LoadingInline } from '@/solid/components/common/Feedback';
-import { Badge, Button, Card, InputField, SelectField } from '@/solid/components/common/Primitives';
+import { Badge, Button, Card } from '@/solid/components/common/Primitives';
 import { SectionTitle } from '@/solid/components/common/SectionTitle';
+import {
+  FormInputField,
+  FormSelectField,
+  createFormStore,
+  email,
+  required,
+} from '@/solid/forms';
+import type { TenantInviteFormValues } from './forms';
 import { membershipStatusColor, roleOptions } from './presentation';
 import { useAdminSettings } from './context';
 
 export function InvitesPanel() {
   const vm = useAdminSettings();
+  const inviteForm = createFormStore<TenantInviteFormValues>({
+    initialValues: {
+      tenantId: vm.memberTenantId(),
+      email: vm.inviteEmail(),
+      roleName: vm.inviteRoleName(),
+    },
+    validators: {
+      tenantId: [required('Choose a workspace.')],
+      email: [required('Invite email is required.'), email('Enter a valid email.')],
+      roleName: [required('Choose a role.')],
+    },
+  });
+
+  const submitInvite = async (event: SubmitEvent) => {
+    event.preventDefault();
+    if (!inviteForm.validate()) return;
+    inviteForm.setSubmitting(true);
+    await vm.createInviteFromForm({ ...inviteForm.values });
+    inviteForm.setSubmitting(false);
+  };
 
   return (
     <Card class="space-y-4">
@@ -20,27 +48,30 @@ export function InvitesPanel() {
           Workspace invites require access to manage team permissions for this workspace.
         </InfoAlert>
       </Show>
-      <form class="space-y-4" onSubmit={vm.submitInvite}>
+      <form class="space-y-4" onSubmit={submitInvite}>
         <Show when={vm.tenantOptions().length > 0}>
-          <SelectField
+          <FormSelectField
+            form={inviteForm}
+            name="tenantId"
             label="Workspace"
-            value={vm.memberTenantId()}
             options={vm.tenantOptions()}
-            onChange={(event) => vm.setMemberTenantId(event.currentTarget.value)}
+            onValueChange={(value) => vm.setMemberTenantId(value)}
           />
         </Show>
         <div class="grid gap-4 md:grid-cols-2">
-          <InputField
+          <FormInputField
+            form={inviteForm}
+            name="email"
             label="Invite email"
-            value={vm.inviteEmail()}
             placeholder="owner@shop.com"
-            onInput={(event) => vm.setInviteEmail(event.currentTarget.value)}
+            onValueInput={(value) => vm.setInviteEmail(value)}
           />
-          <SelectField
+          <FormSelectField
+            form={inviteForm}
+            name="roleName"
             label="Role"
-            value={vm.inviteRoleName()}
             options={roleOptions}
-            onChange={(event) => vm.setInviteRoleName(event.currentTarget.value)}
+            onValueChange={(value) => vm.setInviteRoleName(value)}
           />
         </div>
         <div class="flex flex-wrap gap-3">
@@ -48,7 +79,11 @@ export function InvitesPanel() {
             type="button"
             color="light"
             disabled={!tokenStorage.getUser()?.email}
-            onClick={() => vm.setInviteEmail(tokenStorage.getUser()?.email || '')}
+            onClick={() => {
+              const emailAddress = tokenStorage.getUser()?.email || '';
+              inviteForm.setValue('email', emailAddress);
+              vm.setInviteEmail(emailAddress);
+            }}
           >
             Use my email
           </Button>

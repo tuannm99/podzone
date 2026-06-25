@@ -33,6 +33,11 @@ import {
 } from './admin-settings/presentation';
 import { AdminSettingsContext } from './admin-settings/context';
 import { AdminSettingsView } from './admin-settings/AdminSettingsView';
+import type {
+  PlatformRoleFormValues,
+  TeamMemberFormValues,
+  TenantInviteFormValues,
+} from './admin-settings/forms';
 
 export default function AdminSettingsPage() {
   const hasToken = Boolean(tokenStorage.getToken());
@@ -170,11 +175,10 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const submitMember = async (event: SubmitEvent) => {
-    event.preventDefault();
-    const tenantId = memberTenantId().trim();
-    const parsedUserId = Number.parseInt(memberUserId().trim(), 10);
-    const identity = memberIdentity().trim();
+  const saveMemberFromForm = async (values: TeamMemberFormValues) => {
+    const tenantId = values.tenantId.trim();
+    const parsedUserId = Number.parseInt(values.userId.trim(), 10);
+    const identity = values.identity.trim();
     if (!tenantId || (identity === '' && (!Number.isFinite(parsedUserId) || parsedUserId <= 0))) {
       setPageError('Workspace id and either teammate identity or user id are required.');
       return;
@@ -187,12 +191,16 @@ export default function AdminSettingsPage() {
     setSavingMember(true);
     setPageError('');
     setMemberActionMessage('');
+    setMemberTenantId(tenantId);
+    setMemberUserId(values.userId.trim());
+    setMemberIdentity(identity);
+    setRoleName(values.roleName);
     try {
       if (identity) {
         const result = await upsertTenantMemberByIdentity({
           tenantId,
           identity,
-          roleName: roleName(),
+          roleName: values.roleName,
         });
         if (!result.success) {
           setPageError(result.message);
@@ -209,7 +217,7 @@ export default function AdminSettingsPage() {
         const result = await upsertTenantMember({
           tenantId,
           userId: parsedUserId,
-          roleName: roleName(),
+          roleName: values.roleName,
         });
         if (!result.success) {
           setPageError(result.message);
@@ -240,10 +248,9 @@ export default function AdminSettingsPage() {
     await loadTenantMembers(tenantId);
   };
 
-  const submitInvite = async (event: SubmitEvent) => {
-    event.preventDefault();
-    const tenantId = memberTenantId().trim();
-    const email = inviteEmail().trim();
+  const createInviteFromForm = async (values: TenantInviteFormValues) => {
+    const tenantId = values.tenantId.trim();
+    const email = values.email.trim();
     if (!tenantId || !email) {
       setPageError('Workspace id and invite email are required.');
       return;
@@ -257,11 +264,14 @@ export default function AdminSettingsPage() {
     setPageError('');
     setMemberActionMessage('');
     setLatestInviteAcceptURL('');
+    setMemberTenantId(tenantId);
+    setInviteEmail(email);
+    setInviteRoleName(values.roleName);
     try {
       const result = await createTenantInvite({
         tenantId,
         email,
-        roleName: inviteRoleName(),
+        roleName: values.roleName,
       });
       if (!result.success) {
         setPageError(result.message);
@@ -363,9 +373,8 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const submitPlatformRole = async (event: SubmitEvent) => {
-    event.preventDefault();
-    const targetUserID = Number.parseInt(platformUserId().trim(), 10);
+  const savePlatformRoleFromForm = async (values: PlatformRoleFormValues) => {
+    const targetUserID = Number.parseInt(values.userId.trim(), 10);
     if (!canManagePlatformRoles()) {
       setPageError('You do not have permission to manage platform administration roles.');
       return;
@@ -377,16 +386,18 @@ export default function AdminSettingsPage() {
     setSavingPlatformRole(true);
     setPageError('');
     setMemberActionMessage('');
+    setPlatformUserId(values.userId.trim());
+    setPlatformRoleName(values.roleName);
     try {
       const result = await upsertPlatformRole({
         targetUserId: targetUserID,
-        roleName: platformRoleName(),
+        roleName: values.roleName,
       });
       if (!result.success) {
         setPageError(result.message);
         return;
       }
-      setMemberActionMessage(`Saved platform admin role ${platformRoleName()} for user ${targetUserID}.`);
+      setMemberActionMessage(`Saved platform admin role ${values.roleName} for user ${targetUserID}.`);
       await loadPlatformRoleAssignments();
     } finally {
       setSavingPlatformRole(false);
@@ -470,7 +481,7 @@ export default function AdminSettingsPage() {
   });
 
   const viewModel = {
-    hasToken, userID, activeTenantId, sessionID, routeTenantId, setRouteTenantID, memberTenantId, setMemberTenantId, memberUserId, setMemberUserId, memberIdentity, setMemberIdentity, roleName, setRoleName, inviteEmail, setInviteEmail, inviteRoleName, setInviteRoleName, memberships, members, invites, platformRoles, sessions, auditLogs, loadingTenants, loadingMembers, loadingInvites, loadingSessions, loadingAuditLogs, savingMember, savingInvite, checkingPermissions, loadingPlatformRoles, savingPlatformRole, pageError, memberActionMessage, latestInviteAcceptURL, canReadTenant, canManageMembers, canManagePlatformRoles, platformUserId, setPlatformUserId, platformRoleName, setPlatformRoleName, tenantOptions, currentSessionCount, otherSessionCount, loadSessions, loadAuditLogs, loadTenantMembers, loadTenantInvites, loadPlatformRoleAssignments, handleRevokeSession, handleRemoveMember, handleRevokeInvite, handleRemovePlatformRole, submitMember, submitInvite, submitPlatformRole,
+    hasToken, userID, activeTenantId, sessionID, routeTenantId, setRouteTenantID, memberTenantId, setMemberTenantId, memberUserId, setMemberUserId, memberIdentity, setMemberIdentity, roleName, setRoleName, inviteEmail, setInviteEmail, inviteRoleName, setInviteRoleName, memberships, members, invites, platformRoles, sessions, auditLogs, loadingTenants, loadingMembers, loadingInvites, loadingSessions, loadingAuditLogs, savingMember, savingInvite, checkingPermissions, loadingPlatformRoles, savingPlatformRole, pageError, memberActionMessage, latestInviteAcceptURL, canReadTenant, canManageMembers, canManagePlatformRoles, platformUserId, setPlatformUserId, platformRoleName, setPlatformRoleName, tenantOptions, currentSessionCount, otherSessionCount, loadSessions, loadAuditLogs, loadTenantMembers, loadTenantInvites, loadPlatformRoleAssignments, handleRevokeSession, handleRemoveMember, handleRevokeInvite, handleRemovePlatformRole, saveMemberFromForm, createInviteFromForm, savePlatformRoleFromForm,
   };
 
   return (

@@ -35,6 +35,10 @@ import {
   type StoreAttention,
   type WorkspaceSummary,
 } from './admin-home/presentation';
+import type {
+  CreateStoreFormValues,
+  CreateWorkspaceFormValues,
+} from './admin-home/forms';
 
 export default function AdminHomePage() {
   const user = tokenStorage.getUser();
@@ -320,21 +324,23 @@ export default function AdminHomePage() {
     }));
   };
 
-  const submitCreateStore = async (nextTenantID: string) => {
+  const createStoreFromForm = async (
+    nextTenantID: string,
+    values: CreateStoreFormValues
+  ) => {
     const normalizedTenantID = nextTenantID.trim();
-    const normalizedStoreName = (
-      storeNameByTenant()[normalizedTenantID] || ''
-    ).trim();
-    if (!normalizedTenantID || !normalizedStoreName) return;
+    const normalizedStoreName = values.name.trim();
+    if (!normalizedTenantID || !normalizedStoreName) return false;
 
     setCreatingStoreTenantId(normalizedTenantID);
     setTenantError('');
     setTenantMessage('');
+    setDraftStoreName(normalizedTenantID, normalizedStoreName);
     try {
       const switched = await ensureActiveTenant(normalizedTenantID);
       if (!switched.success) {
         setTenantError(switched.data.message || 'Failed to load workspace');
-        return;
+        return false;
       }
       const created = await createStoreRequest({
         tenantId: normalizedTenantID,
@@ -343,16 +349,23 @@ export default function AdminHomePage() {
       });
       if (!created.success) {
         setTenantError(created.message);
-        return;
+        return false;
       }
       setDraftStoreName(normalizedTenantID, '');
       setTenantMessage(
         `Store request ${created.data.name} is ${created.data.status}. It will become selectable after provisioning completes.`
       );
       await loadMemberships();
+      return true;
     } finally {
       setCreatingStoreTenantId('');
     }
+  };
+
+  const submitCreateStore = async (nextTenantID: string) => {
+    await createStoreFromForm(nextTenantID, {
+      name: storeNameByTenant()[nextTenantID.trim()] || '',
+    });
   };
 
   const retryStore = async (tenantID: string, requestID: string) => {
@@ -380,28 +393,28 @@ export default function AdminHomePage() {
     }
   };
 
-  const submitCreateTenant = async (event: SubmitEvent) => {
-    event.preventDefault();
-
+  const createTenantFromForm = async (values: CreateWorkspaceFormValues) => {
     if (!userID) {
       setTenantError('No signed-in account found.');
-      return;
+      return false;
     }
     if (!canCreateTenant() && !canBootstrapFirstWorkspace()) {
       setTenantError('Your account cannot create another workspace yet.');
-      return;
+      return false;
     }
 
-    const normalizedName = tenantName().trim();
-    const normalizedSlug = slugify(tenantSlug() || normalizedName);
+    const normalizedName = values.name.trim();
+    const normalizedSlug = slugify(values.slug || normalizedName);
     if (!normalizedName || !normalizedSlug) {
       setTenantError('Workspace name and slug are required.');
-      return;
+      return false;
     }
 
     setCreatingTenant(true);
     setTenantError('');
     setTenantMessage('');
+    setTenantName(normalizedName);
+    setTenantSlug(normalizedSlug);
     try {
       const result = await createTenant({
         name: normalizedName,
@@ -409,7 +422,7 @@ export default function AdminHomePage() {
       });
       if (!result.success) {
         setTenantError(result.message);
-        return;
+        return false;
       }
 
       const createdTenantID = result.data.tenant?.id || '';
@@ -424,9 +437,18 @@ export default function AdminHomePage() {
       );
       await loadMemberships();
       await loadPlatformAccess();
+      return true;
     } finally {
       setCreatingTenant(false);
     }
+  };
+
+  const submitCreateTenant = async (event: SubmitEvent) => {
+    event.preventDefault();
+    await createTenantFromForm({
+      name: tenantName(),
+      slug: tenantSlug(),
+    });
   };
 
   onMount(() => {
@@ -451,7 +473,7 @@ export default function AdminHomePage() {
   });
 
   const viewModel = {
-    user, userID, tenantName, setTenantName, tenantSlug, setTenantSlug, tenantError, tenantMessage, setTenantMessage, switchingTenant, creatingTenant, creatingStoreTenantId, retryingStoreRequestId, storeNameByTenant, loadingTenants, loadingAttention, checkingPlatformAccess, memberships, workspaceSummaries, storeAttention, canCreateTenant, canManagePlatformIAM, selectedWorkspaceId, setSelectedWorkspaceId, selectedStoreId, setSelectedStoreId, activeMemberships, canBootstrapFirstWorkspace, activeWorkspaceSummaries, selectedWorkspace, selectedWorkspaceOptions, selectedStoreOptions, currentSelectionLabel, slugify, membershipStatusColor, provisioningSteps, provisioningStepIndex, provisioningStatusLabel, buildOrdersHref, loadWorkspaceData, prepareTenant, openStore, setDraftStoreName, submitCreateStore, retryStore, submitCreateTenant,
+    user, userID, tenantName, setTenantName, tenantSlug, setTenantSlug, tenantError, tenantMessage, setTenantMessage, switchingTenant, creatingTenant, creatingStoreTenantId, retryingStoreRequestId, storeNameByTenant, loadingTenants, loadingAttention, checkingPlatformAccess, memberships, workspaceSummaries, storeAttention, canCreateTenant, canManagePlatformIAM, selectedWorkspaceId, setSelectedWorkspaceId, selectedStoreId, setSelectedStoreId, activeMemberships, canBootstrapFirstWorkspace, activeWorkspaceSummaries, selectedWorkspace, selectedWorkspaceOptions, selectedStoreOptions, currentSelectionLabel, slugify, membershipStatusColor, provisioningSteps, provisioningStepIndex, provisioningStatusLabel, buildOrdersHref, loadWorkspaceData, prepareTenant, openStore, setDraftStoreName, createStoreFromForm, submitCreateStore, retryStore, createTenantFromForm, submitCreateTenant,
   };
 
   return (
