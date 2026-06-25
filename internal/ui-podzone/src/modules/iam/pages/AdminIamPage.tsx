@@ -1,850 +1,221 @@
 import { createEffect, onMount } from 'solid-js';
-import {
-  addGroupMember,
-  attachGroupPolicy,
-  attachPlatformUserPolicy,
-  attachServiceControlPolicy,
-  attachTenantToOrganization,
-  attachTenantUserPolicy,
-  createGroup,
-  createOrganization,
-  createPolicy,
-  createPolicyVersion,
-  deleteGroup,
-  deleteGroupInlinePolicy,
-  deletePolicy,
-  deletePolicyVersion,
-  deletePlatformUserInlinePolicy,
-  deletePlatformUserPermissionBoundary,
-  deleteTenantUserInlinePolicy,
-  deleteTenantUserPermissionBoundary,
-  detachServiceControlPolicy,
-  detachGroupPolicy,
-  detachTenantFromOrganization,
-  detachPlatformUserPolicy,
-  detachTenantUserPolicy,
-  putGroupInlinePolicy,
-  putPlatformUserInlinePolicy,
-  putPlatformUserPermissionBoundary,
-  putRolePermissionBoundary,
-  putRoleTrustPolicy,
-  putTenantUserInlinePolicy,
-  putTenantUserPermissionBoundary,
-  removeGroupMember,
-  removePlatformRole,
-  removeTenantMember,
-  setDefaultPolicyVersion,
-  simulateAccess,
-  type PolicyStatement,
-  type RoleTrustStatement,
-  deleteRolePermissionBoundary,
-  upsertPlatformRole,
-  upsertTenantMember,
-} from '@/services/iam';
 import { tokenStorage } from '@/services/tokenStorage';
 import { AdminIamView } from './admin-iam/AdminIamView';
 import {
   attachmentColor,
   groupScopeOptions,
-  parseJSONArray,
-  parseJSONObject,
   platformRoleOptions,
   policyScopeOptions,
-  prettyJSON,
   sectionLinks,
   simulationLayerTone,
   simulationSourceColor,
   statementSourceLabel,
   tenantRoleOptions,
 } from './admin-iam/presentation';
+import { useAdminIamActions } from './admin-iam/useAdminIamActions';
 import { useAdminIamLoaders } from './admin-iam/useAdminIamLoaders';
 import { useAdminIamState } from './admin-iam/useAdminIamState';
 
 export default function AdminIamPage() {
   const userID = tokenStorage.getUserID() || 0;
-  const iamState = useAdminIamState(userID);
-  const {
-    pageError, setPageError, pageMessage, setPageMessage, loading,
-    allowed, organizations, selectedOrgId,
-    setSelectedOrgId, selectedPolicyName, setSelectedPolicyName,
-    selectedGroupId, setSelectedGroupId, policyDetail, setPolicyDetail,
-    policyVersions, setPolicyVersions, policyAttachments, setPolicyAttachments,
-    orgPolicies, groupMembers, setGroupMembers, groupPolicies,
-    setGroupPolicies, groupInlinePolicies, setGroupInlinePolicies, roleBoundary,
-    setRoleBoundary, platformUserPolicies,
-    tenantUserPolicies, platformUserInlinePolicies,
-    tenantUserInlinePolicies, platformUserBoundary,
-    tenantUserBoundary, simulation, setSimulation,
-    orgName, setOrgName, orgSlug, setOrgSlug, orgTenantId, setOrgTenantId,
-    orgPolicyName, setOrgPolicyName, policyScope, setPolicyScope, policyName,
-    setPolicyName, policyDescription, setPolicyDescription,
-    policyStatementsJson, setPolicyStatementsJson, policyVersionJson,
-    setPolicyVersionJson, groupScope, setGroupScope, groupTenantId,
-    setGroupTenantId, groupName, setGroupName, groupDescription,
-    setGroupDescription, groupMemberUserId, setGroupMemberUserId,
-    groupPolicyName, setGroupPolicyName, groupInlinePolicyName,
-    setGroupInlinePolicyName, groupInlinePolicyDescription,
-    setGroupInlinePolicyDescription, groupInlinePolicyJson,
-    setGroupInlinePolicyJson, shortcutPlatformUserId,
-    setShortcutPlatformUserId, shortcutPlatformRoleName,
-    setShortcutPlatformRoleName, shortcutTenantId, setShortcutTenantId,
-    shortcutTenantUserId, setShortcutTenantUserId, shortcutTenantRoleName,
-    setShortcutTenantRoleName, trustRoleName, setTrustRoleName,
-    trustBoundaryPolicyName, setTrustBoundaryPolicyName, trustJson,
-    setTrustJson, simScope, setSimScope, simTenantId, setSimTenantId,
-    simTargetUserId, setSimTargetUserId, simAction, setSimAction, simResource,
-    setSimResource, simServicePrincipal, setSimServicePrincipal,
-    simAttributesJson, setSimAttributesJson, simSessionTagsJson,
-    setSimSessionTagsJson, simSessionPolicyJson, setSimSessionPolicyJson,
-    simAssumedRoleId, setSimAssumedRoleId, simAssumedRoleScope,
-    setSimAssumedRoleScope, simAssumedRoleName, setSimAssumedRoleName,
-    simAssumedRoleTenantId, setSimAssumedRoleTenantId,
-    simAssumedRoleSessionName, setSimAssumedRoleSessionName,
-    simAssumedRoleSourceIdentity, setSimAssumedRoleSourceIdentity,
-    simAssumedRoleServicePrincipal, setSimAssumedRoleServicePrincipal,
-    simAssumedRoleExpiresAt, setSimAssumedRoleExpiresAt, principalMode,
-    setPrincipalMode, principalPlatformUserId, setPrincipalPlatformUserId,
-    principalTenantId, setPrincipalTenantId, principalTenantUserId,
-    setPrincipalTenantUserId, principalManagedPolicyName,
-    setPrincipalManagedPolicyName, principalBoundaryPolicyName,
-    setPrincipalBoundaryPolicyName, principalInlinePolicyName,
-    setPrincipalInlinePolicyName, principalInlinePolicyDescription,
-    setPrincipalInlinePolicyDescription, principalInlinePolicyJson,
-    setPrincipalInlinePolicyJson, tenantOptions, policyOptions,
-    organizationOptions, groupOptions,
-  } = iamState;
-  const {
-    loadBootstrap,
-    loadGroupsForScope,
-    loadSelectedPolicy,
-    loadSelectedOrganization,
-    loadSelectedGroup,
-    loadTrustPolicy,
-    loadPrincipalControls,
-  } = useAdminIamLoaders(iamState, userID);
-
-  const buildAssumedRoleSession = () => {
-    const roleId = Number.parseInt(simAssumedRoleId().trim(), 10);
-    if (!Number.isFinite(roleId) || roleId <= 0) return undefined;
-    return {
-      assumedRoleId: roleId,
-      assumedRoleScope: simAssumedRoleScope().trim(),
-      assumedRoleName: simAssumedRoleName().trim(),
-      assumedRoleTenantId: simAssumedRoleTenantId().trim() || undefined,
-      assumedRoleSessionName: simAssumedRoleSessionName().trim() || undefined,
-      assumedRoleSourceIdentity:
-        simAssumedRoleSourceIdentity().trim() || undefined,
-      assumedRoleServicePrincipal:
-        simAssumedRoleServicePrincipal().trim() || undefined,
-      assumedRoleExpiresAt: simAssumedRoleExpiresAt().trim() || undefined,
-      sessionTags: parseJSONObject(simSessionTagsJson(), 'Session tags'),
-    };
-  };
+  const state = useAdminIamState(userID);
+  const loaders = useAdminIamLoaders(state, userID);
+  const actions = useAdminIamActions(state, loaders);
 
   createEffect(() => {
-    if (
-      simAssumedRoleScope() === 'tenant' &&
-      simTenantId().trim() &&
-      !simAssumedRoleTenantId().trim()
-    ) {
-      setSimAssumedRoleTenantId(simTenantId().trim());
-    }
-  });
-
-  const applyServiceAssumePreset = () => {
-    setSimScope('platform');
-    setSimAction('order:update');
-    setSimResource('*');
-    setSimServicePrincipal('backoffice.podzone.internal');
-    setSimAssumedRoleScope('platform');
-    setSimAssumedRoleName('platform_admin');
-    setSimAssumedRoleSourceIdentity('backoffice-admin');
-    setSimAssumedRoleSessionName('service-assume');
-    setSimAssumedRoleServicePrincipal('backoffice.podzone.internal');
-    setSimAttributesJson(prettyJSON({ lane: 'priority' }));
-    setSimSessionTagsJson(prettyJSON({ team: 'ops', path: 'service-assume' }));
-  };
-
-  const applyTenantAssumePreset = () => {
-    setSimScope('tenant');
-    setSimAction('order:update');
-    setSimResource('*');
-    setSimAssumedRoleScope('tenant');
-    setSimAssumedRoleName('tenant_admin');
-    setSimAssumedRoleTenantId(simTenantId().trim());
-    setSimAssumedRoleSessionName('tenant-admin-review');
-    setSimAssumedRoleSourceIdentity('store-ops');
-    setSimAssumedRoleServicePrincipal('');
-    setSimAttributesJson(prettyJSON({ lane: 'priority', region: 'us' }));
-    setSimSessionTagsJson(prettyJSON({ team: 'ops', store: simTenantId().trim() || 'tenant' }));
-  };
-
-  const applyScopeDownDenyPreset = () => {
-    setSimAction('order:update');
-    setSimResource('*');
-    setSimSessionPolicyJson(
-      prettyJSON([
-        {
-          effect: 'deny',
-          actionPattern: 'order:update',
-          resourcePattern: '*',
-          conditions: [],
-        },
-      ])
-    );
-    setSimAttributesJson(prettyJSON({ lane: 'restricted' }));
-    setSimSessionTagsJson(prettyJSON({ team: 'ops', mode: 'scope-down' }));
-  };
-
-  createEffect(() => {
-    void selectedPolicyName();
-    if (allowed()) void loadSelectedPolicy();
+    void state.selectedPolicyName();
+    if (state.allowed()) void loaders.loadSelectedPolicy();
   });
 
   createEffect(() => {
-    void selectedOrgId();
-    if (allowed()) void loadSelectedOrganization();
+    void state.selectedOrgId();
+    if (state.allowed()) void loaders.loadSelectedOrganization();
   });
 
   createEffect(() => {
-    void selectedGroupId();
-    if (allowed()) void loadSelectedGroup();
+    void state.selectedGroupId();
+    if (state.allowed()) void loaders.loadSelectedGroup();
   });
 
   createEffect(() => {
-    void groupScope();
-    void groupTenantId();
-    if (allowed()) void loadGroupsForScope();
+    void state.groupScope();
+    void state.groupTenantId();
+    if (state.allowed()) void loaders.loadGroupsForScope();
   });
 
   createEffect(() => {
-    void principalMode();
-    void principalPlatformUserId();
-    void principalTenantId();
-    void principalTenantUserId();
-    if (allowed()) void loadPrincipalControls();
+    void state.principalMode();
+    void state.principalPlatformUserId();
+    void state.principalTenantId();
+    void state.principalTenantUserId();
+    if (state.allowed()) void loaders.loadPrincipalControls();
   });
 
   onMount(() => {
-    void loadBootstrap();
+    void loaders.loadBootstrap();
   });
-
-  const runAction = async (work: () => Promise<void>) => {
-    setPageError('');
-    setPageMessage('');
-    try {
-      await work();
-    } catch (error) {
-      setPageError(error instanceof Error ? error.message : 'Action failed');
-    }
-  };
-
-  const submitCreateOrganization = async (event: SubmitEvent) => {
-    event.preventDefault();
-    await runAction(async () => {
-      const result = await createOrganization({
-        name: orgName().trim(),
-        slug: orgSlug().trim(),
-      });
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Created organization ${result.data.organization?.slug || orgName()}.`);
-      setOrgName('');
-      setOrgSlug('');
-      await loadBootstrap();
-    });
-  };
-
-  const handleAttachTenantToOrg = async () => {
-    await runAction(async () => {
-      const result = await attachTenantToOrganization(selectedOrgId().trim(), orgTenantId().trim());
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Attached tenant ${orgTenantId().trim()} to organization.`);
-      await loadBootstrap();
-    });
-  };
-
-  const handleDetachTenantFromOrg = async (tenantId: string) => {
-    await runAction(async () => {
-      const result = await detachTenantFromOrganization(selectedOrgId().trim(), tenantId);
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Detached tenant ${tenantId} from organization.`);
-      await loadBootstrap();
-    });
-  };
-
-  const handleAttachScp = async () => {
-    await runAction(async () => {
-      const result = await attachServiceControlPolicy(selectedOrgId().trim(), orgPolicyName().trim());
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Attached SCP ${orgPolicyName().trim()}.`);
-      setOrgPolicyName('');
-      await loadSelectedOrganization();
-      await loadSelectedPolicy();
-    });
-  };
-
-  const handleDetachScp = async (policyName: string) => {
-    await runAction(async () => {
-      const result = await detachServiceControlPolicy(selectedOrgId().trim(), policyName);
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Detached SCP ${policyName}.`);
-      await loadSelectedOrganization();
-      await loadSelectedPolicy();
-    });
-  };
-
-  const submitCreatePolicy = async (event: SubmitEvent) => {
-    event.preventDefault();
-    await runAction(async () => {
-      const statements = parseJSONArray<PolicyStatement>(policyStatementsJson(), 'Policy statements');
-      const result = await createPolicy({
-        scope: policyScope(),
-        name: policyName().trim(),
-        description: policyDescription().trim(),
-        statements,
-      });
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Created policy ${policyName().trim()}.`);
-      setPolicyName('');
-      setPolicyDescription('');
-      await loadBootstrap();
-    });
-  };
-
-  const handleCreatePolicyVersion = async () => {
-    await runAction(async () => {
-      const statements = parseJSONArray<PolicyStatement>(policyVersionJson(), 'Policy version statements');
-      const result = await createPolicyVersion({
-        name: selectedPolicyName().trim(),
-        statements,
-        setAsDefault: false,
-      });
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Created a new version for ${selectedPolicyName().trim()}.`);
-      await loadSelectedPolicy();
-    });
-  };
-
-  const handleDeletePolicy = async () => {
-    await runAction(async () => {
-      const name = selectedPolicyName().trim();
-      const result = await deletePolicy(name);
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Deleted policy ${name}.`);
-      setSelectedPolicyName('');
-      setPolicyDetail(undefined);
-      setPolicyVersions([]);
-      setPolicyAttachments([]);
-      await loadBootstrap();
-    });
-  };
-
-  const handleSetDefaultVersion = async (version: string) => {
-    await runAction(async () => {
-      const result = await setDefaultPolicyVersion(selectedPolicyName().trim(), version);
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Set ${version} as default for ${selectedPolicyName().trim()}.`);
-      await loadSelectedPolicy();
-    });
-  };
-
-  const handleDeleteVersion = async (version: string) => {
-    await runAction(async () => {
-      const result = await deletePolicyVersion(selectedPolicyName().trim(), version);
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Deleted policy version ${version}.`);
-      await loadSelectedPolicy();
-    });
-  };
-
-  const submitCreateGroup = async (event: SubmitEvent) => {
-    event.preventDefault();
-    await runAction(async () => {
-      const result = await createGroup({
-        scope: groupScope(),
-        tenantId: groupScope() === 'tenant' ? groupTenantId().trim() : undefined,
-        name: groupName().trim(),
-        description: groupDescription().trim(),
-      });
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Created group ${groupName().trim()}.`);
-      setGroupName('');
-      setGroupDescription('');
-      await loadGroupsForScope();
-    });
-  };
-
-  const handleAddGroupMember = async () => {
-    await runAction(async () => {
-      const groupId = Number.parseInt(selectedGroupId().trim(), 10);
-      const userId = Number.parseInt(groupMemberUserId().trim(), 10);
-      const result = await addGroupMember(groupId, userId);
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Added user ${userId} to group.`);
-      setGroupMemberUserId('');
-      await loadSelectedGroup();
-    });
-  };
-
-  const handleRemoveGroupMember = async (userId: number) => {
-    await runAction(async () => {
-      const groupId = Number.parseInt(selectedGroupId().trim(), 10);
-      const result = await removeGroupMember(groupId, userId);
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Removed user ${userId} from group.`);
-      await loadSelectedGroup();
-    });
-  };
-
-  const handleAttachGroupPolicy = async () => {
-    await runAction(async () => {
-      const groupId = Number.parseInt(selectedGroupId().trim(), 10);
-      const result = await attachGroupPolicy(groupId, groupPolicyName().trim());
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Attached policy ${groupPolicyName().trim()} to group.`);
-      setGroupPolicyName('');
-      await loadSelectedGroup();
-      await loadSelectedPolicy();
-    });
-  };
-
-  const handleDetachGroupPolicy = async (policyName: string) => {
-    await runAction(async () => {
-      const groupId = Number.parseInt(selectedGroupId().trim(), 10);
-      const result = await detachGroupPolicy(groupId, policyName);
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Detached policy ${policyName} from group.`);
-      await loadSelectedGroup();
-      await loadSelectedPolicy();
-    });
-  };
-
-  const handleDeleteGroup = async () => {
-    await runAction(async () => {
-      const groupId = Number.parseInt(selectedGroupId().trim(), 10);
-      const result = await deleteGroup(groupId);
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Deleted group ${selectedGroupId().trim()}.`);
-      setSelectedGroupId('');
-      setGroupMembers([]);
-      setGroupPolicies([]);
-      setGroupInlinePolicies([]);
-      await loadGroupsForScope();
-    });
-  };
-
-  const handleSaveGroupInlinePolicy = async () => {
-    await runAction(async () => {
-      const groupId = Number.parseInt(selectedGroupId().trim(), 10);
-      const statements = parseJSONArray<PolicyStatement>(groupInlinePolicyJson(), 'Group inline policy');
-      const result = await putGroupInlinePolicy(
-        groupId,
-        groupInlinePolicyName().trim(),
-        groupInlinePolicyDescription().trim(),
-        statements
-      );
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Saved group inline policy ${groupInlinePolicyName().trim()}.`);
-      setGroupInlinePolicyName('');
-      setGroupInlinePolicyDescription('');
-      await loadSelectedGroup();
-    });
-  };
-
-  const handleDeleteGroupInlinePolicy = async (name: string) => {
-    await runAction(async () => {
-      const groupId = Number.parseInt(selectedGroupId().trim(), 10);
-      const result = await deleteGroupInlinePolicy(groupId, name);
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Deleted group inline policy ${name}.`);
-      await loadSelectedGroup();
-    });
-  };
-
-  const handleSaveTrustPolicy = async () => {
-    await runAction(async () => {
-      const statements = parseJSONArray<RoleTrustStatement>(trustJson(), 'Trust policy');
-      const result = await putRoleTrustPolicy({
-        roleName: trustRoleName().trim(),
-        statements,
-      });
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Saved trust policy for role ${trustRoleName().trim()}.`);
-      await loadTrustPolicy();
-    });
-  };
-
-  const handleSaveRoleBoundary = async () => {
-    await runAction(async () => {
-      const result = await putRolePermissionBoundary(
-        trustRoleName().trim(),
-        trustBoundaryPolicyName().trim()
-      );
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Saved role boundary for ${trustRoleName().trim()}.`);
-      await loadTrustPolicy();
-    });
-  };
-
-  const handleDeleteRoleBoundary = async () => {
-    await runAction(async () => {
-      const result = await deleteRolePermissionBoundary(trustRoleName().trim());
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Deleted role boundary for ${trustRoleName().trim()}.`);
-      setRoleBoundary(null);
-      setTrustBoundaryPolicyName('');
-    });
-  };
-
-  const handleSimulate = async () => {
-    await runAction(async () => {
-      const result = await simulateAccess({
-        scope: simScope(),
-        tenantId: simTenantId().trim() || undefined,
-        userId: Number.parseInt(simTargetUserId().trim(), 10),
-        action: simAction().trim(),
-        resource: simResource().trim(),
-        useAssumedRole: Boolean(buildAssumedRoleSession()),
-        assumedRoleSession: buildAssumedRoleSession(),
-        sessionPolicy: parseJSONArray<PolicyStatement>(simSessionPolicyJson(), 'Session policy'),
-        attributes: parseJSONObject(simAttributesJson(), 'Simulation attributes'),
-        servicePrincipal: simServicePrincipal().trim() || undefined,
-        sessionTags: parseJSONObject(simSessionTagsJson(), 'Session tags'),
-      });
-      if (!result.success) throw new Error(result.message);
-      setSimulation(result.data);
-      setPageMessage(
-        `Simulation completed: ${result.data.allowed ? 'allowed' : 'denied'} via ${result.data.decisionSource}.`
-      );
-    });
-  };
-
-  const handleAttachPrincipalManagedPolicy = async () => {
-    await runAction(async () => {
-      if (principalMode() === 'platform') {
-        const targetUserId = Number.parseInt(principalPlatformUserId().trim(), 10);
-        const result = await attachPlatformUserPolicy(targetUserId, principalManagedPolicyName().trim());
-        if (!result.success) throw new Error(result.message);
-      } else {
-        const targetUserId = Number.parseInt(principalTenantUserId().trim(), 10);
-        const result = await attachTenantUserPolicy(
-          principalTenantId().trim(),
-          targetUserId,
-          principalManagedPolicyName().trim()
-        );
-        if (!result.success) throw new Error(result.message);
-      }
-      setPageMessage(`Attached managed policy ${principalManagedPolicyName().trim()}.`);
-      setPrincipalManagedPolicyName('');
-      await loadPrincipalControls();
-      await loadSelectedPolicy();
-    });
-  };
-
-  const handleDetachPrincipalManagedPolicy = async (policyName: string) => {
-    await runAction(async () => {
-      if (principalMode() === 'platform') {
-        const targetUserId = Number.parseInt(principalPlatformUserId().trim(), 10);
-        const result = await detachPlatformUserPolicy(targetUserId, policyName);
-        if (!result.success) throw new Error(result.message);
-      } else {
-        const targetUserId = Number.parseInt(principalTenantUserId().trim(), 10);
-        const result = await detachTenantUserPolicy(principalTenantId().trim(), targetUserId, policyName);
-        if (!result.success) throw new Error(result.message);
-      }
-      setPageMessage(`Detached managed policy ${policyName}.`);
-      await loadPrincipalControls();
-      await loadSelectedPolicy();
-    });
-  };
-
-  const handleSavePrincipalInlinePolicy = async () => {
-    await runAction(async () => {
-      const statements = parseJSONArray<PolicyStatement>(principalInlinePolicyJson(), 'Inline policy');
-      if (principalMode() === 'platform') {
-        const targetUserId = Number.parseInt(principalPlatformUserId().trim(), 10);
-        const result = await putPlatformUserInlinePolicy(
-          targetUserId,
-          principalInlinePolicyName().trim(),
-          principalInlinePolicyDescription().trim(),
-          statements
-        );
-        if (!result.success) throw new Error(result.message);
-      } else {
-        const targetUserId = Number.parseInt(principalTenantUserId().trim(), 10);
-        const result = await putTenantUserInlinePolicy(
-          principalTenantId().trim(),
-          targetUserId,
-          principalInlinePolicyName().trim(),
-          principalInlinePolicyDescription().trim(),
-          statements
-        );
-        if (!result.success) throw new Error(result.message);
-      }
-      setPageMessage(`Saved inline policy ${principalInlinePolicyName().trim()}.`);
-      setPrincipalInlinePolicyName('');
-      setPrincipalInlinePolicyDescription('');
-      await loadPrincipalControls();
-    });
-  };
-
-  const handleDeletePrincipalInlinePolicy = async (name: string) => {
-    await runAction(async () => {
-      if (principalMode() === 'platform') {
-        const targetUserId = Number.parseInt(principalPlatformUserId().trim(), 10);
-        const result = await deletePlatformUserInlinePolicy(targetUserId, name);
-        if (!result.success) throw new Error(result.message);
-      } else {
-        const targetUserId = Number.parseInt(principalTenantUserId().trim(), 10);
-        const result = await deleteTenantUserInlinePolicy(principalTenantId().trim(), targetUserId, name);
-        if (!result.success) throw new Error(result.message);
-      }
-      setPageMessage(`Deleted inline policy ${name}.`);
-      await loadPrincipalControls();
-    });
-  };
-
-  const handleSavePrincipalBoundary = async () => {
-    await runAction(async () => {
-      if (principalMode() === 'platform') {
-        const targetUserId = Number.parseInt(principalPlatformUserId().trim(), 10);
-        const result = await putPlatformUserPermissionBoundary(
-          targetUserId,
-          principalBoundaryPolicyName().trim()
-        );
-        if (!result.success) throw new Error(result.message);
-      } else {
-        const targetUserId = Number.parseInt(principalTenantUserId().trim(), 10);
-        const result = await putTenantUserPermissionBoundary(
-          principalTenantId().trim(),
-          targetUserId,
-          principalBoundaryPolicyName().trim()
-        );
-        if (!result.success) throw new Error(result.message);
-      }
-      setPageMessage(`Saved principal boundary ${principalBoundaryPolicyName().trim()}.`);
-      await loadPrincipalControls();
-      await loadSelectedPolicy();
-    });
-  };
-
-  const handleDeletePrincipalBoundary = async () => {
-    await runAction(async () => {
-      if (principalMode() === 'platform') {
-        const targetUserId = Number.parseInt(principalPlatformUserId().trim(), 10);
-        const result = await deletePlatformUserPermissionBoundary(targetUserId);
-        if (!result.success) throw new Error(result.message);
-      } else {
-        const targetUserId = Number.parseInt(principalTenantUserId().trim(), 10);
-        const result = await deleteTenantUserPermissionBoundary(principalTenantId().trim(), targetUserId);
-        if (!result.success) throw new Error(result.message);
-      }
-      setPageMessage('Deleted principal permission boundary.');
-      setPrincipalBoundaryPolicyName('');
-      await loadPrincipalControls();
-      await loadSelectedPolicy();
-    });
-  };
-
-  const handleAssignPlatformRole = async () => {
-    await runAction(async () => {
-      const targetUserId = Number.parseInt(shortcutPlatformUserId().trim(), 10);
-      const result = await upsertPlatformRole({
-        targetUserId,
-        roleName: shortcutPlatformRoleName(),
-      });
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Assigned platform role ${shortcutPlatformRoleName()} to user ${targetUserId}.`);
-    });
-  };
-
-  const handleRemovePlatformRoleShortcut = async () => {
-    await runAction(async () => {
-      const targetUserId = Number.parseInt(shortcutPlatformUserId().trim(), 10);
-      const result = await removePlatformRole(targetUserId, shortcutPlatformRoleName());
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Removed platform role ${shortcutPlatformRoleName()} from user ${targetUserId}.`);
-    });
-  };
-
-  const handleAssignTenantRole = async () => {
-    await runAction(async () => {
-      const targetUserId = Number.parseInt(shortcutTenantUserId().trim(), 10);
-      const result = await upsertTenantMember({
-        tenantId: shortcutTenantId().trim(),
-        userId: targetUserId,
-        roleName: shortcutTenantRoleName(),
-      });
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Assigned tenant role ${shortcutTenantRoleName()} to user ${targetUserId}.`);
-    });
-  };
-
-  const handleRemoveTenantMembershipShortcut = async () => {
-    await runAction(async () => {
-      const targetUserId = Number.parseInt(shortcutTenantUserId().trim(), 10);
-      const result = await removeTenantMember(shortcutTenantId().trim(), targetUserId);
-      if (!result.success) throw new Error(result.message);
-      setPageMessage(`Removed tenant membership for user ${targetUserId}.`);
-    });
-  };
 
   const policyContextValue = {
     policyScopeOptions,
-    policyScope,
-    setPolicyScope,
-    policyName,
-    setPolicyName,
-    policyDescription,
-    setPolicyDescription,
-    policyStatementsJson,
-    setPolicyStatementsJson,
-    policyVersionJson,
-    setPolicyVersionJson,
-    selectedPolicyName,
-    setSelectedPolicyName,
-    policyOptions,
-    policyDetail,
-    policyVersions,
-    policyAttachments,
+    policyScope: state.policyScope,
+    setPolicyScope: state.setPolicyScope,
+    policyName: state.policyName,
+    setPolicyName: state.setPolicyName,
+    policyDescription: state.policyDescription,
+    setPolicyDescription: state.setPolicyDescription,
+    policyStatementsJson: state.policyStatementsJson,
+    setPolicyStatementsJson: state.setPolicyStatementsJson,
+    policyVersionJson: state.policyVersionJson,
+    setPolicyVersionJson: state.setPolicyVersionJson,
+    selectedPolicyName: state.selectedPolicyName,
+    setSelectedPolicyName: state.setSelectedPolicyName,
+    policyOptions: state.policyOptions,
+    policyDetail: state.policyDetail,
+    policyVersions: state.policyVersions,
+    policyAttachments: state.policyAttachments,
     attachmentColor,
-    submitCreatePolicy,
-    handleCreatePolicyVersion,
-    handleDeletePolicy,
-    handleSetDefaultVersion,
-    handleDeleteVersion,
+    submitCreatePolicy: actions.submitCreatePolicy,
+    handleCreatePolicyVersion: actions.handleCreatePolicyVersion,
+    handleDeletePolicy: actions.handleDeletePolicy,
+    handleSetDefaultVersion: actions.handleSetDefaultVersion,
+    handleDeleteVersion: actions.handleDeleteVersion,
   };
 
   const groupContextValue = {
     groupScopeOptions,
-    groupScope,
-    setGroupScope,
-    groupTenantId,
-    setGroupTenantId,
-    tenantOptions,
-    groupName,
-    setGroupName,
-    groupDescription,
-    setGroupDescription,
-    submitCreateGroup,
-    groupOptions,
-    selectedGroupId,
-    setSelectedGroupId,
-    groupMemberUserId,
-    setGroupMemberUserId,
-    groupPolicyName,
-    setGroupPolicyName,
-    handleAddGroupMember,
-    handleAttachGroupPolicy,
-    handleDeleteGroup,
-    groupMembers,
-    handleRemoveGroupMember,
-    groupPolicies,
-    handleDetachGroupPolicy,
-    groupInlinePolicyName,
-    setGroupInlinePolicyName,
-    groupInlinePolicyDescription,
-    setGroupInlinePolicyDescription,
-    groupInlinePolicyJson,
-    setGroupInlinePolicyJson,
-    handleSaveGroupInlinePolicy,
-    groupInlinePolicies,
-    handleDeleteGroupInlinePolicy,
+    groupScope: state.groupScope,
+    setGroupScope: state.setGroupScope,
+    groupTenantId: state.groupTenantId,
+    setGroupTenantId: state.setGroupTenantId,
+    tenantOptions: state.tenantOptions,
+    groupName: state.groupName,
+    setGroupName: state.setGroupName,
+    groupDescription: state.groupDescription,
+    setGroupDescription: state.setGroupDescription,
+    submitCreateGroup: actions.submitCreateGroup,
+    groupOptions: state.groupOptions,
+    selectedGroupId: state.selectedGroupId,
+    setSelectedGroupId: state.setSelectedGroupId,
+    groupMemberUserId: state.groupMemberUserId,
+    setGroupMemberUserId: state.setGroupMemberUserId,
+    groupPolicyName: state.groupPolicyName,
+    setGroupPolicyName: state.setGroupPolicyName,
+    handleAddGroupMember: actions.handleAddGroupMember,
+    handleAttachGroupPolicy: actions.handleAttachGroupPolicy,
+    handleDeleteGroup: actions.handleDeleteGroup,
+    groupMembers: state.groupMembers,
+    handleRemoveGroupMember: actions.handleRemoveGroupMember,
+    groupPolicies: state.groupPolicies,
+    handleDetachGroupPolicy: actions.handleDetachGroupPolicy,
+    groupInlinePolicyName: state.groupInlinePolicyName,
+    setGroupInlinePolicyName: state.setGroupInlinePolicyName,
+    groupInlinePolicyDescription: state.groupInlinePolicyDescription,
+    setGroupInlinePolicyDescription: state.setGroupInlinePolicyDescription,
+    groupInlinePolicyJson: state.groupInlinePolicyJson,
+    setGroupInlinePolicyJson: state.setGroupInlinePolicyJson,
+    handleSaveGroupInlinePolicy: actions.handleSaveGroupInlinePolicy,
+    groupInlinePolicies: state.groupInlinePolicies,
+    handleDeleteGroupInlinePolicy: actions.handleDeleteGroupInlinePolicy,
   };
 
   const principalContextValue = {
-    principalMode,
-    setPrincipalMode,
-    principalPlatformUserId,
-    setPrincipalPlatformUserId,
-    principalTenantId,
-    setPrincipalTenantId,
-    principalTenantUserId,
-    setPrincipalTenantUserId,
-    tenantOptions,
-    principalManagedPolicyName,
-    setPrincipalManagedPolicyName,
-    handleAttachPrincipalManagedPolicy,
+    principalMode: state.principalMode,
+    setPrincipalMode: state.setPrincipalMode,
+    principalPlatformUserId: state.principalPlatformUserId,
+    setPrincipalPlatformUserId: state.setPrincipalPlatformUserId,
+    principalTenantId: state.principalTenantId,
+    setPrincipalTenantId: state.setPrincipalTenantId,
+    principalTenantUserId: state.principalTenantUserId,
+    setPrincipalTenantUserId: state.setPrincipalTenantUserId,
+    tenantOptions: state.tenantOptions,
+    principalManagedPolicyName: state.principalManagedPolicyName,
+    setPrincipalManagedPolicyName: state.setPrincipalManagedPolicyName,
+    handleAttachPrincipalManagedPolicy:
+      actions.handleAttachPrincipalManagedPolicy,
     currentManagedPolicies: () =>
-      principalMode() === 'platform'
-        ? platformUserPolicies()
-        : tenantUserPolicies(),
-    handleDetachPrincipalManagedPolicy,
-    principalBoundaryPolicyName,
-    setPrincipalBoundaryPolicyName,
-    handleSavePrincipalBoundary,
-    handleDeletePrincipalBoundary,
+      state.principalMode() === 'platform'
+        ? state.platformUserPolicies()
+        : state.tenantUserPolicies(),
+    handleDetachPrincipalManagedPolicy:
+      actions.handleDetachPrincipalManagedPolicy,
+    principalBoundaryPolicyName: state.principalBoundaryPolicyName,
+    setPrincipalBoundaryPolicyName: state.setPrincipalBoundaryPolicyName,
+    handleSavePrincipalBoundary: actions.handleSavePrincipalBoundary,
+    handleDeletePrincipalBoundary: actions.handleDeletePrincipalBoundary,
     currentBoundary: () =>
-      principalMode() === 'platform'
-        ? platformUserBoundary()
-        : tenantUserBoundary(),
-    principalInlinePolicyName,
-    setPrincipalInlinePolicyName,
-    principalInlinePolicyDescription,
-    setPrincipalInlinePolicyDescription,
-    principalInlinePolicyJson,
-    setPrincipalInlinePolicyJson,
-    handleSavePrincipalInlinePolicy,
+      state.principalMode() === 'platform'
+        ? state.platformUserBoundary()
+        : state.tenantUserBoundary(),
+    principalInlinePolicyName: state.principalInlinePolicyName,
+    setPrincipalInlinePolicyName: state.setPrincipalInlinePolicyName,
+    principalInlinePolicyDescription: state.principalInlinePolicyDescription,
+    setPrincipalInlinePolicyDescription:
+      state.setPrincipalInlinePolicyDescription,
+    principalInlinePolicyJson: state.principalInlinePolicyJson,
+    setPrincipalInlinePolicyJson: state.setPrincipalInlinePolicyJson,
+    handleSavePrincipalInlinePolicy: actions.handleSavePrincipalInlinePolicy,
     currentInlinePolicies: () =>
-      principalMode() === 'platform'
-        ? platformUserInlinePolicies()
-        : tenantUserInlinePolicies(),
-    handleDeletePrincipalInlinePolicy,
+      state.principalMode() === 'platform'
+        ? state.platformUserInlinePolicies()
+        : state.tenantUserInlinePolicies(),
+    handleDeletePrincipalInlinePolicy:
+      actions.handleDeletePrincipalInlinePolicy,
   };
 
   const trustSimContextValue = {
-    trustRoleName,
-    setTrustRoleName,
-    loadTrustPolicy,
-    handleSaveTrustPolicy,
-    trustBoundaryPolicyName,
-    setTrustBoundaryPolicyName,
-    handleSaveRoleBoundary,
-    handleDeleteRoleBoundary,
-    roleBoundary,
-    trustJson,
-    setTrustJson,
-    simScope,
-    setSimScope,
+    trustRoleName: state.trustRoleName,
+    setTrustRoleName: state.setTrustRoleName,
+    loadTrustPolicy: loaders.loadTrustPolicy,
+    handleSaveTrustPolicy: actions.handleSaveTrustPolicy,
+    trustBoundaryPolicyName: state.trustBoundaryPolicyName,
+    setTrustBoundaryPolicyName: state.setTrustBoundaryPolicyName,
+    handleSaveRoleBoundary: actions.handleSaveRoleBoundary,
+    handleDeleteRoleBoundary: actions.handleDeleteRoleBoundary,
+    roleBoundary: state.roleBoundary,
+    trustJson: state.trustJson,
+    setTrustJson: state.setTrustJson,
+    simScope: state.simScope,
+    setSimScope: state.setSimScope,
     policyScopeOptions,
-    simTargetUserId,
-    setSimTargetUserId,
-    tenantOptions,
-    simTenantId,
-    setSimTenantId,
-    simAction,
-    setSimAction,
-    simResource,
-    setSimResource,
-    simServicePrincipal,
-    setSimServicePrincipal,
-    applyServiceAssumePreset,
-    applyTenantAssumePreset,
-    applyScopeDownDenyPreset,
-    simAttributesJson,
-    setSimAttributesJson,
-    simSessionTagsJson,
-    setSimSessionTagsJson,
-    simSessionPolicyJson,
-    setSimSessionPolicyJson,
-    simAssumedRoleId,
-    setSimAssumedRoleId,
-    simAssumedRoleScope,
-    setSimAssumedRoleScope,
-    simAssumedRoleName,
-    setSimAssumedRoleName,
-    simAssumedRoleTenantId,
-    setSimAssumedRoleTenantId,
-    simAssumedRoleSessionName,
-    setSimAssumedRoleSessionName,
-    simAssumedRoleSourceIdentity,
-    setSimAssumedRoleSourceIdentity,
-    simAssumedRoleServicePrincipal,
-    setSimAssumedRoleServicePrincipal,
-    simAssumedRoleExpiresAt,
-    setSimAssumedRoleExpiresAt,
-    handleSimulate,
-    simulation,
+    simTargetUserId: state.simTargetUserId,
+    setSimTargetUserId: state.setSimTargetUserId,
+    tenantOptions: state.tenantOptions,
+    simTenantId: state.simTenantId,
+    setSimTenantId: state.setSimTenantId,
+    simAction: state.simAction,
+    setSimAction: state.setSimAction,
+    simResource: state.simResource,
+    setSimResource: state.setSimResource,
+    simServicePrincipal: state.simServicePrincipal,
+    setSimServicePrincipal: state.setSimServicePrincipal,
+    applyServiceAssumePreset: actions.applyServiceAssumePreset,
+    applyTenantAssumePreset: actions.applyTenantAssumePreset,
+    applyScopeDownDenyPreset: actions.applyScopeDownDenyPreset,
+    simAttributesJson: state.simAttributesJson,
+    setSimAttributesJson: state.setSimAttributesJson,
+    simSessionTagsJson: state.simSessionTagsJson,
+    setSimSessionTagsJson: state.setSimSessionTagsJson,
+    simSessionPolicyJson: state.simSessionPolicyJson,
+    setSimSessionPolicyJson: state.setSimSessionPolicyJson,
+    simAssumedRoleId: state.simAssumedRoleId,
+    setSimAssumedRoleId: state.setSimAssumedRoleId,
+    simAssumedRoleScope: state.simAssumedRoleScope,
+    setSimAssumedRoleScope: state.setSimAssumedRoleScope,
+    simAssumedRoleName: state.simAssumedRoleName,
+    setSimAssumedRoleName: state.setSimAssumedRoleName,
+    simAssumedRoleTenantId: state.simAssumedRoleTenantId,
+    setSimAssumedRoleTenantId: state.setSimAssumedRoleTenantId,
+    simAssumedRoleSessionName: state.simAssumedRoleSessionName,
+    setSimAssumedRoleSessionName: state.setSimAssumedRoleSessionName,
+    simAssumedRoleSourceIdentity: state.simAssumedRoleSourceIdentity,
+    setSimAssumedRoleSourceIdentity: state.setSimAssumedRoleSourceIdentity,
+    simAssumedRoleServicePrincipal: state.simAssumedRoleServicePrincipal,
+    setSimAssumedRoleServicePrincipal:
+      state.setSimAssumedRoleServicePrincipal,
+    simAssumedRoleExpiresAt: state.simAssumedRoleExpiresAt,
+    setSimAssumedRoleExpiresAt: state.setSimAssumedRoleExpiresAt,
+    handleSimulate: actions.handleSimulate,
+    simulation: state.simulation,
     simulationSourceColor,
     statementSourceLabel,
     simulationLayerTone,
@@ -853,50 +224,52 @@ export default function AdminIamPage() {
   return (
     <AdminIamView
       model={{
-        pageError,
-        pageMessage,
-        loading,
-        allowed,
+        pageError: state.pageError,
+        pageMessage: state.pageMessage,
+        loading: state.loading,
+        allowed: state.allowed,
         sectionLinks,
         policyContextValue,
         groupContextValue,
         principalContextValue,
         trustSimContextValue,
-        organizationOptions,
-        selectedOrgId,
-        setSelectedOrgId,
-        submitCreateOrganization,
-        orgName,
-        setOrgName,
-        orgSlug,
-        setOrgSlug,
-        orgTenantId,
-        setOrgTenantId,
-        orgPolicyName,
-        setOrgPolicyName,
-        tenantOptions,
-        handleAttachTenantToOrg,
-        handleAttachScp,
-        organizations,
-        orgPolicies,
-        handleDetachTenantFromOrg,
-        handleDetachScp,
-        shortcutPlatformUserId,
-        setShortcutPlatformUserId,
-        shortcutPlatformRoleName,
-        setShortcutPlatformRoleName,
+        organizationOptions: state.organizationOptions,
+        selectedOrgId: state.selectedOrgId,
+        setSelectedOrgId: state.setSelectedOrgId,
+        submitCreateOrganization: actions.submitCreateOrganization,
+        orgName: state.orgName,
+        setOrgName: state.setOrgName,
+        orgSlug: state.orgSlug,
+        setOrgSlug: state.setOrgSlug,
+        orgTenantId: state.orgTenantId,
+        setOrgTenantId: state.setOrgTenantId,
+        orgPolicyName: state.orgPolicyName,
+        setOrgPolicyName: state.setOrgPolicyName,
+        tenantOptions: state.tenantOptions,
+        handleAttachTenantToOrg: actions.handleAttachTenantToOrg,
+        handleAttachScp: actions.handleAttachScp,
+        organizations: state.organizations,
+        orgPolicies: state.orgPolicies,
+        handleDetachTenantFromOrg: actions.handleDetachTenantFromOrg,
+        handleDetachScp: actions.handleDetachScp,
+        shortcutPlatformUserId: state.shortcutPlatformUserId,
+        setShortcutPlatformUserId: state.setShortcutPlatformUserId,
+        shortcutPlatformRoleName: state.shortcutPlatformRoleName,
+        setShortcutPlatformRoleName: state.setShortcutPlatformRoleName,
         platformRoleOptions,
-        handleAssignPlatformRole,
-        handleRemovePlatformRoleShortcut,
-        shortcutTenantId,
-        setShortcutTenantId,
-        shortcutTenantUserId,
-        setShortcutTenantUserId,
-        shortcutTenantRoleName,
-        setShortcutTenantRoleName,
+        handleAssignPlatformRole: actions.handleAssignPlatformRole,
+        handleRemovePlatformRoleShortcut:
+          actions.handleRemovePlatformRoleShortcut,
+        shortcutTenantId: state.shortcutTenantId,
+        setShortcutTenantId: state.setShortcutTenantId,
+        shortcutTenantUserId: state.shortcutTenantUserId,
+        setShortcutTenantUserId: state.setShortcutTenantUserId,
+        shortcutTenantRoleName: state.shortcutTenantRoleName,
+        setShortcutTenantRoleName: state.setShortcutTenantRoleName,
         tenantRoleOptions,
-        handleAssignTenantRole,
-        handleRemoveTenantMembershipShortcut,
+        handleAssignTenantRole: actions.handleAssignTenantRole,
+        handleRemoveTenantMembershipShortcut:
+          actions.handleRemoveTenantMembershipShortcut,
       }}
     />
   );
