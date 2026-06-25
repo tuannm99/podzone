@@ -1,6 +1,11 @@
 import { createContext, useContext } from 'solid-js';
 import type { Accessor, ParentProps, Setter } from 'solid-js';
 import type { PermissionBoundary, PolicyInfo, UserInlinePolicy } from '@/services/iam';
+import type {
+  PrincipalBoundaryFormValues,
+  PrincipalInlinePolicyFormValues,
+  PrincipalManagedPolicyFormValues,
+} from './principal-forms';
 
 export type TenantOption = {
   name: string;
@@ -21,11 +26,17 @@ export type AdminIamPrincipalContextValue = {
   tenantOptions: Accessor<TenantOption[]>;
   principalManagedPolicyName: Accessor<string>;
   setPrincipalManagedPolicyName: Setter<string>;
+  attachPrincipalManagedPolicyFromForm: (
+    values: PrincipalManagedPolicyFormValues
+  ) => Promise<void>;
   handleAttachPrincipalManagedPolicy: () => Promise<void>;
   currentManagedPolicies: Accessor<PolicyInfo[]>;
   handleDetachPrincipalManagedPolicy: (policyName: string) => Promise<void>;
   principalBoundaryPolicyName: Accessor<string>;
   setPrincipalBoundaryPolicyName: Setter<string>;
+  savePrincipalBoundaryFromForm: (
+    values: PrincipalBoundaryFormValues
+  ) => Promise<void>;
   handleSavePrincipalBoundary: () => Promise<void>;
   handleDeletePrincipalBoundary: () => Promise<void>;
   currentBoundary: Accessor<PermissionBoundary | null>;
@@ -35,6 +46,9 @@ export type AdminIamPrincipalContextValue = {
   setPrincipalInlinePolicyDescription: Setter<string>;
   principalInlinePolicyJson: Accessor<string>;
   setPrincipalInlinePolicyJson: Setter<string>;
+  savePrincipalInlinePolicyFromForm: (
+    values: PrincipalInlinePolicyFormValues
+  ) => Promise<void>;
   handleSavePrincipalInlinePolicy: () => Promise<void>;
   currentInlinePolicies: Accessor<UserInlinePolicy[]>;
   handleDeletePrincipalInlinePolicy: (name: string) => Promise<void>;

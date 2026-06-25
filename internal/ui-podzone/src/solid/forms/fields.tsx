@@ -1,0 +1,90 @@
+import type { JSX } from 'solid-js';
+import {
+  InputField,
+  SelectField,
+  TextareaField,
+  type SelectOption,
+} from '@/solid/components/common/Primitives';
+import type { FormStore } from './createFormStore';
+
+type StringKey<TValues> = Extract<keyof TValues, string>;
+
+type FormFieldProps<TValues extends Record<string, unknown>> = {
+  form: FormStore<TValues>;
+  name: StringKey<TValues>;
+  label: string;
+};
+
+function stringValue(value: unknown) {
+  return typeof value === 'string' ? value : String(value ?? '');
+}
+
+export function FormInputField<TValues extends Record<string, unknown>>(
+  props: FormFieldProps<TValues> & {
+    type?: string;
+    placeholder?: string;
+  }
+) {
+  return (
+    <InputField
+      label={props.label}
+      type={props.type}
+      placeholder={props.placeholder}
+      value={stringValue(props.form.value(props.name))}
+      error={props.form.hasError(props.name)}
+      errorText={props.form.error(props.name)}
+      onInput={(event) =>
+        props.form.setValue(
+          props.name,
+          event.currentTarget.value as TValues[typeof props.name]
+        )
+      }
+    />
+  );
+}
+
+export function FormSelectField<TValues extends Record<string, unknown>>(
+  props: FormFieldProps<TValues> & {
+    options: SelectOption[];
+  }
+) {
+  return (
+    <SelectField
+      label={props.label}
+      options={props.options}
+      value={stringValue(props.form.value(props.name))}
+      error={props.form.hasError(props.name)}
+      errorText={props.form.error(props.name)}
+      onChange={(event) =>
+        props.form.setValue(
+          props.name,
+          event.currentTarget.value as TValues[typeof props.name]
+        )
+      }
+    />
+  );
+}
+
+export function FormTextareaField<TValues extends Record<string, unknown>>(
+  props: FormFieldProps<TValues> & {
+    rows?: number;
+  }
+) {
+  return (
+    <TextareaField
+      label={props.label}
+      rows={props.rows}
+      value={stringValue(props.form.value(props.name))}
+      error={props.form.hasError(props.name)}
+      errorText={props.form.error(props.name)}
+      onInput={(event) =>
+        props.form.setValue(
+          props.name,
+          event.currentTarget.value as TValues[typeof props.name]
+        )
+      }
+    />
+  );
+}
+
+export type FormSubmitHandler = JSX.EventHandler<HTMLFormElement, SubmitEvent>;

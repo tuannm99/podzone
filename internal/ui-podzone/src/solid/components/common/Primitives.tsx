@@ -189,6 +189,7 @@ export type InputFieldProps = {
   type?: string
   placeholder?: string
   error?: boolean
+  errorText?: string
   onInput: JSX.EventHandlerUnion<HTMLInputElement, InputEvent>
 }
 
@@ -202,6 +203,11 @@ export function InputField(props: InputFieldProps) {
         placeholder={props.placeholder}
         onInput={props.onInput}
       />
+      <Show when={props.errorText}>
+        <span class="block text-xs font-medium text-red-600">
+          {props.errorText}
+        </span>
+      </Show>
     </FieldLabel>
   )
 }
@@ -215,6 +221,8 @@ export type SelectFieldProps = {
   label: string
   value: string
   options: SelectOption[]
+  error?: boolean
+  errorText?: string
   onChange: JSX.EventHandlerUnion<HTMLSelectElement, Event>
 }
 
@@ -222,7 +230,7 @@ export function SelectField(props: SelectFieldProps) {
   return (
     <FieldLabel label={props.label}>
       <select
-        class={fieldBaseClasses()}
+        class={fieldBaseClasses(props.error)}
         value={props.value}
         onChange={props.onChange}
       >
@@ -230,6 +238,11 @@ export function SelectField(props: SelectFieldProps) {
           <option value={option.value}>{option.name}</option>
         ))}
       </select>
+      <Show when={props.errorText}>
+        <span class="block text-xs font-medium text-red-600">
+          {props.errorText}
+        </span>
+      </Show>
     </FieldLabel>
   )
 }
@@ -238,6 +251,8 @@ export type TextareaFieldProps = {
   label: string
   value: string
   rows?: number
+  error?: boolean
+  errorText?: string
   onInput: JSX.EventHandlerUnion<HTMLTextAreaElement, InputEvent>
 }
 
@@ -245,11 +260,16 @@ export function TextareaField(props: TextareaFieldProps) {
   return (
     <FieldLabel label={props.label}>
       <textarea
-        class={classes(fieldBaseClasses(), 'h-auto py-2.5')}
+        class={classes(fieldBaseClasses(props.error), 'h-auto py-2.5')}
         rows={props.rows ?? 6}
         value={props.value}
         onInput={props.onInput}
       />
+      <Show when={props.errorText}>
+        <span class="block text-xs font-medium text-red-600">
+          {props.errorText}
+        </span>
+      </Show>
     </FieldLabel>
   )
 }

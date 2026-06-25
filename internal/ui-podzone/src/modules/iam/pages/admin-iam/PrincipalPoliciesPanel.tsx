@@ -4,12 +4,75 @@ import { IamStatementBuilder } from '@/solid/components/common/IamStatementBuild
 import { Badge, Button, InputField, SelectField } from '@/solid/components/common/Primitives';
 import { SectionTitle } from '@/solid/components/common/SectionTitle';
 import {
+  FormInputField,
+  createFormStore,
+  jsonArray,
+  required,
+} from '@/solid/forms';
+import type {
+  PrincipalBoundaryFormValues,
+  PrincipalInlinePolicyFormValues,
+  PrincipalManagedPolicyFormValues,
+} from './principal-forms';
+import {
   useAdminIamPrincipal,
   type PrincipalMode,
 } from './principal-context';
 
 export function PrincipalPoliciesPanel() {
   const principal = useAdminIamPrincipal();
+  const managedPolicyForm = createFormStore<PrincipalManagedPolicyFormValues>({
+    initialValues: {
+      policyName: principal.principalManagedPolicyName(),
+    },
+    validators: {
+      policyName: [required('Enter a managed policy name.')],
+    },
+  });
+  const boundaryForm = createFormStore<PrincipalBoundaryFormValues>({
+    initialValues: {
+      policyName: principal.principalBoundaryPolicyName(),
+    },
+    validators: {
+      policyName: [required('Enter a boundary policy name.')],
+    },
+  });
+  const inlinePolicyForm = createFormStore<PrincipalInlinePolicyFormValues>({
+    initialValues: {
+      name: principal.principalInlinePolicyName(),
+      description: principal.principalInlinePolicyDescription(),
+      statementsJson: principal.principalInlinePolicyJson(),
+    },
+    validators: {
+      name: [required('Enter an inline policy name.')],
+      statementsJson: [jsonArray('Inline policy statements must be a JSON array.')],
+    },
+  });
+
+  const attachManagedPolicy = async () => {
+    if (!managedPolicyForm.validate()) return;
+    managedPolicyForm.setSubmitting(true);
+    await principal.attachPrincipalManagedPolicyFromForm({
+      ...managedPolicyForm.values,
+    });
+    managedPolicyForm.setSubmitting(false);
+  };
+
+  const saveBoundary = async () => {
+    if (!boundaryForm.validate()) return;
+    boundaryForm.setSubmitting(true);
+    await principal.savePrincipalBoundaryFromForm({ ...boundaryForm.values });
+    boundaryForm.setSubmitting(false);
+  };
+
+  const saveInlinePolicy = async () => {
+    if (!inlinePolicyForm.validate()) return;
+    inlinePolicyForm.setSubmitting(true);
+    await principal.savePrincipalInlinePolicyFromForm({
+      ...inlinePolicyForm.values,
+    });
+    inlinePolicyForm.setSubmitting(false);
+  };
 
   return (
     <>
@@ -56,15 +119,16 @@ export function PrincipalPoliciesPanel() {
       </Show>
 
       <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
-        <InputField
+        <FormInputField
+          form={managedPolicyForm}
+          name="policyName"
           label="Managed policy name"
-          value={principal.principalManagedPolicyName()}
-          onInput={(e) => principal.setPrincipalManagedPolicyName(e.currentTarget.value)}
         />
         <Button
           size="sm"
-          onClick={principal.handleAttachPrincipalManagedPolicy}
-          disabled={!principal.principalManagedPolicyName().trim()}
+          onClick={attachManagedPolicy}
+          disabled={!managedPolicyForm.values.policyName.trim()}
+          loading={managedPolicyForm.isSubmitting()}
         >
           Attach policy
         </Button>
@@ -110,18 +174,17 @@ export function PrincipalPoliciesPanel() {
             even when identity policies allow more.
           </p>
           <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-end">
-            <InputField
+            <FormInputField
+              form={boundaryForm}
+              name="policyName"
               label="Boundary policy"
-              value={principal.principalBoundaryPolicyName()}
-              onInput={(e) =>
-                principal.setPrincipalBoundaryPolicyName(e.currentTarget.value)
-              }
             />
             <Button
               size="sm"
               color="dark"
-              onClick={principal.handleSavePrincipalBoundary}
-              disabled={!principal.principalBoundaryPolicyName().trim()}
+              onClick={saveBoundary}
+              disabled={!boundaryForm.values.policyName.trim()}
+              loading={boundaryForm.isSubmitting()}
             >
               Save
             </Button>
@@ -148,31 +211,35 @@ export function PrincipalPoliciesPanel() {
 
       <div class="space-y-3">
         <div class="grid gap-3 md:grid-cols-2">
-          <InputField
+          <FormInputField
+            form={inlinePolicyForm}
+            name="name"
             label="Inline policy name"
-            value={principal.principalInlinePolicyName()}
-            onInput={(e) =>
-              principal.setPrincipalInlinePolicyName(e.currentTarget.value)
-            }
           />
-          <InputField
+          <FormInputField
+            form={inlinePolicyForm}
+            name="description"
             label="Inline policy description"
-            value={principal.principalInlinePolicyDescription()}
-            onInput={(e) =>
-              principal.setPrincipalInlinePolicyDescription(e.currentTarget.value)
-            }
           />
         </div>
         <IamStatementBuilder
           label="Inline policy statements"
-          value={principal.principalInlinePolicyJson()}
-          onChange={principal.setPrincipalInlinePolicyJson}
+          value={inlinePolicyForm.values.statementsJson}
+          onChange={(value) =>
+            inlinePolicyForm.setValue('statementsJson', value)
+          }
         />
+        <Show when={inlinePolicyForm.hasError('statementsJson')}>
+          <p class="text-xs font-medium text-red-600">
+            {inlinePolicyForm.error('statementsJson')}
+          </p>
+        </Show>
         <Button
           size="sm"
           color="dark"
-          onClick={principal.handleSavePrincipalInlinePolicy}
-          disabled={!principal.principalInlinePolicyName().trim()}
+          onClick={saveInlinePolicy}
+          disabled={!inlinePolicyForm.values.name.trim()}
+          loading={inlinePolicyForm.isSubmitting()}
         >
           Save inline policy
         </Button>

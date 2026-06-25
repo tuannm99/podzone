@@ -23,21 +23,18 @@ import {
   upsertPlatformRole,
   upsertTenantMember,
 } from '@/services/iam';
-import {
-  parseJSONArray,
-  parseJSONObject,
-  prettyJSON,
-} from './presentation';
+import { parseJSONArray, parseJSONObject, prettyJSON } from './presentation';
+import type {
+  PrincipalBoundaryFormValues,
+  PrincipalInlinePolicyFormValues,
+  PrincipalManagedPolicyFormValues,
+} from './principal-forms';
 import type { AdminIamLoaders } from './useAdminIamLoaders';
 import type { AdminIamState } from './useAdminIamState';
 
 type RunAction = (work: () => Promise<void>) => Promise<void>;
 
-export function useAdminIamPrincipalTrustActions(
-  state: AdminIamState,
-  loaders: AdminIamLoaders,
-  runAction: RunAction
-) {
+export function useAdminIamPrincipalTrustActions(state: AdminIamState, loaders: AdminIamLoaders, runAction: RunAction) {
   const buildAssumedRoleSession = () => {
     const roleId = Number.parseInt(state.simAssumedRoleId().trim(), 10);
     if (!Number.isFinite(roleId) || roleId <= 0) return undefined;
@@ -46,14 +43,10 @@ export function useAdminIamPrincipalTrustActions(
       assumedRoleScope: state.simAssumedRoleScope().trim(),
       assumedRoleName: state.simAssumedRoleName().trim(),
       assumedRoleTenantId: state.simAssumedRoleTenantId().trim() || undefined,
-      assumedRoleSessionName:
-        state.simAssumedRoleSessionName().trim() || undefined,
-      assumedRoleSourceIdentity:
-        state.simAssumedRoleSourceIdentity().trim() || undefined,
-      assumedRoleServicePrincipal:
-        state.simAssumedRoleServicePrincipal().trim() || undefined,
-      assumedRoleExpiresAt:
-        state.simAssumedRoleExpiresAt().trim() || undefined,
+      assumedRoleSessionName: state.simAssumedRoleSessionName().trim() || undefined,
+      assumedRoleSourceIdentity: state.simAssumedRoleSourceIdentity().trim() || undefined,
+      assumedRoleServicePrincipal: state.simAssumedRoleServicePrincipal().trim() || undefined,
+      assumedRoleExpiresAt: state.simAssumedRoleExpiresAt().trim() || undefined,
       sessionTags: parseJSONObject(state.simSessionTagsJson(), 'Session tags'),
     };
   };
@@ -196,7 +189,9 @@ export function useAdminIamPrincipalTrustActions(
     });
   };
 
-  const handleAttachPrincipalManagedPolicy = async () => {
+  const attachPrincipalManagedPolicyFromForm = async (
+    values: PrincipalManagedPolicyFormValues
+  ) => {
     await runAction(async () => {
       if (state.principalMode() === 'platform') {
         const targetUserId = Number.parseInt(
@@ -205,7 +200,7 @@ export function useAdminIamPrincipalTrustActions(
         );
         const result = await attachPlatformUserPolicy(
           targetUserId,
-          state.principalManagedPolicyName().trim()
+          values.policyName.trim()
         );
         if (!result.success) throw new Error(result.message);
       } else {
@@ -216,16 +211,22 @@ export function useAdminIamPrincipalTrustActions(
         const result = await attachTenantUserPolicy(
           state.principalTenantId().trim(),
           targetUserId,
-          state.principalManagedPolicyName().trim()
+          values.policyName.trim()
         );
         if (!result.success) throw new Error(result.message);
       }
       state.setPageMessage(
-        `Attached managed policy ${state.principalManagedPolicyName().trim()}.`
+        `Attached managed policy ${values.policyName.trim()}.`
       );
       state.setPrincipalManagedPolicyName('');
       await loaders.loadPrincipalControls();
       await loaders.loadSelectedPolicy();
+    });
+  };
+
+  const handleAttachPrincipalManagedPolicy = async () => {
+    await attachPrincipalManagedPolicyFromForm({
+      policyName: state.principalManagedPolicyName(),
     });
   };
 
@@ -256,10 +257,12 @@ export function useAdminIamPrincipalTrustActions(
     });
   };
 
-  const handleSavePrincipalInlinePolicy = async () => {
+  const savePrincipalInlinePolicyFromForm = async (
+    values: PrincipalInlinePolicyFormValues
+  ) => {
     await runAction(async () => {
       const statements = parseJSONArray<PolicyStatement>(
-        state.principalInlinePolicyJson(),
+        values.statementsJson,
         'Inline policy'
       );
       if (state.principalMode() === 'platform') {
@@ -269,8 +272,8 @@ export function useAdminIamPrincipalTrustActions(
         );
         const result = await putPlatformUserInlinePolicy(
           targetUserId,
-          state.principalInlinePolicyName().trim(),
-          state.principalInlinePolicyDescription().trim(),
+          values.name.trim(),
+          values.description.trim(),
           statements
         );
         if (!result.success) throw new Error(result.message);
@@ -282,18 +285,27 @@ export function useAdminIamPrincipalTrustActions(
         const result = await putTenantUserInlinePolicy(
           state.principalTenantId().trim(),
           targetUserId,
-          state.principalInlinePolicyName().trim(),
-          state.principalInlinePolicyDescription().trim(),
+          values.name.trim(),
+          values.description.trim(),
           statements
         );
         if (!result.success) throw new Error(result.message);
       }
       state.setPageMessage(
-        `Saved inline policy ${state.principalInlinePolicyName().trim()}.`
+        `Saved inline policy ${values.name.trim()}.`
       );
       state.setPrincipalInlinePolicyName('');
       state.setPrincipalInlinePolicyDescription('');
+      state.setPrincipalInlinePolicyJson(values.statementsJson);
       await loaders.loadPrincipalControls();
+    });
+  };
+
+  const handleSavePrincipalInlinePolicy = async () => {
+    await savePrincipalInlinePolicyFromForm({
+      name: state.principalInlinePolicyName(),
+      description: state.principalInlinePolicyDescription(),
+      statementsJson: state.principalInlinePolicyJson(),
     });
   };
 
@@ -323,7 +335,9 @@ export function useAdminIamPrincipalTrustActions(
     });
   };
 
-  const handleSavePrincipalBoundary = async () => {
+  const savePrincipalBoundaryFromForm = async (
+    values: PrincipalBoundaryFormValues
+  ) => {
     await runAction(async () => {
       if (state.principalMode() === 'platform') {
         const targetUserId = Number.parseInt(
@@ -332,7 +346,7 @@ export function useAdminIamPrincipalTrustActions(
         );
         const result = await putPlatformUserPermissionBoundary(
           targetUserId,
-          state.principalBoundaryPolicyName().trim()
+          values.policyName.trim()
         );
         if (!result.success) throw new Error(result.message);
       } else {
@@ -343,15 +357,22 @@ export function useAdminIamPrincipalTrustActions(
         const result = await putTenantUserPermissionBoundary(
           state.principalTenantId().trim(),
           targetUserId,
-          state.principalBoundaryPolicyName().trim()
+          values.policyName.trim()
         );
         if (!result.success) throw new Error(result.message);
       }
       state.setPageMessage(
-        `Saved principal boundary ${state.principalBoundaryPolicyName().trim()}.`
+        `Saved principal boundary ${values.policyName.trim()}.`
       );
+      state.setPrincipalBoundaryPolicyName(values.policyName);
       await loaders.loadPrincipalControls();
       await loaders.loadSelectedPolicy();
+    });
+  };
+
+  const handleSavePrincipalBoundary = async () => {
+    await savePrincipalBoundaryFromForm({
+      policyName: state.principalBoundaryPolicyName(),
     });
   };
 
@@ -457,10 +478,13 @@ export function useAdminIamPrincipalTrustActions(
     handleSaveRoleBoundary,
     handleDeleteRoleBoundary,
     handleSimulate,
+    attachPrincipalManagedPolicyFromForm,
     handleAttachPrincipalManagedPolicy,
     handleDetachPrincipalManagedPolicy,
+    savePrincipalInlinePolicyFromForm,
     handleSavePrincipalInlinePolicy,
     handleDeletePrincipalInlinePolicy,
+    savePrincipalBoundaryFromForm,
     handleSavePrincipalBoundary,
     handleDeletePrincipalBoundary,
     handleAssignPlatformRole,

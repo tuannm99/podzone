@@ -5,6 +5,10 @@ import type {
   PolicyInfo,
   PolicyVersionInfo,
 } from '@/services/iam';
+import type {
+  CreatePolicyFormValues,
+  CreatePolicyVersionFormValues,
+} from './policy-forms';
 
 export type PolicyScopeOption = {
   name: string;
@@ -36,6 +40,10 @@ export type AdminIamPolicyContextValue = {
   policyAttachments: Accessor<PolicyAttachmentInfo[]>;
   attachmentColor: (type: string) => 'blue' | 'green' | 'yellow' | 'pink' | 'dark';
   submitCreatePolicy: (event: SubmitEvent) => Promise<void>;
+  createPolicyFromForm: (values: CreatePolicyFormValues) => Promise<void>;
+  createPolicyVersionFromForm: (
+    values: CreatePolicyVersionFormValues
+  ) => Promise<void>;
   handleCreatePolicyVersion: () => Promise<void>;
   handleDeletePolicy: () => Promise<void>;
   handleSetDefaultVersion: (version: string) => Promise<void>;

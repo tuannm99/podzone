@@ -1,6 +1,12 @@
 import { createContext, useContext } from 'solid-js';
 import type { Accessor, ParentProps, Setter } from 'solid-js';
 import type { GroupInlinePolicy, PolicyInfo } from '@/services/iam';
+import type {
+  CreateGroupFormValues,
+  GroupInlinePolicyFormValues,
+  GroupMemberFormValues,
+  GroupPolicyAttachmentFormValues,
+} from './group-forms';
 
 export type ScopeOption = {
   name: string;
@@ -29,6 +35,7 @@ export type AdminIamGroupContextValue = {
   groupDescription: Accessor<string>;
   setGroupDescription: Setter<string>;
   submitCreateGroup: (event: SubmitEvent) => Promise<void>;
+  createGroupFromForm: (values: CreateGroupFormValues) => Promise<void>;
   groupOptions: Accessor<GroupOption[]>;
   selectedGroupId: Accessor<string>;
   setSelectedGroupId: Setter<string>;
@@ -36,7 +43,11 @@ export type AdminIamGroupContextValue = {
   setGroupMemberUserId: Setter<string>;
   groupPolicyName: Accessor<string>;
   setGroupPolicyName: Setter<string>;
+  addGroupMemberFromForm: (values: GroupMemberFormValues) => Promise<void>;
   handleAddGroupMember: () => Promise<void>;
+  attachGroupPolicyFromForm: (
+    values: GroupPolicyAttachmentFormValues
+  ) => Promise<void>;
   handleAttachGroupPolicy: () => Promise<void>;
   handleDeleteGroup: () => Promise<void>;
   groupMembers: Accessor<number[]>;
@@ -49,6 +60,9 @@ export type AdminIamGroupContextValue = {
   setGroupInlinePolicyDescription: Setter<string>;
   groupInlinePolicyJson: Accessor<string>;
   setGroupInlinePolicyJson: Setter<string>;
+  saveGroupInlinePolicyFromForm: (
+    values: GroupInlinePolicyFormValues
+  ) => Promise<void>;
   handleSaveGroupInlinePolicy: () => Promise<void>;
   groupInlinePolicies: Accessor<GroupInlinePolicy[]>;
   handleDeleteGroupInlinePolicy: (name: string) => Promise<void>;

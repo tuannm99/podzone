@@ -19,6 +19,16 @@ import {
   setDefaultPolicyVersion,
   type PolicyStatement,
 } from '@/services/iam';
+import type {
+  CreateGroupFormValues,
+  GroupInlinePolicyFormValues,
+  GroupMemberFormValues,
+  GroupPolicyAttachmentFormValues,
+} from './group-forms';
+import type {
+  CreatePolicyFormValues,
+  CreatePolicyVersionFormValues,
+} from './policy-forms';
 import { parseJSONArray } from './presentation';
 import type { AdminIamLoaders } from './useAdminIamLoaders';
 import type { AdminIamState } from './useAdminIamState';
@@ -100,31 +110,44 @@ export function useAdminIamOrgPolicyGroupActions(
     });
   };
 
-  const submitCreatePolicy = async (event: SubmitEvent) => {
-    event.preventDefault();
+  const createPolicyFromForm = async (values: CreatePolicyFormValues) => {
     await runAction(async () => {
       const statements = parseJSONArray<PolicyStatement>(
-        state.policyStatementsJson(),
+        values.statementsJson,
         'Policy statements'
       );
       const result = await createPolicy({
-        scope: state.policyScope(),
-        name: state.policyName().trim(),
-        description: state.policyDescription().trim(),
+        scope: values.scope,
+        name: values.name.trim(),
+        description: values.description.trim(),
         statements,
       });
       if (!result.success) throw new Error(result.message);
-      state.setPageMessage(`Created policy ${state.policyName().trim()}.`);
+      state.setPageMessage(`Created policy ${values.name.trim()}.`);
       state.setPolicyName('');
       state.setPolicyDescription('');
+      state.setPolicyScope(values.scope);
+      state.setPolicyStatementsJson(values.statementsJson);
       await loaders.loadBootstrap();
     });
   };
 
-  const handleCreatePolicyVersion = async () => {
+  const submitCreatePolicy = async (event: SubmitEvent) => {
+    event.preventDefault();
+    await createPolicyFromForm({
+      scope: state.policyScope(),
+      name: state.policyName(),
+      description: state.policyDescription(),
+      statementsJson: state.policyStatementsJson(),
+    });
+  };
+
+  const createPolicyVersionFromForm = async (
+    values: CreatePolicyVersionFormValues
+  ) => {
     await runAction(async () => {
       const statements = parseJSONArray<PolicyStatement>(
-        state.policyVersionJson(),
+        values.statementsJson,
         'Policy version statements'
       );
       const result = await createPolicyVersion({
@@ -133,10 +156,17 @@ export function useAdminIamOrgPolicyGroupActions(
         setAsDefault: false,
       });
       if (!result.success) throw new Error(result.message);
+      state.setPolicyVersionJson(values.statementsJson);
       state.setPageMessage(
         `Created a new version for ${state.selectedPolicyName().trim()}.`
       );
       await loaders.loadSelectedPolicy();
+    });
+  };
+
+  const handleCreatePolicyVersion = async () => {
+    await createPolicyVersionFromForm({
+      statementsJson: state.policyVersionJson(),
     });
   };
 
@@ -180,35 +210,50 @@ export function useAdminIamOrgPolicyGroupActions(
     });
   };
 
-  const submitCreateGroup = async (event: SubmitEvent) => {
-    event.preventDefault();
+  const createGroupFromForm = async (values: CreateGroupFormValues) => {
     await runAction(async () => {
       const result = await createGroup({
-        scope: state.groupScope(),
+        scope: values.scope,
         tenantId:
-          state.groupScope() === 'tenant'
-            ? state.groupTenantId().trim()
-            : undefined,
-        name: state.groupName().trim(),
-        description: state.groupDescription().trim(),
+          values.scope === 'tenant' ? values.tenantId.trim() : undefined,
+        name: values.name.trim(),
+        description: values.description.trim(),
       });
       if (!result.success) throw new Error(result.message);
-      state.setPageMessage(`Created group ${state.groupName().trim()}.`);
+      state.setPageMessage(`Created group ${values.name.trim()}.`);
+      state.setGroupScope(values.scope);
+      state.setGroupTenantId(values.tenantId);
       state.setGroupName('');
       state.setGroupDescription('');
       await loaders.loadGroupsForScope();
     });
   };
 
-  const handleAddGroupMember = async () => {
+  const submitCreateGroup = async (event: SubmitEvent) => {
+    event.preventDefault();
+    await createGroupFromForm({
+      scope: state.groupScope(),
+      tenantId: state.groupTenantId(),
+      name: state.groupName(),
+      description: state.groupDescription(),
+    });
+  };
+
+  const addGroupMemberFromForm = async (values: GroupMemberFormValues) => {
     await runAction(async () => {
       const groupId = Number.parseInt(state.selectedGroupId().trim(), 10);
-      const userId = Number.parseInt(state.groupMemberUserId().trim(), 10);
+      const userId = Number.parseInt(values.userId.trim(), 10);
       const result = await addGroupMember(groupId, userId);
       if (!result.success) throw new Error(result.message);
       state.setPageMessage(`Added user ${userId} to group.`);
       state.setGroupMemberUserId('');
       await loaders.loadSelectedGroup();
+    });
+  };
+
+  const handleAddGroupMember = async () => {
+    await addGroupMemberFromForm({
+      userId: state.groupMemberUserId(),
     });
   };
 
@@ -222,20 +267,23 @@ export function useAdminIamOrgPolicyGroupActions(
     });
   };
 
-  const handleAttachGroupPolicy = async () => {
+  const attachGroupPolicyFromForm = async (
+    values: GroupPolicyAttachmentFormValues
+  ) => {
     await runAction(async () => {
       const groupId = Number.parseInt(state.selectedGroupId().trim(), 10);
-      const result = await attachGroupPolicy(
-        groupId,
-        state.groupPolicyName().trim()
-      );
+      const result = await attachGroupPolicy(groupId, values.policyName.trim());
       if (!result.success) throw new Error(result.message);
-      state.setPageMessage(
-        `Attached policy ${state.groupPolicyName().trim()} to group.`
-      );
+      state.setPageMessage(`Attached policy ${values.policyName.trim()} to group.`);
       state.setGroupPolicyName('');
       await loaders.loadSelectedGroup();
       await loaders.loadSelectedPolicy();
+    });
+  };
+
+  const handleAttachGroupPolicy = async () => {
+    await attachGroupPolicyFromForm({
+      policyName: state.groupPolicyName(),
     });
   };
 
@@ -264,26 +312,37 @@ export function useAdminIamOrgPolicyGroupActions(
     });
   };
 
-  const handleSaveGroupInlinePolicy = async () => {
+  const saveGroupInlinePolicyFromForm = async (
+    values: GroupInlinePolicyFormValues
+  ) => {
     await runAction(async () => {
       const groupId = Number.parseInt(state.selectedGroupId().trim(), 10);
       const statements = parseJSONArray<PolicyStatement>(
-        state.groupInlinePolicyJson(),
+        values.statementsJson,
         'Group inline policy'
       );
       const result = await putGroupInlinePolicy(
         groupId,
-        state.groupInlinePolicyName().trim(),
-        state.groupInlinePolicyDescription().trim(),
+        values.name.trim(),
+        values.description.trim(),
         statements
       );
       if (!result.success) throw new Error(result.message);
       state.setPageMessage(
-        `Saved group inline policy ${state.groupInlinePolicyName().trim()}.`
+        `Saved group inline policy ${values.name.trim()}.`
       );
       state.setGroupInlinePolicyName('');
       state.setGroupInlinePolicyDescription('');
+      state.setGroupInlinePolicyJson(values.statementsJson);
       await loaders.loadSelectedGroup();
+    });
+  };
+
+  const handleSaveGroupInlinePolicy = async () => {
+    await saveGroupInlinePolicyFromForm({
+      name: state.groupInlinePolicyName(),
+      description: state.groupInlinePolicyDescription(),
+      statementsJson: state.groupInlinePolicyJson(),
     });
   };
 
@@ -304,16 +363,22 @@ export function useAdminIamOrgPolicyGroupActions(
     handleAttachScp,
     handleDetachScp,
     submitCreatePolicy,
+    createPolicyFromForm,
+    createPolicyVersionFromForm,
     handleCreatePolicyVersion,
     handleDeletePolicy,
     handleSetDefaultVersion,
     handleDeleteVersion,
     submitCreateGroup,
+    createGroupFromForm,
+    addGroupMemberFromForm,
     handleAddGroupMember,
     handleRemoveGroupMember,
+    attachGroupPolicyFromForm,
     handleAttachGroupPolicy,
     handleDetachGroupPolicy,
     handleDeleteGroup,
+    saveGroupInlinePolicyFromForm,
     handleSaveGroupInlinePolicy,
     handleDeleteGroupInlinePolicy,
   };

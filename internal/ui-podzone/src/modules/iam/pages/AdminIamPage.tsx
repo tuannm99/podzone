@@ -75,6 +75,8 @@ export default function AdminIamPage() {
     policyAttachments: state.policyAttachments,
     attachmentColor,
     submitCreatePolicy: actions.submitCreatePolicy,
+    createPolicyFromForm: actions.createPolicyFromForm,
+    createPolicyVersionFromForm: actions.createPolicyVersionFromForm,
     handleCreatePolicyVersion: actions.handleCreatePolicyVersion,
     handleDeletePolicy: actions.handleDeletePolicy,
     handleSetDefaultVersion: actions.handleSetDefaultVersion,
@@ -93,6 +95,7 @@ export default function AdminIamPage() {
     groupDescription: state.groupDescription,
     setGroupDescription: state.setGroupDescription,
     submitCreateGroup: actions.submitCreateGroup,
+    createGroupFromForm: actions.createGroupFromForm,
     groupOptions: state.groupOptions,
     selectedGroupId: state.selectedGroupId,
     setSelectedGroupId: state.setSelectedGroupId,
@@ -100,7 +103,9 @@ export default function AdminIamPage() {
     setGroupMemberUserId: state.setGroupMemberUserId,
     groupPolicyName: state.groupPolicyName,
     setGroupPolicyName: state.setGroupPolicyName,
+    addGroupMemberFromForm: actions.addGroupMemberFromForm,
     handleAddGroupMember: actions.handleAddGroupMember,
+    attachGroupPolicyFromForm: actions.attachGroupPolicyFromForm,
     handleAttachGroupPolicy: actions.handleAttachGroupPolicy,
     handleDeleteGroup: actions.handleDeleteGroup,
     groupMembers: state.groupMembers,
@@ -113,6 +118,7 @@ export default function AdminIamPage() {
     setGroupInlinePolicyDescription: state.setGroupInlinePolicyDescription,
     groupInlinePolicyJson: state.groupInlinePolicyJson,
     setGroupInlinePolicyJson: state.setGroupInlinePolicyJson,
+    saveGroupInlinePolicyFromForm: actions.saveGroupInlinePolicyFromForm,
     handleSaveGroupInlinePolicy: actions.handleSaveGroupInlinePolicy,
     groupInlinePolicies: state.groupInlinePolicies,
     handleDeleteGroupInlinePolicy: actions.handleDeleteGroupInlinePolicy,
@@ -130,6 +136,8 @@ export default function AdminIamPage() {
     tenantOptions: state.tenantOptions,
     principalManagedPolicyName: state.principalManagedPolicyName,
     setPrincipalManagedPolicyName: state.setPrincipalManagedPolicyName,
+    attachPrincipalManagedPolicyFromForm:
+      actions.attachPrincipalManagedPolicyFromForm,
     handleAttachPrincipalManagedPolicy:
       actions.handleAttachPrincipalManagedPolicy,
     currentManagedPolicies: () =>
@@ -140,6 +148,7 @@ export default function AdminIamPage() {
       actions.handleDetachPrincipalManagedPolicy,
     principalBoundaryPolicyName: state.principalBoundaryPolicyName,
     setPrincipalBoundaryPolicyName: state.setPrincipalBoundaryPolicyName,
+    savePrincipalBoundaryFromForm: actions.savePrincipalBoundaryFromForm,
     handleSavePrincipalBoundary: actions.handleSavePrincipalBoundary,
     handleDeletePrincipalBoundary: actions.handleDeletePrincipalBoundary,
     currentBoundary: () =>
@@ -153,6 +162,8 @@ export default function AdminIamPage() {
       state.setPrincipalInlinePolicyDescription,
     principalInlinePolicyJson: state.principalInlinePolicyJson,
     setPrincipalInlinePolicyJson: state.setPrincipalInlinePolicyJson,
+    savePrincipalInlinePolicyFromForm:
+      actions.savePrincipalInlinePolicyFromForm,
     handleSavePrincipalInlinePolicy: actions.handleSavePrincipalInlinePolicy,
     currentInlinePolicies: () =>
       state.principalMode() === 'platform'

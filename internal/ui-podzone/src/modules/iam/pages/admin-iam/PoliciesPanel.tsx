@@ -1,12 +1,62 @@
 import { For, Show } from 'solid-js';
 import { EmptyBlock } from '@/solid/components/common/Feedback';
 import { IamStatementBuilder } from '@/solid/components/common/IamStatementBuilder';
-import { Badge, Button, InputField, SelectField } from '@/solid/components/common/Primitives';
+import { Badge, Button, SelectField } from '@/solid/components/common/Primitives';
 import { SectionTitle } from '@/solid/components/common/SectionTitle';
+import {
+  FormInputField,
+  FormSelectField,
+  createFormStore,
+  jsonArray,
+  required,
+} from '@/solid/forms';
+import type {
+  CreatePolicyFormValues,
+  CreatePolicyVersionFormValues,
+} from './policy-forms';
 import { useAdminIamPolicy } from './policy-context';
 
 export function PoliciesPanel() {
   const policy = useAdminIamPolicy();
+  const createPolicyForm = createFormStore<CreatePolicyFormValues>({
+    initialValues: {
+      scope: policy.policyScope(),
+      name: policy.policyName(),
+      description: policy.policyDescription(),
+      statementsJson: policy.policyStatementsJson(),
+    },
+    validators: {
+      scope: [required('Choose a policy scope.')],
+      name: [required('Enter a policy name.')],
+      statementsJson: [jsonArray('Policy statements must be a JSON array.')],
+    },
+  });
+  const versionForm = createFormStore<CreatePolicyVersionFormValues>({
+    initialValues: {
+      statementsJson: policy.policyVersionJson(),
+    },
+    validators: {
+      statementsJson: [jsonArray('Policy version statements must be a JSON array.')],
+    },
+  });
+
+  const submitCreatePolicy = async (event: SubmitEvent) => {
+    event.preventDefault();
+    if (!createPolicyForm.validate()) {
+      return;
+    }
+    createPolicyForm.setSubmitting(true);
+    await policy.createPolicyFromForm({ ...createPolicyForm.values });
+    createPolicyForm.setSubmitting(false);
+  };
+  const submitCreatePolicyVersion = async () => {
+    if (!versionForm.validate()) {
+      return;
+    }
+    versionForm.setSubmitting(true);
+    await policy.createPolicyVersionFromForm({ ...versionForm.values });
+    versionForm.setSubmitting(false);
+  };
 
   return (
     <>
@@ -14,31 +64,42 @@ export function PoliciesPanel() {
         title="Policies and versions"
         subtitle="Create managed policies, inspect attachments, and roll default versions."
       />
-      <form class="space-y-3" onSubmit={policy.submitCreatePolicy}>
+      <form class="space-y-3" onSubmit={submitCreatePolicy}>
         <div class="grid gap-3 md:grid-cols-2">
-          <SelectField
+          <FormSelectField
+            form={createPolicyForm}
+            name="scope"
             label="Policy scope"
-            value={policy.policyScope()}
             options={policy.policyScopeOptions}
-            onChange={(e) => policy.setPolicyScope(e.currentTarget.value)}
           />
-          <InputField
+          <FormInputField
+            form={createPolicyForm}
+            name="name"
             label="Policy name"
-            value={policy.policyName()}
-            onInput={(e) => policy.setPolicyName(e.currentTarget.value)}
           />
         </div>
-        <InputField
+        <FormInputField
+          form={createPolicyForm}
+          name="description"
           label="Description"
-          value={policy.policyDescription()}
-          onInput={(e) => policy.setPolicyDescription(e.currentTarget.value)}
         />
         <IamStatementBuilder
           label="Statements"
-          value={policy.policyStatementsJson()}
-          onChange={policy.setPolicyStatementsJson}
+          value={createPolicyForm.values.statementsJson}
+          onChange={(value) =>
+            createPolicyForm.setValue('statementsJson', value)
+          }
         />
-        <Button type="submit" size="sm">
+        <Show when={createPolicyForm.hasError('statementsJson')}>
+          <p class="text-xs font-medium text-red-600">
+            {createPolicyForm.error('statementsJson')}
+          </p>
+        </Show>
+        <Button
+          type="submit"
+          size="sm"
+          loading={createPolicyForm.isSubmitting()}
+        >
           Create policy
         </Button>
       </form>
@@ -73,15 +134,21 @@ export function PoliciesPanel() {
 
       <IamStatementBuilder
         label="New version statements"
-        value={policy.policyVersionJson()}
-        onChange={policy.setPolicyVersionJson}
+        value={versionForm.values.statementsJson}
+        onChange={(value) => versionForm.setValue('statementsJson', value)}
       />
+      <Show when={versionForm.hasError('statementsJson')}>
+        <p class="text-xs font-medium text-red-600">
+          {versionForm.error('statementsJson')}
+        </p>
+      </Show>
       <div class="flex flex-wrap gap-3">
         <Button
           size="sm"
           color="dark"
-          onClick={policy.handleCreatePolicyVersion}
+          onClick={submitCreatePolicyVersion}
           disabled={!policy.selectedPolicyName()}
+          loading={versionForm.isSubmitting()}
         >
           Create version
         </Button>

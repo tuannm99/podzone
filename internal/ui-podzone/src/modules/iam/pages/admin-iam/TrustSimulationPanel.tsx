@@ -5,11 +5,56 @@ import { IamStatementBuilder } from '@/solid/components/common/IamStatementBuild
 import { IamTrustPolicyBuilder } from '@/solid/components/common/IamTrustPolicyBuilder';
 import { Badge, Button, Card, InputField, SelectField } from '@/solid/components/common/Primitives';
 import { SectionTitle } from '@/solid/components/common/SectionTitle';
+import {
+  FormInputField,
+  createFormStore,
+  jsonArray,
+  required,
+} from '@/solid/forms';
 import { classes } from '@/solid/shared/utils';
+import type {
+  RoleBoundaryFormValues,
+  TrustPolicyFormValues,
+} from './trust-forms';
 import { useAdminIamTrustSim } from './trust-sim-context';
 
 export function TrustSimulationPanel() {
   const trust = useAdminIamTrustSim();
+  const trustPolicyForm = createFormStore<TrustPolicyFormValues>({
+    initialValues: {
+      roleName: trust.trustRoleName(),
+      trustJson: trust.trustJson(),
+    },
+    validators: {
+      roleName: [required('Enter a role name.')],
+      trustJson: [jsonArray('Trust policy must be a JSON array.')],
+    },
+  });
+  const roleBoundaryForm = createFormStore<RoleBoundaryFormValues>({
+    initialValues: {
+      policyName: trust.trustBoundaryPolicyName(),
+    },
+    validators: {
+      policyName: [required('Enter a role boundary policy name.')],
+    },
+  });
+
+  const saveTrustPolicy = async () => {
+    if (!trustPolicyForm.validate()) return;
+    trustPolicyForm.setSubmitting(true);
+    trust.setTrustRoleName(trustPolicyForm.values.roleName);
+    trust.setTrustJson(trustPolicyForm.values.trustJson);
+    await trust.handleSaveTrustPolicy();
+    trustPolicyForm.setSubmitting(false);
+  };
+
+  const saveRoleBoundary = async () => {
+    if (!roleBoundaryForm.validate()) return;
+    roleBoundaryForm.setSubmitting(true);
+    trust.setTrustBoundaryPolicyName(roleBoundaryForm.values.policyName);
+    await trust.handleSaveRoleBoundary();
+    roleBoundaryForm.setSubmitting(false);
+  };
 
   return (
     <>
@@ -18,10 +63,10 @@ export function TrustSimulationPanel() {
         subtitle="Edit trust policies, test service principals, session tags, conditions, boundaries, and SCP outcomes."
       />
       <div class="grid gap-3 md:grid-cols-2">
-        <InputField
+        <FormInputField
+          form={trustPolicyForm}
+          name="roleName"
           label="Role name"
-          value={trust.trustRoleName()}
-          onInput={(e) => trust.setTrustRoleName(e.currentTarget.value)}
         />
         <InfoAlert>
           Use the trust policy builder to define which user, role, or service
@@ -32,17 +77,26 @@ export function TrustSimulationPanel() {
         <Button size="sm" color="light" onClick={trust.loadTrustPolicy}>
           Load trust policy
         </Button>
-        <Button size="sm" onClick={trust.handleSaveTrustPolicy}>
+        <Button
+          size="sm"
+          onClick={saveTrustPolicy}
+          loading={trustPolicyForm.isSubmitting()}
+        >
           Save trust policy
         </Button>
       </div>
       <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-end">
-        <InputField
+        <FormInputField
+          form={roleBoundaryForm}
+          name="policyName"
           label="Role boundary policy"
-          value={trust.trustBoundaryPolicyName()}
-          onInput={(e) => trust.setTrustBoundaryPolicyName(e.currentTarget.value)}
         />
-        <Button size="sm" color="dark" onClick={trust.handleSaveRoleBoundary}>
+        <Button
+          size="sm"
+          color="dark"
+          onClick={saveRoleBoundary}
+          loading={roleBoundaryForm.isSubmitting()}
+        >
           Save boundary
         </Button>
         <Button size="sm" color="red" onClick={trust.handleDeleteRoleBoundary}>
@@ -61,9 +115,14 @@ export function TrustSimulationPanel() {
       </Show>
       <IamTrustPolicyBuilder
         label="Trust policy"
-        value={trust.trustJson()}
-        onChange={trust.setTrustJson}
+        value={trustPolicyForm.values.trustJson}
+        onChange={(value) => trustPolicyForm.setValue('trustJson', value)}
       />
+      <Show when={trustPolicyForm.hasError('trustJson')}>
+        <p class="text-xs font-medium text-red-600">
+          {trustPolicyForm.error('trustJson')}
+        </p>
+      </Show>
 
       <div class="grid gap-3 md:grid-cols-2">
         <SelectField
