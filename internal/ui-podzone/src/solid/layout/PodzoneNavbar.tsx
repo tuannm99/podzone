@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/solid-router'
+import { Link, useRouterState } from '@tanstack/solid-router'
 import { For, Show } from 'solid-js'
 import { logout } from '../../services/auth'
 import { tokenStorage } from '../../services/tokenStorage'
@@ -10,7 +10,12 @@ type NavItem = {
   href: string
   label: string
   section: 'Platform' | 'Operations'
-  active: () => boolean
+  active: boolean
+}
+
+function normalizePath(path: string) {
+  if (path === '/') return path
+  return path.replace(/\/+$/, '')
 }
 
 function initials(value: string) {
@@ -23,9 +28,12 @@ function initials(value: string) {
     .join('')
 }
 
-export function PodzoneNavbar(props: { currentPath: string }) {
+export function PodzoneNavbar() {
   const workspace = useTenantWorkspace()
   const user = tokenStorage.getUser()
+  const pathname = useRouterState({
+    select: (state) => normalizePath(state.location.pathname),
+  })
 
   const hasTenant = () =>
     (workspace?.tenantId() || tokenStorage.getActiveTenantID()).trim().length >
@@ -43,25 +51,33 @@ export function PodzoneNavbar(props: { currentPath: string }) {
     const params = storeId ? `?storeId=${encodeURIComponent(storeId)}` : ''
     return `/t/${tenant}${path}${params}`
   }
+  const isCurrent = (path: string, includeChildren = false) => {
+    const currentPath = pathname()
+    const targetPath = normalizePath(path)
+    return (
+      currentPath === targetPath ||
+      (includeChildren && currentPath.startsWith(`${targetPath}/`))
+    )
+  }
 
   const links = (): NavItem[] => [
     {
       href: '/admin',
       label: 'Home',
       section: 'Platform',
-      active: () => props.currentPath === '/admin',
+      active: isCurrent('/admin'),
     },
     {
       href: '/admin/settings',
       label: 'Settings',
       section: 'Platform',
-      active: () => props.currentPath === '/admin/settings',
+      active: isCurrent('/admin/settings', true),
     },
     {
       href: '/admin/iam',
       label: 'IAM',
       section: 'Platform',
-      active: () => props.currentPath === '/admin/iam',
+      active: isCurrent('/admin/iam', true),
     },
     ...(hasTenant() && currentStoreId()
       ? [
@@ -69,37 +85,46 @@ export function PodzoneNavbar(props: { currentPath: string }) {
             href: scopedHref(),
             label: 'Store Home',
             section: 'Operations' as const,
-            active: () => props.currentPath === `/t/${activeTenantId().trim()}`,
+            active: isCurrent(`/t/${activeTenantId().trim()}`),
           },
           {
             href: scopedHref('/orders'),
             label: 'Orders',
             section: 'Operations' as const,
-            active: () =>
-              props.currentPath === `/t/${activeTenantId().trim()}/orders`,
+            active: isCurrent(`/t/${activeTenantId().trim()}/orders`),
           },
           {
             href: scopedHref('/products/setup'),
             label: 'Products',
             section: 'Operations' as const,
-            active: () =>
-              props.currentPath ===
+            active: isCurrent(
               `/t/${activeTenantId().trim()}/products/setup`,
+              true
+            ),
           },
           {
             href: scopedHref('/partners'),
             label: 'Partners',
             section: 'Operations' as const,
-            active: () =>
-              props.currentPath === `/t/${activeTenantId().trim()}/partners`,
+            active: isCurrent(`/t/${activeTenantId().trim()}/partners`, true),
           },
           {
             href: scopedHref('/orders/audit'),
             label: 'Audit',
             section: 'Operations' as const,
-            active: () =>
-              props.currentPath ===
+            active: isCurrent(
               `/t/${activeTenantId().trim()}/orders/audit`,
+              true
+            ),
+          },
+          {
+            href: scopedHref('/orders/finance'),
+            label: 'Finance',
+            section: 'Operations' as const,
+            active: isCurrent(
+              `/t/${activeTenantId().trim()}/orders/finance`,
+              true
+            ),
           },
         ]
       : []),
@@ -184,7 +209,11 @@ export function PodzoneNavbar(props: { currentPath: string }) {
             </div>
             <For each={platformLinks()}>
               {(link) => (
-                <Link to={link.href} class={navLinkClass(link.active())}>
+                <Link
+                  to={link.href}
+                  class={navLinkClass(link.active)}
+                  aria-current={link.active ? 'page' : undefined}
+                >
                   {link.label}
                 </Link>
               )}
@@ -198,7 +227,11 @@ export function PodzoneNavbar(props: { currentPath: string }) {
               </div>
               <For each={operationLinks()}>
                 {(link) => (
-                  <Link to={link.href} class={navLinkClass(link.active())}>
+                  <Link
+                    to={link.href}
+                    class={navLinkClass(link.active)}
+                    aria-current={link.active ? 'page' : undefined}
+                  >
                     {link.label}
                   </Link>
                 )}
@@ -251,10 +284,11 @@ export function PodzoneNavbar(props: { currentPath: string }) {
                     to={link.href}
                     class={classes(
                       'whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium',
-                      link.active()
+                      link.active
                         ? 'bg-gray-900 text-white'
                         : 'text-gray-600 hover:bg-gray-100'
                     )}
+                    aria-current={link.active ? 'page' : undefined}
                   >
                     {link.label}
                   </Link>

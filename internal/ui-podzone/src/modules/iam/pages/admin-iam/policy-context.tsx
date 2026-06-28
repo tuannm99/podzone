@@ -1,56 +1,58 @@
-import { createContext, useContext } from 'solid-js';
-import type { Accessor, ParentProps, Setter } from 'solid-js';
+import { createContext, useContext } from 'solid-js'
+import type { Accessor, ParentProps, Setter } from 'solid-js'
 import type {
   PolicyAttachmentInfo,
   PolicyInfo,
   PolicyVersionInfo,
-} from '@/services/iam';
+} from '@/services/iam'
 import type {
   CreatePolicyFormValues,
   CreatePolicyVersionFormValues,
-} from './policy-forms';
+} from './policy-forms'
 
 export type PolicyScopeOption = {
-  name: string;
-  value: string;
-};
+  name: string
+  value: string
+}
 
 export type PolicyOption = {
-  name: string;
-  value: string;
-};
+  name: string
+  value: string
+}
 
 export type AdminIamPolicyContextValue = {
-  policyScopeOptions: PolicyScopeOption[];
-  policyScope: Accessor<string>;
-  setPolicyScope: Setter<string>;
-  policyName: Accessor<string>;
-  setPolicyName: Setter<string>;
-  policyDescription: Accessor<string>;
-  setPolicyDescription: Setter<string>;
-  policyStatementsJson: Accessor<string>;
-  setPolicyStatementsJson: Setter<string>;
-  policyVersionJson: Accessor<string>;
-  setPolicyVersionJson: Setter<string>;
-  selectedPolicyName: Accessor<string>;
-  setSelectedPolicyName: Setter<string>;
-  policyOptions: Accessor<PolicyOption[]>;
-  policyDetail: Accessor<PolicyInfo | undefined>;
-  policyVersions: Accessor<PolicyVersionInfo[]>;
-  policyAttachments: Accessor<PolicyAttachmentInfo[]>;
-  attachmentColor: (type: string) => 'blue' | 'green' | 'yellow' | 'pink' | 'dark';
-  submitCreatePolicy: (event: SubmitEvent) => Promise<void>;
-  createPolicyFromForm: (values: CreatePolicyFormValues) => Promise<void>;
+  policyScopeOptions: PolicyScopeOption[]
+  policyScope: Accessor<string>
+  setPolicyScope: Setter<string>
+  policyName: Accessor<string>
+  setPolicyName: Setter<string>
+  policyDescription: Accessor<string>
+  setPolicyDescription: Setter<string>
+  policyStatementsJson: Accessor<string>
+  setPolicyStatementsJson: Setter<string>
+  policyVersionJson: Accessor<string>
+  setPolicyVersionJson: Setter<string>
+  selectedPolicyName: Accessor<string>
+  setSelectedPolicyName: Setter<string>
+  policyOptions: Accessor<PolicyOption[]>
+  policyDetail: Accessor<PolicyInfo | undefined>
+  policyVersions: Accessor<PolicyVersionInfo[]>
+  policyAttachments: Accessor<PolicyAttachmentInfo[]>
+  attachmentColor: (
+    type: string
+  ) => 'blue' | 'green' | 'yellow' | 'pink' | 'dark'
+  submitCreatePolicy: (event: SubmitEvent) => Promise<void>
+  createPolicyFromForm: (values: CreatePolicyFormValues) => Promise<void>
   createPolicyVersionFromForm: (
     values: CreatePolicyVersionFormValues
-  ) => Promise<void>;
-  handleCreatePolicyVersion: () => Promise<void>;
-  handleDeletePolicy: () => Promise<void>;
-  handleSetDefaultVersion: (version: string) => Promise<void>;
-  handleDeleteVersion: (version: string) => Promise<void>;
-};
+  ) => Promise<void>
+  handleCreatePolicyVersion: () => Promise<void>
+  handleDeletePolicy: () => Promise<void>
+  handleSetDefaultVersion: (version: string) => Promise<void>
+  handleDeleteVersion: (version: string) => Promise<void>
+}
 
-const AdminIamPolicyContext = createContext<AdminIamPolicyContextValue>();
+const AdminIamPolicyContext = createContext<AdminIamPolicyContextValue>()
 
 export function AdminIamPolicyProvider(
   props: ParentProps<{ value: AdminIamPolicyContextValue }>
@@ -59,13 +61,13 @@ export function AdminIamPolicyProvider(
     <AdminIamPolicyContext.Provider value={props.value}>
       {props.children}
     </AdminIamPolicyContext.Provider>
-  );
+  )
 }
 
 export function useAdminIamPolicy() {
-  const ctx = useContext(AdminIamPolicyContext);
+  const ctx = useContext(AdminIamPolicyContext)
   if (!ctx) {
-    throw new Error('AdminIamPolicyContext is missing');
+    throw new Error('AdminIamPolicyContext is missing')
   }
-  return ctx;
+  return ctx
 }

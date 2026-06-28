@@ -35,7 +35,7 @@ export default function Root() {
         </Match>
         <Match when={tenantId()}>
           <TenantWorkspaceProvider tenantId={tenantId()}>
-            <PodzoneNavbar currentPath={pathname()} />
+            <PodzoneNavbar />
             <main class="pb-8 lg:pl-64">
               <Container class="mt-5" width="7xl">
                 <div class="grid min-h-0 grid-cols-1 gap-0 xl:grid-cols-[minmax(0,1fr)]">
@@ -47,7 +47,7 @@ export default function Root() {
           </TenantWorkspaceProvider>
         </Match>
         <Match when={true}>
-          <PodzoneNavbar currentPath={pathname()} />
+          <PodzoneNavbar />
           <main class="pb-8 lg:pl-64">
             <Container class="mt-5" width="7xl">
               <div class="grid min-h-0 grid-cols-1 gap-0 xl:grid-cols-[minmax(0,1fr)]">

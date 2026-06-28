@@ -1,6 +1,6 @@
-import { createEffect, onMount } from 'solid-js';
-import { tokenStorage } from '@/services/tokenStorage';
-import { AdminIamView } from './admin-iam/AdminIamView';
+import { createEffect, onMount } from 'solid-js'
+import { tokenStorage } from '@/services/tokenStorage'
+import { AdminIamView } from './admin-iam/AdminIamView'
 import {
   attachmentColor,
   groupScopeOptions,
@@ -11,49 +11,49 @@ import {
   simulationSourceColor,
   statementSourceLabel,
   tenantRoleOptions,
-} from './admin-iam/presentation';
-import { useAdminIamActions } from './admin-iam/useAdminIamActions';
-import { useAdminIamLoaders } from './admin-iam/useAdminIamLoaders';
-import { useAdminIamState } from './admin-iam/useAdminIamState';
+} from './admin-iam/presentation'
+import { useAdminIamActions } from './admin-iam/useAdminIamActions'
+import { useAdminIamLoaders } from './admin-iam/useAdminIamLoaders'
+import { useAdminIamState } from './admin-iam/useAdminIamState'
 
-export default function AdminIamPage() {
-  const userID = tokenStorage.getUserID() || 0;
-  const state = useAdminIamState(userID);
-  const loaders = useAdminIamLoaders(state, userID);
-  const actions = useAdminIamActions(state, loaders);
-
-  createEffect(() => {
-    void state.selectedPolicyName();
-    if (state.allowed()) void loaders.loadSelectedPolicy();
-  });
+export function createAdminIamViewModel() {
+  const userID = tokenStorage.getUserID() || 0
+  const state = useAdminIamState(userID)
+  const loaders = useAdminIamLoaders(state, userID)
+  const actions = useAdminIamActions(state, loaders)
 
   createEffect(() => {
-    void state.selectedOrgId();
-    if (state.allowed()) void loaders.loadSelectedOrganization();
-  });
+    void state.selectedPolicyName()
+    if (state.allowed()) void loaders.loadSelectedPolicy()
+  })
 
   createEffect(() => {
-    void state.selectedGroupId();
-    if (state.allowed()) void loaders.loadSelectedGroup();
-  });
+    void state.selectedOrgId()
+    if (state.allowed()) void loaders.loadSelectedOrganization()
+  })
 
   createEffect(() => {
-    void state.groupScope();
-    void state.groupTenantId();
-    if (state.allowed()) void loaders.loadGroupsForScope();
-  });
+    void state.selectedGroupId()
+    if (state.allowed()) void loaders.loadSelectedGroup()
+  })
 
   createEffect(() => {
-    void state.principalMode();
-    void state.principalPlatformUserId();
-    void state.principalTenantId();
-    void state.principalTenantUserId();
-    if (state.allowed()) void loaders.loadPrincipalControls();
-  });
+    void state.groupScope()
+    void state.groupTenantId()
+    if (state.allowed()) void loaders.loadGroupsForScope()
+  })
+
+  createEffect(() => {
+    void state.principalMode()
+    void state.principalPlatformUserId()
+    void state.principalTenantId()
+    void state.principalTenantUserId()
+    if (state.allowed()) void loaders.loadPrincipalControls()
+  })
 
   onMount(() => {
-    void loaders.loadBootstrap();
-  });
+    void loaders.loadBootstrap()
+  })
 
   const policyContextValue = {
     policyScopeOptions,
@@ -81,7 +81,7 @@ export default function AdminIamPage() {
     handleDeletePolicy: actions.handleDeletePolicy,
     handleSetDefaultVersion: actions.handleSetDefaultVersion,
     handleDeleteVersion: actions.handleDeleteVersion,
-  };
+  }
 
   const groupContextValue = {
     groupScopeOptions,
@@ -122,7 +122,7 @@ export default function AdminIamPage() {
     handleSaveGroupInlinePolicy: actions.handleSaveGroupInlinePolicy,
     groupInlinePolicies: state.groupInlinePolicies,
     handleDeleteGroupInlinePolicy: actions.handleDeleteGroupInlinePolicy,
-  };
+  }
 
   const principalContextValue = {
     principalMode: state.principalMode,
@@ -171,7 +171,7 @@ export default function AdminIamPage() {
         : state.tenantUserInlinePolicies(),
     handleDeletePrincipalInlinePolicy:
       actions.handleDeletePrincipalInlinePolicy,
-  };
+  }
 
   const trustSimContextValue = {
     trustRoleName: state.trustRoleName,
@@ -221,8 +221,7 @@ export default function AdminIamPage() {
     simAssumedRoleSourceIdentity: state.simAssumedRoleSourceIdentity,
     setSimAssumedRoleSourceIdentity: state.setSimAssumedRoleSourceIdentity,
     simAssumedRoleServicePrincipal: state.simAssumedRoleServicePrincipal,
-    setSimAssumedRoleServicePrincipal:
-      state.setSimAssumedRoleServicePrincipal,
+    setSimAssumedRoleServicePrincipal: state.setSimAssumedRoleServicePrincipal,
     simAssumedRoleExpiresAt: state.simAssumedRoleExpiresAt,
     setSimAssumedRoleExpiresAt: state.setSimAssumedRoleExpiresAt,
     handleSimulate: actions.handleSimulate,
@@ -230,58 +229,60 @@ export default function AdminIamPage() {
     simulationSourceColor,
     statementSourceLabel,
     simulationLayerTone,
-  };
+  }
 
-  return (
-    <AdminIamView
-      model={{
-        pageError: state.pageError,
-        pageMessage: state.pageMessage,
-        loading: state.loading,
-        allowed: state.allowed,
-        sectionLinks,
-        policyContextValue,
-        groupContextValue,
-        principalContextValue,
-        trustSimContextValue,
-        organizationOptions: state.organizationOptions,
-        selectedOrgId: state.selectedOrgId,
-        setSelectedOrgId: state.setSelectedOrgId,
-        submitCreateOrganization: actions.submitCreateOrganization,
-        orgName: state.orgName,
-        setOrgName: state.setOrgName,
-        orgSlug: state.orgSlug,
-        setOrgSlug: state.setOrgSlug,
-        orgTenantId: state.orgTenantId,
-        setOrgTenantId: state.setOrgTenantId,
-        orgPolicyName: state.orgPolicyName,
-        setOrgPolicyName: state.setOrgPolicyName,
-        tenantOptions: state.tenantOptions,
-        handleAttachTenantToOrg: actions.handleAttachTenantToOrg,
-        handleAttachScp: actions.handleAttachScp,
-        organizations: state.organizations,
-        orgPolicies: state.orgPolicies,
-        handleDetachTenantFromOrg: actions.handleDetachTenantFromOrg,
-        handleDetachScp: actions.handleDetachScp,
-        shortcutPlatformUserId: state.shortcutPlatformUserId,
-        setShortcutPlatformUserId: state.setShortcutPlatformUserId,
-        shortcutPlatformRoleName: state.shortcutPlatformRoleName,
-        setShortcutPlatformRoleName: state.setShortcutPlatformRoleName,
-        platformRoleOptions,
-        handleAssignPlatformRole: actions.handleAssignPlatformRole,
-        handleRemovePlatformRoleShortcut:
-          actions.handleRemovePlatformRoleShortcut,
-        shortcutTenantId: state.shortcutTenantId,
-        setShortcutTenantId: state.setShortcutTenantId,
-        shortcutTenantUserId: state.shortcutTenantUserId,
-        setShortcutTenantUserId: state.setShortcutTenantUserId,
-        shortcutTenantRoleName: state.shortcutTenantRoleName,
-        setShortcutTenantRoleName: state.setShortcutTenantRoleName,
-        tenantRoleOptions,
-        handleAssignTenantRole: actions.handleAssignTenantRole,
-        handleRemoveTenantMembershipShortcut:
-          actions.handleRemoveTenantMembershipShortcut,
-      }}
-    />
-  );
+  return {
+    pageError: state.pageError,
+    pageMessage: state.pageMessage,
+    loading: state.loading,
+    allowed: state.allowed,
+    sectionLinks,
+    policyContextValue,
+    groupContextValue,
+    principalContextValue,
+    trustSimContextValue,
+    organizationOptions: state.organizationOptions,
+    selectedOrgId: state.selectedOrgId,
+    setSelectedOrgId: state.setSelectedOrgId,
+    submitCreateOrganization: actions.submitCreateOrganization,
+    orgName: state.orgName,
+    setOrgName: state.setOrgName,
+    orgSlug: state.orgSlug,
+    setOrgSlug: state.setOrgSlug,
+    orgTenantId: state.orgTenantId,
+    setOrgTenantId: state.setOrgTenantId,
+    orgPolicyName: state.orgPolicyName,
+    setOrgPolicyName: state.setOrgPolicyName,
+    tenantOptions: state.tenantOptions,
+    handleAttachTenantToOrg: actions.handleAttachTenantToOrg,
+    handleAttachScp: actions.handleAttachScp,
+    organizations: state.organizations,
+    orgPolicies: state.orgPolicies,
+    handleDetachTenantFromOrg: actions.handleDetachTenantFromOrg,
+    handleDetachScp: actions.handleDetachScp,
+    shortcutPlatformUserId: state.shortcutPlatformUserId,
+    setShortcutPlatformUserId: state.setShortcutPlatformUserId,
+    shortcutPlatformRoleName: state.shortcutPlatformRoleName,
+    setShortcutPlatformRoleName: state.setShortcutPlatformRoleName,
+    platformRoleOptions,
+    handleAssignPlatformRole: actions.handleAssignPlatformRole,
+    handleRemovePlatformRoleShortcut: actions.handleRemovePlatformRoleShortcut,
+    shortcutTenantId: state.shortcutTenantId,
+    setShortcutTenantId: state.setShortcutTenantId,
+    shortcutTenantUserId: state.shortcutTenantUserId,
+    setShortcutTenantUserId: state.setShortcutTenantUserId,
+    shortcutTenantRoleName: state.shortcutTenantRoleName,
+    setShortcutTenantRoleName: state.setShortcutTenantRoleName,
+    tenantRoleOptions,
+    handleAssignTenantRole: actions.handleAssignTenantRole,
+    handleRemoveTenantMembershipShortcut:
+      actions.handleRemoveTenantMembershipShortcut,
+  }
+}
+
+export type AdminIamViewModel = ReturnType<typeof createAdminIamViewModel>
+
+export default function AdminIamPage() {
+  const viewModel = createAdminIamViewModel()
+  return <AdminIamView model={viewModel} />
 }

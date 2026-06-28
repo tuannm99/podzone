@@ -1,13 +1,13 @@
-import { For, Show } from 'solid-js';
-import { tokenStorage } from '@/services/tokenStorage';
-import { EmptyBlock, LoadingInline } from '@/solid/components/common/Feedback';
-import { Badge, Button, Card } from '@/solid/components/common/Primitives';
-import { SectionTitle } from '@/solid/components/common/SectionTitle';
-import { useAdminHome } from './context';
-import type { WorkspaceSummary } from './presentation';
+import { For, Show } from 'solid-js'
+import { tokenStorage } from '@/services/tokenStorage'
+import { EmptyBlock, LoadingInline } from '@/solid/components/common/Feedback'
+import { Badge, Button, Card } from '@/solid/components/common/Primitives'
+import { SectionTitle } from '@/solid/components/common/SectionTitle'
+import { useAdminHome } from './context'
+import type { WorkspaceSummary } from './presentation'
 
 export function WorkspaceList() {
-  const vm = useAdminHome();
+  const vm = useAdminHome()
 
   return (
     <Card class="space-y-4">
@@ -34,12 +34,12 @@ export function WorkspaceList() {
         </div>
       </Show>
     </Card>
-  );
+  )
 }
 
 function WorkspaceCard(props: { workspace: WorkspaceSummary }) {
-  const vm = useAdminHome();
-  const workspace = props.workspace;
+  const vm = useAdminHome()
+  const workspace = props.workspace
 
   return (
     <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -66,11 +66,11 @@ function WorkspaceCard(props: { workspace: WorkspaceSummary }) {
         <CreateStoreInline tenantId={workspace.tenantId} />
       </div>
     </div>
-  );
+  )
 }
 
 function StoreRequests(props: { workspace: WorkspaceSummary }) {
-  const vm = useAdminHome();
+  const vm = useAdminHome()
 
   return (
     <Show when={props.workspace.storeRequests.length > 0}>
@@ -131,7 +131,7 @@ function StoreRequests(props: { workspace: WorkspaceSummary }) {
                   loading={vm.retryingStoreRequestId() === request.id}
                   disabled={vm.retryingStoreRequestId() === request.id}
                   onClick={() => {
-                    void vm.retryStore(props.workspace.tenantId, request.id);
+                    void vm.retryStore(props.workspace.tenantId, request.id)
                   }}
                 >
                   Retry provisioning
@@ -142,11 +142,11 @@ function StoreRequests(props: { workspace: WorkspaceSummary }) {
         )}
       </For>
     </Show>
-  );
+  )
 }
 
 function Stores(props: { workspace: WorkspaceSummary }) {
-  const vm = useAdminHome();
+  const vm = useAdminHome()
 
   return (
     <Show
@@ -176,7 +176,7 @@ function Stores(props: { workspace: WorkspaceSummary }) {
             <Button
               size="sm"
               onClick={() => {
-                void vm.openStore(props.workspace.tenantId, store.id);
+                void vm.openStore(props.workspace.tenantId, store.id)
               }}
             >
               Open store
@@ -185,11 +185,11 @@ function Stores(props: { workspace: WorkspaceSummary }) {
         )}
       </For>
     </Show>
-  );
+  )
 }
 
 function CreateStoreInline(props: { tenantId: string }) {
-  const vm = useAdminHome();
+  const vm = useAdminHome()
 
   return (
     <div class="flex flex-col gap-3 rounded-md border border-dashed border-gray-300 bg-white p-3 sm:flex-row">
@@ -210,11 +210,11 @@ function CreateStoreInline(props: { tenantId: string }) {
           !(vm.storeNameByTenant()[props.tenantId] || '').trim()
         }
         onClick={() => {
-          void vm.submitCreateStore(props.tenantId);
+          void vm.submitCreateStore(props.tenantId)
         }}
       >
         Create store
       </Button>
     </div>
-  );
+  )
 }

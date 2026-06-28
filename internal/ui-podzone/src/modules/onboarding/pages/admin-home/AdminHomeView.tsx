@@ -1,9 +1,9 @@
-import { PageShell } from '@/solid/components/common/PageShell';
-import { AttentionRuntime } from './AttentionRuntime';
-import { HeaderStats } from './HeaderStats';
-import { StoreChooser } from './StoreChooser';
-import { WorkspaceList } from './WorkspaceList';
-import { WorkspaceSetup } from './WorkspaceSetup';
+import { PageShell } from '@/solid/components/common/PageShell'
+import { AttentionRuntime } from './AttentionRuntime'
+import { HeaderStats } from './HeaderStats'
+import { StoreChooser } from './StoreChooser'
+import { WorkspaceList } from './WorkspaceList'
+import { WorkspaceSetup } from './WorkspaceSetup'
 
 export function AdminHomeView() {
   return (
@@ -16,5 +16,5 @@ export function AdminHomeView() {
       </div>
       <AttentionRuntime />
     </PageShell>
-  );
+  )
 }

@@ -1,16 +1,12 @@
-import { Show } from 'solid-js';
-import { Badge, Button, Card } from '@/solid/components/common/Primitives';
-import { SectionTitle } from '@/solid/components/common/SectionTitle';
-import {
-  FormInputField,
-  createFormStore,
-  required,
-} from '@/solid/forms';
-import type { CreateWorkspaceFormValues } from './forms';
-import { useAdminHome } from './context';
+import { Show } from 'solid-js'
+import { Badge, Button, Card } from '@/solid/components/common/Primitives'
+import { SectionTitle } from '@/solid/components/common/SectionTitle'
+import { FormInputField, createFormStore, required } from '@/solid/forms'
+import type { CreateWorkspaceFormValues } from './forms'
+import { useAdminHome } from './context'
 
 export function WorkspaceSetup() {
-  const vm = useAdminHome();
+  const vm = useAdminHome()
   const workspaceForm = createFormStore<CreateWorkspaceFormValues>({
     initialValues: {
       name: vm.tenantName(),
@@ -20,18 +16,18 @@ export function WorkspaceSetup() {
       name: [required('Enter a workspace name.')],
       slug: [required('Enter a workspace slug.')],
     },
-  });
+  })
 
   const submitWorkspace = async (event: SubmitEvent) => {
-    event.preventDefault();
-    if (!workspaceForm.validate()) return;
-    workspaceForm.setSubmitting(true);
-    const created = await vm.createTenantFromForm({ ...workspaceForm.values });
-    workspaceForm.setSubmitting(false);
+    event.preventDefault()
+    if (!workspaceForm.validate()) return
+    workspaceForm.setSubmitting(true)
+    const created = await vm.createTenantFromForm({ ...workspaceForm.values })
+    workspaceForm.setSubmitting(false)
     if (created) {
-      workspaceForm.reset({ name: '', slug: '' });
+      workspaceForm.reset({ name: '', slug: '' })
     }
-  };
+  }
 
   return (
     <Show when={vm.canCreateTenant() || vm.canBootstrapFirstWorkspace()}>
@@ -49,7 +45,7 @@ export function WorkspaceSetup() {
               placeholder="Urban Finds"
               onValueInput={(value) => {
                 if (!workspaceForm.values.slug.trim()) {
-                  workspaceForm.setValue('slug', vm.slugify(value));
+                  workspaceForm.setValue('slug', vm.slugify(value))
                 }
               }}
             />
@@ -102,7 +98,7 @@ export function WorkspaceSetup() {
             color="alternative"
             disabled={!vm.selectedWorkspaceId()}
             onClick={() => {
-              void vm.prepareTenant(vm.selectedWorkspaceId());
+              void vm.prepareTenant(vm.selectedWorkspaceId())
             }}
           >
             Reload workspace
@@ -110,5 +106,5 @@ export function WorkspaceSetup() {
         </Card>
       </div>
     </Show>
-  );
+  )
 }

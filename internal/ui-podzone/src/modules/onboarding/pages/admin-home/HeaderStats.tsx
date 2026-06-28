@@ -1,14 +1,18 @@
-import { Show } from 'solid-js';
-import { storeStorage } from '@/services/storeStorage';
-import { tokenStorage } from '@/services/tokenStorage';
-import { ErrorAlert, InfoAlert, LoadingInline } from '@/solid/components/common/Feedback';
-import { Button, Card } from '@/solid/components/common/Primitives';
-import { SectionLead } from '@/solid/components/common/SectionLead';
-import { StatCard } from '@/solid/components/dashboard/StatCard';
-import { useAdminHome } from './context';
+import { Show } from 'solid-js'
+import { storeStorage } from '@/services/storeStorage'
+import { tokenStorage } from '@/services/tokenStorage'
+import {
+  ErrorAlert,
+  InfoAlert,
+  LoadingInline,
+} from '@/solid/components/common/Feedback'
+import { Button, Card } from '@/solid/components/common/Primitives'
+import { SectionLead } from '@/solid/components/common/SectionLead'
+import { StatCard } from '@/solid/components/dashboard/StatCard'
+import { useAdminHome } from './context'
 
 export function HeaderStats() {
-  const vm = useAdminHome();
+  const vm = useAdminHome()
 
   return (
     <>
@@ -64,16 +68,18 @@ export function HeaderStats() {
         <StatCard
           label="Stores with attention"
           value={String(
-            vm.storeAttention().filter(
-              (store: {
-                overdueCount: number;
-                disputedCount: number;
-                unassignedCount: number;
-              }) =>
-                store.overdueCount > 0 ||
-                store.disputedCount > 0 ||
-                store.unassignedCount > 0
-            ).length
+            vm
+              .storeAttention()
+              .filter(
+                (store: {
+                  overdueCount: number
+                  disputedCount: number
+                  unassignedCount: number
+                }) =>
+                  store.overdueCount > 0 ||
+                  store.disputedCount > 0 ||
+                  store.unassignedCount > 0
+              ).length
           )}
         />
       </div>
@@ -82,5 +88,5 @@ export function HeaderStats() {
         <LoadingInline label="Checking workspace creation access..." />
       </Show>
     </>
-  );
+  )
 }

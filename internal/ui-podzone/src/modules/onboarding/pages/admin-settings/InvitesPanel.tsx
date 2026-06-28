@@ -1,21 +1,25 @@
-import { For, Show } from 'solid-js';
-import { tokenStorage } from '@/services/tokenStorage';
-import { EmptyBlock, InfoAlert, LoadingInline } from '@/solid/components/common/Feedback';
-import { Badge, Button, Card } from '@/solid/components/common/Primitives';
-import { SectionTitle } from '@/solid/components/common/SectionTitle';
+import { For, Show } from 'solid-js'
+import { tokenStorage } from '@/services/tokenStorage'
+import {
+  EmptyBlock,
+  InfoAlert,
+  LoadingInline,
+} from '@/solid/components/common/Feedback'
+import { Badge, Button, Card } from '@/solid/components/common/Primitives'
+import { SectionTitle } from '@/solid/components/common/SectionTitle'
 import {
   FormInputField,
   FormSelectField,
   createFormStore,
   email,
   required,
-} from '@/solid/forms';
-import type { TenantInviteFormValues } from './forms';
-import { membershipStatusColor, roleOptions } from './presentation';
-import { useAdminSettings } from './context';
+} from '@/solid/forms'
+import type { TenantInviteFormValues } from './forms'
+import { membershipStatusColor, roleOptions } from './presentation'
+import { useAdminSettings } from './context'
 
 export function InvitesPanel() {
-  const vm = useAdminSettings();
+  const vm = useAdminSettings()
   const inviteForm = createFormStore<TenantInviteFormValues>({
     initialValues: {
       tenantId: vm.memberTenantId(),
@@ -24,18 +28,21 @@ export function InvitesPanel() {
     },
     validators: {
       tenantId: [required('Choose a workspace.')],
-      email: [required('Invite email is required.'), email('Enter a valid email.')],
+      email: [
+        required('Invite email is required.'),
+        email('Enter a valid email.'),
+      ],
       roleName: [required('Choose a role.')],
     },
-  });
+  })
 
   const submitInvite = async (event: SubmitEvent) => {
-    event.preventDefault();
-    if (!inviteForm.validate()) return;
-    inviteForm.setSubmitting(true);
-    await vm.createInviteFromForm({ ...inviteForm.values });
-    inviteForm.setSubmitting(false);
-  };
+    event.preventDefault()
+    if (!inviteForm.validate()) return
+    inviteForm.setSubmitting(true)
+    await vm.createInviteFromForm({ ...inviteForm.values })
+    inviteForm.setSubmitting(false)
+  }
 
   return (
     <Card class="space-y-4">
@@ -45,7 +52,8 @@ export function InvitesPanel() {
       />
       <Show when={!vm.canManageMembers()}>
         <InfoAlert>
-          Workspace invites require access to manage team permissions for this workspace.
+          Workspace invites require access to manage team permissions for this
+          workspace.
         </InfoAlert>
       </Show>
       <form class="space-y-4" onSubmit={submitInvite}>
@@ -80,9 +88,9 @@ export function InvitesPanel() {
             color="light"
             disabled={!tokenStorage.getUser()?.email}
             onClick={() => {
-              const emailAddress = tokenStorage.getUser()?.email || '';
-              inviteForm.setValue('email', emailAddress);
-              vm.setInviteEmail(emailAddress);
+              const emailAddress = tokenStorage.getUser()?.email || ''
+              inviteForm.setValue('email', emailAddress)
+              vm.setInviteEmail(emailAddress)
             }}
           >
             Use my email
@@ -145,13 +153,15 @@ export function InvitesPanel() {
                     <Button
                       color="red"
                       size="xs"
-                      disabled={!vm.canManageMembers() || invite.status !== 'pending'}
+                      disabled={
+                        !vm.canManageMembers() || invite.status !== 'pending'
+                      }
                       onClick={() => {
                         void vm.handleRevokeInvite(
                           invite.id,
                           invite.tenantId,
                           invite.email
-                        );
+                        )
                       }}
                     >
                       Revoke
@@ -164,5 +174,5 @@ export function InvitesPanel() {
         </div>
       </Show>
     </Card>
-  );
+  )
 }

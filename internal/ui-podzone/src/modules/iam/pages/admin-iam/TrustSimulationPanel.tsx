@@ -1,25 +1,32 @@
-import { For, Show } from 'solid-js';
-import { EmptyBlock, InfoAlert } from '@/solid/components/common/Feedback';
-import { IamKeyValueBuilder } from '@/solid/components/common/IamKeyValueBuilder';
-import { IamStatementBuilder } from '@/solid/components/common/IamStatementBuilder';
-import { IamTrustPolicyBuilder } from '@/solid/components/common/IamTrustPolicyBuilder';
-import { Badge, Button, Card, InputField, SelectField } from '@/solid/components/common/Primitives';
-import { SectionTitle } from '@/solid/components/common/SectionTitle';
+import { For, Show } from 'solid-js'
+import { EmptyBlock, InfoAlert } from '@/solid/components/common/Feedback'
+import { IamKeyValueBuilder } from '@/solid/components/common/IamKeyValueBuilder'
+import { IamStatementBuilder } from '@/solid/components/common/IamStatementBuilder'
+import { IamTrustPolicyBuilder } from '@/solid/components/common/IamTrustPolicyBuilder'
+import {
+  Badge,
+  Button,
+  Card,
+  InputField,
+  SelectField,
+} from '@/solid/components/common/Primitives'
+import { SectionTitle } from '@/solid/components/common/SectionTitle'
 import {
   FormInputField,
   createFormStore,
   jsonArray,
   required,
-} from '@/solid/forms';
-import { classes } from '@/solid/shared/utils';
+} from '@/solid/forms'
+import { classes } from '@/solid/shared/utils'
 import type {
   RoleBoundaryFormValues,
   TrustPolicyFormValues,
-} from './trust-forms';
-import { useAdminIamTrustSim } from './trust-sim-context';
+} from './trust-forms'
+import { useAdminIamTrustSim } from './trust-sim-context'
+import { SimulationPresetButtons } from './SimulationPresetButtons'
 
 export function TrustSimulationPanel() {
-  const trust = useAdminIamTrustSim();
+  const trust = useAdminIamTrustSim()
   const trustPolicyForm = createFormStore<TrustPolicyFormValues>({
     initialValues: {
       roleName: trust.trustRoleName(),
@@ -29,7 +36,7 @@ export function TrustSimulationPanel() {
       roleName: [required('Enter a role name.')],
       trustJson: [jsonArray('Trust policy must be a JSON array.')],
     },
-  });
+  })
   const roleBoundaryForm = createFormStore<RoleBoundaryFormValues>({
     initialValues: {
       policyName: trust.trustBoundaryPolicyName(),
@@ -37,24 +44,24 @@ export function TrustSimulationPanel() {
     validators: {
       policyName: [required('Enter a role boundary policy name.')],
     },
-  });
+  })
 
   const saveTrustPolicy = async () => {
-    if (!trustPolicyForm.validate()) return;
-    trustPolicyForm.setSubmitting(true);
-    trust.setTrustRoleName(trustPolicyForm.values.roleName);
-    trust.setTrustJson(trustPolicyForm.values.trustJson);
-    await trust.handleSaveTrustPolicy();
-    trustPolicyForm.setSubmitting(false);
-  };
+    if (!trustPolicyForm.validate()) return
+    trustPolicyForm.setSubmitting(true)
+    trust.setTrustRoleName(trustPolicyForm.values.roleName)
+    trust.setTrustJson(trustPolicyForm.values.trustJson)
+    await trust.handleSaveTrustPolicy()
+    trustPolicyForm.setSubmitting(false)
+  }
 
   const saveRoleBoundary = async () => {
-    if (!roleBoundaryForm.validate()) return;
-    roleBoundaryForm.setSubmitting(true);
-    trust.setTrustBoundaryPolicyName(roleBoundaryForm.values.policyName);
-    await trust.handleSaveRoleBoundary();
-    roleBoundaryForm.setSubmitting(false);
-  };
+    if (!roleBoundaryForm.validate()) return
+    roleBoundaryForm.setSubmitting(true)
+    trust.setTrustBoundaryPolicyName(roleBoundaryForm.values.policyName)
+    await trust.handleSaveRoleBoundary()
+    roleBoundaryForm.setSubmitting(false)
+  }
 
   return (
     <>
@@ -166,17 +173,7 @@ export function TrustSimulationPanel() {
         value={trust.simServicePrincipal()}
         onInput={(e) => trust.setSimServicePrincipal(e.currentTarget.value)}
       />
-      <div class="flex flex-wrap gap-2">
-        <Button size="xs" color="light" onClick={trust.applyServiceAssumePreset}>
-          Preset: service assume
-        </Button>
-        <Button size="xs" color="light" onClick={trust.applyTenantAssumePreset}>
-          Preset: tenant admin assume
-        </Button>
-        <Button size="xs" color="light" onClick={trust.applyScopeDownDenyPreset}>
-          Preset: scope-down deny
-        </Button>
-      </div>
+      <SimulationPresetButtons />
       <div class="grid gap-3 lg:grid-cols-2">
         <IamKeyValueBuilder
           label="Attributes"
@@ -207,14 +204,16 @@ export function TrustSimulationPanel() {
         />
         <Card class="space-y-4 border border-gray-200 bg-gray-50 p-4 shadow-none">
           <div>
-            <p class="text-sm font-medium text-gray-700">Assumed role session</p>
-            <p class="mt-1 text-xs text-gray-500">
-              Provide a session snapshot when you want to simulate access through
-              an already assumed role.
+            <p class="text-sm font-medium text-gray-700">
+              Assumed role session
             </p>
             <p class="mt-1 text-xs text-gray-500">
-              Filling an assumed role id enables the assumed-role branch for this
-              simulation.
+              Provide a session snapshot when you want to simulate access
+              through an already assumed role.
+            </p>
+            <p class="mt-1 text-xs text-gray-500">
+              Filling an assumed role id enables the assumed-role branch for
+              this simulation.
             </p>
           </div>
           <div class="grid gap-3 md:grid-cols-2">
@@ -228,7 +227,9 @@ export function TrustSimulationPanel() {
               label="Assumed role scope"
               value={trust.simAssumedRoleScope()}
               options={trust.policyScopeOptions}
-              onChange={(e) => trust.setSimAssumedRoleScope(e.currentTarget.value)}
+              onChange={(e) =>
+                trust.setSimAssumedRoleScope(e.currentTarget.value)
+              }
             />
           </div>
           <div class="grid gap-3 md:grid-cols-2">
@@ -236,13 +237,17 @@ export function TrustSimulationPanel() {
               label="Assumed role name"
               value={trust.simAssumedRoleName()}
               placeholder="tenant_admin"
-              onInput={(e) => trust.setSimAssumedRoleName(e.currentTarget.value)}
+              onInput={(e) =>
+                trust.setSimAssumedRoleName(e.currentTarget.value)
+              }
             />
             <InputField
               label="Assumed role tenant"
               value={trust.simAssumedRoleTenantId()}
               placeholder="t_demo"
-              onInput={(e) => trust.setSimAssumedRoleTenantId(e.currentTarget.value)}
+              onInput={(e) =>
+                trust.setSimAssumedRoleTenantId(e.currentTarget.value)
+              }
             />
           </div>
           <div class="grid gap-3 md:grid-cols-2">
@@ -250,13 +255,17 @@ export function TrustSimulationPanel() {
               label="Session name"
               value={trust.simAssumedRoleSessionName()}
               placeholder="ops-review"
-              onInput={(e) => trust.setSimAssumedRoleSessionName(e.currentTarget.value)}
+              onInput={(e) =>
+                trust.setSimAssumedRoleSessionName(e.currentTarget.value)
+              }
             />
             <InputField
               label="Source identity"
               value={trust.simAssumedRoleSourceIdentity()}
               placeholder="backoffice-admin"
-              onInput={(e) => trust.setSimAssumedRoleSourceIdentity(e.currentTarget.value)}
+              onInput={(e) =>
+                trust.setSimAssumedRoleSourceIdentity(e.currentTarget.value)
+              }
             />
           </div>
           <div class="grid gap-3 md:grid-cols-2">
@@ -264,13 +273,17 @@ export function TrustSimulationPanel() {
               label="Service principal"
               value={trust.simAssumedRoleServicePrincipal()}
               placeholder="backoffice.podzone.internal"
-              onInput={(e) => trust.setSimAssumedRoleServicePrincipal(e.currentTarget.value)}
+              onInput={(e) =>
+                trust.setSimAssumedRoleServicePrincipal(e.currentTarget.value)
+              }
             />
             <InputField
               label="Expires at"
               value={trust.simAssumedRoleExpiresAt()}
               placeholder="2026-05-19T18:30:00Z"
-              onInput={(e) => trust.setSimAssumedRoleExpiresAt(e.currentTarget.value)}
+              onInput={(e) =>
+                trust.setSimAssumedRoleExpiresAt(e.currentTarget.value)
+              }
             />
           </div>
         </Card>
@@ -344,8 +357,12 @@ export function TrustSimulationPanel() {
                             }
                           />
                           <Badge
-                            content={trust.statementSourceLabel(statement.source)}
-                            color={trust.simulationSourceColor(statement.source)}
+                            content={trust.statementSourceLabel(
+                              statement.source
+                            )}
+                            color={trust.simulationSourceColor(
+                              statement.source
+                            )}
                           />
                           <Show when={statement.policyName}>
                             <Badge
@@ -355,7 +372,8 @@ export function TrustSimulationPanel() {
                           </Show>
                         </div>
                         <p class="mt-2">
-                          {statement.actionPattern} on {statement.resourcePattern}
+                          {statement.actionPattern} on{' '}
+                          {statement.resourcePattern}
                         </p>
                         <Show when={(statement.conditions || []).length > 0}>
                           <p class="mt-2 text-[11px] text-gray-500">
@@ -395,14 +413,18 @@ export function TrustSimulationPanel() {
                       <Show when={layer.reason.toLowerCase().includes('deny')}>
                         <Badge content="explicit deny" color="red" />
                       </Show>
-                      <Show when={layer.reason.toLowerCase().includes('boundary')}>
+                      <Show
+                        when={layer.reason.toLowerCase().includes('boundary')}
+                      >
                         <Badge content="boundary gate" color="pink" />
                       </Show>
                       <Show when={layer.reason.toLowerCase().includes('scp')}>
                         <Badge content="scp gate" color="yellow" />
                       </Show>
                       <Show
-                        when={layer.reason.toLowerCase().includes('session policy')}
+                        when={layer.reason
+                          .toLowerCase()
+                          .includes('session policy')}
                       >
                         <Badge content="session scope-down" color="indigo" />
                       </Show>
@@ -423,8 +445,12 @@ export function TrustSimulationPanel() {
                                   }
                                 />
                                 <Badge
-                                  content={trust.statementSourceLabel(statement.source)}
-                                  color={trust.simulationSourceColor(statement.source)}
+                                  content={trust.statementSourceLabel(
+                                    statement.source
+                                  )}
+                                  color={trust.simulationSourceColor(
+                                    statement.source
+                                  )}
                                 />
                                 <Badge
                                   content={statement.policyName || 'inline'}
@@ -432,9 +458,12 @@ export function TrustSimulationPanel() {
                                 />
                               </div>
                               <p class="mt-1">
-                                {statement.actionPattern} on {statement.resourcePattern}
+                                {statement.actionPattern} on{' '}
+                                {statement.resourcePattern}
                               </p>
-                              <Show when={(statement.conditions || []).length > 0}>
+                              <Show
+                                when={(statement.conditions || []).length > 0}
+                              >
                                 <p class="mt-2 text-[11px] text-gray-500">
                                   Conditions:{' '}
                                   {(statement.conditions || [])
@@ -458,5 +487,5 @@ export function TrustSimulationPanel() {
         )}
       </Show>
     </>
-  );
+  )
 }

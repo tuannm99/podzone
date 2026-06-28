@@ -1,30 +1,30 @@
-import { For, Show } from 'solid-js';
-import { Badge, Button } from '@/solid/components/common/Primitives';
-import { useTenantOrdersInsights } from './context';
-import { formatActivityActor, formatActivityTime } from './utils';
+import { For, Show } from 'solid-js'
+import { Badge, Button } from '@/solid/components/common/Primitives'
+import { useTenantOrdersInsights } from './context'
+import { formatActivityActor, formatActivityTime } from './utils'
 
 function activityColor(type: string) {
   switch (type) {
     case 'shipment_note':
-      return 'indigo';
+      return 'indigo'
     case 'settlement_note':
-      return 'green';
+      return 'green'
     case 'issue_note':
-      return 'red';
+      return 'red'
     default:
-      return 'dark';
+      return 'dark'
   }
 }
 
 export function StoreActivityFeedPanel() {
-  const insights = useTenantOrdersInsights();
+  const insights = useTenantOrdersInsights()
   const workspaceURL = (path: string) => {
-    const params = new URLSearchParams();
-    const storeId = insights.storeId().trim();
-    if (storeId) params.set('storeId', storeId);
-    const query = params.toString();
-    return `/t/${insights.tenantId}${path}${query ? `?${query}` : ''}`;
-  };
+    const params = new URLSearchParams()
+    const storeId = insights.storeId().trim()
+    if (storeId) params.set('storeId', storeId)
+    const query = params.toString()
+    return `/t/${insights.tenantId}${path}${query ? `?${query}` : ''}`
+  }
 
   return (
     <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
@@ -43,7 +43,7 @@ export function StoreActivityFeedPanel() {
           size="xs"
           color="light"
           onClick={() => {
-            void insights.copyStoreActivityFeed();
+            void insights.copyStoreActivityFeed()
           }}
         >
           Copy feed
@@ -116,5 +116,5 @@ export function StoreActivityFeedPanel() {
         </Show>
       </div>
     </div>
-  );
+  )
 }

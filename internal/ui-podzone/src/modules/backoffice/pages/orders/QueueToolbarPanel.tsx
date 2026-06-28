@@ -1,9 +1,9 @@
-import { For, Show } from 'solid-js';
-import { Button, InputField } from '@/solid/components/common/Primitives';
-import { useTenantOrdersBoard } from './board-context';
+import { For, Show } from 'solid-js'
+import { Button, InputField } from '@/solid/components/common/Primitives'
+import { useTenantOrdersBoard } from './board-context'
 
 export function QueueToolbarPanel() {
-  const board = useTenantOrdersBoard();
+  const board = useTenantOrdersBoard()
 
   return (
     <>
@@ -28,7 +28,9 @@ export function QueueToolbarPanel() {
             <Button
               type="button"
               size="xs"
-              color={board.activeQueueView() === 'my_queue' ? 'blue' : 'alternative'}
+              color={
+                board.activeQueueView() === 'my_queue' ? 'blue' : 'alternative'
+              }
               onClick={() => board.setActiveQueueView('my_queue')}
             >
               My queue · {board.queueViewCount('my_queue')}
@@ -36,7 +38,9 @@ export function QueueToolbarPanel() {
             <Button
               type="button"
               size="xs"
-              color={board.activeQueueView() === 'overdue' ? 'red' : 'alternative'}
+              color={
+                board.activeQueueView() === 'overdue' ? 'red' : 'alternative'
+              }
               onClick={() => board.setActiveQueueView('overdue')}
             >
               Overdue · {board.queueViewCount('overdue')}
@@ -45,7 +49,9 @@ export function QueueToolbarPanel() {
               type="button"
               size="xs"
               color={
-                board.activeQueueView() === 'delivery_issues' ? 'red' : 'alternative'
+                board.activeQueueView() === 'delivery_issues'
+                  ? 'red'
+                  : 'alternative'
               }
               onClick={() => board.setActiveQueueView('delivery_issues')}
             >
@@ -83,7 +89,9 @@ export function QueueToolbarPanel() {
         <Button
           type="button"
           size="xs"
-          color={board.activeQueueSort() === 'priority' ? 'dark' : 'alternative'}
+          color={
+            board.activeQueueSort() === 'priority' ? 'dark' : 'alternative'
+          }
           onClick={() => board.setActiveQueueSort('priority')}
         >
           Priority first
@@ -152,5 +160,5 @@ export function QueueToolbarPanel() {
         </div>
       </div>
     </>
-  );
+  )
 }

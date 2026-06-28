@@ -1,65 +1,65 @@
-import { useNavigate, useSearch } from '@tanstack/solid-router';
-import { Show, createSignal } from 'solid-js';
-import { switchActiveTenant } from '@/services/auth';
-import { acceptTenantInvite } from '@/services/iam';
-import { tokenStorage } from '@/services/tokenStorage';
-import { ErrorAlert, InfoAlert } from '@/solid/components/common/Feedback';
-import { Button, Card } from '@/solid/components/common/Primitives';
-import { SectionLead } from '@/solid/components/common/SectionLead';
+import { useNavigate, useSearch } from '@tanstack/solid-router'
+import { Show, createSignal } from 'solid-js'
+import { switchActiveTenant } from '@/services/auth'
+import { acceptTenantInvite } from '@/services/iam'
+import { tokenStorage } from '@/services/tokenStorage'
+import { ErrorAlert, InfoAlert } from '@/solid/components/common/Feedback'
+import { Button, Card } from '@/solid/components/common/Primitives'
+import { SectionLead } from '@/solid/components/common/SectionLead'
 
 export default function AcceptInvitePage() {
-  const navigate = useNavigate();
-  const search = useSearch({ strict: false }) as () => Record<string, unknown>;
-  const [loading, setLoading] = createSignal(false);
-  const [error, setError] = createSignal('');
-  const [message, setMessage] = createSignal('');
+  const navigate = useNavigate()
+  const search = useSearch({ strict: false }) as () => Record<string, unknown>
+  const [loading, setLoading] = createSignal(false)
+  const [error, setError] = createSignal('')
+  const [message, setMessage] = createSignal('')
 
   const inviteToken = () => {
-    const rawToken = search().token;
-    return typeof rawToken === 'string' ? rawToken.trim() : '';
-  };
+    const rawToken = search().token
+    return typeof rawToken === 'string' ? rawToken.trim() : ''
+  }
 
-  const isAuthenticated = () => Boolean(tokenStorage.getToken());
+  const isAuthenticated = () => Boolean(tokenStorage.getToken())
 
   const acceptInvite = async () => {
-    const token = inviteToken();
+    const token = inviteToken()
     if (!token) {
-      setError('Missing workspace invite token.');
-      return;
+      setError('Missing workspace invite token.')
+      return
     }
     if (!isAuthenticated()) {
-      setError(
-        'Sign in with the invited account before joining this store.'
-      );
-      return;
+      setError('Sign in with the invited account before joining this store.')
+      return
     }
 
-    setLoading(true);
-    setError('');
-    setMessage('');
+    setLoading(true)
+    setError('')
+    setMessage('')
     try {
-      const accepted = await acceptTenantInvite(token);
+      const accepted = await acceptTenantInvite(token)
       if (!accepted.success) {
-        setError(accepted.message);
-        return;
+        setError(accepted.message)
+        return
       }
 
-      const tenantId = accepted.data.tenantId;
-      const switched = await switchActiveTenant(tenantId);
+      const tenantId = accepted.data.tenantId
+      const switched = await switchActiveTenant(tenantId)
       if (!switched.success) {
         setMessage(
           `Workspace invite accepted for ${tenantId}. Open /admin and choose the store manually if switching does not happen automatically.`
-        );
-        void navigate({ to: '/admin', replace: true });
-        return;
+        )
+        void navigate({ to: '/admin', replace: true })
+        return
       }
 
-      setMessage(`Workspace invite accepted. Choose a store from /admin to continue.`);
-      void navigate({ to: '/admin', replace: true });
+      setMessage(
+        `Workspace invite accepted. Choose a store from /admin to continue.`
+      )
+      void navigate({ to: '/admin', replace: true })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div class="mx-auto flex min-h-[calc(100vh-3rem)] max-w-3xl items-center px-4 py-10 sm:px-6 lg:px-8">
@@ -79,7 +79,9 @@ export default function AcceptInvitePage() {
         </Show>
 
         <Show when={!inviteToken()}>
-          <ErrorAlert>Workspace invite token is missing from this URL.</ErrorAlert>
+          <ErrorAlert>
+            Workspace invite token is missing from this URL.
+          </ErrorAlert>
         </Show>
 
         <Show when={!isAuthenticated()}>
@@ -95,7 +97,7 @@ export default function AcceptInvitePage() {
             loading={loading()}
             disabled={!inviteToken() || !isAuthenticated()}
             onClick={() => {
-              void acceptInvite();
+              void acceptInvite()
             }}
           >
             Join workspace
@@ -109,5 +111,5 @@ export default function AcceptInvitePage() {
         </div>
       </Card>
     </div>
-  );
+  )
 }

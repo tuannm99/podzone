@@ -1,19 +1,20 @@
-import { For, Show } from 'solid-js';
-import { Button, InputField, SelectField } from '@/solid/components/common/Primitives';
+import { For, Show } from 'solid-js'
 import {
-  useTenantOrdersBoard,
-  type ShipmentSlaMode,
-} from './board-context';
+  Button,
+  InputField,
+  SelectField,
+} from '@/solid/components/common/Primitives'
+import { useTenantOrdersBoard, type ShipmentSlaMode } from './board-context'
 
 const settlementOptions = [
   { name: 'Pending', value: 'pending' },
   { name: 'Reconciled', value: 'reconciled' },
   { name: 'Paid', value: 'paid' },
   { name: 'Disputed', value: 'disputed' },
-];
+]
 
 export function BulkOpsPanel() {
-  const board = useTenantOrdersBoard();
+  const board = useTenantOrdersBoard()
 
   return (
     <div class="mt-4 rounded-lg border border-gray-200 bg-white p-4">
@@ -86,10 +87,7 @@ export function BulkOpsPanel() {
         <SelectField
           label="Bulk settlement status"
           value={board.bulkDraft().settlementStatus}
-          options={[
-            { name: 'No change', value: '' },
-            ...settlementOptions,
-          ]}
+          options={[{ name: 'No change', value: '' }, ...settlementOptions]}
           onChange={(event) =>
             board.setBulkDraft((current) => ({
               ...current,
@@ -162,12 +160,12 @@ export function BulkOpsPanel() {
           size="sm"
           color="dark"
           onClick={() => {
-            void board.applyBulkUpdate();
+            void board.applyBulkUpdate()
           }}
         >
           Apply bulk update
         </Button>
       </div>
     </div>
-  );
+  )
 }

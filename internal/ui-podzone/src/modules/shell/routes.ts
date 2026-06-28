@@ -4,4 +4,4 @@ export const shellRouteComponents = {
   googleCallback: () => import('./pages/auth/GoogleCallbackPage'),
   login: () => import('./pages/auth/LoginPage'),
   register: () => import('./pages/auth/RegisterPage'),
-};
+}

@@ -17,7 +17,6 @@
 }
 
 @layer base {
-
   html,
   body,
   #root {
@@ -74,9 +73,11 @@
 
   .problem-statement-editor .toastui-editor-defaultUI-toolbar {
     border-bottom: 1px solid #e2e8f0;
-    background: linear-gradient(180deg,
-        rgba(248, 250, 252, 0.96),
-        rgba(255, 255, 255, 0.94));
+    background: linear-gradient(
+      180deg,
+      rgba(248, 250, 252, 0.96),
+      rgba(255, 255, 255, 0.94)
+    );
     padding: 0.75rem 0.85rem;
   }
 
@@ -93,7 +94,9 @@
     border-radius: 0.85rem;
   }
 
-  .problem-statement-editor .toastui-editor-defaultUI-toolbar button:not(:disabled):hover {
+  .problem-statement-editor
+    .toastui-editor-defaultUI-toolbar
+    button:not(:disabled):hover {
     background: #dbeafe;
   }
 
@@ -127,7 +130,9 @@
     background: #ffffff;
   }
 
-  .problem-statement-editor .toastui-editor-ww-container .toastui-editor-contents,
+  .problem-statement-editor
+    .toastui-editor-ww-container
+    .toastui-editor-contents,
   .problem-statement-editor .toastui-editor-md-preview .toastui-editor-contents,
   .problem-statement-viewer .toastui-editor-contents {
     padding: 2rem 2.2rem;
@@ -168,8 +173,8 @@
     color: #334155;
   }
 
-  .problem-statement-surface .toastui-editor-contents ul>li::before,
-  .problem-statement-surface .toastui-editor-contents ol>li::before {
+  .problem-statement-surface .toastui-editor-contents ul > li::before,
+  .problem-statement-surface .toastui-editor-contents ol > li::before {
     color: #2563eb;
   }
 

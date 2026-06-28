@@ -15,6 +15,7 @@ This section documents the current Podzone architecture using a lightweight C4 s
 - [Containers](./containers.md)
 - [Modules](./modules.md)
 - [Frontend and Edge](./frontend-edge.md)
+- [Frontend Solid Audit](./frontend-solid-audit.md)
 - [Transport and Contracts](./transport-contracts.md)
 - [Data Ownership](./data-ownership.md)
 - [Code Map](./code-map.md)

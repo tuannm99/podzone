@@ -1,37 +1,37 @@
-import { tokenStorage } from '@/services/tokenStorage';
-import { EmptyBlock } from '@/solid/components/common/Feedback';
-import { Badge, Button, Card } from '@/solid/components/common/Primitives';
-import { SectionTitle } from '@/solid/components/common/SectionTitle';
-import { buildOrdersHref, buildTenantHref } from './presentation';
+import { tokenStorage } from '@/services/tokenStorage'
+import { EmptyBlock } from '@/solid/components/common/Feedback'
+import { Badge, Button, Card } from '@/solid/components/common/Primitives'
+import { SectionTitle } from '@/solid/components/common/SectionTitle'
+import { buildOrdersHref, buildTenantHref } from './presentation'
 
 type TenantHomeSectionsProps = {
-  tenantId: string;
-  currentStoreId: () => string;
-  tenantReady: () => boolean;
-  publishedCandidateCount: () => number;
-  inProductionCount: () => number;
-  openExceptionCount: () => number;
-  mockRevenue: () => string;
-  realizedMarginTotal: () => string;
-  pendingSettlementCount: () => number;
-  disputedSettlementCount: () => number;
-  issueCostExposure: () => string;
-  shipmentSlaOverdueCount: () => number;
-  issueSlaOverdueCount: () => number;
-  topPartnerLoad: () => string;
-  issueRate: () => string;
-};
+  tenantId: string
+  currentStoreId: () => string
+  tenantReady: () => boolean
+  publishedCandidateCount: () => number
+  inProductionCount: () => number
+  openExceptionCount: () => number
+  mockRevenue: () => string
+  realizedMarginTotal: () => string
+  pendingSettlementCount: () => number
+  disputedSettlementCount: () => number
+  issueCostExposure: () => string
+  shipmentSlaOverdueCount: () => number
+  issueSlaOverdueCount: () => number
+  topPartnerLoad: () => string
+  issueRate: () => string
+}
 
 export function TenantHomeSections(props: TenantHomeSectionsProps) {
   const tenantHref = (path: string) =>
-    buildTenantHref(props.tenantId, props.currentStoreId(), path);
+    buildTenantHref(props.tenantId, props.currentStoreId(), path)
   const ordersHref = (queueView: string, queueSort = 'priority') =>
     buildOrdersHref(
       props.tenantId,
       props.currentStoreId(),
       queueView,
       queueSort
-    );
+    )
 
   return (
     <>
@@ -78,8 +78,14 @@ export function TenantHomeSections(props: TenantHomeSectionsProps) {
             color={props.openExceptionCount() > 0 ? 'yellow' : 'green'}
           />
           <Badge content={`revenue ${props.mockRevenue()}`} color="indigo" />
-          <Badge content={`margin ${props.realizedMarginTotal()}`} color="blue" />
-          <Badge content={`issue cost ${props.issueCostExposure()}`} color="red" />
+          <Badge
+            content={`margin ${props.realizedMarginTotal()}`}
+            color="blue"
+          />
+          <Badge
+            content={`issue cost ${props.issueCostExposure()}`}
+            color="red"
+          />
           <Badge
             content={`${props.shipmentSlaOverdueCount()} shipment SLA overdue`}
             color={props.shipmentSlaOverdueCount() > 0 ? 'red' : 'green'}
@@ -166,9 +172,7 @@ export function TenantHomeSections(props: TenantHomeSectionsProps) {
           </Button>
           <Button
             href={ordersHref('settlement_pending')}
-            color={
-              props.pendingSettlementCount() > 0 ? 'green' : 'alternative'
-            }
+            color={props.pendingSettlementCount() > 0 ? 'green' : 'alternative'}
           >
             Settlement follow-up
           </Button>
@@ -202,17 +206,17 @@ export function TenantHomeSections(props: TenantHomeSectionsProps) {
         </div>
       </Card>
     </>
-  );
+  )
 }
 
 type StartCardProps = {
-  label: string;
-  title: string;
-  copy: string;
-  href: string;
-  color: 'blue' | 'green' | 'alternative';
-  action: string;
-};
+  label: string
+  title: string
+  copy: string
+  href: string
+  color: 'blue' | 'green' | 'alternative'
+  action: string
+}
 
 function StartCard(props: StartCardProps) {
   return (
@@ -228,7 +232,7 @@ function StartCard(props: StartCardProps) {
         </Button>
       </div>
     </div>
-  );
+  )
 }
 
 function CommercialSnapshot(props: TenantHomeSectionsProps) {
@@ -261,7 +265,7 @@ function CommercialSnapshot(props: TenantHomeSectionsProps) {
         />
       </div>
     </Card>
-  );
+  )
 }
 
 function SnapshotCard(props: { label: string; value: string; copy: string }) {
@@ -273,7 +277,7 @@ function SnapshotCard(props: { label: string; value: string; copy: string }) {
       <p class="mt-2 text-lg font-semibold text-gray-900">{props.value}</p>
       <p class="mt-1 text-sm text-gray-600">{props.copy}</p>
     </div>
-  );
+  )
 }
 
 function ActionShortcuts(
@@ -308,5 +312,5 @@ function ActionShortcuts(
         </Button>
       </div>
     </Card>
-  );
+  )
 }

@@ -1,68 +1,68 @@
-import { http, type HttpError } from './http';
+import { http, type HttpError } from './http'
 
 export type PartnerInfo = {
-  id: string;
-  tenantId: string;
-  code: string;
-  name: string;
-  contactName: string;
-  contactEmail: string;
-  notes: string;
-  partnerType: string;
-  status: string;
-  supportedProductTypes: string[];
-  supportedRegions: string[];
-  slaDays: number;
-  routingPriority: number;
-  baseFulfillmentCost: string;
+  id: string
+  tenantId: string
+  code: string
+  name: string
+  contactName: string
+  contactEmail: string
+  notes: string
+  partnerType: string
+  status: string
+  supportedProductTypes: string[]
+  supportedRegions: string[]
+  slaDays: number
+  routingPriority: number
+  baseFulfillmentCost: string
   shippingCostRules: {
-    region: string;
-    cost: string;
-  }[];
-  createdAt?: string;
-  updatedAt?: string;
-};
+    region: string
+    cost: string
+  }[]
+  createdAt?: string
+  updatedAt?: string
+}
 
 export type PartnerResult<T> =
   | { success: true; data: T }
-  | { success: false; message: string };
+  | { success: false; message: string }
 
 export type CreatePartnerPayload = {
-  tenantId: string;
-  code?: string;
-  name: string;
-  contactName: string;
-  contactEmail: string;
-  notes: string;
-  partnerType: string;
-  supportedProductTypes: string[];
-  supportedRegions: string[];
-  slaDays: number;
-  routingPriority: number;
-  baseFulfillmentCost: string;
+  tenantId: string
+  code?: string
+  name: string
+  contactName: string
+  contactEmail: string
+  notes: string
+  partnerType: string
+  supportedProductTypes: string[]
+  supportedRegions: string[]
+  slaDays: number
+  routingPriority: number
+  baseFulfillmentCost: string
   shippingCostRules: {
-    region: string;
-    cost: string;
-  }[];
-};
+    region: string
+    cost: string
+  }[]
+}
 
 export type UpdatePartnerPayload = {
-  id: string;
-  name: string;
-  contactName: string;
-  contactEmail: string;
-  notes: string;
-  partnerType: string;
-  supportedProductTypes: string[];
-  supportedRegions: string[];
-  slaDays: number;
-  routingPriority: number;
-  baseFulfillmentCost: string;
+  id: string
+  name: string
+  contactName: string
+  contactEmail: string
+  notes: string
+  partnerType: string
+  supportedProductTypes: string[]
+  supportedRegions: string[]
+  slaDays: number
+  routingPriority: number
+  baseFulfillmentCost: string
   shippingCostRules: {
-    region: string;
-    cost: string;
-  }[];
-};
+    region: string
+    cost: string
+  }[]
+}
 
 function toFailure(error: unknown, fallback: string): PartnerResult<never> {
   const message =
@@ -71,8 +71,8 @@ function toFailure(error: unknown, fallback: string): PartnerResult<never> {
     'message' in error &&
     typeof error.message === 'string'
       ? error.message
-      : fallback;
-  return { success: false, message };
+      : fallback
+  return { success: false, message }
 }
 
 export async function listPartners(
@@ -90,10 +90,10 @@ export async function listPartners(
           status: status || undefined,
         },
       }
-    );
-    return { success: true, data: data.partners || [] };
+    )
+    return { success: true, data: data.partners || [] }
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to load partners');
+    return toFailure(error as HttpError, 'Failed to load partners')
   }
 }
 
@@ -101,10 +101,10 @@ export async function getPartner(
   id: string
 ): Promise<PartnerResult<PartnerInfo>> {
   try {
-    const { data } = await http.get<PartnerInfo>(`/partner/v1/partners/${id}`);
-    return { success: true, data };
+    const { data } = await http.get<PartnerInfo>(`/partner/v1/partners/${id}`)
+    return { success: true, data }
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to load partner');
+    return toFailure(error as HttpError, 'Failed to load partner')
   }
 }
 
@@ -115,10 +115,10 @@ export async function createPartner(
     const { data } = await http.post<PartnerInfo>(
       '/partner/v1/partners',
       payload
-    );
-    return { success: true, data };
+    )
+    return { success: true, data }
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to create partner');
+    return toFailure(error as HttpError, 'Failed to create partner')
   }
 }
 
@@ -132,10 +132,10 @@ export async function updatePartnerStatus(
       {
         status,
       }
-    );
-    return { success: true, data };
+    )
+    return { success: true, data }
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to update partner status');
+    return toFailure(error as HttpError, 'Failed to update partner status')
   }
 }
 
@@ -146,9 +146,9 @@ export async function updatePartner(
     const { data } = await http.put<PartnerInfo>(
       `/partner/v1/partners/${payload.id}`,
       payload
-    );
-    return { success: true, data };
+    )
+    return { success: true, data }
   } catch (error) {
-    return toFailure(error as HttpError, 'Failed to update partner');
+    return toFailure(error as HttpError, 'Failed to update partner')
   }
 }

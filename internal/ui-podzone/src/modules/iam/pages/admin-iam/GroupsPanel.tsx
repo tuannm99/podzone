@@ -1,8 +1,7 @@
-import { For, Show } from 'solid-js';
-import { EmptyBlock } from '@/solid/components/common/Feedback';
-import { IamStatementBuilder } from '@/solid/components/common/IamStatementBuilder';
-import { Badge, Button, SelectField } from '@/solid/components/common/Primitives';
-import { SectionTitle } from '@/solid/components/common/SectionTitle';
+import { Show } from 'solid-js'
+import { IamStatementBuilder } from '@/solid/components/common/IamStatementBuilder'
+import { Button, SelectField } from '@/solid/components/common/Primitives'
+import { SectionTitle } from '@/solid/components/common/SectionTitle'
 import {
   FormInputField,
   FormSelectField,
@@ -10,17 +9,21 @@ import {
   jsonArray,
   numberValue,
   required,
-} from '@/solid/forms';
+} from '@/solid/forms'
 import type {
   CreateGroupFormValues,
   GroupInlinePolicyFormValues,
   GroupMemberFormValues,
   GroupPolicyAttachmentFormValues,
-} from './group-forms';
-import { useAdminIamGroup } from './group-context';
+} from './group-forms'
+import { useAdminIamGroup } from './group-context'
+import {
+  GroupAccessTables,
+  GroupInlinePoliciesTable,
+} from './GroupResourceTables'
 
 export function GroupsPanel() {
-  const group = useAdminIamGroup();
+  const group = useAdminIamGroup()
   const createGroupForm = createFormStore<CreateGroupFormValues>({
     initialValues: {
       scope: group.groupScope(),
@@ -38,7 +41,7 @@ export function GroupsPanel() {
       ],
       name: [required('Enter a group name.')],
     },
-  });
+  })
   const memberForm = createFormStore<GroupMemberFormValues>({
     initialValues: { userId: group.groupMemberUserId() },
     validators: {
@@ -47,14 +50,15 @@ export function GroupsPanel() {
         numberValue('User id must be a number.'),
       ],
     },
-  });
-  const policyAttachmentForm =
-    createFormStore<GroupPolicyAttachmentFormValues>({
+  })
+  const policyAttachmentForm = createFormStore<GroupPolicyAttachmentFormValues>(
+    {
       initialValues: { policyName: group.groupPolicyName() },
       validators: {
         policyName: [required('Enter a policy name.')],
       },
-    });
+    }
+  )
   const inlinePolicyForm = createFormStore<GroupInlinePolicyFormValues>({
     initialValues: {
       name: group.groupInlinePolicyName(),
@@ -63,40 +67,42 @@ export function GroupsPanel() {
     },
     validators: {
       name: [required('Enter an inline policy name.')],
-      statementsJson: [jsonArray('Inline policy statements must be a JSON array.')],
+      statementsJson: [
+        jsonArray('Inline policy statements must be a JSON array.'),
+      ],
     },
-  });
+  })
 
   const submitCreateGroup = async (event: SubmitEvent) => {
-    event.preventDefault();
-    if (!createGroupForm.validate()) return;
-    createGroupForm.setSubmitting(true);
-    await group.createGroupFromForm({ ...createGroupForm.values });
-    createGroupForm.setSubmitting(false);
-  };
+    event.preventDefault()
+    if (!createGroupForm.validate()) return
+    createGroupForm.setSubmitting(true)
+    await group.createGroupFromForm({ ...createGroupForm.values })
+    createGroupForm.setSubmitting(false)
+  }
 
   const addGroupMember = async () => {
-    if (!memberForm.validate()) return;
-    memberForm.setSubmitting(true);
-    await group.addGroupMemberFromForm({ ...memberForm.values });
-    memberForm.setSubmitting(false);
-  };
+    if (!memberForm.validate()) return
+    memberForm.setSubmitting(true)
+    await group.addGroupMemberFromForm({ ...memberForm.values })
+    memberForm.setSubmitting(false)
+  }
 
   const attachGroupPolicy = async () => {
-    if (!policyAttachmentForm.validate()) return;
-    policyAttachmentForm.setSubmitting(true);
+    if (!policyAttachmentForm.validate()) return
+    policyAttachmentForm.setSubmitting(true)
     await group.attachGroupPolicyFromForm({
       ...policyAttachmentForm.values,
-    });
-    policyAttachmentForm.setSubmitting(false);
-  };
+    })
+    policyAttachmentForm.setSubmitting(false)
+  }
 
   const saveGroupInlinePolicy = async () => {
-    if (!inlinePolicyForm.validate()) return;
-    inlinePolicyForm.setSubmitting(true);
-    await group.saveGroupInlinePolicyFromForm({ ...inlinePolicyForm.values });
-    inlinePolicyForm.setSubmitting(false);
-  };
+    if (!inlinePolicyForm.validate()) return
+    inlinePolicyForm.setSubmitting(true)
+    await group.saveGroupInlinePolicyFromForm({ ...inlinePolicyForm.values })
+    inlinePolicyForm.setSubmitting(false)
+  }
 
   return (
     <>
@@ -168,7 +174,9 @@ export function GroupsPanel() {
         <Button
           size="sm"
           onClick={addGroupMember}
-          disabled={!group.selectedGroupId() || !memberForm.values.userId.trim()}
+          disabled={
+            !group.selectedGroupId() || !memberForm.values.userId.trim()
+          }
           loading={memberForm.isSubmitting()}
         >
           Add member
@@ -195,60 +203,7 @@ export function GroupsPanel() {
         </Button>
       </div>
 
-      <div class="grid gap-4 lg:grid-cols-2">
-        <div class="space-y-3">
-          <p class="text-sm font-semibold text-gray-900">Members</p>
-          <Show
-            when={group.groupMembers().length > 0}
-            fallback={
-              <EmptyBlock
-                title="No group members"
-                copy="Select a group and add users to start deriving permissions from group membership."
-              />
-            }
-          >
-            <div class="flex flex-wrap gap-2">
-              <For each={group.groupMembers()}>
-                {(userId) => (
-                  <button
-                    class="inline-flex"
-                    type="button"
-                    onClick={() => group.handleRemoveGroupMember(userId)}
-                  >
-                    <Badge content={`user ${userId} ×`} color="green" />
-                  </button>
-                )}
-              </For>
-            </div>
-          </Show>
-        </div>
-        <div class="space-y-3">
-          <p class="text-sm font-semibold text-gray-900">Attached policies</p>
-          <Show
-            when={group.groupPolicies().length > 0}
-            fallback={
-              <EmptyBlock
-                title="No group policies"
-                copy="Attach a managed policy to use this group as a reusable permission bundle."
-              />
-            }
-          >
-            <div class="flex flex-wrap gap-2">
-              <For each={group.groupPolicies()}>
-                {(policy) => (
-                  <button
-                    class="inline-flex"
-                    type="button"
-                    onClick={() => group.handleDetachGroupPolicy(policy.name)}
-                  >
-                    <Badge content={`${policy.name} ×`} color="blue" />
-                  </button>
-                )}
-              </For>
-            </div>
-          </Show>
-        </div>
-      </div>
+      <GroupAccessTables />
 
       <div class="space-y-3 border-t border-gray-200 pt-4">
         <p class="text-sm font-semibold text-gray-900">Group inline policies</p>
@@ -280,48 +235,15 @@ export function GroupsPanel() {
           size="sm"
           color="dark"
           onClick={saveGroupInlinePolicy}
-          disabled={!group.selectedGroupId() || !inlinePolicyForm.values.name.trim()}
+          disabled={
+            !group.selectedGroupId() || !inlinePolicyForm.values.name.trim()
+          }
           loading={inlinePolicyForm.isSubmitting()}
         >
           Save group inline policy
         </Button>
-        <Show
-          when={group.groupInlinePolicies().length > 0}
-          fallback={
-            <EmptyBlock
-              title="No group inline policies"
-              copy="Use inline policies when permissions should live only on one group instead of a shared managed policy."
-            />
-          }
-        >
-          <div class="space-y-3">
-            <For each={group.groupInlinePolicies()}>
-              {(policy) => (
-                <div class="rounded-lg border border-gray-200 p-4">
-                  <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p class="font-semibold text-gray-900">{policy.name}</p>
-                      <p class="text-sm text-gray-500">
-                        {policy.description || 'No description'}
-                      </p>
-                    </div>
-                    <Button
-                      size="xs"
-                      color="red"
-                      onClick={() => group.handleDeleteGroupInlinePolicy(policy.name)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                  <p class="mt-3 text-xs text-gray-500">
-                    {policy.statements?.length || 0} statements
-                  </p>
-                </div>
-              )}
-            </For>
-          </div>
-        </Show>
+        <GroupInlinePoliciesTable />
       </div>
     </>
-  );
+  )
 }

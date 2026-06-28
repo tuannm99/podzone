@@ -1,20 +1,24 @@
-import { For, Show } from 'solid-js';
-import { EmptyBlock, InfoAlert, LoadingInline } from '@/solid/components/common/Feedback';
-import { Badge, Button, Card } from '@/solid/components/common/Primitives';
-import { SectionTitle } from '@/solid/components/common/SectionTitle';
+import { For, Show } from 'solid-js'
+import {
+  EmptyBlock,
+  InfoAlert,
+  LoadingInline,
+} from '@/solid/components/common/Feedback'
+import { Badge, Button, Card } from '@/solid/components/common/Primitives'
+import { SectionTitle } from '@/solid/components/common/SectionTitle'
 import {
   FormInputField,
   FormSelectField,
   createFormStore,
   numberValue,
   required,
-} from '@/solid/forms';
-import type { PlatformRoleFormValues } from './forms';
-import { membershipStatusColor, platformRoleOptions } from './presentation';
-import { useAdminSettings } from './context';
+} from '@/solid/forms'
+import type { PlatformRoleFormValues } from './forms'
+import { membershipStatusColor, platformRoleOptions } from './presentation'
+import { useAdminSettings } from './context'
 
 export function PlatformAdminPanel() {
-  const vm = useAdminSettings();
+  const vm = useAdminSettings()
   const platformRoleForm = createFormStore<PlatformRoleFormValues>({
     initialValues: {
       userId: vm.platformUserId(),
@@ -27,15 +31,15 @@ export function PlatformAdminPanel() {
       ],
       roleName: [required('Choose a platform role.')],
     },
-  });
+  })
 
   const submitPlatformRole = async (event: SubmitEvent) => {
-    event.preventDefault();
-    if (!platformRoleForm.validate()) return;
-    platformRoleForm.setSubmitting(true);
-    await vm.savePlatformRoleFromForm({ ...platformRoleForm.values });
-    platformRoleForm.setSubmitting(false);
-  };
+    event.preventDefault()
+    if (!platformRoleForm.validate()) return
+    platformRoleForm.setSubmitting(true)
+    await vm.savePlatformRoleFromForm({ ...platformRoleForm.values })
+    platformRoleForm.setSubmitting(false)
+  }
 
   return (
     <Card class="space-y-4">
@@ -71,9 +75,9 @@ export function PlatformAdminPanel() {
             color="light"
             disabled={!vm.userID}
             onClick={() => {
-              const userId = String(vm.userID);
-              platformRoleForm.setValue('userId', userId);
-              vm.setPlatformUserId(userId);
+              const userId = String(vm.userID)
+              platformRoleForm.setValue('userId', userId)
+              vm.setPlatformUserId(userId)
             }}
           >
             Use my user id
@@ -135,7 +139,7 @@ export function PlatformAdminPanel() {
                         void vm.handleRemovePlatformRole(
                           membership.userId,
                           membership.roleName
-                        );
+                        )
                       }}
                     >
                       Remove
@@ -148,5 +152,5 @@ export function PlatformAdminPanel() {
         </div>
       </Show>
     </Card>
-  );
+  )
 }

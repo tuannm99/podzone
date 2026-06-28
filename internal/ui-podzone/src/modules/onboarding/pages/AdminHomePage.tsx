@@ -1,31 +1,25 @@
 import {
   createEffect,
+  createResource,
   createSignal,
   onCleanup,
   onMount,
-} from 'solid-js';
-import { ensureActiveTenant } from '@/services/auth';
+} from 'solid-js'
+import { ensureActiveTenant } from '@/services/auth'
 import {
   checkPlatformPermission,
   createTenant,
   listUserTenants,
   type TenantMembership,
-} from '@/services/iam';
-import { getRoutedOrders } from '@/services/orders';
-import {
-  createStoreRequest,
-  listStoreRequests,
-  retryStoreRequest,
-} from '@/services/onboarding';
-import { listStores } from '@/services/store';
-import { storeStorage } from '@/services/storeStorage';
-import { tenantStorage } from '@/services/tenantStorage';
-import { tokenStorage } from '@/services/tokenStorage';
-import { AdminHomeContext } from './admin-home/context';
-import { AdminHomeView } from './admin-home/AdminHomeView';
+} from '@/services/iam'
+import { createStoreRequest, retryStoreRequest } from '@/services/onboarding'
+import { storeStorage } from '@/services/storeStorage'
+import { tenantStorage } from '@/services/tenantStorage'
+import { tokenStorage } from '@/services/tokenStorage'
+import { AdminHomeContext } from './admin-home/context'
+import { AdminHomeView } from './admin-home/AdminHomeView'
 import {
   buildOrdersHref,
-  isOverdue,
   membershipStatusColor,
   parseUserID,
   provisioningStepIndex,
@@ -34,429 +28,338 @@ import {
   slugify,
   type StoreAttention,
   type WorkspaceSummary,
-} from './admin-home/presentation';
+} from './admin-home/presentation'
+import { collectWorkspaceData } from './admin-home/loadWorkspaceData'
 import type {
   CreateStoreFormValues,
   CreateWorkspaceFormValues,
-} from './admin-home/forms';
+} from './admin-home/forms'
 
-export default function AdminHomePage() {
-  const user = tokenStorage.getUser();
-  const userID = parseUserID(user?.id);
+export function createAdminHomeViewModel() {
+  const user = tokenStorage.getUser()
+  const userID = parseUserID(user?.id)
 
-  const [tenantName, setTenantName] = createSignal('');
-  const [tenantSlug, setTenantSlug] = createSignal('');
-  const [tenantError, setTenantError] = createSignal('');
-  const [tenantMessage, setTenantMessage] = createSignal('');
-  const [switchingTenant, setSwitchingTenant] = createSignal(false);
-  const [creatingTenant, setCreatingTenant] = createSignal(false);
-  const [creatingStoreTenantId, setCreatingStoreTenantId] = createSignal('');
-  const [retryingStoreRequestId, setRetryingStoreRequestId] = createSignal('');
+  const [tenantName, setTenantName] = createSignal('')
+  const [tenantSlug, setTenantSlug] = createSignal('')
+  const [tenantMutationError, setTenantError] = createSignal('')
+  const [tenantMessage, setTenantMessage] = createSignal('')
+  const [switchingTenant, setSwitchingTenant] = createSignal(false)
+  const [creatingTenant, setCreatingTenant] = createSignal(false)
+  const [creatingStoreTenantId, setCreatingStoreTenantId] = createSignal('')
+  const [retryingStoreRequestId, setRetryingStoreRequestId] = createSignal('')
   const [storeNameByTenant, setStoreNameByTenant] = createSignal<
     Record<string, string>
-  >({});
-  const [loadingTenants, setLoadingTenants] = createSignal(false);
-  const [loadingAttention, setLoadingAttention] = createSignal(false);
-  const [checkingPlatformAccess, setCheckingPlatformAccess] =
-    createSignal(false);
-  const [memberships, setMemberships] = createSignal<TenantMembership[]>([]);
-  const [workspaceSummaries, setWorkspaceSummaries] = createSignal<
-    WorkspaceSummary[]
-  >([]);
-  const [storeAttention, setStoreAttention] = createSignal<StoreAttention[]>(
-    []
-  );
-  const [canCreateTenant, setCanCreateTenant] = createSignal(false);
-  const [canManagePlatformIAM, setCanManagePlatformIAM] = createSignal(false);
-  const [selectedWorkspaceId, setSelectedWorkspaceId] = createSignal('');
-  const [selectedStoreId, setSelectedStoreId] = createSignal('');
+  >({})
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = createSignal('')
+  const [selectedStoreId, setSelectedStoreId] = createSignal('')
+  const [workspaceDataResource, { refetch: refetchWorkspaceData }] =
+    createResource(
+      () => userID || undefined,
+      async (
+        currentUserID
+      ): Promise<{
+        memberships: TenantMembership[]
+        summaries: WorkspaceSummary[]
+        attention: StoreAttention[]
+      }> => {
+        const result = await listUserTenants(currentUserID)
+        if (!result.success) throw new Error(result.message)
+        const workspaceData = await collectWorkspaceData(result.data)
+        return {
+          memberships: result.data,
+          ...workspaceData,
+        }
+      }
+    )
+  const memberships = () => workspaceDataResource()?.memberships || []
+  const workspaceSummaries = () => workspaceDataResource()?.summaries || []
+  const storeAttention = () => workspaceDataResource()?.attention || []
+  const loadingTenants = () => workspaceDataResource.loading
+  const loadingAttention = () => workspaceDataResource.loading
+  const workspaceReadError = () =>
+    workspaceDataResource.error instanceof Error
+      ? workspaceDataResource.error.message
+      : ''
+  const [platformAccessResource, { refetch: refetchPlatformAccess }] =
+    createResource(
+      () =>
+        userID && workspaceDataResource() !== undefined
+          ? `${userID}:${memberships().length === 0}`
+          : undefined,
+      async () => {
+        if (memberships().length === 0) {
+          return { canCreateTenant: true, canManagePlatformIAM: false }
+        }
+        const [tenantResult, iamResult] = await Promise.all([
+          checkPlatformPermission('tenant:create'),
+          checkPlatformPermission('platform:manage_roles'),
+        ])
+        if (!tenantResult.success) throw new Error(tenantResult.message)
+        return {
+          canCreateTenant: tenantResult.data,
+          canManagePlatformIAM: iamResult.success ? iamResult.data : false,
+        }
+      }
+    )
+  const canCreateTenant = () =>
+    platformAccessResource()?.canCreateTenant || false
+  const canManagePlatformIAM = () =>
+    platformAccessResource()?.canManagePlatformIAM || false
+  const checkingPlatformAccess = () => platformAccessResource.loading
+  const tenantError = () =>
+    tenantMutationError() ||
+    workspaceReadError() ||
+    (platformAccessResource.error instanceof Error
+      ? platformAccessResource.error.message
+      : '')
   const activeMemberships = () =>
-    memberships().filter((membership) => membership.status === 'active');
+    memberships().filter((membership) => membership.status === 'active')
   const canBootstrapFirstWorkspace = () =>
-    !!userID && memberships().length === 0;
+    !!userID &&
+    workspaceDataResource() !== undefined &&
+    memberships().length === 0
   const activeWorkspaceSummaries = () =>
-    workspaceSummaries().filter((workspace) => workspace.status === 'active');
+    workspaceSummaries().filter((workspace) => workspace.status === 'active')
   const selectedWorkspace = () =>
     activeWorkspaceSummaries().find(
       (workspace) => workspace.tenantId === selectedWorkspaceId()
-    );
+    )
   const selectedWorkspaceOptions = () =>
     activeWorkspaceSummaries().map((workspace) => ({
       name: `${workspace.tenantId} · ${workspace.roleName}`,
       value: workspace.tenantId,
-    }));
+    }))
   const selectedStoreOptions = () =>
     (selectedWorkspace()?.stores || []).map((store) => ({
       name: `${store.name}${store.isActive ? ' · active' : ''}`,
       value: store.id,
-    }));
+    }))
   const currentSelectionLabel = () => {
-    const workspace = selectedWorkspace();
+    const workspace = selectedWorkspace()
     const store = workspace?.stores.find(
       (item) => item.id === selectedStoreId()
-    );
-    if (!workspace) return 'No workspace selected';
-    if (!store) return `${workspace.tenantId} selected, no store chosen`;
-    return `${workspace.tenantId} / ${store.name}`;
-  };
-
-  const loadWorkspaceData = async (
-    membershipsToInspect: TenantMembership[]
-  ) => {
-    const activeWorkspaces = membershipsToInspect.filter(
-      (membership) => membership.status === 'active'
-    );
-    if (activeWorkspaces.length === 0) {
-      setWorkspaceSummaries([]);
-      setStoreAttention([]);
-      return;
-    }
-
-    setLoadingAttention(true);
-    const originalTenantID = tokenStorage.getActiveTenantID();
-    const originalStoreID = originalTenantID
-      ? storeStorage.getStoreID(originalTenantID)
-      : '';
-    const previousStoreByTenant = new Map<string, string>();
-    const summaries: WorkspaceSummary[] = [];
-    const snapshot: StoreAttention[] = [];
-    try {
-      for (const membership of activeWorkspaces) {
-        const switched = await ensureActiveTenant(membership.tenantId);
-        if (!switched.success) {
-          continue;
-        }
-        const requestsResult = await listStoreRequests(membership.tenantId);
-        const storeRequests = requestsResult.success ? requestsResult.data : [];
-        const storesResult = await listStores();
-        const stores = storesResult.success ? storesResult.data : [];
-        summaries.push({
-          tenantId: membership.tenantId,
-          roleName: membership.roleName,
-          status: membership.status,
-          userId: membership.userId,
-          stores,
-          storeRequests,
-          storeCount: stores.length,
-          activeStoreCount: stores.filter((store) => store.isActive).length,
-        });
-        for (const store of stores) {
-          if (!previousStoreByTenant.has(membership.tenantId)) {
-            previousStoreByTenant.set(
-              membership.tenantId,
-              storeStorage.getStoreID(membership.tenantId)
-            );
-          }
-          storeStorage.setStoreID(membership.tenantId, store.id);
-          const ordersResult = await getRoutedOrders();
-          if (!ordersResult.success) {
-            continue;
-          }
-          const orders = ordersResult.data.orders;
-          snapshot.push({
-            tenantId: membership.tenantId,
-            storeId: store.id,
-            storeName: store.name,
-            overdueCount: orders.filter(
-              (order) =>
-                (!!order.shipmentSlaDueAt &&
-                  isOverdue(order.shipmentSlaDueAt) &&
-                  order.shipmentStatus !== 'delivered') ||
-                (!!order.issueSlaDueAt &&
-                  isOverdue(order.issueSlaDueAt) &&
-                  (order.exceptionStatus === 'open' ||
-                    order.exceptionStatus === 'escalated' ||
-                    order.shipmentStatus === 'delivery_issue'))
-            ).length,
-            disputedCount: orders.filter(
-              (order) => order.settlementStatus === 'disputed'
-            ).length,
-            unassignedCount: orders.filter(
-              (order) =>
-                !order.operatorAssignee ||
-                order.operatorAssignee === 'unassigned'
-            ).length,
-          });
-        }
-      }
-    } finally {
-      previousStoreByTenant.forEach((storeID, tenantID) => {
-        if (storeID) {
-          storeStorage.setStoreID(tenantID, storeID);
-        } else {
-          storeStorage.clearStoreID(tenantID);
-        }
-      });
-      if (originalTenantID) {
-        await ensureActiveTenant(originalTenantID);
-        tenantStorage.setTenantID(originalTenantID);
-        if (originalStoreID) {
-          storeStorage.setStoreID(originalTenantID, originalStoreID);
-        } else {
-          storeStorage.clearStoreID(originalTenantID);
-        }
-      }
-      setLoadingAttention(false);
-    }
-    setWorkspaceSummaries(summaries);
-    setStoreAttention(snapshot);
-  };
+    )
+    if (!workspace) return 'No workspace selected'
+    if (!store) return `${workspace.tenantId} selected, no store chosen`
+    return `${workspace.tenantId} / ${store.name}`
+  }
 
   createEffect(() => {
     const nextWorkspace =
       selectedWorkspaceId() ||
       activeWorkspaceSummaries()[0]?.tenantId ||
       activeMemberships()[0]?.tenantId ||
-      '';
-    if (!nextWorkspace) return;
+      ''
+    if (!nextWorkspace) return
     if (nextWorkspace !== selectedWorkspaceId()) {
-      setSelectedWorkspaceId(nextWorkspace);
+      setSelectedWorkspaceId(nextWorkspace)
     }
-  });
+  })
 
   createEffect(() => {
-    const stores = selectedWorkspace()?.stores || [];
+    const stores = selectedWorkspace()?.stores || []
     if (stores.length === 0) {
-      setSelectedStoreId('');
-      return;
+      setSelectedStoreId('')
+      return
     }
-    const current = selectedStoreId();
+    const current = selectedStoreId()
     if (stores.some((store) => store.id === current)) {
-      return;
+      return
     }
-    const preferred = stores.find((store) => store.isActive) || stores[0];
-    setSelectedStoreId(preferred?.id || '');
-  });
+    const preferred = stores.find((store) => store.isActive) || stores[0]
+    setSelectedStoreId(preferred?.id || '')
+  })
 
   const loadMemberships = async () => {
-    if (!userID) return;
-    setLoadingTenants(true);
-    try {
-      const result = await listUserTenants(userID);
-      if (!result.success) {
-        setTenantError(result.message);
-        return;
-      }
-      setMemberships(result.data);
-      if (result.data.length === 0) {
-        setCanCreateTenant(true);
-      }
-      await loadWorkspaceData(result.data);
-    } finally {
-      setLoadingTenants(false);
-    }
-  };
+    if (!userID) return
+    await refetchWorkspaceData()
+  }
 
   const loadPlatformAccess = async () => {
-    if (!userID) {
-      setCanCreateTenant(false);
-      return;
-    }
-    if (canBootstrapFirstWorkspace()) {
-      setCanCreateTenant(true);
-      return;
-    }
-    setCheckingPlatformAccess(true);
-    try {
-      const result = await checkPlatformPermission('tenant:create');
-      if (!result.success) {
-        setTenantError(result.message);
-        setCanCreateTenant(false);
-        return;
-      }
-      setCanCreateTenant(result.data);
-      const iamResult = await checkPlatformPermission('platform:manage_roles');
-      setCanManagePlatformIAM(iamResult.success ? iamResult.data : false);
-    } finally {
-      setCheckingPlatformAccess(false);
-    }
-  };
+    if (!userID) return
+    await refetchPlatformAccess()
+  }
 
   const openStore = async (nextTenantID: string, nextStoreID: string) => {
-    const normalizedTenantID = nextTenantID.trim();
-    const normalizedStoreID = nextStoreID.trim();
-    if (!normalizedTenantID || !normalizedStoreID) return;
+    const normalizedTenantID = nextTenantID.trim()
+    const normalizedStoreID = nextStoreID.trim()
+    if (!normalizedTenantID || !normalizedStoreID) return
 
-    setSwitchingTenant(true);
-    setTenantError('');
-    setTenantMessage('');
+    setSwitchingTenant(true)
+    setTenantError('')
+    setTenantMessage('')
     try {
-      const { success, data } = await ensureActiveTenant(normalizedTenantID);
+      const { success, data } = await ensureActiveTenant(normalizedTenantID)
       if (!success) {
-        setTenantError(data.message || 'Failed to open store');
-        return;
+        setTenantError(data.message || 'Failed to open store')
+        return
       }
 
-      tenantStorage.setTenantID(normalizedTenantID);
-      storeStorage.setStoreID(normalizedTenantID, normalizedStoreID);
-      window.location.href = `/t/${normalizedTenantID}?storeId=${encodeURIComponent(normalizedStoreID)}`;
+      tenantStorage.setTenantID(normalizedTenantID)
+      storeStorage.setStoreID(normalizedTenantID, normalizedStoreID)
+      window.location.href = `/t/${normalizedTenantID}?storeId=${encodeURIComponent(normalizedStoreID)}`
     } finally {
-      setSwitchingTenant(false);
+      setSwitchingTenant(false)
     }
-  };
+  }
 
   const prepareTenant = async (nextTenantID: string) => {
-    if (!nextTenantID) return;
+    if (!nextTenantID) return
 
-    setSwitchingTenant(true);
-    setTenantError('');
-    setTenantMessage('');
+    setSwitchingTenant(true)
+    setTenantError('')
+    setTenantMessage('')
     try {
-      const { success, data } = await ensureActiveTenant(nextTenantID);
+      const { success, data } = await ensureActiveTenant(nextTenantID)
       if (!success) {
-        setTenantError(data.message || 'Failed to load workspace');
-        return;
+        setTenantError(data.message || 'Failed to load workspace')
+        return
       }
-      tenantStorage.setTenantID(nextTenantID);
+      tenantStorage.setTenantID(nextTenantID)
       setTenantMessage(
         `Loaded workspace ${nextTenantID}. Choose a store below.`
-      );
-      await loadMemberships();
+      )
+      await loadMemberships()
     } finally {
-      setSwitchingTenant(false);
+      setSwitchingTenant(false)
     }
-  };
+  }
 
   const setDraftStoreName = (nextTenantID: string, value: string) => {
     setStoreNameByTenant((current) => ({
       ...current,
       [nextTenantID]: value,
-    }));
-  };
+    }))
+  }
 
   const createStoreFromForm = async (
     nextTenantID: string,
     values: CreateStoreFormValues
   ) => {
-    const normalizedTenantID = nextTenantID.trim();
-    const normalizedStoreName = values.name.trim();
-    if (!normalizedTenantID || !normalizedStoreName) return false;
+    const normalizedTenantID = nextTenantID.trim()
+    const normalizedStoreName = values.name.trim()
+    if (!normalizedTenantID || !normalizedStoreName) return false
 
-    setCreatingStoreTenantId(normalizedTenantID);
-    setTenantError('');
-    setTenantMessage('');
-    setDraftStoreName(normalizedTenantID, normalizedStoreName);
+    setCreatingStoreTenantId(normalizedTenantID)
+    setTenantError('')
+    setTenantMessage('')
+    setDraftStoreName(normalizedTenantID, normalizedStoreName)
     try {
-      const switched = await ensureActiveTenant(normalizedTenantID);
+      const switched = await ensureActiveTenant(normalizedTenantID)
       if (!switched.success) {
-        setTenantError(switched.data.message || 'Failed to load workspace');
-        return false;
+        setTenantError(switched.data.message || 'Failed to load workspace')
+        return false
       }
       const created = await createStoreRequest({
         tenantId: normalizedTenantID,
         name: normalizedStoreName,
         subdomain: slugify(normalizedStoreName),
-      });
+      })
       if (!created.success) {
-        setTenantError(created.message);
-        return false;
+        setTenantError(created.message)
+        return false
       }
-      setDraftStoreName(normalizedTenantID, '');
+      setDraftStoreName(normalizedTenantID, '')
       setTenantMessage(
         `Store request ${created.data.name} is ${created.data.status}. It will become selectable after provisioning completes.`
-      );
-      await loadMemberships();
-      return true;
+      )
+      await loadMemberships()
+      return true
     } finally {
-      setCreatingStoreTenantId('');
+      setCreatingStoreTenantId('')
     }
-  };
+  }
 
   const submitCreateStore = async (nextTenantID: string) => {
     await createStoreFromForm(nextTenantID, {
       name: storeNameByTenant()[nextTenantID.trim()] || '',
-    });
-  };
+    })
+  }
 
   const retryStore = async (tenantID: string, requestID: string) => {
-    setRetryingStoreRequestId(requestID);
-    setTenantError('');
-    setTenantMessage('');
+    setRetryingStoreRequestId(requestID)
+    setTenantError('')
+    setTenantMessage('')
     try {
-      const switched = await ensureActiveTenant(tenantID);
+      const switched = await ensureActiveTenant(tenantID)
       if (!switched.success) {
-        setTenantError(switched.data.message || 'Failed to load workspace');
-        return;
+        setTenantError(switched.data.message || 'Failed to load workspace')
+        return
       }
       const result = await retryStoreRequest({
         tenantId: tenantID,
         requestId: requestID,
-      });
+      })
       if (!result.success) {
-        setTenantError(result.message);
-        return;
+        setTenantError(result.message)
+        return
       }
-      setTenantMessage('Store provisioning has been queued again.');
-      await loadMemberships();
+      setTenantMessage('Store provisioning has been queued again.')
+      await loadMemberships()
     } finally {
-      setRetryingStoreRequestId('');
+      setRetryingStoreRequestId('')
     }
-  };
+  }
 
   const createTenantFromForm = async (values: CreateWorkspaceFormValues) => {
     if (!userID) {
-      setTenantError('No signed-in account found.');
-      return false;
+      setTenantError('No signed-in account found.')
+      return false
     }
     if (!canCreateTenant() && !canBootstrapFirstWorkspace()) {
-      setTenantError('Your account cannot create another workspace yet.');
-      return false;
+      setTenantError('Your account cannot create another workspace yet.')
+      return false
     }
 
-    const normalizedName = values.name.trim();
-    const normalizedSlug = slugify(values.slug || normalizedName);
+    const normalizedName = values.name.trim()
+    const normalizedSlug = slugify(values.slug || normalizedName)
     if (!normalizedName || !normalizedSlug) {
-      setTenantError('Workspace name and slug are required.');
-      return false;
+      setTenantError('Workspace name and slug are required.')
+      return false
     }
 
-    setCreatingTenant(true);
-    setTenantError('');
-    setTenantMessage('');
-    setTenantName(normalizedName);
-    setTenantSlug(normalizedSlug);
+    setCreatingTenant(true)
+    setTenantError('')
+    setTenantMessage('')
+    setTenantName(normalizedName)
+    setTenantSlug(normalizedSlug)
     try {
       const result = await createTenant({
         name: normalizedName,
         slug: normalizedSlug,
-      });
+      })
       if (!result.success) {
-        setTenantError(result.message);
-        return false;
+        setTenantError(result.message)
+        return false
       }
 
-      const createdTenantID = result.data.tenant?.id || '';
-      const createdSlug = result.data.tenant?.slug || normalizedSlug;
-      setTenantName('');
-      setTenantSlug('');
-      setSelectedWorkspaceId(createdTenantID);
+      const createdTenantID = result.data.tenant?.id || ''
+      const createdSlug = result.data.tenant?.slug || normalizedSlug
+      setTenantName('')
+      setTenantSlug('')
+      setSelectedWorkspaceId(createdTenantID)
       setTenantMessage(
         createdTenantID
           ? `Created workspace ${createdSlug} (${createdTenantID}).`
           : `Created workspace ${createdSlug}.`
-      );
-      await loadMemberships();
-      await loadPlatformAccess();
-      return true;
+      )
+      await loadMemberships()
+      await loadPlatformAccess()
+      return true
     } finally {
-      setCreatingTenant(false);
+      setCreatingTenant(false)
     }
-  };
+  }
 
   const submitCreateTenant = async (event: SubmitEvent) => {
-    event.preventDefault();
+    event.preventDefault()
     await createTenantFromForm({
       name: tenantName(),
       slug: tenantSlug(),
-    });
-  };
+    })
+  }
 
   onMount(() => {
-    void (async () => {
-      await loadMemberships();
-      await loadPlatformAccess();
-    })();
-
     const refreshTimer = window.setInterval(() => {
       const hasActiveProvisioning = workspaceSummaries().some((workspace) =>
         workspace.storeRequests.some((request) =>
@@ -464,21 +367,74 @@ export default function AdminHomePage() {
             request.status
           )
         )
-      );
+      )
       if (hasActiveProvisioning && !loadingTenants()) {
-        void loadMemberships();
+        void loadMemberships()
       }
-    }, 10000);
-    onCleanup(() => window.clearInterval(refreshTimer));
-  });
+    }, 10000)
+    onCleanup(() => window.clearInterval(refreshTimer))
+  })
 
   const viewModel = {
-    user, userID, tenantName, setTenantName, tenantSlug, setTenantSlug, tenantError, tenantMessage, setTenantMessage, switchingTenant, creatingTenant, creatingStoreTenantId, retryingStoreRequestId, storeNameByTenant, loadingTenants, loadingAttention, checkingPlatformAccess, memberships, workspaceSummaries, storeAttention, canCreateTenant, canManagePlatformIAM, selectedWorkspaceId, setSelectedWorkspaceId, selectedStoreId, setSelectedStoreId, activeMemberships, canBootstrapFirstWorkspace, activeWorkspaceSummaries, selectedWorkspace, selectedWorkspaceOptions, selectedStoreOptions, currentSelectionLabel, slugify, membershipStatusColor, provisioningSteps, provisioningStepIndex, provisioningStatusLabel, buildOrdersHref, loadWorkspaceData, prepareTenant, openStore, setDraftStoreName, createStoreFromForm, submitCreateStore, retryStore, createTenantFromForm, submitCreateTenant,
-  };
+    user,
+    userID,
+    tenantName,
+    setTenantName,
+    tenantSlug,
+    setTenantSlug,
+    tenantError,
+    tenantMessage,
+    setTenantMessage,
+    switchingTenant,
+    creatingTenant,
+    creatingStoreTenantId,
+    retryingStoreRequestId,
+    storeNameByTenant,
+    loadingTenants,
+    loadingAttention,
+    checkingPlatformAccess,
+    memberships,
+    workspaceSummaries,
+    storeAttention,
+    canCreateTenant,
+    canManagePlatformIAM,
+    selectedWorkspaceId,
+    setSelectedWorkspaceId,
+    selectedStoreId,
+    setSelectedStoreId,
+    activeMemberships,
+    canBootstrapFirstWorkspace,
+    activeWorkspaceSummaries,
+    selectedWorkspace,
+    selectedWorkspaceOptions,
+    selectedStoreOptions,
+    currentSelectionLabel,
+    slugify,
+    membershipStatusColor,
+    provisioningSteps,
+    provisioningStepIndex,
+    provisioningStatusLabel,
+    buildOrdersHref,
+    prepareTenant,
+    openStore,
+    setDraftStoreName,
+    createStoreFromForm,
+    submitCreateStore,
+    retryStore,
+    createTenantFromForm,
+    submitCreateTenant,
+  }
 
+  return viewModel
+}
+
+export type AdminHomeViewModel = ReturnType<typeof createAdminHomeViewModel>
+
+export default function AdminHomePage() {
+  const viewModel = createAdminHomeViewModel()
   return (
     <AdminHomeContext.Provider value={viewModel}>
       <AdminHomeView />
     </AdminHomeContext.Provider>
-  );
+  )
 }

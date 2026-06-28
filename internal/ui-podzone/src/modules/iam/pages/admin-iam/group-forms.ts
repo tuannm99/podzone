@@ -1,20 +1,20 @@
 export type CreateGroupFormValues = {
-  scope: string;
-  tenantId: string;
-  name: string;
-  description: string;
-};
+  scope: string
+  tenantId: string
+  name: string
+  description: string
+}
 
 export type GroupMemberFormValues = {
-  userId: string;
-};
+  userId: string
+}
 
 export type GroupPolicyAttachmentFormValues = {
-  policyName: string;
-};
+  policyName: string
+}
 
 export type GroupInlinePolicyFormValues = {
-  name: string;
-  description: string;
-  statementsJson: string;
-};
+  name: string
+  description: string
+  statementsJson: string
+}

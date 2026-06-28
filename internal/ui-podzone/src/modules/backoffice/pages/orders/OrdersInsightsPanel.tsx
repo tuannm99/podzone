@@ -1,10 +1,15 @@
-import { For, Show } from 'solid-js';
-import { Badge } from '@/solid/components/common/Primitives';
-import { useTenantOrdersInsights } from './context';
-import { anomalyFlagsFor, formatAnomalyLabel, formatBlockLabel, parseMoneyValue } from './utils';
+import { For, Show } from 'solid-js'
+import { Badge } from '@/solid/components/common/Primitives'
+import { useTenantOrdersInsights } from './context'
+import {
+  anomalyFlagsFor,
+  formatAnomalyLabel,
+  formatBlockLabel,
+  parseMoneyValue,
+} from './utils'
 
 export function OrdersInsightsPanel() {
-  const insights = useTenantOrdersInsights();
+  const insights = useTenantOrdersInsights()
 
   return (
     <>
@@ -95,13 +100,18 @@ export function OrdersInsightsPanel() {
                           {order.id}
                         </p>
                         <p class="text-xs text-slate-500">
-                          {order.productTitle} · {order.partner || 'partner pending'}
+                          {order.productTitle} ·{' '}
+                          {order.partner || 'partner pending'}
                         </p>
                       </div>
                       <div class="flex flex-wrap gap-2">
                         <Badge
                           content={order.settlementStatus.replaceAll('_', ' ')}
-                          color={order.settlementStatus === 'disputed' ? 'red' : 'yellow'}
+                          color={
+                            order.settlementStatus === 'disputed'
+                              ? 'red'
+                              : 'yellow'
+                          }
                         />
                         <Badge
                           content={`margin ${order.realizedMargin}`}
@@ -160,11 +170,20 @@ export function OrdersInsightsPanel() {
                     </div>
                     <div class="mt-2 flex flex-wrap gap-2">
                       <Badge content={`${item.orders} orders`} color="dark" />
-                      <Badge content={`${item.pending} pending`} color="yellow" />
-                      <Badge content={`${item.disputed} disputed`} color="red" />
+                      <Badge
+                        content={`${item.pending} pending`}
+                        color="yellow"
+                      />
+                      <Badge
+                        content={`${item.disputed} disputed`}
+                        color="red"
+                      />
                       <Badge content={`${item.paid} paid`} color="green" />
                       <Show when={item.blocked > 0}>
-                        <Badge content={`${item.blocked} blocked`} color="red" />
+                        <Badge
+                          content={`${item.blocked} blocked`}
+                          color="red"
+                        />
                       </Show>
                       <Show when={item.forcedReroutes > 0}>
                         <Badge
@@ -181,6 +200,5 @@ export function OrdersInsightsPanel() {
         </div>
       </div>
     </>
-  );
+  )
 }
-

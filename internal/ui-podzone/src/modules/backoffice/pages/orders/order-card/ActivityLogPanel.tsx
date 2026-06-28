@@ -1,19 +1,26 @@
-import { For, Show } from 'solid-js';
-import type { RoutedOrder } from '@/services/orders';
-import { Badge, Button, SelectField } from '@/solid/components/common/Primitives';
-import { formatActivityActor, formatActivityTime } from '../utils';
-import type { ActivityFilter, OrderCardActions, OrderCardHelpers, OrderCardUi } from './types';
+import { For, Show } from 'solid-js'
+import type { RoutedOrder } from '@/services/orders'
+import {
+  Badge,
+  Button,
+  SelectField,
+} from '@/solid/components/common/Primitives'
+import { formatActivityActor, formatActivityTime } from '../utils'
+import type {
+  ActivityFilter,
+  OrderCardActions,
+  OrderCardHelpers,
+  OrderCardUi,
+} from './types'
 
 type ActivityLogPanelProps = {
-  order: RoutedOrder;
-  actions: OrderCardActions;
-  helpers: OrderCardHelpers;
-  ui: OrderCardUi;
-};
+  order: RoutedOrder
+  actions: OrderCardActions
+  helpers: OrderCardHelpers
+  ui: OrderCardUi
+}
 
 export function ActivityLogPanel(props: ActivityLogPanelProps) {
-  const { order, actions, helpers, ui } = props;
-
   return (
     <div class="mt-3 rounded-md border border-slate-200 bg-white p-3">
       <div class="flex flex-wrap items-center justify-between gap-3">
@@ -24,21 +31,23 @@ export function ActivityLogPanel(props: ActivityLogPanelProps) {
           <div class="min-w-[11rem]">
             <SelectField
               label=""
-              value={ui.activityFilter}
-              options={ui.activityFilterOptions}
+              value={props.ui.activityFilter}
+              options={props.ui.activityFilterOptions}
               onChange={(event) =>
-                ui.setActivityFilter(event.currentTarget.value as ActivityFilter)
+                props.ui.setActivityFilter(
+                  event.currentTarget.value as ActivityFilter
+                )
               }
             />
           </div>
-          <Show when={ui.activityFilter === 'all'}>
+          <Show when={props.ui.activityFilter === 'all'}>
             <Button
               type="button"
               size="xs"
-              color={ui.hideSystemActivity ? 'dark' : 'light'}
-              onClick={ui.toggleHideSystemActivity}
+              color={props.ui.hideSystemActivity ? 'dark' : 'light'}
+              onClick={props.ui.toggleHideSystemActivity}
             >
-              {ui.hideSystemActivity ? 'Show system' : 'Hide system'}
+              {props.ui.hideSystemActivity ? 'Show system' : 'Hide system'}
             </Button>
           </Show>
           <Button
@@ -46,7 +55,7 @@ export function ActivityLogPanel(props: ActivityLogPanelProps) {
             size="xs"
             color="light"
             onClick={() => {
-              void actions.copyActivitySummary(order);
+              void props.actions.copyActivitySummary(props.order)
             }}
           >
             Copy summary
@@ -55,27 +64,29 @@ export function ActivityLogPanel(props: ActivityLogPanelProps) {
       </div>
       <div class="mt-3 space-y-3">
         <Show
-          when={helpers.filteredActivityLogFor(order).length > 0}
+          when={props.helpers.filteredActivityLogFor(props.order).length > 0}
           fallback={
             <div class="rounded-md border border-dashed border-slate-200 bg-slate-50 p-3 text-sm text-slate-500">
               <Show
-                when={helpers.hiddenSystemActivityCountFor(order) > 0}
+                when={
+                  props.helpers.hiddenSystemActivityCountFor(props.order) > 0
+                }
                 fallback={'No activity matches the current filter.'}
               >
-                {helpers.hiddenSystemActivityCountFor(order)} system updates
-                are hidden.
+                {props.helpers.hiddenSystemActivityCountFor(props.order)} system
+                updates are hidden.
               </Show>
             </div>
           }
         >
-          <For each={helpers.filteredActivityLogFor(order)}>
+          <For each={props.helpers.filteredActivityLogFor(props.order)}>
             {(activity) => (
               <div class="rounded-md border border-slate-200 bg-slate-50 p-3">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                   <div class="flex flex-wrap items-center gap-2">
                     <Badge
                       content={activity.type.replaceAll('_', ' ')}
-                      color={helpers.activityColor(activity.type)}
+                      color={props.helpers.activityColor(activity.type)}
                     />
                     <p class="text-xs font-medium text-slate-500">
                       {formatActivityActor(activity.actor)}
@@ -103,5 +114,5 @@ export function ActivityLogPanel(props: ActivityLogPanelProps) {
         </Show>
       </div>
     </div>
-  );
+  )
 }

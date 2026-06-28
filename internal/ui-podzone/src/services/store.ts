@@ -1,19 +1,19 @@
-import { postBackofficeGraphQL } from './backofficeGraphql';
+import { postBackofficeGraphQL } from './backofficeGraphql'
 
 export type StoreInfo = {
-  id: string;
-  name: string;
-  ownerId: string;
-  isActive: boolean;
-  description: string;
-  status: string;
-  createdAt?: string;
-  updatedAt?: string;
-};
+  id: string
+  name: string
+  ownerId: string
+  isActive: boolean
+  description: string
+  status: string
+  createdAt?: string
+  updatedAt?: string
+}
 
 type StoreResult<T> =
   | { success: true; data: T }
-  | { success: false; message: string };
+  | { success: false; message: string }
 
 export async function listStores(): Promise<StoreResult<StoreInfo[]>> {
   const result = await postBackofficeGraphQL<{ stores: StoreInfo[] }>(
@@ -33,16 +33,16 @@ export async function listStores(): Promise<StoreResult<StoreInfo[]>> {
   `,
     undefined,
     { includeStoreHeader: false }
-  );
+  )
   if (!result.success) {
-    return { success: false, message: result.message };
+    return { success: false, message: result.message }
   }
-  return { success: true, data: result.data.stores || [] };
+  return { success: true, data: result.data.stores || [] }
 }
 
 export async function createStore(input: {
-  name: string;
-  description?: string;
+  name: string
+  description?: string
 }): Promise<StoreResult<StoreInfo>> {
   const result = await postBackofficeGraphQL<{ createStore: StoreInfo }>(
     `
@@ -66,11 +66,11 @@ export async function createStore(input: {
       },
     },
     { includeStoreHeader: false }
-  );
+  )
   if (!result.success) {
-    return { success: false, message: result.message };
+    return { success: false, message: result.message }
   }
-  return { success: true, data: result.data.createStore };
+  return { success: true, data: result.data.createStore }
 }
 
 export async function activateStore(
@@ -93,9 +93,9 @@ export async function activateStore(
   `,
     { id },
     { includeStoreHeader: false }
-  );
+  )
   if (!result.success) {
-    return { success: false, message: result.message };
+    return { success: false, message: result.message }
   }
-  return { success: true, data: result.data.activateStore };
+  return { success: true, data: result.data.activateStore }
 }

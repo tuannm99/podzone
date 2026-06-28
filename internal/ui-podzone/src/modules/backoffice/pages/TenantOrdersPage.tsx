@@ -1,85 +1,84 @@
-import { useParams, useSearch } from '@tanstack/solid-router';
-import { createEffect, createSignal } from 'solid-js';
+import { useParams, useSearch } from '@tanstack/solid-router'
+import { createEffect, createSignal } from 'solid-js'
 import {
   getRoutedOrderRecommendation,
   getRoutedOrders,
   type RoutedOrder,
   type RoutedOrderRecommendation,
-} from '@/services/orders';
+} from '@/services/orders'
 import {
   getProductSetupSnapshot,
   type CatalogCandidate,
-} from '@/services/productSetup';
-import { tenantStorage } from '@/services/tenantStorage';
-import { useTenantWorkspace } from '@/solid/workspace/context';
+} from '@/services/productSetup'
+import { tenantStorage } from '@/services/tenantStorage'
+import { createFormStore, required } from '@/solid/forms'
+import { useTenantWorkspace } from '@/solid/workspace/context'
 import type {
   QueueSort,
   QueueView,
   TenantOrdersBoardContextValue,
-} from './orders/board-context';
-import type { TenantOrdersComposerContextValue } from './orders/composer-context';
-import type { TenantOrdersInsightsContextValue } from './orders/context';
-import { TenantOrdersView } from './orders/TenantOrdersView';
-import type { ActivityFilter } from './orders/order-card/types';
-import {
-  isQueueSort,
-  isQueueView,
-} from './orders/presentation';
-import { useOrderActions } from './orders/useOrderActions';
-import { useOrderDrafts } from './orders/useOrderDrafts';
-import { useOrderInsights } from './orders/useOrderInsights';
-import { useOrderStorage } from './orders/useOrderStorage';
+} from './orders/board-context'
+import type { TenantOrdersComposerContextValue } from './orders/composer-context'
+import type { TenantOrdersInsightsContextValue } from './orders/context'
+import { TenantOrdersView } from './orders/TenantOrdersView'
+import type { ActivityFilter } from './orders/order-card/types'
+import { isQueueSort, isQueueView } from './orders/presentation'
+import { positiveInteger, routedOrderInitialValues } from './orders/forms'
+import { useOrderActions } from './orders/useOrderActions'
+import { useOrderDrafts } from './orders/useOrderDrafts'
+import { useOrderInsights } from './orders/useOrderInsights'
+import { useOrderStorage } from './orders/useOrderStorage'
 
 export default function TenantOrdersPage() {
-  const params = useParams({ from: '/t/$tenantId/orders' });
-  const search = useSearch({ strict: false }) as () => Record<string, unknown>;
-  const workspace = useTenantWorkspace();
+  const params = useParams({ from: '/t/$tenantId/orders' })
+  const search = useSearch({ strict: false }) as () => Record<string, unknown>
+  const workspace = useTenantWorkspace()
 
   const [availableCandidates, setAvailableCandidates] = createSignal<
     CatalogCandidate[]
-  >([]);
-  const [orders, setOrders] = createSignal<RoutedOrder[]>([]);
-  const [selectedCandidateId, setSelectedCandidateId] = createSignal('');
-  const [customerName, setCustomerName] = createSignal('');
-  const [quantity, setQuantity] = createSignal('1');
-  const [selectedProductType, setSelectedProductType] = createSignal('tshirt');
-  const [selectedShipRegion, setSelectedShipRegion] = createSignal('us');
-  const [preferredPartner, setPreferredPartner] = createSignal('');
-  const [manualPartnerOverride, setManualPartnerOverride] =
-    createSignal(false);
+  >([])
+  const [orders, setOrders] = createSignal<RoutedOrder[]>([])
+  const orderForm = createFormStore({
+    initialValues: routedOrderInitialValues,
+    validators: {
+      selectedCandidateId: [required('Choose a published product.')],
+      customerName: [required('Enter the customer name.')],
+      quantity: [positiveInteger('Quantity must be a positive whole number.')],
+    },
+  })
   const [routingRecommendation, setRoutingRecommendation] =
-    createSignal<RoutedOrderRecommendation | null>(null);
-  const [selectedExceptionType, setSelectedExceptionType] =
-    createSignal('artwork_issue');
-  const [activeQueueView, setActiveQueueView] = createSignal<QueueView>('all');
+    createSignal<RoutedOrderRecommendation | null>(null)
+  const [activeQueueView, setActiveQueueView] = createSignal<QueueView>('all')
   const [activeQueueSort, setActiveQueueSort] =
-    createSignal<QueueSort>('priority');
+    createSignal<QueueSort>('priority')
   const [activityFilter, setActivityFilter] =
-    createSignal<ActivityFilter>('notes');
-  const [hideSystemActivity, setHideSystemActivity] = createSignal(true);
-  const [operatorLens, setOperatorLens] = createSignal('');
-  const [message, setMessage] = createSignal('');
-  const [error, setError] = createSignal('');
+    createSignal<ActivityFilter>('notes')
+  const [hideSystemActivity, setHideSystemActivity] = createSignal(true)
+  const [operatorLens, setOperatorLens] = createSignal('')
+  const [message, setMessage] = createSignal('')
+  const [error, setError] = createSignal('')
 
-  const currentStoreId = () => workspace?.currentStoreId() || '';
-  const currentStore = () => workspace?.currentStore();
-  const workspaceReady = () => !workspace || currentStoreId().trim().length > 0;
+  const currentStoreId = () => workspace?.currentStoreId() || ''
+  const currentStore = () => workspace?.currentStore()
+  const workspaceReady = () => !workspace || currentStoreId().trim().length > 0
   const storeLabel = () =>
-    currentStore()?.name || currentStoreId() || 'selected store';
+    currentStore()?.name || currentStoreId() || 'selected store'
   const effectivePreferredPartner = () =>
-    manualPartnerOverride() ? preferredPartner().trim() : '';
+    orderForm.values.manualPartnerOverride
+      ? orderForm.values.preferredPartner.trim()
+      : ''
 
   const applyPreferredPartnerOverride = (partnerName: string) => {
-    setManualPartnerOverride(true);
-    setPreferredPartner(partnerName);
-  };
+    orderForm.setValue('manualPartnerOverride', true)
+    orderForm.setValue('preferredPartner', partnerName)
+  }
 
   const resetPreferredPartnerOverride = () => {
-    setManualPartnerOverride(false);
-    setPreferredPartner('');
-  };
+    orderForm.setValue('manualPartnerOverride', false)
+    orderForm.setValue('preferredPartner', '')
+  }
 
-  const drafts = useOrderDrafts();
+  const drafts = useOrderDrafts()
   const insights = useOrderInsights({
     orders,
     storeLabel,
@@ -90,7 +89,7 @@ export default function TenantOrdersPage() {
     hideSystemActivity,
     setMessage,
     setError,
-  });
+  })
   const storage = useOrderStorage({
     tenantId: () => params().tenantId,
     storeId: currentStoreId,
@@ -101,21 +100,13 @@ export default function TenantOrdersPage() {
     operatorLens,
     setOperatorLens,
     setMessage,
-  });
+  })
   const actions = useOrderActions({
     orders,
     setOrders,
     availableCandidates,
-    selectedCandidateId,
-    customerName,
-    setCustomerName,
-    quantity,
-    setQuantity,
-    selectedProductType,
-    selectedShipRegion,
+    orderForm,
     effectivePreferredPartner,
-    resetPreferredPartnerOverride,
-    selectedExceptionType,
     selectedOrderIDs: storage.selectedOrderIDs,
     setSelectedOrderIDs: storage.setSelectedOrderIDs,
     bulkDraft: storage.bulkDraft,
@@ -123,86 +114,74 @@ export default function TenantOrdersPage() {
     drafts,
     setMessage,
     setError,
-  });
+  })
 
   const loadCandidates = async () => {
-    const result = await getProductSetupSnapshot();
+    const result = await getProductSetupSnapshot()
     if (!result.success) {
-      setError(result.message);
-      setAvailableCandidates([]);
-      return;
+      setError(result.message)
+      setAvailableCandidates([])
+      return
     }
     const published = result.data.candidates.filter(
       (candidate) => candidate.status === 'published_mock'
-    );
-    setAvailableCandidates(published);
-    if (!selectedCandidateId() && published.length > 0) {
-      setSelectedCandidateId(published[0].id);
+    )
+    setAvailableCandidates(published)
+    const selectionStillExists = published.some(
+      (candidate) => candidate.id === orderForm.values.selectedCandidateId
+    )
+    if (!selectionStillExists) {
+      orderForm.setValue('selectedCandidateId', published[0]?.id || '')
     }
-  };
+  }
 
   const loadOrders = async () => {
-    const result = await getRoutedOrders();
+    const result = await getRoutedOrders()
     if (!result.success) {
-      setError(result.message);
-      setOrders([]);
-      return;
+      setError(result.message)
+      setOrders([])
+      return
     }
-    setOrders(result.data.orders);
+    setOrders(result.data.orders)
     if (!operatorLens().trim()) {
       const firstAssigned = result.data.orders.find(
         (order) =>
           order.operatorAssignee && order.operatorAssignee !== 'unassigned'
-      );
+      )
       if (firstAssigned) {
-        setOperatorLens(firstAssigned.operatorAssignee);
+        setOperatorLens(firstAssigned.operatorAssignee)
       }
     }
-  };
+  }
 
   const loadRoutingRecommendation = async () => {
-    const candidateID = selectedCandidateId().trim();
+    const candidateID = orderForm.values.selectedCandidateId.trim()
     if (!candidateID) {
-      setRoutingRecommendation(null);
-      return;
+      setRoutingRecommendation(null)
+      return
     }
     const result = await getRoutedOrderRecommendation({
       candidateId: candidateID,
-      productType: selectedProductType(),
-      shipRegion: selectedShipRegion(),
-      preferredPartner: preferredPartner().trim() || undefined,
-    });
+      productType: orderForm.values.selectedProductType,
+      shipRegion: orderForm.values.selectedShipRegion,
+      preferredPartner: orderForm.values.preferredPartner.trim() || undefined,
+    })
     if (!result.success) {
-      setError(result.message);
-      setRoutingRecommendation(null);
-      return;
+      setError(result.message)
+      setRoutingRecommendation(null)
+      return
     }
-    setRoutingRecommendation(result.data);
-  };
+    setRoutingRecommendation(result.data)
+  }
 
   const composerContextValue: TenantOrdersComposerContextValue = {
     availableCandidates,
-    selectedCandidateId,
-    setSelectedCandidateId,
-    customerName,
-    setCustomerName,
-    quantity,
-    setQuantity,
-    selectedProductType,
-    setSelectedProductType,
-    selectedShipRegion,
-    setSelectedShipRegion,
-    preferredPartner,
-    setPreferredPartner,
-    manualPartnerOverride,
-    setManualPartnerOverride,
+    form: orderForm,
     routingRecommendation,
-    selectedExceptionType,
-    setSelectedExceptionType,
     applyPreferredPartnerOverride,
     resetPreferredPartnerOverride,
     createMockOrder: actions.createMockOrder,
-  };
+  }
 
   const boardContextValue: TenantOrdersBoardContextValue = {
     activeQueueView,
@@ -220,7 +199,9 @@ export default function TenantOrdersPage() {
     deleteQueuePreset: storage.deleteQueuePreset,
     selectedOrderIDs: storage.selectedOrderIDs,
     selectVisibleOrders: () =>
-      storage.setSelectedOrderIDs(insights.sortedOrders().map((order) => order.id)),
+      storage.setSelectedOrderIDs(
+        insights.sortedOrders().map((order) => order.id)
+      ),
     clearSelectedOrders: storage.clearSelectedOrders,
     bulkDraft: storage.bulkDraft,
     setBulkDraft: storage.setBulkDraft,
@@ -232,7 +213,7 @@ export default function TenantOrdersPage() {
     applyBulkTemplate: storage.applyBulkTemplate,
     deleteBulkTemplate: storage.deleteBulkTemplate,
     applyBulkUpdate: actions.applyBulkUpdate,
-  };
+  }
 
   const insightsContextValue: TenantOrdersInsightsContextValue = {
     tenantId: params().tenantId,
@@ -245,43 +226,43 @@ export default function TenantOrdersPage() {
     partnerFinanceSummary: insights.partnerFinanceSummary,
     storeActivityFeed: insights.storeActivityFeed,
     copyStoreActivityFeed: insights.copyStoreActivityFeed,
-  };
+  }
 
   createEffect(() => {
-    tenantStorage.setTenantID(params().tenantId);
+    tenantStorage.setTenantID(params().tenantId)
     if (!workspaceReady()) {
-      return;
+      return
     }
-    storage.loadSavedPresets();
-    storage.loadSavedBulkTemplates();
-    void loadCandidates();
-    void loadOrders();
-  });
+    storage.loadSavedPresets()
+    storage.loadSavedBulkTemplates()
+    void loadCandidates()
+    void loadOrders()
+  })
 
   createEffect(() => {
-    const current = search();
-    const queueView = String(current.queueView || '');
-    const queueSort = String(current.queueSort || '');
-    const lens = String(current.operatorLens || '');
+    const current = search()
+    const queueView = String(current.queueView || '')
+    const queueSort = String(current.queueSort || '')
+    const lens = String(current.operatorLens || '')
 
     if (isQueueView(queueView)) {
-      setActiveQueueView(queueView);
+      setActiveQueueView(queueView)
     }
     if (isQueueSort(queueSort)) {
-      setActiveQueueSort(queueSort);
+      setActiveQueueSort(queueSort)
     }
     if (lens) {
-      setOperatorLens(lens);
+      setOperatorLens(lens)
     }
-  });
+  })
 
   createEffect(() => {
     if (!workspaceReady()) {
-      setRoutingRecommendation(null);
-      return;
+      setRoutingRecommendation(null)
+      return
     }
-    void loadRoutingRecommendation();
-  });
+    void loadRoutingRecommendation()
+  })
 
   return (
     <TenantOrdersView
@@ -302,5 +283,5 @@ export default function TenantOrdersPage() {
       drafts={drafts}
       insights={insights}
     />
-  );
+  )
 }

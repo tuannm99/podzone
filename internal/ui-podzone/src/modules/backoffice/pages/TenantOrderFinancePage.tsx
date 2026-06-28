@@ -1,68 +1,68 @@
-import { useParams } from '@tanstack/solid-router';
-import { For, Show, createEffect, createSignal } from 'solid-js';
-import { getRoutedOrders, type RoutedOrder } from '@/services/orders';
-import { tenantStorage } from '@/services/tenantStorage';
+import { useParams } from '@tanstack/solid-router'
+import { For, Show, createEffect, createSignal } from 'solid-js'
+import { getRoutedOrders, type RoutedOrder } from '@/services/orders'
+import { tenantStorage } from '@/services/tenantStorage'
 import {
   EmptyBlock,
   ErrorAlert,
   InfoAlert,
-} from '@/solid/components/common/Feedback';
-import { PageShell } from '@/solid/components/common/PageShell';
-import { Badge, Button, Card } from '@/solid/components/common/Primitives';
-import { SectionLead } from '@/solid/components/common/SectionLead';
-import { SectionTitle } from '@/solid/components/common/SectionTitle';
-import { StatCard } from '@/solid/components/dashboard/StatCard';
-import { useTenantWorkspace } from '@/solid/workspace/context';
+} from '@/solid/components/common/Feedback'
+import { PageShell } from '@/solid/components/common/PageShell'
+import { Badge, Button, Card } from '@/solid/components/common/Primitives'
+import { SectionLead } from '@/solid/components/common/SectionLead'
+import { SectionTitle } from '@/solid/components/common/SectionTitle'
+import { StatCard } from '@/solid/components/dashboard/StatCard'
+import { useTenantWorkspace } from '@/solid/workspace/context'
 
 function parseMoneyValue(value: string) {
-  const trimmed = value.trim();
+  const trimmed = value.trim()
   if (!trimmed || trimmed === 'TBD') {
-    return null;
+    return null
   }
-  const negative = trimmed.includes('-');
-  const numeric = Number.parseFloat(trimmed.replace(/[^0-9.]/g, ''));
+  const negative = trimmed.includes('-')
+  const numeric = Number.parseFloat(trimmed.replace(/[^0-9.]/g, ''))
   if (Number.isNaN(numeric)) {
-    return null;
+    return null
   }
-  return negative ? -numeric : numeric;
+  return negative ? -numeric : numeric
 }
 
 function formatMoney(value: number) {
-  return `$${value.toFixed(2)}`;
+  return `$${value.toFixed(2)}`
 }
 
 function formatFlag(value: string) {
-  return value.replaceAll('_', ' ');
+  return value.replaceAll('_', ' ')
 }
 
 function anomalyFlagsFor(order: RoutedOrder) {
-  const flags: string[] = [];
-  const realizedMargin = parseMoneyValue(order.realizedMargin);
-  const fulfillmentCost = parseMoneyValue(order.fulfillmentCost);
-  const baseCostSnapshot = parseMoneyValue(order.baseCostSnapshot);
-  const shippingCost = parseMoneyValue(order.shippingCost);
-  const issueCost = parseMoneyValue(order.issueCost);
+  const flags: string[] = []
+  const realizedMargin = parseMoneyValue(order.realizedMargin)
+  const fulfillmentCost = parseMoneyValue(order.fulfillmentCost)
+  const baseCostSnapshot = parseMoneyValue(order.baseCostSnapshot)
+  const shippingCost = parseMoneyValue(order.shippingCost)
+  const issueCost = parseMoneyValue(order.issueCost)
 
   if (realizedMargin !== null && realizedMargin < 0) {
-    flags.push('negative_margin');
+    flags.push('negative_margin')
   }
   if (
     fulfillmentCost !== null &&
     baseCostSnapshot !== null &&
     fulfillmentCost > baseCostSnapshot
   ) {
-    flags.push('fulfillment_above_snapshot');
+    flags.push('fulfillment_above_snapshot')
   }
   if (shippingCost !== null && shippingCost >= 8) {
-    flags.push('high_shipping_cost');
+    flags.push('high_shipping_cost')
   }
   if (issueCost !== null && issueCost > 0) {
-    flags.push('issue_cost_present');
+    flags.push('issue_cost_present')
   }
   if (order.settlementStatus === 'disputed') {
-    flags.push('settlement_disputed');
+    flags.push('settlement_disputed')
   }
-  return flags;
+  return flags
 }
 
 function hasFinanceAttention(order: RoutedOrder) {
@@ -70,88 +70,86 @@ function hasFinanceAttention(order: RoutedOrder) {
     order.settlementStatus === 'pending' ||
     order.settlementStatus === 'disputed' ||
     anomalyFlagsFor(order).length > 0
-  );
+  )
 }
 
 function settlementColor(status: string) {
   switch (status) {
     case 'paid':
-      return 'green';
+      return 'green'
     case 'reconciled':
-      return 'blue';
+      return 'blue'
     case 'disputed':
-      return 'red';
+      return 'red'
     default:
-      return 'yellow';
+      return 'yellow'
   }
 }
 
 type PartnerFinanceRow = {
-  partner: string;
-  orders: number;
-  pending: number;
-  disputed: number;
-  paid: number;
-  blocked: number;
-  forcedReroutes: number;
-  realizedMargin: number;
-};
+  partner: string
+  orders: number
+  pending: number
+  disputed: number
+  paid: number
+  blocked: number
+  forcedReroutes: number
+  realizedMargin: number
+}
 
 function buildFinanceQueueHref(tenantID: string, storeID: string) {
   const params = new URLSearchParams({
     queueView: 'finance_review',
     queueSort: 'priority',
-  });
+  })
   if (storeID) {
-    params.set('storeId', storeID);
+    params.set('storeId', storeID)
   }
-  return `/t/${tenantID}/orders?${params.toString()}`;
+  return `/t/${tenantID}/orders?${params.toString()}`
 }
 
 export default function TenantOrderFinancePage() {
-  const params = useParams({ from: '/t/$tenantId/orders/finance' });
-  const workspace = useTenantWorkspace();
+  const params = useParams({ from: '/t/$tenantId/orders/finance' })
+  const workspace = useTenantWorkspace()
 
-  const [orders, setOrders] = createSignal<RoutedOrder[]>([]);
-  const [message, setMessage] = createSignal('');
-  const [error, setError] = createSignal('');
-  const currentStoreId = () => workspace?.currentStoreId() || '';
-  const currentStore = () => workspace?.currentStore();
-  const workspaceReady = () => !workspace || currentStoreId().trim().length > 0;
+  const [orders, setOrders] = createSignal<RoutedOrder[]>([])
+  const [message, setMessage] = createSignal('')
+  const [error, setError] = createSignal('')
+  const currentStoreId = () => workspace?.currentStoreId() || ''
+  const currentStore = () => workspace?.currentStore()
+  const workspaceReady = () => !workspace || currentStoreId().trim().length > 0
   const storeLabel = () =>
-    currentStore()?.name || currentStoreId() || 'selected store';
+    currentStore()?.name || currentStoreId() || 'selected store'
 
   const loadOrders = async () => {
-    const result = await getRoutedOrders();
+    const result = await getRoutedOrders()
     if (!result.success) {
-      setError(result.message);
-      setOrders([]);
-      return;
+      setError(result.message)
+      setOrders([])
+      return
     }
-    setError('');
-    setOrders(result.data.orders);
-  };
+    setError('')
+    setOrders(result.data.orders)
+  }
 
   const financeOrders = () =>
-    [...orders()]
-      .filter(hasFinanceAttention)
-      .sort((a, b) => {
-        const aDisputed = a.settlementStatus === 'disputed' ? 0 : 1;
-        const bDisputed = b.settlementStatus === 'disputed' ? 0 : 1;
-        if (aDisputed !== bDisputed) {
-          return aDisputed - bDisputed;
-        }
-        return (
-          anomalyFlagsFor(b).length - anomalyFlagsFor(a).length ||
-          new Date(a.createdAt || 0).getTime() -
-            new Date(b.createdAt || 0).getTime()
-        );
-      });
+    [...orders()].filter(hasFinanceAttention).sort((a, b) => {
+      const aDisputed = a.settlementStatus === 'disputed' ? 0 : 1
+      const bDisputed = b.settlementStatus === 'disputed' ? 0 : 1
+      if (aDisputed !== bDisputed) {
+        return aDisputed - bDisputed
+      }
+      return (
+        anomalyFlagsFor(b).length - anomalyFlagsFor(a).length ||
+        new Date(a.createdAt || 0).getTime() -
+          new Date(b.createdAt || 0).getTime()
+      )
+    })
 
   const partnerFinanceSummary = () => {
-    const summary = new Map<string, PartnerFinanceRow>();
+    const summary = new Map<string, PartnerFinanceRow>()
     for (const order of orders()) {
-      const partner = order.partner || 'partner pending';
+      const partner = order.partner || 'partner pending'
       const current = summary.get(partner) || {
         partner,
         orders: 0,
@@ -161,43 +159,42 @@ export default function TenantOrderFinancePage() {
         blocked: 0,
         forcedReroutes: 0,
         realizedMargin: 0,
-      };
-      current.orders += 1;
+      }
+      current.orders += 1
       if (order.settlementStatus === 'pending') {
-        current.pending += 1;
+        current.pending += 1
       }
       if (order.settlementStatus === 'disputed') {
-        current.disputed += 1;
+        current.disputed += 1
       }
       if (order.settlementStatus === 'paid') {
-        current.paid += 1;
+        current.paid += 1
       }
       if (order.status === 'routing_blocked') {
-        current.blocked += 1;
+        current.blocked += 1
       }
-      const margin = parseMoneyValue(order.realizedMargin);
+      const margin = parseMoneyValue(order.realizedMargin)
       if (margin !== null) {
-        current.realizedMargin += margin;
+        current.realizedMargin += margin
       }
       for (const activity of order.activityLog) {
         const manualReroute = activity.details.some(
-          (detail) =>
-            detail.key === 'manual_reroute' && detail.value === 'true'
-        );
+          (detail) => detail.key === 'manual_reroute' && detail.value === 'true'
+        )
         if (manualReroute) {
-          current.forcedReroutes += 1;
+          current.forcedReroutes += 1
         }
       }
-      summary.set(partner, current);
+      summary.set(partner, current)
     }
     return [...summary.values()].sort((a, b) => {
       return (
         b.disputed - a.disputed ||
         b.pending - a.pending ||
         a.partner.localeCompare(b.partner)
-      );
-    });
-  };
+      )
+    })
+  }
 
   const totalRealizedMargin = () =>
     formatMoney(
@@ -205,7 +202,7 @@ export default function TenantOrderFinancePage() {
         (sum, order) => sum + (parseMoneyValue(order.realizedMargin) || 0),
         0
       )
-    );
+    )
 
   const issueExposure = () =>
     formatMoney(
@@ -213,7 +210,7 @@ export default function TenantOrderFinancePage() {
         (sum, order) => sum + (parseMoneyValue(order.issueCost) || 0),
         0
       )
-    );
+    )
 
   const copySummary = async () => {
     const lines = [
@@ -223,34 +220,36 @@ export default function TenantOrderFinancePage() {
       `Realized margin: ${totalRealizedMargin()}`,
       `Issue exposure: ${issueExposure()}`,
       '',
-      ...partnerFinanceSummary().slice(0, 8).map((item) =>
-        [
-          item.partner,
-          `orders=${item.orders}`,
-          `pending=${item.pending}`,
-          `disputed=${item.disputed}`,
-          `paid=${item.paid}`,
-          `blocked=${item.blocked}`,
-          `forced_reroutes=${item.forcedReroutes}`,
-          `margin=${formatMoney(item.realizedMargin)}`,
-        ].join(' ')
-      ),
-    ].join('\n');
+      ...partnerFinanceSummary()
+        .slice(0, 8)
+        .map((item) =>
+          [
+            item.partner,
+            `orders=${item.orders}`,
+            `pending=${item.pending}`,
+            `disputed=${item.disputed}`,
+            `paid=${item.paid}`,
+            `blocked=${item.blocked}`,
+            `forced_reroutes=${item.forcedReroutes}`,
+            `margin=${formatMoney(item.realizedMargin)}`,
+          ].join(' ')
+        ),
+    ].join('\n')
     try {
-      await navigator.clipboard.writeText(lines);
-      setMessage(`Copied finance summary for ${storeLabel()}.`);
+      await navigator.clipboard.writeText(lines)
+      setMessage(`Copied finance summary for ${storeLabel()}.`)
     } catch {
-      setError('Could not copy finance summary to clipboard.');
+      setError('Could not copy finance summary to clipboard.')
     }
-  };
+  }
 
   createEffect(() => {
-    tenantStorage.setTenantID(params().tenantId);
+    tenantStorage.setTenantID(params().tenantId)
     if (!workspaceReady()) {
-      return;
+      return
     }
-    void loadOrders();
-  });
+    void loadOrders()
+  })
 
   return (
     <PageShell>
@@ -278,10 +277,7 @@ export default function TenantOrderFinancePage() {
       </Show>
 
       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Needs review"
-          value={String(financeOrders().length)}
-        />
+        <StatCard label="Needs review" value={String(financeOrders().length)} />
         <StatCard label="Realized margin" value={totalRealizedMargin()} />
         <StatCard label="Issue exposure" value={issueExposure()} />
         <StatCard
@@ -305,7 +301,7 @@ export default function TenantOrderFinancePage() {
               size="xs"
               color="light"
               onClick={() => {
-                void copySummary();
+                void copySummary()
               }}
             >
               Copy summary
@@ -339,7 +335,8 @@ export default function TenantOrderFinancePage() {
                         {order.id}
                       </p>
                       <p class="text-xs text-slate-500">
-                        {order.productTitle} · {order.partner || 'partner pending'}
+                        {order.productTitle} ·{' '}
+                        {order.partner || 'partner pending'}
                       </p>
                     </div>
                     <div class="flex flex-wrap gap-2">
@@ -425,5 +422,5 @@ export default function TenantOrderFinancePage() {
         </Show>
       </Card>
     </PageShell>
-  );
+  )
 }

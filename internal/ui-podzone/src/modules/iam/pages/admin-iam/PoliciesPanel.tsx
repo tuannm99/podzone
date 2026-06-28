@@ -1,23 +1,27 @@
-import { For, Show } from 'solid-js';
-import { EmptyBlock } from '@/solid/components/common/Feedback';
-import { IamStatementBuilder } from '@/solid/components/common/IamStatementBuilder';
-import { Badge, Button, SelectField } from '@/solid/components/common/Primitives';
-import { SectionTitle } from '@/solid/components/common/SectionTitle';
+import { Show } from 'solid-js'
+import { IamStatementBuilder } from '@/solid/components/common/IamStatementBuilder'
+import {
+  Badge,
+  Button,
+  SelectField,
+} from '@/solid/components/common/Primitives'
+import { SectionTitle } from '@/solid/components/common/SectionTitle'
 import {
   FormInputField,
   FormSelectField,
   createFormStore,
   jsonArray,
   required,
-} from '@/solid/forms';
+} from '@/solid/forms'
 import type {
   CreatePolicyFormValues,
   CreatePolicyVersionFormValues,
-} from './policy-forms';
-import { useAdminIamPolicy } from './policy-context';
+} from './policy-forms'
+import { useAdminIamPolicy } from './policy-context'
+import { PolicyDetailTables } from './PolicyDetailTables'
 
 export function PoliciesPanel() {
-  const policy = useAdminIamPolicy();
+  const policy = useAdminIamPolicy()
   const createPolicyForm = createFormStore<CreatePolicyFormValues>({
     initialValues: {
       scope: policy.policyScope(),
@@ -30,33 +34,35 @@ export function PoliciesPanel() {
       name: [required('Enter a policy name.')],
       statementsJson: [jsonArray('Policy statements must be a JSON array.')],
     },
-  });
+  })
   const versionForm = createFormStore<CreatePolicyVersionFormValues>({
     initialValues: {
       statementsJson: policy.policyVersionJson(),
     },
     validators: {
-      statementsJson: [jsonArray('Policy version statements must be a JSON array.')],
+      statementsJson: [
+        jsonArray('Policy version statements must be a JSON array.'),
+      ],
     },
-  });
+  })
 
   const submitCreatePolicy = async (event: SubmitEvent) => {
-    event.preventDefault();
+    event.preventDefault()
     if (!createPolicyForm.validate()) {
-      return;
+      return
     }
-    createPolicyForm.setSubmitting(true);
-    await policy.createPolicyFromForm({ ...createPolicyForm.values });
-    createPolicyForm.setSubmitting(false);
-  };
+    createPolicyForm.setSubmitting(true)
+    await policy.createPolicyFromForm({ ...createPolicyForm.values })
+    createPolicyForm.setSubmitting(false)
+  }
   const submitCreatePolicyVersion = async () => {
     if (!versionForm.validate()) {
-      return;
+      return
     }
-    versionForm.setSubmitting(true);
-    await policy.createPolicyVersionFromForm({ ...versionForm.values });
-    versionForm.setSubmitting(false);
-  };
+    versionForm.setSubmitting(true)
+    await policy.createPolicyVersionFromForm({ ...versionForm.values })
+    versionForm.setSubmitting(false)
+  }
 
   return (
     <>
@@ -162,104 +168,7 @@ export function PoliciesPanel() {
         </Button>
       </div>
 
-      <div class="grid gap-4 lg:grid-cols-2">
-        <div class="space-y-3">
-          <p class="text-sm font-semibold text-gray-900">Versions</p>
-          <Show
-            when={policy.policyVersions().length > 0}
-            fallback={
-              <EmptyBlock
-                title="No versions"
-                copy="Select a policy to inspect its version history."
-              />
-            }
-          >
-            <div class="space-y-3">
-              <For each={policy.policyVersions()}>
-                {(version) => (
-                  <div class="rounded-lg border border-gray-200 p-4">
-                    <div class="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <p class="font-semibold text-gray-900">{version.version}</p>
-                        <p class="text-sm text-gray-500">
-                          {version.createdAt || 'unknown time'}
-                        </p>
-                      </div>
-                      <Show
-                        when={version.isDefault}
-                        fallback={
-                          <div class="flex gap-2">
-                            <Button
-                              size="xs"
-                              color="light"
-                              onClick={() =>
-                                policy.handleSetDefaultVersion(version.version)
-                              }
-                            >
-                              Set default
-                            </Button>
-                            <Button
-                              size="xs"
-                              color="red"
-                              onClick={() =>
-                                policy.handleDeleteVersion(version.version)
-                              }
-                            >
-                              Delete
-                            </Button>
-                          </div>
-                        }
-                      >
-                        <Badge content="default" color="green" />
-                      </Show>
-                    </div>
-                  </div>
-                )}
-              </For>
-            </div>
-          </Show>
-        </div>
-
-        <div class="space-y-3">
-          <p class="text-sm font-semibold text-gray-900">Attachments</p>
-          <Show
-            when={policy.policyAttachments().length > 0}
-            fallback={
-              <EmptyBlock
-                title="No attachments"
-                copy="This policy is not currently attached to any role, user, group, boundary, or SCP."
-              />
-            }
-          >
-            <div class="space-y-3">
-              <For each={policy.policyAttachments()}>
-                {(attachment) => (
-                  <div class="rounded-lg border border-gray-200 p-4">
-                    <div class="flex flex-wrap items-center gap-2">
-                      <Badge
-                        content={attachment.attachmentType}
-                        color={policy.attachmentColor(attachment.attachmentType)}
-                      />
-                      <Show when={attachment.roleName}>
-                        <Badge content={attachment.roleName || ''} color="dark" />
-                      </Show>
-                      <Show when={attachment.groupName}>
-                        <Badge content={attachment.groupName || ''} color="green" />
-                      </Show>
-                    </div>
-                    <p class="mt-2 text-sm text-gray-600">
-                      {attachment.tenantId || attachment.scope || 'platform'}
-                      <Show when={attachment.userId}>
-                        <> · user {attachment.userId}</>
-                      </Show>
-                    </p>
-                  </div>
-                )}
-              </For>
-            </div>
-          </Show>
-        </div>
-      </div>
+      <PolicyDetailTables />
     </>
-  );
+  )
 }

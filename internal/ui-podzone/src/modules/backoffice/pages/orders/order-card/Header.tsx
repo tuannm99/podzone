@@ -1,18 +1,16 @@
-import { Show } from 'solid-js';
-import type { RoutedOrder } from '@/services/orders';
-import { Badge, Button } from '@/solid/components/common/Primitives';
-import type { OrderCardActions, OrderCardHelpers } from './types';
+import { Show } from 'solid-js'
+import type { RoutedOrder } from '@/services/orders'
+import { Badge, Button } from '@/solid/components/common/Primitives'
+import type { OrderCardActions, OrderCardHelpers } from './types'
 
 type HeaderProps = {
-  order: RoutedOrder;
-  selected: boolean;
-  actions: OrderCardActions;
-  helpers: OrderCardHelpers;
-};
+  order: RoutedOrder
+  selected: boolean
+  actions: OrderCardActions
+  helpers: OrderCardHelpers
+}
 
 export function Header(props: HeaderProps) {
-  const { order, actions, helpers } = props;
-
   return (
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-start gap-3">
@@ -21,66 +19,69 @@ export function Header(props: HeaderProps) {
             type="checkbox"
             checked={props.selected}
             onChange={(event) =>
-              actions.toggleSelected(event.currentTarget.checked)
+              props.actions.toggleSelected(event.currentTarget.checked)
             }
           />
         </label>
         <div>
-          <p class="text-base font-semibold text-gray-900">{order.id}</p>
+          <p class="text-base font-semibold text-gray-900">{props.order.id}</p>
           <p class="mt-1 text-sm text-gray-500">
-            {order.productTitle} · {order.partner || 'partner pending'}
+            {props.order.productTitle} ·{' '}
+            {props.order.partner || 'partner pending'}
           </p>
           <p class="mt-1 text-sm text-gray-500">
-            customer {order.customerName} · qty {order.quantity} · total{' '}
-            {order.total}
+            customer {props.order.customerName} · qty {props.order.quantity} ·
+            total {props.order.total}
           </p>
           <p class="mt-1 text-sm text-gray-500">
-            owner {order.operatorAssignee || 'unassigned'}
+            owner {props.order.operatorAssignee || 'unassigned'}
           </p>
         </div>
       </div>
       <div class="flex flex-wrap items-center gap-2">
-        <Show when={helpers.queueSort === 'priority'}>
+        <Show when={props.helpers.queueSort === 'priority'}>
           <Badge
-            content={`priority ${helpers.priorityScoreFor(order) + 1}`}
-            color={helpers.priorityScoreFor(order) < 3 ? 'red' : 'dark'}
+            content={`priority ${props.helpers.priorityScoreFor(props.order) + 1}`}
+            color={
+              props.helpers.priorityScoreFor(props.order) < 3 ? 'red' : 'dark'
+            }
           />
         </Show>
         <Badge
-          content={order.status.replaceAll('_', ' ')}
-          color={helpers.statusColor(order.status)}
+          content={props.order.status.replaceAll('_', ' ')}
+          color={props.helpers.statusColor(props.order.status)}
         />
-        <Show when={order.exceptionStatus}>
+        <Show when={props.order.exceptionStatus}>
           <Badge
-            content={`${order.exceptionStatus} issue`}
-            color={helpers.exceptionColor(order.exceptionStatus)}
+            content={`${props.order.exceptionStatus} issue`}
+            color={props.helpers.exceptionColor(props.order.exceptionStatus)}
           />
         </Show>
-        <Show when={order.routingBlockCode}>
+        <Show when={props.order.routingBlockCode}>
           <Badge
-            content={`blocked ${order.routingBlockCode.replaceAll('_', ' ')}`}
+            content={`blocked ${props.order.routingBlockCode.replaceAll('_', ' ')}`}
             color="red"
           />
         </Show>
         <Badge
-          content={order.shipmentStatus.replaceAll('_', ' ')}
-          color={helpers.shipmentColor(order.shipmentStatus)}
+          content={props.order.shipmentStatus.replaceAll('_', ' ')}
+          color={props.helpers.shipmentColor(props.order.shipmentStatus)}
         />
         <Badge
-          content={order.settlementStatus.replaceAll('_', ' ')}
-          color={helpers.settlementColor(order.settlementStatus)}
+          content={props.order.settlementStatus.replaceAll('_', ' ')}
+          color={props.helpers.settlementColor(props.order.settlementStatus)}
         />
         <Button
           type="button"
           size="xs"
           color="green"
           disabled={
-            order.status === 'routing_blocked' ||
-            order.status === 'shipped' ||
-            order.exceptionStatus === 'open' ||
-            order.exceptionStatus === 'escalated'
+            props.order.status === 'routing_blocked' ||
+            props.order.status === 'shipped' ||
+            props.order.exceptionStatus === 'open' ||
+            props.order.exceptionStatus === 'escalated'
           }
-          onClick={() => actions.advanceOrder(order.id)}
+          onClick={() => props.actions.advanceOrder(props.order.id)}
         >
           Advance route
         </Button>
@@ -89,24 +90,26 @@ export function Header(props: HeaderProps) {
           size="xs"
           color="alternative"
           disabled={
-            order.exceptionStatus === 'open' ||
-            order.exceptionStatus === 'resolved'
+            props.order.exceptionStatus === 'open' ||
+            props.order.exceptionStatus === 'resolved'
           }
-          onClick={() => actions.raiseException(order.id)}
+          onClick={() => props.actions.raiseException(props.order.id)}
         >
           Raise issue
         </Button>
-        <Show when={order.routingBlockReason}>
+        <Show when={props.order.routingBlockReason}>
           <p class="w-full text-sm text-rose-700">
-            Routing blocked: {order.routingBlockReason}
+            Routing blocked: {props.order.routingBlockReason}
           </p>
         </Show>
-        <Show when={order.exceptionStatus === 'open'}>
+        <Show when={props.order.exceptionStatus === 'open'}>
           <Button
             type="button"
             size="xs"
             color="blue"
-            onClick={() => actions.updateExceptionStatus(order.id, 'escalated')}
+            onClick={() =>
+              props.actions.updateExceptionStatus(props.order.id, 'escalated')
+            }
           >
             Escalate
           </Button>
@@ -114,12 +117,14 @@ export function Header(props: HeaderProps) {
             type="button"
             size="xs"
             color="light"
-            onClick={() => actions.updateExceptionStatus(order.id, 'resolved')}
+            onClick={() =>
+              props.actions.updateExceptionStatus(props.order.id, 'resolved')
+            }
           >
             Resolve
           </Button>
         </Show>
       </div>
     </div>
-  );
+  )
 }

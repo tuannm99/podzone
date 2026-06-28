@@ -1,26 +1,26 @@
-import { useParams } from '@tanstack/solid-router';
-import { For, Show, createEffect, createSignal } from 'solid-js';
+import { useParams } from '@tanstack/solid-router'
+import { For, Show, createEffect, createSignal } from 'solid-js'
 import {
   getRoutedOrderActivities,
   type RoutedOrderActivityFeedEntry,
-} from '@/services/orders';
-import { tenantStorage } from '@/services/tenantStorage';
+} from '@/services/orders'
+import { tenantStorage } from '@/services/tenantStorage'
 import {
   EmptyBlock,
   ErrorAlert,
   InfoAlert,
-} from '@/solid/components/common/Feedback';
-import { PageShell } from '@/solid/components/common/PageShell';
+} from '@/solid/components/common/Feedback'
+import { PageShell } from '@/solid/components/common/PageShell'
 import {
   Badge,
   Button,
   Card,
   InputField,
   SelectField,
-} from '@/solid/components/common/Primitives';
-import { SectionLead } from '@/solid/components/common/SectionLead';
-import { SectionTitle } from '@/solid/components/common/SectionTitle';
-import { useTenantWorkspace } from '@/solid/workspace/context';
+} from '@/solid/components/common/Primitives'
+import { SectionLead } from '@/solid/components/common/SectionLead'
+import { SectionTitle } from '@/solid/components/common/SectionTitle'
+import { useTenantWorkspace } from '@/solid/workspace/context'
 
 const activityFilterOptions = [
   { name: 'All', value: 'all' },
@@ -29,51 +29,51 @@ const activityFilterOptions = [
   { name: 'Shipment', value: 'shipment_note' },
   { name: 'Settlement', value: 'settlement_note' },
   { name: 'Issue', value: 'issue_note' },
-] as const;
+] as const
 
 const timeWindowOptions = [
   { name: '24h', value: '24h' },
   { name: '7 days', value: '7d' },
   { name: '30 days', value: '30d' },
   { name: 'All time', value: 'all' },
-] as const;
+] as const
 
-type ActivityFilter = (typeof activityFilterOptions)[number]['value'];
-type TimeWindow = (typeof timeWindowOptions)[number]['value'];
+type ActivityFilter = (typeof activityFilterOptions)[number]['value']
+type TimeWindow = (typeof timeWindowOptions)[number]['value']
 
 function activityColor(type: string) {
   switch (type) {
     case 'shipment_note':
-      return 'indigo';
+      return 'indigo'
     case 'settlement_note':
-      return 'green';
+      return 'green'
     case 'issue_note':
-      return 'red';
+      return 'red'
     default:
-      return 'dark';
+      return 'dark'
   }
 }
 
 function formatActivityTime(value: string) {
-  return new Date(value).toLocaleString();
+  return new Date(value).toLocaleString()
 }
 
 function formatActivityActor(actor: string) {
-  const normalized = actor.trim();
-  return normalized || 'system';
+  const normalized = actor.trim()
+  return normalized || 'system'
 }
 
 function resolveSinceIso(window: TimeWindow) {
-  const now = Date.now();
+  const now = Date.now()
   switch (window) {
     case '24h':
-      return new Date(now - 24 * 60 * 60 * 1000).toISOString();
+      return new Date(now - 24 * 60 * 60 * 1000).toISOString()
     case '7d':
-      return new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString();
+      return new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString()
     case '30d':
-      return new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString();
+      return new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString()
     default:
-      return undefined;
+      return undefined
   }
 }
 
@@ -87,7 +87,7 @@ function formatFeedSummary(
     ...entries.map((entry) => {
       const details = entry.activity.details
         .map((detail) => `${detail.key}=${detail.value}`)
-        .join(', ');
+        .join(', ')
       return [
         `[${formatActivityTime(entry.activity.createdAt)}]`,
         entry.orderId,
@@ -100,42 +100,42 @@ function formatFeedSummary(
         details ? `(${details})` : '',
       ]
         .filter(Boolean)
-        .join(' ');
+        .join(' ')
     }),
-  ].join('\n');
+  ].join('\n')
 }
 
 function buildOrdersHref(tenantID: string, storeID: string) {
-  const params = new URLSearchParams();
+  const params = new URLSearchParams()
   if (storeID) {
-    params.set('storeId', storeID);
+    params.set('storeId', storeID)
   }
-  const query = params.toString();
-  return `/t/${tenantID}/orders${query ? `?${query}` : ''}`;
+  const query = params.toString()
+  return `/t/${tenantID}/orders${query ? `?${query}` : ''}`
 }
 
 export default function TenantOrderAuditPage() {
-  const params = useParams({ from: '/t/$tenantId/orders/audit' });
-  const workspace = useTenantWorkspace();
+  const params = useParams({ from: '/t/$tenantId/orders/audit' })
+  const workspace = useTenantWorkspace()
 
-  const [entries, setEntries] = createSignal<RoutedOrderActivityFeedEntry[]>([]);
-  const [nextCursor, setNextCursor] = createSignal<string>();
-  const [total, setTotal] = createSignal(0);
+  const [entries, setEntries] = createSignal<RoutedOrderActivityFeedEntry[]>([])
+  const [nextCursor, setNextCursor] = createSignal<string>()
+  const [total, setTotal] = createSignal(0)
   const [activityFilter, setActivityFilter] =
-    createSignal<ActivityFilter>('notes');
-  const [hideSystemActivity, setHideSystemActivity] = createSignal(true);
-  const [timeWindow, setTimeWindow] = createSignal<TimeWindow>('7d');
-  const [actorFilter, setActorFilter] = createSignal('');
-  const [orderFilter, setOrderFilter] = createSignal('');
-  const [partnerFilter, setPartnerFilter] = createSignal('');
-  const [assigneeFilter, setAssigneeFilter] = createSignal('');
-  const [message, setMessage] = createSignal('');
-  const [error, setError] = createSignal('');
-  const currentStoreId = () => workspace?.currentStoreId() || '';
-  const currentStore = () => workspace?.currentStore();
-  const workspaceReady = () => !workspace || currentStoreId().trim().length > 0;
+    createSignal<ActivityFilter>('notes')
+  const [hideSystemActivity, setHideSystemActivity] = createSignal(true)
+  const [timeWindow, setTimeWindow] = createSignal<TimeWindow>('7d')
+  const [actorFilter, setActorFilter] = createSignal('')
+  const [orderFilter, setOrderFilter] = createSignal('')
+  const [partnerFilter, setPartnerFilter] = createSignal('')
+  const [assigneeFilter, setAssigneeFilter] = createSignal('')
+  const [message, setMessage] = createSignal('')
+  const [error, setError] = createSignal('')
+  const currentStoreId = () => workspace?.currentStoreId() || ''
+  const currentStore = () => workspace?.currentStore()
+  const workspaceReady = () => !workspace || currentStoreId().trim().length > 0
   const storeLabel = () =>
-    currentStore()?.name || currentStoreId() || 'selected store';
+    currentStore()?.name || currentStoreId() || 'selected store'
 
   const loadEntries = async (after?: string, append = false) => {
     const result = await getRoutedOrderActivities({
@@ -151,63 +151,63 @@ export default function TenantOrderAuditPage() {
         activityFilter() === 'all'
           ? !hideSystemActivity()
           : activityFilter() === 'system',
-    });
+    })
     if (!result.success) {
-      setError(result.message);
-      setEntries([]);
-      setNextCursor(undefined);
-      setTotal(0);
-      return;
+      setError(result.message)
+      setEntries([])
+      setNextCursor(undefined)
+      setTotal(0)
+      return
     }
     setEntries((current) =>
       append ? [...current, ...result.data.entries] : result.data.entries
-    );
-    setNextCursor(result.data.nextCursor);
-    setTotal(result.data.total);
-  };
+    )
+    setNextCursor(result.data.nextCursor)
+    setTotal(result.data.total)
+  }
 
-  const auditFeed = () => entries();
+  const auditFeed = () => entries()
 
   const copyFeed = async () => {
     try {
       await navigator.clipboard.writeText(
         formatFeedSummary(storeLabel(), auditFeed())
-      );
-      setMessage(`Copied audit feed for ${storeLabel()}.`);
+      )
+      setMessage(`Copied audit feed for ${storeLabel()}.`)
     } catch {
-      setError('Could not copy audit feed to clipboard.');
+      setError('Could not copy audit feed to clipboard.')
     }
-  };
+  }
 
   const loadMore = async () => {
-    const cursor = nextCursor();
+    const cursor = nextCursor()
     if (!cursor) {
-      return;
+      return
     }
-    await loadEntries(cursor, true);
-  };
+    await loadEntries(cursor, true)
+  }
 
   createEffect(() => {
-    tenantStorage.setTenantID(params().tenantId);
+    tenantStorage.setTenantID(params().tenantId)
     if (!workspaceReady()) {
-      return;
+      return
     }
-    void loadEntries(undefined, false);
-  });
+    void loadEntries(undefined, false)
+  })
 
   createEffect(() => {
     if (!workspaceReady()) {
-      return;
+      return
     }
-    activityFilter();
-    hideSystemActivity();
-    actorFilter();
-    orderFilter();
-    partnerFilter();
-    assigneeFilter();
-    timeWindow();
-    void loadEntries(undefined, false);
-  });
+    activityFilter()
+    hideSystemActivity()
+    actorFilter()
+    orderFilter()
+    partnerFilter()
+    assigneeFilter()
+    timeWindow()
+    void loadEntries(undefined, false)
+  })
 
   return (
     <PageShell>
@@ -311,7 +311,7 @@ export default function TenantOrderAuditPage() {
             size="xs"
             color="blue"
             onClick={() => {
-              void copyFeed();
+              void copyFeed()
             }}
           >
             Copy audit feed
@@ -335,7 +335,8 @@ export default function TenantOrderAuditPage() {
         >
           <div class="flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500">
             <p>
-              Showing {auditFeed().length} of {total()} matching activity entries.
+              Showing {auditFeed().length} of {total()} matching activity
+              entries.
             </p>
             <Show when={!!nextCursor()}>
               <Button
@@ -343,7 +344,7 @@ export default function TenantOrderAuditPage() {
                 size="xs"
                 color="alternative"
                 onClick={() => {
-                  void loadMore();
+                  void loadMore()
                 }}
               >
                 Load more
@@ -395,5 +396,5 @@ export default function TenantOrderAuditPage() {
         </Show>
       </Card>
     </PageShell>
-  );
+  )
 }

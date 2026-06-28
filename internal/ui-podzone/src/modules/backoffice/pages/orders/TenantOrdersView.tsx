@@ -1,27 +1,28 @@
-import { For, Show } from 'solid-js';
-import type { Accessor, Setter } from 'solid-js';
-import type { RoutedOrder } from '@/services/orders';
+import { For, Show, createEffect, createMemo, createSignal } from 'solid-js'
+import type { Accessor, Setter } from 'solid-js'
+import type { RoutedOrder } from '@/services/orders'
 import {
   EmptyBlock,
   ErrorAlert,
   InfoAlert,
-} from '@/solid/components/common/Feedback';
-import { PageShell } from '@/solid/components/common/PageShell';
-import { Badge, Card } from '@/solid/components/common/Primitives';
-import { SectionLead } from '@/solid/components/common/SectionLead';
-import { SectionTitle } from '@/solid/components/common/SectionTitle';
-import { BulkOpsPanel } from './BulkOpsPanel';
-import { TenantOrdersBoardProvider } from './board-context';
-import type { TenantOrdersBoardContextValue } from './board-context';
-import { CreateRoutedOrderPanel } from './CreateRoutedOrderPanel';
-import { TenantOrdersComposerProvider } from './composer-context';
-import type { TenantOrdersComposerContextValue } from './composer-context';
-import { TenantOrdersInsightsProvider } from './context';
-import type { TenantOrdersInsightsContextValue } from './context';
-import { OrderCard } from './OrderCard';
-import { OrdersInsightsPanel } from './OrdersInsightsPanel';
-import { QueueToolbarPanel } from './QueueToolbarPanel';
-import { StoreActivityFeedPanel } from './StoreActivityFeedPanel';
+} from '@/solid/components/common/Feedback'
+import { PageShell } from '@/solid/components/common/PageShell'
+import { Badge, Card } from '@/solid/components/common/Primitives'
+import { SectionLead } from '@/solid/components/common/SectionLead'
+import { SectionTitle } from '@/solid/components/common/SectionTitle'
+import { BulkOpsPanel } from './BulkOpsPanel'
+import { TenantOrdersBoardProvider } from './board-context'
+import type { TenantOrdersBoardContextValue } from './board-context'
+import { CreateRoutedOrderPanel } from './CreateRoutedOrderPanel'
+import { TenantOrdersComposerProvider } from './composer-context'
+import type { TenantOrdersComposerContextValue } from './composer-context'
+import { TenantOrdersInsightsProvider } from './context'
+import type { TenantOrdersInsightsContextValue } from './context'
+import { OrderCard } from './OrderCard'
+import { OrdersQueueTable } from './OrdersQueueTable'
+import { OrdersInsightsPanel } from './OrdersInsightsPanel'
+import { QueueToolbarPanel } from './QueueToolbarPanel'
+import { StoreActivityFeedPanel } from './StoreActivityFeedPanel'
 import {
   activityColor,
   activityFilterOptions,
@@ -34,33 +35,45 @@ import {
   shipmentColor,
   shipmentOptions,
   statusColor,
-} from './presentation';
-import type { ActivityFilter } from './order-card/types';
-import type { useOrderActions } from './useOrderActions';
-import type { useOrderDrafts } from './useOrderDrafts';
-import type { useOrderInsights } from './useOrderInsights';
-import type { useOrderStorage } from './useOrderStorage';
+} from './presentation'
+import type { ActivityFilter } from './order-card/types'
+import type { useOrderActions } from './useOrderActions'
+import type { useOrderDrafts } from './useOrderDrafts'
+import type { useOrderInsights } from './useOrderInsights'
+import type { useOrderStorage } from './useOrderStorage'
 
 type TenantOrdersViewProps = {
-  storeLabel: Accessor<string>;
-  workspaceReady: Accessor<boolean>;
-  message: Accessor<string>;
-  error: Accessor<string>;
-  orders: Accessor<RoutedOrder[]>;
-  activityFilter: Accessor<ActivityFilter>;
-  setActivityFilter: Setter<ActivityFilter>;
-  hideSystemActivity: Accessor<boolean>;
-  setHideSystemActivity: Setter<boolean>;
-  composerContextValue: TenantOrdersComposerContextValue;
-  boardContextValue: TenantOrdersBoardContextValue;
-  insightsContextValue: TenantOrdersInsightsContextValue;
-  storage: ReturnType<typeof useOrderStorage>;
-  actions: ReturnType<typeof useOrderActions>;
-  drafts: ReturnType<typeof useOrderDrafts>;
-  insights: ReturnType<typeof useOrderInsights>;
-};
+  storeLabel: Accessor<string>
+  workspaceReady: Accessor<boolean>
+  message: Accessor<string>
+  error: Accessor<string>
+  orders: Accessor<RoutedOrder[]>
+  activityFilter: Accessor<ActivityFilter>
+  setActivityFilter: Setter<ActivityFilter>
+  hideSystemActivity: Accessor<boolean>
+  setHideSystemActivity: Setter<boolean>
+  composerContextValue: TenantOrdersComposerContextValue
+  boardContextValue: TenantOrdersBoardContextValue
+  insightsContextValue: TenantOrdersInsightsContextValue
+  storage: ReturnType<typeof useOrderStorage>
+  actions: ReturnType<typeof useOrderActions>
+  drafts: ReturnType<typeof useOrderDrafts>
+  insights: ReturnType<typeof useOrderInsights>
+}
 
 export function TenantOrdersView(props: TenantOrdersViewProps) {
+  const [detailOrderID, setDetailOrderID] = createSignal('')
+  const detailOrder = createMemo(() =>
+    props.insights.sortedOrders().find((order) => order.id === detailOrderID())
+  )
+
+  createEffect(() => {
+    const orders = props.insights.sortedOrders()
+    if (!orders.some((order) => order.id === detailOrderID())) {
+      setDetailOrderID(orders[0]?.id || '')
+    }
+  })
+
   return (
     <PageShell>
       <Card class="space-y-4">
@@ -87,9 +100,9 @@ export function TenantOrdersView(props: TenantOrdersViewProps) {
       </Show>
 
       <InfoAlert>
-        Orders and published product candidates now come from backend store data.
-        Shipment and settlement control both stay manual on this board so the
-        store team can manage POD execution directly.
+        Orders and published product candidates now come from backend store
+        data. Shipment and settlement control both stay manual on this board so
+        the store team can manage POD execution directly.
       </InfoAlert>
 
       <div class="grid gap-6 lg:grid-cols-[0.96fr_1.04fr]">
@@ -136,55 +149,74 @@ export function TenantOrdersView(props: TenantOrdersViewProps) {
               <TenantOrdersInsightsProvider value={props.insightsContextValue}>
                 <StoreActivityFeedPanel />
               </TenantOrdersInsightsProvider>
-              <For each={props.insights.sortedOrders()}>
+              <OrdersQueueTable
+                orders={props.insights.sortedOrders}
+                detailOrderID={detailOrderID}
+                setDetailOrderID={setDetailOrderID}
+                isSelected={props.storage.isSelected}
+                toggleSelected={props.storage.toggleOrderSelection}
+                priorityScoreFor={props.insights.priorityScoreFor}
+                statusColor={statusColor}
+                exceptionColor={exceptionColor}
+                settlementColor={settlementColor}
+              />
+              <Show when={detailOrder()}>
                 {(order) => (
-                  <OrderCard
-                    order={order}
-                    selected={props.storage.isSelected(order.id)}
-                    actions={{
-                      toggleSelected: (checked) =>
-                        props.storage.toggleOrderSelection(order.id, checked),
-                      ...props.actions,
-                      copyActivitySummary: props.insights.copyActivitySummary,
-                      queueDraftFor: props.drafts.queueDraftFor,
-                      patchQueueDraft: props.drafts.patchQueueDraft,
-                      issueDraftFor: props.drafts.issueDraftFor,
-                      patchIssueDraft: props.drafts.patchIssueDraft,
-                      settlementDraftFor: props.drafts.settlementDraftFor,
-                      patchSettlementDraft: props.drafts.patchSettlementDraft,
-                      shipmentDraftFor: props.drafts.shipmentDraftFor,
-                      patchShipmentDraft: props.drafts.patchShipmentDraft,
-                      rerouteDraftFor: props.drafts.rerouteDraftFor,
-                      patchRerouteDraft: props.drafts.patchRerouteDraft,
-                    }}
-                    helpers={{
-                      queueSort: props.boardContextValue.activeQueueSort(),
-                      priorityScoreFor: props.insights.priorityScoreFor,
-                      statusColor,
-                      exceptionColor,
-                      shipmentColor,
-                      settlementColor,
-                      activityColor,
-                      isOverdue,
-                      filteredActivityLogFor:
-                        props.insights.filteredActivityLogFor,
-                      hiddenSystemActivityCountFor:
-                        props.insights.hiddenSystemActivityCountFor,
-                    }}
-                    ui={{
-                      activityFilter: props.activityFilter(),
-                      setActivityFilter: props.setActivityFilter,
-                      hideSystemActivity: props.hideSystemActivity(),
-                      toggleHideSystemActivity: () =>
-                        props.setHideSystemActivity((current) => !current),
-                      activityFilterOptions,
-                      shipmentOptions,
-                      settlementOptions,
-                      issueResolutionOptions,
-                    }}
-                  />
+                  <div class="border-t border-gray-200 pt-4">
+                    <p class="mb-3 text-sm font-semibold text-gray-900">
+                      Order detail
+                    </p>
+                    <OrderCard
+                      order={order()}
+                      selected={props.storage.isSelected(order().id)}
+                      actions={{
+                        toggleSelected: (checked) =>
+                          props.storage.toggleOrderSelection(
+                            order().id,
+                            checked
+                          ),
+                        ...props.actions,
+                        copyActivitySummary: props.insights.copyActivitySummary,
+                        queueDraftFor: props.drafts.queueDraftFor,
+                        patchQueueDraft: props.drafts.patchQueueDraft,
+                        issueDraftFor: props.drafts.issueDraftFor,
+                        patchIssueDraft: props.drafts.patchIssueDraft,
+                        settlementDraftFor: props.drafts.settlementDraftFor,
+                        patchSettlementDraft: props.drafts.patchSettlementDraft,
+                        shipmentDraftFor: props.drafts.shipmentDraftFor,
+                        patchShipmentDraft: props.drafts.patchShipmentDraft,
+                        rerouteDraftFor: props.drafts.rerouteDraftFor,
+                        patchRerouteDraft: props.drafts.patchRerouteDraft,
+                      }}
+                      helpers={{
+                        queueSort: props.boardContextValue.activeQueueSort(),
+                        priorityScoreFor: props.insights.priorityScoreFor,
+                        statusColor,
+                        exceptionColor,
+                        shipmentColor,
+                        settlementColor,
+                        activityColor,
+                        isOverdue,
+                        filteredActivityLogFor:
+                          props.insights.filteredActivityLogFor,
+                        hiddenSystemActivityCountFor:
+                          props.insights.hiddenSystemActivityCountFor,
+                      }}
+                      ui={{
+                        activityFilter: props.activityFilter(),
+                        setActivityFilter: props.setActivityFilter,
+                        hideSystemActivity: props.hideSystemActivity(),
+                        toggleHideSystemActivity: () =>
+                          props.setHideSystemActivity((current) => !current),
+                        activityFilterOptions,
+                        shipmentOptions,
+                        settlementOptions,
+                        issueResolutionOptions,
+                      }}
+                    />
+                  </div>
                 )}
-              </For>
+              </Show>
             </div>
           </Show>
         </Card>
@@ -232,5 +264,5 @@ export function TenantOrdersView(props: TenantOrdersViewProps) {
         </div>
       </Card>
     </PageShell>
-  );
+  )
 }

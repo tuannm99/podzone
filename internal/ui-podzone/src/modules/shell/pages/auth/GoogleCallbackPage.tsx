@@ -1,30 +1,30 @@
-import { useNavigate, useSearch } from '@tanstack/solid-router';
-import { createResource, createSignal } from 'solid-js';
-import { exchangeGoogleLogin } from '@/services/auth';
-import { ErrorAlert, LoadingBlock } from '@/solid/components/common/Feedback';
-import { Card } from '@/solid/components/common/Primitives';
-import { SectionLead } from '@/solid/components/common/SectionLead';
+import { useNavigate, useSearch } from '@tanstack/solid-router'
+import { createResource, createSignal } from 'solid-js'
+import { exchangeGoogleLogin } from '@/services/auth'
+import { ErrorAlert, LoadingBlock } from '@/solid/components/common/Feedback'
+import { Card } from '@/solid/components/common/Primitives'
+import { SectionLead } from '@/solid/components/common/SectionLead'
 
 export default function GoogleCallbackPage() {
-  const navigate = useNavigate();
-  const search = useSearch({ strict: false }) as () => Record<string, unknown>;
-  const [error, setError] = createSignal('');
+  const navigate = useNavigate()
+  const search = useSearch({ strict: false }) as () => Record<string, unknown>
+  const [error, setError] = createSignal('')
 
   createResource(async () => {
-    const rawExchangeCode = search().exchange_code;
+    const rawExchangeCode = search().exchange_code
     const exchangeCode =
-      typeof rawExchangeCode === 'string' ? rawExchangeCode : '';
+      typeof rawExchangeCode === 'string' ? rawExchangeCode : ''
     if (!exchangeCode) {
-      setError('Missing Google sign-in exchange code.');
-      return;
+      setError('Missing Google sign-in exchange code.')
+      return
     }
-    const result = await exchangeGoogleLogin(exchangeCode);
+    const result = await exchangeGoogleLogin(exchangeCode)
     if (!result.success) {
-      setError(result.data.message || 'Google sign-in failed');
-      return;
+      setError(result.data.message || 'Google sign-in failed')
+      return
     }
-    void navigate({ to: '/admin', replace: true });
-  });
+    void navigate({ to: '/admin', replace: true })
+  })
 
   return (
     <div class="mx-auto flex min-h-[calc(100vh-3rem)] max-w-3xl items-center px-4 py-10 sm:px-6 lg:px-8">
@@ -41,5 +41,5 @@ export default function GoogleCallbackPage() {
         )}
       </Card>
     </div>
-  );
+  )
 }

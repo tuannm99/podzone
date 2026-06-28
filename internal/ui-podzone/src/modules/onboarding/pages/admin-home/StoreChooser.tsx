@@ -1,16 +1,12 @@
-import { Show } from 'solid-js';
-import { Button, Card, SelectField } from '@/solid/components/common/Primitives';
-import { SectionTitle } from '@/solid/components/common/SectionTitle';
-import {
-  FormInputField,
-  createFormStore,
-  required,
-} from '@/solid/forms';
-import { useAdminHome } from './context';
-import type { CreateStoreFormValues } from './forms';
+import { Show } from 'solid-js'
+import { Button, Card, SelectField } from '@/solid/components/common/Primitives'
+import { SectionTitle } from '@/solid/components/common/SectionTitle'
+import { FormInputField, createFormStore, required } from '@/solid/forms'
+import { useAdminHome } from './context'
+import type { CreateStoreFormValues } from './forms'
 
 export function StoreChooser() {
-  const vm = useAdminHome();
+  const vm = useAdminHome()
 
   return (
     <Card class="space-y-4">
@@ -25,7 +21,7 @@ export function StoreChooser() {
             value={vm.selectedWorkspaceId()}
             options={vm.selectedWorkspaceOptions()}
             onChange={(event) => {
-              vm.setSelectedWorkspaceId(event.currentTarget.value);
+              vm.setSelectedWorkspaceId(event.currentTarget.value)
             }}
           />
           <p class="text-sm text-gray-600">{vm.currentSelectionLabel()}</p>
@@ -33,21 +29,28 @@ export function StoreChooser() {
 
         <div class="space-y-3">
           <Show
-            when={vm.selectedWorkspace() && vm.selectedStoreOptions().length > 0}
+            when={
+              vm.selectedWorkspace() && vm.selectedStoreOptions().length > 0
+            }
             fallback={<CreateFirstStore />}
           >
             <SelectField
               label="Store"
               value={vm.selectedStoreId()}
               options={vm.selectedStoreOptions()}
-              onChange={(event) => vm.setSelectedStoreId(event.currentTarget.value)}
+              onChange={(event) =>
+                vm.setSelectedStoreId(event.currentTarget.value)
+              }
             />
             <div class="flex flex-wrap gap-3">
               <Button
                 disabled={!vm.selectedWorkspaceId() || !vm.selectedStoreId()}
                 loading={vm.switchingTenant()}
                 onClick={() => {
-                  void vm.openStore(vm.selectedWorkspaceId(), vm.selectedStoreId());
+                  void vm.openStore(
+                    vm.selectedWorkspaceId(),
+                    vm.selectedStoreId()
+                  )
                 }}
               >
                 Open selected store
@@ -56,14 +59,14 @@ export function StoreChooser() {
                 color="light"
                 disabled={!vm.selectedWorkspaceId() || !vm.selectedStoreId()}
                 onClick={() => {
-                  const current = vm.selectedWorkspace();
+                  const current = vm.selectedWorkspace()
                   const store = current?.stores.find(
                     (item: { id: string }) => item.id === vm.selectedStoreId()
-                  );
-                  if (!current || !store) return;
+                  )
+                  if (!current || !store) return
                   vm.setTenantMessage(
                     `Selected ${store.name} in ${current.tenantId}.`
-                  );
+                  )
                 }}
               >
                 Confirm selection
@@ -73,11 +76,11 @@ export function StoreChooser() {
         </div>
       </div>
     </Card>
-  );
+  )
 }
 
 function CreateFirstStore() {
-  const vm = useAdminHome();
+  const vm = useAdminHome()
   const storeForm = createFormStore<CreateStoreFormValues>({
     initialValues: {
       name: vm.storeNameByTenant()[vm.selectedWorkspaceId()] || '',
@@ -85,19 +88,19 @@ function CreateFirstStore() {
     validators: {
       name: [required('Enter a store name.')],
     },
-  });
+  })
 
   const createStore = async () => {
-    if (!storeForm.validate()) return;
-    storeForm.setSubmitting(true);
+    if (!storeForm.validate()) return
+    storeForm.setSubmitting(true)
     const created = await vm.createStoreFromForm(vm.selectedWorkspaceId(), {
       ...storeForm.values,
-    });
-    storeForm.setSubmitting(false);
+    })
+    storeForm.setSubmitting(false)
     if (created) {
-      storeForm.reset({ name: '' });
+      storeForm.reset({ name: '' })
     }
-  };
+  }
 
   return (
     <div class="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -129,12 +132,12 @@ function CreateFirstStore() {
             !storeForm.values.name.trim()
           }
           onClick={() => {
-            void createStore();
+            void createStore()
           }}
         >
           Create store
         </Button>
       </div>
     </div>
-  );
+  )
 }

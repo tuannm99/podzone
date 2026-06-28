@@ -1,32 +1,30 @@
-import { createSignal } from 'solid-js';
-import type { RoutedOrder } from '@/services/orders';
-import {
-  toLocalDateTimeValue,
-} from './presentation';
+import { createSignal } from 'solid-js'
+import type { RoutedOrder } from '@/services/orders'
+import { toLocalDateTimeValue } from './presentation'
 import type {
   IssueDraft,
   QueueDraft,
   RerouteDraft,
   SettlementDraft,
   ShipmentDraft,
-} from './order-card/types';
+} from './order-card/types'
 
 export function useOrderDrafts() {
   const [shipmentDrafts, setShipmentDrafts] = createSignal<
     Record<string, ShipmentDraft>
-  >({});
+  >({})
   const [settlementDrafts, setSettlementDrafts] = createSignal<
     Record<string, SettlementDraft>
-  >({});
+  >({})
   const [issueDrafts, setIssueDrafts] = createSignal<
     Record<string, IssueDraft>
-  >({});
+  >({})
   const [queueDrafts, setQueueDrafts] = createSignal<
     Record<string, QueueDraft>
-  >({});
+  >({})
   const [rerouteDrafts, setRerouteDrafts] = createSignal<
     Record<string, RerouteDraft>
-  >({});
+  >({})
 
   const shipmentDraftFor = (order: RoutedOrder): ShipmentDraft =>
     shipmentDrafts()[order.id] || {
@@ -35,7 +33,7 @@ export function useOrderDrafts() {
       shipmentTrackingNumber: order.shipmentTrackingNumber || '',
       shipmentTrackingUrl: order.shipmentTrackingUrl || '',
       shipmentNotes: order.shipmentNotes || '',
-    };
+    }
 
   const settlementDraftFor = (order: RoutedOrder): SettlementDraft =>
     settlementDrafts()[order.id] || {
@@ -44,26 +42,26 @@ export function useOrderDrafts() {
       shippingCost: order.shippingCost || '$0.00',
       settlementStatus: order.settlementStatus || 'pending',
       settlementNotes: order.settlementNotes || '',
-    };
+    }
 
   const issueDraftFor = (order: RoutedOrder): IssueDraft =>
     issueDrafts()[order.id] || {
       issueCost: order.issueCost || '$0.00',
       issueResolution: order.issueResolution || 'monitor',
       issueNotes: order.issueNotes || '',
-    };
+    }
 
   const queueDraftFor = (order: RoutedOrder): QueueDraft =>
     queueDrafts()[order.id] || {
       operatorAssignee: order.operatorAssignee || 'unassigned',
       shipmentSlaDueAt: toLocalDateTimeValue(order.shipmentSlaDueAt),
       issueSlaDueAt: toLocalDateTimeValue(order.issueSlaDueAt),
-    };
+    }
 
   const rerouteDraftFor = (order: RoutedOrder): RerouteDraft =>
     rerouteDrafts()[order.id] || {
       preferredPartner: order.partner || '',
-    };
+    }
 
   const patchShipmentDraft = (
     orderId: string,
@@ -81,8 +79,8 @@ export function useOrderDrafts() {
         }),
         ...patch,
       },
-    }));
-  };
+    }))
+  }
 
   const patchSettlementDraft = (
     orderId: string,
@@ -99,8 +97,8 @@ export function useOrderDrafts() {
         }),
         ...patch,
       },
-    }));
-  };
+    }))
+  }
 
   const patchIssueDraft = (orderId: string, patch: Partial<IssueDraft>) => {
     setIssueDrafts((current) => ({
@@ -113,8 +111,8 @@ export function useOrderDrafts() {
         }),
         ...patch,
       },
-    }));
-  };
+    }))
+  }
 
   const patchQueueDraft = (orderId: string, patch: Partial<QueueDraft>) => {
     setQueueDrafts((current) => ({
@@ -127,13 +125,10 @@ export function useOrderDrafts() {
         }),
         ...patch,
       },
-    }));
-  };
+    }))
+  }
 
-  const patchRerouteDraft = (
-    orderId: string,
-    patch: Partial<RerouteDraft>
-  ) => {
+  const patchRerouteDraft = (orderId: string, patch: Partial<RerouteDraft>) => {
     setRerouteDrafts((current) => ({
       ...current,
       [orderId]: {
@@ -142,8 +137,8 @@ export function useOrderDrafts() {
         }),
         ...patch,
       },
-    }));
-  };
+    }))
+  }
 
   return {
     setShipmentDrafts,
@@ -161,5 +156,5 @@ export function useOrderDrafts() {
     patchIssueDraft,
     patchQueueDraft,
     patchRerouteDraft,
-  };
+  }
 }

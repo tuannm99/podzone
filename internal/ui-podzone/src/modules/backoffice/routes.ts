@@ -6,4 +6,4 @@ export const backofficeRouteComponents = {
   tenantPartnerDetail: () => import('./pages/TenantPartnerDetailPage'),
   tenantPartners: () => import('./pages/TenantPartnersPage'),
   tenantProductSetup: () => import('./pages/TenantProductSetupPage'),
-};
+}

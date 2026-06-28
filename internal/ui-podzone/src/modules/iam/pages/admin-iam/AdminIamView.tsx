@@ -1,33 +1,29 @@
-import { For, Show } from 'solid-js';
+import { Show, createSignal, onMount } from 'solid-js'
+import type { AdminIamViewModel } from '../AdminIamPage'
 import {
   EmptyBlock,
   ErrorAlert,
   InfoAlert,
   LoadingInline,
-} from '@/solid/components/common/Feedback';
-import { PageShell } from '@/solid/components/common/PageShell';
-import {
-  Badge,
-  Button,
-  Card,
-  InputField,
-  SelectField,
-} from '@/solid/components/common/Primitives';
-import { SectionLead } from '@/solid/components/common/SectionLead';
-import { SectionTitle } from '@/solid/components/common/SectionTitle';
-import { AdminIamGroupProvider } from './group-context';
-import { GroupsPanel } from './GroupsPanel';
-import { AdminIamPolicyProvider } from './policy-context';
-import { PoliciesPanel } from './PoliciesPanel';
-import { AdminIamPrincipalProvider } from './principal-context';
-import { PrincipalPoliciesPanel } from './PrincipalPoliciesPanel';
-import { AdminIamTrustSimProvider } from './trust-sim-context';
-import { TrustSimulationPanel } from './TrustSimulationPanel';
+} from '@/solid/components/common/Feedback'
+import { PageShell } from '@/solid/components/common/PageShell'
+import { Button, Card } from '@/solid/components/common/Primitives'
+import { SectionLead } from '@/solid/components/common/SectionLead'
+import { AdminIamGroupProvider } from './group-context'
+import { GroupsPanel } from './GroupsPanel'
+import { IamWorkspaceNav } from './IamWorkspaceNav'
+import { OrganizationsPanel } from './OrganizationsPanel'
+import { AdminIamPolicyProvider } from './policy-context'
+import { PoliciesPanel } from './PoliciesPanel'
+import { type IamSection, type IamSectionID } from './presentation'
+import { AdminIamPrincipalProvider } from './principal-context'
+import { PrincipalPoliciesPanel } from './PrincipalPoliciesPanel'
+import { RoleAssignmentsPanel } from './RoleAssignmentsPanel'
+import { AdminIamTrustSimProvider } from './trust-sim-context'
+import { TrustSimulationPanel } from './TrustSimulationPanel'
 
-// The IAM page model is intentionally assembled by the controller page while
-// this component only owns layout composition.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function AdminIamView(props: { model: any }) {
+// The controller page assembles the model; this view only owns composition.
+export function AdminIamView(props: { model: AdminIamViewModel }) {
   const {
     pageError,
     pageMessage,
@@ -73,15 +69,30 @@ export function AdminIamView(props: { model: any }) {
     tenantRoleOptions,
     handleAssignTenantRole,
     handleRemoveTenantMembershipShortcut,
-  } = props.model;
+  } = props.model
+
+  const sections = sectionLinks as IamSection[]
+  const [activeSection, setActiveSection] =
+    createSignal<IamSectionID>('iam-policies')
+
+  const selectSection = (section: IamSectionID) => {
+    setActiveSection(section)
+    window.history.replaceState(null, '', `#${section}`)
+  }
+
+  onMount(() => {
+    const hash = window.location.hash.slice(1)
+    const selected = sections.find((section) => section.id === hash)
+    if (selected) setActiveSection(selected.id)
+  })
 
   return (
     <PageShell>
-      <Card class="space-y-4">
+      <header class="space-y-4 border-b border-gray-200 pb-5">
         <SectionLead
           eyebrow="IAM Console"
-          title="Operate AWS-style IAM controls for organizations, policies, groups, and session evaluation."
-          copy="This console exposes the advanced surface behind the auth and IAM services: policy versioning, SCP governance, group bindings, trust policies, and access simulation."
+          title="IAM control plane"
+          copy="Centralized policy, principal, organization, and access evaluation controls."
         />
         <div class="flex flex-wrap gap-3">
           <Button href="/admin/settings" color="alternative" size="sm">
@@ -91,7 +102,7 @@ export function AdminIamView(props: { model: any }) {
             Back to admin home
           </Button>
         </div>
-      </Card>
+      </header>
 
       <Show when={pageError()}>
         <ErrorAlert>{pageError()}</ErrorAlert>
@@ -105,295 +116,93 @@ export function AdminIamView(props: { model: any }) {
       <Show when={!loading() && !allowed()}>
         <EmptyBlock
           title="IAM console unavailable"
-          copy="This session does not have the platform permission required to manage advanced IAM controls."
+          copy="This session does not have the required platform permission."
         />
       </Show>
 
       <Show when={allowed()}>
-        <Card class="space-y-3">
-          <SectionTitle
-            title="Jump to section"
-            subtitle="Use this instead of scrolling through the entire IAM console."
-          />
-          <div class="flex flex-wrap gap-2">
-            <For each={sectionLinks}>
-              {(section) => (
-                <Button href={`#${section.id}`} size="sm" color="alternative">
-                  {section.label}
-                </Button>
-              )}
-            </For>
-          </div>
+        <IamWorkspaceNav
+          sections={sections}
+          activeSection={activeSection()}
+          onSelect={selectSection}
+        />
+
+        <Card class="space-y-4">
+          <Show when={activeSection() === 'iam-orgs'}>
+            <OrganizationsPanel
+              organizationOptions={organizationOptions}
+              selectedOrgId={selectedOrgId}
+              setSelectedOrgId={setSelectedOrgId}
+              submitCreateOrganization={submitCreateOrganization}
+              orgName={orgName}
+              setOrgName={setOrgName}
+              orgSlug={orgSlug}
+              setOrgSlug={setOrgSlug}
+              orgTenantId={orgTenantId}
+              setOrgTenantId={setOrgTenantId}
+              orgPolicyName={orgPolicyName}
+              setOrgPolicyName={setOrgPolicyName}
+              tenantOptions={tenantOptions}
+              handleAttachTenantToOrg={handleAttachTenantToOrg}
+              handleAttachScp={handleAttachScp}
+              organizations={organizations}
+              orgPolicies={orgPolicies}
+              handleDetachTenantFromOrg={handleDetachTenantFromOrg}
+              handleDetachScp={handleDetachScp}
+            />
+          </Show>
+
+          <Show when={activeSection() === 'iam-policies'}>
+            <AdminIamPolicyProvider value={policyContextValue}>
+              <PoliciesPanel />
+            </AdminIamPolicyProvider>
+          </Show>
+
+          <Show when={activeSection() === 'iam-groups'}>
+            <AdminIamGroupProvider value={groupContextValue}>
+              <GroupsPanel />
+            </AdminIamGroupProvider>
+          </Show>
+
+          <Show when={activeSection() === 'iam-assignments'}>
+            <RoleAssignmentsPanel
+              shortcutPlatformUserId={shortcutPlatformUserId}
+              setShortcutPlatformUserId={setShortcutPlatformUserId}
+              shortcutPlatformRoleName={shortcutPlatformRoleName}
+              setShortcutPlatformRoleName={setShortcutPlatformRoleName}
+              platformRoleOptions={platformRoleOptions}
+              handleAssignPlatformRole={handleAssignPlatformRole}
+              handleRemovePlatformRoleShortcut={
+                handleRemovePlatformRoleShortcut
+              }
+              shortcutTenantId={shortcutTenantId}
+              setShortcutTenantId={setShortcutTenantId}
+              shortcutTenantUserId={shortcutTenantUserId}
+              setShortcutTenantUserId={setShortcutTenantUserId}
+              shortcutTenantRoleName={shortcutTenantRoleName}
+              setShortcutTenantRoleName={setShortcutTenantRoleName}
+              tenantOptions={tenantOptions}
+              tenantRoleOptions={tenantRoleOptions}
+              handleAssignTenantRole={handleAssignTenantRole}
+              handleRemoveTenantMembershipShortcut={
+                handleRemoveTenantMembershipShortcut
+              }
+            />
+          </Show>
+
+          <Show when={activeSection() === 'iam-principals'}>
+            <AdminIamPrincipalProvider value={principalContextValue}>
+              <PrincipalPoliciesPanel />
+            </AdminIamPrincipalProvider>
+          </Show>
+
+          <Show when={activeSection() === 'iam-trust-sim'}>
+            <AdminIamTrustSimProvider value={trustSimContextValue}>
+              <TrustSimulationPanel />
+            </AdminIamTrustSimProvider>
+          </Show>
         </Card>
-
-        <div class="grid gap-6 xl:grid-cols-2">
-          <div id="iam-orgs" class="scroll-mt-24">
-            <Card class="space-y-4">
-              <SectionTitle
-                title="Organizations and SCP"
-                subtitle="Create organizations, map workspaces, and attach service control policies."
-              />
-              <form
-                class="grid gap-3 md:grid-cols-2"
-                onSubmit={submitCreateOrganization}
-              >
-                <InputField
-                  label="Organization name"
-                  value={orgName()}
-                  onInput={(e) => setOrgName(e.currentTarget.value)}
-                />
-                <InputField
-                  label="Organization slug"
-                  value={orgSlug()}
-                  onInput={(e) => setOrgSlug(e.currentTarget.value)}
-                />
-                <div class="md:col-span-2">
-                  <Button type="submit" size="sm">
-                    Create organization
-                  </Button>
-                </div>
-              </form>
-
-              <Show when={organizationOptions().length > 0}>
-                <SelectField
-                  label="Selected organization"
-                  value={selectedOrgId()}
-                  options={organizationOptions()}
-                  onChange={(e) => setSelectedOrgId(e.currentTarget.value)}
-                />
-              </Show>
-
-              <div class="grid gap-3 md:grid-cols-2">
-                <SelectField
-                  label="Workspace to attach"
-                  value={orgTenantId()}
-                  options={tenantOptions()}
-                  onChange={(e) => setOrgTenantId(e.currentTarget.value)}
-                />
-                <InputField
-                  label="SCP policy name"
-                  value={orgPolicyName()}
-                  onInput={(e) => setOrgPolicyName(e.currentTarget.value)}
-                />
-              </div>
-
-              <div class="flex flex-wrap gap-3">
-                <Button
-                  size="sm"
-                  onClick={handleAttachTenantToOrg}
-                  disabled={!selectedOrgId() || !orgTenantId()}
-                >
-                  Attach workspace
-                </Button>
-                <Button
-                  size="sm"
-                  color="dark"
-                  onClick={handleAttachScp}
-                  disabled={!selectedOrgId() || !orgPolicyName().trim()}
-                >
-                  Attach SCP
-                </Button>
-              </div>
-
-              <Show
-                when={organizations().length > 0}
-                fallback={
-                  <EmptyBlock
-                    title="No organizations"
-                    copy="Create the first organization to start applying SCP guardrails."
-                  />
-                }
-              >
-                <div class="space-y-3">
-                  <For each={organizations()}>
-                    {(org) => (
-                      <div class="rounded-lg border border-gray-200 p-4">
-                        <div class="flex flex-wrap items-center justify-between gap-3">
-                          <div>
-                            <p class="font-semibold text-gray-900">
-                              {org.name}
-                            </p>
-                            <p class="text-sm text-gray-500">{org.slug}</p>
-                          </div>
-                          <Badge
-                            content={
-                              org.id === selectedOrgId()
-                                ? 'selected'
-                                : 'organization'
-                            }
-                            color={org.id === selectedOrgId() ? 'blue' : 'dark'}
-                          />
-                        </div>
-                        <div class="mt-3 flex flex-wrap gap-2">
-                          <Show
-                            when={
-                              org.id === selectedOrgId() &&
-                              orgTenantId().trim()
-                            }
-                          >
-                            <Button
-                              size="xs"
-                              color="light"
-                              onClick={() =>
-                                handleDetachTenantFromOrg(orgTenantId().trim())
-                              }
-                            >
-                              Detach selected workspace
-                            </Button>
-                          </Show>
-                          <For
-                            each={org.id === selectedOrgId() ? orgPolicies() : []}
-                          >
-                            {(policy) => (
-                              <Button
-                                size="xs"
-                                color="alternative"
-                                onClick={() => handleDetachScp(policy.name)}
-                              >
-                                Detach SCP {policy.name}
-                              </Button>
-                            )}
-                          </For>
-                        </div>
-                      </div>
-                    )}
-                  </For>
-                </div>
-              </Show>
-            </Card>
-          </div>
-
-          <div id="iam-policies" class="scroll-mt-24">
-            <Card class="space-y-4">
-              <AdminIamPolicyProvider value={policyContextValue}>
-                <PoliciesPanel />
-              </AdminIamPolicyProvider>
-            </Card>
-          </div>
-
-          <div id="iam-groups" class="scroll-mt-24">
-            <Card class="space-y-4">
-              <AdminIamGroupProvider value={groupContextValue}>
-                <GroupsPanel />
-              </AdminIamGroupProvider>
-            </Card>
-          </div>
-
-          <div id="iam-shortcuts" class="scroll-mt-24">
-            <Card class="space-y-4">
-              <SectionTitle
-                title="Role assignment shortcuts"
-                subtitle="Quickly grant or revoke platform roles and workspace memberships without leaving the IAM console."
-              />
-              <div class="grid gap-6 lg:grid-cols-2">
-                <div class="space-y-3 rounded-lg border border-gray-200 p-4">
-                  <p class="text-sm font-semibold text-gray-900">
-                    Platform role shortcut
-                  </p>
-                  <InputField
-                    label="Target user id"
-                    value={shortcutPlatformUserId()}
-                    onInput={(e) =>
-                      setShortcutPlatformUserId(e.currentTarget.value)
-                    }
-                  />
-                  <SelectField
-                    label="Platform role"
-                    value={shortcutPlatformRoleName()}
-                    options={platformRoleOptions}
-                    onChange={(e) =>
-                      setShortcutPlatformRoleName(e.currentTarget.value)
-                    }
-                  />
-                  <div class="flex flex-wrap gap-3">
-                    <Button
-                      size="sm"
-                      onClick={handleAssignPlatformRole}
-                      disabled={!shortcutPlatformUserId().trim()}
-                    >
-                      Assign platform role
-                    </Button>
-                    <Button
-                      size="sm"
-                      color="red"
-                      onClick={handleRemovePlatformRoleShortcut}
-                      disabled={!shortcutPlatformUserId().trim()}
-                    >
-                      Remove platform role
-                    </Button>
-                  </div>
-                </div>
-
-                <div class="space-y-3 rounded-lg border border-gray-200 p-4">
-                  <p class="text-sm font-semibold text-gray-900">
-                    Workspace membership shortcut
-                  </p>
-                  <SelectField
-                    label="Workspace"
-                    value={shortcutTenantId()}
-                    options={tenantOptions()}
-                    onChange={(e) => setShortcutTenantId(e.currentTarget.value)}
-                  />
-                  <InputField
-                    label="Target user id"
-                    value={shortcutTenantUserId()}
-                    onInput={(e) =>
-                      setShortcutTenantUserId(e.currentTarget.value)
-                    }
-                  />
-                  <SelectField
-                    label="Workspace role"
-                    value={shortcutTenantRoleName()}
-                    options={tenantRoleOptions}
-                    onChange={(e) =>
-                      setShortcutTenantRoleName(e.currentTarget.value)
-                    }
-                  />
-                  <div class="flex flex-wrap gap-3">
-                    <Button
-                      size="sm"
-                      onClick={handleAssignTenantRole}
-                      disabled={
-                        !shortcutTenantId().trim() ||
-                        !shortcutTenantUserId().trim()
-                      }
-                    >
-                      Assign workspace role
-                    </Button>
-                    <Button
-                      size="sm"
-                      color="red"
-                      onClick={handleRemoveTenantMembershipShortcut}
-                      disabled={
-                        !shortcutTenantId().trim() ||
-                        !shortcutTenantUserId().trim()
-                      }
-                    >
-                      Remove membership
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </div>
-
-          <div id="iam-principals" class="scroll-mt-24">
-            <Card class="space-y-4">
-              <AdminIamPrincipalProvider value={principalContextValue}>
-                <PrincipalPoliciesPanel />
-              </AdminIamPrincipalProvider>
-            </Card>
-          </div>
-
-          <div id="iam-trust-sim" class="scroll-mt-24">
-            <Card class="space-y-4">
-              <AdminIamTrustSimProvider value={trustSimContextValue}>
-                <TrustSimulationPanel />
-              </AdminIamTrustSimProvider>
-            </Card>
-          </div>
-        </div>
       </Show>
     </PageShell>
-  );
+  )
 }

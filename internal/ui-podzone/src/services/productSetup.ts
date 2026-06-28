@@ -1,81 +1,81 @@
-import { postBackofficeGraphQL } from './backofficeGraphql';
+import { postBackofficeGraphQL } from './backofficeGraphql'
 
 export type SetupDraft = {
-  id: string;
-  name: string;
-  partner: string;
-  baseCost: string;
-  retailPrice: string;
-  status: string;
-  notes: string;
-  createdAt?: string;
-  updatedAt?: string;
-};
+  id: string
+  name: string
+  partner: string
+  baseCost: string
+  retailPrice: string
+  status: string
+  notes: string
+  createdAt?: string
+  updatedAt?: string
+}
 
 export type CandidateVariant = {
-  id: string;
-  label: string;
-  color: string;
-  size: string;
-  status: string;
-};
+  id: string
+  label: string
+  color: string
+  size: string
+  status: string
+}
 
 export type ArtworkChecklist = {
-  frontArtwork: boolean;
-  backArtwork: boolean;
-  mockupReady: boolean;
-  printSpecChecked: boolean;
-};
+  frontArtwork: boolean
+  backArtwork: boolean
+  mockupReady: boolean
+  printSpecChecked: boolean
+}
 
 export type CatalogCandidate = {
-  id: string;
-  draftId: string;
-  title: string;
-  sku: string;
-  partner: string;
-  baseCost: string;
-  retailPrice: string;
-  estimatedMargin: string;
-  status: string;
-  channel: string;
-  updatedAt: string;
-  variants: CandidateVariant[];
-  artworkChecklist: ArtworkChecklist;
-  merchandisingNotes: string;
-};
+  id: string
+  draftId: string
+  title: string
+  sku: string
+  partner: string
+  baseCost: string
+  retailPrice: string
+  estimatedMargin: string
+  status: string
+  channel: string
+  updatedAt: string
+  variants: CandidateVariant[]
+  artworkChecklist: ArtworkChecklist
+  merchandisingNotes: string
+}
 
 export type ProductSetupSnapshot = {
-  drafts: SetupDraft[];
-  candidates: CatalogCandidate[];
-};
+  drafts: SetupDraft[]
+  candidates: CatalogCandidate[]
+}
 
 type ProductSetupResult<T> =
   | { success: true; data: T }
-  | { success: false; message: string };
+  | { success: false; message: string }
 
 type CreateDraftPayload = {
-  name: string;
-  partner: string;
-  baseCost: string;
-  retailPrice: string;
-  status: string;
-  notes: string;
-};
+  name: string
+  partner: string
+  baseCost: string
+  retailPrice: string
+  status: string
+  notes: string
+}
 
 type PromoteCandidatePayload = {
-  draftId: string;
-  channel: string;
-  variantColor: string;
-  variantSize: string;
-  artworkChecklist: ArtworkChecklist;
-  merchandisingNotes: string;
-};
+  draftId: string
+  channel: string
+  variantColor: string
+  variantSize: string
+  artworkChecklist: ArtworkChecklist
+  merchandisingNotes: string
+}
 
 export async function getProductSetupSnapshot(): Promise<
   ProductSetupResult<ProductSetupSnapshot>
 > {
   const result = await postBackofficeGraphQL<{
-    productSetupSnapshot: ProductSetupSnapshot;
+    productSetupSnapshot: ProductSetupSnapshot
   }>(`
     query ProductSetupSnapshot {
       productSetupSnapshot {
@@ -119,18 +119,18 @@ export async function getProductSetupSnapshot(): Promise<
         }
       }
     }
-  `);
+  `)
   if (!result.success) {
-    return { success: false, message: result.message };
+    return { success: false, message: result.message }
   }
-  return { success: true, data: result.data.productSetupSnapshot };
+  return { success: true, data: result.data.productSetupSnapshot }
 }
 
 export async function createProductSetupDraft(
   payload: CreateDraftPayload
 ): Promise<ProductSetupResult<SetupDraft>> {
   const result = await postBackofficeGraphQL<{
-    createProductSetupDraft: SetupDraft;
+    createProductSetupDraft: SetupDraft
   }>(
     `
       mutation CreateProductSetupDraft($input: CreateProductSetupDraftInput!) {
@@ -148,18 +148,18 @@ export async function createProductSetupDraft(
       }
     `,
     { input: payload }
-  );
+  )
   if (!result.success) {
-    return { success: false, message: result.message };
+    return { success: false, message: result.message }
   }
-  return { success: true, data: result.data.createProductSetupDraft };
+  return { success: true, data: result.data.createProductSetupDraft }
 }
 
 export async function promoteProductSetupCandidate(
   payload: PromoteCandidatePayload
 ): Promise<ProductSetupResult<CatalogCandidate>> {
   const result = await postBackofficeGraphQL<{
-    promoteProductSetupCandidate: CatalogCandidate;
+    promoteProductSetupCandidate: CatalogCandidate
   }>(
     `
       mutation PromoteProductSetupCandidate(
@@ -195,11 +195,11 @@ export async function promoteProductSetupCandidate(
       }
     `,
     { input: payload }
-  );
+  )
   if (!result.success) {
-    return { success: false, message: result.message };
+    return { success: false, message: result.message }
   }
-  return { success: true, data: result.data.promoteProductSetupCandidate };
+  return { success: true, data: result.data.promoteProductSetupCandidate }
 }
 
 export async function updateProductSetupCandidateStatus(
@@ -207,7 +207,7 @@ export async function updateProductSetupCandidateStatus(
   status: string
 ): Promise<ProductSetupResult<CatalogCandidate>> {
   const result = await postBackofficeGraphQL<{
-    updateProductSetupCandidateStatus: CatalogCandidate;
+    updateProductSetupCandidateStatus: CatalogCandidate
   }>(
     `
       mutation UpdateProductSetupCandidateStatus($id: ID!, $status: String!) {
@@ -241,9 +241,9 @@ export async function updateProductSetupCandidateStatus(
       }
     `,
     { id, status }
-  );
+  )
   if (!result.success) {
-    return { success: false, message: result.message };
+    return { success: false, message: result.message }
   }
-  return { success: true, data: result.data.updateProductSetupCandidateStatus };
+  return { success: true, data: result.data.updateProductSetupCandidateStatus }
 }

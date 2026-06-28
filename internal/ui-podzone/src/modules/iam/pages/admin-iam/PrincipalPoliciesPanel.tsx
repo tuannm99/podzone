@@ -1,26 +1,31 @@
-import { For, Show } from 'solid-js';
-import { EmptyBlock } from '@/solid/components/common/Feedback';
-import { IamStatementBuilder } from '@/solid/components/common/IamStatementBuilder';
-import { Badge, Button, InputField, SelectField } from '@/solid/components/common/Primitives';
-import { SectionTitle } from '@/solid/components/common/SectionTitle';
+import { Show } from 'solid-js'
+import { IamStatementBuilder } from '@/solid/components/common/IamStatementBuilder'
+import {
+  Badge,
+  Button,
+  InputField,
+  SelectField,
+} from '@/solid/components/common/Primitives'
+import { SectionTitle } from '@/solid/components/common/SectionTitle'
 import {
   FormInputField,
   createFormStore,
   jsonArray,
   required,
-} from '@/solid/forms';
+} from '@/solid/forms'
 import type {
   PrincipalBoundaryFormValues,
   PrincipalInlinePolicyFormValues,
   PrincipalManagedPolicyFormValues,
-} from './principal-forms';
+} from './principal-forms'
+import { useAdminIamPrincipal, type PrincipalMode } from './principal-context'
 import {
-  useAdminIamPrincipal,
-  type PrincipalMode,
-} from './principal-context';
+  PrincipalInlinePoliciesTable,
+  PrincipalManagedPoliciesTable,
+} from './PrincipalPolicyTables'
 
 export function PrincipalPoliciesPanel() {
-  const principal = useAdminIamPrincipal();
+  const principal = useAdminIamPrincipal()
   const managedPolicyForm = createFormStore<PrincipalManagedPolicyFormValues>({
     initialValues: {
       policyName: principal.principalManagedPolicyName(),
@@ -28,7 +33,7 @@ export function PrincipalPoliciesPanel() {
     validators: {
       policyName: [required('Enter a managed policy name.')],
     },
-  });
+  })
   const boundaryForm = createFormStore<PrincipalBoundaryFormValues>({
     initialValues: {
       policyName: principal.principalBoundaryPolicyName(),
@@ -36,7 +41,7 @@ export function PrincipalPoliciesPanel() {
     validators: {
       policyName: [required('Enter a boundary policy name.')],
     },
-  });
+  })
   const inlinePolicyForm = createFormStore<PrincipalInlinePolicyFormValues>({
     initialValues: {
       name: principal.principalInlinePolicyName(),
@@ -45,34 +50,36 @@ export function PrincipalPoliciesPanel() {
     },
     validators: {
       name: [required('Enter an inline policy name.')],
-      statementsJson: [jsonArray('Inline policy statements must be a JSON array.')],
+      statementsJson: [
+        jsonArray('Inline policy statements must be a JSON array.'),
+      ],
     },
-  });
+  })
 
   const attachManagedPolicy = async () => {
-    if (!managedPolicyForm.validate()) return;
-    managedPolicyForm.setSubmitting(true);
+    if (!managedPolicyForm.validate()) return
+    managedPolicyForm.setSubmitting(true)
     await principal.attachPrincipalManagedPolicyFromForm({
       ...managedPolicyForm.values,
-    });
-    managedPolicyForm.setSubmitting(false);
-  };
+    })
+    managedPolicyForm.setSubmitting(false)
+  }
 
   const saveBoundary = async () => {
-    if (!boundaryForm.validate()) return;
-    boundaryForm.setSubmitting(true);
-    await principal.savePrincipalBoundaryFromForm({ ...boundaryForm.values });
-    boundaryForm.setSubmitting(false);
-  };
+    if (!boundaryForm.validate()) return
+    boundaryForm.setSubmitting(true)
+    await principal.savePrincipalBoundaryFromForm({ ...boundaryForm.values })
+    boundaryForm.setSubmitting(false)
+  }
 
   const saveInlinePolicy = async () => {
-    if (!inlinePolicyForm.validate()) return;
-    inlinePolicyForm.setSubmitting(true);
+    if (!inlinePolicyForm.validate()) return
+    inlinePolicyForm.setSubmitting(true)
     await principal.savePrincipalInlinePolicyFromForm({
       ...inlinePolicyForm.values,
-    });
-    inlinePolicyForm.setSubmitting(false);
-  };
+    })
+    inlinePolicyForm.setSubmitting(false)
+  }
 
   return (
     <>
@@ -99,14 +106,18 @@ export function PrincipalPoliciesPanel() {
               label="Tenant"
               value={principal.principalTenantId()}
               options={principal.tenantOptions()}
-              onChange={(e) => principal.setPrincipalTenantId(e.currentTarget.value)}
+              onChange={(e) =>
+                principal.setPrincipalTenantId(e.currentTarget.value)
+              }
             />
           }
         >
           <InputField
             label="Platform user id"
             value={principal.principalPlatformUserId()}
-            onInput={(e) => principal.setPrincipalPlatformUserId(e.currentTarget.value)}
+            onInput={(e) =>
+              principal.setPrincipalPlatformUserId(e.currentTarget.value)
+            }
           />
         </Show>
       </div>
@@ -114,7 +125,9 @@ export function PrincipalPoliciesPanel() {
         <InputField
           label="Tenant user id"
           value={principal.principalTenantUserId()}
-          onInput={(e) => principal.setPrincipalTenantUserId(e.currentTarget.value)}
+          onInput={(e) =>
+            principal.setPrincipalTenantUserId(e.currentTarget.value)
+          }
         />
       </Show>
 
@@ -141,37 +154,13 @@ export function PrincipalPoliciesPanel() {
             Direct attachments only affect this principal and stack with group,
             role, boundary, and SCP evaluation.
           </p>
-          <Show
-            when={principal.currentManagedPolicies().length > 0}
-            fallback={
-              <EmptyBlock
-                title="No direct policies"
-                copy="Attach a managed policy to scope direct user access."
-              />
-            }
-          >
-            <div class="flex flex-wrap gap-2">
-              <For each={principal.currentManagedPolicies()}>
-                {(policy) => (
-                  <button
-                    class="inline-flex"
-                    type="button"
-                    onClick={() =>
-                      principal.handleDetachPrincipalManagedPolicy(policy.name)
-                    }
-                  >
-                    <Badge content={`${policy.name} ×`} color="blue" />
-                  </button>
-                )}
-              </For>
-            </div>
-          </Show>
+          <PrincipalManagedPoliciesTable />
         </div>
         <div class="space-y-3">
           <p class="text-sm font-semibold text-gray-900">Permission boundary</p>
           <p class="text-xs text-gray-500">
-            Boundary policies cap the maximum access this principal can exercise,
-            even when identity policies allow more.
+            Boundary policies cap the maximum access this principal can
+            exercise, even when identity policies allow more.
           </p>
           <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-end">
             <FormInputField
@@ -243,45 +232,8 @@ export function PrincipalPoliciesPanel() {
         >
           Save inline policy
         </Button>
-        <Show
-          when={principal.currentInlinePolicies().length > 0}
-          fallback={
-            <EmptyBlock
-              title="No inline policies"
-              copy="Create an inline policy when this permission should live only on one principal."
-            />
-          }
-        >
-          <div class="space-y-3">
-            <For each={principal.currentInlinePolicies()}>
-              {(policy) => (
-                <div class="rounded-lg border border-gray-200 p-4">
-                  <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p class="font-semibold text-gray-900">{policy.name}</p>
-                      <p class="text-sm text-gray-500">
-                        {policy.description || 'No description'}
-                      </p>
-                    </div>
-                    <Button
-                      size="xs"
-                      color="red"
-                      onClick={() =>
-                        principal.handleDeletePrincipalInlinePolicy(policy.name)
-                      }
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                  <p class="mt-3 text-xs text-gray-500">
-                    {policy.statements?.length || 0} statements
-                  </p>
-                </div>
-              )}
-            </For>
-          </div>
-        </Show>
+        <PrincipalInlinePoliciesTable />
       </div>
     </>
-  );
+  )
 }

@@ -1,0 +1,46 @@
+export const routedOrderFields = `
+  id
+  candidateId
+  productTitle
+  partner
+  quantity
+  total
+  customerName
+  status
+  timeline
+  activityLog {
+    type
+    actor
+    message
+    details {
+      key
+      value
+    }
+    createdAt
+  }
+  exceptionType
+  exceptionStatus
+  shipmentStatus
+  shipmentCarrier
+  shipmentTrackingNumber
+  shipmentTrackingUrl
+  shipmentNotes
+  operatorAssignee
+  shipmentSlaDueAt
+  issueSlaDueAt
+  routingBlockCode
+  routingBlockReason
+  baseCostSnapshot
+  fulfillmentCost
+  shippingCost
+  issueCost
+  issueResolution
+  issueNotes
+  realizedMargin
+  settlementStatus
+  settlementNotes
+  shippedAt
+  deliveredAt
+  createdAt
+  updatedAt
+`

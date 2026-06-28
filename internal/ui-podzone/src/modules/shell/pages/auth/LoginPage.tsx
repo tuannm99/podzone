@@ -1,38 +1,38 @@
-import { Link, useNavigate } from '@tanstack/solid-router';
-import { createSignal } from 'solid-js';
-import { login, loginGG } from '@/services/auth';
-import { Card, Button, InputField } from '@/solid/components/common/Primitives';
-import { ErrorAlert } from '@/solid/components/common/Feedback';
-import { SectionLead } from '@/solid/components/common/SectionLead';
+import { Link, useNavigate } from '@tanstack/solid-router'
+import { createSignal } from 'solid-js'
+import { login, loginGG } from '@/services/auth'
+import { Card, Button, InputField } from '@/solid/components/common/Primitives'
+import { ErrorAlert } from '@/solid/components/common/Feedback'
+import { SectionLead } from '@/solid/components/common/SectionLead'
 
 export default function LoginPage() {
-  const navigate = useNavigate();
-  const [username, setUsername] = createSignal('');
-  const [password, setPassword] = createSignal('');
-  const [error, setError] = createSignal('');
-  const [loading, setLoading] = createSignal(false);
+  const navigate = useNavigate()
+  const [username, setUsername] = createSignal('')
+  const [password, setPassword] = createSignal('')
+  const [error, setError] = createSignal('')
+  const [loading, setLoading] = createSignal(false)
 
   const submit = async (event: SubmitEvent) => {
-    event.preventDefault();
-    setLoading(true);
-    setError('');
+    event.preventDefault()
+    setLoading(true)
+    setError('')
 
     try {
       const { success, data } = await login({
         username: username().trim(),
         password: password(),
-      });
+      })
 
       if (!success) {
-        setError(data?.message || 'Sign-in failed');
-        return;
+        setError(data?.message || 'Sign-in failed')
+        return
       }
 
-      void navigate({ to: '/admin', replace: true });
+      void navigate({ to: '/admin', replace: true })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div class="mx-auto flex min-h-[calc(100vh-2rem)] max-w-5xl items-center px-4 py-8 sm:px-5 lg:px-6">
@@ -128,5 +128,5 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
-  );
+  )
 }

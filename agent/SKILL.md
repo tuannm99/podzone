@@ -2,6 +2,15 @@
 
 Use this guide when changing Go code in this repo.
 
+## Frontend
+
+- Before changing `internal/ui-podzone`, read and follow
+  [`agent/SOLID_STYLE_GUIDE.md`](./SOLID_STYLE_GUIDE.md).
+- Treat the Solid guide as mandatory for architecture, reactivity, async data,
+  forms, collection UX, testing, and verification.
+- Track current migration gaps in
+  [`docs/architecture/frontend-solid-audit.md`](../docs/architecture/frontend-solid-audit.md).
+
 ## Architecture
 
 - Follow clean architecture with service-local ownership.

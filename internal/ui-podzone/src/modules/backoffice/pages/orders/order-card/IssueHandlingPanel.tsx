@@ -1,26 +1,27 @@
-import { Show } from 'solid-js';
-import type { RoutedOrder } from '@/services/orders';
+import { Show } from 'solid-js'
+import type { RoutedOrder } from '@/services/orders'
 import {
   Badge,
   Button,
   InputField,
   SelectField,
   TextareaField,
-} from '@/solid/components/common/Primitives';
-import type { OrderCardActions, OrderCardUi } from './types';
+} from '@/solid/components/common/Primitives'
+import type { OrderCardActions, OrderCardUi } from './types'
 
 type IssueHandlingPanelProps = {
-  order: RoutedOrder;
-  actions: OrderCardActions;
-  ui: OrderCardUi;
-};
+  order: RoutedOrder
+  actions: OrderCardActions
+  ui: OrderCardUi
+}
 
 export function IssueHandlingPanel(props: IssueHandlingPanelProps) {
-  const { order, actions, ui } = props;
-
   return (
     <Show
-      when={order.exceptionType || order.shipmentStatus === 'delivery_issue'}
+      when={
+        props.order.exceptionType ||
+        props.order.shipmentStatus === 'delivery_issue'
+      }
     >
       <div class="mt-3 rounded-md border border-rose-200 bg-rose-50 p-3">
         <p class="text-xs font-semibold uppercase tracking-[0.16em] text-rose-700">
@@ -29,20 +30,20 @@ export function IssueHandlingPanel(props: IssueHandlingPanelProps) {
         <div class="mt-3 grid gap-4 md:grid-cols-2">
           <InputField
             label="Issue cost"
-            value={actions.issueDraftFor(order).issueCost}
+            value={props.actions.issueDraftFor(props.order).issueCost}
             placeholder="$6.00"
             onInput={(event) =>
-              actions.patchIssueDraft(order.id, {
+              props.actions.patchIssueDraft(props.order.id, {
                 issueCost: event.currentTarget.value,
               })
             }
           />
           <SelectField
             label="Resolution path"
-            value={actions.issueDraftFor(order).issueResolution}
-            options={ui.issueResolutionOptions}
+            value={props.actions.issueDraftFor(props.order).issueResolution}
+            options={props.ui.issueResolutionOptions}
             onChange={(event) =>
-              actions.patchIssueDraft(order.id, {
+              props.actions.patchIssueDraft(props.order.id, {
                 issueResolution: event.currentTarget.value,
               })
             }
@@ -51,10 +52,10 @@ export function IssueHandlingPanel(props: IssueHandlingPanelProps) {
         <div class="mt-4">
           <TextareaField
             label="Issue notes"
-            value={actions.issueDraftFor(order).issueNotes}
+            value={props.actions.issueDraftFor(props.order).issueNotes}
             rows={3}
             onInput={(event) =>
-              actions.patchIssueDraft(order.id, {
+              props.actions.patchIssueDraft(props.order.id, {
                 issueNotes: event.currentTarget.value,
               })
             }
@@ -65,17 +66,17 @@ export function IssueHandlingPanel(props: IssueHandlingPanelProps) {
             type="button"
             size="xs"
             color="red"
-            onClick={() => actions.saveIssueHandling(order)}
+            onClick={() => props.actions.saveIssueHandling(props.order)}
           >
             Save issue handling
           </Button>
-          <Badge content={`cost ${order.issueCost}`} color="red" />
+          <Badge content={`cost ${props.order.issueCost}`} color="red" />
           <Badge
-            content={order.issueResolution.replaceAll('_', ' ')}
+            content={props.order.issueResolution.replaceAll('_', ' ')}
             color="yellow"
           />
         </div>
       </div>
     </Show>
-  );
+  )
 }

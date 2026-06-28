@@ -1,5 +1,5 @@
-import { useParams } from '@tanstack/solid-router';
-import { For, Show, createEffect, createSignal } from 'solid-js';
+import { useParams } from '@tanstack/solid-router'
+import { For, Show, createEffect, createSignal } from 'solid-js'
 import {
   createProductSetupDraft,
   getProductSetupSnapshot,
@@ -7,156 +7,147 @@ import {
   updateProductSetupCandidateStatus,
   type CatalogCandidate,
   type SetupDraft,
-} from '@/services/productSetup';
-import { tenantStorage } from '@/services/tenantStorage';
-import { PageShell } from '@/solid/components/common/PageShell';
-import { Badge, Button, Card, InputField, SelectField, TextareaField } from '@/solid/components/common/Primitives';
-import { SectionLead } from '@/solid/components/common/SectionLead';
-import { SectionTitle } from '@/solid/components/common/SectionTitle';
-import { EmptyBlock, ErrorAlert, InfoAlert, LoadingInline } from '@/solid/components/common/Feedback';
-import { useTenantWorkspace } from '@/solid/workspace/context';
+} from '@/services/productSetup'
+import { tenantStorage } from '@/services/tenantStorage'
+import { PageShell } from '@/solid/components/common/PageShell'
+import { Badge, Button, Card } from '@/solid/components/common/Primitives'
+import { SectionLead } from '@/solid/components/common/SectionLead'
+import { SectionTitle } from '@/solid/components/common/SectionTitle'
+import {
+  EmptyBlock,
+  ErrorAlert,
+  InfoAlert,
+  LoadingInline,
+} from '@/solid/components/common/Feedback'
+import { createFormStore, required } from '@/solid/forms'
+import { useTenantWorkspace } from '@/solid/workspace/context'
 import {
   candidateStatusColor,
-  channelOptions,
   checklistCompletion,
   statusBadgeColor,
-  statusOptions,
-} from './product-setup/presentation';
+} from './product-setup/presentation'
+import { moneyValue, productSetupInitialValues } from './product-setup/forms'
+import { ProductSetupForm } from './product-setup/ProductSetupForm'
 
 export default function TenantProductSetupPage() {
-  const params = useParams({ from: '/t/$tenantId/products/setup' });
-  const workspace = useTenantWorkspace();
+  const params = useParams({ from: '/t/$tenantId/products/setup' })
+  const workspace = useTenantWorkspace()
 
-  const [name, setName] = createSignal('');
-  const [partner, setPartner] = createSignal('');
-  const [baseCost, setBaseCost] = createSignal('');
-  const [retailPrice, setRetailPrice] = createSignal('');
-  const [status, setStatus] = createSignal('draft');
-  const [notes, setNotes] = createSignal('');
-  const [channel, setChannel] = createSignal('website_store');
-  const [variantColor, setVariantColor] = createSignal('Black');
-  const [variantSize, setVariantSize] = createSignal('M');
-  const [hasFrontArtwork, setHasFrontArtwork] = createSignal(true);
-  const [hasBackArtwork, setHasBackArtwork] = createSignal(false);
-  const [mockupReady, setMockupReady] = createSignal(false);
-  const [printSpecChecked, setPrintSpecChecked] = createSignal(false);
-  const [message, setMessage] = createSignal('');
-  const [error, setError] = createSignal('');
-  const [loading, setLoading] = createSignal(false);
-  const [savingDraft, setSavingDraft] = createSignal(false);
-  const [promotingDraftID, setPromotingDraftID] = createSignal('');
-  const [drafts, setDrafts] = createSignal<SetupDraft[]>([]);
-  const [candidates, setCandidates] = createSignal<CatalogCandidate[]>([]);
-  const currentStoreId = () => workspace?.currentStoreId() || '';
-  const currentStore = () => workspace?.currentStore();
-  const workspaceReady = () => !workspace || currentStoreId().trim().length > 0;
+  const setupForm = createFormStore({
+    initialValues: productSetupInitialValues,
+    validators: {
+      name: [required('Enter a product name.')],
+      baseCost: [moneyValue('Use a valid amount, for example $8.20.')],
+      retailPrice: [moneyValue('Use a valid amount, for example $24.00.')],
+      variantColor: [required('Enter a primary color.')],
+      variantSize: [required('Enter a primary size.')],
+    },
+  })
+  const [message, setMessage] = createSignal('')
+  const [error, setError] = createSignal('')
+  const [loading, setLoading] = createSignal(false)
+  const [promotingDraftID, setPromotingDraftID] = createSignal('')
+  const [drafts, setDrafts] = createSignal<SetupDraft[]>([])
+  const [candidates, setCandidates] = createSignal<CatalogCandidate[]>([])
+  const currentStoreId = () => workspace?.currentStoreId() || ''
+  const currentStore = () => workspace?.currentStore()
+  const workspaceReady = () => !workspace || currentStoreId().trim().length > 0
   const storeLabel = () =>
-    currentStore()?.name || currentStoreId() || 'selected store';
-
-  const resetForm = () => {
-    setName('');
-    setPartner('');
-    setBaseCost('');
-    setRetailPrice('');
-    setStatus('draft');
-    setNotes('');
-    setChannel('website_store');
-    setVariantColor('Black');
-    setVariantSize('M');
-    setHasFrontArtwork(true);
-    setHasBackArtwork(false);
-    setMockupReady(false);
-    setPrintSpecChecked(false);
-  };
+    currentStore()?.name || currentStoreId() || 'selected store'
 
   const loadState = async () => {
-    setLoading(true);
-    setError('');
+    setLoading(true)
+    setError('')
     try {
-      const result = await getProductSetupSnapshot();
+      const result = await getProductSetupSnapshot()
       if (!result.success) {
-        setError(result.message);
-        setDrafts([]);
-        setCandidates([]);
-        return;
+        setError(result.message)
+        setDrafts([])
+        setCandidates([])
+        return
       }
-      setDrafts(result.data.drafts);
-      setCandidates(result.data.candidates);
+      setDrafts(result.data.drafts)
+      setCandidates(result.data.candidates)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const addDraft = async (event: SubmitEvent) => {
-    event.preventDefault();
-    if (!name().trim()) {
-      setError('Product name is required.');
-      return;
+    event.preventDefault()
+    if (!setupForm.validate()) {
+      return
     }
-    setSavingDraft(true);
-    setError('');
-    setMessage('');
+    setupForm.setSubmitting(true)
+    setError('')
+    setMessage('')
     const result = await createProductSetupDraft({
-      name: name().trim(),
-      partner: partner().trim(),
-      baseCost: baseCost().trim(),
-      retailPrice: retailPrice().trim(),
-      status: status(),
-      notes: notes().trim(),
-    });
-    setSavingDraft(false);
+      name: setupForm.values.name.trim(),
+      partner: setupForm.values.partner.trim(),
+      baseCost: setupForm.values.baseCost.trim(),
+      retailPrice: setupForm.values.retailPrice.trim(),
+      status: setupForm.values.status,
+      notes: setupForm.values.notes.trim(),
+    })
+    setupForm.setSubmitting(false)
     if (!result.success) {
-      setError(result.message);
-      return;
+      setError(result.message)
+      return
     }
-    setMessage(`Saved backend product setup draft for ${result.data.name}.`);
-    resetForm();
-    await loadState();
-  };
+    setMessage(`Saved backend product setup draft for ${result.data.name}.`)
+    setupForm.reset()
+    await loadState()
+  }
 
   const promoteToCandidate = async (draft: SetupDraft) => {
-    setPromotingDraftID(draft.id);
-    setError('');
-    setMessage('');
+    setPromotingDraftID(draft.id)
+    setError('')
+    setMessage('')
     const result = await promoteProductSetupCandidate({
       draftId: draft.id,
-      channel: channel(),
-      variantColor: variantColor(),
-      variantSize: variantSize(),
+      channel: setupForm.values.channel,
+      variantColor: setupForm.values.variantColor.trim(),
+      variantSize: setupForm.values.variantSize.trim(),
       artworkChecklist: {
-        frontArtwork: hasFrontArtwork(),
-        backArtwork: hasBackArtwork(),
-        mockupReady: mockupReady(),
-        printSpecChecked: printSpecChecked(),
+        frontArtwork: setupForm.values.hasFrontArtwork,
+        backArtwork: setupForm.values.hasBackArtwork,
+        mockupReady: setupForm.values.mockupReady,
+        printSpecChecked: setupForm.values.printSpecChecked,
       },
-      merchandisingNotes: notes().trim(),
-    });
-    setPromotingDraftID('');
+      merchandisingNotes: setupForm.values.notes.trim(),
+    })
+    setPromotingDraftID('')
     if (!result.success) {
-      setError(result.message);
-      return;
+      setError(result.message)
+      return
     }
-    setMessage(`Promoted ${draft.name} into a backend catalog candidate.`);
-    await loadState();
-  };
+    setMessage(`Promoted ${draft.name} into a backend catalog candidate.`)
+    await loadState()
+  }
 
-  const updateCandidateStatus = async (candidateId: string, nextStatus: string) => {
-    setError('');
-    const result = await updateProductSetupCandidateStatus(candidateId, nextStatus);
+  const updateCandidateStatus = async (
+    candidateId: string,
+    nextStatus: string
+  ) => {
+    setError('')
+    const result = await updateProductSetupCandidateStatus(
+      candidateId,
+      nextStatus
+    )
     if (!result.success) {
-      setError(result.message);
-      return;
+      setError(result.message)
+      return
     }
-    await loadState();
-  };
+    await loadState()
+  }
 
   createEffect(() => {
-    tenantStorage.setTenantID(params().tenantId);
+    tenantStorage.setTenantID(params().tenantId)
     if (!workspaceReady()) {
-      return;
+      return
     }
-    void loadState();
-  });
+    void loadState()
+  })
 
   return (
     <PageShell>
@@ -176,11 +167,14 @@ export default function TenantProductSetupPage() {
       </Show>
 
       <InfoAlert>
-        Product setup drafts and candidates on this page are now backend-backed per store. Order routing remains a separate prototype flow.
+        Product setup drafts and candidates on this page are now backend-backed
+        per store. Order routing remains a separate prototype flow.
       </InfoAlert>
 
       <InfoAlert>
-        Suggested flow: create a draft, promote it into a candidate, then mock publish it before using that candidate in the local order-routing prototype.
+        Suggested flow: create a draft, promote it into a candidate, then mock
+        publish it before using that candidate in the local order-routing
+        prototype.
       </InfoAlert>
 
       <Show when={error()}>
@@ -195,115 +189,12 @@ export default function TenantProductSetupPage() {
 
       <div class="grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
         <Card class="space-y-4">
-          <SectionTitle
-            title="New setup draft"
-            subtitle="Capture the commercial and execution basics for a POD product before deeper automation exists."
+          <ProductSetupForm
+            form={setupForm}
+            saving={setupForm.isSubmitting}
+            onSubmit={addDraft}
+            onReset={() => setupForm.reset()}
           />
-          <form class="space-y-4" onSubmit={addDraft}>
-            <InputField
-              label="Product name"
-              value={name()}
-              placeholder="Signature Tee"
-              onInput={(event) => setName(event.currentTarget.value)}
-            />
-            <InputField
-              label="Preferred print partner"
-              value={partner()}
-              placeholder="Acme Print Lab"
-              onInput={(event) => setPartner(event.currentTarget.value)}
-            />
-            <div class="grid gap-4 md:grid-cols-2">
-              <InputField
-                label="Base cost"
-                value={baseCost()}
-                placeholder="$8.20"
-                onInput={(event) => setBaseCost(event.currentTarget.value)}
-              />
-              <InputField
-                label="Retail price"
-                value={retailPrice()}
-                placeholder="$24.00"
-                onInput={(event) => setRetailPrice(event.currentTarget.value)}
-              />
-            </div>
-            <SelectField
-              label="Draft status"
-              value={status()}
-              options={statusOptions}
-              onChange={(event) => setStatus(event.currentTarget.value)}
-            />
-            <SelectField
-              label="Mock publish channel"
-              value={channel()}
-              options={channelOptions}
-              onChange={(event) => setChannel(event.currentTarget.value)}
-            />
-            <div class="grid gap-4 md:grid-cols-2">
-              <InputField
-                label="Primary color"
-                value={variantColor()}
-                placeholder="Black"
-                onInput={(event) => setVariantColor(event.currentTarget.value)}
-              />
-              <InputField
-                label="Primary size"
-                value={variantSize()}
-                placeholder="M"
-                onInput={(event) => setVariantSize(event.currentTarget.value)}
-              />
-            </div>
-            <div class="rounded-lg border border-gray-200 p-4">
-              <p class="text-sm font-semibold text-gray-900">Artwork readiness</p>
-              <div class="mt-3 grid gap-3 md:grid-cols-2">
-                <label class="flex items-center gap-2 text-sm text-gray-600">
-                  <input
-                    type="checkbox"
-                    checked={hasFrontArtwork()}
-                    onChange={(event) => setHasFrontArtwork(event.currentTarget.checked)}
-                  />
-                  Front artwork prepared
-                </label>
-                <label class="flex items-center gap-2 text-sm text-gray-600">
-                  <input
-                    type="checkbox"
-                    checked={hasBackArtwork()}
-                    onChange={(event) => setHasBackArtwork(event.currentTarget.checked)}
-                  />
-                  Back artwork prepared
-                </label>
-                <label class="flex items-center gap-2 text-sm text-gray-600">
-                  <input
-                    type="checkbox"
-                    checked={mockupReady()}
-                    onChange={(event) => setMockupReady(event.currentTarget.checked)}
-                  />
-                  Mockups exported
-                </label>
-                <label class="flex items-center gap-2 text-sm text-gray-600">
-                  <input
-                    type="checkbox"
-                    checked={printSpecChecked()}
-                    onChange={(event) => setPrintSpecChecked(event.currentTarget.checked)}
-                  />
-                  Print specs checked
-                </label>
-              </div>
-            </div>
-            <TextareaField
-              label="Setup notes"
-              value={notes()}
-              rows={4}
-              onInput={(event) => setNotes(event.currentTarget.value)}
-            />
-            <div class="flex flex-wrap gap-3">
-              <Button type="submit" loading={savingDraft()}>
-                Save setup draft
-              </Button>
-              <Button type="button" color="alternative" onClick={resetForm}>
-                Clear form
-              </Button>
-            </div>
-          </form>
         </Card>
 
         <Card class="space-y-4">
@@ -325,18 +216,22 @@ export default function TenantProductSetupPage() {
                       <div>
                         <p class="font-semibold text-gray-900">{draft.name}</p>
                         <p class="mt-1 text-sm text-gray-500">
-                          partner {draft.partner} · cost {draft.baseCost} · retail {draft.retailPrice}
+                          partner {draft.partner} · cost {draft.baseCost} ·
+                          retail {draft.retailPrice}
                         </p>
                       </div>
                       <div class="flex flex-wrap items-center gap-2">
-                        <Badge content={draft.status.replaceAll('_', ' ')} color={statusBadgeColor(draft.status)} />
+                        <Badge
+                          content={draft.status.replaceAll('_', ' ')}
+                          color={statusBadgeColor(draft.status)}
+                        />
                         <Button
                           type="button"
                           size="xs"
                           color="blue"
                           loading={promotingDraftID() === draft.id}
                           onClick={() => {
-                            void promoteToCandidate(draft);
+                            void promoteToCandidate(draft)
                           }}
                         >
                           Promote to candidate
@@ -369,32 +264,43 @@ export default function TenantProductSetupPage() {
             <For each={candidates()}>
               {(candidate) => (
                 <div class="rounded-lg border border-gray-200 p-4">
-                    <div class="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <p class="font-semibold text-gray-900">{candidate.title}</p>
-                        <p class="mt-1 text-sm text-gray-500">
-                          sku {candidate.sku} · partner {candidate.partner} · channel {candidate.channel.replaceAll('_', ' ')}
+                  <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p class="font-semibold text-gray-900">
+                        {candidate.title}
                       </p>
                       <p class="mt-1 text-sm text-gray-500">
-                        cost {candidate.baseCost} · retail {candidate.retailPrice} · est. margin {candidate.estimatedMargin}
+                        sku {candidate.sku} · partner {candidate.partner} ·
+                        channel {candidate.channel.replaceAll('_', ' ')}
+                      </p>
+                      <p class="mt-1 text-sm text-gray-500">
+                        cost {candidate.baseCost} · retail{' '}
+                        {candidate.retailPrice} · est. margin{' '}
+                        {candidate.estimatedMargin}
                       </p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
-                      <Badge content={candidate.status.replaceAll('_', ' ')} color={candidateStatusColor(candidate.status)} />
-                        <Button
-                          type="button"
-                          size="xs"
-                          color="green"
-                          disabled={
-                            candidate.status === 'published_mock' ||
-                            !candidate.artworkChecklist.mockupReady ||
-                            !candidate.artworkChecklist.printSpecChecked
-                          }
-                          onClick={() => {
-                            void updateCandidateStatus(candidate.id, 'published_mock');
-                            setMessage(`Mock published ${candidate.title}.`);
-                          }}
-                        >
+                      <Badge
+                        content={candidate.status.replaceAll('_', ' ')}
+                        color={candidateStatusColor(candidate.status)}
+                      />
+                      <Button
+                        type="button"
+                        size="xs"
+                        color="green"
+                        disabled={
+                          candidate.status === 'published_mock' ||
+                          !candidate.artworkChecklist.mockupReady ||
+                          !candidate.artworkChecklist.printSpecChecked
+                        }
+                        onClick={() => {
+                          void updateCandidateStatus(
+                            candidate.id,
+                            'published_mock'
+                          )
+                          setMessage(`Mock published ${candidate.title}.`)
+                        }}
+                      >
                         Mock publish
                       </Button>
                       <Button
@@ -403,8 +309,8 @@ export default function TenantProductSetupPage() {
                         color="light"
                         disabled={candidate.status === 'archived'}
                         onClick={() => {
-                          void updateCandidateStatus(candidate.id, 'archived');
-                          setMessage(`Archived candidate ${candidate.title}.`);
+                          void updateCandidateStatus(candidate.id, 'archived')
+                          setMessage(`Archived candidate ${candidate.title}.`)
                         }}
                       >
                         Archive
@@ -421,16 +327,28 @@ export default function TenantProductSetupPage() {
                       </p>
                       <ul class="mt-2 space-y-1 text-sm text-gray-600">
                         <li>
-                          Front artwork: {candidate.artworkChecklist.frontArtwork ? 'ready' : 'pending'}
+                          Front artwork:{' '}
+                          {candidate.artworkChecklist.frontArtwork
+                            ? 'ready'
+                            : 'pending'}
                         </li>
                         <li>
-                          Back artwork: {candidate.artworkChecklist.backArtwork ? 'ready' : 'pending'}
+                          Back artwork:{' '}
+                          {candidate.artworkChecklist.backArtwork
+                            ? 'ready'
+                            : 'pending'}
                         </li>
                         <li>
-                          Mockups: {candidate.artworkChecklist.mockupReady ? 'ready' : 'pending'}
+                          Mockups:{' '}
+                          {candidate.artworkChecklist.mockupReady
+                            ? 'ready'
+                            : 'pending'}
                         </li>
                         <li>
-                          Print specs: {candidate.artworkChecklist.printSpecChecked ? 'ready' : 'pending'}
+                          Print specs:{' '}
+                          {candidate.artworkChecklist.printSpecChecked
+                            ? 'ready'
+                            : 'pending'}
                         </li>
                       </ul>
                     </div>
@@ -449,9 +367,12 @@ export default function TenantProductSetupPage() {
                       </div>
                     </div>
                   </div>
-                  <p class="mt-3 text-sm text-gray-600">{candidate.merchandisingNotes}</p>
                   <p class="mt-3 text-sm text-gray-600">
-                    Last updated {new Date(candidate.updatedAt).toLocaleString()}
+                    {candidate.merchandisingNotes}
+                  </p>
+                  <p class="mt-3 text-sm text-gray-600">
+                    Last updated{' '}
+                    {new Date(candidate.updatedAt).toLocaleString()}
                   </p>
                 </div>
               )}
@@ -460,5 +381,5 @@ export default function TenantProductSetupPage() {
         )}
       </Card>
     </PageShell>
-  );
+  )
 }

@@ -1,47 +1,47 @@
-import { Link, useNavigate } from '@tanstack/solid-router';
-import { createSignal } from 'solid-js';
-import { register } from '@/services/auth';
-import { Button, Card, InputField } from '@/solid/components/common/Primitives';
-import { ErrorAlert } from '@/solid/components/common/Feedback';
-import { SectionLead } from '@/solid/components/common/SectionLead';
+import { Link, useNavigate } from '@tanstack/solid-router'
+import { createSignal } from 'solid-js'
+import { register } from '@/services/auth'
+import { Button, Card, InputField } from '@/solid/components/common/Primitives'
+import { ErrorAlert } from '@/solid/components/common/Feedback'
+import { SectionLead } from '@/solid/components/common/SectionLead'
 
 export default function RegisterPage() {
-  const navigate = useNavigate();
-  const [username, setUsername] = createSignal('');
-  const [email, setEmail] = createSignal('');
-  const [password, setPassword] = createSignal('');
-  const [confirmPassword, setConfirmPassword] = createSignal('');
-  const [error, setError] = createSignal('');
-  const [loading, setLoading] = createSignal(false);
+  const navigate = useNavigate()
+  const [username, setUsername] = createSignal('')
+  const [email, setEmail] = createSignal('')
+  const [password, setPassword] = createSignal('')
+  const [confirmPassword, setConfirmPassword] = createSignal('')
+  const [error, setError] = createSignal('')
+  const [loading, setLoading] = createSignal(false)
 
   const submit = async (event: SubmitEvent) => {
-    event.preventDefault();
+    event.preventDefault()
 
     if (password() !== confirmPassword()) {
-      setError('The passwords do not match.');
-      return;
+      setError('The passwords do not match.')
+      return
     }
 
-    setLoading(true);
-    setError('');
+    setLoading(true)
+    setError('')
 
     try {
       const { success, data } = await register({
         username: username().trim(),
         email: email().trim(),
         password: password(),
-      });
+      })
 
       if (!success) {
-        setError(data?.message || 'Account setup failed');
-        return;
+        setError(data?.message || 'Account setup failed')
+        return
       }
 
-      void navigate({ to: '/admin', replace: true });
+      void navigate({ to: '/admin', replace: true })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div class="mx-auto flex min-h-[calc(100vh-3rem)] max-w-6xl items-center px-4 py-10 sm:px-6 lg:px-8">
@@ -122,5 +122,5 @@ export default function RegisterPage() {
         </Card>
       </div>
     </div>
-  );
+  )
 }

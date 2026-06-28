@@ -1,18 +1,22 @@
-import { For, Show } from 'solid-js';
-import { tokenStorage } from '@/services/tokenStorage';
-import { EmptyBlock, InfoAlert, LoadingInline } from '@/solid/components/common/Feedback';
-import { Badge, Button, Card } from '@/solid/components/common/Primitives';
-import { SectionTitle } from '@/solid/components/common/SectionTitle';
+import { For, Show } from 'solid-js'
+import { tokenStorage } from '@/services/tokenStorage'
+import {
+  EmptyBlock,
+  InfoAlert,
+  LoadingInline,
+} from '@/solid/components/common/Feedback'
+import { Badge, Button, Card } from '@/solid/components/common/Primitives'
+import { SectionTitle } from '@/solid/components/common/SectionTitle'
 import {
   FormInputField,
   FormSelectField,
   createFormStore,
   numberValue,
   required,
-} from '@/solid/forms';
-import type { TeamMemberFormValues } from './forms';
-import { membershipStatusColor, roleOptions } from './presentation';
-import { useAdminSettings } from './context';
+} from '@/solid/forms'
+import type { TeamMemberFormValues } from './forms'
+import { membershipStatusColor, roleOptions } from './presentation'
+import { useAdminSettings } from './context'
 
 export function TeamAccess() {
   return (
@@ -20,11 +24,11 @@ export function TeamAccess() {
       <MyWorkspaceAccess />
       <TeamAccessEditor />
     </div>
-  );
+  )
 }
 
 function MyWorkspaceAccess() {
-  const vm = useAdminSettings();
+  const vm = useAdminSettings()
 
   return (
     <Card class="space-y-4">
@@ -63,8 +67,8 @@ function MyWorkspaceAccess() {
                     size="sm"
                     color="alternative"
                     onClick={() => {
-                      vm.setMemberTenantId(membership.tenantId);
-                      void vm.loadTenantMembers(membership.tenantId);
+                      vm.setMemberTenantId(membership.tenantId)
+                      void vm.loadTenantMembers(membership.tenantId)
                     }}
                   >
                     Open team access
@@ -76,11 +80,11 @@ function MyWorkspaceAccess() {
         </div>
       </Show>
     </Card>
-  );
+  )
 }
 
 function TeamAccessEditor() {
-  const vm = useAdminSettings();
+  const vm = useAdminSettings()
   const memberForm = createFormStore<TeamMemberFormValues>({
     initialValues: {
       tenantId: vm.memberTenantId(),
@@ -99,15 +103,15 @@ function TeamAccessEditor() {
             : undefined,
       ],
     },
-  });
+  })
 
   const submitMember = async (event: SubmitEvent) => {
-    event.preventDefault();
-    if (!memberForm.validate()) return;
-    memberForm.setSubmitting(true);
-    await vm.saveMemberFromForm({ ...memberForm.values });
-    memberForm.setSubmitting(false);
-  };
+    event.preventDefault()
+    if (!memberForm.validate()) return
+    memberForm.setSubmitting(true)
+    await vm.saveMemberFromForm({ ...memberForm.values })
+    memberForm.setSubmitting(false)
+  }
 
   return (
     <Card class="space-y-4">
@@ -167,7 +171,10 @@ function TeamAccessEditor() {
             color="light"
             disabled={!tokenStorage.getUser()?.email}
             onClick={() =>
-              memberForm.setValue('identity', tokenStorage.getUser()?.email || '')
+              memberForm.setValue(
+                'identity',
+                tokenStorage.getUser()?.email || ''
+              )
             }
           >
             Use my email
@@ -211,7 +218,8 @@ function TeamAccessEditor() {
         </Show>
         <Show when={vm.canReadTenant() && !vm.canManageMembers()}>
           <InfoAlert>
-            You can inspect this workspace, but only authorized workspace owners or admins can manage team access.
+            You can inspect this workspace, but only authorized workspace owners
+            or admins can manage team access.
           </InfoAlert>
         </Show>
         <div class="space-y-3">
@@ -241,7 +249,7 @@ function TeamAccessEditor() {
                         void vm.handleRemoveMember(
                           membership.tenantId,
                           membership.userId
-                        );
+                        )
                       }}
                     >
                       Remove
@@ -254,5 +262,5 @@ function TeamAccessEditor() {
         </div>
       </Show>
     </Card>
-  );
+  )
 }

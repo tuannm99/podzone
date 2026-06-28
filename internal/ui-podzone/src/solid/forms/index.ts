@@ -1,10 +1,11 @@
-export { createFormStore, type FormStore } from './createFormStore';
+export { createFormStore, type FormStore } from './createFormStore'
 export {
+  FormCheckboxField,
   FormInputField,
   FormSelectField,
   FormTextareaField,
   type FormSubmitHandler,
-} from './fields';
+} from './fields'
 export {
   email,
   jsonArray,
@@ -13,4 +14,4 @@ export {
   required,
   type Validator,
   type ValidatorMap,
-} from './validators';
+} from './validators'

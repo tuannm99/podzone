@@ -1,0 +1,120 @@
+import { http, type HttpError } from '../http'
+import { toFailure } from './result'
+import type {
+  IamResult,
+  OrganizationInfo,
+  PolicyInfo,
+  CreateOrganizationPayload,
+  CreateOrganizationResult,
+} from './types'
+
+export async function createOrganization(
+  payload: CreateOrganizationPayload
+): Promise<IamResult<CreateOrganizationResult>> {
+  try {
+    const { data } = await http.post<CreateOrganizationResult>(
+      '/auth/v1/iam/organizations',
+      payload
+    )
+    return { success: true, data }
+  } catch (error) {
+    return toFailure(error as HttpError, 'Failed to create organization')
+  }
+}
+
+export async function listOrganizations(): Promise<
+  IamResult<OrganizationInfo[]>
+> {
+  try {
+    const { data } = await http.get<{ organizations?: OrganizationInfo[] }>(
+      '/auth/v1/iam/organizations'
+    )
+    return { success: true, data: data.organizations || [] }
+  } catch (error) {
+    return toFailure(error as HttpError, 'Failed to load organizations')
+  }
+}
+
+export async function attachTenantToOrganization(
+  orgId: string,
+  tenantId: string
+): Promise<IamResult<true>> {
+  try {
+    await http.post(`/auth/v1/iam/organizations/${orgId}/tenants/${tenantId}`, {
+      orgId,
+      tenantId,
+    })
+    return { success: true, data: true }
+  } catch (error) {
+    return toFailure(
+      error as HttpError,
+      'Failed to attach tenant to organization'
+    )
+  }
+}
+
+export async function detachTenantFromOrganization(
+  orgId: string,
+  tenantId: string
+): Promise<IamResult<true>> {
+  try {
+    await http.delete(`/auth/v1/iam/organizations/${orgId}/tenants/${tenantId}`)
+    return { success: true, data: true }
+  } catch (error) {
+    return toFailure(
+      error as HttpError,
+      'Failed to detach tenant from organization'
+    )
+  }
+}
+
+export async function attachServiceControlPolicy(
+  orgId: string,
+  policyName: string
+): Promise<IamResult<true>> {
+  try {
+    await http.post(
+      `/auth/v1/iam/organizations/${orgId}/service-control-policies`,
+      { orgId, policyName }
+    )
+    return { success: true, data: true }
+  } catch (error) {
+    return toFailure(
+      error as HttpError,
+      'Failed to attach service control policy'
+    )
+  }
+}
+
+export async function detachServiceControlPolicy(
+  orgId: string,
+  policyName: string
+): Promise<IamResult<true>> {
+  try {
+    await http.delete(
+      `/auth/v1/iam/organizations/${orgId}/service-control-policies/${policyName}`
+    )
+    return { success: true, data: true }
+  } catch (error) {
+    return toFailure(
+      error as HttpError,
+      'Failed to detach service control policy'
+    )
+  }
+}
+
+export async function listServiceControlPolicies(
+  orgId: string
+): Promise<IamResult<PolicyInfo[]>> {
+  try {
+    const { data } = await http.get<{ policies?: PolicyInfo[] }>(
+      `/auth/v1/iam/organizations/${orgId}/service-control-policies`
+    )
+    return { success: true, data: data.policies || [] }
+  } catch (error) {
+    return toFailure(
+      error as HttpError,
+      'Failed to load service control policies'
+    )
+  }
+}

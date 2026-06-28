@@ -1,9 +1,15 @@
-import { For, Show } from 'solid-js';
-import { EmptyBlock, LoadingInline } from '@/solid/components/common/Feedback';
-import { Badge, Button, Card } from '@/solid/components/common/Primitives';
-import { SectionTitle } from '@/solid/components/common/SectionTitle';
-import { sessionStatusColor } from './presentation';
-import { useAdminSettings } from './context';
+import { For, Show } from 'solid-js'
+import {
+  EmptyBlock,
+  ErrorAlert,
+  LoadingInline,
+} from '@/solid/components/common/Feedback'
+import { Pagination } from '@/solid/components/common/Pagination'
+import { Badge, Button, Card } from '@/solid/components/common/Primitives'
+import { SectionTitle } from '@/solid/components/common/SectionTitle'
+import { createClientPagination } from '@/solid/pagination'
+import { sessionStatusColor } from './presentation'
+import { useAdminSettings } from './context'
 
 export function SessionsAudit() {
   return (
@@ -11,11 +17,12 @@ export function SessionsAudit() {
       <SessionsPanel />
       <AuditPanel />
     </>
-  );
+  )
 }
 
 function SessionsPanel() {
-  const vm = useAdminSettings();
+  const vm = useAdminSettings()
+  const pagination = createClientPagination(vm.sessions, 5)
 
   return (
     <Card class="space-y-4">
@@ -33,22 +40,33 @@ function SessionsPanel() {
       <Show when={vm.loadingSessions()}>
         <LoadingInline label="Loading sessions..." />
       </Show>
+      <Show when={vm.sessionReadError()}>
+        <ErrorAlert>{vm.sessionReadError()}</ErrorAlert>
+      </Show>
       <Show
-        when={!vm.loadingSessions() && vm.sessions().length > 0}
+        when={
+          !vm.loadingSessions() &&
+          !vm.sessionReadError() &&
+          vm.sessions().length > 0
+        }
         fallback={
-          <EmptyBlock
-            title="No sessions loaded"
-            copy="Signed-in sessions will appear here once this account starts using the backoffice."
-          />
+          <Show when={!vm.loadingSessions() && !vm.sessionReadError()}>
+            <EmptyBlock
+              title="No sessions loaded"
+              copy="Signed-in sessions will appear here once this account starts using the backoffice."
+            />
+          </Show>
         }
       >
-        <div class="space-y-3">
-          <For each={vm.sessions()}>
+        <div class="max-h-[28rem] space-y-3 overflow-y-auto pr-1">
+          <For each={pagination.pageItems()}>
             {(session) => (
               <div class="rounded-lg border border-gray-200 p-4">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p class="font-semibold text-gray-900">{session.id}</p>
+                    <p class="break-all font-semibold text-gray-900">
+                      {session.id}
+                    </p>
                     <p class="mt-1 text-sm text-gray-500">
                       workspace {session.activeTenantId || 'not selected'} ·
                       expires {session.expiresAt || 'unknown'}
@@ -76,12 +94,19 @@ function SessionsPanel() {
           </For>
         </div>
       </Show>
+      <Pagination
+        page={pagination.page()}
+        pageSize={pagination.pageSize}
+        total={pagination.total()}
+        onPageChange={pagination.setPage}
+      />
     </Card>
-  );
+  )
 }
 
 function AuditPanel() {
-  const vm = useAdminSettings();
+  const vm = useAdminSettings()
+  const pagination = createClientPagination(vm.auditLogs, 6)
 
   return (
     <Card class="space-y-4">
@@ -97,17 +122,26 @@ function AuditPanel() {
       <Show when={vm.loadingAuditLogs()}>
         <LoadingInline label="Loading audit logs..." />
       </Show>
+      <Show when={vm.auditReadError()}>
+        <ErrorAlert>{vm.auditReadError()}</ErrorAlert>
+      </Show>
       <Show
-        when={!vm.loadingAuditLogs() && vm.auditLogs().length > 0}
+        when={
+          !vm.loadingAuditLogs() &&
+          !vm.auditReadError() &&
+          vm.auditLogs().length > 0
+        }
         fallback={
-          <EmptyBlock
-            title="No audit logs yet"
-            copy="Sensitive sign-in, access, and administration actions will appear here after they run."
-          />
+          <Show when={!vm.loadingAuditLogs() && !vm.auditReadError()}>
+            <EmptyBlock
+              title="No audit logs yet"
+              copy="Sensitive sign-in, access, and administration actions will appear here after they run."
+            />
+          </Show>
         }
       >
-        <div class="space-y-3">
-          <For each={vm.auditLogs()}>
+        <div class="max-h-[36rem] space-y-3 overflow-y-auto pr-1">
+          <For each={pagination.pageItems()}>
             {(log) => (
               <div class="rounded-lg border border-gray-200 p-4">
                 <div class="flex flex-wrap items-center justify-between gap-3">
@@ -116,8 +150,8 @@ function AuditPanel() {
                       {log.action || 'unknown action'}
                     </p>
                     <p class="mt-1 text-sm text-gray-500">
-                      {log.resourceType || 'resource'} {log.resourceId || 'n/a'} ·
-                      workspace {log.tenantId || 'global'}
+                      {log.resourceType || 'resource'} {log.resourceId || 'n/a'}{' '}
+                      · workspace {log.tenantId || 'global'}
                     </p>
                     <Show when={log.payloadJson}>
                       <pre class="mt-3 overflow-x-auto rounded-lg bg-gray-50 p-3 text-xs text-gray-700">
@@ -141,6 +175,12 @@ function AuditPanel() {
           </For>
         </div>
       </Show>
+      <Pagination
+        page={pagination.page()}
+        pageSize={pagination.pageSize}
+        total={pagination.total()}
+        onPageChange={pagination.setPage}
+      />
     </Card>
-  );
+  )
 }

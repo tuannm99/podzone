@@ -1,31 +1,29 @@
-import { Show } from 'solid-js';
-import type { RoutedOrder } from '@/services/orders';
-import { Button, InputField } from '@/solid/components/common/Primitives';
-import type { OrderCardActions } from './types';
+import { Show } from 'solid-js'
+import type { RoutedOrder } from '@/services/orders'
+import { Button, InputField } from '@/solid/components/common/Primitives'
+import type { OrderCardActions } from './types'
 
 type ReroutePanelProps = {
-  order: RoutedOrder;
-  actions: OrderCardActions;
-};
+  order: RoutedOrder
+  actions: OrderCardActions
+}
 
 export function ReroutePanel(props: ReroutePanelProps) {
-  const { order, actions } = props;
-
   return (
     <>
-      <Show when={order.exceptionType}>
+      <Show when={props.order.exceptionType}>
         <div class="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3">
           <p class="text-xs font-semibold uppercase tracking-[0.16em] text-amber-700">
             Exception
           </p>
           <p class="mt-2 text-sm text-amber-900">
-            {order.exceptionType.replaceAll('_', ' ')} ·{' '}
-            {order.exceptionStatus || 'draft'}
+            {props.order.exceptionType.replaceAll('_', ' ')} ·{' '}
+            {props.order.exceptionStatus || 'draft'}
           </p>
         </div>
       </Show>
 
-      <Show when={order.status === 'routing_blocked'}>
+      <Show when={props.order.status === 'routing_blocked'}>
         <div class="mt-3 rounded-md border border-rose-200 bg-rose-50 p-3">
           <p class="text-xs font-semibold uppercase tracking-[0.16em] text-rose-700">
             Manual reroute
@@ -38,10 +36,12 @@ export function ReroutePanel(props: ReroutePanelProps) {
             <div class="flex-1">
               <InputField
                 label="Preferred partner"
-                value={actions.rerouteDraftFor(order).preferredPartner}
+                value={
+                  props.actions.rerouteDraftFor(props.order).preferredPartner
+                }
                 placeholder="partner code or name"
                 onInput={(event) =>
-                  actions.patchRerouteDraft(order.id, {
+                  props.actions.patchRerouteDraft(props.order.id, {
                     preferredPartner: event.currentTarget.value,
                   })
                 }
@@ -50,7 +50,7 @@ export function ReroutePanel(props: ReroutePanelProps) {
             <Button
               type="button"
               color="red"
-              onClick={() => actions.rerouteBlockedOrder(order)}
+              onClick={() => props.actions.rerouteBlockedOrder(props.order)}
             >
               Force reroute
             </Button>
@@ -58,5 +58,5 @@ export function ReroutePanel(props: ReroutePanelProps) {
         </div>
       </Show>
     </>
-  );
+  )
 }

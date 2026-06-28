@@ -1,14 +1,18 @@
-import { Show } from 'solid-js';
-import { GW_API_URL, TENANT_GQL_URL } from '@/services/baseurl';
-import { tenantStorage } from '@/services/tenantStorage';
-import { ErrorAlert, InfoAlert, LoadingInline } from '@/solid/components/common/Feedback';
-import { Badge, Button, Card } from '@/solid/components/common/Primitives';
-import { SectionLead } from '@/solid/components/common/SectionLead';
-import { SectionTitle } from '@/solid/components/common/SectionTitle';
-import { useAdminSettings } from './context';
+import { Show } from 'solid-js'
+import { GW_API_URL, TENANT_GQL_URL } from '@/services/baseurl'
+import { tenantStorage } from '@/services/tenantStorage'
+import {
+  ErrorAlert,
+  InfoAlert,
+  LoadingInline,
+} from '@/solid/components/common/Feedback'
+import { Badge, Button, Card } from '@/solid/components/common/Primitives'
+import { SectionLead } from '@/solid/components/common/SectionLead'
+import { SectionTitle } from '@/solid/components/common/SectionTitle'
+import { useAdminSettings } from './context'
 
 export function HeaderRuntime() {
-  const vm = useAdminSettings();
+  const vm = useAdminSettings()
 
   return (
     <>
@@ -53,13 +57,16 @@ export function HeaderRuntime() {
         <LocalSessionState />
       </div>
     </>
-  );
+  )
 }
 
 function RuntimeEndpoints() {
   return (
     <Card class="space-y-4">
-      <SectionTitle title="Runtime endpoints" subtitle="Current frontend targets." />
+      <SectionTitle
+        title="Runtime endpoints"
+        subtitle="Current frontend targets."
+      />
       <div class="space-y-3 text-sm text-gray-600">
         <div class="rounded-lg bg-gray-50 p-4">
           <p class="font-semibold text-gray-900">Gateway API</p>
@@ -71,11 +78,11 @@ function RuntimeEndpoints() {
         </div>
       </div>
     </Card>
-  );
+  )
 }
 
 function LocalSessionState() {
-  const vm = useAdminSettings();
+  const vm = useAdminSettings()
 
   return (
     <Card class="space-y-4">
@@ -114,13 +121,13 @@ function LocalSessionState() {
       <Button
         color="alternative"
         onClick={() => {
-          tenantStorage.clearTenantID();
-          vm.setRouteTenantID('');
-          window.location.reload();
+          tenantStorage.clearTenantID()
+          vm.setRouteTenantID('')
+          window.location.reload()
         }}
       >
         Clear last opened workspace
       </Button>
     </Card>
-  );
+  )
 }

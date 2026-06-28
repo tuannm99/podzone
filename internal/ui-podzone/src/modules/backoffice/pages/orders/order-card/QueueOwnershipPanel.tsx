@@ -1,21 +1,15 @@
-import { Show } from 'solid-js';
-import type { RoutedOrder } from '@/services/orders';
-import {
-  Badge,
-  Button,
-  InputField,
-} from '@/solid/components/common/Primitives';
-import type { OrderCardActions, OrderCardHelpers } from './types';
+import { Show } from 'solid-js'
+import type { RoutedOrder } from '@/services/orders'
+import { Badge, Button, InputField } from '@/solid/components/common/Primitives'
+import type { OrderCardActions, OrderCardHelpers } from './types'
 
 type QueueOwnershipPanelProps = {
-  order: RoutedOrder;
-  actions: OrderCardActions;
-  helpers: OrderCardHelpers;
-};
+  order: RoutedOrder
+  actions: OrderCardActions
+  helpers: OrderCardHelpers
+}
 
 export function QueueOwnershipPanel(props: QueueOwnershipPanelProps) {
-  const { order, actions, helpers } = props;
-
   return (
     <div class="mt-3 rounded-md border border-sky-200 bg-sky-50 p-3">
       <p class="text-xs font-semibold uppercase tracking-[0.16em] text-sky-700">
@@ -24,10 +18,10 @@ export function QueueOwnershipPanel(props: QueueOwnershipPanelProps) {
       <div class="mt-3 grid gap-4 md:grid-cols-2">
         <InputField
           label="Operator assignee"
-          value={actions.queueDraftFor(order).operatorAssignee}
+          value={props.actions.queueDraftFor(props.order).operatorAssignee}
           placeholder="linh.nguyen"
           onInput={(event) =>
-            actions.patchQueueDraft(order.id, {
+            props.actions.patchQueueDraft(props.order.id, {
               operatorAssignee: event.currentTarget.value,
             })
           }
@@ -35,9 +29,9 @@ export function QueueOwnershipPanel(props: QueueOwnershipPanelProps) {
         <InputField
           label="Shipment SLA due"
           type="datetime-local"
-          value={actions.queueDraftFor(order).shipmentSlaDueAt}
+          value={props.actions.queueDraftFor(props.order).shipmentSlaDueAt}
           onInput={(event) =>
-            actions.patchQueueDraft(order.id, {
+            props.actions.patchQueueDraft(props.order.id, {
               shipmentSlaDueAt: event.currentTarget.value,
             })
           }
@@ -45,9 +39,9 @@ export function QueueOwnershipPanel(props: QueueOwnershipPanelProps) {
         <InputField
           label="Issue SLA due"
           type="datetime-local"
-          value={actions.queueDraftFor(order).issueSlaDueAt}
+          value={props.actions.queueDraftFor(props.order).issueSlaDueAt}
           onInput={(event) =>
-            actions.patchQueueDraft(order.id, {
+            props.actions.patchQueueDraft(props.order.id, {
               issueSlaDueAt: event.currentTarget.value,
             })
           }
@@ -58,27 +52,35 @@ export function QueueOwnershipPanel(props: QueueOwnershipPanelProps) {
           type="button"
           size="xs"
           color="blue"
-          onClick={() => actions.saveQueueControl(order)}
+          onClick={() => props.actions.saveQueueControl(props.order)}
         >
           Save queue control
         </Button>
         <Badge
-          content={`owner ${order.operatorAssignee || 'unassigned'}`}
+          content={`owner ${props.order.operatorAssignee || 'unassigned'}`}
           color="indigo"
         />
-        <Show when={order.shipmentSlaDueAt}>
+        <Show when={props.order.shipmentSlaDueAt}>
           <Badge
-            content={`shipment SLA ${helpers.isOverdue(order.shipmentSlaDueAt) ? 'overdue' : 'set'}`}
-            color={helpers.isOverdue(order.shipmentSlaDueAt) ? 'red' : 'blue'}
+            content={`shipment SLA ${props.helpers.isOverdue(props.order.shipmentSlaDueAt) ? 'overdue' : 'set'}`}
+            color={
+              props.helpers.isOverdue(props.order.shipmentSlaDueAt)
+                ? 'red'
+                : 'blue'
+            }
           />
         </Show>
-        <Show when={order.issueSlaDueAt}>
+        <Show when={props.order.issueSlaDueAt}>
           <Badge
-            content={`issue SLA ${helpers.isOverdue(order.issueSlaDueAt) ? 'overdue' : 'set'}`}
-            color={helpers.isOverdue(order.issueSlaDueAt) ? 'red' : 'blue'}
+            content={`issue SLA ${props.helpers.isOverdue(props.order.issueSlaDueAt) ? 'overdue' : 'set'}`}
+            color={
+              props.helpers.isOverdue(props.order.issueSlaDueAt)
+                ? 'red'
+                : 'blue'
+            }
           />
         </Show>
       </div>
     </div>
-  );
+  )
 }

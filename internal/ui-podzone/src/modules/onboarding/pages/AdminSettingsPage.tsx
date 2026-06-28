@@ -1,492 +1,366 @@
-import { createEffect, createSignal, onMount } from 'solid-js';
-import {
-  listAuditLogs,
-  listSessions,
-  revokeSession,
-  type AuditLogInfo,
-  type SessionInfo,
-} from '@/services/auth';
+import { createEffect, createResource, createSignal, onMount } from 'solid-js'
 import {
   checkPermission,
-  checkPlatformPermission,
   createTenantInvite,
   listTenantMembers,
   listTenantInvites,
-  listPlatformRoles,
   listUserTenants,
-  removePlatformRole,
   revokeTenantInvite,
   removeTenantMember,
-  type PlatformRoleMembership,
-  type TenantInvite,
-  upsertPlatformRole,
   upsertTenantMember,
   upsertTenantMemberByIdentity,
   type TenantMembership,
-} from '@/services/iam';
-import { tenantStorage } from '@/services/tenantStorage';
-import { tokenStorage } from '@/services/tokenStorage';
-import {
-  parseUserID,
-  platformRoleOptions,
-  roleOptions,
-} from './admin-settings/presentation';
-import { AdminSettingsContext } from './admin-settings/context';
-import { AdminSettingsView } from './admin-settings/AdminSettingsView';
+} from '@/services/iam'
+import { tenantStorage } from '@/services/tenantStorage'
+import { tokenStorage } from '@/services/tokenStorage'
+import { parseUserID, roleOptions } from './admin-settings/presentation'
+import { AdminSettingsContext } from './admin-settings/context'
+import { AdminSettingsView } from './admin-settings/AdminSettingsView'
 import type {
-  PlatformRoleFormValues,
   TeamMemberFormValues,
   TenantInviteFormValues,
-} from './admin-settings/forms';
+} from './admin-settings/forms'
+import { createSessionAdmin } from './admin-settings/createSessionAdmin'
+import { createPlatformRoleAdmin } from './admin-settings/createPlatformRoleAdmin'
 
-export default function AdminSettingsPage() {
-  const hasToken = Boolean(tokenStorage.getToken());
-  const userID = parseUserID(tokenStorage.getUser()?.id);
-  const activeTenantId = () => tokenStorage.getActiveTenantID();
-  const sessionID = () => tokenStorage.getSessionID();
+export function createAdminSettingsViewModel() {
+  const hasToken = Boolean(tokenStorage.getToken())
+  const userID = parseUserID(tokenStorage.getUser()?.id)
+  const activeTenantId = () => tokenStorage.getActiveTenantID()
+  const sessionID = () => tokenStorage.getSessionID()
 
   const [routeTenantId, setRouteTenantID] = createSignal(
     tenantStorage.getTenantID()
-  );
+  )
   const [memberTenantId, setMemberTenantId] = createSignal(
     activeTenantId() || tenantStorage.getTenantID()
-  );
-  const [memberUserId, setMemberUserId] = createSignal('');
-  const [memberIdentity, setMemberIdentity] = createSignal('');
-  const [roleName, setRoleName] = createSignal(roleOptions[1].value);
-  const [inviteEmail, setInviteEmail] = createSignal('');
-  const [inviteRoleName, setInviteRoleName] = createSignal(roleOptions[1].value);
-  const [memberships, setMemberships] = createSignal<TenantMembership[]>([]);
-  const [members, setMembers] = createSignal<TenantMembership[]>([]);
-  const [invites, setInvites] = createSignal<TenantInvite[]>([]);
-  const [platformRoles, setPlatformRoles] = createSignal<PlatformRoleMembership[]>([]);
-  const [sessions, setSessions] = createSignal<SessionInfo[]>([]);
-  const [auditLogs, setAuditLogs] = createSignal<AuditLogInfo[]>([]);
-  const [loadingTenants, setLoadingTenants] = createSignal(false);
-  const [loadingMembers, setLoadingMembers] = createSignal(false);
-  const [loadingInvites, setLoadingInvites] = createSignal(false);
-  const [loadingSessions, setLoadingSessions] = createSignal(false);
-  const [loadingAuditLogs, setLoadingAuditLogs] = createSignal(false);
-  const [savingMember, setSavingMember] = createSignal(false);
-  const [savingInvite, setSavingInvite] = createSignal(false);
-  const [checkingPermissions, setCheckingPermissions] = createSignal(false);
-  const [loadingPlatformRoles, setLoadingPlatformRoles] = createSignal(false);
-  const [savingPlatformRole, setSavingPlatformRole] = createSignal(false);
-  const [pageError, setPageError] = createSignal('');
-  const [memberActionMessage, setMemberActionMessage] = createSignal('');
-  const [latestInviteAcceptURL, setLatestInviteAcceptURL] = createSignal('');
-  const [canReadTenant, setCanReadTenant] = createSignal(false);
-  const [canManageMembers, setCanManageMembers] = createSignal(false);
-  const [canManagePlatformRoles, setCanManagePlatformRoles] = createSignal(false);
-  const [platformUserId, setPlatformUserId] = createSignal(userID ? String(userID) : '');
-  const [platformRoleName, setPlatformRoleName] = createSignal(platformRoleOptions[1].value);
+  )
+  const [memberUserId, setMemberUserId] = createSignal('')
+  const [memberIdentity, setMemberIdentity] = createSignal('')
+  const [roleName, setRoleName] = createSignal(roleOptions[1].value)
+  const [inviteEmail, setInviteEmail] = createSignal('')
+  const [inviteRoleName, setInviteRoleName] = createSignal(roleOptions[1].value)
+  const [savingMember, setSavingMember] = createSignal(false)
+  const [savingInvite, setSavingInvite] = createSignal(false)
+  const [mutationError, setPageError] = createSignal('')
+  const [memberActionMessage, setMemberActionMessage] = createSignal('')
+  const [latestInviteAcceptURL, setLatestInviteAcceptURL] = createSignal('')
+  const [membershipsResource, { refetch: refetchMemberships }] = createResource(
+    () => userID || undefined,
+    async (currentUserID): Promise<TenantMembership[]> => {
+      const result = await listUserTenants(currentUserID)
+      if (!result.success) throw new Error(result.message)
+      return result.data
+    }
+  )
+  const memberships = () => membershipsResource() || []
+  const loadingTenants = () => membershipsResource.loading
+  const [tenantAccessResource, { refetch: refetchTenantAccess }] =
+    createResource(
+      () => {
+        const tenantId = memberTenantId().trim()
+        return userID && tenantId ? { userID, tenantId } : undefined
+      },
+      async ({ userID: currentUserID, tenantId }) => {
+        const [readResult, manageResult] = await Promise.all([
+          checkPermission({
+            tenantId,
+            userId: currentUserID,
+            permission: 'tenant:read',
+          }),
+          checkPermission({
+            tenantId,
+            userId: currentUserID,
+            permission: 'tenant:manage_members',
+          }),
+        ])
+        if (!readResult.success) throw new Error(readResult.message)
+        if (!manageResult.success) throw new Error(manageResult.message)
+
+        const [membersResult, invitesResult] = await Promise.all([
+          readResult.data ? listTenantMembers(tenantId) : undefined,
+          manageResult.data ? listTenantInvites(tenantId) : undefined,
+        ])
+        if (membersResult && !membersResult.success) {
+          throw new Error(membersResult.message)
+        }
+        if (invitesResult && !invitesResult.success) {
+          throw new Error(invitesResult.message)
+        }
+        return {
+          canReadTenant: readResult.data,
+          canManageMembers: manageResult.data,
+          members: membersResult?.success ? membersResult.data : [],
+          invites: invitesResult?.success ? invitesResult.data : [],
+        }
+      }
+    )
+  const members = () => tenantAccessResource()?.members || []
+  const invites = () => tenantAccessResource()?.invites || []
+  const canReadTenant = () => tenantAccessResource()?.canReadTenant || false
+  const canManageMembers = () =>
+    tenantAccessResource()?.canManageMembers || false
+  const loadingMembers = () => tenantAccessResource.loading
+  const loadingInvites = () => tenantAccessResource.loading
+  const checkingPermissions = () => tenantAccessResource.loading
+  const pageError = () =>
+    mutationError() ||
+    (membershipsResource.error instanceof Error
+      ? membershipsResource.error.message
+      : '') ||
+    (tenantAccessResource.error instanceof Error
+      ? tenantAccessResource.error.message
+      : '')
+  const sessionAdmin = createSessionAdmin(
+    sessionID,
+    setPageError,
+    setMemberActionMessage
+  )
+  const platformRoleAdmin = createPlatformRoleAdmin(
+    userID,
+    setPageError,
+    setMemberActionMessage
+  )
   const tenantOptions = () =>
     memberships().map((membership) => ({
       name: `${membership.tenantId} · ${membership.roleName}`,
       value: membership.tenantId,
-    }));
-  const currentSessionCount = () => sessions().filter((session) => session.id === sessionID()).length;
-  const otherSessionCount = () => sessions().filter((session) => session.id !== sessionID()).length;
-
-  const loadSessions = async () => {
-    setLoadingSessions(true);
-    try {
-      const result = await listSessions();
-      if (!result.success) {
-        setPageError(result.data.message);
-        return;
-      }
-      setSessions(result.data);
-    } finally {
-      setLoadingSessions(false);
-    }
-  };
-
-  const loadAuditLogs = async () => {
-    setLoadingAuditLogs(true);
-    try {
-      const result = await listAuditLogs(25);
-      if (!result.success) {
-        setPageError(result.data.message);
-        return;
-      }
-      setAuditLogs(result.data);
-    } finally {
-      setLoadingAuditLogs(false);
-    }
-  };
-
-  const loadUserTenants = async () => {
-    if (!userID) return;
-    setLoadingTenants(true);
-    try {
-      const result = await listUserTenants(userID);
-      if (!result.success) {
-        setPageError(result.message);
-        return;
-      }
-      setMemberships(result.data);
-    } finally {
-      setLoadingTenants(false);
-    }
-  };
+    }))
 
   const loadTenantMembers = async (tenantId = memberTenantId().trim()) => {
-    if (!tenantId) {
-      setMembers([]);
-      return;
-    }
-    if (!canReadTenant()) {
-      setMembers([]);
-      return;
-    }
-    setLoadingMembers(true);
-    setPageError('');
-    try {
-      const result = await listTenantMembers(tenantId);
-      if (!result.success) {
-        setPageError(result.message);
-        setMembers([]);
-        return;
-      }
-      setMembers(result.data);
-    } finally {
-      setLoadingMembers(false);
-    }
-  };
+    if (!tenantId) return
+    setPageError('')
+    setMemberTenantId(tenantId)
+    await refetchTenantAccess()
+  }
 
   const loadTenantInvites = async (tenantId = memberTenantId().trim()) => {
-    if (!tenantId || !canManageMembers()) {
-      setInvites([]);
-      return;
-    }
-    setLoadingInvites(true);
-    setPageError('');
-    try {
-      const result = await listTenantInvites(tenantId);
-      if (!result.success) {
-        setPageError(result.message);
-        setInvites([]);
-        return;
-      }
-      setInvites(result.data);
-    } finally {
-      setLoadingInvites(false);
-    }
-  };
+    if (!tenantId) return
+    setPageError('')
+    setMemberTenantId(tenantId)
+    await refetchTenantAccess()
+  }
 
   const saveMemberFromForm = async (values: TeamMemberFormValues) => {
-    const tenantId = values.tenantId.trim();
-    const parsedUserId = Number.parseInt(values.userId.trim(), 10);
-    const identity = values.identity.trim();
-    if (!tenantId || (identity === '' && (!Number.isFinite(parsedUserId) || parsedUserId <= 0))) {
-      setPageError('Workspace id and either teammate identity or user id are required.');
-      return;
+    const tenantId = values.tenantId.trim()
+    const parsedUserId = Number.parseInt(values.userId.trim(), 10)
+    const identity = values.identity.trim()
+    if (
+      !tenantId ||
+      (identity === '' && (!Number.isFinite(parsedUserId) || parsedUserId <= 0))
+    ) {
+      setPageError(
+        'Workspace id and either teammate identity or user id are required.'
+      )
+      return
     }
     if (!canManageMembers()) {
-      setPageError('You do not have permission to manage team access for this workspace.');
-      return;
+      setPageError(
+        'You do not have permission to manage team access for this workspace.'
+      )
+      return
     }
 
-    setSavingMember(true);
-    setPageError('');
-    setMemberActionMessage('');
-    setMemberTenantId(tenantId);
-    setMemberUserId(values.userId.trim());
-    setMemberIdentity(identity);
-    setRoleName(values.roleName);
+    setSavingMember(true)
+    setPageError('')
+    setMemberActionMessage('')
+    setMemberTenantId(tenantId)
+    setMemberUserId(values.userId.trim())
+    setMemberIdentity(identity)
+    setRoleName(values.roleName)
     try {
       if (identity) {
         const result = await upsertTenantMemberByIdentity({
           tenantId,
           identity,
           roleName: values.roleName,
-        });
+        })
         if (!result.success) {
-          setPageError(result.message);
-          return;
+          setPageError(result.message)
+          return
         }
-        setMemberUserId(result.data.userId ? String(result.data.userId) : '');
-        setMemberIdentity('');
+        setMemberUserId(result.data.userId ? String(result.data.userId) : '')
+        setMemberIdentity('')
         setMemberActionMessage(
           result.data.createdUser
             ? `Created a new account and granted workspace access for ${identity} in ${tenantId}.`
             : `Granted workspace access to existing user ${result.data.userId} for ${identity} in ${tenantId}.`
-        );
+        )
       } else {
         const result = await upsertTenantMember({
           tenantId,
           userId: parsedUserId,
           roleName: values.roleName,
-        });
+        })
         if (!result.success) {
-          setPageError(result.message);
-          return;
+          setPageError(result.message)
+          return
         }
-        setMemberUserId('');
-        setMemberActionMessage(`Saved workspace access for user ${parsedUserId} in ${tenantId}.`);
+        setMemberUserId('')
+        setMemberActionMessage(
+          `Saved workspace access for user ${parsedUserId} in ${tenantId}.`
+        )
       }
-      await loadTenantMembers(tenantId);
+      await loadTenantMembers(tenantId)
     } finally {
-      setSavingMember(false);
+      setSavingMember(false)
     }
-  };
+  }
 
   const handleRemoveMember = async (tenantId: string, userId: number) => {
     if (!canManageMembers()) {
-      setPageError('You do not have permission to remove workspace access.');
-      return;
+      setPageError('You do not have permission to remove workspace access.')
+      return
     }
-    setPageError('');
-    setMemberActionMessage('');
-    const result = await removeTenantMember(tenantId, userId);
+    setPageError('')
+    setMemberActionMessage('')
+    const result = await removeTenantMember(tenantId, userId)
     if (!result.success) {
-      setPageError(result.message);
-      return;
+      setPageError(result.message)
+      return
     }
-    setMemberActionMessage(`Removed user ${userId} from workspace ${tenantId}.`);
-    await loadTenantMembers(tenantId);
-  };
+    setMemberActionMessage(`Removed user ${userId} from workspace ${tenantId}.`)
+    await loadTenantMembers(tenantId)
+  }
 
   const createInviteFromForm = async (values: TenantInviteFormValues) => {
-    const tenantId = values.tenantId.trim();
-    const email = values.email.trim();
+    const tenantId = values.tenantId.trim()
+    const email = values.email.trim()
     if (!tenantId || !email) {
-      setPageError('Workspace id and invite email are required.');
-      return;
+      setPageError('Workspace id and invite email are required.')
+      return
     }
     if (!canManageMembers()) {
-      setPageError('You do not have permission to manage workspace invites.');
-      return;
+      setPageError('You do not have permission to manage workspace invites.')
+      return
     }
 
-    setSavingInvite(true);
-    setPageError('');
-    setMemberActionMessage('');
-    setLatestInviteAcceptURL('');
-    setMemberTenantId(tenantId);
-    setInviteEmail(email);
-    setInviteRoleName(values.roleName);
+    setSavingInvite(true)
+    setPageError('')
+    setMemberActionMessage('')
+    setLatestInviteAcceptURL('')
+    setMemberTenantId(tenantId)
+    setInviteEmail(email)
+    setInviteRoleName(values.roleName)
     try {
       const result = await createTenantInvite({
         tenantId,
         email,
         roleName: values.roleName,
-      });
+      })
       if (!result.success) {
-        setPageError(result.message);
-        return;
+        setPageError(result.message)
+        return
       }
-      setInviteEmail('');
-      setLatestInviteAcceptURL(result.data.acceptUrl);
-      setMemberActionMessage(`Created a workspace invite for ${email} in ${tenantId}.`);
-      await loadTenantInvites(tenantId);
+      setInviteEmail('')
+      setLatestInviteAcceptURL(result.data.acceptUrl)
+      setMemberActionMessage(
+        `Created a workspace invite for ${email} in ${tenantId}.`
+      )
+      await loadTenantInvites(tenantId)
     } finally {
-      setSavingInvite(false);
+      setSavingInvite(false)
     }
-  };
+  }
 
-  const handleRevokeInvite = async (inviteId: string, tenantId: string, email: string) => {
+  const handleRevokeInvite = async (
+    inviteId: string,
+    tenantId: string,
+    email: string
+  ) => {
     if (!canManageMembers()) {
-      setPageError('You do not have permission to revoke workspace invites.');
-      return;
+      setPageError('You do not have permission to revoke workspace invites.')
+      return
     }
-    setPageError('');
-    setMemberActionMessage('');
-    const result = await revokeTenantInvite(inviteId);
+    setPageError('')
+    setMemberActionMessage('')
+    const result = await revokeTenantInvite(inviteId)
     if (!result.success) {
-      setPageError(result.message);
-      return;
+      setPageError(result.message)
+      return
     }
-    setMemberActionMessage(`Revoked workspace invite for ${email}.`);
-    await loadTenantInvites(tenantId);
-  };
-
-  const refreshTenantPermissions = async (tenantId = memberTenantId().trim()) => {
-    if (!userID || !tenantId) {
-      setCanReadTenant(false);
-      setCanManageMembers(false);
-      return;
-    }
-    setCheckingPermissions(true);
-    try {
-      const [readResult, manageResult] = await Promise.all([
-        checkPermission({
-          tenantId,
-          userId: userID,
-          permission: 'tenant:read',
-        }),
-        checkPermission({
-          tenantId,
-          userId: userID,
-          permission: 'tenant:manage_members',
-        }),
-      ]);
-      if (!readResult.success) {
-        setPageError(readResult.message);
-        setCanReadTenant(false);
-      } else {
-        setCanReadTenant(readResult.data);
-      }
-      if (!manageResult.success) {
-        setPageError(manageResult.message);
-        setCanManageMembers(false);
-      } else {
-        setCanManageMembers(manageResult.data);
-      }
-    } finally {
-      setCheckingPermissions(false);
-    }
-  };
-
-  const refreshPlatformPermissions = async () => {
-    if (!userID) {
-      setCanManagePlatformRoles(false);
-      return;
-    }
-    const result = await checkPlatformPermission('platform:manage_roles');
-    if (!result.success) {
-      setPageError(result.message);
-      setCanManagePlatformRoles(false);
-      return;
-    }
-    setCanManagePlatformRoles(result.data);
-  };
-
-  const loadPlatformRoleAssignments = async () => {
-    const targetUserID = Number.parseInt(platformUserId().trim(), 10);
-    if (!userID || !canManagePlatformRoles() || !Number.isFinite(targetUserID) || targetUserID <= 0) {
-      setPlatformRoles([]);
-      return;
-    }
-    setLoadingPlatformRoles(true);
-    try {
-      const result = await listPlatformRoles(targetUserID);
-      if (!result.success) {
-        setPageError(result.message);
-        setPlatformRoles([]);
-        return;
-      }
-      setPlatformRoles(result.data);
-    } finally {
-      setLoadingPlatformRoles(false);
-    }
-  };
-
-  const savePlatformRoleFromForm = async (values: PlatformRoleFormValues) => {
-    const targetUserID = Number.parseInt(values.userId.trim(), 10);
-    if (!canManagePlatformRoles()) {
-      setPageError('You do not have permission to manage platform administration roles.');
-      return;
-    }
-    if (!Number.isFinite(targetUserID) || targetUserID <= 0) {
-      setPageError('Target user id is required for platform administration roles.');
-      return;
-    }
-    setSavingPlatformRole(true);
-    setPageError('');
-    setMemberActionMessage('');
-    setPlatformUserId(values.userId.trim());
-    setPlatformRoleName(values.roleName);
-    try {
-      const result = await upsertPlatformRole({
-        targetUserId: targetUserID,
-        roleName: values.roleName,
-      });
-      if (!result.success) {
-        setPageError(result.message);
-        return;
-      }
-      setMemberActionMessage(`Saved platform admin role ${values.roleName} for user ${targetUserID}.`);
-      await loadPlatformRoleAssignments();
-    } finally {
-      setSavingPlatformRole(false);
-    }
-  };
-
-  const handleRemovePlatformRole = async (targetUserID: number, roleName: string) => {
-    if (!canManagePlatformRoles()) {
-      setPageError('You do not have permission to manage platform administration roles.');
-      return;
-    }
-    setPageError('');
-    setMemberActionMessage('');
-    const result = await removePlatformRole(targetUserID, roleName);
-    if (!result.success) {
-      setPageError(result.message);
-      return;
-    }
-    setMemberActionMessage(`Removed platform admin role ${roleName} from user ${targetUserID}.`);
-    await loadPlatformRoleAssignments();
-  };
-
-  const handleRevokeSession = async (sessionId: string) => {
-    setPageError('');
-    setMemberActionMessage('');
-    const result = await revokeSession(sessionId);
-    if (!result.success) {
-      setPageError(result.data.message || 'Failed to revoke session');
-      return;
-    }
-    setMemberActionMessage(`Revoked session ${sessionId}.`);
-    await loadSessions();
-  };
+    setMemberActionMessage(`Revoked workspace invite for ${email}.`)
+    await loadTenantInvites(tenantId)
+  }
 
   onMount(() => {
-    void loadUserTenants();
-    void refreshPlatformPermissions();
-    void loadSessions();
-    void loadAuditLogs();
-  });
+    void platformRoleAdmin.refreshPlatformPermissions()
+  })
 
   createEffect(() => {
     if (!memberTenantId().trim()) {
-      const nextTenantId = activeTenantId() || memberships()[0]?.tenantId || '';
+      const nextTenantId = activeTenantId() || memberships()[0]?.tenantId || ''
       if (nextTenantId) {
-        setMemberTenantId(nextTenantId);
+        setMemberTenantId(nextTenantId)
       }
     }
-  });
+  })
 
   createEffect(() => {
-    const tenantId = memberTenantId().trim();
-    if (!tenantId || !userID) {
-      setCanReadTenant(false);
-      setCanManageMembers(false);
-      setMembers([]);
-      return;
+    if (!platformRoleAdmin.canManagePlatformRoles()) {
+      platformRoleAdmin.clearPlatformRoles()
+      return
     }
-
-    void (async () => {
-      await refreshTenantPermissions(tenantId);
-      if (canReadTenant()) {
-        await loadTenantMembers(tenantId);
-      } else {
-        setMembers([]);
-      }
-      if (canManageMembers()) {
-        await loadTenantInvites(tenantId);
-      } else {
-        setInvites([]);
-      }
-    })();
-  });
-
-  createEffect(() => {
-    if (!canManagePlatformRoles()) {
-      setPlatformRoles([]);
-      return;
-    }
-    void loadPlatformRoleAssignments();
-  });
+    void platformRoleAdmin.loadPlatformRoleAssignments()
+  })
 
   const viewModel = {
-    hasToken, userID, activeTenantId, sessionID, routeTenantId, setRouteTenantID, memberTenantId, setMemberTenantId, memberUserId, setMemberUserId, memberIdentity, setMemberIdentity, roleName, setRoleName, inviteEmail, setInviteEmail, inviteRoleName, setInviteRoleName, memberships, members, invites, platformRoles, sessions, auditLogs, loadingTenants, loadingMembers, loadingInvites, loadingSessions, loadingAuditLogs, savingMember, savingInvite, checkingPermissions, loadingPlatformRoles, savingPlatformRole, pageError, memberActionMessage, latestInviteAcceptURL, canReadTenant, canManageMembers, canManagePlatformRoles, platformUserId, setPlatformUserId, platformRoleName, setPlatformRoleName, tenantOptions, currentSessionCount, otherSessionCount, loadSessions, loadAuditLogs, loadTenantMembers, loadTenantInvites, loadPlatformRoleAssignments, handleRevokeSession, handleRemoveMember, handleRevokeInvite, handleRemovePlatformRole, saveMemberFromForm, createInviteFromForm, savePlatformRoleFromForm,
-  };
+    hasToken,
+    userID,
+    activeTenantId,
+    sessionID,
+    routeTenantId,
+    setRouteTenantID,
+    memberTenantId,
+    setMemberTenantId,
+    memberUserId,
+    setMemberUserId,
+    memberIdentity,
+    setMemberIdentity,
+    roleName,
+    setRoleName,
+    inviteEmail,
+    setInviteEmail,
+    inviteRoleName,
+    setInviteRoleName,
+    memberships,
+    members,
+    invites,
+    loadingTenants,
+    loadingMembers,
+    loadingInvites,
+    savingMember,
+    savingInvite,
+    checkingPermissions,
+    pageError,
+    memberActionMessage,
+    latestInviteAcceptURL,
+    canReadTenant,
+    canManageMembers,
+    tenantOptions,
+    refetchMemberships,
+    ...sessionAdmin,
+    ...platformRoleAdmin,
+    loadTenantMembers,
+    loadTenantInvites,
+    handleRemoveMember,
+    handleRevokeInvite,
+    saveMemberFromForm,
+    createInviteFromForm,
+  }
 
+  return viewModel
+}
+
+export type AdminSettingsViewModel = ReturnType<
+  typeof createAdminSettingsViewModel
+>
+
+export default function AdminSettingsPage() {
+  const viewModel = createAdminSettingsViewModel()
   return (
     <AdminSettingsContext.Provider value={viewModel}>
       <AdminSettingsView />
     </AdminSettingsContext.Provider>
-  );
+  )
 }

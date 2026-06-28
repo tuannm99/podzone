@@ -1,47 +1,47 @@
-import { For, Show } from 'solid-js';
-import { EmptyBlock, ErrorAlert, InfoAlert } from '@/solid/components/common/Feedback';
+import { For, Show } from 'solid-js'
 import {
-  Badge,
-  Button,
-  InputField,
-  SelectField,
-} from '@/solid/components/common/Primitives';
-import { SectionTitle } from '@/solid/components/common/SectionTitle';
-import { useTenantOrdersComposer } from './composer-context';
+  EmptyBlock,
+  ErrorAlert,
+  InfoAlert,
+} from '@/solid/components/common/Feedback'
+import { Badge, Button } from '@/solid/components/common/Primitives'
+import { SectionTitle } from '@/solid/components/common/SectionTitle'
+import { FormInputField, FormSelectField } from '@/solid/forms'
+import { useTenantOrdersComposer } from './composer-context'
 
 const productTypeOptions = [
   { name: 'T-shirt', value: 'tshirt' },
   { name: 'Hoodie', value: 'hoodie' },
   { name: 'Tote', value: 'tote' },
   { name: 'Poster', value: 'poster' },
-];
+]
 
 const shipRegionOptions = [
   { name: 'US', value: 'us' },
   { name: 'EU', value: 'eu' },
   { name: 'UK', value: 'uk' },
   { name: 'SEA', value: 'sea' },
-];
+]
 
 const exceptionOptions = [
   { name: 'Artwork issue', value: 'artwork_issue' },
   { name: 'Partner delay', value: 'partner_delay' },
   { name: 'Address hold', value: 'address_hold' },
   { name: 'Reprint request', value: 'reprint_request' },
-];
+]
 
 function joinPartnerCapabilityList(items: string[]) {
-  return items.length > 0 ? items.join(', ') : 'Any';
+  return items.length > 0 ? items.join(', ') : 'Any'
 }
 
 function joinShippingCostRules(items: { region: string; cost: string }[]) {
   return items.length > 0
     ? items.map((item) => `${item.region}:${item.cost}`).join(', ')
-    : 'No region rules';
+    : 'No region rules'
 }
 
 export function CreateRoutedOrderPanel() {
-  const composer = useTenantOrdersComposer();
+  const composer = useTenantOrdersComposer()
 
   return (
     <>
@@ -60,52 +60,44 @@ export function CreateRoutedOrderPanel() {
         }
       >
         <form class="space-y-4" onSubmit={composer.createMockOrder}>
-          <SelectField
+          <FormSelectField
+            form={composer.form}
+            name="selectedCandidateId"
             label="Published mock product"
-            value={composer.selectedCandidateId()}
             options={composer.availableCandidates().map((candidate) => ({
               name: `${candidate.title} · ${candidate.partner}`,
               value: candidate.id,
             }))}
-            onChange={(event) =>
-              composer.setSelectedCandidateId(event.currentTarget.value)
-            }
           />
           <div class="grid gap-4 md:grid-cols-2">
-            <InputField
+            <FormInputField
+              form={composer.form}
+              name="customerName"
               label="Customer name"
-              value={composer.customerName()}
               placeholder="Nguyen Minh"
-              onInput={(event) =>
-                composer.setCustomerName(event.currentTarget.value)
-              }
             />
-            <InputField
+            <FormInputField
+              form={composer.form}
+              name="quantity"
               label="Quantity"
-              value={composer.quantity()}
               placeholder="1"
-              onInput={(event) => composer.setQuantity(event.currentTarget.value)}
             />
           </div>
           <div class="grid gap-4 md:grid-cols-3">
-            <SelectField
+            <FormSelectField
+              form={composer.form}
+              name="selectedProductType"
               label="Product type"
-              value={composer.selectedProductType()}
               options={productTypeOptions}
-              onChange={(event) =>
-                composer.setSelectedProductType(event.currentTarget.value)
-              }
             />
-            <SelectField
+            <FormSelectField
+              form={composer.form}
+              name="selectedShipRegion"
               label="Ship region"
-              value={composer.selectedShipRegion()}
               options={shipRegionOptions}
-              onChange={(event) =>
-                composer.setSelectedShipRegion(event.currentTarget.value)
-              }
             />
             <Show
-              when={composer.manualPartnerOverride()}
+              when={composer.form.values.manualPartnerOverride}
               fallback={
                 <div class="space-y-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3">
                   <p class="text-sm font-medium text-gray-700">
@@ -119,7 +111,9 @@ export function CreateRoutedOrderPanel() {
                     type="button"
                     size="xs"
                     color="alternative"
-                    onClick={() => composer.setManualPartnerOverride(true)}
+                    onClick={() =>
+                      composer.form.setValue('manualPartnerOverride', true)
+                    }
                   >
                     Override partner
                   </Button>
@@ -127,13 +121,11 @@ export function CreateRoutedOrderPanel() {
               }
             >
               <div class="space-y-2">
-                <InputField
+                <FormInputField
+                  form={composer.form}
+                  name="preferredPartner"
                   label="Preferred partner override"
-                  value={composer.preferredPartner()}
                   placeholder="optional code or name"
-                  onInput={(event) =>
-                    composer.setPreferredPartner(event.currentTarget.value)
-                  }
                 />
                 <Button
                   type="button"
@@ -153,11 +145,15 @@ export function CreateRoutedOrderPanel() {
                   <Badge content="routing recommendation" color="blue" />
                   <Badge
                     content={
-                      composer.manualPartnerOverride()
+                      composer.form.values.manualPartnerOverride
                         ? 'manual override'
                         : 'auto-route active'
                     }
-                    color={composer.manualPartnerOverride() ? 'yellow' : 'green'}
+                    color={
+                      composer.form.values.manualPartnerOverride
+                        ? 'yellow'
+                        : 'green'
+                    }
                   />
                   <Show when={recommendation().candidatePartner}>
                     <Badge
@@ -191,7 +187,7 @@ export function CreateRoutedOrderPanel() {
                 </Show>
                 <Show
                   when={
-                    !composer.manualPartnerOverride() &&
+                    !composer.form.values.manualPartnerOverride &&
                     recommendation().selectedPartner
                   }
                 >
@@ -204,8 +200,9 @@ export function CreateRoutedOrderPanel() {
                 <div class="mt-3 space-y-3">
                   <Show
                     when={
-                      recommendation().options.filter((option) => option.eligible)
-                        .length > 0
+                      recommendation().options.filter(
+                        (option) => option.eligible
+                      ).length > 0
                     }
                   >
                     <div class="space-y-2">
@@ -220,7 +217,10 @@ export function CreateRoutedOrderPanel() {
                         {(option) => (
                           <div class="rounded-md bg-white p-3 text-sm text-gray-600">
                             <div class="flex flex-wrap items-center gap-2">
-                              <Badge content={option.partner.name} color="green" />
+                              <Badge
+                                content={option.partner.name}
+                                color="green"
+                              />
                               <Badge
                                 content={`priority ${option.partner.routingPriority}`}
                                 color="blue"
@@ -296,7 +296,9 @@ export function CreateRoutedOrderPanel() {
                                   type="button"
                                   size="xs"
                                   color="green"
-                                  onClick={composer.resetPreferredPartnerOverride}
+                                  onClick={
+                                    composer.resetPreferredPartnerOverride
+                                  }
                                 >
                                   Use auto-route
                                 </Button>
@@ -308,7 +310,9 @@ export function CreateRoutedOrderPanel() {
                     </div>
                   </Show>
                   <Show
-                    when={recommendation().options.some((option) => !option.eligible)}
+                    when={recommendation().options.some(
+                      (option) => !option.eligible
+                    )}
                   >
                     <div class="space-y-2">
                       <p class="text-sm font-medium text-gray-700">
@@ -322,7 +326,10 @@ export function CreateRoutedOrderPanel() {
                         {(option) => (
                           <div class="rounded-md border border-red-100 bg-red-50 p-3 text-sm text-gray-600">
                             <div class="flex flex-wrap items-center gap-2">
-                              <Badge content={option.partner.name} color="red" />
+                              <Badge
+                                content={option.partner.name}
+                                color="red"
+                              />
                               <Badge
                                 content={`priority ${option.partner.routingPriority}`}
                                 color="dark"
@@ -366,22 +373,23 @@ export function CreateRoutedOrderPanel() {
               </div>
             )}
           </Show>
-          <SelectField
+          <FormSelectField
+            form={composer.form}
+            name="selectedExceptionType"
             label="Default exception scenario"
-            value={composer.selectedExceptionType()}
             options={exceptionOptions}
-            onChange={(event) =>
-              composer.setSelectedExceptionType(event.currentTarget.value)
-            }
           />
-          <Button type="submit" color="blue">
-            {composer.manualPartnerOverride()
+          <Button
+            type="submit"
+            color="blue"
+            loading={composer.form.isSubmitting()}
+          >
+            {composer.form.values.manualPartnerOverride
               ? 'Create routed order with override'
               : 'Create routed order via auto-route'}
           </Button>
         </form>
       </Show>
     </>
-  );
+  )
 }
-

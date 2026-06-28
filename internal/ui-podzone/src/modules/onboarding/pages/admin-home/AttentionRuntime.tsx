@@ -1,9 +1,9 @@
-import { For, Show } from 'solid-js';
-import { GW_API_URL, TENANT_GQL_URL } from '@/services/baseurl';
-import { EmptyBlock, LoadingInline } from '@/solid/components/common/Feedback';
-import { Badge, Button, Card } from '@/solid/components/common/Primitives';
-import { SectionTitle } from '@/solid/components/common/SectionTitle';
-import { useAdminHome } from './context';
+import { For, Show } from 'solid-js'
+import { GW_API_URL, TENANT_GQL_URL } from '@/services/baseurl'
+import { EmptyBlock, LoadingInline } from '@/solid/components/common/Feedback'
+import { Badge, Button, Card } from '@/solid/components/common/Primitives'
+import { SectionTitle } from '@/solid/components/common/SectionTitle'
+import { useAdminHome } from './context'
 
 export function AttentionRuntime() {
   return (
@@ -11,11 +11,11 @@ export function AttentionRuntime() {
       <AttentionView />
       <RuntimeEndpoints />
     </div>
-  );
+  )
 }
 
 function AttentionView() {
-  const vm = useAdminHome();
+  const vm = useAdminHome()
 
   return (
     <Card class="space-y-4">
@@ -96,7 +96,7 @@ function AttentionView() {
         </div>
       </Show>
     </Card>
-  );
+  )
 }
 
 function RuntimeEndpoints() {
@@ -124,5 +124,5 @@ function RuntimeEndpoints() {
         </div>
       </div>
     </Card>
-  );
+  )
 }

@@ -1,42 +1,40 @@
-import { useParams } from '@tanstack/solid-router';
-import { Show, createEffect, createSignal, onMount } from 'solid-js';
-import { getPartner, type PartnerInfo } from '@/services/partner';
-import { tenantStorage } from '@/services/tenantStorage';
+import { useParams } from '@tanstack/solid-router'
+import { Show, createEffect, createSignal, onMount } from 'solid-js'
+import { getPartner, type PartnerInfo } from '@/services/partner'
+import { tenantStorage } from '@/services/tenantStorage'
 import {
   EmptyBlock,
   ErrorAlert,
   InfoAlert,
   LoadingInline,
-} from '@/solid/components/common/Feedback';
-import { PageShell } from '@/solid/components/common/PageShell';
-import { Badge, Button, Card } from '@/solid/components/common/Primitives';
-import { SectionLead } from '@/solid/components/common/SectionLead';
-import { SectionTitle } from '@/solid/components/common/SectionTitle';
+} from '@/solid/components/common/Feedback'
+import { PageShell } from '@/solid/components/common/PageShell'
+import { Badge, Button, Card } from '@/solid/components/common/Primitives'
+import { SectionLead } from '@/solid/components/common/SectionLead'
+import { SectionTitle } from '@/solid/components/common/SectionTitle'
 
 function badgeColorForStatus(status: string) {
-  return status === 'active' ? 'green' : 'dark';
+  return status === 'active' ? 'green' : 'dark'
 }
 
 function partnerTypeLabel(partnerType: string) {
-  return partnerType.replaceAll('_', ' ');
+  return partnerType.replaceAll('_', ' ')
 }
 
 function formatTimestamp(value?: string) {
-  if (!value) return 'Not available';
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+  if (!value) return 'Not available'
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString()
 }
 
 function formatCapabilityList(items?: string[]) {
-  return items && items.length > 0 ? items.join(', ') : 'Any';
+  return items && items.length > 0 ? items.join(', ') : 'Any'
 }
 
-function formatShippingCostRules(
-  items?: { region: string; cost: string }[]
-) {
+function formatShippingCostRules(items?: { region: string; cost: string }[]) {
   return items && items.length > 0
     ? items.map((item) => `${item.region}:${item.cost}`).join(', ')
-    : 'No region rules';
+    : 'No region rules'
 }
 
 function DetailRow(props: { label: string; value: string }) {
@@ -47,39 +45,39 @@ function DetailRow(props: { label: string; value: string }) {
       </p>
       <p class="mt-2 text-sm text-gray-900">{props.value}</p>
     </div>
-  );
+  )
 }
 
 export default function TenantPartnerDetailPage() {
-  const params = useParams({ from: '/t/$tenantId/partners/$partnerId' });
+  const params = useParams({ from: '/t/$tenantId/partners/$partnerId' })
 
-  const [partner, setPartner] = createSignal<PartnerInfo | null>(null);
-  const [loading, setLoading] = createSignal(false);
-  const [error, setError] = createSignal('');
+  const [partner, setPartner] = createSignal<PartnerInfo | null>(null)
+  const [loading, setLoading] = createSignal(false)
+  const [error, setError] = createSignal('')
 
   const loadPartner = async () => {
-    setLoading(true);
-    setError('');
+    setLoading(true)
+    setError('')
     try {
-      const result = await getPartner(params().partnerId);
+      const result = await getPartner(params().partnerId)
       if (!result.success) {
-        setPartner(null);
-        setError(result.message);
-        return;
+        setPartner(null)
+        setError(result.message)
+        return
       }
-      setPartner(result.data);
+      setPartner(result.data)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   createEffect(() => {
-    tenantStorage.setTenantID(params().tenantId);
-  });
+    tenantStorage.setTenantID(params().tenantId)
+  })
 
   onMount(() => {
-    void loadPartner();
-  });
+    void loadPartner()
+  })
 
   return (
     <PageShell>
@@ -98,7 +96,7 @@ export default function TenantPartnerDetailPage() {
         <Button
           color="alternative"
           onClick={() => {
-            void loadPartner();
+            void loadPartner()
           }}
         >
           Reload record
@@ -110,7 +108,9 @@ export default function TenantPartnerDetailPage() {
       </Show>
 
       <InfoAlert>
-        This page reads a real partner record from the partner service. It is separate from the browser-local prototype flows used by product and order demo screens.
+        This page reads a real partner record from the partner service. It is
+        separate from the browser-local prototype flows used by product and
+        order demo screens.
       </InfoAlert>
 
       <Show when={loading()}>
@@ -150,7 +150,10 @@ export default function TenantPartnerDetailPage() {
 
             <div class="grid gap-4 md:grid-cols-2">
               <DetailRow label="Partner id" value={current().id} />
-              <DetailRow label="Partner code" value={current().code || 'Not set'} />
+              <DetailRow
+                label="Partner code"
+                value={current().code || 'Not set'}
+              />
               <DetailRow
                 label="Contact name"
                 value={current().contactName || 'Not set'}
@@ -214,5 +217,5 @@ export default function TenantPartnerDetailPage() {
         )}
       </Show>
     </PageShell>
-  );
+  )
 }

@@ -188,6 +188,7 @@ export type InputFieldProps = {
   value: string
   type?: string
   placeholder?: string
+  disabled?: boolean
   error?: boolean
   errorText?: string
   onInput: JSX.EventHandlerUnion<HTMLInputElement, InputEvent>
@@ -201,6 +202,7 @@ export function InputField(props: InputFieldProps) {
         type={props.type ?? 'text'}
         value={props.value}
         placeholder={props.placeholder}
+        disabled={props.disabled}
         onInput={props.onInput}
       />
       <Show when={props.errorText}>
