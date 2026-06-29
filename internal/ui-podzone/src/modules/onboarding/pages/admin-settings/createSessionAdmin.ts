@@ -46,12 +46,13 @@ export function createSessionAdmin(
       return result.data
     }
   )
-  const sessions = () => sessionsResource()?.items || []
-  const auditLogs = () => auditLogsResource()?.items || []
+  const sessions = () => sessionsResource.latest?.items || []
+  const auditLogs = () => auditLogsResource.latest?.items || []
   const sessionPageInfo = () =>
-    sessionsResource()?.pageInfo || emptyPageInfo(sessionQuery)
+    sessionsResource.latest?.pageInfo || emptyPageInfo(sessionQuery)
   const auditPageInfo = () =>
-    auditLogsResource()?.pageInfo || emptyPageInfo(auditQuery)
+    auditLogsResource.latest?.pageInfo || emptyPageInfo(auditQuery)
+
   const loadingSessions = () => sessionsResource.loading
   const loadingAuditLogs = () => auditLogsResource.loading
   const sessionReadError = () =>
