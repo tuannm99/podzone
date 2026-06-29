@@ -3,6 +3,10 @@
 package model
 
 import (
+	"bytes"
+	"fmt"
+	"io"
+	"strconv"
 	"time"
 )
 
@@ -11,6 +15,21 @@ type BulkUpdateRoutedOrdersInput struct {
 	OperatorAssignee *string    `json:"operatorAssignee,omitempty"`
 	ShipmentSLADueAt *time.Time `json:"shipmentSlaDueAt,omitempty"`
 	SettlementStatus *string    `json:"settlementStatus,omitempty"`
+}
+
+type CollectionFilterInput struct {
+	Field    string                   `json:"field"`
+	Operator CollectionFilterOperator `json:"operator"`
+	Values   []string                 `json:"values"`
+}
+
+type CollectionInput struct {
+	Page          *int                     `json:"page,omitempty"`
+	PageSize      *int                     `json:"pageSize,omitempty"`
+	Search        *string                  `json:"search,omitempty"`
+	Filters       []*CollectionFilterInput `json:"filters,omitempty"`
+	SortBy        *string                  `json:"sortBy,omitempty"`
+	SortDirection *CollectionSortDirection `json:"sortDirection,omitempty"`
 }
 
 type CreateProductSetupDraftInput struct {
@@ -41,11 +60,21 @@ type ForceRerouteBlockedOrderInput struct {
 	PreferredPartner string `json:"preferredPartner"`
 }
 
-type Mutation struct{}
+type Mutation struct {
+}
 
 type OpenOrderExceptionInput struct {
 	OrderID       string `json:"orderId"`
 	ExceptionType string `json:"exceptionType"`
+}
+
+type PageInfo struct {
+	Total       int  `json:"total"`
+	Page        int  `json:"page"`
+	PageSize    int  `json:"pageSize"`
+	TotalPages  int  `json:"totalPages"`
+	HasNext     bool `json:"hasNext"`
+	HasPrevious bool `json:"hasPrevious"`
 }
 
 type PartnerRoutingProfile struct {
@@ -132,7 +161,8 @@ type PromoteProductSetupCandidateInput struct {
 	MerchandisingNotes string                             `json:"merchandisingNotes"`
 }
 
-type Query struct{}
+type Query struct {
+}
 
 type RoutedOrder struct {
 	ID                     string                 `json:"id"`
@@ -285,4 +315,128 @@ type UpdateOrderShipmentInput struct {
 	TrackingNumber string `json:"trackingNumber"`
 	TrackingURL    string `json:"trackingUrl"`
 	Notes          string `json:"notes"`
+}
+
+type CollectionFilterOperator string
+
+const (
+	CollectionFilterOperatorEq         CollectionFilterOperator = "EQ"
+	CollectionFilterOperatorNeq        CollectionFilterOperator = "NEQ"
+	CollectionFilterOperatorContains   CollectionFilterOperator = "CONTAINS"
+	CollectionFilterOperatorStartsWith CollectionFilterOperator = "STARTS_WITH"
+	CollectionFilterOperatorGt         CollectionFilterOperator = "GT"
+	CollectionFilterOperatorGte        CollectionFilterOperator = "GTE"
+	CollectionFilterOperatorLt         CollectionFilterOperator = "LT"
+	CollectionFilterOperatorLte        CollectionFilterOperator = "LTE"
+	CollectionFilterOperatorIn         CollectionFilterOperator = "IN"
+)
+
+var AllCollectionFilterOperator = []CollectionFilterOperator{
+	CollectionFilterOperatorEq,
+	CollectionFilterOperatorNeq,
+	CollectionFilterOperatorContains,
+	CollectionFilterOperatorStartsWith,
+	CollectionFilterOperatorGt,
+	CollectionFilterOperatorGte,
+	CollectionFilterOperatorLt,
+	CollectionFilterOperatorLte,
+	CollectionFilterOperatorIn,
+}
+
+func (e CollectionFilterOperator) IsValid() bool {
+	switch e {
+	case CollectionFilterOperatorEq, CollectionFilterOperatorNeq, CollectionFilterOperatorContains, CollectionFilterOperatorStartsWith, CollectionFilterOperatorGt, CollectionFilterOperatorGte, CollectionFilterOperatorLt, CollectionFilterOperatorLte, CollectionFilterOperatorIn:
+		return true
+	}
+	return false
+}
+
+func (e CollectionFilterOperator) String() string {
+	return string(e)
+}
+
+func (e *CollectionFilterOperator) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CollectionFilterOperator(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CollectionFilterOperator", str)
+	}
+	return nil
+}
+
+func (e CollectionFilterOperator) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *CollectionFilterOperator) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e CollectionFilterOperator) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
+}
+
+type CollectionSortDirection string
+
+const (
+	CollectionSortDirectionAsc  CollectionSortDirection = "ASC"
+	CollectionSortDirectionDesc CollectionSortDirection = "DESC"
+)
+
+var AllCollectionSortDirection = []CollectionSortDirection{
+	CollectionSortDirectionAsc,
+	CollectionSortDirectionDesc,
+}
+
+func (e CollectionSortDirection) IsValid() bool {
+	switch e {
+	case CollectionSortDirectionAsc, CollectionSortDirectionDesc:
+		return true
+	}
+	return false
+}
+
+func (e CollectionSortDirection) String() string {
+	return string(e)
+}
+
+func (e *CollectionSortDirection) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CollectionSortDirection(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CollectionSortDirection", str)
+	}
+	return nil
+}
+
+func (e CollectionSortDirection) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *CollectionSortDirection) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e CollectionSortDirection) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }

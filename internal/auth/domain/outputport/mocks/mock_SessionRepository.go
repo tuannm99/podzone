@@ -10,6 +10,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 // NewMockSessionRepository creates a new instance of MockSessionRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -165,27 +166,25 @@ func (_c *MockSessionRepository_GetByID_Call) RunAndReturn(run func(ctx context.
 }
 
 // ListByUser provides a mock function for the type MockSessionRepository
-func (_mock *MockSessionRepository) ListByUser(ctx context.Context, userID uint) ([]entity.Session, error) {
-	ret := _mock.Called(ctx, userID)
+func (_mock *MockSessionRepository) ListByUser(ctx context.Context, userID uint, query collection.Query) (collection.Page[entity.Session], error) {
+	ret := _mock.Called(ctx, userID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListByUser")
 	}
 
-	var r0 []entity.Session
+	var r0 collection.Page[entity.Session]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) ([]entity.Session, error)); ok {
-		return returnFunc(ctx, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, collection.Query) (collection.Page[entity.Session], error)); ok {
+		return returnFunc(ctx, userID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) []entity.Session); ok {
-		r0 = returnFunc(ctx, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, collection.Query) collection.Page[entity.Session]); ok {
+		r0 = returnFunc(ctx, userID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.Session)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.Session])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, uint) error); ok {
-		r1 = returnFunc(ctx, userID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint, collection.Query) error); ok {
+		r1 = returnFunc(ctx, userID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -200,11 +199,12 @@ type MockSessionRepository_ListByUser_Call struct {
 // ListByUser is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID uint
-func (_e *MockSessionRepository_Expecter) ListByUser(ctx interface{}, userID interface{}) *MockSessionRepository_ListByUser_Call {
-	return &MockSessionRepository_ListByUser_Call{Call: _e.mock.On("ListByUser", ctx, userID)}
+//   - query collection.Query
+func (_e *MockSessionRepository_Expecter) ListByUser(ctx interface{}, userID interface{}, query interface{}) *MockSessionRepository_ListByUser_Call {
+	return &MockSessionRepository_ListByUser_Call{Call: _e.mock.On("ListByUser", ctx, userID, query)}
 }
 
-func (_c *MockSessionRepository_ListByUser_Call) Run(run func(ctx context.Context, userID uint)) *MockSessionRepository_ListByUser_Call {
+func (_c *MockSessionRepository_ListByUser_Call) Run(run func(ctx context.Context, userID uint, query collection.Query)) *MockSessionRepository_ListByUser_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -214,20 +214,25 @@ func (_c *MockSessionRepository_ListByUser_Call) Run(run func(ctx context.Contex
 		if args[1] != nil {
 			arg1 = args[1].(uint)
 		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockSessionRepository_ListByUser_Call) Return(sessions []entity.Session, err error) *MockSessionRepository_ListByUser_Call {
-	_c.Call.Return(sessions, err)
+func (_c *MockSessionRepository_ListByUser_Call) Return(page collection.Page[entity.Session], err error) *MockSessionRepository_ListByUser_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockSessionRepository_ListByUser_Call) RunAndReturn(run func(ctx context.Context, userID uint) ([]entity.Session, error)) *MockSessionRepository_ListByUser_Call {
+func (_c *MockSessionRepository_ListByUser_Call) RunAndReturn(run func(ctx context.Context, userID uint, query collection.Query) (collection.Page[entity.Session], error)) *MockSessionRepository_ListByUser_Call {
 	_c.Call.Return(run)
 	return _c
 }

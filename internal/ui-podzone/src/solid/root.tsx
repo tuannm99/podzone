@@ -1,5 +1,5 @@
 import { Outlet, useRouterState } from '@tanstack/solid-router'
-import { Match, Switch, createEffect, createMemo } from 'solid-js'
+import { Match, Switch, createEffect, createMemo, on } from 'solid-js'
 import { AppShell, Container } from './components/common/AppShell'
 import { ScrollToTopButton } from './components/common/ScrollToTop'
 import { PodzoneNavbar } from './layout/PodzoneNavbar'
@@ -18,14 +18,20 @@ export default function Root() {
   const isAuthRoute = () => pathname().startsWith('/auth/')
   const tenantId = createMemo(() => parseTenantId(pathname()))
 
-  createEffect(() => {
-    pathname()
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: 'auto',
-    })
-  })
+  createEffect(
+    on(
+      pathname,
+      (currentPathname, previousPathname) => {
+        if (currentPathname === previousPathname) return
+        window.scrollTo({
+          top: 0,
+          left: 0,
+          behavior: 'auto',
+        })
+      },
+      { defer: true }
+    )
+  )
 
   return (
     <AppShell class="bg-gray-50">

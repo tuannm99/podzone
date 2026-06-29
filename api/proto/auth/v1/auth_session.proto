@@ -5,6 +5,7 @@ package auth;
 option go_package = "github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1";
 
 import "auth/v1/auth.proto";
+import "common/v1/common.proto";
 import "common/v1/iam_policy.proto";
 
 message Session {
@@ -106,10 +107,13 @@ message GetSessionResponse {
   Session session = 1;
 }
 
-message ListSessionsRequest {}
+message ListSessionsRequest {
+  common.CollectionRequest collection = 1;
+}
 
 message ListSessionsResponse {
   repeated Session sessions = 1;
+  common.PageInfo page_info = 2;
 }
 
 message RevokeSessionRequest {
@@ -119,9 +123,12 @@ message RevokeSessionRequest {
 message RevokeSessionResponse {}
 
 message ListAuditLogsRequest {
+  // Legacy compatibility. New clients use collection.page_size.
   int32 page_size = 1;
+  common.CollectionRequest collection = 2;
 }
 
 message ListAuditLogsResponse {
   repeated AuditLog logs = 1;
+  common.PageInfo page_info = 2;
 }

@@ -1,4 +1,5 @@
 import { createResource, type Accessor, type Setter } from 'solid-js'
+import { createStore } from 'solid-js/store'
 import {
   listAuditLogs,
   listSessions,
@@ -6,28 +7,51 @@ import {
   type AuditLogInfo,
   type SessionInfo,
 } from '@/services/auth'
+import {
+  emptyPageInfo,
+  type CollectionPage,
+  type CollectionQuery,
+} from '@/services/collection'
 
 export function createSessionAdmin(
   sessionID: Accessor<string>,
   setPageError: Setter<string>,
   setMessage: Setter<string>
 ) {
+  const [sessionQuery, setSessionQuery] = createStore<CollectionQuery>({
+    page: 1,
+    pageSize: 5,
+    sortBy: 'created_at',
+    sortDirection: 'SORT_DIRECTION_DESC',
+  })
+  const [auditQuery, setAuditQuery] = createStore<CollectionQuery>({
+    page: 1,
+    pageSize: 10,
+    sortBy: 'created_at',
+    sortDirection: 'SORT_DIRECTION_DESC',
+  })
   const [sessionsResource, { refetch: refetchSessions }] = createResource(
-    async (): Promise<SessionInfo[]> => {
-      const result = await listSessions()
+    () => ({ ...sessionQuery }),
+    async (query): Promise<CollectionPage<SessionInfo>> => {
+      const result = await listSessions(query)
       if (!result.success) throw new Error(result.data.message)
       return result.data
     }
   )
   const [auditLogsResource, { refetch: refetchAuditLogs }] = createResource(
-    async (): Promise<AuditLogInfo[]> => {
-      const result = await listAuditLogs(25)
+    () => ({ ...auditQuery }),
+    async (query): Promise<CollectionPage<AuditLogInfo>> => {
+      const result = await listAuditLogs(query)
       if (!result.success) throw new Error(result.data.message)
       return result.data
     }
   )
-  const sessions = () => sessionsResource() || []
-  const auditLogs = () => auditLogsResource() || []
+  const sessions = () => sessionsResource()?.items || []
+  const auditLogs = () => auditLogsResource()?.items || []
+  const sessionPageInfo = () =>
+    sessionsResource()?.pageInfo || emptyPageInfo(sessionQuery)
+  const auditPageInfo = () =>
+    auditLogsResource()?.pageInfo || emptyPageInfo(auditQuery)
   const loadingSessions = () => sessionsResource.loading
   const loadingAuditLogs = () => auditLogsResource.loading
   const sessionReadError = () =>
@@ -45,6 +69,12 @@ export function createSessionAdmin(
 
   const loadSessions = async () => void (await refetchSessions())
   const loadAuditLogs = async () => void (await refetchAuditLogs())
+  const updateSessionQuery = (patch: Partial<CollectionQuery>) => {
+    setSessionQuery({ ...patch, page: patch.page ?? 1 })
+  }
+  const updateAuditQuery = (patch: Partial<CollectionQuery>) => {
+    setAuditQuery({ ...patch, page: patch.page ?? 1 })
+  }
 
   const handleRevokeSession = async (sessionId: string) => {
     setPageError('')
@@ -61,6 +91,10 @@ export function createSessionAdmin(
   return {
     sessions,
     auditLogs,
+    sessionQuery,
+    auditQuery,
+    sessionPageInfo,
+    auditPageInfo,
     loadingSessions,
     loadingAuditLogs,
     sessionReadError,
@@ -69,6 +103,8 @@ export function createSessionAdmin(
     otherSessionCount,
     loadSessions,
     loadAuditLogs,
+    updateSessionQuery,
+    updateAuditQuery,
     handleRevokeSession,
   }
 }

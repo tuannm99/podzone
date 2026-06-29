@@ -36,10 +36,49 @@
         "parameters": [
           {
             "name": "pageSize",
+            "description": "Legacy compatibility. New clients use collection.page_size.",
             "in": "query",
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "collection.page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.search",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortDirection",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_DIRECTION_UNSPECIFIED",
+              "SORT_DIRECTION_ASC",
+              "SORT_DIRECTION_DESC"
+            ],
+            "default": "SORT_DIRECTION_UNSPECIFIED"
           }
         ],
         "tags": [
@@ -322,6 +361,46 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "collection.page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.search",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortDirection",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_DIRECTION_UNSPECIFIED",
+              "SORT_DIRECTION_ASC",
+              "SORT_DIRECTION_DESC"
+            ],
+            "default": "SORT_DIRECTION_UNSPECIFIED"
+          }
+        ],
         "tags": [
           "AuthService"
         ]
@@ -867,6 +946,9 @@
             "type": "object",
             "$ref": "#/definitions/authAuditLog"
           }
+        },
+        "pageInfo": {
+          "$ref": "#/definitions/commonPageInfo"
         }
       }
     },
@@ -879,6 +961,9 @@
             "type": "object",
             "$ref": "#/definitions/authSession"
           }
+        },
+        "pageInfo": {
+          "$ref": "#/definitions/commonPageInfo"
         }
       }
     },
@@ -1119,6 +1204,95 @@
         }
       }
     },
+    "commonCollectionFilter": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "string"
+        },
+        "operator": {
+          "$ref": "#/definitions/commonFilterOperator"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "commonCollectionRequest": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "pageSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "search": {
+          "type": "string"
+        },
+        "filters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/commonCollectionFilter"
+          }
+        },
+        "sortBy": {
+          "type": "string"
+        },
+        "sortDirection": {
+          "$ref": "#/definitions/commonSortDirection"
+        }
+      }
+    },
+    "commonFilterOperator": {
+      "type": "string",
+      "enum": [
+        "FILTER_OPERATOR_UNSPECIFIED",
+        "FILTER_OPERATOR_EQ",
+        "FILTER_OPERATOR_NEQ",
+        "FILTER_OPERATOR_CONTAINS",
+        "FILTER_OPERATOR_STARTS_WITH",
+        "FILTER_OPERATOR_GT",
+        "FILTER_OPERATOR_GTE",
+        "FILTER_OPERATOR_LT",
+        "FILTER_OPERATOR_LTE",
+        "FILTER_OPERATOR_IN"
+      ],
+      "default": "FILTER_OPERATOR_UNSPECIFIED"
+    },
+    "commonPageInfo": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "string",
+          "format": "int64"
+        },
+        "page": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "pageSize": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalPages": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "hasNext": {
+          "type": "boolean"
+        },
+        "hasPrevious": {
+          "type": "boolean"
+        }
+      }
+    },
     "commonPolicyCondition": {
       "type": "object",
       "properties": {
@@ -1167,6 +1341,15 @@
           "type": "string"
         }
       }
+    },
+    "commonSortDirection": {
+      "type": "string",
+      "enum": [
+        "SORT_DIRECTION_UNSPECIFIED",
+        "SORT_DIRECTION_ASC",
+        "SORT_DIRECTION_DESC"
+      ],
+      "default": "SORT_DIRECTION_UNSPECIFIED"
     },
     "protobufAny": {
       "type": "object",

@@ -8,6 +8,7 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
 	"github.com/tuannm99/podzone/internal/auth/infrastructure/model"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 var _ outputport.AuditLogRepository = (*AuditLogRepositoryImpl)(nil)
@@ -42,25 +43,101 @@ func (r *AuditLogRepositoryImpl) Create(ctx context.Context, log entity.AuditLog
 func (r *AuditLogRepositoryImpl) ListByActor(
 	ctx context.Context,
 	actorUserID uint,
-	limit int,
-) ([]entity.AuditLog, error) {
+	listQuery collection.Query,
+) (collection.Page[entity.AuditLog], error) {
+	spec := collectionSpec{
+		searchColumns: []string{
+			"action",
+			"resource_type",
+			"resource_id",
+			"tenant_id",
+			"status",
+		},
+		filterFields: map[string]collectionField{
+			"action": {
+				column: "action",
+				operators: operators(
+					collection.FilterEqual,
+					collection.FilterContains,
+					collection.FilterStartsWith,
+					collection.FilterIn,
+				),
+			},
+			"resource_type": {
+				column:    "resource_type",
+				operators: operators(collection.FilterEqual, collection.FilterIn),
+			},
+			"resource_id": {
+				column:    "resource_id",
+				operators: operators(collection.FilterEqual, collection.FilterContains),
+			},
+			"tenant_id": {
+				column:    "tenant_id",
+				operators: operators(collection.FilterEqual, collection.FilterContains, collection.FilterIn),
+			},
+			"status": {
+				column:    "status",
+				operators: operators(collection.FilterEqual, collection.FilterNotEqual, collection.FilterIn),
+			},
+			"created_at": {
+				column: "created_at",
+				operators: operators(
+					collection.FilterGreaterThan,
+					collection.FilterGreaterThanOrEqual,
+					collection.FilterLessThan,
+					collection.FilterLessThanOrEqual,
+				),
+			},
+		},
+		sortFields: map[string]string{
+			"action":        "action",
+			"resource_type": "resource_type",
+			"status":        "status",
+			"tenant_id":     "tenant_id",
+			"created_at":    "created_at",
+		},
+		defaultSort: "created_at",
+	}
+	normalized, where, orderBy, err := buildCollectionQuery(listQuery, spec)
+	if err != nil {
+		return collection.Page[entity.AuditLog]{}, err
+	}
+
+	countBuilder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+		Select("COUNT(*)").
+		From("auth_audit_logs").
+		Where(sq.Eq{"actor_user_id": actorUserID})
+	for _, clause := range where {
+		countBuilder = countBuilder.Where(clause)
+	}
+	countSQL, countArgs, err := countBuilder.ToSql()
+	if err != nil {
+		return collection.Page[entity.AuditLog]{}, err
+	}
+	var total int64
+	if err := r.db.GetContext(ctx, &total, countSQL, countArgs...); err != nil {
+		return collection.Page[entity.AuditLog]{}, err
+	}
+
 	queryBuilder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
 		Select("id", "actor_user_id", "action", "resource_type", "resource_id",
 			"tenant_id", "status", "payload_json", "created_at").
 		From("auth_audit_logs").
 		Where(sq.Eq{"actor_user_id": actorUserID}).
-		OrderBy("created_at DESC")
-	if limit > 0 {
-		queryBuilder = queryBuilder.Limit(uint64(limit))
+		OrderBy(orderBy).
+		Limit(uint64(normalized.PageSize)).
+		Offset(uint64(normalized.Offset()))
+	for _, clause := range where {
+		queryBuilder = queryBuilder.Where(clause)
 	}
 
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
-		return nil, err
+		return collection.Page[entity.AuditLog]{}, err
 	}
 	var rows []model.AuditLog
 	if err := r.db.SelectContext(ctx, &rows, query, args...); err != nil {
-		return nil, err
+		return collection.Page[entity.AuditLog]{}, err
 	}
 	out := make([]entity.AuditLog, 0, len(rows))
 	for _, row := range rows {
@@ -68,5 +145,5 @@ func (r *AuditLogRepositoryImpl) ListByActor(
 			out = append(out, *e)
 		}
 	}
-	return out, nil
+	return collection.NewPage(out, total, normalized), nil
 }

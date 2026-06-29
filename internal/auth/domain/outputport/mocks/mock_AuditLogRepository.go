@@ -9,6 +9,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 // NewMockAuditLogRepository creates a new instance of MockAuditLogRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -96,27 +97,25 @@ func (_c *MockAuditLogRepository_Create_Call) RunAndReturn(run func(ctx context.
 }
 
 // ListByActor provides a mock function for the type MockAuditLogRepository
-func (_mock *MockAuditLogRepository) ListByActor(ctx context.Context, actorUserID uint, limit int) ([]entity.AuditLog, error) {
-	ret := _mock.Called(ctx, actorUserID, limit)
+func (_mock *MockAuditLogRepository) ListByActor(ctx context.Context, actorUserID uint, query collection.Query) (collection.Page[entity.AuditLog], error) {
+	ret := _mock.Called(ctx, actorUserID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListByActor")
 	}
 
-	var r0 []entity.AuditLog
+	var r0 collection.Page[entity.AuditLog]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, int) ([]entity.AuditLog, error)); ok {
-		return returnFunc(ctx, actorUserID, limit)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, collection.Query) (collection.Page[entity.AuditLog], error)); ok {
+		return returnFunc(ctx, actorUserID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, int) []entity.AuditLog); ok {
-		r0 = returnFunc(ctx, actorUserID, limit)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, collection.Query) collection.Page[entity.AuditLog]); ok {
+		r0 = returnFunc(ctx, actorUserID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.AuditLog)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.AuditLog])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, uint, int) error); ok {
-		r1 = returnFunc(ctx, actorUserID, limit)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint, collection.Query) error); ok {
+		r1 = returnFunc(ctx, actorUserID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -131,12 +130,12 @@ type MockAuditLogRepository_ListByActor_Call struct {
 // ListByActor is a helper method to define mock.On call
 //   - ctx context.Context
 //   - actorUserID uint
-//   - limit int
-func (_e *MockAuditLogRepository_Expecter) ListByActor(ctx interface{}, actorUserID interface{}, limit interface{}) *MockAuditLogRepository_ListByActor_Call {
-	return &MockAuditLogRepository_ListByActor_Call{Call: _e.mock.On("ListByActor", ctx, actorUserID, limit)}
+//   - query collection.Query
+func (_e *MockAuditLogRepository_Expecter) ListByActor(ctx interface{}, actorUserID interface{}, query interface{}) *MockAuditLogRepository_ListByActor_Call {
+	return &MockAuditLogRepository_ListByActor_Call{Call: _e.mock.On("ListByActor", ctx, actorUserID, query)}
 }
 
-func (_c *MockAuditLogRepository_ListByActor_Call) Run(run func(ctx context.Context, actorUserID uint, limit int)) *MockAuditLogRepository_ListByActor_Call {
+func (_c *MockAuditLogRepository_ListByActor_Call) Run(run func(ctx context.Context, actorUserID uint, query collection.Query)) *MockAuditLogRepository_ListByActor_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -146,9 +145,9 @@ func (_c *MockAuditLogRepository_ListByActor_Call) Run(run func(ctx context.Cont
 		if args[1] != nil {
 			arg1 = args[1].(uint)
 		}
-		var arg2 int
+		var arg2 collection.Query
 		if args[2] != nil {
-			arg2 = args[2].(int)
+			arg2 = args[2].(collection.Query)
 		}
 		run(
 			arg0,
@@ -159,12 +158,12 @@ func (_c *MockAuditLogRepository_ListByActor_Call) Run(run func(ctx context.Cont
 	return _c
 }
 
-func (_c *MockAuditLogRepository_ListByActor_Call) Return(auditLogs []entity.AuditLog, err error) *MockAuditLogRepository_ListByActor_Call {
-	_c.Call.Return(auditLogs, err)
+func (_c *MockAuditLogRepository_ListByActor_Call) Return(page collection.Page[entity.AuditLog], err error) *MockAuditLogRepository_ListByActor_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockAuditLogRepository_ListByActor_Call) RunAndReturn(run func(ctx context.Context, actorUserID uint, limit int) ([]entity.AuditLog, error)) *MockAuditLogRepository_ListByActor_Call {
+func (_c *MockAuditLogRepository_ListByActor_Call) RunAndReturn(run func(ctx context.Context, actorUserID uint, query collection.Query) (collection.Page[entity.AuditLog], error)) *MockAuditLogRepository_ListByActor_Call {
 	_c.Call.Return(run)
 	return _c
 }

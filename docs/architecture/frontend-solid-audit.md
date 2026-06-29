@@ -57,10 +57,10 @@ stale-response and cancellation behavior.
 
 Client pagination currently limits DOM work but not network or backend work.
 
+Auth sessions and audit logs now use the common server collection contract.
+
 Add server cursor/page contracts to:
 
-- Auth sessions and audit logs. The current session endpoint returns the full
-  collection; the UI pagination only limits mounted DOM.
 - IAM organizations, policies, versions, attachments, groups, members, direct
   policies, inline policies, tenant members, roles, and invites
 - `services/orders/queries.ts`

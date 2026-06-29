@@ -18,6 +18,7 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 func initMock() (
@@ -108,15 +109,19 @@ func newStatefulAuthUC(
 		}).
 		Maybe()
 	sessionRepo.EXPECT().
-		ListByUser(mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, userID uint) ([]entity.Session, error) {
+		ListByUser(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(
+			ctx context.Context,
+			userID uint,
+			query collection.Query,
+		) (collection.Page[entity.Session], error) {
 			out := make([]entity.Session, 0)
 			for _, item := range state.sessions {
 				if item.UserID == userID {
 					out = append(out, item)
 				}
 			}
-			return out, nil
+			return collection.NewPage(out, int64(len(out)), query), nil
 		}).
 		Maybe()
 	sessionRepo.EXPECT().
@@ -134,7 +139,12 @@ func newStatefulAuthUC(
 		Maybe()
 	sessionRepo.EXPECT().
 		UpdateSessionPolicy(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, id string, statements []entity.SessionPolicyStatement, updatedAt time.Time) error {
+		RunAndReturn(func(
+			ctx context.Context,
+			id string,
+			statements []entity.SessionPolicyStatement,
+			updatedAt time.Time,
+		) error {
 			item, ok := state.sessions[id]
 			if !ok {
 				return entity.ErrSessionNotFound

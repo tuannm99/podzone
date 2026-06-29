@@ -6,6 +6,7 @@ type PaginationProps = {
   page: number
   pageSize: number
   total: number
+  loading?: boolean
   class?: string
   onPageChange: (page: number) => void
 }
@@ -43,6 +44,12 @@ export function Pagination(props: PaginationProps) {
     Math.min(props.page * props.pageSize, props.total)
   )
   const items = createMemo(() => buildPageItems(props.page, totalPages()))
+  const changePage = (event: MouseEvent, page: number) => {
+    event.preventDefault()
+    event.stopPropagation()
+    if (props.loading || page === props.page) return
+    props.onPageChange(page)
+  }
 
   return (
     <Show when={totalPages() > 1}>
@@ -58,11 +65,12 @@ export function Pagination(props: PaginationProps) {
 
         <div class="flex flex-wrap items-center gap-2">
           <Button
+            type="button"
             pill
             size="xs"
             color="alternative"
-            disabled={props.page <= 1}
-            onClick={() => props.onPageChange(Math.max(1, props.page - 1))}
+            disabled={props.loading || props.page <= 1}
+            onClick={(event) => changePage(event, Math.max(1, props.page - 1))}
           >
             Previous
           </Button>
@@ -74,10 +82,14 @@ export function Pagination(props: PaginationProps) {
                   <span class="px-2 text-sm text-gray-400">...</span>
                 ) : (
                   <Button
+                    type="button"
                     pill
                     size="xs"
-                    color={item === props.page ? 'blue' : 'alternative'}
-                    onClick={() => props.onPageChange(item)}
+                    color={item === props.page ? 'dark' : 'alternative'}
+                    loading={props.loading && item === props.page}
+                    disabled={props.loading}
+                    aria-current={item === props.page ? 'page' : undefined}
+                    onClick={(event) => changePage(event, item)}
                   >
                     {item}
                   </Button>
@@ -87,12 +99,13 @@ export function Pagination(props: PaginationProps) {
           </div>
 
           <Button
+            type="button"
             pill
             size="xs"
             color="alternative"
-            disabled={props.page >= totalPages()}
-            onClick={() =>
-              props.onPageChange(Math.min(totalPages(), props.page + 1))
+            disabled={props.loading || props.page >= totalPages()}
+            onClick={(event) =>
+              changePage(event, Math.min(totalPages(), props.page + 1))
             }
           >
             Next

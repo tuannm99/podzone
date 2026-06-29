@@ -43,7 +43,8 @@ type ResolverRoot interface {
 	Query() QueryResolver
 }
 
-type DirectiveRoot struct{}
+type DirectiveRoot struct {
+}
 
 type ComplexityRoot struct {
 	Mutation struct {
@@ -63,6 +64,15 @@ type ComplexityRoot struct {
 		UpdateOrderSettlement             func(childComplexity int, input model.UpdateOrderSettlementInput) int
 		UpdateOrderShipment               func(childComplexity int, input model.UpdateOrderShipmentInput) int
 		UpdateProductSetupCandidateStatus func(childComplexity int, id string, status string) int
+	}
+
+	PageInfo struct {
+		HasNext     func(childComplexity int) int
+		HasPrevious func(childComplexity int) int
+		Page        func(childComplexity int) int
+		PageSize    func(childComplexity int) int
+		Total       func(childComplexity int) int
+		TotalPages  func(childComplexity int) int
 	}
 
 	PartnerRoutingProfile struct {
@@ -463,6 +473,43 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.UpdateProductSetupCandidateStatus(childComplexity, args["id"].(string), args["status"].(string)), true
+
+	case "PageInfo.hasNext":
+		if e.complexity.PageInfo.HasNext == nil {
+			break
+		}
+
+		return e.complexity.PageInfo.HasNext(childComplexity), true
+	case "PageInfo.hasPrevious":
+		if e.complexity.PageInfo.HasPrevious == nil {
+			break
+		}
+
+		return e.complexity.PageInfo.HasPrevious(childComplexity), true
+	case "PageInfo.page":
+		if e.complexity.PageInfo.Page == nil {
+			break
+		}
+
+		return e.complexity.PageInfo.Page(childComplexity), true
+	case "PageInfo.pageSize":
+		if e.complexity.PageInfo.PageSize == nil {
+			break
+		}
+
+		return e.complexity.PageInfo.PageSize(childComplexity), true
+	case "PageInfo.total":
+		if e.complexity.PageInfo.Total == nil {
+			break
+		}
+
+		return e.complexity.PageInfo.Total(childComplexity), true
+	case "PageInfo.totalPages":
+		if e.complexity.PageInfo.TotalPages == nil {
+			break
+		}
+
+		return e.complexity.PageInfo.TotalPages(childComplexity), true
 
 	case "PartnerRoutingProfile.baseFulfillmentCost":
 		if e.complexity.PartnerRoutingProfile.BaseFulfillmentCost == nil {
@@ -1266,6 +1313,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{opCtx, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputBulkUpdateRoutedOrdersInput,
+		ec.unmarshalInputCollectionFilterInput,
+		ec.unmarshalInputCollectionInput,
 		ec.unmarshalInputCreateProductSetupDraftInput,
 		ec.unmarshalInputCreateRoutedOrderInput,
 		ec.unmarshalInputCreateStoreInput,
@@ -1469,6 +1518,47 @@ extend type Mutation {
 }
 `, BuiltIn: false},
 	{Name: "../schema/common.graphqls", Input: `scalar Time
+
+enum CollectionSortDirection {
+  ASC
+  DESC
+}
+
+enum CollectionFilterOperator {
+  EQ
+  NEQ
+  CONTAINS
+  STARTS_WITH
+  GT
+  GTE
+  LT
+  LTE
+  IN
+}
+
+input CollectionFilterInput {
+  field: String!
+  operator: CollectionFilterOperator!
+  values: [String!]!
+}
+
+input CollectionInput {
+  page: Int = 1
+  pageSize: Int = 20
+  search: String
+  filters: [CollectionFilterInput!]
+  sortBy: String
+  sortDirection: CollectionSortDirection = DESC
+}
+
+type PageInfo {
+  total: Int!
+  page: Int!
+  pageSize: Int!
+  totalPages: Int!
+  hasNext: Boolean!
+  hasPrevious: Boolean!
+}
 `, BuiltIn: false},
 	{Name: "../schema/routing.graphqls", Input: `type RoutedOrderActivity {
   type: String!
@@ -3499,6 +3589,180 @@ func (ec *executionContext) fieldContext_Mutation_deactivateStore(ctx context.Co
 	if fc.Args, err = ec.field_Mutation_deactivateStore_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PageInfo_total(ctx context.Context, field graphql.CollectedField, obj *model.PageInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PageInfo_total,
+		func(ctx context.Context) (any, error) {
+			return obj.Total, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PageInfo_total(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PageInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PageInfo_page(ctx context.Context, field graphql.CollectedField, obj *model.PageInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PageInfo_page,
+		func(ctx context.Context) (any, error) {
+			return obj.Page, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PageInfo_page(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PageInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PageInfo_pageSize(ctx context.Context, field graphql.CollectedField, obj *model.PageInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PageInfo_pageSize,
+		func(ctx context.Context) (any, error) {
+			return obj.PageSize, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PageInfo_pageSize(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PageInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PageInfo_totalPages(ctx context.Context, field graphql.CollectedField, obj *model.PageInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PageInfo_totalPages,
+		func(ctx context.Context) (any, error) {
+			return obj.TotalPages, nil
+		},
+		nil,
+		ec.marshalNInt2int,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PageInfo_totalPages(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PageInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PageInfo_hasNext(ctx context.Context, field graphql.CollectedField, obj *model.PageInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PageInfo_hasNext,
+		func(ctx context.Context) (any, error) {
+			return obj.HasNext, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PageInfo_hasNext(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PageInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PageInfo_hasPrevious(ctx context.Context, field graphql.CollectedField, obj *model.PageInfo) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PageInfo_hasPrevious,
+		func(ctx context.Context) (any, error) {
+			return obj.HasPrevious, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PageInfo_hasPrevious(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PageInfo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
 	}
 	return fc, nil
 }
@@ -9126,6 +9390,119 @@ func (ec *executionContext) unmarshalInputBulkUpdateRoutedOrdersInput(ctx contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCollectionFilterInput(ctx context.Context, obj any) (model.CollectionFilterInput, error) {
+	var it model.CollectionFilterInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"field", "operator", "values"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "field":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("field"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Field = data
+		case "operator":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("operator"))
+			data, err := ec.unmarshalNCollectionFilterOperator2githubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐCollectionFilterOperator(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Operator = data
+		case "values":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("values"))
+			data, err := ec.unmarshalNString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Values = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCollectionInput(ctx context.Context, obj any) (model.CollectionInput, error) {
+	var it model.CollectionInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	if _, present := asMap["page"]; !present {
+		asMap["page"] = 1
+	}
+	if _, present := asMap["pageSize"]; !present {
+		asMap["pageSize"] = 20
+	}
+	if _, present := asMap["sortDirection"]; !present {
+		asMap["sortDirection"] = "DESC"
+	}
+
+	fieldsInOrder := [...]string{"page", "pageSize", "search", "filters", "sortBy", "sortDirection"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "page":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("page"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Page = data
+		case "pageSize":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageSize"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.PageSize = data
+		case "search":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Search = data
+		case "filters":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
+			data, err := ec.unmarshalOCollectionFilterInput2ᚕᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐCollectionFilterInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Filters = data
+		case "sortBy":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sortBy"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SortBy = data
+		case "sortDirection":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sortDirection"))
+			data, err := ec.unmarshalOCollectionSortDirection2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐCollectionSortDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.SortDirection = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateProductSetupDraftInput(ctx context.Context, obj any) (model.CreateProductSetupDraftInput, error) {
 	var it model.CreateProductSetupDraftInput
 	asMap := map[string]any{}
@@ -9976,6 +10353,70 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deactivateStore(ctx, field)
 			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var pageInfoImplementors = []string{"PageInfo"}
+
+func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet, obj *model.PageInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, pageInfoImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PageInfo")
+		case "total":
+			out.Values[i] = ec._PageInfo_total(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "page":
+			out.Values[i] = ec._PageInfo_page(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pageSize":
+			out.Values[i] = ec._PageInfo_pageSize(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totalPages":
+			out.Values[i] = ec._PageInfo_totalPages(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "hasNext":
+			out.Values[i] = ec._PageInfo_hasNext(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "hasPrevious":
+			out.Values[i] = ec._PageInfo_hasPrevious(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -11637,6 +12078,21 @@ func (ec *executionContext) unmarshalNBulkUpdateRoutedOrdersInput2githubᚗcom�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNCollectionFilterInput2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐCollectionFilterInput(ctx context.Context, v any) (*model.CollectionFilterInput, error) {
+	res, err := ec.unmarshalInputCollectionFilterInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCollectionFilterOperator2githubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐCollectionFilterOperator(ctx context.Context, v any) (model.CollectionFilterOperator, error) {
+	var res model.CollectionFilterOperator
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCollectionFilterOperator2githubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐCollectionFilterOperator(ctx context.Context, sel ast.SelectionSet, v model.CollectionFilterOperator) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalNCreateProductSetupDraftInput2githubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐCreateProductSetupDraftInput(ctx context.Context, v any) (model.CreateProductSetupDraftInput, error) {
 	res, err := ec.unmarshalInputCreateProductSetupDraftInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -12725,6 +13181,40 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	_ = ctx
 	res := graphql.MarshalBoolean(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOCollectionFilterInput2ᚕᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐCollectionFilterInputᚄ(ctx context.Context, v any) ([]*model.CollectionFilterInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.CollectionFilterInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNCollectionFilterInput2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐCollectionFilterInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOCollectionSortDirection2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐCollectionSortDirection(ctx context.Context, v any) (*model.CollectionSortDirection, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.CollectionSortDirection)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOCollectionSortDirection2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐCollectionSortDirection(ctx context.Context, sel ast.SelectionSet, v *model.CollectionSortDirection) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v any) (*string, error) {

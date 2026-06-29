@@ -984,6 +984,7 @@ func (x *GetSessionResponse) GetSession() *Session {
 
 type ListSessionsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Collection    *v1.CollectionRequest  `protobuf:"bytes,1,opt,name=collection,proto3" json:"collection,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1018,9 +1019,17 @@ func (*ListSessionsRequest) Descriptor() ([]byte, []int) {
 	return file_auth_v1_auth_session_proto_rawDescGZIP(), []int{14}
 }
 
+func (x *ListSessionsRequest) GetCollection() *v1.CollectionRequest {
+	if x != nil {
+		return x.Collection
+	}
+	return nil
+}
+
 type ListSessionsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Sessions      []*Session             `protobuf:"bytes,1,rep,name=sessions,proto3" json:"sessions,omitempty"`
+	PageInfo      *v1.PageInfo           `protobuf:"bytes,2,opt,name=page_info,json=pageInfo,proto3" json:"page_info,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1058,6 +1067,13 @@ func (*ListSessionsResponse) Descriptor() ([]byte, []int) {
 func (x *ListSessionsResponse) GetSessions() []*Session {
 	if x != nil {
 		return x.Sessions
+	}
+	return nil
+}
+
+func (x *ListSessionsResponse) GetPageInfo() *v1.PageInfo {
+	if x != nil {
+		return x.PageInfo
 	}
 	return nil
 }
@@ -1143,8 +1159,10 @@ func (*RevokeSessionResponse) Descriptor() ([]byte, []int) {
 }
 
 type ListAuditLogsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	PageSize      int32                  `protobuf:"varint,1,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Legacy compatibility. New clients use collection.page_size.
+	PageSize      int32                 `protobuf:"varint,1,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Collection    *v1.CollectionRequest `protobuf:"bytes,2,opt,name=collection,proto3" json:"collection,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1186,9 +1204,17 @@ func (x *ListAuditLogsRequest) GetPageSize() int32 {
 	return 0
 }
 
+func (x *ListAuditLogsRequest) GetCollection() *v1.CollectionRequest {
+	if x != nil {
+		return x.Collection
+	}
+	return nil
+}
+
 type ListAuditLogsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Logs          []*AuditLog            `protobuf:"bytes,1,rep,name=logs,proto3" json:"logs,omitempty"`
+	PageInfo      *v1.PageInfo           `protobuf:"bytes,2,opt,name=page_info,json=pageInfo,proto3" json:"page_info,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1230,11 +1256,18 @@ func (x *ListAuditLogsResponse) GetLogs() []*AuditLog {
 	return nil
 }
 
+func (x *ListAuditLogsResponse) GetPageInfo() *v1.PageInfo {
+	if x != nil {
+		return x.PageInfo
+	}
+	return nil
+}
+
 var File_auth_v1_auth_session_proto protoreflect.FileDescriptor
 
 const file_auth_v1_auth_session_proto_rawDesc = "" +
 	"\n" +
-	"\x1aauth/v1/auth_session.proto\x12\x04auth\x1a\x12auth/v1/auth.proto\x1a\x1acommon/v1/iam_policy.proto\"\xe2\x06\n" +
+	"\x1aauth/v1/auth_session.proto\x12\x04auth\x1a\x12auth/v1/auth.proto\x1a\x16common/v1/common.proto\x1a\x1acommon/v1/iam_policy.proto\"\xe2\x06\n" +
 	"\aSession\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x04R\x06userId\x12(\n" +
@@ -1323,18 +1356,26 @@ const file_auth_v1_auth_session_proto_rawDesc = "" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\"=\n" +
 	"\x12GetSessionResponse\x12'\n" +
-	"\asession\x18\x01 \x01(\v2\r.auth.SessionR\asession\"\x15\n" +
-	"\x13ListSessionsRequest\"A\n" +
+	"\asession\x18\x01 \x01(\v2\r.auth.SessionR\asession\"P\n" +
+	"\x13ListSessionsRequest\x129\n" +
+	"\n" +
+	"collection\x18\x01 \x01(\v2\x19.common.CollectionRequestR\n" +
+	"collection\"p\n" +
 	"\x14ListSessionsResponse\x12)\n" +
-	"\bsessions\x18\x01 \x03(\v2\r.auth.SessionR\bsessions\"5\n" +
+	"\bsessions\x18\x01 \x03(\v2\r.auth.SessionR\bsessions\x12-\n" +
+	"\tpage_info\x18\x02 \x01(\v2\x10.common.PageInfoR\bpageInfo\"5\n" +
 	"\x14RevokeSessionRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\"\x17\n" +
-	"\x15RevokeSessionResponse\"3\n" +
+	"\x15RevokeSessionResponse\"n\n" +
 	"\x14ListAuditLogsRequest\x12\x1b\n" +
-	"\tpage_size\x18\x01 \x01(\x05R\bpageSize\";\n" +
+	"\tpage_size\x18\x01 \x01(\x05R\bpageSize\x129\n" +
+	"\n" +
+	"collection\x18\x02 \x01(\v2\x19.common.CollectionRequestR\n" +
+	"collection\"j\n" +
 	"\x15ListAuditLogsResponse\x12\"\n" +
-	"\x04logs\x18\x01 \x03(\v2\x0e.auth.AuditLogR\x04logsB<Z:github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1b\x06proto3"
+	"\x04logs\x18\x01 \x03(\v2\x0e.auth.AuditLogR\x04logs\x12-\n" +
+	"\tpage_info\x18\x02 \x01(\v2\x10.common.PageInfoR\bpageInfoB<Z:github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1b\x06proto3"
 
 var (
 	file_auth_v1_auth_session_proto_rawDescOnce sync.Once
@@ -1374,6 +1415,8 @@ var file_auth_v1_auth_session_proto_goTypes = []any{
 	nil,                                 // 21: auth.AssumeRoleRequest.SessionTagsEntry
 	(*v1.PolicyStatement)(nil),          // 22: common.PolicyStatement
 	(*UserInfo)(nil),                    // 23: auth.UserInfo
+	(*v1.CollectionRequest)(nil),        // 24: common.CollectionRequest
+	(*v1.PageInfo)(nil),                 // 25: common.PageInfo
 }
 var file_auth_v1_auth_session_proto_depIdxs = []int32{
 	22, // 0: auth.Session.session_policy:type_name -> common.PolicyStatement
@@ -1387,13 +1430,17 @@ var file_auth_v1_auth_session_proto_depIdxs = []int32{
 	0,  // 8: auth.AssumeRoleResponse.session:type_name -> auth.Session
 	0,  // 9: auth.ClearAssumedRoleResponse.session:type_name -> auth.Session
 	0,  // 10: auth.GetSessionResponse.session:type_name -> auth.Session
-	0,  // 11: auth.ListSessionsResponse.sessions:type_name -> auth.Session
-	1,  // 12: auth.ListAuditLogsResponse.logs:type_name -> auth.AuditLog
-	13, // [13:13] is the sub-list for method output_type
-	13, // [13:13] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	24, // 11: auth.ListSessionsRequest.collection:type_name -> common.CollectionRequest
+	0,  // 12: auth.ListSessionsResponse.sessions:type_name -> auth.Session
+	25, // 13: auth.ListSessionsResponse.page_info:type_name -> common.PageInfo
+	24, // 14: auth.ListAuditLogsRequest.collection:type_name -> common.CollectionRequest
+	1,  // 15: auth.ListAuditLogsResponse.logs:type_name -> auth.AuditLog
+	25, // 16: auth.ListAuditLogsResponse.page_info:type_name -> common.PageInfo
+	17, // [17:17] is the sub-list for method output_type
+	17, // [17:17] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_auth_v1_auth_session_proto_init() }

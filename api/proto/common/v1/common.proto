@@ -42,6 +42,49 @@ message PaginationResponse {
   int32 total_pages = 4;
 }
 
+enum SortDirection {
+  SORT_DIRECTION_UNSPECIFIED = 0;
+  SORT_DIRECTION_ASC = 1;
+  SORT_DIRECTION_DESC = 2;
+}
+
+enum FilterOperator {
+  FILTER_OPERATOR_UNSPECIFIED = 0;
+  FILTER_OPERATOR_EQ = 1;
+  FILTER_OPERATOR_NEQ = 2;
+  FILTER_OPERATOR_CONTAINS = 3;
+  FILTER_OPERATOR_STARTS_WITH = 4;
+  FILTER_OPERATOR_GT = 5;
+  FILTER_OPERATOR_GTE = 6;
+  FILTER_OPERATOR_LT = 7;
+  FILTER_OPERATOR_LTE = 8;
+  FILTER_OPERATOR_IN = 9;
+}
+
+message CollectionFilter {
+  string field = 1;
+  FilterOperator operator = 2;
+  repeated string values = 3;
+}
+
+message CollectionRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string search = 3;
+  repeated CollectionFilter filters = 4;
+  string sort_by = 5;
+  SortDirection sort_direction = 6;
+}
+
+message PageInfo {
+  int64 total = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  int32 total_pages = 4;
+  bool has_next = 5;
+  bool has_previous = 6;
+}
+
 // SortRequest contains common sorting parameters
 message SortRequest {
   string sort_by = 1;

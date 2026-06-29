@@ -1,1 +1,42 @@
 scalar Time
+
+enum CollectionSortDirection {
+  ASC
+  DESC
+}
+
+enum CollectionFilterOperator {
+  EQ
+  NEQ
+  CONTAINS
+  STARTS_WITH
+  GT
+  GTE
+  LT
+  LTE
+  IN
+}
+
+input CollectionFilterInput {
+  field: String!
+  operator: CollectionFilterOperator!
+  values: [String!]!
+}
+
+input CollectionInput {
+  page: Int = 1
+  pageSize: Int = 20
+  search: String
+  filters: [CollectionFilterInput!]
+  sortBy: String
+  sortDirection: CollectionSortDirection = DESC
+}
+
+type PageInfo {
+  total: Int!
+  page: Int!
+  pageSize: Int!
+  totalPages: Int!
+  hasNext: Boolean!
+  hasPrevious: Boolean!
+}

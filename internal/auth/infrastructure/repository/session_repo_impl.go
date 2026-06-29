@@ -12,6 +12,7 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
 	"github.com/tuannm99/podzone/internal/auth/infrastructure/model"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 var (
@@ -38,14 +39,46 @@ func (r *SessionRepositoryImpl) Create(ctx context.Context, session entity.Sessi
 	}
 	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
 		Insert("auth_sessions").
-		Columns("id", "user_id", "active_tenant_id", "session_policy_json", "session_tags_json", "assumed_role_id",
-			"assumed_role_scope", "assumed_role_name", "assumed_role_tenant_id", "status", "created_at",
-			"assumed_role_service_principal", "assumed_role_session_name", "assumed_role_source_identity", "assumed_role_expires_at",
-			"updated_at", "expires_at", "revoked_at").
-		Values(session.ID, session.UserID, session.ActiveTenantID, string(policyJSON), string(tagsJSON), session.AssumedRoleID,
-			session.AssumedRoleScope, session.AssumedRoleName, session.AssumedRoleTenantID, session.Status, session.CreatedAt,
-			session.AssumedRoleServicePrincipal, session.AssumedRoleSessionName, session.AssumedRoleSourceIdentity, session.AssumedRoleExpiresAt,
-			session.UpdatedAt, session.ExpiresAt, session.RevokedAt).
+		Columns(
+			"id",
+			"user_id",
+			"active_tenant_id",
+			"session_policy_json",
+			"session_tags_json",
+			"assumed_role_id",
+			"assumed_role_scope",
+			"assumed_role_name",
+			"assumed_role_tenant_id",
+			"status",
+			"created_at",
+			"assumed_role_service_principal",
+			"assumed_role_session_name",
+			"assumed_role_source_identity",
+			"assumed_role_expires_at",
+			"updated_at",
+			"expires_at",
+			"revoked_at",
+		).
+		Values(
+			session.ID,
+			session.UserID,
+			session.ActiveTenantID,
+			string(policyJSON),
+			string(tagsJSON),
+			session.AssumedRoleID,
+			session.AssumedRoleScope,
+			session.AssumedRoleName,
+			session.AssumedRoleTenantID,
+			session.Status,
+			session.CreatedAt,
+			session.AssumedRoleServicePrincipal,
+			session.AssumedRoleSessionName,
+			session.AssumedRoleSourceIdentity,
+			session.AssumedRoleExpiresAt,
+			session.UpdatedAt,
+			session.ExpiresAt,
+			session.RevokedAt,
+		).
 		ToSql()
 	if err != nil {
 		return err
@@ -56,10 +89,26 @@ func (r *SessionRepositoryImpl) Create(ctx context.Context, session entity.Sessi
 
 func (r *SessionRepositoryImpl) GetByID(ctx context.Context, id string) (*entity.Session, error) {
 	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
-		Select("id", "user_id", "active_tenant_id", "session_policy_json", "session_tags_json", "assumed_role_id",
-			"assumed_role_scope", "assumed_role_name", "assumed_role_tenant_id", "status", "created_at",
-			"assumed_role_service_principal", "assumed_role_session_name", "assumed_role_source_identity", "assumed_role_expires_at",
-			"updated_at", "expires_at", "revoked_at").
+		Select(
+			"id",
+			"user_id",
+			"active_tenant_id",
+			"session_policy_json",
+			"session_tags_json",
+			"assumed_role_id",
+			"assumed_role_scope",
+			"assumed_role_name",
+			"assumed_role_tenant_id",
+			"status",
+			"created_at",
+			"assumed_role_service_principal",
+			"assumed_role_session_name",
+			"assumed_role_source_identity",
+			"assumed_role_expires_at",
+			"updated_at",
+			"expires_at",
+			"revoked_at",
+		).
 		From("auth_sessions").
 		Where(sq.Eq{"id": id}).
 		Limit(1).
@@ -77,22 +126,113 @@ func (r *SessionRepositoryImpl) GetByID(ctx context.Context, id string) (*entity
 	return out.ToEntity(), nil
 }
 
-func (r *SessionRepositoryImpl) ListByUser(ctx context.Context, userID uint) ([]entity.Session, error) {
-	query, args, err := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
-		Select("id", "user_id", "active_tenant_id", "session_policy_json", "session_tags_json", "assumed_role_id",
-			"assumed_role_scope", "assumed_role_name", "assumed_role_tenant_id", "status", "created_at",
-			"assumed_role_service_principal", "assumed_role_session_name", "assumed_role_source_identity", "assumed_role_expires_at",
-			"updated_at", "expires_at", "revoked_at").
+func (r *SessionRepositoryImpl) ListByUser(
+	ctx context.Context,
+	userID uint,
+	listQuery collection.Query,
+) (collection.Page[entity.Session], error) {
+	spec := collectionSpec{
+		searchColumns: []string{
+			"id",
+			"active_tenant_id",
+			"status",
+			"assumed_role_name",
+			"assumed_role_tenant_id",
+		},
+		filterFields: map[string]collectionField{
+			"id": {
+				column:    "id",
+				operators: operators(collection.FilterEqual, collection.FilterContains),
+			},
+			"active_tenant_id": {
+				column: "active_tenant_id",
+				operators: operators(
+					collection.FilterEqual,
+					collection.FilterContains,
+					collection.FilterIn,
+				),
+			},
+			"status": {
+				column:    "status",
+				operators: operators(collection.FilterEqual, collection.FilterNotEqual, collection.FilterIn),
+			},
+			"created_at": {
+				column: "created_at",
+				operators: operators(
+					collection.FilterGreaterThan,
+					collection.FilterGreaterThanOrEqual,
+					collection.FilterLessThan,
+					collection.FilterLessThanOrEqual,
+				),
+			},
+		},
+		sortFields: map[string]string{
+			"created_at": "created_at",
+			"updated_at": "updated_at",
+			"expires_at": "expires_at",
+			"status":     "status",
+			"tenant_id":  "active_tenant_id",
+			"session_id": "id",
+		},
+		defaultSort: "created_at",
+	}
+	normalized, where, orderBy, err := buildCollectionQuery(listQuery, spec)
+	if err != nil {
+		return collection.Page[entity.Session]{}, err
+	}
+
+	countBuilder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+		Select("COUNT(*)").
+		From("auth_sessions").
+		Where(sq.Eq{"user_id": userID})
+	for _, clause := range where {
+		countBuilder = countBuilder.Where(clause)
+	}
+	countSQL, countArgs, err := countBuilder.ToSql()
+	if err != nil {
+		return collection.Page[entity.Session]{}, err
+	}
+	var total int64
+	if err := r.db.GetContext(ctx, &total, countSQL, countArgs...); err != nil {
+		return collection.Page[entity.Session]{}, err
+	}
+
+	queryBuilder := sq.StatementBuilder.PlaceholderFormat(sq.Dollar).
+		Select(
+			"id",
+			"user_id",
+			"active_tenant_id",
+			"session_policy_json",
+			"session_tags_json",
+			"assumed_role_id",
+			"assumed_role_scope",
+			"assumed_role_name",
+			"assumed_role_tenant_id",
+			"status",
+			"created_at",
+			"assumed_role_service_principal",
+			"assumed_role_session_name",
+			"assumed_role_source_identity",
+			"assumed_role_expires_at",
+			"updated_at",
+			"expires_at",
+			"revoked_at",
+		).
 		From("auth_sessions").
 		Where(sq.Eq{"user_id": userID}).
-		OrderBy("created_at DESC").
-		ToSql()
+		OrderBy(orderBy).
+		Limit(uint64(normalized.PageSize)).
+		Offset(uint64(normalized.Offset()))
+	for _, clause := range where {
+		queryBuilder = queryBuilder.Where(clause)
+	}
+	querySQL, queryArgs, err := queryBuilder.ToSql()
 	if err != nil {
-		return nil, err
+		return collection.Page[entity.Session]{}, err
 	}
 	var rows []model.Session
-	if err := r.db.SelectContext(ctx, &rows, query, args...); err != nil {
-		return nil, err
+	if err := r.db.SelectContext(ctx, &rows, querySQL, queryArgs...); err != nil {
+		return collection.Page[entity.Session]{}, err
 	}
 	out := make([]entity.Session, 0, len(rows))
 	for _, row := range rows {
@@ -100,7 +240,7 @@ func (r *SessionRepositoryImpl) ListByUser(ctx context.Context, userID uint) ([]
 			out = append(out, *rowEntity)
 		}
 	}
-	return out, nil
+	return collection.NewPage(out, total, normalized), nil
 }
 
 func (r *SessionRepositoryImpl) UpdateActiveTenant(

@@ -2,11 +2,13 @@ package grpchandler
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"time"
 
 	authmapper "github.com/tuannm99/podzone/internal/auth/controller/mapper"
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -247,16 +249,26 @@ func (s *AuthServer) ListSessions(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	items, err := s.sessionRep.ListByUser(ctx, actorUserID)
+	page, err := s.sessionRep.ListByUser(
+		ctx,
+		actorUserID,
+		authmapper.ToCollectionQuery(req.Collection),
+	)
 	if err != nil {
+		if errors.Is(err, collection.ErrInvalidQuery) {
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	out := make([]*pbauthv1.Session, 0, len(items))
-	for i := range items {
-		item := items[i]
+	out := make([]*pbauthv1.Session, 0, len(page.Items))
+	for i := range page.Items {
+		item := page.Items[i]
 		out = append(out, authmapper.ToPBSession(&item))
 	}
-	return &pbauthv1.ListSessionsResponse{Sessions: out}, nil
+	return &pbauthv1.ListSessionsResponse{
+		Sessions: out,
+		PageInfo: authmapper.ToPBPageInfo(page),
+	}, nil
 }
 
 func (s *AuthServer) RevokeSession(
@@ -294,23 +306,26 @@ func (s *AuthServer) ListAuditLogs(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	limit := 20
-	if req.PageSize > 0 {
-		limit = int(req.PageSize)
+	query := authmapper.ToCollectionQuery(req.Collection)
+	if req.Collection == nil && req.PageSize > 0 {
+		query.PageSize = int(req.PageSize)
 	}
-	if limit > 100 {
-		limit = 100
-	}
-	items, err := s.auditRep.ListByActor(ctx, actorUserID, limit)
+	page, err := s.auditRep.ListByActor(ctx, actorUserID, query)
 	if err != nil {
+		if errors.Is(err, collection.ErrInvalidQuery) {
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	out := make([]*pbauthv1.AuditLog, 0, len(items))
-	for i := range items {
-		item := items[i]
+	out := make([]*pbauthv1.AuditLog, 0, len(page.Items))
+	for i := range page.Items {
+		item := page.Items[i]
 		out = append(out, authmapper.ToPBAuditLog(&item))
 	}
-	return &pbauthv1.ListAuditLogsResponse{Logs: out}, nil
+	return &pbauthv1.ListAuditLogsResponse{
+		Logs:     out,
+		PageInfo: authmapper.ToPBPageInfo(page),
+	}, nil
 }
 
 func (s *AuthServer) RefreshToken(

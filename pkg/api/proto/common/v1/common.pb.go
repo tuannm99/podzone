@@ -22,6 +22,125 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type SortDirection int32
+
+const (
+	SortDirection_SORT_DIRECTION_UNSPECIFIED SortDirection = 0
+	SortDirection_SORT_DIRECTION_ASC         SortDirection = 1
+	SortDirection_SORT_DIRECTION_DESC        SortDirection = 2
+)
+
+// Enum value maps for SortDirection.
+var (
+	SortDirection_name = map[int32]string{
+		0: "SORT_DIRECTION_UNSPECIFIED",
+		1: "SORT_DIRECTION_ASC",
+		2: "SORT_DIRECTION_DESC",
+	}
+	SortDirection_value = map[string]int32{
+		"SORT_DIRECTION_UNSPECIFIED": 0,
+		"SORT_DIRECTION_ASC":         1,
+		"SORT_DIRECTION_DESC":        2,
+	}
+)
+
+func (x SortDirection) Enum() *SortDirection {
+	p := new(SortDirection)
+	*p = x
+	return p
+}
+
+func (x SortDirection) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SortDirection) Descriptor() protoreflect.EnumDescriptor {
+	return file_common_v1_common_proto_enumTypes[0].Descriptor()
+}
+
+func (SortDirection) Type() protoreflect.EnumType {
+	return &file_common_v1_common_proto_enumTypes[0]
+}
+
+func (x SortDirection) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SortDirection.Descriptor instead.
+func (SortDirection) EnumDescriptor() ([]byte, []int) {
+	return file_common_v1_common_proto_rawDescGZIP(), []int{0}
+}
+
+type FilterOperator int32
+
+const (
+	FilterOperator_FILTER_OPERATOR_UNSPECIFIED FilterOperator = 0
+	FilterOperator_FILTER_OPERATOR_EQ          FilterOperator = 1
+	FilterOperator_FILTER_OPERATOR_NEQ         FilterOperator = 2
+	FilterOperator_FILTER_OPERATOR_CONTAINS    FilterOperator = 3
+	FilterOperator_FILTER_OPERATOR_STARTS_WITH FilterOperator = 4
+	FilterOperator_FILTER_OPERATOR_GT          FilterOperator = 5
+	FilterOperator_FILTER_OPERATOR_GTE         FilterOperator = 6
+	FilterOperator_FILTER_OPERATOR_LT          FilterOperator = 7
+	FilterOperator_FILTER_OPERATOR_LTE         FilterOperator = 8
+	FilterOperator_FILTER_OPERATOR_IN          FilterOperator = 9
+)
+
+// Enum value maps for FilterOperator.
+var (
+	FilterOperator_name = map[int32]string{
+		0: "FILTER_OPERATOR_UNSPECIFIED",
+		1: "FILTER_OPERATOR_EQ",
+		2: "FILTER_OPERATOR_NEQ",
+		3: "FILTER_OPERATOR_CONTAINS",
+		4: "FILTER_OPERATOR_STARTS_WITH",
+		5: "FILTER_OPERATOR_GT",
+		6: "FILTER_OPERATOR_GTE",
+		7: "FILTER_OPERATOR_LT",
+		8: "FILTER_OPERATOR_LTE",
+		9: "FILTER_OPERATOR_IN",
+	}
+	FilterOperator_value = map[string]int32{
+		"FILTER_OPERATOR_UNSPECIFIED": 0,
+		"FILTER_OPERATOR_EQ":          1,
+		"FILTER_OPERATOR_NEQ":         2,
+		"FILTER_OPERATOR_CONTAINS":    3,
+		"FILTER_OPERATOR_STARTS_WITH": 4,
+		"FILTER_OPERATOR_GT":          5,
+		"FILTER_OPERATOR_GTE":         6,
+		"FILTER_OPERATOR_LT":          7,
+		"FILTER_OPERATOR_LTE":         8,
+		"FILTER_OPERATOR_IN":          9,
+	}
+)
+
+func (x FilterOperator) Enum() *FilterOperator {
+	p := new(FilterOperator)
+	*p = x
+	return p
+}
+
+func (x FilterOperator) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (FilterOperator) Descriptor() protoreflect.EnumDescriptor {
+	return file_common_v1_common_proto_enumTypes[1].Descriptor()
+}
+
+func (FilterOperator) Type() protoreflect.EnumType {
+	return &file_common_v1_common_proto_enumTypes[1]
+}
+
+func (x FilterOperator) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use FilterOperator.Descriptor instead.
+func (FilterOperator) EnumDescriptor() ([]byte, []int) {
+	return file_common_v1_common_proto_rawDescGZIP(), []int{1}
+}
+
 type HealthCheckResponse_ServingStatus int32
 
 const (
@@ -58,11 +177,11 @@ func (x HealthCheckResponse_ServingStatus) String() string {
 }
 
 func (HealthCheckResponse_ServingStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_common_v1_common_proto_enumTypes[0].Descriptor()
+	return file_common_v1_common_proto_enumTypes[2].Descriptor()
 }
 
 func (HealthCheckResponse_ServingStatus) Type() protoreflect.EnumType {
-	return &file_common_v1_common_proto_enumTypes[0]
+	return &file_common_v1_common_proto_enumTypes[2]
 }
 
 func (x HealthCheckResponse_ServingStatus) Number() protoreflect.EnumNumber {
@@ -71,7 +190,7 @@ func (x HealthCheckResponse_ServingStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use HealthCheckResponse_ServingStatus.Descriptor instead.
 func (HealthCheckResponse_ServingStatus) EnumDescriptor() ([]byte, []int) {
-	return file_common_v1_common_proto_rawDescGZIP(), []int{8, 0}
+	return file_common_v1_common_proto_rawDescGZIP(), []int{11, 0}
 }
 
 // Money represents a monetary value with currency
@@ -382,6 +501,234 @@ func (x *PaginationResponse) GetTotalPages() int32 {
 	return 0
 }
 
+type CollectionFilter struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Field         string                 `protobuf:"bytes,1,opt,name=field,proto3" json:"field,omitempty"`
+	Operator      FilterOperator         `protobuf:"varint,2,opt,name=operator,proto3,enum=common.FilterOperator" json:"operator,omitempty"`
+	Values        []string               `protobuf:"bytes,3,rep,name=values,proto3" json:"values,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CollectionFilter) Reset() {
+	*x = CollectionFilter{}
+	mi := &file_common_v1_common_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CollectionFilter) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CollectionFilter) ProtoMessage() {}
+
+func (x *CollectionFilter) ProtoReflect() protoreflect.Message {
+	mi := &file_common_v1_common_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CollectionFilter.ProtoReflect.Descriptor instead.
+func (*CollectionFilter) Descriptor() ([]byte, []int) {
+	return file_common_v1_common_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *CollectionFilter) GetField() string {
+	if x != nil {
+		return x.Field
+	}
+	return ""
+}
+
+func (x *CollectionFilter) GetOperator() FilterOperator {
+	if x != nil {
+		return x.Operator
+	}
+	return FilterOperator_FILTER_OPERATOR_UNSPECIFIED
+}
+
+func (x *CollectionFilter) GetValues() []string {
+	if x != nil {
+		return x.Values
+	}
+	return nil
+}
+
+type CollectionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Search        string                 `protobuf:"bytes,3,opt,name=search,proto3" json:"search,omitempty"`
+	Filters       []*CollectionFilter    `protobuf:"bytes,4,rep,name=filters,proto3" json:"filters,omitempty"`
+	SortBy        string                 `protobuf:"bytes,5,opt,name=sort_by,json=sortBy,proto3" json:"sort_by,omitempty"`
+	SortDirection SortDirection          `protobuf:"varint,6,opt,name=sort_direction,json=sortDirection,proto3,enum=common.SortDirection" json:"sort_direction,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CollectionRequest) Reset() {
+	*x = CollectionRequest{}
+	mi := &file_common_v1_common_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CollectionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CollectionRequest) ProtoMessage() {}
+
+func (x *CollectionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_common_v1_common_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CollectionRequest.ProtoReflect.Descriptor instead.
+func (*CollectionRequest) Descriptor() ([]byte, []int) {
+	return file_common_v1_common_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *CollectionRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *CollectionRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *CollectionRequest) GetSearch() string {
+	if x != nil {
+		return x.Search
+	}
+	return ""
+}
+
+func (x *CollectionRequest) GetFilters() []*CollectionFilter {
+	if x != nil {
+		return x.Filters
+	}
+	return nil
+}
+
+func (x *CollectionRequest) GetSortBy() string {
+	if x != nil {
+		return x.SortBy
+	}
+	return ""
+}
+
+func (x *CollectionRequest) GetSortDirection() SortDirection {
+	if x != nil {
+		return x.SortDirection
+	}
+	return SortDirection_SORT_DIRECTION_UNSPECIFIED
+}
+
+type PageInfo struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Total         int64                  `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
+	Page          int32                  `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	TotalPages    int32                  `protobuf:"varint,4,opt,name=total_pages,json=totalPages,proto3" json:"total_pages,omitempty"`
+	HasNext       bool                   `protobuf:"varint,5,opt,name=has_next,json=hasNext,proto3" json:"has_next,omitempty"`
+	HasPrevious   bool                   `protobuf:"varint,6,opt,name=has_previous,json=hasPrevious,proto3" json:"has_previous,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PageInfo) Reset() {
+	*x = PageInfo{}
+	mi := &file_common_v1_common_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PageInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PageInfo) ProtoMessage() {}
+
+func (x *PageInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_common_v1_common_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PageInfo.ProtoReflect.Descriptor instead.
+func (*PageInfo) Descriptor() ([]byte, []int) {
+	return file_common_v1_common_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *PageInfo) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *PageInfo) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *PageInfo) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *PageInfo) GetTotalPages() int32 {
+	if x != nil {
+		return x.TotalPages
+	}
+	return 0
+}
+
+func (x *PageInfo) GetHasNext() bool {
+	if x != nil {
+		return x.HasNext
+	}
+	return false
+}
+
+func (x *PageInfo) GetHasPrevious() bool {
+	if x != nil {
+		return x.HasPrevious
+	}
+	return false
+}
+
 // SortRequest contains common sorting parameters
 type SortRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -393,7 +740,7 @@ type SortRequest struct {
 
 func (x *SortRequest) Reset() {
 	*x = SortRequest{}
-	mi := &file_common_v1_common_proto_msgTypes[4]
+	mi := &file_common_v1_common_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -405,7 +752,7 @@ func (x *SortRequest) String() string {
 func (*SortRequest) ProtoMessage() {}
 
 func (x *SortRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_common_v1_common_proto_msgTypes[4]
+	mi := &file_common_v1_common_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -418,7 +765,7 @@ func (x *SortRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SortRequest.ProtoReflect.Descriptor instead.
 func (*SortRequest) Descriptor() ([]byte, []int) {
-	return file_common_v1_common_proto_rawDescGZIP(), []int{4}
+	return file_common_v1_common_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *SortRequest) GetSortBy() string {
@@ -445,7 +792,7 @@ type SearchRequest struct {
 
 func (x *SearchRequest) Reset() {
 	*x = SearchRequest{}
-	mi := &file_common_v1_common_proto_msgTypes[5]
+	mi := &file_common_v1_common_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -457,7 +804,7 @@ func (x *SearchRequest) String() string {
 func (*SearchRequest) ProtoMessage() {}
 
 func (x *SearchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_common_v1_common_proto_msgTypes[5]
+	mi := &file_common_v1_common_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -470,7 +817,7 @@ func (x *SearchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchRequest.ProtoReflect.Descriptor instead.
 func (*SearchRequest) Descriptor() ([]byte, []int) {
-	return file_common_v1_common_proto_rawDescGZIP(), []int{5}
+	return file_common_v1_common_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *SearchRequest) GetQuery() string {
@@ -491,7 +838,7 @@ type DateRange struct {
 
 func (x *DateRange) Reset() {
 	*x = DateRange{}
-	mi := &file_common_v1_common_proto_msgTypes[6]
+	mi := &file_common_v1_common_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -503,7 +850,7 @@ func (x *DateRange) String() string {
 func (*DateRange) ProtoMessage() {}
 
 func (x *DateRange) ProtoReflect() protoreflect.Message {
-	mi := &file_common_v1_common_proto_msgTypes[6]
+	mi := &file_common_v1_common_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -516,7 +863,7 @@ func (x *DateRange) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DateRange.ProtoReflect.Descriptor instead.
 func (*DateRange) Descriptor() ([]byte, []int) {
-	return file_common_v1_common_proto_rawDescGZIP(), []int{6}
+	return file_common_v1_common_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *DateRange) GetStartDate() *timestamppb.Timestamp {
@@ -545,7 +892,7 @@ type Error struct {
 
 func (x *Error) Reset() {
 	*x = Error{}
-	mi := &file_common_v1_common_proto_msgTypes[7]
+	mi := &file_common_v1_common_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -557,7 +904,7 @@ func (x *Error) String() string {
 func (*Error) ProtoMessage() {}
 
 func (x *Error) ProtoReflect() protoreflect.Message {
-	mi := &file_common_v1_common_proto_msgTypes[7]
+	mi := &file_common_v1_common_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -570,7 +917,7 @@ func (x *Error) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Error.ProtoReflect.Descriptor instead.
 func (*Error) Descriptor() ([]byte, []int) {
-	return file_common_v1_common_proto_rawDescGZIP(), []int{7}
+	return file_common_v1_common_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *Error) GetCode() string {
@@ -606,7 +953,7 @@ type HealthCheckResponse struct {
 
 func (x *HealthCheckResponse) Reset() {
 	*x = HealthCheckResponse{}
-	mi := &file_common_v1_common_proto_msgTypes[8]
+	mi := &file_common_v1_common_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -618,7 +965,7 @@ func (x *HealthCheckResponse) String() string {
 func (*HealthCheckResponse) ProtoMessage() {}
 
 func (x *HealthCheckResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_common_v1_common_proto_msgTypes[8]
+	mi := &file_common_v1_common_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -631,7 +978,7 @@ func (x *HealthCheckResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HealthCheckResponse.ProtoReflect.Descriptor instead.
 func (*HealthCheckResponse) Descriptor() ([]byte, []int) {
-	return file_common_v1_common_proto_rawDescGZIP(), []int{8}
+	return file_common_v1_common_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *HealthCheckResponse) GetStatus() HealthCheckResponse_ServingStatus {
@@ -666,7 +1013,7 @@ type MetadataField struct {
 
 func (x *MetadataField) Reset() {
 	*x = MetadataField{}
-	mi := &file_common_v1_common_proto_msgTypes[9]
+	mi := &file_common_v1_common_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -678,7 +1025,7 @@ func (x *MetadataField) String() string {
 func (*MetadataField) ProtoMessage() {}
 
 func (x *MetadataField) ProtoReflect() protoreflect.Message {
-	mi := &file_common_v1_common_proto_msgTypes[9]
+	mi := &file_common_v1_common_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -691,7 +1038,7 @@ func (x *MetadataField) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MetadataField.ProtoReflect.Descriptor instead.
 func (*MetadataField) Descriptor() ([]byte, []int) {
-	return file_common_v1_common_proto_rawDescGZIP(), []int{9}
+	return file_common_v1_common_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *MetadataField) GetKey() string {
@@ -725,7 +1072,7 @@ type Image struct {
 
 func (x *Image) Reset() {
 	*x = Image{}
-	mi := &file_common_v1_common_proto_msgTypes[10]
+	mi := &file_common_v1_common_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -737,7 +1084,7 @@ func (x *Image) String() string {
 func (*Image) ProtoMessage() {}
 
 func (x *Image) ProtoReflect() protoreflect.Message {
-	mi := &file_common_v1_common_proto_msgTypes[10]
+	mi := &file_common_v1_common_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -750,7 +1097,7 @@ func (x *Image) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Image.ProtoReflect.Descriptor instead.
 func (*Image) Descriptor() ([]byte, []int) {
-	return file_common_v1_common_proto_rawDescGZIP(), []int{10}
+	return file_common_v1_common_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *Image) GetId() string {
@@ -820,7 +1167,7 @@ type ValidationError struct {
 
 func (x *ValidationError) Reset() {
 	*x = ValidationError{}
-	mi := &file_common_v1_common_proto_msgTypes[11]
+	mi := &file_common_v1_common_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -832,7 +1179,7 @@ func (x *ValidationError) String() string {
 func (*ValidationError) ProtoMessage() {}
 
 func (x *ValidationError) ProtoReflect() protoreflect.Message {
-	mi := &file_common_v1_common_proto_msgTypes[11]
+	mi := &file_common_v1_common_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -845,7 +1192,7 @@ func (x *ValidationError) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidationError.ProtoReflect.Descriptor instead.
 func (*ValidationError) Descriptor() ([]byte, []int) {
-	return file_common_v1_common_proto_rawDescGZIP(), []int{11}
+	return file_common_v1_common_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ValidationError) GetField() string {
@@ -872,7 +1219,7 @@ type ValidationErrorResponse struct {
 
 func (x *ValidationErrorResponse) Reset() {
 	*x = ValidationErrorResponse{}
-	mi := &file_common_v1_common_proto_msgTypes[12]
+	mi := &file_common_v1_common_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -884,7 +1231,7 @@ func (x *ValidationErrorResponse) String() string {
 func (*ValidationErrorResponse) ProtoMessage() {}
 
 func (x *ValidationErrorResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_common_v1_common_proto_msgTypes[12]
+	mi := &file_common_v1_common_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -897,7 +1244,7 @@ func (x *ValidationErrorResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidationErrorResponse.ProtoReflect.Descriptor instead.
 func (*ValidationErrorResponse) Descriptor() ([]byte, []int) {
-	return file_common_v1_common_proto_rawDescGZIP(), []int{12}
+	return file_common_v1_common_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ValidationErrorResponse) GetErrors() []*ValidationError {
@@ -921,7 +1268,7 @@ type CountryInfo struct {
 
 func (x *CountryInfo) Reset() {
 	*x = CountryInfo{}
-	mi := &file_common_v1_common_proto_msgTypes[13]
+	mi := &file_common_v1_common_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -933,7 +1280,7 @@ func (x *CountryInfo) String() string {
 func (*CountryInfo) ProtoMessage() {}
 
 func (x *CountryInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_common_v1_common_proto_msgTypes[13]
+	mi := &file_common_v1_common_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -946,7 +1293,7 @@ func (x *CountryInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CountryInfo.ProtoReflect.Descriptor instead.
 func (*CountryInfo) Descriptor() ([]byte, []int) {
-	return file_common_v1_common_proto_rawDescGZIP(), []int{13}
+	return file_common_v1_common_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CountryInfo) GetCode() string {
@@ -996,7 +1343,7 @@ type StateInfo struct {
 
 func (x *StateInfo) Reset() {
 	*x = StateInfo{}
-	mi := &file_common_v1_common_proto_msgTypes[14]
+	mi := &file_common_v1_common_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1008,7 +1355,7 @@ func (x *StateInfo) String() string {
 func (*StateInfo) ProtoMessage() {}
 
 func (x *StateInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_common_v1_common_proto_msgTypes[14]
+	mi := &file_common_v1_common_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1021,7 +1368,7 @@ func (x *StateInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StateInfo.ProtoReflect.Descriptor instead.
 func (*StateInfo) Descriptor() ([]byte, []int) {
-	return file_common_v1_common_proto_rawDescGZIP(), []int{14}
+	return file_common_v1_common_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *StateInfo) GetCode() string {
@@ -1058,7 +1405,7 @@ type CurrencyInfo struct {
 
 func (x *CurrencyInfo) Reset() {
 	*x = CurrencyInfo{}
-	mi := &file_common_v1_common_proto_msgTypes[15]
+	mi := &file_common_v1_common_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1070,7 +1417,7 @@ func (x *CurrencyInfo) String() string {
 func (*CurrencyInfo) ProtoMessage() {}
 
 func (x *CurrencyInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_common_v1_common_proto_msgTypes[15]
+	mi := &file_common_v1_common_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1083,7 +1430,7 @@ func (x *CurrencyInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CurrencyInfo.ProtoReflect.Descriptor instead.
 func (*CurrencyInfo) Descriptor() ([]byte, []int) {
-	return file_common_v1_common_proto_rawDescGZIP(), []int{15}
+	return file_common_v1_common_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *CurrencyInfo) GetCode() string {
@@ -1125,7 +1472,7 @@ type Coordinates struct {
 
 func (x *Coordinates) Reset() {
 	*x = Coordinates{}
-	mi := &file_common_v1_common_proto_msgTypes[16]
+	mi := &file_common_v1_common_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1137,7 +1484,7 @@ func (x *Coordinates) String() string {
 func (*Coordinates) ProtoMessage() {}
 
 func (x *Coordinates) ProtoReflect() protoreflect.Message {
-	mi := &file_common_v1_common_proto_msgTypes[16]
+	mi := &file_common_v1_common_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1150,7 +1497,7 @@ func (x *Coordinates) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Coordinates.ProtoReflect.Descriptor instead.
 func (*Coordinates) Descriptor() ([]byte, []int) {
-	return file_common_v1_common_proto_rawDescGZIP(), []int{16}
+	return file_common_v1_common_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *Coordinates) GetLatitude() float64 {
@@ -1200,7 +1547,26 @@ const file_common_v1_common_proto_rawDesc = "" +
 	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\x12\x1f\n" +
 	"\vtotal_pages\x18\x04 \x01(\x05R\n" +
-	"totalPages\"C\n" +
+	"totalPages\"t\n" +
+	"\x10CollectionFilter\x12\x14\n" +
+	"\x05field\x18\x01 \x01(\tR\x05field\x122\n" +
+	"\boperator\x18\x02 \x01(\x0e2\x16.common.FilterOperatorR\boperator\x12\x16\n" +
+	"\x06values\x18\x03 \x03(\tR\x06values\"\xe7\x01\n" +
+	"\x11CollectionRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x16\n" +
+	"\x06search\x18\x03 \x01(\tR\x06search\x122\n" +
+	"\afilters\x18\x04 \x03(\v2\x18.common.CollectionFilterR\afilters\x12\x17\n" +
+	"\asort_by\x18\x05 \x01(\tR\x06sortBy\x12<\n" +
+	"\x0esort_direction\x18\x06 \x01(\x0e2\x15.common.SortDirectionR\rsortDirection\"\xb0\x01\n" +
+	"\bPageInfo\x12\x14\n" +
+	"\x05total\x18\x01 \x01(\x03R\x05total\x12\x12\n" +
+	"\x04page\x18\x02 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x03 \x01(\x05R\bpageSize\x12\x1f\n" +
+	"\vtotal_pages\x18\x04 \x01(\x05R\n" +
+	"totalPages\x12\x19\n" +
+	"\bhas_next\x18\x05 \x01(\bR\ahasNext\x12!\n" +
+	"\fhas_previous\x18\x06 \x01(\bR\vhasPrevious\"C\n" +
 	"\vSortRequest\x12\x17\n" +
 	"\asort_by\x18\x01 \x01(\tR\x06sortBy\x12\x1b\n" +
 	"\tsort_desc\x18\x02 \x01(\bR\bsortDesc\"%\n" +
@@ -1264,7 +1630,22 @@ const file_common_v1_common_proto_rawDesc = "" +
 	"\x0edecimal_places\x18\x04 \x01(\x05R\rdecimalPlaces\"G\n" +
 	"\vCoordinates\x12\x1a\n" +
 	"\blatitude\x18\x01 \x01(\x01R\blatitude\x12\x1c\n" +
-	"\tlongitude\x18\x02 \x01(\x01R\tlongitudeB@Z>github.com/tuannm99/podzone/pkg/api/proto/common/v1;pbcommonv1b\x06proto3"
+	"\tlongitude\x18\x02 \x01(\x01R\tlongitude*`\n" +
+	"\rSortDirection\x12\x1e\n" +
+	"\x1aSORT_DIRECTION_UNSPECIFIED\x10\x00\x12\x16\n" +
+	"\x12SORT_DIRECTION_ASC\x10\x01\x12\x17\n" +
+	"\x13SORT_DIRECTION_DESC\x10\x02*\x9b\x02\n" +
+	"\x0eFilterOperator\x12\x1f\n" +
+	"\x1bFILTER_OPERATOR_UNSPECIFIED\x10\x00\x12\x16\n" +
+	"\x12FILTER_OPERATOR_EQ\x10\x01\x12\x17\n" +
+	"\x13FILTER_OPERATOR_NEQ\x10\x02\x12\x1c\n" +
+	"\x18FILTER_OPERATOR_CONTAINS\x10\x03\x12\x1f\n" +
+	"\x1bFILTER_OPERATOR_STARTS_WITH\x10\x04\x12\x16\n" +
+	"\x12FILTER_OPERATOR_GT\x10\x05\x12\x17\n" +
+	"\x13FILTER_OPERATOR_GTE\x10\x06\x12\x16\n" +
+	"\x12FILTER_OPERATOR_LT\x10\a\x12\x17\n" +
+	"\x13FILTER_OPERATOR_LTE\x10\b\x12\x16\n" +
+	"\x12FILTER_OPERATOR_IN\x10\tB@Z>github.com/tuannm99/podzone/pkg/api/proto/common/v1;pbcommonv1b\x06proto3"
 
 var (
 	file_common_v1_common_proto_rawDescOnce sync.Once
@@ -1278,43 +1659,51 @@ func file_common_v1_common_proto_rawDescGZIP() []byte {
 	return file_common_v1_common_proto_rawDescData
 }
 
-var file_common_v1_common_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_common_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_common_v1_common_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_common_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_common_v1_common_proto_goTypes = []any{
-	(HealthCheckResponse_ServingStatus)(0), // 0: common.HealthCheckResponse.ServingStatus
-	(*Money)(nil),                          // 1: common.Money
-	(*Address)(nil),                        // 2: common.Address
-	(*PaginationRequest)(nil),              // 3: common.PaginationRequest
-	(*PaginationResponse)(nil),             // 4: common.PaginationResponse
-	(*SortRequest)(nil),                    // 5: common.SortRequest
-	(*SearchRequest)(nil),                  // 6: common.SearchRequest
-	(*DateRange)(nil),                      // 7: common.DateRange
-	(*Error)(nil),                          // 8: common.Error
-	(*HealthCheckResponse)(nil),            // 9: common.HealthCheckResponse
-	(*MetadataField)(nil),                  // 10: common.MetadataField
-	(*Image)(nil),                          // 11: common.Image
-	(*ValidationError)(nil),                // 12: common.ValidationError
-	(*ValidationErrorResponse)(nil),        // 13: common.ValidationErrorResponse
-	(*CountryInfo)(nil),                    // 14: common.CountryInfo
-	(*StateInfo)(nil),                      // 15: common.StateInfo
-	(*CurrencyInfo)(nil),                   // 16: common.CurrencyInfo
-	(*Coordinates)(nil),                    // 17: common.Coordinates
-	nil,                                    // 18: common.Error.DetailsEntry
-	nil,                                    // 19: common.HealthCheckResponse.DetailsEntry
-	(*timestamppb.Timestamp)(nil),          // 20: google.protobuf.Timestamp
+	(SortDirection)(0),                     // 0: common.SortDirection
+	(FilterOperator)(0),                    // 1: common.FilterOperator
+	(HealthCheckResponse_ServingStatus)(0), // 2: common.HealthCheckResponse.ServingStatus
+	(*Money)(nil),                          // 3: common.Money
+	(*Address)(nil),                        // 4: common.Address
+	(*PaginationRequest)(nil),              // 5: common.PaginationRequest
+	(*PaginationResponse)(nil),             // 6: common.PaginationResponse
+	(*CollectionFilter)(nil),               // 7: common.CollectionFilter
+	(*CollectionRequest)(nil),              // 8: common.CollectionRequest
+	(*PageInfo)(nil),                       // 9: common.PageInfo
+	(*SortRequest)(nil),                    // 10: common.SortRequest
+	(*SearchRequest)(nil),                  // 11: common.SearchRequest
+	(*DateRange)(nil),                      // 12: common.DateRange
+	(*Error)(nil),                          // 13: common.Error
+	(*HealthCheckResponse)(nil),            // 14: common.HealthCheckResponse
+	(*MetadataField)(nil),                  // 15: common.MetadataField
+	(*Image)(nil),                          // 16: common.Image
+	(*ValidationError)(nil),                // 17: common.ValidationError
+	(*ValidationErrorResponse)(nil),        // 18: common.ValidationErrorResponse
+	(*CountryInfo)(nil),                    // 19: common.CountryInfo
+	(*StateInfo)(nil),                      // 20: common.StateInfo
+	(*CurrencyInfo)(nil),                   // 21: common.CurrencyInfo
+	(*Coordinates)(nil),                    // 22: common.Coordinates
+	nil,                                    // 23: common.Error.DetailsEntry
+	nil,                                    // 24: common.HealthCheckResponse.DetailsEntry
+	(*timestamppb.Timestamp)(nil),          // 25: google.protobuf.Timestamp
 }
 var file_common_v1_common_proto_depIdxs = []int32{
-	20, // 0: common.DateRange.start_date:type_name -> google.protobuf.Timestamp
-	20, // 1: common.DateRange.end_date:type_name -> google.protobuf.Timestamp
-	18, // 2: common.Error.details:type_name -> common.Error.DetailsEntry
-	0,  // 3: common.HealthCheckResponse.status:type_name -> common.HealthCheckResponse.ServingStatus
-	19, // 4: common.HealthCheckResponse.details:type_name -> common.HealthCheckResponse.DetailsEntry
-	12, // 5: common.ValidationErrorResponse.errors:type_name -> common.ValidationError
-	6,  // [6:6] is the sub-list for method output_type
-	6,  // [6:6] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	1,  // 0: common.CollectionFilter.operator:type_name -> common.FilterOperator
+	7,  // 1: common.CollectionRequest.filters:type_name -> common.CollectionFilter
+	0,  // 2: common.CollectionRequest.sort_direction:type_name -> common.SortDirection
+	25, // 3: common.DateRange.start_date:type_name -> google.protobuf.Timestamp
+	25, // 4: common.DateRange.end_date:type_name -> google.protobuf.Timestamp
+	23, // 5: common.Error.details:type_name -> common.Error.DetailsEntry
+	2,  // 6: common.HealthCheckResponse.status:type_name -> common.HealthCheckResponse.ServingStatus
+	24, // 7: common.HealthCheckResponse.details:type_name -> common.HealthCheckResponse.DetailsEntry
+	17, // 8: common.ValidationErrorResponse.errors:type_name -> common.ValidationError
+	9,  // [9:9] is the sub-list for method output_type
+	9,  // [9:9] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_common_v1_common_proto_init() }
@@ -1327,8 +1716,8 @@ func file_common_v1_common_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_common_v1_common_proto_rawDesc), len(file_common_v1_common_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   19,
+			NumEnums:      3,
+			NumMessages:   22,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

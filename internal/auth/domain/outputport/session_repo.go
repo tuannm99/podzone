@@ -5,12 +5,17 @@ import (
 	"time"
 
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type SessionRepository interface {
 	Create(ctx context.Context, session entity.Session) error
 	GetByID(ctx context.Context, id string) (*entity.Session, error)
-	ListByUser(ctx context.Context, userID uint) ([]entity.Session, error)
+	ListByUser(
+		ctx context.Context,
+		userID uint,
+		query collection.Query,
+	) (collection.Page[entity.Session], error)
 	UpdateActiveTenant(ctx context.Context, id, tenantID string, updatedAt time.Time) error
 	UpdateSessionPolicy(
 		ctx context.Context,

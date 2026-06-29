@@ -2,6 +2,14 @@ import { GW_API_URL } from './baseurl'
 import { http, type HttpError } from './http'
 import { tenantStorage } from './tenantStorage'
 import { tokenStorage, type StoredUser } from './tokenStorage'
+import {
+  emptyPageInfo,
+  normalizePageInfo,
+  toCollectionParams,
+  type CollectionPage,
+  type CollectionQuery,
+  type WirePageInfo,
+} from './collection'
 
 export type AuthPayload = {
   username: string
@@ -236,15 +244,28 @@ export async function logout(): Promise<void> {
   }
 }
 
-export async function listSessions(): Promise<
-  | { success: true; data: SessionInfo[] }
+export async function listSessions(
+  query: CollectionQuery
+): Promise<
+  | { success: true; data: CollectionPage<SessionInfo> }
   | { success: false; data: { message: string } }
 > {
   try {
-    const { data } = await http.get<{ sessions?: SessionInfo[] }>(
-      '/auth/v1/sessions'
-    )
-    return { success: true, data: data.sessions || [] }
+    const { data } = await http.get<{
+      sessions?: SessionInfo[]
+      pageInfo?: WirePageInfo
+    }>('/auth/v1/sessions', {
+      params: toCollectionParams(query),
+    })
+    return {
+      success: true,
+      data: {
+        items: data.sessions || [],
+        pageInfo: data.pageInfo
+          ? normalizePageInfo(data.pageInfo, query)
+          : emptyPageInfo(query),
+      },
+    }
   } catch (error) {
     return {
       success: false,
@@ -270,19 +291,27 @@ export async function revokeSession(sessionId: string): Promise<AuthResult> {
 }
 
 export async function listAuditLogs(
-  pageSize = 20
+  query: CollectionQuery
 ): Promise<
-  | { success: true; data: AuditLogInfo[] }
+  | { success: true; data: CollectionPage<AuditLogInfo> }
   | { success: false; data: { message: string } }
 > {
   try {
-    const { data } = await http.get<{ logs?: AuditLogInfo[] }>(
-      '/auth/v1/audit-logs',
-      {
-        params: { pageSize },
-      }
-    )
-    return { success: true, data: data.logs || [] }
+    const { data } = await http.get<{
+      logs?: AuditLogInfo[]
+      pageInfo?: WirePageInfo
+    }>('/auth/v1/audit-logs', {
+      params: toCollectionParams(query),
+    })
+    return {
+      success: true,
+      data: {
+        items: data.logs || [],
+        pageInfo: data.pageInfo
+          ? normalizePageInfo(data.pageInfo, query)
+          : emptyPageInfo(query),
+      },
+    }
   } catch (error) {
     return {
       success: false,

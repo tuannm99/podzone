@@ -122,13 +122,14 @@ export function Button(props: ButtonProps) {
     'onClick',
   ])
 
-  const className = classes(
-    'inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus:outline-none focus:ring-2 disabled:pointer-events-none disabled:opacity-60',
-    buttonColorClasses[local.color ?? 'blue'],
-    buttonSizeClasses[local.size ?? 'md'],
-    local.pill ? 'rounded-full' : 'rounded-md',
-    local.class
-  )
+  const className = () =>
+    classes(
+      'inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus:outline-none focus:ring-2 disabled:pointer-events-none disabled:opacity-60',
+      buttonColorClasses[local.color ?? 'blue'],
+      buttonSizeClasses[local.size ?? 'md'],
+      local.pill ? 'rounded-full' : 'rounded-md',
+      local.class
+    )
 
   const content = (
     <>
@@ -143,7 +144,7 @@ export function Button(props: ButtonProps) {
     <a
       href={local.href}
       target={local.target}
-      class={className}
+      class={className()}
       aria-disabled={local.disabled || local.loading}
       onClick={
         local.disabled || local.loading
@@ -160,7 +161,7 @@ export function Button(props: ButtonProps) {
   ) : (
     <button
       type={local.type ?? 'button'}
-      class={className}
+      class={className()}
       disabled={local.disabled || local.loading}
       onClick={
         local.onClick as JSX.EventHandlerUnion<HTMLButtonElement, MouseEvent>
