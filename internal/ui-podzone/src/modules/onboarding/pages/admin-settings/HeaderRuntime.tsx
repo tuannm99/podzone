@@ -1,18 +1,14 @@
 import { Show } from 'solid-js'
 import { GW_API_URL, TENANT_GQL_URL } from '@/services/baseurl'
 import { tenantStorage } from '@/services/tenantStorage'
-import {
-  ErrorAlert,
-  InfoAlert,
-  LoadingInline,
-} from '@/solid/components/common/Feedback'
+import { InfoAlert, LoadingInline } from '@/solid/components/common/Feedback'
 import { Badge, Button, Card } from '@/solid/components/common/Primitives'
 import { SectionLead } from '@/solid/components/common/SectionLead'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'
 import { useAdminSettings } from './context'
 
 export function HeaderRuntime() {
-  const vm = useAdminSettings()
+  const { platformRoles, workspaceAccess } = useAdminSettings()
 
   return (
     <>
@@ -25,28 +21,22 @@ export function HeaderRuntime() {
         <div class="flex flex-wrap gap-3">
           <Button
             href="/admin/iam"
-            color={vm.canManagePlatformRoles() ? 'dark' : 'light'}
+            color={platformRoles.canManage() ? 'dark' : 'light'}
             size="sm"
-            disabled={!vm.canManagePlatformRoles()}
+            disabled={!platformRoles.canManage()}
           >
             Open IAM console
           </Button>
         </div>
-        <Show when={!vm.canManagePlatformRoles()}>
+        <Show when={!platformRoles.canManage()}>
           <InfoAlert>Platform IAM is not available in this session.</InfoAlert>
         </Show>
       </Card>
 
-      <Show when={vm.pageError()}>
-        <ErrorAlert>{vm.pageError()}</ErrorAlert>
-      </Show>
-      <Show when={vm.memberActionMessage()}>
-        <InfoAlert>{vm.memberActionMessage()}</InfoAlert>
-      </Show>
-      <Show when={vm.checkingPermissions()}>
+      <Show when={workspaceAccess.loadingAccess()}>
         <LoadingInline label="Checking workspace access permissions..." />
       </Show>
-      <Show when={vm.canManagePlatformRoles()}>
+      <Show when={platformRoles.canManage()}>
         <InfoAlert>
           Platform administration controls are enabled for this session.
         </InfoAlert>
@@ -82,7 +72,7 @@ function RuntimeEndpoints() {
 }
 
 function LocalSessionState() {
-  const vm = useAdminSettings()
+  const { user } = useAdminSettings()
 
   return (
     <Card class="space-y-4">
@@ -92,37 +82,37 @@ function LocalSessionState() {
       />
       <div class="flex flex-wrap gap-2">
         <Badge
-          content={vm.hasToken ? 'token present' : 'no token'}
-          color={vm.hasToken ? 'green' : 'red'}
+          content={user.hasToken() ? 'token present' : 'no token'}
+          color={user.hasToken() ? 'green' : 'red'}
         />
         <Badge
           content={
-            vm.activeTenantId()
-              ? `current workspace ${vm.activeTenantId()}`
+            user.activeTenantID()
+              ? `current workspace ${user.activeTenantID()}`
               : 'current workspace not set'
           }
-          color={vm.activeTenantId() ? 'green' : 'dark'}
+          color={user.activeTenantID() ? 'green' : 'dark'}
         />
         <Badge
           content={
-            vm.sessionID() ? `session ${vm.sessionID()}` : 'session missing'
+            user.sessionID() ? `session ${user.sessionID()}` : 'session missing'
           }
-          color={vm.sessionID() ? 'indigo' : 'red'}
+          color={user.sessionID() ? 'indigo' : 'red'}
         />
         <Badge
           content={
-            vm.routeTenantId()
-              ? `last opened workspace ${vm.routeTenantId()}`
+            user.routeTenantID()
+              ? `last opened workspace ${user.routeTenantID()}`
               : 'last opened workspace not set'
           }
-          color={vm.routeTenantId() ? 'indigo' : 'dark'}
+          color={user.routeTenantID() ? 'indigo' : 'dark'}
         />
       </div>
       <Button
         color="alternative"
         onClick={() => {
           tenantStorage.clearTenantID()
-          vm.setRouteTenantID('')
+          user.setRouteTenantID('')
           window.location.reload()
         }}
       >

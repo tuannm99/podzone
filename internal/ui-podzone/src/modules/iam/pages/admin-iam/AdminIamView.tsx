@@ -1,5 +1,5 @@
 import { Show, createSignal, onMount } from 'solid-js'
-import type { AdminIamViewModel } from '../AdminIamPage'
+import type { AdminIamViewModel } from './createAdminIamViewModel'
 import {
   EmptyBlock,
   ErrorAlert,
@@ -9,69 +9,22 @@ import {
 import { PageShell } from '@/solid/components/common/PageShell'
 import { Button, Card } from '@/solid/components/common/Primitives'
 import { SectionLead } from '@/solid/components/common/SectionLead'
-import { AdminIamGroupProvider } from './group-context'
-import { GroupsPanel } from './GroupsPanel'
+import { RoleAssignmentsPanel } from './assignments/RoleAssignmentsPanel'
+import { AdminIamGroupProvider } from './groups/context'
+import { GroupsPanel } from './groups/GroupsPanel'
 import { IamWorkspaceNav } from './IamWorkspaceNav'
-import { OrganizationsPanel } from './OrganizationsPanel'
-import { AdminIamPolicyProvider } from './policy-context'
-import { PoliciesPanel } from './PoliciesPanel'
+import { OrganizationsPanel } from './organizations/OrganizationsPanel'
+import { AdminIamPolicyProvider } from './policies/context'
+import { PoliciesPanel } from './policies/PoliciesPanel'
 import { type IamSection, type IamSectionID } from './presentation'
-import { AdminIamPrincipalProvider } from './principal-context'
-import { PrincipalPoliciesPanel } from './PrincipalPoliciesPanel'
-import { RoleAssignmentsPanel } from './RoleAssignmentsPanel'
-import { AdminIamTrustSimProvider } from './trust-sim-context'
-import { TrustSimulationPanel } from './TrustSimulationPanel'
+import { AdminIamPrincipalProvider } from './principals/context'
+import { PrincipalPoliciesPanel } from './principals/PrincipalPoliciesPanel'
+import { AdminIamTrustSimProvider } from './trust-simulation/context'
+import { TrustSimulationPanel } from './trust-simulation/TrustSimulationPanel'
 
 // The controller page assembles the model; this view only owns composition.
 export function AdminIamView(props: { model: AdminIamViewModel }) {
-  const {
-    pageError,
-    pageMessage,
-    loading,
-    allowed,
-    sectionLinks,
-    policyContextValue,
-    groupContextValue,
-    principalContextValue,
-    trustSimContextValue,
-    organizationOptions,
-    selectedOrgId,
-    setSelectedOrgId,
-    submitCreateOrganization,
-    orgName,
-    setOrgName,
-    orgSlug,
-    setOrgSlug,
-    orgTenantId,
-    setOrgTenantId,
-    orgPolicyName,
-    setOrgPolicyName,
-    tenantOptions,
-    handleAttachTenantToOrg,
-    handleAttachScp,
-    organizations,
-    orgPolicies,
-    handleDetachTenantFromOrg,
-    handleDetachScp,
-    shortcutPlatformUserId,
-    setShortcutPlatformUserId,
-    shortcutPlatformRoleName,
-    setShortcutPlatformRoleName,
-    platformRoleOptions,
-    handleAssignPlatformRole,
-    handleRemovePlatformRoleShortcut,
-    shortcutTenantId,
-    setShortcutTenantId,
-    shortcutTenantUserId,
-    setShortcutTenantUserId,
-    shortcutTenantRoleName,
-    setShortcutTenantRoleName,
-    tenantRoleOptions,
-    handleAssignTenantRole,
-    handleRemoveTenantMembershipShortcut,
-  } = props.model
-
-  const sections = sectionLinks as IamSection[]
+  const sections = props.model.sectionLinks as IamSection[]
   const [activeSection, setActiveSection] =
     createSignal<IamSectionID>('iam-policies')
 
@@ -104,23 +57,27 @@ export function AdminIamView(props: { model: AdminIamViewModel }) {
         </div>
       </header>
 
-      <Show when={pageError()}>
-        <ErrorAlert>{pageError()}</ErrorAlert>
+      <Show when={props.model.feedback.error()}>
+        <ErrorAlert>{props.model.feedback.error()}</ErrorAlert>
       </Show>
-      <Show when={pageMessage()}>
-        <InfoAlert>{pageMessage()}</InfoAlert>
+      <Show when={props.model.feedback.message()}>
+        <InfoAlert>{props.model.feedback.message()}</InfoAlert>
       </Show>
-      <Show when={loading()}>
+      <Show when={props.model.feedback.loading()}>
         <LoadingInline label="Loading IAM control plane..." />
       </Show>
-      <Show when={!loading() && !allowed()}>
+      <Show
+        when={
+          !props.model.feedback.loading() && !props.model.feedback.allowed()
+        }
+      >
         <EmptyBlock
           title="IAM console unavailable"
           copy="This session does not have the required platform permission."
         />
       </Show>
 
-      <Show when={allowed()}>
+      <Show when={props.model.feedback.allowed()}>
         <IamWorkspaceNav
           sections={sections}
           activeSection={activeSection()}
@@ -130,74 +87,92 @@ export function AdminIamView(props: { model: AdminIamViewModel }) {
         <Card class="space-y-4">
           <Show when={activeSection() === 'iam-orgs'}>
             <OrganizationsPanel
-              organizationOptions={organizationOptions}
-              selectedOrgId={selectedOrgId}
-              setSelectedOrgId={setSelectedOrgId}
-              submitCreateOrganization={submitCreateOrganization}
-              orgName={orgName}
-              setOrgName={setOrgName}
-              orgSlug={orgSlug}
-              setOrgSlug={setOrgSlug}
-              orgTenantId={orgTenantId}
-              setOrgTenantId={setOrgTenantId}
-              orgPolicyName={orgPolicyName}
-              setOrgPolicyName={setOrgPolicyName}
-              tenantOptions={tenantOptions}
-              handleAttachTenantToOrg={handleAttachTenantToOrg}
-              handleAttachScp={handleAttachScp}
-              organizations={organizations}
-              orgPolicies={orgPolicies}
-              handleDetachTenantFromOrg={handleDetachTenantFromOrg}
-              handleDetachScp={handleDetachScp}
+              organizationOptions={
+                props.model.organizations.organizationOptions
+              }
+              selectedOrgId={props.model.organizations.selectedOrgId}
+              setSelectedOrgId={props.model.organizations.setSelectedOrgId}
+              submitCreateOrganization={
+                props.model.organizations.submitCreateOrganization
+              }
+              orgName={props.model.organizations.orgName}
+              setOrgName={props.model.organizations.setOrgName}
+              orgSlug={props.model.organizations.orgSlug}
+              setOrgSlug={props.model.organizations.setOrgSlug}
+              orgTenantId={props.model.organizations.orgTenantId}
+              setOrgTenantId={props.model.organizations.setOrgTenantId}
+              orgPolicyName={props.model.organizations.orgPolicyName}
+              setOrgPolicyName={props.model.organizations.setOrgPolicyName}
+              tenantOptions={props.model.organizations.tenantOptions}
+              handleAttachTenantToOrg={
+                props.model.organizations.handleAttachTenantToOrg
+              }
+              handleAttachScp={props.model.organizations.handleAttachScp}
+              organizations={props.model.organizations.items}
+              orgPolicies={props.model.organizations.orgPolicies}
+              handleDetachTenantFromOrg={
+                props.model.organizations.handleDetachTenantFromOrg
+              }
+              handleDetachScp={props.model.organizations.handleDetachScp}
             />
           </Show>
 
           <Show when={activeSection() === 'iam-policies'}>
-            <AdminIamPolicyProvider value={policyContextValue}>
+            <AdminIamPolicyProvider value={props.model.policies}>
               <PoliciesPanel />
             </AdminIamPolicyProvider>
           </Show>
 
           <Show when={activeSection() === 'iam-groups'}>
-            <AdminIamGroupProvider value={groupContextValue}>
+            <AdminIamGroupProvider value={props.model.groups}>
               <GroupsPanel />
             </AdminIamGroupProvider>
           </Show>
 
           <Show when={activeSection() === 'iam-assignments'}>
             <RoleAssignmentsPanel
-              shortcutPlatformUserId={shortcutPlatformUserId}
-              setShortcutPlatformUserId={setShortcutPlatformUserId}
-              shortcutPlatformRoleName={shortcutPlatformRoleName}
-              setShortcutPlatformRoleName={setShortcutPlatformRoleName}
-              platformRoleOptions={platformRoleOptions}
-              handleAssignPlatformRole={handleAssignPlatformRole}
-              handleRemovePlatformRoleShortcut={
-                handleRemovePlatformRoleShortcut
+              shortcutPlatformUserId={props.model.assignments.platformUserId}
+              setShortcutPlatformUserId={
+                props.model.assignments.setPlatformUserId
               }
-              shortcutTenantId={shortcutTenantId}
-              setShortcutTenantId={setShortcutTenantId}
-              shortcutTenantUserId={shortcutTenantUserId}
-              setShortcutTenantUserId={setShortcutTenantUserId}
-              shortcutTenantRoleName={shortcutTenantRoleName}
-              setShortcutTenantRoleName={setShortcutTenantRoleName}
-              tenantOptions={tenantOptions}
-              tenantRoleOptions={tenantRoleOptions}
-              handleAssignTenantRole={handleAssignTenantRole}
+              shortcutPlatformRoleName={
+                props.model.assignments.platformRoleName
+              }
+              setShortcutPlatformRoleName={
+                props.model.assignments.setPlatformRoleName
+              }
+              platformRoleOptions={props.model.assignments.platformRoleOptions}
+              handleAssignPlatformRole={
+                props.model.assignments.assignPlatformRole
+              }
+              handleRemovePlatformRoleShortcut={
+                props.model.assignments.removePlatformRole
+              }
+              shortcutTenantId={props.model.assignments.tenantId}
+              setShortcutTenantId={props.model.assignments.setTenantId}
+              shortcutTenantUserId={props.model.assignments.tenantUserId}
+              setShortcutTenantUserId={props.model.assignments.setTenantUserId}
+              shortcutTenantRoleName={props.model.assignments.tenantRoleName}
+              setShortcutTenantRoleName={
+                props.model.assignments.setTenantRoleName
+              }
+              tenantOptions={props.model.assignments.tenantOptions}
+              tenantRoleOptions={props.model.assignments.tenantRoleOptions}
+              handleAssignTenantRole={props.model.assignments.assignTenantRole}
               handleRemoveTenantMembershipShortcut={
-                handleRemoveTenantMembershipShortcut
+                props.model.assignments.removeTenantMembership
               }
             />
           </Show>
 
           <Show when={activeSection() === 'iam-principals'}>
-            <AdminIamPrincipalProvider value={principalContextValue}>
+            <AdminIamPrincipalProvider value={props.model.principals}>
               <PrincipalPoliciesPanel />
             </AdminIamPrincipalProvider>
           </Show>
 
           <Show when={activeSection() === 'iam-trust-sim'}>
-            <AdminIamTrustSimProvider value={trustSimContextValue}>
+            <AdminIamTrustSimProvider value={props.model.trustSimulation}>
               <TrustSimulationPanel />
             </AdminIamTrustSimProvider>
           </Show>

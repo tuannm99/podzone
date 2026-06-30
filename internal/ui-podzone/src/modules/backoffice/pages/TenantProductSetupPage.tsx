@@ -47,6 +47,7 @@ export default function TenantProductSetupPage() {
   const [error, setError] = createSignal('')
   const [loading, setLoading] = createSignal(false)
   const [promotingDraftID, setPromotingDraftID] = createSignal('')
+  const [updatingCandidateID, setUpdatingCandidateID] = createSignal('')
   const [drafts, setDrafts] = createSignal<SetupDraft[]>([])
   const [candidates, setCandidates] = createSignal<CatalogCandidate[]>([])
   const currentStoreId = () => workspace?.currentStoreId() || ''
@@ -81,64 +82,78 @@ export default function TenantProductSetupPage() {
     setupForm.setSubmitting(true)
     setError('')
     setMessage('')
-    const result = await createProductSetupDraft({
-      name: setupForm.values.name.trim(),
-      partner: setupForm.values.partner.trim(),
-      baseCost: setupForm.values.baseCost.trim(),
-      retailPrice: setupForm.values.retailPrice.trim(),
-      status: setupForm.values.status,
-      notes: setupForm.values.notes.trim(),
-    })
-    setupForm.setSubmitting(false)
-    if (!result.success) {
-      setError(result.message)
-      return
+    try {
+      const result = await createProductSetupDraft({
+        name: setupForm.values.name.trim(),
+        partner: setupForm.values.partner.trim(),
+        baseCost: setupForm.values.baseCost.trim(),
+        retailPrice: setupForm.values.retailPrice.trim(),
+        status: setupForm.values.status,
+        notes: setupForm.values.notes.trim(),
+      })
+      if (!result.success) {
+        setError(result.message)
+        return
+      }
+      setMessage(`Saved backend product setup draft for ${result.data.name}.`)
+      setupForm.reset()
+      await loadState()
+    } finally {
+      setupForm.setSubmitting(false)
     }
-    setMessage(`Saved backend product setup draft for ${result.data.name}.`)
-    setupForm.reset()
-    await loadState()
   }
 
   const promoteToCandidate = async (draft: SetupDraft) => {
     setPromotingDraftID(draft.id)
     setError('')
     setMessage('')
-    const result = await promoteProductSetupCandidate({
-      draftId: draft.id,
-      channel: setupForm.values.channel,
-      variantColor: setupForm.values.variantColor.trim(),
-      variantSize: setupForm.values.variantSize.trim(),
-      artworkChecklist: {
-        frontArtwork: setupForm.values.hasFrontArtwork,
-        backArtwork: setupForm.values.hasBackArtwork,
-        mockupReady: setupForm.values.mockupReady,
-        printSpecChecked: setupForm.values.printSpecChecked,
-      },
-      merchandisingNotes: setupForm.values.notes.trim(),
-    })
-    setPromotingDraftID('')
-    if (!result.success) {
-      setError(result.message)
-      return
+    try {
+      const result = await promoteProductSetupCandidate({
+        draftId: draft.id,
+        channel: setupForm.values.channel,
+        variantColor: setupForm.values.variantColor.trim(),
+        variantSize: setupForm.values.variantSize.trim(),
+        artworkChecklist: {
+          frontArtwork: setupForm.values.hasFrontArtwork,
+          backArtwork: setupForm.values.hasBackArtwork,
+          mockupReady: setupForm.values.mockupReady,
+          printSpecChecked: setupForm.values.printSpecChecked,
+        },
+        merchandisingNotes: setupForm.values.notes.trim(),
+      })
+      if (!result.success) {
+        setError(result.message)
+        return
+      }
+      setMessage(`Promoted ${draft.name} into a backend catalog candidate.`)
+      await loadState()
+    } finally {
+      setPromotingDraftID('')
     }
-    setMessage(`Promoted ${draft.name} into a backend catalog candidate.`)
-    await loadState()
   }
 
   const updateCandidateStatus = async (
     candidateId: string,
-    nextStatus: string
+    nextStatus: string,
+    successMessage: string
   ) => {
+    setUpdatingCandidateID(candidateId)
     setError('')
-    const result = await updateProductSetupCandidateStatus(
-      candidateId,
-      nextStatus
-    )
-    if (!result.success) {
-      setError(result.message)
-      return
+    setMessage('')
+    try {
+      const result = await updateProductSetupCandidateStatus(
+        candidateId,
+        nextStatus
+      )
+      if (!result.success) {
+        setError(result.message)
+        return
+      }
+      setMessage(successMessage)
+      await loadState()
+    } finally {
+      setUpdatingCandidateID('')
     }
-    await loadState()
   }
 
   createEffect(() => {
@@ -291,14 +306,16 @@ export default function TenantProductSetupPage() {
                         disabled={
                           candidate.status === 'published_mock' ||
                           !candidate.artworkChecklist.mockupReady ||
-                          !candidate.artworkChecklist.printSpecChecked
+                          !candidate.artworkChecklist.printSpecChecked ||
+                          updatingCandidateID() === candidate.id
                         }
+                        loading={updatingCandidateID() === candidate.id}
                         onClick={() => {
                           void updateCandidateStatus(
                             candidate.id,
-                            'published_mock'
+                            'published_mock',
+                            `Mock published ${candidate.title}.`
                           )
-                          setMessage(`Mock published ${candidate.title}.`)
                         }}
                       >
                         Mock publish
@@ -307,10 +324,17 @@ export default function TenantProductSetupPage() {
                         type="button"
                         size="xs"
                         color="light"
-                        disabled={candidate.status === 'archived'}
+                        disabled={
+                          candidate.status === 'archived' ||
+                          updatingCandidateID() === candidate.id
+                        }
+                        loading={updatingCandidateID() === candidate.id}
                         onClick={() => {
-                          void updateCandidateStatus(candidate.id, 'archived')
-                          setMessage(`Archived candidate ${candidate.title}.`)
+                          void updateCandidateStatus(
+                            candidate.id,
+                            'archived',
+                            `Archived candidate ${candidate.title}.`
+                          )
                         }}
                       >
                         Archive

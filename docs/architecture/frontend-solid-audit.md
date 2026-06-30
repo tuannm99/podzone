@@ -26,8 +26,15 @@ This document records migration work. Stable conventions live in
 - Defined frontend verification without requiring unit tests.
 - Moved onboarding workspace, tenant access, session, and audit reads to Solid
   resources with resource-owned loading and read errors.
-- Limited session and audit rendering with client pagination and bounded scroll
-  regions.
+- Migrated Auth sessions and audit logs to the common server collection contract,
+  resource `.latest`, bounded scroll regions, and stable pagination.
+- Split Admin Settings into namespaced Sessions, Audit, Team Access, Invites,
+  Platform Roles, and shared workspace-access ViewModels.
+- Namespaced the IAM root model, added explicit principal loading, and rejected
+  stale IAM selection responses.
+- Moved Partner collection/form orchestration into a feature ViewModel and made
+  Backoffice Audit filters explicit instead of fetching on every keystroke.
+- Fixed Product Setup status feedback so failed mutations cannot report success.
 - Unified frontend formatting under the frontend Prettier configuration.
 
 ## P0: Correctness And Safety
@@ -118,8 +125,7 @@ active editor.
 
 Highest-priority splits:
 
-- `modules/iam/pages/admin-iam/useAdminIamPrincipalTrustActions.ts`
-- `modules/onboarding/pages/AdminSettingsPage.tsx`
+- `modules/iam/pages/admin-iam/createAdminIamPrincipalTrustActions.ts`
 - `modules/onboarding/pages/AdminHomePage.tsx`
 - `modules/iam/pages/admin-iam/TrustSimulationPanel.tsx`
 - `modules/backoffice/pages/TenantOrderFinancePage.tsx`
@@ -172,8 +178,7 @@ Add component and E2E assertions before introducing more overlays.
 ## Recommended Migration Order
 
 1. Move IAM and Backoffice page fetch effects to route/resource data.
-2. Add server pagination contracts for Auth, IAM, Orders, Partners, and
-   onboarding.
+2. Add server pagination contracts for IAM, Orders, Partners, and onboarding.
 3. Move shareable list state into typed route search parameters.
 4. Convert remaining card collections and permanent editors to list/detail
    workflows.

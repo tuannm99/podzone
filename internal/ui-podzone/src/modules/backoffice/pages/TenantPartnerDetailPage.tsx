@@ -1,5 +1,5 @@
 import { useParams } from '@tanstack/solid-router'
-import { Show, createEffect, createSignal, onMount } from 'solid-js'
+import { Show, createEffect, createResource } from 'solid-js'
 import { getPartner, type PartnerInfo } from '@/services/partner'
 import { tenantStorage } from '@/services/tenantStorage'
 import {
@@ -51,32 +51,26 @@ function DetailRow(props: { label: string; value: string }) {
 export default function TenantPartnerDetailPage() {
   const params = useParams({ from: '/t/$tenantId/partners/$partnerId' })
 
-  const [partner, setPartner] = createSignal<PartnerInfo | null>(null)
-  const [loading, setLoading] = createSignal(false)
-  const [error, setError] = createSignal('')
-
-  const loadPartner = async () => {
-    setLoading(true)
-    setError('')
-    try {
-      const result = await getPartner(params().partnerId)
+  const [partnerResource, { refetch: reloadPartner }] = createResource(
+    () => params().partnerId,
+    async (partnerID): Promise<{ partnerID: string; partner: PartnerInfo }> => {
+      const result = await getPartner(partnerID)
       if (!result.success) {
-        setPartner(null)
-        setError(result.message)
-        return
+        throw new Error(result.message)
       }
-      setPartner(result.data)
-    } finally {
-      setLoading(false)
+      return { partnerID, partner: result.data }
     }
-  }
+  )
+  const partner = () =>
+    partnerResource()?.partnerID === params().partnerId
+      ? partnerResource()?.partner || null
+      : null
+  const loading = () => partnerResource.loading
+  const error = () =>
+    partnerResource.error instanceof Error ? partnerResource.error.message : ''
 
   createEffect(() => {
     tenantStorage.setTenantID(params().tenantId)
-  })
-
-  onMount(() => {
-    void loadPartner()
   })
 
   return (
@@ -96,7 +90,7 @@ export default function TenantPartnerDetailPage() {
         <Button
           color="alternative"
           onClick={() => {
-            void loadPartner()
+            void reloadPartner()
           }}
         >
           Reload record

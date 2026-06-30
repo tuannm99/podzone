@@ -1,5 +1,5 @@
 import { useParams } from '@tanstack/solid-router'
-import { For, Show, createEffect, createSignal } from 'solid-js'
+import { For, Show, createEffect, createSignal, on } from 'solid-js'
 import {
   getRoutedOrderActivities,
   type RoutedOrderActivityFeedEntry,
@@ -9,6 +9,7 @@ import {
   EmptyBlock,
   ErrorAlert,
   InfoAlert,
+  LoadingInline,
 } from '@/solid/components/common/Feedback'
 import { PageShell } from '@/solid/components/common/PageShell'
 import {
@@ -131,14 +132,18 @@ export default function TenantOrderAuditPage() {
   const [assigneeFilter, setAssigneeFilter] = createSignal('')
   const [message, setMessage] = createSignal('')
   const [error, setError] = createSignal('')
+  const [loading, setLoading] = createSignal(false)
+  const [loadingMore, setLoadingMore] = createSignal(false)
   const currentStoreId = () => workspace?.currentStoreId() || ''
   const currentStore = () => workspace?.currentStore()
   const workspaceReady = () => !workspace || currentStoreId().trim().length > 0
   const storeLabel = () =>
     currentStore()?.name || currentStoreId() || 'selected store'
 
+  let requestVersion = 0
   const loadEntries = async (after?: string, append = false) => {
-    const result = await getRoutedOrderActivities({
+    const currentRequest = ++requestVersion
+    const query = {
       activityType: activityFilter(),
       actorContains: actorFilter().trim(),
       orderId: orderFilter().trim(),
@@ -151,19 +156,37 @@ export default function TenantOrderAuditPage() {
         activityFilter() === 'all'
           ? !hideSystemActivity()
           : activityFilter() === 'system',
-    })
-    if (!result.success) {
-      setError(result.message)
-      setEntries([])
-      setNextCursor(undefined)
-      setTotal(0)
-      return
     }
-    setEntries((current) =>
-      append ? [...current, ...result.data.entries] : result.data.entries
-    )
-    setNextCursor(result.data.nextCursor)
-    setTotal(result.data.total)
+    setError('')
+    if (append) {
+      setLoadingMore(true)
+    } else {
+      setLoading(true)
+      setLoadingMore(false)
+    }
+    try {
+      const result = await getRoutedOrderActivities(query)
+      if (currentRequest !== requestVersion) return
+      if (!result.success) {
+        setError(result.message)
+        if (!append) {
+          setEntries([])
+          setNextCursor(undefined)
+          setTotal(0)
+        }
+        return
+      }
+      setEntries((current) =>
+        append ? [...current, ...result.data.entries] : result.data.entries
+      )
+      setNextCursor(result.data.nextCursor)
+      setTotal(result.data.total)
+    } finally {
+      if (currentRequest === requestVersion) {
+        setLoading(false)
+        setLoadingMore(false)
+      }
+    }
   }
 
   const auditFeed = () => entries()
@@ -187,27 +210,15 @@ export default function TenantOrderAuditPage() {
     await loadEntries(cursor, true)
   }
 
-  createEffect(() => {
-    tenantStorage.setTenantID(params().tenantId)
-    if (!workspaceReady()) {
-      return
-    }
-    void loadEntries(undefined, false)
-  })
-
-  createEffect(() => {
-    if (!workspaceReady()) {
-      return
-    }
-    activityFilter()
-    hideSystemActivity()
-    actorFilter()
-    orderFilter()
-    partnerFilter()
-    assigneeFilter()
-    timeWindow()
-    void loadEntries(undefined, false)
-  })
+  createEffect(
+    on(
+      () => [params().tenantId, currentStoreId(), workspaceReady()] as const,
+      ([tenantID, , ready]) => {
+        tenantStorage.setTenantID(tenantID)
+        if (ready) void loadEntries(undefined, false)
+      }
+    )
+  )
 
   return (
     <PageShell>
@@ -225,6 +236,9 @@ export default function TenantOrderAuditPage() {
 
       <Show when={error()}>
         <ErrorAlert>{error()}</ErrorAlert>
+      </Show>
+      <Show when={loading()}>
+        <LoadingInline label="Loading audit activity..." />
       </Show>
 
       <Show when={!workspaceReady()}>
@@ -301,6 +315,15 @@ export default function TenantOrderAuditPage() {
           <Button
             type="button"
             size="xs"
+            color="alternative"
+            loading={loading()}
+            onClick={() => void loadEntries(undefined, false)}
+          >
+            Apply filters
+          </Button>
+          <Button
+            type="button"
+            size="xs"
             color="light"
             href={buildOrdersHref(params().tenantId, currentStoreId())}
           >
@@ -343,6 +366,8 @@ export default function TenantOrderAuditPage() {
                 type="button"
                 size="xs"
                 color="alternative"
+                loading={loadingMore()}
+                disabled={loadingMore()}
                 onClick={() => {
                   void loadMore()
                 }}
