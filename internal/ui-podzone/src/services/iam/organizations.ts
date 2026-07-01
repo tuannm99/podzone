@@ -1,4 +1,11 @@
 import { http, type HttpError } from '../http'
+import {
+  normalizePageInfo,
+  toCollectionParams,
+  type CollectionPage,
+  type CollectionQuery,
+  type WirePageInfo,
+} from '../collection'
 import { toFailure } from './result'
 import type {
   IamResult,
@@ -22,14 +29,23 @@ export async function createOrganization(
   }
 }
 
-export async function listOrganizations(): Promise<
-  IamResult<OrganizationInfo[]>
-> {
+export async function listOrganizations(
+  query: CollectionQuery
+): Promise<IamResult<CollectionPage<OrganizationInfo>>> {
   try {
-    const { data } = await http.get<{ organizations?: OrganizationInfo[] }>(
-      '/auth/v1/iam/organizations'
-    )
-    return { success: true, data: data.organizations || [] }
+    const { data } = await http.get<{
+      organizations?: OrganizationInfo[]
+      pageInfo?: WirePageInfo
+    }>('/auth/v1/iam/organizations', {
+      params: toCollectionParams(query),
+    })
+    return {
+      success: true,
+      data: {
+        items: data.organizations || [],
+        pageInfo: normalizePageInfo(data.pageInfo, query),
+      },
+    }
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to load organizations')
   }

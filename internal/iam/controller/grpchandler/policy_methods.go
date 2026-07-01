@@ -193,11 +193,14 @@ func (s *IAMQueryServer) ListPolicies(
 	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
 		return nil, iamStatusError(err)
 	}
-	items, err := s.queries.ListPolicies(ctx, req.Scope)
+	page, err := s.queries.ListPolicies(ctx, req.Scope, iammapper.ToCollectionQuery(req.Collection))
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	return &pbiamv1.ListPoliciesResponse{Policies: iammapper.ToPBPolicies(items)}, nil
+	return &pbiamv1.ListPoliciesResponse{
+		Policies: iammapper.ToPBPolicies(page.Items),
+		PageInfo: iammapper.ToPBPageInfo(page),
+	}, nil
 }
 
 func (s *IAMQueryServer) ListPolicyAttachments(

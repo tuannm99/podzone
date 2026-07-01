@@ -109,6 +109,11 @@ export function AdminIamView(props: { model: AdminIamViewModel }) {
               }
               handleAttachScp={props.model.organizations.handleAttachScp}
               organizations={props.model.organizations.items}
+              query={props.model.organizations.query}
+              pageInfo={props.model.organizations.pageInfo}
+              loading={props.model.organizations.loading}
+              error={props.model.organizations.error}
+              updateQuery={props.model.organizations.updateQuery}
               orgPolicies={props.model.organizations.orgPolicies}
               handleDetachTenantFromOrg={
                 props.model.organizations.handleDetachTenantFromOrg

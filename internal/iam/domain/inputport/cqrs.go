@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 // IAMCommandUsecase owns state-changing IAM operations.
@@ -75,7 +76,7 @@ type OrganizationCommandUsecase interface {
 }
 
 type OrganizationQueryUsecase interface {
-	ListOrganizations(ctx context.Context) ([]entity.Organization, error)
+	ListOrganizations(ctx context.Context, query collection.Query) (collection.Page[entity.Organization], error)
 	ListServiceControlPolicies(ctx context.Context, orgID string) ([]entity.Policy, error)
 }
 
@@ -97,7 +98,7 @@ type PolicyCommandUsecase interface {
 type PolicyQueryUsecase interface {
 	GetPolicy(ctx context.Context, name string) (*entity.Policy, []entity.PolicyStatement, error)
 	ListPolicyVersions(ctx context.Context, name string) ([]entity.PolicyVersion, error)
-	ListPolicies(ctx context.Context, scope string) ([]entity.Policy, error)
+	ListPolicies(ctx context.Context, scope string, query collection.Query) (collection.Page[entity.Policy], error)
 	ListPolicyAttachments(ctx context.Context, name string) ([]entity.PolicyAttachment, error)
 	GetRoleTrustPolicy(ctx context.Context, roleName string) ([]entity.RoleTrustStatement, error)
 	GetRolePermissionBoundary(ctx context.Context, roleName string) (*entity.RolePermissionBoundary, error)
@@ -115,7 +116,12 @@ type GroupCommandUsecase interface {
 }
 
 type GroupQueryUsecase interface {
-	ListGroups(ctx context.Context, scope string, tenantID string) ([]entity.Group, error)
+	ListGroups(
+		ctx context.Context,
+		scope string,
+		tenantID string,
+		query collection.Query,
+	) (collection.Page[entity.Group], error)
 	GetGroupInlinePolicy(ctx context.Context, groupID uint64, name string) (*entity.GroupInlinePolicy, error)
 	ListGroupInlinePolicies(ctx context.Context, groupID uint64) ([]entity.GroupInlinePolicy, error)
 	ListGroupMembers(ctx context.Context, groupID uint64) ([]uint, error)

@@ -12,6 +12,7 @@ import (
 	"github.com/tuannm99/podzone/internal/iam/domain/inputport"
 	iaminteractor "github.com/tuannm99/podzone/internal/iam/domain/interactor"
 	outputportmocks "github.com/tuannm99/podzone/internal/iam/domain/outputport/mocks"
+	"github.com/tuannm99/podzone/pkg/collection"
 	"github.com/tuannm99/podzone/pkg/messaging"
 )
 
@@ -147,8 +148,13 @@ func newIAMTestUsecase(t *testing.T) (inputport.IAMUsecase, *iamTestState) {
 		}).
 		Maybe()
 	orgRepo.EXPECT().
-		List(mock.Anything).
-		RunAndReturn(func(ctx context.Context) ([]entity.Organization, error) { return nil, nil }).
+		List(mock.Anything, mock.Anything).
+		RunAndReturn(func(
+			ctx context.Context,
+			query collection.Query,
+		) (collection.Page[entity.Organization], error) {
+			return collection.NewPage([]entity.Organization{}, 0, query), nil
+		}).
 		Maybe()
 	orgRepo.EXPECT().
 		GetByID(mock.Anything, mock.Anything).

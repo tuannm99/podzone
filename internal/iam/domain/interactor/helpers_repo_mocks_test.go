@@ -10,6 +10,7 @@ import (
 
 	entity "github.com/tuannm99/podzone/internal/iam/domain/entity"
 	outputportmocks "github.com/tuannm99/podzone/internal/iam/domain/outputport/mocks"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 func configurePolicyRepoMocks(policyRepo *outputportmocks.MockPolicyRepository, state *iamTestState) {
@@ -139,15 +140,19 @@ func configurePolicyRepoMocks(policyRepo *outputportmocks.MockPolicyRepository, 
 		}).
 		Maybe()
 	policyRepo.EXPECT().
-		ListPolicies(mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, scope string) ([]entity.Policy, error) {
+		ListPolicies(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(
+			ctx context.Context,
+			scope string,
+			query collection.Query,
+		) (collection.Page[entity.Policy], error) {
 			out := make([]entity.Policy, 0)
 			for _, policy := range state.policiesByName {
 				if scope == "" || policy.Scope == scope {
 					out = append(out, policy)
 				}
 			}
-			return out, nil
+			return collection.NewPage(out, int64(len(out)), query), nil
 		}).
 		Maybe()
 	policyRepo.EXPECT().
@@ -533,8 +538,13 @@ func configureGroupRepoMocks(groupRepo *outputportmocks.MockGroupRepository, sta
 		}).
 		Maybe()
 	groupRepo.EXPECT().
-		ListGroups(mock.Anything, mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, scope string, tenantID string) ([]entity.Group, error) {
+		ListGroups(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(
+			ctx context.Context,
+			scope string,
+			tenantID string,
+			query collection.Query,
+		) (collection.Page[entity.Group], error) {
 			out := make([]entity.Group, 0)
 			for _, group := range state.groupsByID {
 				if scope != "" && group.Scope != scope {
@@ -545,7 +555,7 @@ func configureGroupRepoMocks(groupRepo *outputportmocks.MockGroupRepository, sta
 				}
 				out = append(out, group)
 			}
-			return out, nil
+			return collection.NewPage(out, int64(len(out)), query), nil
 		}).
 		Maybe()
 	groupRepo.EXPECT().

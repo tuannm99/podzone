@@ -5,6 +5,7 @@ import type {
   PolicyInfo,
   PolicyVersionInfo,
 } from '@/services/iam'
+import type { CollectionQuery, PageInfo } from '@/services/collection'
 import type {
   CreatePolicyFormValues,
   CreatePolicyVersionFormValues,
@@ -35,6 +36,12 @@ export type AdminIamPolicyContextValue = {
   selectedPolicyName: Accessor<string>
   setSelectedPolicyName: Setter<string>
   policyOptions: Accessor<PolicyOption[]>
+  policies: Accessor<PolicyInfo[]>
+  query: CollectionQuery
+  pageInfo: Accessor<PageInfo>
+  loading: Accessor<boolean>
+  error: Accessor<string>
+  updateQuery: (patch: Partial<CollectionQuery>) => void
   policyDetail: Accessor<PolicyInfo | undefined>
   policyVersions: Accessor<PolicyVersionInfo[]>
   policyAttachments: Accessor<PolicyAttachmentInfo[]>

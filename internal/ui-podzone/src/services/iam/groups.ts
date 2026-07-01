@@ -1,4 +1,11 @@
 import { http, type HttpError } from '../http'
+import {
+  normalizePageInfo,
+  toCollectionParams,
+  type CollectionPage,
+  type CollectionQuery,
+  type WirePageInfo,
+} from '../collection'
 import { toFailure } from './result'
 import type {
   IamResult,
@@ -25,15 +32,27 @@ export async function createGroup(
 
 export async function listGroups(
   scope: string,
-  tenantId?: string
-): Promise<IamResult<GroupInfo[]>> {
+  tenantId: string | undefined,
+  query: CollectionQuery
+): Promise<IamResult<CollectionPage<GroupInfo>>> {
   try {
-    const params = new URLSearchParams({ scope })
-    if (tenantId) params.set('tenantId', tenantId)
-    const { data } = await http.get<{ groups?: GroupInfo[] }>(
-      `/auth/v1/iam/groups?${params.toString()}`
-    )
-    return { success: true, data: data.groups || [] }
+    const { data } = await http.get<{
+      groups?: GroupInfo[]
+      pageInfo?: WirePageInfo
+    }>('/auth/v1/iam/groups', {
+      params: {
+        scope,
+        ...(tenantId ? { tenantId } : {}),
+        ...toCollectionParams(query),
+      },
+    })
+    return {
+      success: true,
+      data: {
+        items: data.groups || [],
+        pageInfo: normalizePageInfo(data.pageInfo, query),
+      },
+    }
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to load groups')
   }

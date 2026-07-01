@@ -17,6 +17,7 @@ import type {
   GroupPolicyAttachmentFormValues,
 } from './forms'
 import { useAdminIamGroup } from './context'
+import { GroupsCollection } from './GroupsCollection'
 import {
   GroupAccessTables,
   GroupInlinePoliciesTable,
@@ -159,6 +160,8 @@ export function GroupsPanel() {
           Create group
         </Button>
       </form>
+
+      <GroupsCollection />
 
       <Show when={group.groupOptions().length > 0}>
         <SelectField

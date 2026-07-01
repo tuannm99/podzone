@@ -1,9 +1,14 @@
-import { createSignal } from 'solid-js'
-import type { GroupInfo, GroupInlinePolicy, PolicyInfo } from '@/services/iam'
+import { createSignal, type Accessor } from 'solid-js'
+import {
+  listGroups,
+  type GroupInfo,
+  type GroupInlinePolicy,
+  type PolicyInfo,
+} from '@/services/iam'
+import { createPaginatedResource } from '@/solid/pagination'
 import { prettyJSON } from '../presentation'
 
-export function createGroupsState() {
-  const [groups, setGroups] = createSignal<GroupInfo[]>([])
+export function createGroupsState(enabled: Accessor<boolean>) {
   const [selectedGroupId, setSelectedGroupId] = createSignal('')
   const [groupMembers, setGroupMembers] = createSignal<number[]>([])
   const [groupPolicies, setGroupPolicies] = createSignal<PolicyInfo[]>([])
@@ -14,6 +19,24 @@ export function createGroupsState() {
   const [groupTenantId, setGroupTenantId] = createSignal('')
   const [groupName, setGroupName] = createSignal('')
   const [groupDescription, setGroupDescription] = createSignal('')
+  const collection = createPaginatedResource<GroupInfo>(
+    {
+      page: 1,
+      pageSize: 10,
+      sortBy: 'createdAt',
+      sortDirection: 'SORT_DIRECTION_DESC',
+    },
+    async (query) => {
+      const result = await listGroups(
+        groupScope(),
+        groupScope() === 'tenant' ? groupTenantId().trim() : undefined,
+        query
+      )
+      if (!result.success) throw new Error(result.message)
+      return result.data
+    },
+    { enabled }
+  )
   const [groupMemberUserId, setGroupMemberUserId] = createSignal('')
   const [groupPolicyName, setGroupPolicyName] = createSignal('')
   const [groupInlinePolicyName, setGroupInlinePolicyName] = createSignal('')
@@ -30,14 +53,19 @@ export function createGroupsState() {
     ])
   )
   const groupOptions = () =>
-    groups().map((item) => ({
+    collection.items().map((item) => ({
       name: `${item.name}${item.tenantId ? ` · ${item.tenantId}` : ''}`,
       value: String(item.id || ''),
     }))
 
   return {
-    groups,
-    setGroups,
+    groups: collection.items,
+    groupsQuery: collection.query,
+    groupsPageInfo: collection.pageInfo,
+    groupsLoading: collection.loading,
+    groupsError: collection.error,
+    updateGroupsQuery: collection.updateQuery,
+    reloadGroups: collection.reload,
     selectedGroupId,
     setSelectedGroupId,
     groupMembers,

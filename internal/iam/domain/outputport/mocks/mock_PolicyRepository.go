@@ -9,6 +9,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 	"github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 // NewMockPolicyRepository creates a new instance of MockPolicyRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -1697,27 +1698,25 @@ func (_c *MockPolicyRepository_ListPlatformUserStatements_Call) RunAndReturn(run
 }
 
 // ListPolicies provides a mock function for the type MockPolicyRepository
-func (_mock *MockPolicyRepository) ListPolicies(ctx context.Context, scope string) ([]entity.Policy, error) {
-	ret := _mock.Called(ctx, scope)
+func (_mock *MockPolicyRepository) ListPolicies(ctx context.Context, scope string, query collection.Query) (collection.Page[entity.Policy], error) {
+	ret := _mock.Called(ctx, scope, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListPolicies")
 	}
 
-	var r0 []entity.Policy
+	var r0 collection.Page[entity.Policy]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]entity.Policy, error)); ok {
-		return returnFunc(ctx, scope)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) (collection.Page[entity.Policy], error)); ok {
+		return returnFunc(ctx, scope, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []entity.Policy); ok {
-		r0 = returnFunc(ctx, scope)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) collection.Page[entity.Policy]); ok {
+		r0 = returnFunc(ctx, scope, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.Policy)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.Policy])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, scope)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, collection.Query) error); ok {
+		r1 = returnFunc(ctx, scope, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1732,11 +1731,12 @@ type MockPolicyRepository_ListPolicies_Call struct {
 // ListPolicies is a helper method to define mock.On call
 //   - ctx context.Context
 //   - scope string
-func (_e *MockPolicyRepository_Expecter) ListPolicies(ctx interface{}, scope interface{}) *MockPolicyRepository_ListPolicies_Call {
-	return &MockPolicyRepository_ListPolicies_Call{Call: _e.mock.On("ListPolicies", ctx, scope)}
+//   - query collection.Query
+func (_e *MockPolicyRepository_Expecter) ListPolicies(ctx interface{}, scope interface{}, query interface{}) *MockPolicyRepository_ListPolicies_Call {
+	return &MockPolicyRepository_ListPolicies_Call{Call: _e.mock.On("ListPolicies", ctx, scope, query)}
 }
 
-func (_c *MockPolicyRepository_ListPolicies_Call) Run(run func(ctx context.Context, scope string)) *MockPolicyRepository_ListPolicies_Call {
+func (_c *MockPolicyRepository_ListPolicies_Call) Run(run func(ctx context.Context, scope string, query collection.Query)) *MockPolicyRepository_ListPolicies_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -1746,20 +1746,25 @@ func (_c *MockPolicyRepository_ListPolicies_Call) Run(run func(ctx context.Conte
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockPolicyRepository_ListPolicies_Call) Return(policys []entity.Policy, err error) *MockPolicyRepository_ListPolicies_Call {
-	_c.Call.Return(policys, err)
+func (_c *MockPolicyRepository_ListPolicies_Call) Return(page collection.Page[entity.Policy], err error) *MockPolicyRepository_ListPolicies_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockPolicyRepository_ListPolicies_Call) RunAndReturn(run func(ctx context.Context, scope string) ([]entity.Policy, error)) *MockPolicyRepository_ListPolicies_Call {
+func (_c *MockPolicyRepository_ListPolicies_Call) RunAndReturn(run func(ctx context.Context, scope string, query collection.Query) (collection.Page[entity.Policy], error)) *MockPolicyRepository_ListPolicies_Call {
 	_c.Call.Return(run)
 	return _c
 }

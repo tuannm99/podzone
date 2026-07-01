@@ -2,27 +2,15 @@ import {
   listGroupInlinePolicies,
   listGroupMembers,
   listGroupPolicies,
-  listGroups,
 } from '@/services/iam'
 import type { AdminIamState } from '../createAdminIamState'
 
 export function createGroupsLoaders(state: AdminIamState) {
-  let scopeRequestID = 0
   let selectionRequestID = 0
 
   const loadGroupsForScope = async () => {
     if (!state.allowed()) return
-    const currentRequest = ++scopeRequestID
-    const result = await listGroups(
-      state.groupScope(),
-      state.groupScope() === 'tenant' ? state.groupTenantId().trim() : undefined
-    )
-    if (currentRequest !== scopeRequestID) return
-    if (!result.success) {
-      state.setPageError(result.message)
-      return
-    }
-    state.setGroups(result.data)
+    await state.reloadGroups()
   }
 
   const loadSelectedGroup = async () => {

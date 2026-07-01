@@ -4,11 +4,12 @@ import (
 	"context"
 
 	"github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type OrganizationUsecase interface {
 	CreateOrganization(ctx context.Context, name string, slug string) (*entity.Organization, error)
-	ListOrganizations(ctx context.Context) ([]entity.Organization, error)
+	ListOrganizations(ctx context.Context, query collection.Query) (collection.Page[entity.Organization], error)
 	AttachTenantToOrganization(ctx context.Context, tenantID string, orgID string) error
 	DetachTenantFromOrganization(ctx context.Context, tenantID string) error
 	AttachServiceControlPolicy(ctx context.Context, orgID string, policyName string) error

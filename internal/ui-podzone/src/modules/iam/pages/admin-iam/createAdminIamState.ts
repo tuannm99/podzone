@@ -7,11 +7,12 @@ import { createShellState } from './shared/createShellState'
 import { createTrustSimulationState } from './trust-simulation/createTrustSimulationState'
 
 export function createAdminIamState(userID: number) {
+  const shell = createShellState()
   return {
-    ...createShellState(),
-    ...createOrganizationsState(),
-    ...createPoliciesState(),
-    ...createGroupsState(),
+    ...shell,
+    ...createOrganizationsState(shell.allowed),
+    ...createPoliciesState(shell.allowed),
+    ...createGroupsState(shell.allowed),
     ...createAssignmentsState(userID),
     ...createPrincipalsState(userID),
     ...createTrustSimulationState(userID),

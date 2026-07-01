@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type PolicyUsecase interface {
@@ -16,7 +17,7 @@ type PolicyUsecase interface {
 	GetPolicy(ctx context.Context, name string) (*entity.Policy, []entity.PolicyStatement, error)
 	ListPolicyVersions(ctx context.Context, name string) ([]entity.PolicyVersion, error)
 	SetDefaultPolicyVersion(ctx context.Context, name string, version string) error
-	ListPolicies(ctx context.Context, scope string) ([]entity.Policy, error)
+	ListPolicies(ctx context.Context, scope string, query collection.Query) (collection.Page[entity.Policy], error)
 	ListPolicyAttachments(ctx context.Context, name string) ([]entity.PolicyAttachment, error)
 	DeletePolicy(ctx context.Context, name string) error
 	PutRoleTrustPolicy(ctx context.Context, input entity.PutRoleTrustPolicyInput) error

@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	iammapper "github.com/tuannm99/podzone/internal/iam/controller/mapper"
 	iamdomain "github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 	"github.com/tuannm99/podzone/pkg/pdauthn"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -93,6 +94,7 @@ func (s *iamHandlerBase) recordAudit(
 func iamStatusError(err error) error {
 	switch {
 	case errors.Is(err, iamdomain.ErrInvalidTenantName),
+		errors.Is(err, collection.ErrInvalidQuery),
 		errors.Is(err, iamdomain.ErrInvalidTenantSlug),
 		errors.Is(err, iamdomain.ErrInvalidOrganizationName),
 		errors.Is(err, iamdomain.ErrInvalidOrganizationSlug),

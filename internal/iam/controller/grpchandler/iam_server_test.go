@@ -12,6 +12,7 @@ import (
 	iamentity "github.com/tuannm99/podzone/internal/iam/domain/entity"
 	pbcommonv1 "github.com/tuannm99/podzone/pkg/api/proto/common/v1"
 	pbiamv1 "github.com/tuannm99/podzone/pkg/api/proto/iam/v1"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 func TestCreateTenant_OK(t *testing.T) {
@@ -152,6 +153,95 @@ func TestCreatePolicy_OK(t *testing.T) {
 	require.NotNil(t, res)
 	assert.Equal(t, "managed/test", res.Policy.Name)
 	assert.Len(t, res.Statements, 1)
+}
+
+func TestListIAMCollections_MapCollectionQueryAndPageInfo(t *testing.T) {
+	t.Parallel()
+
+	assertQuery := func(t *testing.T, query collection.Query) {
+		t.Helper()
+		assert.Equal(t, 2, query.Page)
+		assert.Equal(t, 5, query.PageSize)
+		assert.Equal(t, "ops", query.Search)
+		assert.Equal(t, "name", query.SortBy)
+		assert.Equal(t, collection.SortAscending, query.SortDirection)
+	}
+	srv := newIAMServerForTest(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		requirePlatformPermissionFunc: func(context.Context, uint, string) error {
+			return nil
+		},
+		listOrganizationsFunc: func(
+			ctx context.Context,
+			query collection.Query,
+		) (collection.Page[iamentity.Organization], error) {
+			assertQuery(t, query)
+			return collection.NewPage(
+				[]iamentity.Organization{{ID: "org-1", Name: "Ops"}},
+				11,
+				query,
+			), nil
+		},
+		listPoliciesFunc: func(
+			ctx context.Context,
+			scope string,
+			query collection.Query,
+		) (collection.Page[iamentity.Policy], error) {
+			assert.Equal(t, "platform", scope)
+			assertQuery(t, query)
+			return collection.NewPage(
+				[]iamentity.Policy{{ID: 1, Name: "ops", Scope: scope}},
+				11,
+				query,
+			), nil
+		},
+		listGroupsFunc: func(
+			ctx context.Context,
+			scope string,
+			tenantID string,
+			query collection.Query,
+		) (collection.Page[iamentity.Group], error) {
+			assert.Equal(t, "platform", scope)
+			assert.Empty(t, tenantID)
+			assertQuery(t, query)
+			return collection.NewPage(
+				[]iamentity.Group{{ID: 1, Name: "ops", Scope: scope}},
+				11,
+				query,
+			), nil
+		},
+	}))
+	request := &pbcommonv1.CollectionRequest{
+		Page:          2,
+		PageSize:      5,
+		Search:        "ops",
+		SortBy:        "name",
+		SortDirection: pbcommonv1.SortDirection_SORT_DIRECTION_ASC,
+	}
+
+	organizations, err := srv.ListOrganizations(
+		authContextForIAMUser(t, 7),
+		&pbiamv1.ListOrganizationsRequest{Collection: request},
+	)
+	require.NoError(t, err)
+	assert.Len(t, organizations.Organizations, 1)
+	assert.Equal(t, int64(11), organizations.PageInfo.Total)
+	assert.Equal(t, int32(3), organizations.PageInfo.TotalPages)
+
+	policies, err := srv.ListPolicies(
+		authContextForIAMUser(t, 7),
+		&pbiamv1.ListPoliciesRequest{Scope: "platform", Collection: request},
+	)
+	require.NoError(t, err)
+	assert.Len(t, policies.Policies, 1)
+	assert.Equal(t, int32(2), policies.PageInfo.Page)
+
+	groups, err := srv.ListGroups(
+		authContextForIAMUser(t, 7),
+		&pbiamv1.ListGroupsRequest{Scope: "platform", Collection: request},
+	)
+	require.NoError(t, err)
+	assert.Len(t, groups.Groups, 1)
+	assert.True(t, groups.PageInfo.HasNext)
 }
 
 func TestGetTenantMembership_OK(t *testing.T) {

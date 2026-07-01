@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type RoleCommandRepository interface {
@@ -60,7 +61,7 @@ type PolicyQueryRepository interface {
 	GetPolicyByName(ctx context.Context, name string) (*entity.Policy, error)
 	GetPolicyStatements(ctx context.Context, policyID uint64) ([]entity.PolicyStatement, error)
 	ListPolicyVersions(ctx context.Context, policyID uint64, policyName string) ([]entity.PolicyVersion, error)
-	ListPolicies(ctx context.Context, scope string) ([]entity.Policy, error)
+	ListPolicies(ctx context.Context, scope string, query collection.Query) (collection.Page[entity.Policy], error)
 	ListPolicyAttachments(ctx context.Context, policyID uint64) ([]entity.PolicyAttachment, error)
 	ListRoleStatements(ctx context.Context, roleID uint64) ([]entity.PolicyStatement, error)
 	ListPlatformUserStatements(ctx context.Context, userID uint) ([]entity.PolicyStatement, error)

@@ -5,6 +5,7 @@ package iam;
 option go_package = "github.com/tuannm99/podzone/pkg/api/proto/iam/v1;pbiamv1";
 
 import "common/v1/iam_policy.proto";
+import "common/v1/common.proto";
 
 message PlatformRoleMembership {
   uint64 user_id = 1;
@@ -216,10 +217,12 @@ message DeletePolicyVersionResponse {}
 
 message ListPoliciesRequest {
   string scope = 1;
+  common.CollectionRequest collection = 2;
 }
 
 message ListPoliciesResponse {
   repeated Policy policies = 1;
+  common.PageInfo page_info = 2;
 }
 
 message ListPolicyAttachmentsRequest {
@@ -271,10 +274,12 @@ message CreateGroupResponse {
 message ListGroupsRequest {
   string scope = 1;
   string tenant_id = 2;
+  common.CollectionRequest collection = 3;
 }
 
 message ListGroupsResponse {
   repeated Group groups = 1;
+  common.PageInfo page_info = 2;
 }
 
 message DeleteGroupRequest {

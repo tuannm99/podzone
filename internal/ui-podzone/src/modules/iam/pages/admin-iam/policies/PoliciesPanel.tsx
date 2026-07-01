@@ -18,6 +18,7 @@ import type {
   CreatePolicyVersionFormValues,
 } from './forms'
 import { useAdminIamPolicy } from './context'
+import { PoliciesCollection } from './PoliciesCollection'
 import { PolicyDetailTables } from './PolicyDetailTables'
 
 export function PoliciesPanel() {
@@ -115,6 +116,8 @@ export function PoliciesPanel() {
           Create policy
         </Button>
       </form>
+
+      <PoliciesCollection />
 
       <Show when={policy.policyOptions().length > 0}>
         <SelectField

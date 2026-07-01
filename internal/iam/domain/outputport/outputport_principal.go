@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type GroupCommandRepository interface {
@@ -19,7 +20,12 @@ type GroupCommandRepository interface {
 
 type GroupQueryRepository interface {
 	GetByID(ctx context.Context, groupID uint64) (*entity.Group, error)
-	ListGroups(ctx context.Context, scope string, tenantID string) ([]entity.Group, error)
+	ListGroups(
+		ctx context.Context,
+		scope string,
+		tenantID string,
+		query collection.Query,
+	) (collection.Page[entity.Group], error)
 	GetInlinePolicy(ctx context.Context, groupID uint64, name string) (*entity.GroupInlinePolicy, error)
 	ListInlinePolicies(ctx context.Context, groupID uint64) ([]entity.GroupInlinePolicy, error)
 	ListMembers(ctx context.Context, groupID uint64) ([]uint, error)

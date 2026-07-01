@@ -1,9 +1,4 @@
-import {
-  checkPlatformPermission,
-  listOrganizations,
-  listPolicies,
-  listUserTenants,
-} from '@/services/iam'
+import { checkPlatformPermission, listUserTenants } from '@/services/iam'
 import type { AdminIamState } from '../createAdminIamState'
 
 export function createBootstrapLoader(state: AdminIamState, userID: number) {
@@ -27,11 +22,7 @@ export function createBootstrapLoader(state: AdminIamState, userID: number) {
       return
     }
 
-    const [tenantResult, orgResult, policyResult] = await Promise.all([
-      listUserTenants(userID),
-      listOrganizations(),
-      listPolicies(),
-    ])
+    const tenantResult = await listUserTenants(userID)
     if (currentRequest !== requestID) return
 
     if (!tenantResult.success) {
@@ -49,20 +40,6 @@ export function createBootstrapLoader(state: AdminIamState, userID: number) {
         state.setPrincipalTenantId(firstTenantID)
       if (!state.shortcutTenantId() && firstTenantID)
         state.setShortcutTenantId(firstTenantID)
-    }
-    if (!orgResult.success) {
-      state.setPageError(orgResult.message)
-    } else {
-      state.setOrganizations(orgResult.data)
-      if (!state.selectedOrgId() && orgResult.data[0]?.id)
-        state.setSelectedOrgId(orgResult.data[0].id)
-    }
-    if (!policyResult.success) {
-      state.setPageError(policyResult.message)
-    } else {
-      state.setPolicies(policyResult.data)
-      if (!state.selectedPolicyName() && policyResult.data[0]?.name)
-        state.setSelectedPolicyName(policyResult.data[0].name)
     }
     state.setLoading(false)
   }

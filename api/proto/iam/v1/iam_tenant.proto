@@ -4,6 +4,8 @@ package iam;
 
 option go_package = "github.com/tuannm99/podzone/pkg/api/proto/iam/v1;pbiamv1";
 
+import "common/v1/common.proto";
+
 message Tenant {
   string id = 1;
   string slug = 2;
@@ -67,10 +69,13 @@ message CreateOrganizationResponse {
   Organization organization = 1;
 }
 
-message ListOrganizationsRequest {}
+message ListOrganizationsRequest {
+  common.CollectionRequest collection = 1;
+}
 
 message ListOrganizationsResponse {
   repeated Organization organizations = 1;
+  common.PageInfo page_info = 2;
 }
 
 message AttachTenantToOrganizationRequest {

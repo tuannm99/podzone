@@ -200,15 +200,23 @@ func (s *IAMQueryServer) ListGroups(
 			return nil, iamStatusError(err)
 		}
 	}
-	items, err := s.queries.ListGroups(ctx, req.Scope, req.TenantId)
+	page, err := s.queries.ListGroups(
+		ctx,
+		req.Scope,
+		req.TenantId,
+		iammapper.ToCollectionQuery(req.Collection),
+	)
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	out := make([]*pbiamv1.Group, 0, len(items))
-	for i := range items {
-		out = append(out, iammapper.ToPBGroup(&items[i]))
+	out := make([]*pbiamv1.Group, 0, len(page.Items))
+	for i := range page.Items {
+		out = append(out, iammapper.ToPBGroup(&page.Items[i]))
 	}
-	return &pbiamv1.ListGroupsResponse{Groups: out}, nil
+	return &pbiamv1.ListGroupsResponse{
+		Groups:   out,
+		PageInfo: iammapper.ToPBPageInfo(page),
+	}, nil
 }
 
 func (s *IAMQueryServer) ListGroupMembers(

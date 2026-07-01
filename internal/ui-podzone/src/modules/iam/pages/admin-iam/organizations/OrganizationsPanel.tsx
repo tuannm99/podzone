@@ -1,26 +1,17 @@
-import { For, Show, type Accessor, type Setter } from 'solid-js'
-import type { OrganizationInfo, PolicyInfo } from '@/services/iam'
+import { Show, type Accessor, type Setter } from 'solid-js'
 import {
-  DataTable,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeaderCell,
-  TableRow,
-} from '@/solid/components/common/DataTable'
-import { EmptyBlock } from '@/solid/components/common/Feedback'
-import { Pagination } from '@/solid/components/common/Pagination'
-import {
-  Badge,
   Button,
   InputField,
   SelectField,
   type SelectOption,
 } from '@/solid/components/common/Primitives'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'
-import { createClientPagination } from '@/solid/pagination'
+import {
+  OrganizationsCollection,
+  type OrganizationsCollectionProps,
+} from './OrganizationsCollection'
 
-type OrganizationsPanelProps = {
+type OrganizationsPanelProps = OrganizationsCollectionProps & {
   organizationOptions: Accessor<SelectOption[]>
   selectedOrgId: Accessor<string>
   setSelectedOrgId: Setter<string>
@@ -36,15 +27,9 @@ type OrganizationsPanelProps = {
   tenantOptions: Accessor<SelectOption[]>
   handleAttachTenantToOrg: () => void
   handleAttachScp: () => void
-  organizations: Accessor<OrganizationInfo[]>
-  orgPolicies: Accessor<PolicyInfo[]>
-  handleDetachTenantFromOrg: (tenantID: string) => void
-  handleDetachScp: (policyName: string) => void
 }
 
 export function OrganizationsPanel(props: OrganizationsPanelProps) {
-  const organizationsPage = createClientPagination(props.organizations, 6)
-
   return (
     <div class="space-y-5">
       <SectionTitle
@@ -114,99 +99,19 @@ export function OrganizationsPanel(props: OrganizationsPanelProps) {
         </Button>
       </div>
 
-      <Show
-        when={props.organizations().length > 0}
-        fallback={
-          <EmptyBlock
-            title="No organizations"
-            copy="Create the first organization to start applying SCP guardrails."
-          />
-        }
-      >
-        <DataTable>
-          <TableHead>
-            <TableRow>
-              <TableHeaderCell>Organization</TableHeaderCell>
-              <TableHeaderCell>Slug</TableHeaderCell>
-              <TableHeaderCell>Status</TableHeaderCell>
-              <TableHeaderCell class="text-right">Actions</TableHeaderCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            <For each={organizationsPage.pageItems()}>
-              {(organization) => (
-                <TableRow>
-                  <TableCell class="font-semibold text-gray-900">
-                    {organization.name}
-                  </TableCell>
-                  <TableCell class="text-gray-600">
-                    {organization.slug}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      content={
-                        organization.id === props.selectedOrgId()
-                          ? 'selected'
-                          : 'organization'
-                      }
-                      color={
-                        organization.id === props.selectedOrgId()
-                          ? 'blue'
-                          : 'dark'
-                      }
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <div class="flex flex-wrap justify-end gap-2">
-                      <Show
-                        when={
-                          organization.id === props.selectedOrgId() &&
-                          props.orgTenantId().trim()
-                        }
-                      >
-                        <Button
-                          size="xs"
-                          color="light"
-                          onClick={() =>
-                            props.handleDetachTenantFromOrg(
-                              props.orgTenantId().trim()
-                            )
-                          }
-                        >
-                          Detach selected workspace
-                        </Button>
-                      </Show>
-                      <For
-                        each={
-                          organization.id === props.selectedOrgId()
-                            ? props.orgPolicies()
-                            : []
-                        }
-                      >
-                        {(policy) => (
-                          <Button
-                            size="xs"
-                            color="alternative"
-                            onClick={() => props.handleDetachScp(policy.name)}
-                          >
-                            Detach SCP {policy.name}
-                          </Button>
-                        )}
-                      </For>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )}
-            </For>
-          </TableBody>
-        </DataTable>
-        <Pagination
-          page={organizationsPage.page()}
-          pageSize={organizationsPage.pageSize}
-          total={organizationsPage.total()}
-          onPageChange={organizationsPage.setPage}
-        />
-      </Show>
+      <OrganizationsCollection
+        organizations={props.organizations}
+        query={props.query}
+        pageInfo={props.pageInfo}
+        loading={props.loading}
+        error={props.error}
+        updateQuery={props.updateQuery}
+        selectedOrgId={props.selectedOrgId}
+        orgTenantId={props.orgTenantId}
+        orgPolicies={props.orgPolicies}
+        handleDetachTenantFromOrg={props.handleDetachTenantFromOrg}
+        handleDetachScp={props.handleDetachScp}
+      />
     </div>
   )
 }

@@ -27,7 +27,7 @@ export function createOrganizationsActions(
       )
       state.setOrgName('')
       state.setOrgSlug('')
-      await loaders.loadBootstrap()
+      await state.reloadOrganizations()
     })
   }
 
@@ -40,7 +40,7 @@ export function createOrganizationsActions(
       )
       if (!result.success) throw new Error(result.message)
       state.setPageMessage(`Attached tenant ${tenantID} to organization.`)
-      await loaders.loadBootstrap()
+      await state.reloadOrganizations()
     })
 
   const handleDetachTenantFromOrg = (tenantID: string) =>
@@ -51,7 +51,7 @@ export function createOrganizationsActions(
       )
       if (!result.success) throw new Error(result.message)
       state.setPageMessage(`Detached tenant ${tenantID} from organization.`)
-      await loaders.loadBootstrap()
+      await state.reloadOrganizations()
     })
 
   const handleAttachScp = () =>

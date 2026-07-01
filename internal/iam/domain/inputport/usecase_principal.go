@@ -4,11 +4,17 @@ import (
 	"context"
 
 	"github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type GroupUsecase interface {
 	CreateGroup(ctx context.Context, input entity.CreateGroupInput) (*entity.Group, error)
-	ListGroups(ctx context.Context, scope string, tenantID string) ([]entity.Group, error)
+	ListGroups(
+		ctx context.Context,
+		scope string,
+		tenantID string,
+		query collection.Query,
+	) (collection.Page[entity.Group], error)
 	DeleteGroup(ctx context.Context, groupID uint64) error
 	PutGroupInlinePolicy(ctx context.Context, input entity.PutGroupInlinePolicyInput) error
 	GetGroupInlinePolicy(ctx context.Context, groupID uint64, name string) (*entity.GroupInlinePolicy, error)

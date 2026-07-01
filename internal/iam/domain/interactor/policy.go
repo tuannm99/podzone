@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 func (s *interactor) CreatePolicy(
@@ -89,8 +90,12 @@ func (s *interactor) DeletePolicyVersion(ctx context.Context, name string, versi
 	return s.policyCommands.DeletePolicyVersion(ctx, policy.ID, version)
 }
 
-func (s *interactor) ListPolicies(ctx context.Context, scope string) ([]entity.Policy, error) {
-	return s.policyQueries.ListPolicies(ctx, strings.TrimSpace(scope))
+func (s *interactor) ListPolicies(
+	ctx context.Context,
+	scope string,
+	query collection.Query,
+) (collection.Page[entity.Policy], error) {
+	return s.policyQueries.ListPolicies(ctx, strings.TrimSpace(scope), query.Normalize())
 }
 
 func (s *interactor) GetPolicy(ctx context.Context, name string) (*entity.Policy, []entity.PolicyStatement, error) {

@@ -38,7 +38,7 @@ export function createPoliciesActions(
       state.setPolicyDescription('')
       state.setPolicyScope(values.scope)
       state.setPolicyStatementsJson(values.statementsJson)
-      await loaders.loadBootstrap()
+      await state.reloadPolicies()
     })
 
   const submitCreatePolicy = async (event: SubmitEvent) => {
@@ -81,11 +81,11 @@ export function createPoliciesActions(
       const result = await deletePolicy(name)
       if (!result.success) throw new Error(result.message)
       state.setPageMessage(`Deleted policy ${name}.`)
-      state.setSelectedPolicyName('')
       state.setPolicyDetail(undefined)
       state.setPolicyVersions([])
       state.setPolicyAttachments([])
-      await loaders.loadBootstrap()
+      await state.reloadPolicies()
+      state.setSelectedPolicyName(state.policies()[0]?.name || '')
     })
 
   const handleSetDefaultVersion = (version: string) =>

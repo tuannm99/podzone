@@ -4,12 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	entity "github.com/tuannm99/podzone/internal/iam/domain/entity"
 	"github.com/tuannm99/podzone/internal/iam/domain/outputport"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type GroupRepositoryImpl struct {
@@ -63,28 +64,71 @@ func (r *GroupRepositoryImpl) GetByID(ctx context.Context, groupID uint64) (*ent
 	return &group, nil
 }
 
-func (r *GroupRepositoryImpl) ListGroups(ctx context.Context, scope string, tenantID string) ([]entity.Group, error) {
-	query := `SELECT id, scope, COALESCE(tenant_id, '') AS tenant_id, name, description, is_system, created_at, updated_at FROM iam_groups WHERE 1=1`
-	args := []any{}
+func (r *GroupRepositoryImpl) ListGroups(
+	ctx context.Context,
+	scope string,
+	tenantID string,
+	queryArg collection.Query,
+) (collection.Page[entity.Group], error) {
+	normalized, where, orderBy, err := buildIAMCollectionQuery(
+		queryArg,
+		groupCollectionColumns,
+		[]string{"scope", "COALESCE(tenant_id, '')", "name", "description"},
+		"created_at",
+	)
+	if err != nil {
+		return collection.Page[entity.Group]{}, err
+	}
 	if scope != "" {
-		query += ` AND scope = $1`
-		args = append(args, scope)
+		where = append(where, sq.Eq{"scope": scope})
 	}
 	if tenantID != "" {
-		query += fmt.Sprintf(` AND tenant_id = $%d`, len(args)+1)
-		args = append(args, tenantID)
+		where = append(where, sq.Eq{"tenant_id": tenantID})
 	}
-	query += ` ORDER BY scope ASC, name ASC`
+	countBuilder := sq.Select("COUNT(*)").From("iam_groups")
+	for _, predicate := range where {
+		countBuilder = countBuilder.Where(predicate)
+	}
+	countSQL, countArgs, err := countBuilder.PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		return collection.Page[entity.Group]{}, err
+	}
+	var total int64
+	if err := r.db.GetContext(ctx, &total, countSQL, countArgs...); err != nil {
+		return collection.Page[entity.Group]{}, err
+	}
 
+	builder := sq.Select(
+		"id",
+		"scope",
+		"COALESCE(tenant_id, '') AS tenant_id",
+		"name",
+		"description",
+		"is_system",
+		"created_at",
+		"updated_at",
+	).From("iam_groups")
+	for _, predicate := range where {
+		builder = builder.Where(predicate)
+	}
+	listSQL, listArgs, err := builder.
+		OrderBy(orderBy, "id ASC").
+		Limit(uint64(normalized.PageSize)).
+		Offset(uint64(normalized.Offset())).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return collection.Page[entity.Group]{}, err
+	}
 	var rows []groupModel
-	if err := r.db.SelectContext(ctx, &rows, query, args...); err != nil {
-		return nil, err
+	if err := r.db.SelectContext(ctx, &rows, listSQL, listArgs...); err != nil {
+		return collection.Page[entity.Group]{}, err
 	}
 	out := make([]entity.Group, 0, len(rows))
 	for _, row := range rows {
 		out = append(out, row.toEntity())
 	}
-	return out, nil
+	return collection.NewPage(out, total, normalized), nil
 }
 
 func (r *GroupRepositoryImpl) DeleteGroup(ctx context.Context, groupID uint64) error {

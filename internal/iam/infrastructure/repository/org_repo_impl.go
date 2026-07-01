@@ -5,9 +5,11 @@ import (
 	"database/sql"
 	"errors"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	entity "github.com/tuannm99/podzone/internal/iam/domain/entity"
 	"github.com/tuannm99/podzone/internal/iam/domain/outputport"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type OrganizationRepositoryImpl struct {
@@ -44,10 +46,49 @@ func (r *OrganizationRepositoryImpl) Create(
 	}, nil
 }
 
-func (r *OrganizationRepositoryImpl) List(ctx context.Context) ([]entity.Organization, error) {
+func (r *OrganizationRepositoryImpl) List(
+	ctx context.Context,
+	queryArg collection.Query,
+) (collection.Page[entity.Organization], error) {
+	normalized, where, orderBy, err := buildIAMCollectionQuery(
+		queryArg,
+		organizationCollectionColumns,
+		[]string{"id", "slug", "name"},
+		"created_at",
+	)
+	if err != nil {
+		return collection.Page[entity.Organization]{}, err
+	}
+	countBuilder := sq.Select("COUNT(*)").From("iam_organizations")
+	for _, predicate := range where {
+		countBuilder = countBuilder.Where(predicate)
+	}
+	countSQL, countArgs, err := countBuilder.PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		return collection.Page[entity.Organization]{}, err
+	}
+	var total int64
+	if err := r.db.GetContext(ctx, &total, countSQL, countArgs...); err != nil {
+		return collection.Page[entity.Organization]{}, err
+	}
+
+	builder := sq.Select("id", "slug", "name", "created_at", "updated_at").
+		From("iam_organizations")
+	for _, predicate := range where {
+		builder = builder.Where(predicate)
+	}
+	listSQL, listArgs, err := builder.
+		OrderBy(orderBy, "id ASC").
+		Limit(uint64(normalized.PageSize)).
+		Offset(uint64(normalized.Offset())).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return collection.Page[entity.Organization]{}, err
+	}
 	var rows []organizationModel
-	if err := r.db.SelectContext(ctx, &rows, `SELECT id, slug, name, created_at, updated_at FROM iam_organizations ORDER BY created_at ASC, id ASC`); err != nil {
-		return nil, err
+	if err := r.db.SelectContext(ctx, &rows, listSQL, listArgs...); err != nil {
+		return collection.Page[entity.Organization]{}, err
 	}
 	out := make([]entity.Organization, 0, len(rows))
 	for _, row := range rows {
@@ -59,7 +100,7 @@ func (r *OrganizationRepositoryImpl) List(ctx context.Context) ([]entity.Organiz
 			UpdatedAt: row.UpdatedAt,
 		})
 	}
-	return out, nil
+	return collection.NewPage(out, total, normalized), nil
 }
 
 func (r *OrganizationRepositoryImpl) GetByID(ctx context.Context, orgID string) (*entity.Organization, error) {

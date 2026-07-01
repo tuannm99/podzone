@@ -7,6 +7,7 @@
 package pbiamv1
 
 import (
+	v1 "github.com/tuannm99/podzone/pkg/api/proto/common/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -623,6 +624,7 @@ func (x *CreateOrganizationResponse) GetOrganization() *Organization {
 
 type ListOrganizationsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Collection    *v1.CollectionRequest  `protobuf:"bytes,1,opt,name=collection,proto3" json:"collection,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -657,9 +659,17 @@ func (*ListOrganizationsRequest) Descriptor() ([]byte, []int) {
 	return file_iam_v1_iam_tenant_proto_rawDescGZIP(), []int{8}
 }
 
+func (x *ListOrganizationsRequest) GetCollection() *v1.CollectionRequest {
+	if x != nil {
+		return x.Collection
+	}
+	return nil
+}
+
 type ListOrganizationsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Organizations []*Organization        `protobuf:"bytes,1,rep,name=organizations,proto3" json:"organizations,omitempty"`
+	PageInfo      *v1.PageInfo           `protobuf:"bytes,2,opt,name=page_info,json=pageInfo,proto3" json:"page_info,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -697,6 +707,13 @@ func (*ListOrganizationsResponse) Descriptor() ([]byte, []int) {
 func (x *ListOrganizationsResponse) GetOrganizations() []*Organization {
 	if x != nil {
 		return x.Organizations
+	}
+	return nil
+}
+
+func (x *ListOrganizationsResponse) GetPageInfo() *v1.PageInfo {
+	if x != nil {
+		return x.PageInfo
 	}
 	return nil
 }
@@ -1825,7 +1842,7 @@ var File_iam_v1_iam_tenant_proto protoreflect.FileDescriptor
 
 const file_iam_v1_iam_tenant_proto_rawDesc = "" +
 	"\n" +
-	"\x17iam/v1/iam_tenant.proto\x12\x03iam\"\x95\x01\n" +
+	"\x17iam/v1/iam_tenant.proto\x12\x03iam\x1a\x16common/v1/common.proto\"\x95\x01\n" +
 	"\x06Tenant\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04slug\x18\x02 \x01(\tR\x04slug\x12\x12\n" +
@@ -1884,10 +1901,14 @@ const file_iam_v1_iam_tenant_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
 	"\x04slug\x18\x02 \x01(\tR\x04slug\"S\n" +
 	"\x1aCreateOrganizationResponse\x125\n" +
-	"\forganization\x18\x01 \x01(\v2\x11.iam.OrganizationR\forganization\"\x1a\n" +
-	"\x18ListOrganizationsRequest\"T\n" +
+	"\forganization\x18\x01 \x01(\v2\x11.iam.OrganizationR\forganization\"U\n" +
+	"\x18ListOrganizationsRequest\x129\n" +
+	"\n" +
+	"collection\x18\x01 \x01(\v2\x19.common.CollectionRequestR\n" +
+	"collection\"\x83\x01\n" +
 	"\x19ListOrganizationsResponse\x127\n" +
-	"\rorganizations\x18\x01 \x03(\v2\x11.iam.OrganizationR\rorganizations\"W\n" +
+	"\rorganizations\x18\x01 \x03(\v2\x11.iam.OrganizationR\rorganizations\x12-\n" +
+	"\tpage_info\x18\x02 \x01(\v2\x10.common.PageInfoR\bpageInfo\"W\n" +
 	"!AttachTenantToOrganizationRequest\x12\x15\n" +
 	"\x06org_id\x18\x01 \x01(\tR\x05orgId\x12\x1b\n" +
 	"\ttenant_id\x18\x02 \x01(\tR\btenantId\"$\n" +
@@ -1998,23 +2019,27 @@ var file_iam_v1_iam_tenant_proto_goTypes = []any{
 	(*ListTenantMembersResponse)(nil),            // 31: iam.ListTenantMembersResponse
 	(*RemoveTenantMemberRequest)(nil),            // 32: iam.RemoveTenantMemberRequest
 	(*RemoveTenantMemberResponse)(nil),           // 33: iam.RemoveTenantMemberResponse
+	(*v1.CollectionRequest)(nil),                 // 34: common.CollectionRequest
+	(*v1.PageInfo)(nil),                          // 35: common.PageInfo
 }
 var file_iam_v1_iam_tenant_proto_depIdxs = []int32{
 	0,  // 0: iam.CreateTenantResponse.tenant:type_name -> iam.Tenant
 	2,  // 1: iam.CreateTenantResponse.owner_membership:type_name -> iam.TenantMembership
 	1,  // 2: iam.CreateOrganizationResponse.organization:type_name -> iam.Organization
-	1,  // 3: iam.ListOrganizationsResponse.organizations:type_name -> iam.Organization
-	3,  // 4: iam.CreateTenantInviteResponse.invite:type_name -> iam.TenantInvite
-	3,  // 5: iam.ListTenantInvitesResponse.invites:type_name -> iam.TenantInvite
-	2,  // 6: iam.AcceptTenantInviteResponse.membership:type_name -> iam.TenantMembership
-	2,  // 7: iam.GetTenantMembershipResponse.membership:type_name -> iam.TenantMembership
-	2,  // 8: iam.ListUserTenantsResponse.memberships:type_name -> iam.TenantMembership
-	2,  // 9: iam.ListTenantMembersResponse.memberships:type_name -> iam.TenantMembership
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	34, // 3: iam.ListOrganizationsRequest.collection:type_name -> common.CollectionRequest
+	1,  // 4: iam.ListOrganizationsResponse.organizations:type_name -> iam.Organization
+	35, // 5: iam.ListOrganizationsResponse.page_info:type_name -> common.PageInfo
+	3,  // 6: iam.CreateTenantInviteResponse.invite:type_name -> iam.TenantInvite
+	3,  // 7: iam.ListTenantInvitesResponse.invites:type_name -> iam.TenantInvite
+	2,  // 8: iam.AcceptTenantInviteResponse.membership:type_name -> iam.TenantMembership
+	2,  // 9: iam.GetTenantMembershipResponse.membership:type_name -> iam.TenantMembership
+	2,  // 10: iam.ListUserTenantsResponse.memberships:type_name -> iam.TenantMembership
+	2,  // 11: iam.ListTenantMembersResponse.memberships:type_name -> iam.TenantMembership
+	12, // [12:12] is the sub-list for method output_type
+	12, // [12:12] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_iam_v1_iam_tenant_proto_init() }

@@ -22,6 +22,20 @@ export function createAdminIamViewModel() {
   const actions = createAdminIamActions(state, loaders)
 
   createEffect(() => {
+    const firstPolicy = state.policies()[0]
+    if (state.allowed() && !state.selectedPolicyName() && firstPolicy) {
+      state.setSelectedPolicyName(firstPolicy.name)
+    }
+  })
+
+  createEffect(() => {
+    const firstOrganization = state.organizations()[0]
+    if (state.allowed() && !state.selectedOrgId() && firstOrganization) {
+      state.setSelectedOrgId(firstOrganization.id)
+    }
+  })
+
+  createEffect(() => {
     void state.selectedPolicyName()
     if (state.allowed()) void loaders.loadSelectedPolicy()
   })
@@ -61,6 +75,12 @@ export function createAdminIamViewModel() {
     selectedPolicyName: state.selectedPolicyName,
     setSelectedPolicyName: state.setSelectedPolicyName,
     policyOptions: state.policyOptions,
+    policies: state.policies,
+    query: state.policiesQuery,
+    pageInfo: state.policiesPageInfo,
+    loading: state.policiesLoading,
+    error: state.policiesError,
+    updateQuery: state.updatePoliciesQuery,
     policyDetail: state.policyDetail,
     policyVersions: state.policyVersions,
     policyAttachments: state.policyAttachments,
@@ -88,6 +108,12 @@ export function createAdminIamViewModel() {
     submitCreateGroup: actions.submitCreateGroup,
     createGroupFromForm: actions.createGroupFromForm,
     groupOptions: state.groupOptions,
+    groups: state.groups,
+    query: state.groupsQuery,
+    pageInfo: state.groupsPageInfo,
+    loading: state.groupsLoading,
+    error: state.groupsError,
+    updateQuery: state.updateGroupsQuery,
     selectedGroupId: state.selectedGroupId,
     setSelectedGroupId: state.setSelectedGroupId,
     groupMemberUserId: state.groupMemberUserId,
@@ -252,6 +278,11 @@ export function createAdminIamViewModel() {
       handleAttachTenantToOrg: actions.handleAttachTenantToOrg,
       handleAttachScp: actions.handleAttachScp,
       items: state.organizations,
+      query: state.organizationsQuery,
+      pageInfo: state.organizationsPageInfo,
+      loading: state.organizationsLoading,
+      error: state.organizationsError,
+      updateQuery: state.updateOrganizationsQuery,
       orgPolicies: state.orgPolicies,
       handleDetachTenantFromOrg: actions.handleDetachTenantFromOrg,
       handleDetachScp: actions.handleDetachScp,

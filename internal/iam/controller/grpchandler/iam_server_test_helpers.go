@@ -15,6 +15,7 @@ import (
 	iaminputport "github.com/tuannm99/podzone/internal/iam/domain/inputport"
 	iammocks "github.com/tuannm99/podzone/internal/iam/domain/inputport/mocks"
 	iamoutputmocks "github.com/tuannm99/podzone/internal/iam/domain/outputport/mocks"
+	"github.com/tuannm99/podzone/pkg/collection"
 	"github.com/tuannm99/podzone/pkg/pdauthn"
 )
 
@@ -61,6 +62,21 @@ type iamUsecaseMockConfig struct {
 		userID uint,
 		permission string,
 	) error
+	listOrganizationsFunc func(
+		ctx context.Context,
+		query collection.Query,
+	) (collection.Page[iamentity.Organization], error)
+	listPoliciesFunc func(
+		ctx context.Context,
+		scope string,
+		query collection.Query,
+	) (collection.Page[iamentity.Policy], error)
+	listGroupsFunc func(
+		ctx context.Context,
+		scope string,
+		tenantID string,
+		query collection.Query,
+	) (collection.Page[iamentity.Group], error)
 }
 
 type iamUsecaseMocks struct {
@@ -121,6 +137,24 @@ func newIAMUsecaseMock(t *testing.T, cfg iamUsecaseMockConfig) iamUsecaseMocks {
 		queries.EXPECT().
 			RequirePlatformPermission(mock.Anything, mock.Anything, mock.Anything).
 			RunAndReturn(cfg.requirePlatformPermissionFunc).
+			Maybe()
+	}
+	if cfg.listOrganizationsFunc != nil {
+		queries.EXPECT().
+			ListOrganizations(mock.Anything, mock.Anything).
+			RunAndReturn(cfg.listOrganizationsFunc).
+			Maybe()
+	}
+	if cfg.listPoliciesFunc != nil {
+		queries.EXPECT().
+			ListPolicies(mock.Anything, mock.Anything, mock.Anything).
+			RunAndReturn(cfg.listPoliciesFunc).
+			Maybe()
+	}
+	if cfg.listGroupsFunc != nil {
+		queries.EXPECT().
+			ListGroups(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+			RunAndReturn(cfg.listGroupsFunc).
 			Maybe()
 	}
 	return iamUsecaseMocks{commands: commands, queries: queries}

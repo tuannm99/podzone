@@ -9,6 +9,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 	"github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 // NewMockOrganizationQueryRepository creates a new instance of MockOrganizationQueryRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -107,27 +108,25 @@ func (_c *MockOrganizationQueryRepository_GetByID_Call) RunAndReturn(run func(ct
 }
 
 // List provides a mock function for the type MockOrganizationQueryRepository
-func (_mock *MockOrganizationQueryRepository) List(ctx context.Context) ([]entity.Organization, error) {
-	ret := _mock.Called(ctx)
+func (_mock *MockOrganizationQueryRepository) List(ctx context.Context, query collection.Query) (collection.Page[entity.Organization], error) {
+	ret := _mock.Called(ctx, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for List")
 	}
 
-	var r0 []entity.Organization
+	var r0 collection.Page[entity.Organization]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context) ([]entity.Organization, error)); ok {
-		return returnFunc(ctx)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) (collection.Page[entity.Organization], error)); ok {
+		return returnFunc(ctx, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context) []entity.Organization); ok {
-		r0 = returnFunc(ctx)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) collection.Page[entity.Organization]); ok {
+		r0 = returnFunc(ctx, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.Organization)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.Organization])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = returnFunc(ctx)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, collection.Query) error); ok {
+		r1 = returnFunc(ctx, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -141,29 +140,35 @@ type MockOrganizationQueryRepository_List_Call struct {
 
 // List is a helper method to define mock.On call
 //   - ctx context.Context
-func (_e *MockOrganizationQueryRepository_Expecter) List(ctx interface{}) *MockOrganizationQueryRepository_List_Call {
-	return &MockOrganizationQueryRepository_List_Call{Call: _e.mock.On("List", ctx)}
+//   - query collection.Query
+func (_e *MockOrganizationQueryRepository_Expecter) List(ctx interface{}, query interface{}) *MockOrganizationQueryRepository_List_Call {
+	return &MockOrganizationQueryRepository_List_Call{Call: _e.mock.On("List", ctx, query)}
 }
 
-func (_c *MockOrganizationQueryRepository_List_Call) Run(run func(ctx context.Context)) *MockOrganizationQueryRepository_List_Call {
+func (_c *MockOrganizationQueryRepository_List_Call) Run(run func(ctx context.Context, query collection.Query)) *MockOrganizationQueryRepository_List_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
+		var arg1 collection.Query
+		if args[1] != nil {
+			arg1 = args[1].(collection.Query)
+		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
 }
 
-func (_c *MockOrganizationQueryRepository_List_Call) Return(organizations []entity.Organization, err error) *MockOrganizationQueryRepository_List_Call {
-	_c.Call.Return(organizations, err)
+func (_c *MockOrganizationQueryRepository_List_Call) Return(page collection.Page[entity.Organization], err error) *MockOrganizationQueryRepository_List_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockOrganizationQueryRepository_List_Call) RunAndReturn(run func(ctx context.Context) ([]entity.Organization, error)) *MockOrganizationQueryRepository_List_Call {
+func (_c *MockOrganizationQueryRepository_List_Call) RunAndReturn(run func(ctx context.Context, query collection.Query) (collection.Page[entity.Organization], error)) *MockOrganizationQueryRepository_List_Call {
 	_c.Call.Return(run)
 	return _c
 }

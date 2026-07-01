@@ -7,9 +7,11 @@ import (
 	"errors"
 	"strconv"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	entity "github.com/tuannm99/podzone/internal/iam/domain/entity"
 	"github.com/tuannm99/podzone/internal/iam/domain/outputport"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type PolicyRepositoryImpl struct {
@@ -141,25 +143,67 @@ func (r *PolicyRepositoryImpl) GetPolicyStatements(
 	return toPolicyStatements(rows), nil
 }
 
-func (r *PolicyRepositoryImpl) ListPolicies(ctx context.Context, scope string) ([]entity.Policy, error) {
-	query := `SELECT id, scope, name, description, is_system, created_at, updated_at FROM iam_policies`
-	query = `SELECT id, scope, name, description, is_system, default_version, created_at, updated_at FROM iam_policies`
-	args := []any{}
-	if scope != "" {
-		query += ` WHERE scope = $1`
-		args = append(args, scope)
+func (r *PolicyRepositoryImpl) ListPolicies(
+	ctx context.Context,
+	scope string,
+	queryArg collection.Query,
+) (collection.Page[entity.Policy], error) {
+	normalized, where, orderBy, err := buildIAMCollectionQuery(
+		queryArg,
+		policyCollectionColumns,
+		[]string{"scope", "name", "description", "default_version"},
+		"created_at",
+	)
+	if err != nil {
+		return collection.Page[entity.Policy]{}, err
 	}
-	query += ` ORDER BY scope ASC, name ASC`
+	if scope != "" {
+		where = append(where, sq.Eq{"scope": scope})
+	}
+	countBuilder := sq.Select("COUNT(*)").From("iam_policies")
+	for _, predicate := range where {
+		countBuilder = countBuilder.Where(predicate)
+	}
+	countSQL, countArgs, err := countBuilder.PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		return collection.Page[entity.Policy]{}, err
+	}
+	var total int64
+	if err := r.db.GetContext(ctx, &total, countSQL, countArgs...); err != nil {
+		return collection.Page[entity.Policy]{}, err
+	}
 
+	builder := sq.Select(
+		"id",
+		"scope",
+		"name",
+		"description",
+		"is_system",
+		"default_version",
+		"created_at",
+		"updated_at",
+	).From("iam_policies")
+	for _, predicate := range where {
+		builder = builder.Where(predicate)
+	}
+	listSQL, listArgs, err := builder.
+		OrderBy(orderBy, "id ASC").
+		Limit(uint64(normalized.PageSize)).
+		Offset(uint64(normalized.Offset())).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return collection.Page[entity.Policy]{}, err
+	}
 	var rows []policyModel
-	if err := r.db.SelectContext(ctx, &rows, query, args...); err != nil {
-		return nil, err
+	if err := r.db.SelectContext(ctx, &rows, listSQL, listArgs...); err != nil {
+		return collection.Page[entity.Policy]{}, err
 	}
 	out := make([]entity.Policy, 0, len(rows))
 	for _, row := range rows {
 		out = append(out, row.toEntity())
 	}
-	return out, nil
+	return collection.NewPage(out, total, normalized), nil
 }
 
 func (r *PolicyRepositoryImpl) ListPolicyAttachments(

@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 func (s *interactor) CreateOrganization(ctx context.Context, name string, slug string) (*entity.Organization, error) {
@@ -28,8 +29,11 @@ func (s *interactor) CreateOrganization(ctx context.Context, name string, slug s
 	})
 }
 
-func (s *interactor) ListOrganizations(ctx context.Context) ([]entity.Organization, error) {
-	return s.orgQueries.List(ctx)
+func (s *interactor) ListOrganizations(
+	ctx context.Context,
+	query collection.Query,
+) (collection.Page[entity.Organization], error) {
+	return s.orgQueries.List(ctx, query.Normalize())
 }
 
 func (s *interactor) AttachTenantToOrganization(ctx context.Context, tenantID string, orgID string) error {

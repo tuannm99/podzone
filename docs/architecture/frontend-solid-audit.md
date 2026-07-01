@@ -51,6 +51,9 @@ This document records migration work. Stable conventions live in
 - Added the common collection contract to Partner REST/gRPC and routed Orders
   GraphQL, including database count, search, field filters, sort whitelists, and
   page metadata. The Partners screen now uses backend pagination directly.
+- Added the common collection contract to IAM organizations, managed policies,
+  and groups. Their feature resources now own backend search, filters, sort,
+  loading, errors, and pagination instead of slicing full arrays in the browser.
 - Promoted the paginated resource owner to `solid/pagination` so Onboarding and
   Backoffice use the same resource behavior.
 
@@ -82,8 +85,8 @@ Auth sessions and audit logs now use the common server collection contract.
 
 Add server cursor/page contracts to:
 
-- IAM organizations, policies, versions, attachments, groups, members, direct
-  policies, inline policies, tenant members, roles, and invites
+- IAM policy versions, attachments, group members, direct policies, inline
+  policies, tenant members, roles, and invites
 - `services/store.ts`
 - `services/onboarding.ts`
 

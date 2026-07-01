@@ -150,7 +150,7 @@ func (s *IAMCommandServer) DetachServiceControlPolicy(
 
 func (s *IAMQueryServer) ListOrganizations(
 	ctx context.Context,
-	_ *pbiamv1.ListOrganizationsRequest,
+	req *pbiamv1.ListOrganizationsRequest,
 ) (*pbiamv1.ListOrganizationsResponse, error) {
 	ctx, actorUserID, err := s.authorizedContext(ctx)
 	if err != nil {
@@ -159,16 +159,19 @@ func (s *IAMQueryServer) ListOrganizations(
 	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
 		return nil, iamStatusError(err)
 	}
-	items, err := s.queries.ListOrganizations(ctx)
+	page, err := s.queries.ListOrganizations(ctx, iammapper.ToCollectionQuery(req.Collection))
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	out := make([]*pbiamv1.Organization, 0, len(items))
-	for i := range items {
-		item := items[i]
+	out := make([]*pbiamv1.Organization, 0, len(page.Items))
+	for i := range page.Items {
+		item := page.Items[i]
 		out = append(out, iammapper.ToPBOrganization(&item))
 	}
-	return &pbiamv1.ListOrganizationsResponse{Organizations: out}, nil
+	return &pbiamv1.ListOrganizationsResponse{
+		Organizations: out,
+		PageInfo:      iammapper.ToPBPageInfo(page),
+	}, nil
 }
 
 func (s *IAMQueryServer) ListServiceControlPolicies(

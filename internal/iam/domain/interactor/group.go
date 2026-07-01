@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 func (s *interactor) CreateGroup(ctx context.Context, input entity.CreateGroupInput) (*entity.Group, error) {
@@ -27,8 +28,18 @@ func (s *interactor) CreateGroup(ctx context.Context, input entity.CreateGroupIn
 	return s.groupCommands.CreateGroup(ctx, group)
 }
 
-func (s *interactor) ListGroups(ctx context.Context, scope string, tenantID string) ([]entity.Group, error) {
-	return s.groupQueries.ListGroups(ctx, strings.TrimSpace(scope), strings.TrimSpace(tenantID))
+func (s *interactor) ListGroups(
+	ctx context.Context,
+	scope string,
+	tenantID string,
+	query collection.Query,
+) (collection.Page[entity.Group], error) {
+	return s.groupQueries.ListGroups(
+		ctx,
+		strings.TrimSpace(scope),
+		strings.TrimSpace(tenantID),
+		query.Normalize(),
+	)
 }
 
 func (s *interactor) DeleteGroup(ctx context.Context, groupID uint64) error {

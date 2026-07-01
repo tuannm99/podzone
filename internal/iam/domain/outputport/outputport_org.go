@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type OrganizationCommandRepository interface {
@@ -13,7 +14,7 @@ type OrganizationCommandRepository interface {
 }
 
 type OrganizationQueryRepository interface {
-	List(ctx context.Context) ([]entity.Organization, error)
+	List(ctx context.Context, query collection.Query) (collection.Page[entity.Organization], error)
 	GetByID(ctx context.Context, orgID string) (*entity.Organization, error)
 	ListServiceControlPolicies(ctx context.Context, orgID string) ([]entity.Policy, error)
 	ListServiceControlPolicyStatements(ctx context.Context, orgID string) ([]entity.PolicyStatement, error)

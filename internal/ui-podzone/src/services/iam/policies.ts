@@ -1,4 +1,11 @@
 import { http, type HttpError } from '../http'
+import {
+  normalizePageInfo,
+  toCollectionParams,
+  type CollectionPage,
+  type CollectionQuery,
+  type WirePageInfo,
+} from '../collection'
 import { toFailure } from './result'
 import type {
   IamResult,
@@ -24,12 +31,27 @@ export async function createPolicy(
   }
 }
 
-export async function listPolicies(): Promise<IamResult<PolicyInfo[]>> {
+export async function listPolicies(
+  query: CollectionQuery,
+  scope?: string
+): Promise<IamResult<CollectionPage<PolicyInfo>>> {
   try {
-    const { data } = await http.get<{ policies?: PolicyInfo[] }>(
-      '/auth/v1/iam/policies'
-    )
-    return { success: true, data: data.policies || [] }
+    const { data } = await http.get<{
+      policies?: PolicyInfo[]
+      pageInfo?: WirePageInfo
+    }>('/auth/v1/iam/policies', {
+      params: {
+        ...toCollectionParams(query),
+        ...(scope ? { scope } : {}),
+      },
+    })
+    return {
+      success: true,
+      data: {
+        items: data.policies || [],
+        pageInfo: normalizePageInfo(data.pageInfo, query),
+      },
+    }
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to load policies')
   }

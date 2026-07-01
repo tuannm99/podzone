@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'solid-js'
 import type { Accessor, ParentProps, Setter } from 'solid-js'
-import type { GroupInlinePolicy, PolicyInfo } from '@/services/iam'
+import type { GroupInfo, GroupInlinePolicy, PolicyInfo } from '@/services/iam'
+import type { CollectionQuery, PageInfo } from '@/services/collection'
 import type {
   CreateGroupFormValues,
   GroupInlinePolicyFormValues,
@@ -37,6 +38,12 @@ export type AdminIamGroupContextValue = {
   submitCreateGroup: (event: SubmitEvent) => Promise<void>
   createGroupFromForm: (values: CreateGroupFormValues) => Promise<void>
   groupOptions: Accessor<GroupOption[]>
+  groups: Accessor<GroupInfo[]>
+  query: CollectionQuery
+  pageInfo: Accessor<PageInfo>
+  loading: Accessor<boolean>
+  error: Accessor<string>
+  updateQuery: (patch: Partial<CollectionQuery>) => void
   selectedGroupId: Accessor<string>
   setSelectedGroupId: Setter<string>
   groupMemberUserId: Accessor<string>
