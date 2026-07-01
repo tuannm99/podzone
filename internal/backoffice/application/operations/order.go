@@ -8,6 +8,7 @@ import (
 	catalogctx "github.com/tuannm99/podzone/internal/backoffice/domain/catalog"
 	orderctx "github.com/tuannm99/podzone/internal/backoffice/domain/order"
 	routingctx "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
+	"github.com/tuannm99/podzone/pkg/collection"
 	"github.com/tuannm99/podzone/pkg/ddd"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
@@ -51,6 +52,17 @@ func (i *OrderInteractor) ListCustomerOrders(
 		return nil, err
 	}
 	return i.orders.ListByStore(ctx, storeID)
+}
+
+func (i *OrderInteractor) ListCustomerOrderPage(
+	ctx context.Context,
+	query orderctx.ListCustomerOrderPageQuery,
+) (collection.Page[routingctx.RoutedOrder], error) {
+	storeID, err := routingctx.RequiredStoreScope(ctx, query.StoreID)
+	if err != nil {
+		return collection.Page[routingctx.RoutedOrder]{}, err
+	}
+	return i.orders.ListPageByStore(ctx, storeID, query.Collection.Normalize())
 }
 
 func (i *OrderInteractor) CreateCustomerOrder(

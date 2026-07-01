@@ -1,4 +1,10 @@
 import { postBackofficeGraphQL } from '../backofficeGraphql'
+import {
+  normalizePageInfo,
+  type CollectionPage,
+  type CollectionQuery,
+  type WirePageInfo,
+} from '../collection'
 import { routedOrderFields } from './graphql'
 import type {
   OrdersResult,
@@ -9,20 +15,72 @@ import type {
   RoutedOrderRecommendationQuery,
 } from './types'
 
-export async function getRoutedOrders(): Promise<
-  OrdersResult<{ orders: RoutedOrder[] }>
-> {
-  const result = await postBackofficeGraphQL<{ routedOrders: RoutedOrder[] }>(`
-    query RoutedOrders {
-      routedOrders {
+export async function getRoutedOrderPage(
+  query: CollectionQuery
+): Promise<OrdersResult<CollectionPage<RoutedOrder>>> {
+  const result = await postBackofficeGraphQL<{
+    routedOrders: {
+      items: RoutedOrder[]
+      pageInfo: WirePageInfo
+    }
+  }>(
+    `
+    query RoutedOrders($collection: CollectionInput) {
+      routedOrders(collection: $collection) {
+        items {
 ${routedOrderFields}
+        }
+        pageInfo {
+          total
+          page
+          pageSize
+          totalPages
+          hasNext
+          hasPrevious
+        }
       }
     }
-  `)
+  `,
+    {
+      collection: {
+        ...query,
+        filters: query.filters?.map((filter) => ({
+          ...filter,
+          operator: filter.operator.replace('FILTER_OPERATOR_', ''),
+        })),
+        sortDirection:
+          query.sortDirection === 'SORT_DIRECTION_ASC' ? 'ASC' : 'DESC',
+      },
+    }
+  )
   if (!result.success) {
     return { success: false, message: result.message }
   }
-  return { success: true, data: { orders: result.data.routedOrders || [] } }
+  return {
+    success: true,
+    data: {
+      items: result.data.routedOrders?.items || [],
+      pageInfo: normalizePageInfo(result.data.routedOrders?.pageInfo, query),
+    },
+  }
+}
+
+export async function getRoutedOrders(): Promise<
+  OrdersResult<{ orders: RoutedOrder[] }>
+> {
+  const orders: RoutedOrder[] = []
+  for (let page = 1; ; page += 1) {
+    const result = await getRoutedOrderPage({
+      page,
+      pageSize: 100,
+      sortBy: 'createdAt',
+      sortDirection: 'SORT_DIRECTION_DESC',
+    })
+    if (!result.success) return result
+    orders.push(...result.data.items)
+    if (!result.data.pageInfo.hasNext) break
+  }
+  return { success: true, data: { orders } }
 }
 
 export async function getRoutedOrderActivities(

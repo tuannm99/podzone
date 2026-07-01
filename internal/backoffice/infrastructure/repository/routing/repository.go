@@ -17,6 +17,7 @@ import (
 	orderctx "github.com/tuannm99/podzone/internal/backoffice/domain/order"
 	routingctx "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
 	"github.com/tuannm99/podzone/internal/backoffice/migrations"
+	"github.com/tuannm99/podzone/pkg/collection"
 	"github.com/tuannm99/podzone/pkg/ddd"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 	"github.com/tuannm99/podzone/pkg/toolkit"
@@ -206,6 +207,76 @@ func (r *OrderRoutingRepositoryImpl) ListByStore(
 	storeID string,
 ) ([]routingctx.RoutedOrder, error) {
 	return r.list(ctx, strings.TrimSpace(storeID))
+}
+
+func (r *OrderRoutingRepositoryImpl) ListPageByStore(
+	ctx context.Context,
+	storeID string,
+	queryArg collection.Query,
+) (collection.Page[routingctx.RoutedOrder], error) {
+	normalized, where, orderBy, err := buildRoutedOrderCollectionQuery(
+		strings.TrimSpace(storeID),
+		queryArg,
+	)
+	if err != nil {
+		return collection.Page[routingctx.RoutedOrder]{}, err
+	}
+	countBuilder := psql.Select("COUNT(*)").From("routed_orders")
+	rowsBuilder := psql.Select(
+		"id", aggregateVersionColumn, "store_id", "candidate_id", "product_title",
+		"partner", "quantity", "total", "customer_name", "status", "timeline_json",
+		"exception_type", "exception_status", "shipment_status", "shipment_carrier",
+		"shipment_tracking_number", "shipment_tracking_url", "shipment_notes",
+		"operator_assignee", "shipment_sla_due_at", "issue_sla_due_at",
+		"routing_block_code", "routing_block_reason", "base_cost_snapshot",
+		"fulfillment_cost", "shipping_cost", "issue_cost", "issue_resolution",
+		"issue_notes", "realized_margin", "settlement_status", "settlement_notes",
+		"shipped_at", "delivered_at", "created_at", "updated_at",
+	).From("routed_orders")
+	for _, predicate := range where {
+		countBuilder = countBuilder.Where(predicate)
+		rowsBuilder = rowsBuilder.Where(predicate)
+	}
+	countSQL, countArgs, err := countBuilder.ToSql()
+	if err != nil {
+		return collection.Page[routingctx.RoutedOrder]{}, err
+	}
+	rowsSQL, rowsArgs, err := rowsBuilder.
+		OrderBy(orderBy).
+		Limit(uint64(normalized.PageSize)).
+		Offset(uint64(normalized.Offset())).
+		ToSql()
+	if err != nil {
+		return collection.Page[routingctx.RoutedOrder]{}, err
+	}
+
+	var total int64
+	var rows []routedOrderRow
+	var activitiesByOrderID map[string][]routingctx.RoutedOrderActivity
+	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
+		if err := ensureRoutedOrderTables(ctx, tx); err != nil {
+			return err
+		}
+		if err := tx.GetContext(ctx, &total, countSQL, countArgs...); err != nil {
+			return err
+		}
+		if err := tx.SelectContext(ctx, &rows, rowsSQL, rowsArgs...); err != nil {
+			return err
+		}
+		activitiesByOrderID, err = loadOrderActivitiesByOrderIDs(ctx, tx, collectOrderIDs(rows))
+		return err
+	}); err != nil {
+		return collection.Page[routingctx.RoutedOrder]{}, err
+	}
+	items := make([]routingctx.RoutedOrder, 0, len(rows))
+	for _, row := range rows {
+		order, err := mapRoutedOrderRow(row, activitiesByOrderID[row.ID])
+		if err != nil {
+			return collection.Page[routingctx.RoutedOrder]{}, err
+		}
+		items = append(items, order)
+	}
+	return collection.NewPage(items, total, normalized), nil
 }
 
 func (r *OrderRoutingRepositoryImpl) list(ctx context.Context, storeID string) ([]routingctx.RoutedOrder, error) {

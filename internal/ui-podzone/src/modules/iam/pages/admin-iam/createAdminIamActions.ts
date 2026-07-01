@@ -1,7 +1,11 @@
 import type { AdminIamLoaders } from './createAdminIamLoaders'
-import { createAdminIamOrgPolicyGroupActions } from './createAdminIamOrgPolicyGroupActions'
-import { createAdminIamPrincipalTrustActions } from './createAdminIamPrincipalTrustActions'
 import type { AdminIamState } from './createAdminIamState'
+import { createAssignmentsActions } from './assignments/createAssignmentsActions'
+import { createGroupsActions } from './groups/createGroupsActions'
+import { createOrganizationsActions } from './organizations/createOrganizationsActions'
+import { createPoliciesActions } from './policies/createPoliciesActions'
+import { createPrincipalsActions } from './principals/createPrincipalsActions'
+import { createTrustSimulationActions } from './trust-simulation/createTrustSimulationActions'
 
 export function createAdminIamActions(
   state: AdminIamState,
@@ -20,8 +24,12 @@ export function createAdminIamActions(
   }
 
   return {
-    ...createAdminIamOrgPolicyGroupActions(state, loaders, runAction),
-    ...createAdminIamPrincipalTrustActions(state, loaders, runAction),
+    ...createOrganizationsActions(state, loaders, runAction),
+    ...createPoliciesActions(state, loaders, runAction),
+    ...createGroupsActions(state, loaders, runAction),
+    ...createPrincipalsActions(state, loaders, runAction),
+    ...createTrustSimulationActions(state, loaders, runAction),
+    ...createAssignmentsActions(state, runAction),
   }
 }
 

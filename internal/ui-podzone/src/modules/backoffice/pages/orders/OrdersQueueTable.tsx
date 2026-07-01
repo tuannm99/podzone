@@ -1,4 +1,5 @@
 import { For, type Accessor, type Setter } from 'solid-js'
+import type { PageInfo } from '@/services/collection'
 import type { RoutedOrder } from '@/services/orders'
 import {
   DataTable,
@@ -10,7 +11,6 @@ import {
 } from '@/solid/components/common/DataTable'
 import { Pagination } from '@/solid/components/common/Pagination'
 import { Badge, Button } from '@/solid/components/common/Primitives'
-import { createClientPagination } from '@/solid/pagination'
 
 type BadgeColor =
   | 'blue'
@@ -23,6 +23,9 @@ type BadgeColor =
 
 type OrdersQueueTableProps = {
   orders: Accessor<RoutedOrder[]>
+  pageInfo: Accessor<PageInfo>
+  page: Accessor<number>
+  onPageChange: (page: number) => void
   detailOrderID: Accessor<string>
   setDetailOrderID: Setter<string>
   isSelected: (orderID: string) => boolean
@@ -34,8 +37,6 @@ type OrdersQueueTableProps = {
 }
 
 export function OrdersQueueTable(props: OrdersQueueTableProps) {
-  const ordersPage = createClientPagination(props.orders, 10)
-
   return (
     <>
       <DataTable>
@@ -53,7 +54,7 @@ export function OrdersQueueTable(props: OrdersQueueTableProps) {
           </TableRow>
         </TableHead>
         <TableBody>
-          <For each={ordersPage.pageItems()}>
+          <For each={props.orders()}>
             {(order) => (
               <TableRow>
                 <TableCell>
@@ -132,10 +133,10 @@ export function OrdersQueueTable(props: OrdersQueueTableProps) {
         </TableBody>
       </DataTable>
       <Pagination
-        page={ordersPage.page()}
-        pageSize={ordersPage.pageSize}
-        total={ordersPage.total()}
-        onPageChange={ordersPage.setPage}
+        page={props.page()}
+        pageSize={props.pageInfo().pageSize}
+        total={props.pageInfo().total}
+        onPageChange={props.onPageChange}
       />
     </>
   )

@@ -1,6 +1,6 @@
 import { createSignal, type Accessor } from 'solid-js'
 import { listSessions, revokeSession, type SessionInfo } from '@/services/auth'
-import { createPaginatedResource } from '../shared/createPaginatedResource'
+import { createPaginatedResource } from '@/solid/pagination'
 
 export function createSessionsViewModel(sessionID: Accessor<string>) {
   const list = createPaginatedResource<SessionInfo>(

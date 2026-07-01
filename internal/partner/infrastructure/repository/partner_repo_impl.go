@@ -12,6 +12,7 @@ import (
 	"go.uber.org/fx"
 
 	partnerdomain "github.com/tuannm99/podzone/internal/partner/domain"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type repoParams struct {
@@ -110,7 +111,24 @@ func (r *PartnerRepositoryImpl) GetByID(ctx context.Context, id string) (*partne
 func (r *PartnerRepositoryImpl) List(
 	ctx context.Context,
 	queryArg partnerdomain.ListPartnersQuery,
-) ([]partnerdomain.Partner, error) {
+) (collection.Page[partnerdomain.Partner], error) {
+	normalized, where, orderBy, err := buildPartnerCollectionQuery(queryArg)
+	if err != nil {
+		return collection.Page[partnerdomain.Partner]{}, err
+	}
+	countBuilder := sq.Select("COUNT(*)").From("partners")
+	for _, predicate := range where {
+		countBuilder = countBuilder.Where(predicate)
+	}
+	countSQL, countArgs, err := countBuilder.PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		return collection.Page[partnerdomain.Partner]{}, err
+	}
+	var total int64
+	if err := r.db.GetContext(ctx, &total, countSQL, countArgs...); err != nil {
+		return collection.Page[partnerdomain.Partner]{}, err
+	}
+
 	builder := sq.Select(
 		"id",
 		"tenant_id",
@@ -129,28 +147,29 @@ func (r *PartnerRepositoryImpl) List(
 		"shipping_cost_rules_json",
 		"created_at",
 		"updated_at",
-	).From("partners").Where(sq.Eq{"tenant_id": queryArg.TenantID}).OrderBy("routing_priority DESC", "created_at DESC")
-	if queryArg.Status != "" {
-		builder = builder.Where(sq.Eq{"status": queryArg.Status})
+	).From("partners")
+	for _, predicate := range where {
+		builder = builder.Where(predicate)
 	}
-	if queryArg.PartnerType != "" {
-		builder = builder.Where(sq.Eq{"partner_type": queryArg.PartnerType})
-	}
+	builder = builder.
+		OrderBy(orderBy, "created_at DESC").
+		Limit(uint64(normalized.PageSize)).
+		Offset(uint64(normalized.Offset()))
 	query, args, err := builder.PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
-		return nil, err
+		return collection.Page[partnerdomain.Partner]{}, err
 	}
 
 	var rows []partnerModel
 	if err := r.db.SelectContext(ctx, &rows, query, args...); err != nil {
-		return nil, err
+		return collection.Page[partnerdomain.Partner]{}, err
 	}
 
 	out := make([]partnerdomain.Partner, 0, len(rows))
 	for _, row := range rows {
 		out = append(out, *row.toEntity())
 	}
-	return out, nil
+	return collection.NewPage(out, total, normalized), nil
 }
 
 func (r *PartnerRepositoryImpl) Update(

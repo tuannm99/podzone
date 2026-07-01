@@ -1,11 +1,15 @@
 package domain
 
-import "context"
+import (
+	"context"
+
+	"github.com/tuannm99/podzone/pkg/collection"
+)
 
 type PartnerRepository interface {
 	Create(ctx context.Context, partner Partner) (*Partner, error)
 	GetByID(ctx context.Context, id string) (*Partner, error)
-	List(ctx context.Context, query ListPartnersQuery) ([]Partner, error)
+	List(ctx context.Context, query ListPartnersQuery) (collection.Page[Partner], error)
 	Update(ctx context.Context, partner Partner) (*Partner, error)
 	UpdateStatus(ctx context.Context, id, status string) (*Partner, error)
 }

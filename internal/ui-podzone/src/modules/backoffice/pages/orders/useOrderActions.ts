@@ -38,6 +38,7 @@ type OrderActionsParams = {
   drafts: Drafts
   setMessage: (value: string) => void
   setError: (value: string) => void
+  onChanged: () => Promise<void>
 }
 
 export function useOrderActions(params: OrderActionsParams) {
@@ -79,6 +80,7 @@ export function useOrderActions(params: OrderActionsParams) {
       selectedExceptionType: params.orderForm.values.selectedExceptionType,
     })
     params.setMessage(`Created routed order ${result.data.id}.`)
+    await params.onChanged()
   }
 
   const advanceOrder = async (orderId: string) => {
@@ -92,6 +94,7 @@ export function useOrderActions(params: OrderActionsParams) {
       current.map((order) => (order.id === orderId ? result.data : order))
     )
     params.setMessage(`Advanced order ${orderId} to the next routing stage.`)
+    await params.onChanged()
   }
 
   const raiseException = async (orderId: string) => {
@@ -113,6 +116,7 @@ export function useOrderActions(params: OrderActionsParams) {
         ' '
       )} on ${orderId}.`
     )
+    await params.onChanged()
   }
 
   const updateExceptionStatus = async (orderId: string, nextStatus: string) => {
@@ -126,6 +130,7 @@ export function useOrderActions(params: OrderActionsParams) {
       current.map((order) => (order.id === orderId ? result.data : order))
     )
     params.setMessage(`Updated exception on ${orderId} to ${nextStatus}.`)
+    await params.onChanged()
   }
 
   const saveShipment = async (order: RoutedOrder) => {
@@ -156,6 +161,7 @@ export function useOrderActions(params: OrderActionsParams) {
       },
     }))
     params.setMessage(`Updated manual shipment control on ${order.id}.`)
+    await params.onChanged()
   }
 
   const saveSettlement = async (order: RoutedOrder) => {
@@ -184,6 +190,7 @@ export function useOrderActions(params: OrderActionsParams) {
       },
     }))
     params.setMessage(`Updated settlement readiness on ${order.id}.`)
+    await params.onChanged()
   }
 
   const saveIssueHandling = async (order: RoutedOrder) => {
@@ -210,6 +217,7 @@ export function useOrderActions(params: OrderActionsParams) {
       },
     }))
     params.setMessage(`Updated issue cost handling on ${order.id}.`)
+    await params.onChanged()
   }
 
   const saveQueueControl = async (order: RoutedOrder) => {
@@ -236,6 +244,7 @@ export function useOrderActions(params: OrderActionsParams) {
       },
     }))
     params.setMessage(`Updated queue ownership on ${order.id}.`)
+    await params.onChanged()
   }
 
   const rerouteBlockedOrder = async (order: RoutedOrder) => {
@@ -267,6 +276,7 @@ export function useOrderActions(params: OrderActionsParams) {
     params.setMessage(
       `Forced reroute for ${order.id} to ${result.data.partner}.`
     )
+    await params.onChanged()
   }
 
   const applyBulkUpdate = async () => {
@@ -312,6 +322,7 @@ export function useOrderActions(params: OrderActionsParams) {
       shipmentSlaMode: '',
       settlementStatus: '',
     })
+    await params.onChanged()
   }
 
   return {

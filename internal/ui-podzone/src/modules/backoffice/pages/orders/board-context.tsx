@@ -40,6 +40,9 @@ export type TenantOrdersBoardContextValue = {
   setActiveQueueSort: Setter<QueueSort>
   operatorLens: Accessor<string>
   setOperatorLens: Setter<string>
+  queueSearch: Accessor<string>
+  setQueueSearch: Setter<string>
+  applyQueueSearch: () => void
   queueViewCount: (view: QueueView) => number
   savedPresets: Accessor<SavedQueuePreset[]>
   presetName: Accessor<string>

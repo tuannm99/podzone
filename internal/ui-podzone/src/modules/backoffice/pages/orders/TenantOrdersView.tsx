@@ -1,5 +1,6 @@
 import { For, Show, createEffect, createMemo, createSignal } from 'solid-js'
 import type { Accessor, Setter } from 'solid-js'
+import type { PageInfo } from '@/services/collection'
 import type { RoutedOrder } from '@/services/orders'
 import {
   EmptyBlock,
@@ -48,6 +49,10 @@ type TenantOrdersViewProps = {
   message: Accessor<string>
   error: Accessor<string>
   orders: Accessor<RoutedOrder[]>
+  queueOrders: Accessor<RoutedOrder[]>
+  queuePageInfo: Accessor<PageInfo>
+  queuePage: Accessor<number>
+  setQueuePage: (page: number) => void
   activityFilter: Accessor<ActivityFilter>
   setActivityFilter: Setter<ActivityFilter>
   hideSystemActivity: Accessor<boolean>
@@ -64,11 +69,11 @@ type TenantOrdersViewProps = {
 export function TenantOrdersView(props: TenantOrdersViewProps) {
   const [detailOrderID, setDetailOrderID] = createSignal('')
   const detailOrder = createMemo(() =>
-    props.insights.sortedOrders().find((order) => order.id === detailOrderID())
+    props.queueOrders().find((order) => order.id === detailOrderID())
   )
 
   createEffect(() => {
-    const orders = props.insights.sortedOrders()
+    const orders = props.queueOrders()
     if (!orders.some((order) => order.id === detailOrderID())) {
       setDetailOrderID(orders[0]?.id || '')
     }
@@ -129,7 +134,7 @@ export function TenantOrdersView(props: TenantOrdersViewProps) {
           </div>
 
           <Show
-            when={props.insights.sortedOrders().length > 0}
+            when={props.queueOrders().length > 0}
             fallback={
               <EmptyBlock
                 title={
@@ -150,7 +155,10 @@ export function TenantOrdersView(props: TenantOrdersViewProps) {
                 <StoreActivityFeedPanel />
               </TenantOrdersInsightsProvider>
               <OrdersQueueTable
-                orders={props.insights.sortedOrders}
+                orders={props.queueOrders}
+                pageInfo={props.queuePageInfo}
+                page={props.queuePage}
+                onPageChange={props.setQueuePage}
                 detailOrderID={detailOrderID}
                 setDetailOrderID={setDetailOrderID}
                 isSelected={props.storage.isSelected}

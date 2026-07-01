@@ -241,6 +241,11 @@ type RoutedOrderActivityFeedPage struct {
 	NextCursor *string                         `json:"nextCursor,omitempty"`
 }
 
+type RoutedOrderPage struct {
+	Items    []*RoutedOrder `json:"items"`
+	PageInfo *PageInfo      `json:"pageInfo"`
+}
+
 type RoutedOrderRecommendation struct {
 	CandidateID       string                  `json:"candidateId"`
 	ProductTitle      string                  `json:"productTitle"`

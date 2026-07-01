@@ -25,6 +25,11 @@ type RoutedOrderActivityFeedPage {
   nextCursor: String
 }
 
+type RoutedOrderPage {
+  items: [RoutedOrder!]!
+  pageInfo: PageInfo!
+}
+
 type PartnerRoutingProfile {
   id: ID!
   code: String!
@@ -186,7 +191,7 @@ input RoutedOrderActivityFeedInput {
 }
 
 extend type Query {
-  routedOrders: [RoutedOrder!]!
+  routedOrders(collection: CollectionInput): RoutedOrderPage!
   routedOrderActivities(
     input: RoutedOrderActivityFeedInput
   ): RoutedOrderActivityFeedPage!

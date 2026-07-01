@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type partnerService struct {
@@ -69,23 +70,27 @@ func (s *partnerService) GetPartner(ctx context.Context, id string) (*Partner, e
 	return s.repo.GetByID(ctx, id)
 }
 
-func (s *partnerService) ListPartners(ctx context.Context, query ListPartnersQuery) ([]Partner, error) {
+func (s *partnerService) ListPartners(
+	ctx context.Context,
+	query ListPartnersQuery,
+) (collection.Page[Partner], error) {
 	query.TenantID = strings.TrimSpace(query.TenantID)
 	if query.TenantID == "" {
-		return nil, ErrInvalidTenantID
+		return collection.Page[Partner]{}, ErrInvalidTenantID
 	}
 	if query.Status != "" {
 		query.Status = NormalizePartnerStatus(query.Status)
 		if query.Status == "" {
-			return nil, ErrInvalidPartnerStatus
+			return collection.Page[Partner]{}, ErrInvalidPartnerStatus
 		}
 	}
 	if query.PartnerType != "" {
 		query.PartnerType = NormalizePartnerType(query.PartnerType)
 		if query.PartnerType == "" {
-			return nil, ErrInvalidPartnerType
+			return collection.Page[Partner]{}, ErrInvalidPartnerType
 		}
 	}
+	query.Collection = query.Collection.Normalize()
 	return s.repo.List(ctx, query)
 }
 

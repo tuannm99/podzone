@@ -9,6 +9,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 	"github.com/tuannm99/podzone/internal/backoffice/domain/routing"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 // NewMockOrderRoutingRepository creates a new instance of MockOrderRoutingRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -368,6 +369,78 @@ func (_c *MockOrderRoutingRepository_ListByStore_Call) Return(routedOrders []rou
 }
 
 func (_c *MockOrderRoutingRepository_ListByStore_Call) RunAndReturn(run func(ctx context.Context, storeID string) ([]routing.RoutedOrder, error)) *MockOrderRoutingRepository_ListByStore_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListPageByStore provides a mock function for the type MockOrderRoutingRepository
+func (_mock *MockOrderRoutingRepository) ListPageByStore(ctx context.Context, storeID string, query collection.Query) (collection.Page[routing.RoutedOrder], error) {
+	ret := _mock.Called(ctx, storeID, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListPageByStore")
+	}
+
+	var r0 collection.Page[routing.RoutedOrder]
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) (collection.Page[routing.RoutedOrder], error)); ok {
+		return returnFunc(ctx, storeID, query)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) collection.Page[routing.RoutedOrder]); ok {
+		r0 = returnFunc(ctx, storeID, query)
+	} else {
+		r0 = ret.Get(0).(collection.Page[routing.RoutedOrder])
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, collection.Query) error); ok {
+		r1 = returnFunc(ctx, storeID, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockOrderRoutingRepository_ListPageByStore_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPageByStore'
+type MockOrderRoutingRepository_ListPageByStore_Call struct {
+	*mock.Call
+}
+
+// ListPageByStore is a helper method to define mock.On call
+//   - ctx context.Context
+//   - storeID string
+//   - query collection.Query
+func (_e *MockOrderRoutingRepository_Expecter) ListPageByStore(ctx interface{}, storeID interface{}, query interface{}) *MockOrderRoutingRepository_ListPageByStore_Call {
+	return &MockOrderRoutingRepository_ListPageByStore_Call{Call: _e.mock.On("ListPageByStore", ctx, storeID, query)}
+}
+
+func (_c *MockOrderRoutingRepository_ListPageByStore_Call) Run(run func(ctx context.Context, storeID string, query collection.Query)) *MockOrderRoutingRepository_ListPageByStore_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockOrderRoutingRepository_ListPageByStore_Call) Return(page collection.Page[routing.RoutedOrder], err error) *MockOrderRoutingRepository_ListPageByStore_Call {
+	_c.Call.Return(page, err)
+	return _c
+}
+
+func (_c *MockOrderRoutingRepository_ListPageByStore_Call) RunAndReturn(run func(ctx context.Context, storeID string, query collection.Query) (collection.Page[routing.RoutedOrder], error)) *MockOrderRoutingRepository_ListPageByStore_Call {
 	_c.Call.Return(run)
 	return _c
 }

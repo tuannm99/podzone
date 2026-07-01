@@ -9,6 +9,7 @@ import (
 
 	backofficeoperations "github.com/tuannm99/podzone/internal/backoffice/application/operations"
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/generated/model"
+	backofficemapper "github.com/tuannm99/podzone/internal/backoffice/controller/mapper"
 	routingctx "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
 )
 
@@ -204,23 +205,32 @@ func (r *mutationResolver) BulkUpdateRoutedOrders(ctx context.Context, input mod
 }
 
 // RoutedOrders is the resolver for the routedOrders field.
-func (r *queryResolver) RoutedOrders(ctx context.Context) ([]*model.RoutedOrder, error) {
+func (r *queryResolver) RoutedOrders(
+	ctx context.Context,
+	collection *model.CollectionInput,
+) (*model.RoutedOrderPage, error) {
 	storeID, err := requiredStoreID(ctx)
 	if err != nil {
 		return nil, err
 	}
-	orders, err := r.OrderRoutingUsecase.ListRoutedOrders(
+	page, err := r.OrderRoutingUsecase.ListRoutedOrderPage(
 		ctx,
-		backofficeoperations.ListRoutedOrdersQuery{StoreID: storeID},
+		backofficeoperations.ListRoutedOrderPageQuery{
+			StoreID:    storeID,
+			Collection: backofficemapper.ToCollectionQuery(collection),
+		},
 	)
 	if err != nil {
 		return nil, err
 	}
-	out := make([]*model.RoutedOrder, 0, len(orders))
-	for _, order := range orders {
+	out := make([]*model.RoutedOrder, 0, len(page.Items))
+	for _, order := range page.Items {
 		out = append(out, toGraphQLRoutedOrder(order))
 	}
-	return out, nil
+	return &model.RoutedOrderPage{
+		Items:    out,
+		PageInfo: backofficemapper.ToPageInfo(page),
+	}, nil
 }
 
 // RoutedOrderActivities is the resolver for the routedOrderActivities field.

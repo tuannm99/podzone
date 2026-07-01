@@ -7,6 +7,7 @@
 package pbpartnerv1
 
 import (
+	v1 "github.com/tuannm99/podzone/pkg/api/proto/common/v1"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -436,6 +437,7 @@ type ListPartnersRequest struct {
 	TenantId      string                 `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
 	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
 	PartnerType   string                 `protobuf:"bytes,3,opt,name=partner_type,json=partnerType,proto3" json:"partner_type,omitempty"`
+	Collection    *v1.CollectionRequest  `protobuf:"bytes,4,opt,name=collection,proto3" json:"collection,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -491,9 +493,17 @@ func (x *ListPartnersRequest) GetPartnerType() string {
 	return ""
 }
 
+func (x *ListPartnersRequest) GetCollection() *v1.CollectionRequest {
+	if x != nil {
+		return x.Collection
+	}
+	return nil
+}
+
 type ListPartnersResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Partners      []*Partner             `protobuf:"bytes,1,rep,name=partners,proto3" json:"partners,omitempty"`
+	PageInfo      *v1.PageInfo           `protobuf:"bytes,2,opt,name=page_info,json=pageInfo,proto3" json:"page_info,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -531,6 +541,13 @@ func (*ListPartnersResponse) Descriptor() ([]byte, []int) {
 func (x *ListPartnersResponse) GetPartners() []*Partner {
 	if x != nil {
 		return x.Partners
+	}
+	return nil
+}
+
+func (x *ListPartnersResponse) GetPageInfo() *v1.PageInfo {
+	if x != nil {
+		return x.PageInfo
 	}
 	return nil
 }
@@ -723,7 +740,7 @@ var File_partner_v1_partner_proto protoreflect.FileDescriptor
 
 const file_partner_v1_partner_proto_rawDesc = "" +
 	"\n" +
-	"\x18partner/v1/partner.proto\x12\apartner\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\">\n" +
+	"\x18partner/v1/partner.proto\x12\apartner\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x16common/v1/common.proto\">\n" +
 	"\x10ShippingCostRule\x12\x16\n" +
 	"\x06region\x18\x01 \x01(\tR\x06region\x12\x12\n" +
 	"\x04cost\x18\x02 \x01(\tR\x04cost\"\x97\x05\n" +
@@ -764,13 +781,17 @@ const file_partner_v1_partner_proto_rawDesc = "" +
 	"\x15base_fulfillment_cost\x18\f \x01(\tR\x13baseFulfillmentCost\x12I\n" +
 	"\x13shipping_cost_rules\x18\r \x03(\v2\x19.partner.ShippingCostRuleR\x11shippingCostRules\"#\n" +
 	"\x11GetPartnerRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"m\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\xa8\x01\n" +
 	"\x13ListPartnersRequest\x12\x1b\n" +
 	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\x12!\n" +
-	"\fpartner_type\x18\x03 \x01(\tR\vpartnerType\"D\n" +
+	"\fpartner_type\x18\x03 \x01(\tR\vpartnerType\x129\n" +
+	"\n" +
+	"collection\x18\x04 \x01(\v2\x19.common.CollectionRequestR\n" +
+	"collection\"s\n" +
 	"\x14ListPartnersResponse\x12,\n" +
-	"\bpartners\x18\x01 \x03(\v2\x10.partner.PartnerR\bpartners\"\xe5\x03\n" +
+	"\bpartners\x18\x01 \x03(\v2\x10.partner.PartnerR\bpartners\x12-\n" +
+	"\tpage_info\x18\x02 \x01(\v2\x10.common.PageInfoR\bpageInfo\"\xe5\x03\n" +
 	"\x14UpdatePartnerRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12!\n" +
@@ -819,29 +840,33 @@ var file_partner_v1_partner_proto_goTypes = []any{
 	(*UpdatePartnerRequest)(nil),       // 6: partner.UpdatePartnerRequest
 	(*UpdatePartnerStatusRequest)(nil), // 7: partner.UpdatePartnerStatusRequest
 	(*timestamppb.Timestamp)(nil),      // 8: google.protobuf.Timestamp
+	(*v1.CollectionRequest)(nil),       // 9: common.CollectionRequest
+	(*v1.PageInfo)(nil),                // 10: common.PageInfo
 }
 var file_partner_v1_partner_proto_depIdxs = []int32{
 	8,  // 0: partner.Partner.created_at:type_name -> google.protobuf.Timestamp
 	8,  // 1: partner.Partner.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 2: partner.Partner.shipping_cost_rules:type_name -> partner.ShippingCostRule
 	0,  // 3: partner.CreatePartnerRequest.shipping_cost_rules:type_name -> partner.ShippingCostRule
-	1,  // 4: partner.ListPartnersResponse.partners:type_name -> partner.Partner
-	0,  // 5: partner.UpdatePartnerRequest.shipping_cost_rules:type_name -> partner.ShippingCostRule
-	2,  // 6: partner.PartnerService.CreatePartner:input_type -> partner.CreatePartnerRequest
-	3,  // 7: partner.PartnerService.GetPartner:input_type -> partner.GetPartnerRequest
-	4,  // 8: partner.PartnerService.ListPartners:input_type -> partner.ListPartnersRequest
-	6,  // 9: partner.PartnerService.UpdatePartner:input_type -> partner.UpdatePartnerRequest
-	7,  // 10: partner.PartnerService.UpdatePartnerStatus:input_type -> partner.UpdatePartnerStatusRequest
-	1,  // 11: partner.PartnerService.CreatePartner:output_type -> partner.Partner
-	1,  // 12: partner.PartnerService.GetPartner:output_type -> partner.Partner
-	5,  // 13: partner.PartnerService.ListPartners:output_type -> partner.ListPartnersResponse
-	1,  // 14: partner.PartnerService.UpdatePartner:output_type -> partner.Partner
-	1,  // 15: partner.PartnerService.UpdatePartnerStatus:output_type -> partner.Partner
-	11, // [11:16] is the sub-list for method output_type
-	6,  // [6:11] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	9,  // 4: partner.ListPartnersRequest.collection:type_name -> common.CollectionRequest
+	1,  // 5: partner.ListPartnersResponse.partners:type_name -> partner.Partner
+	10, // 6: partner.ListPartnersResponse.page_info:type_name -> common.PageInfo
+	0,  // 7: partner.UpdatePartnerRequest.shipping_cost_rules:type_name -> partner.ShippingCostRule
+	2,  // 8: partner.PartnerService.CreatePartner:input_type -> partner.CreatePartnerRequest
+	3,  // 9: partner.PartnerService.GetPartner:input_type -> partner.GetPartnerRequest
+	4,  // 10: partner.PartnerService.ListPartners:input_type -> partner.ListPartnersRequest
+	6,  // 11: partner.PartnerService.UpdatePartner:input_type -> partner.UpdatePartnerRequest
+	7,  // 12: partner.PartnerService.UpdatePartnerStatus:input_type -> partner.UpdatePartnerStatusRequest
+	1,  // 13: partner.PartnerService.CreatePartner:output_type -> partner.Partner
+	1,  // 14: partner.PartnerService.GetPartner:output_type -> partner.Partner
+	5,  // 15: partner.PartnerService.ListPartners:output_type -> partner.ListPartnersResponse
+	1,  // 16: partner.PartnerService.UpdatePartner:output_type -> partner.Partner
+	1,  // 17: partner.PartnerService.UpdatePartnerStatus:output_type -> partner.Partner
+	13, // [13:18] is the sub-list for method output_type
+	8,  // [8:13] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_partner_v1_partner_proto_init() }

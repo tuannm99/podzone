@@ -6,6 +6,7 @@ import (
 
 	boconfig "github.com/tuannm99/podzone/internal/backoffice/config"
 	routingctx "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
+	pbcommonv1 "github.com/tuannm99/podzone/pkg/api/proto/common/v1"
 	pbpartnerv1 "github.com/tuannm99/podzone/pkg/api/proto/partner/v1"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"go.uber.org/fx"
@@ -53,29 +54,38 @@ func (d *Adapter) ListActivePartners(
 	ctx context.Context,
 	tenantID string,
 ) ([]routingctx.PartnerRoutingProfile, error) {
-	resp, err := d.client.ListPartners(ctx, &pbpartnerv1.ListPartnersRequest{
-		TenantId: tenantID,
-		Status:   "active",
-	})
-	if err != nil {
-		return nil, err
-	}
-	items := resp.GetPartners()
-	out := make([]routingctx.PartnerRoutingProfile, 0, len(items))
-	for _, item := range items {
-		out = append(out, routingctx.PartnerRoutingProfile{
-			ID:                    item.GetId(),
-			Code:                  item.GetCode(),
-			Name:                  item.GetName(),
-			PartnerType:           item.GetPartnerType(),
-			Status:                item.GetStatus(),
-			SupportedProductTypes: append([]string(nil), item.GetSupportedProductTypes()...),
-			SupportedRegions:      append([]string(nil), item.GetSupportedRegions()...),
-			SLADays:               item.GetSlaDays(),
-			RoutingPriority:       item.GetRoutingPriority(),
-			BaseFulfillmentCost:   item.GetBaseFulfillmentCost(),
-			ShippingCostRules:     toPartnerShippingCostRules(item.GetShippingCostRules()),
+	out := make([]routingctx.PartnerRoutingProfile, 0, 100)
+	for page := int32(1); ; page++ {
+		resp, err := d.client.ListPartners(ctx, &pbpartnerv1.ListPartnersRequest{
+			TenantId: tenantID,
+			Status:   "active",
+			Collection: &pbcommonv1.CollectionRequest{
+				Page:     page,
+				PageSize: 100,
+				SortBy:   "routingPriority",
+			},
 		})
+		if err != nil {
+			return nil, err
+		}
+		for _, item := range resp.GetPartners() {
+			out = append(out, routingctx.PartnerRoutingProfile{
+				ID:                    item.GetId(),
+				Code:                  item.GetCode(),
+				Name:                  item.GetName(),
+				PartnerType:           item.GetPartnerType(),
+				Status:                item.GetStatus(),
+				SupportedProductTypes: append([]string(nil), item.GetSupportedProductTypes()...),
+				SupportedRegions:      append([]string(nil), item.GetSupportedRegions()...),
+				SLADays:               item.GetSlaDays(),
+				RoutingPriority:       item.GetRoutingPriority(),
+				BaseFulfillmentCost:   item.GetBaseFulfillmentCost(),
+				ShippingCostRules:     toPartnerShippingCostRules(item.GetShippingCostRules()),
+			})
+		}
+		if resp.GetPageInfo() == nil || !resp.GetPageInfo().GetHasNext() {
+			break
+		}
 	}
 	return out, nil
 }

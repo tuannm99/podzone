@@ -1,4 +1,5 @@
 import { For, Show, type Accessor } from 'solid-js'
+import type { PageInfo } from '@/services/collection'
 import type { PartnerInfo } from '@/services/partner'
 import {
   DataTable,
@@ -11,7 +12,6 @@ import {
 import { EmptyBlock, LoadingInline } from '@/solid/components/common/Feedback'
 import { Pagination } from '@/solid/components/common/Pagination'
 import { Badge, Button } from '@/solid/components/common/Primitives'
-import { createClientPagination } from '@/solid/pagination'
 import {
   badgeColorForStatus,
   joinCapabilityList,
@@ -21,14 +21,15 @@ import {
 type PartnerTableProps = {
   tenantID: string
   partners: Accessor<PartnerInfo[]>
+  pageInfo: Accessor<PageInfo>
+  page: Accessor<number>
   loading: Accessor<boolean>
+  onPageChange: (page: number) => void
   onEdit: (partner: PartnerInfo) => void
   onToggleStatus: (partner: PartnerInfo) => void
 }
 
 export function PartnerTable(props: PartnerTableProps) {
-  const partnersPage = createClientPagination(props.partners, 8)
-
   return (
     <>
       <Show when={props.loading()}>
@@ -56,7 +57,7 @@ export function PartnerTable(props: PartnerTableProps) {
             </TableRow>
           </TableHead>
           <TableBody>
-            <For each={partnersPage.pageItems()}>
+            <For each={props.partners()}>
               {(partner) => (
                 <TableRow>
                   <TableCell>
@@ -127,10 +128,10 @@ export function PartnerTable(props: PartnerTableProps) {
           </TableBody>
         </DataTable>
         <Pagination
-          page={partnersPage.page()}
-          pageSize={partnersPage.pageSize}
-          total={partnersPage.total()}
-          onPageChange={partnersPage.setPage}
+          page={props.page()}
+          pageSize={props.pageInfo().pageSize}
+          total={props.pageInfo().total}
+          onPageChange={props.onPageChange}
         />
       </Show>
     </>

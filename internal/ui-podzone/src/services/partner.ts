@@ -1,4 +1,11 @@
 import { http, type HttpError } from './http'
+import {
+  normalizePageInfo,
+  toCollectionParams,
+  type CollectionPage,
+  type CollectionQuery,
+  type WirePageInfo,
+} from './collection'
 
 export type PartnerInfo = {
   id: string
@@ -77,21 +84,25 @@ function toFailure(error: unknown, fallback: string): PartnerResult<never> {
 
 export async function listPartners(
   tenantId: string,
-  partnerType = '',
-  status = ''
-): Promise<PartnerResult<PartnerInfo[]>> {
+  query: CollectionQuery
+): Promise<PartnerResult<CollectionPage<PartnerInfo>>> {
   try {
-    const { data } = await http.get<{ partners?: PartnerInfo[] }>(
-      '/partner/v1/partners',
-      {
-        params: {
-          tenantId,
-          partnerType: partnerType || undefined,
-          status: status || undefined,
-        },
-      }
-    )
-    return { success: true, data: data.partners || [] }
+    const { data } = await http.get<{
+      partners?: PartnerInfo[]
+      pageInfo?: WirePageInfo
+    }>('/partner/v1/partners', {
+      params: {
+        tenantId,
+        ...toCollectionParams(query),
+      },
+    })
+    return {
+      success: true,
+      data: {
+        items: data.partners || [],
+        pageInfo: normalizePageInfo(data.pageInfo, query),
+      },
+    }
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to load partners')
   }

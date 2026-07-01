@@ -31,6 +31,8 @@ src/solid/                 domain-neutral components and primitives
 ```
 
 - Route pages are composition roots, not God ViewModels.
+- Keep route entry files thin. Put `XView`, `createXViewModel`, panels, forms,
+  collection state, and presentation helpers in a sibling `x/` feature folder.
 - One feature ViewModel owns its query, mutation, loading, error, and actions.
 - Context values are typed and namespaced: `state.sessions.items()`, not a flat
   object assembled with spreads.

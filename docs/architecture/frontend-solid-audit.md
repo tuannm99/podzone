@@ -36,6 +36,23 @@ This document records migration work. Stable conventions live in
   Backoffice Audit filters explicit instead of fetching on every keystroke.
 - Fixed Product Setup status feedback so failed mutations cannot report success.
 - Unified frontend formatting under the frontend Prettier configuration.
+- Reduced every Backoffice route file to a composition wrapper and moved each
+  implementation into its feature folder, matching the Onboarding module
+  boundary.
+- Split IAM state and remote loaders by organization, policy, group, principal,
+  assignment, trust/simulation, and shell ownership. The IAM root now composes
+  those feature contracts instead of declaring all signals and reads itself.
+- Split IAM mutations by the same feature boundaries; no IAM action owner spans
+  unrelated organizations, policies, groups, principals, assignments, and
+  trust/simulation workflows.
+- Moved Home, Product Setup, Order Audit, and Order Finance remote state,
+  mutation lifecycle, stale-request handling, and derived operational data into
+  dedicated feature ViewModels.
+- Added the common collection contract to Partner REST/gRPC and routed Orders
+  GraphQL, including database count, search, field filters, sort whitelists, and
+  page metadata. The Partners screen now uses backend pagination directly.
+- Promoted the paginated resource owner to `solid/pagination` so Onboarding and
+  Backoffice use the same resource behavior.
 
 ## P0: Correctness And Safety
 
@@ -46,14 +63,11 @@ Requests can race when filters, principal selection, tenant, or store changes.
 
 Onboarding is migrated. Remaining pages:
 
-- `modules/iam/pages/AdminIamPage.tsx`
-- `modules/backoffice/pages/TenantHomePage.tsx`
-- `modules/backoffice/pages/TenantOrdersPage.tsx`
-- `modules/backoffice/pages/TenantOrderAuditPage.tsx`
-- `modules/backoffice/pages/TenantOrderFinancePage.tsx`
-- `modules/backoffice/pages/TenantPartnersPage.tsx`
-- `modules/backoffice/pages/TenantPartnerDetailPage.tsx`
-- `modules/backoffice/pages/TenantProductSetupPage.tsx`
+- `modules/backoffice/pages/home/TenantHomeView.tsx`
+- `modules/backoffice/pages/orders/TenantOrdersPageView.tsx`
+- `modules/backoffice/pages/order-audit/TenantOrderAuditView.tsx`
+- `modules/backoffice/pages/order-finance/TenantOrderFinanceView.tsx`
+- `modules/backoffice/pages/product-setup/TenantProductSetupView.tsx`
 
 Move primary reads to typed router queries/preloads or resource primitives. Add
 stale-response and cancellation behavior.
@@ -70,13 +84,16 @@ Add server cursor/page contracts to:
 
 - IAM organizations, policies, versions, attachments, groups, members, direct
   policies, inline policies, tenant members, roles, and invites
-- `services/orders/queries.ts`
-- `services/partner.ts`
 - `services/store.ts`
 - `services/onboarding.ts`
 
 Return `items`, `total` or `hasNextPage`, and an opaque cursor. Put cursor,
 filters, and sort in route search state.
+
+Orders now exposes pages, but dashboard and finance consumers intentionally walk
+all pages until their aggregate metrics move to backend projections. The main
+Orders queue uses backend page/search/queue-filter/sort state directly; only
+cross-page aggregate metrics retain the compatibility traversal.
 
 ### Route State Is Mostly Local
 
@@ -125,11 +142,11 @@ active editor.
 
 Highest-priority splits:
 
-- `modules/iam/pages/admin-iam/createAdminIamPrincipalTrustActions.ts`
 - `modules/onboarding/pages/AdminHomePage.tsx`
-- `modules/iam/pages/admin-iam/TrustSimulationPanel.tsx`
-- `modules/backoffice/pages/TenantOrderFinancePage.tsx`
-- `modules/backoffice/pages/TenantOrderAuditPage.tsx`
+- `modules/iam/pages/admin-iam/trust-simulation/TrustSimulationPanel.tsx`
+- `modules/backoffice/pages/order-audit/TenantOrderAuditView.tsx`
+- `modules/backoffice/pages/product-setup/TenantProductSetupView.tsx`
+- `modules/backoffice/pages/home/TenantHomeSections.tsx`
 - `modules/backoffice/pages/orders/CreateRoutedOrderPanel.tsx`
 - `solid/components/common/Primitives.tsx`
 

@@ -9,6 +9,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 	"github.com/tuannm99/podzone/internal/partner/domain"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 // NewMockPartnerRepository creates a new instance of MockPartnerRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -175,24 +176,22 @@ func (_c *MockPartnerRepository_GetByID_Call) RunAndReturn(run func(ctx context.
 }
 
 // List provides a mock function for the type MockPartnerRepository
-func (_mock *MockPartnerRepository) List(ctx context.Context, query domain.ListPartnersQuery) ([]domain.Partner, error) {
+func (_mock *MockPartnerRepository) List(ctx context.Context, query domain.ListPartnersQuery) (collection.Page[domain.Partner], error) {
 	ret := _mock.Called(ctx, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for List")
 	}
 
-	var r0 []domain.Partner
+	var r0 collection.Page[domain.Partner]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.ListPartnersQuery) ([]domain.Partner, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.ListPartnersQuery) (collection.Page[domain.Partner], error)); ok {
 		return returnFunc(ctx, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.ListPartnersQuery) []domain.Partner); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.ListPartnersQuery) collection.Page[domain.Partner]); ok {
 		r0 = returnFunc(ctx, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]domain.Partner)
-		}
+		r0 = ret.Get(0).(collection.Page[domain.Partner])
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, domain.ListPartnersQuery) error); ok {
 		r1 = returnFunc(ctx, query)
@@ -232,12 +231,12 @@ func (_c *MockPartnerRepository_List_Call) Run(run func(ctx context.Context, que
 	return _c
 }
 
-func (_c *MockPartnerRepository_List_Call) Return(partners []domain.Partner, err error) *MockPartnerRepository_List_Call {
-	_c.Call.Return(partners, err)
+func (_c *MockPartnerRepository_List_Call) Return(page collection.Page[domain.Partner], err error) *MockPartnerRepository_List_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockPartnerRepository_List_Call) RunAndReturn(run func(ctx context.Context, query domain.ListPartnersQuery) ([]domain.Partner, error)) *MockPartnerRepository_List_Call {
+func (_c *MockPartnerRepository_List_Call) RunAndReturn(run func(ctx context.Context, query domain.ListPartnersQuery) (collection.Page[domain.Partner], error)) *MockPartnerRepository_List_Call {
 	_c.Call.Return(run)
 	return _c
 }

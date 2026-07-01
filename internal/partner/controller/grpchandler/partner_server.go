@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	partnermapper "github.com/tuannm99/podzone/internal/partner/controller/mapper"
 	partnerdomain "github.com/tuannm99/podzone/internal/partner/domain"
 	pbpartnerv1 "github.com/tuannm99/podzone/pkg/api/proto/partner/v1"
 	"github.com/tuannm99/podzone/pkg/toolkit"
@@ -70,23 +71,27 @@ func (s *PartnerServer) ListPartners(
 	if _, err := s.authorizer.AuthorizeTenant(ctx, req.TenantId, "partner:read"); err != nil {
 		return nil, status.Error(codes.PermissionDenied, err.Error())
 	}
-	items, err := s.uc.ListPartners(ctx, partnerdomain.ListPartnersQuery{
+	page, err := s.uc.ListPartners(ctx, partnerdomain.ListPartnersQuery{
 		TenantID:    req.TenantId,
 		Status:      req.Status,
 		PartnerType: req.PartnerType,
+		Collection:  partnermapper.ToCollectionQuery(req.Collection),
 	})
 	if err != nil {
 		return nil, partnerStatusError(err)
 	}
-	partners := make([]*pbpartnerv1.Partner, 0, len(items))
-	for i := range items {
-		mapped, err := toProtoPartner(&items[i])
+	partners := make([]*pbpartnerv1.Partner, 0, len(page.Items))
+	for i := range page.Items {
+		mapped, err := toProtoPartner(&page.Items[i])
 		if err != nil {
 			return nil, err
 		}
 		partners = append(partners, mapped)
 	}
-	return &pbpartnerv1.ListPartnersResponse{Partners: partners}, nil
+	return &pbpartnerv1.ListPartnersResponse{
+		Partners: partners,
+		PageInfo: partnermapper.ToPageInfo(page),
+	}, nil
 }
 
 func (s *PartnerServer) UpdatePartner(

@@ -4,6 +4,8 @@ import (
 	"errors"
 	"strings"
 	"time"
+
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 const (
@@ -86,6 +88,7 @@ type ListPartnersQuery struct {
 	TenantID    string
 	Status      string
 	PartnerType string
+	Collection  collection.Query
 }
 
 func NormalizePartnerStatus(raw string) string {

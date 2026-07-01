@@ -6,6 +6,7 @@ import (
 	catalogctx "github.com/tuannm99/podzone/internal/backoffice/domain/catalog"
 	orderctx "github.com/tuannm99/podzone/internal/backoffice/domain/order"
 	routingctx "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
+	"github.com/tuannm99/podzone/pkg/collection"
 	"github.com/tuannm99/podzone/pkg/ddd"
 )
 
@@ -56,6 +57,13 @@ func (i *OrderRoutingInteractor) ListRoutedOrders(
 	query ListRoutedOrdersQuery,
 ) ([]routingctx.RoutedOrder, error) {
 	return i.orderOperations.ListCustomerOrders(ctx, query)
+}
+
+func (i *OrderRoutingInteractor) ListRoutedOrderPage(
+	ctx context.Context,
+	query ListRoutedOrderPageQuery,
+) (collection.Page[routingctx.RoutedOrder], error) {
+	return i.orderOperations.ListCustomerOrderPage(ctx, query)
 }
 
 func (i *OrderRoutingInteractor) ListRoutedOrderActivities(

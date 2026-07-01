@@ -1,5 +1,5 @@
 import { listAuditLogs, type AuditLogInfo } from '@/services/auth'
-import { createPaginatedResource } from '../shared/createPaginatedResource'
+import { createPaginatedResource } from '@/solid/pagination'
 
 export function createAuditViewModel() {
   return createPaginatedResource<AuditLogInfo>(

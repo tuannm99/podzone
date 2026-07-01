@@ -1,5 +1,6 @@
 export {
   getRoutedOrderActivities,
+  getRoutedOrderPage,
   getRoutedOrderRecommendation,
   getRoutedOrders,
 } from './orders/queries'

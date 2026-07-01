@@ -32,6 +32,7 @@ import (
 	"github.com/tuannm99/podzone/internal/backoffice/runtime/scope"
 	"github.com/tuannm99/podzone/internal/backoffice/runtime/storeaccess"
 	"github.com/tuannm99/podzone/internal/backoffice/runtime/tenancy"
+	"github.com/tuannm99/podzone/pkg/collection"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -64,11 +65,11 @@ func TestTenantMiddlewareGraphQLInjectsIdentityAndChecksPermission(t *testing.T)
 		Return(&storectx.Store{ID: storeID, Name: "Ops Store"}, nil).
 		Once()
 	orderUC.EXPECT().
-		ListRoutedOrders(mock.Anything, mock.Anything).
+		ListRoutedOrderPage(mock.Anything, mock.Anything).
 		RunAndReturn(func(
 			ctx context.Context,
-			query backofficeoperations.ListRoutedOrdersQuery,
-		) ([]routingctx.RoutedOrder, error) {
+			query backofficeoperations.ListRoutedOrderPageQuery,
+		) (collection.Page[routingctx.RoutedOrder], error) {
 			tenantID, err := toolkit.GetTenantID(ctx)
 			require.NoError(t, err)
 			userID, err := toolkit.GetUserID(ctx)
@@ -76,7 +77,7 @@ func TestTenantMiddlewareGraphQLInjectsIdentityAndChecksPermission(t *testing.T)
 			require.Equal(t, "tenant-ops", tenantID)
 			require.Equal(t, "12", userID)
 			require.Equal(t, storeID, query.StoreID)
-			return []routingctx.RoutedOrder{
+			items := []routingctx.RoutedOrder{
 				{
 					ID:               "ord-1",
 					CandidateID:      "cand-1",
@@ -96,7 +97,8 @@ func TestTenantMiddlewareGraphQLInjectsIdentityAndChecksPermission(t *testing.T)
 					RealizedMargin:   "$12.00",
 					SettlementStatus: routingctx.RoutedOrderSettlementStatusPending,
 				},
-			}, nil
+			}
+			return collection.NewPage(items, int64(len(items)), query.Collection), nil
 		}).
 		Once()
 	productUC := cataloginputmocks.NewMockProductSetupUsecase(t)
@@ -114,7 +116,7 @@ func TestTenantMiddlewareGraphQLInjectsIdentityAndChecksPermission(t *testing.T)
 	var payload graphQLResponse
 	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &payload))
 	require.Empty(t, payload.Errors)
-	require.Equal(t, "ord-1", payload.Data.RoutedOrders[0].ID)
+	require.Equal(t, "ord-1", payload.Data.RoutedOrders.Items[0].ID)
 }
 
 func TestTenantMiddlewareGraphQLInjectsStoreScope(t *testing.T) {
@@ -146,17 +148,18 @@ func TestTenantMiddlewareGraphQLInjectsStoreScope(t *testing.T) {
 		Return(&storectx.Store{ID: storeID, Name: "Ops Store"}, nil).
 		Once()
 	orderUC.EXPECT().
-		ListRoutedOrders(mock.Anything, mock.Anything).
+		ListRoutedOrderPage(mock.Anything, mock.Anything).
 		RunAndReturn(func(
 			ctx context.Context,
-			query backofficeoperations.ListRoutedOrdersQuery,
-		) ([]routingctx.RoutedOrder, error) {
+			query backofficeoperations.ListRoutedOrderPageQuery,
+		) (collection.Page[routingctx.RoutedOrder], error) {
 			currentStoreID := scope.CurrentStoreID(ctx)
 			require.Equal(t, storeID, currentStoreID)
 			require.Equal(t, storeID, query.StoreID)
-			return []routingctx.RoutedOrder{
+			items := []routingctx.RoutedOrder{
 				{ID: "ord-1", CandidateID: "cand-1", ProductTitle: "Vintage Tee"},
-			}, nil
+			}
+			return collection.NewPage(items, int64(len(items)), query.Collection), nil
 		}).
 		Once()
 	productUC := cataloginputmocks.NewMockProductSetupUsecase(t)
@@ -174,7 +177,7 @@ func TestTenantMiddlewareGraphQLInjectsStoreScope(t *testing.T) {
 	var payload graphQLResponse
 	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &payload))
 	require.Empty(t, payload.Errors)
-	require.Equal(t, "ord-1", payload.Data.RoutedOrders[0].ID)
+	require.Equal(t, "ord-1", payload.Data.RoutedOrders.Items[0].ID)
 }
 
 func TestTenantMiddlewareGraphQLRejectsMissingAuthorization(t *testing.T) {
@@ -339,7 +342,7 @@ func doGraphQLRequest(
 	t.Helper()
 
 	body, err := json.Marshal(map[string]any{
-		"query": "query { routedOrders { id } }",
+		"query": "query { routedOrders { items { id } pageInfo { total } } }",
 	})
 	require.NoError(t, err)
 
@@ -358,8 +361,13 @@ func doGraphQLRequest(
 
 type graphQLResponse struct {
 	Data struct {
-		RoutedOrders []struct {
-			ID string `json:"id"`
+		RoutedOrders struct {
+			Items []struct {
+				ID string `json:"id"`
+			} `json:"items"`
+			PageInfo struct {
+				Total int `json:"total"`
+			} `json:"pageInfo"`
 		} `json:"routedOrders"`
 	} `json:"data"`
 	Errors []struct {

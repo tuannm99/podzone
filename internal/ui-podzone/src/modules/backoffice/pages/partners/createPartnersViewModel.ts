@@ -8,6 +8,7 @@ import {
 } from '@/services/partner'
 import { tenantStorage } from '@/services/tenantStorage'
 import { createFormStore, email, required } from '@/solid/forms'
+import { createPaginatedResource } from '@/solid/pagination'
 import {
   nonNegativeInteger,
   partnerInitialValues,
@@ -27,15 +28,12 @@ type PartnersViewModelParams = {
 }
 
 export function createPartnersViewModel(params: PartnersViewModelParams) {
-  const [partners, setPartners] = createSignal<PartnerInfo[]>([])
-  const [loading, setLoading] = createSignal(false)
-  const [error, setError] = createSignal('')
+  const [mutationError, setMutationError] = createSignal('')
   const [message, setMessage] = createSignal('')
   const [editingPartnerID, setEditingPartnerID] = createSignal('')
   const [filterPartnerType, setFilterPartnerType] = createSignal('')
   const [filterStatus, setFilterStatus] = createSignal('')
-  const [appliedPartnerType, setAppliedPartnerType] = createSignal('')
-  const [appliedStatus, setAppliedStatus] = createSignal('')
+  const [search, setSearch] = createSignal('')
   const form = createFormStore({
     initialValues: partnerInitialValues,
     validators: {
@@ -52,29 +50,23 @@ export function createPartnersViewModel(params: PartnersViewModelParams) {
     },
   })
   const isEditing = () => Boolean(editingPartnerID().trim())
-  let requestVersion = 0
-
-  const reload = async () => {
-    const currentRequest = ++requestVersion
-    setLoading(true)
-    setError('')
-    try {
-      const result = await listPartners(
-        params.tenantID(),
-        appliedPartnerType(),
-        appliedStatus()
-      )
-      if (currentRequest !== requestVersion) return
-      if (!result.success) {
-        setError(result.message)
-        setPartners([])
-        return
-      }
-      setPartners(result.data)
-    } finally {
-      if (currentRequest === requestVersion) setLoading(false)
+  const list = createPaginatedResource<PartnerInfo>(
+    {
+      page: 1,
+      pageSize: 8,
+      sortBy: 'routingPriority',
+      sortDirection: 'SORT_DIRECTION_DESC',
+    },
+    async (query) => {
+      const result = await listPartners(params.tenantID(), query)
+      if (!result.success) throw new Error(result.message)
+      return result.data
     }
-  }
+  )
+  const partners = list.items
+  const loading = list.loading
+  const error = () => mutationError() || list.error()
+  const reload = list.reload
 
   const resetForm = () => {
     setEditingPartnerID('')
@@ -85,7 +77,7 @@ export function createPartnersViewModel(params: PartnersViewModelParams) {
     event.preventDefault()
     if (!form.validate()) return
     form.setSubmitting(true)
-    setError('')
+    setMutationError('')
     setMessage('')
     try {
       const result = isEditing()
@@ -127,7 +119,7 @@ export function createPartnersViewModel(params: PartnersViewModelParams) {
             ),
           })
       if (!result.success) {
-        setError(result.message)
+        setMutationError(result.message)
         return
       }
       const actionLabel = isEditing() ? 'Updated' : 'Created'
@@ -140,12 +132,12 @@ export function createPartnersViewModel(params: PartnersViewModelParams) {
   }
 
   const toggleStatus = async (partner: PartnerInfo) => {
-    setError('')
+    setMutationError('')
     setMessage('')
     const nextStatus = partner.status === 'active' ? 'inactive' : 'active'
     const result = await updatePartnerStatus(partner.id, nextStatus)
     if (!result.success) {
-      setError(result.message)
+      setMutationError(result.message)
       return
     }
     setMessage(
@@ -172,42 +164,49 @@ export function createPartnersViewModel(params: PartnersViewModelParams) {
       baseFulfillmentCost: partner.baseFulfillmentCost || '',
       shippingCostRules: joinShippingCostRules(partner.shippingCostRules),
     })
-    setError('')
+    setMutationError('')
     setMessage(`Editing print partner ${partner.name}.`)
   }
 
   const applyFilters = () => {
     const partnerType = filterPartnerType()
     const status = filterStatus()
-    if (partnerType === appliedPartnerType() && status === appliedStatus()) {
-      void reload()
-      return
-    }
-    setAppliedPartnerType(partnerType)
-    setAppliedStatus(status)
+    list.updateQuery({
+      filters: [
+        ...(partnerType
+          ? [
+              {
+                field: 'partnerType',
+                operator: 'FILTER_OPERATOR_EQ' as const,
+                values: [partnerType],
+              },
+            ]
+          : []),
+        ...(status
+          ? [
+              {
+                field: 'status',
+                operator: 'FILTER_OPERATOR_EQ' as const,
+                values: [status],
+              },
+            ]
+          : []),
+      ],
+    })
   }
 
   const resetFilters = () => {
     setFilterPartnerType('')
     setFilterStatus('')
-    if (!appliedPartnerType() && !appliedStatus()) {
-      void reload()
-      return
-    }
-    setAppliedPartnerType('')
-    setAppliedStatus('')
+    list.updateQuery({ filters: [] })
   }
+
+  const applySearch = () => list.updateQuery({ search: search().trim() })
 
   createEffect(
     on(
       () =>
-        [
-          params.tenantID(),
-          params.storeID(),
-          params.workspaceReady(),
-          appliedPartnerType(),
-          appliedStatus(),
-        ] as const,
+        [params.tenantID(), params.storeID(), params.workspaceReady()] as const,
       ([tenantID, , ready]) => {
         tenantStorage.setTenantID(tenantID)
         if (ready) void reload()
@@ -218,6 +217,9 @@ export function createPartnersViewModel(params: PartnersViewModelParams) {
   return {
     partners,
     loading,
+    pageInfo: list.pageInfo,
+    page: () => list.query.page,
+    setPage: (page: number) => list.updateQuery({ page }),
     error,
     message,
     form,
@@ -226,6 +228,9 @@ export function createPartnersViewModel(params: PartnersViewModelParams) {
     setFilterPartnerType,
     filterStatus,
     setFilterStatus,
+    search,
+    setSearch,
+    applySearch,
     reload,
     submit,
     toggleStatus,

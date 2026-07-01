@@ -6,6 +6,7 @@ option go_package = "github.com/tuannm99/podzone/pkg/api/proto/partner/v1;pbpart
 
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
+import "common/v1/common.proto";
 
 service PartnerService {
   rpc CreatePartner(CreatePartnerRequest) returns (Partner) {
@@ -91,10 +92,12 @@ message ListPartnersRequest {
   string tenant_id = 1;
   string status = 2;
   string partner_type = 3;
+  common.CollectionRequest collection = 4;
 }
 
 message ListPartnersResponse {
   repeated Partner partners = 1;
+  common.PageInfo page_info = 2;
 }
 
 message UpdatePartnerRequest {

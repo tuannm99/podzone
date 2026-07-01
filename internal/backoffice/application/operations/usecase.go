@@ -8,6 +8,7 @@ import (
 	orderctx "github.com/tuannm99/podzone/internal/backoffice/domain/order"
 	routingctx "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
 	settlementctx "github.com/tuannm99/podzone/internal/backoffice/domain/settlement"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type (
@@ -20,6 +21,7 @@ type (
 	UpdateOrderQueueControlCmd    = orderctx.UpdateOrderQueueControlCmd
 	BulkUpdateRoutedOrdersCmd     = orderctx.BulkUpdateOrdersCmd
 	ListRoutedOrdersQuery         = orderctx.ListCustomerOrdersQuery
+	ListRoutedOrderPageQuery      = orderctx.ListCustomerOrderPageQuery
 )
 
 type OrderRoutingUsecase interface {
@@ -31,6 +33,10 @@ type OrderRoutingUsecase interface {
 		query orderctx.ListCustomerOrdersQuery,
 	) ([]routingctx.RoutedOrder, error)
 	ListRoutedOrders(ctx context.Context, query ListRoutedOrdersQuery) ([]routingctx.RoutedOrder, error)
+	ListRoutedOrderPage(
+		ctx context.Context,
+		query ListRoutedOrderPageQuery,
+	) (collection.Page[routingctx.RoutedOrder], error)
 	ListRoutedOrderActivities(
 		ctx context.Context,
 		query routingctx.RoutedOrderActivityFeedQuery,

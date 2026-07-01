@@ -7,13 +7,29 @@ export function QueueToolbarPanel() {
 
   return (
     <>
-      <div class="grid gap-4 md:grid-cols-[0.7fr_1.3fr]">
+      <div class="grid gap-4 md:grid-cols-[0.7fr_0.8fr_1.3fr]">
         <InputField
           label="Operator lens"
           value={board.operatorLens()}
           placeholder="linh.nguyen"
           onInput={(event) => board.setOperatorLens(event.currentTarget.value)}
         />
+        <div class="flex items-end gap-2">
+          <InputField
+            label="Search queue"
+            value={board.queueSearch()}
+            placeholder="Order, customer, partner..."
+            onInput={(event) => board.setQueueSearch(event.currentTarget.value)}
+          />
+          <Button
+            type="button"
+            size="sm"
+            color="alternative"
+            onClick={board.applyQueueSearch}
+          >
+            Search
+          </Button>
+        </div>
         <div class="space-y-2">
           <p class="text-sm font-medium text-gray-700">Queue views</p>
           <div class="flex flex-wrap gap-2">

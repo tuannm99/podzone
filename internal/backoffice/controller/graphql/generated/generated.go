@@ -147,7 +147,7 @@ type ComplexityRoot struct {
 		ProductSetupSnapshot      func(childComplexity int) int
 		RoutedOrderActivities     func(childComplexity int, input *model.RoutedOrderActivityFeedInput) int
 		RoutedOrderRecommendation func(childComplexity int, input model.RoutedOrderRecommendationInput) int
-		RoutedOrders              func(childComplexity int) int
+		RoutedOrders              func(childComplexity int, collection *model.CollectionInput) int
 		Store                     func(childComplexity int, id string) int
 		Stores                    func(childComplexity int) int
 	}
@@ -217,6 +217,11 @@ type ComplexityRoot struct {
 		Total      func(childComplexity int) int
 	}
 
+	RoutedOrderPage struct {
+		Items    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+	}
+
 	RoutedOrderRecommendation struct {
 		BlockedReason     func(childComplexity int) int
 		BlockedReasonCode func(childComplexity int) int
@@ -271,7 +276,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	ProductSetupSnapshot(ctx context.Context) (*model.ProductSetupSnapshot, error)
-	RoutedOrders(ctx context.Context) ([]*model.RoutedOrder, error)
+	RoutedOrders(ctx context.Context, collection *model.CollectionInput) (*model.RoutedOrderPage, error)
 	RoutedOrderActivities(ctx context.Context, input *model.RoutedOrderActivityFeedInput) (*model.RoutedOrderActivityFeedPage, error)
 	RoutedOrderRecommendation(ctx context.Context, input model.RoutedOrderRecommendationInput) (*model.RoutedOrderRecommendation, error)
 	Stores(ctx context.Context) ([]*model.Store, error)
@@ -833,7 +838,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			break
 		}
 
-		return e.complexity.Query.RoutedOrders(childComplexity), true
+		args, err := ec.field_Query_routedOrders_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.RoutedOrders(childComplexity, args["collection"].(*model.CollectionInput)), true
 	case "Query.store":
 		if e.complexity.Query.Store == nil {
 			break
@@ -1156,6 +1166,19 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.RoutedOrderActivityFeedPage.Total(childComplexity), true
+
+	case "RoutedOrderPage.items":
+		if e.complexity.RoutedOrderPage.Items == nil {
+			break
+		}
+
+		return e.complexity.RoutedOrderPage.Items(childComplexity), true
+	case "RoutedOrderPage.pageInfo":
+		if e.complexity.RoutedOrderPage.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.RoutedOrderPage.PageInfo(childComplexity), true
 
 	case "RoutedOrderRecommendation.blockedReason":
 		if e.complexity.RoutedOrderRecommendation.BlockedReason == nil {
@@ -1587,6 +1610,11 @@ type RoutedOrderActivityFeedPage {
   nextCursor: String
 }
 
+type RoutedOrderPage {
+  items: [RoutedOrder!]!
+  pageInfo: PageInfo!
+}
+
 type PartnerRoutingProfile {
   id: ID!
   code: String!
@@ -1748,7 +1776,7 @@ input RoutedOrderActivityFeedInput {
 }
 
 extend type Query {
-  routedOrders: [RoutedOrder!]!
+  routedOrders(collection: CollectionInput): RoutedOrderPage!
   routedOrderActivities(
     input: RoutedOrderActivityFeedInput
   ): RoutedOrderActivityFeedPage!
@@ -2017,6 +2045,17 @@ func (ec *executionContext) field_Query_routedOrderRecommendation_args(ctx conte
 		return nil, err
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_routedOrders_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "collection", ec.unmarshalOCollectionInput2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐCollectionInput)
+	if err != nil {
+		return nil, err
+	}
+	args["collection"] = arg0
 	return args, nil
 }
 
@@ -5250,16 +5289,17 @@ func (ec *executionContext) _Query_routedOrders(ctx context.Context, field graph
 		field,
 		ec.fieldContext_Query_routedOrders,
 		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Query().RoutedOrders(ctx)
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().RoutedOrders(ctx, fc.Args["collection"].(*model.CollectionInput))
 		},
 		nil,
-		ec.marshalNRoutedOrder2ᚕᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐRoutedOrderᚄ,
+		ec.marshalNRoutedOrderPage2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐRoutedOrderPage,
 		true,
 		true,
 	)
 }
 
-func (ec *executionContext) fieldContext_Query_routedOrders(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_routedOrders(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -5267,79 +5307,24 @@ func (ec *executionContext) fieldContext_Query_routedOrders(_ context.Context, f
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_RoutedOrder_id(ctx, field)
-			case "candidateId":
-				return ec.fieldContext_RoutedOrder_candidateId(ctx, field)
-			case "productTitle":
-				return ec.fieldContext_RoutedOrder_productTitle(ctx, field)
-			case "partner":
-				return ec.fieldContext_RoutedOrder_partner(ctx, field)
-			case "quantity":
-				return ec.fieldContext_RoutedOrder_quantity(ctx, field)
-			case "total":
-				return ec.fieldContext_RoutedOrder_total(ctx, field)
-			case "customerName":
-				return ec.fieldContext_RoutedOrder_customerName(ctx, field)
-			case "status":
-				return ec.fieldContext_RoutedOrder_status(ctx, field)
-			case "timeline":
-				return ec.fieldContext_RoutedOrder_timeline(ctx, field)
-			case "activityLog":
-				return ec.fieldContext_RoutedOrder_activityLog(ctx, field)
-			case "exceptionType":
-				return ec.fieldContext_RoutedOrder_exceptionType(ctx, field)
-			case "exceptionStatus":
-				return ec.fieldContext_RoutedOrder_exceptionStatus(ctx, field)
-			case "shipmentStatus":
-				return ec.fieldContext_RoutedOrder_shipmentStatus(ctx, field)
-			case "shipmentCarrier":
-				return ec.fieldContext_RoutedOrder_shipmentCarrier(ctx, field)
-			case "shipmentTrackingNumber":
-				return ec.fieldContext_RoutedOrder_shipmentTrackingNumber(ctx, field)
-			case "shipmentTrackingUrl":
-				return ec.fieldContext_RoutedOrder_shipmentTrackingUrl(ctx, field)
-			case "shipmentNotes":
-				return ec.fieldContext_RoutedOrder_shipmentNotes(ctx, field)
-			case "operatorAssignee":
-				return ec.fieldContext_RoutedOrder_operatorAssignee(ctx, field)
-			case "shipmentSlaDueAt":
-				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
-			case "issueSlaDueAt":
-				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
-			case "routingBlockCode":
-				return ec.fieldContext_RoutedOrder_routingBlockCode(ctx, field)
-			case "routingBlockReason":
-				return ec.fieldContext_RoutedOrder_routingBlockReason(ctx, field)
-			case "baseCostSnapshot":
-				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
-			case "fulfillmentCost":
-				return ec.fieldContext_RoutedOrder_fulfillmentCost(ctx, field)
-			case "shippingCost":
-				return ec.fieldContext_RoutedOrder_shippingCost(ctx, field)
-			case "issueCost":
-				return ec.fieldContext_RoutedOrder_issueCost(ctx, field)
-			case "issueResolution":
-				return ec.fieldContext_RoutedOrder_issueResolution(ctx, field)
-			case "issueNotes":
-				return ec.fieldContext_RoutedOrder_issueNotes(ctx, field)
-			case "realizedMargin":
-				return ec.fieldContext_RoutedOrder_realizedMargin(ctx, field)
-			case "settlementStatus":
-				return ec.fieldContext_RoutedOrder_settlementStatus(ctx, field)
-			case "settlementNotes":
-				return ec.fieldContext_RoutedOrder_settlementNotes(ctx, field)
-			case "shippedAt":
-				return ec.fieldContext_RoutedOrder_shippedAt(ctx, field)
-			case "deliveredAt":
-				return ec.fieldContext_RoutedOrder_deliveredAt(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_RoutedOrder_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_RoutedOrder_updatedAt(ctx, field)
+			case "items":
+				return ec.fieldContext_RoutedOrderPage_items(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_RoutedOrderPage_pageInfo(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type RoutedOrder", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type RoutedOrderPage", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_routedOrders_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -7157,6 +7142,150 @@ func (ec *executionContext) fieldContext_RoutedOrderActivityFeedPage_nextCursor(
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutedOrderPage_items(ctx context.Context, field graphql.CollectedField, obj *model.RoutedOrderPage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutedOrderPage_items,
+		func(ctx context.Context) (any, error) {
+			return obj.Items, nil
+		},
+		nil,
+		ec.marshalNRoutedOrder2ᚕᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐRoutedOrderᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutedOrderPage_items(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutedOrderPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_RoutedOrder_id(ctx, field)
+			case "candidateId":
+				return ec.fieldContext_RoutedOrder_candidateId(ctx, field)
+			case "productTitle":
+				return ec.fieldContext_RoutedOrder_productTitle(ctx, field)
+			case "partner":
+				return ec.fieldContext_RoutedOrder_partner(ctx, field)
+			case "quantity":
+				return ec.fieldContext_RoutedOrder_quantity(ctx, field)
+			case "total":
+				return ec.fieldContext_RoutedOrder_total(ctx, field)
+			case "customerName":
+				return ec.fieldContext_RoutedOrder_customerName(ctx, field)
+			case "status":
+				return ec.fieldContext_RoutedOrder_status(ctx, field)
+			case "timeline":
+				return ec.fieldContext_RoutedOrder_timeline(ctx, field)
+			case "activityLog":
+				return ec.fieldContext_RoutedOrder_activityLog(ctx, field)
+			case "exceptionType":
+				return ec.fieldContext_RoutedOrder_exceptionType(ctx, field)
+			case "exceptionStatus":
+				return ec.fieldContext_RoutedOrder_exceptionStatus(ctx, field)
+			case "shipmentStatus":
+				return ec.fieldContext_RoutedOrder_shipmentStatus(ctx, field)
+			case "shipmentCarrier":
+				return ec.fieldContext_RoutedOrder_shipmentCarrier(ctx, field)
+			case "shipmentTrackingNumber":
+				return ec.fieldContext_RoutedOrder_shipmentTrackingNumber(ctx, field)
+			case "shipmentTrackingUrl":
+				return ec.fieldContext_RoutedOrder_shipmentTrackingUrl(ctx, field)
+			case "shipmentNotes":
+				return ec.fieldContext_RoutedOrder_shipmentNotes(ctx, field)
+			case "operatorAssignee":
+				return ec.fieldContext_RoutedOrder_operatorAssignee(ctx, field)
+			case "shipmentSlaDueAt":
+				return ec.fieldContext_RoutedOrder_shipmentSlaDueAt(ctx, field)
+			case "issueSlaDueAt":
+				return ec.fieldContext_RoutedOrder_issueSlaDueAt(ctx, field)
+			case "routingBlockCode":
+				return ec.fieldContext_RoutedOrder_routingBlockCode(ctx, field)
+			case "routingBlockReason":
+				return ec.fieldContext_RoutedOrder_routingBlockReason(ctx, field)
+			case "baseCostSnapshot":
+				return ec.fieldContext_RoutedOrder_baseCostSnapshot(ctx, field)
+			case "fulfillmentCost":
+				return ec.fieldContext_RoutedOrder_fulfillmentCost(ctx, field)
+			case "shippingCost":
+				return ec.fieldContext_RoutedOrder_shippingCost(ctx, field)
+			case "issueCost":
+				return ec.fieldContext_RoutedOrder_issueCost(ctx, field)
+			case "issueResolution":
+				return ec.fieldContext_RoutedOrder_issueResolution(ctx, field)
+			case "issueNotes":
+				return ec.fieldContext_RoutedOrder_issueNotes(ctx, field)
+			case "realizedMargin":
+				return ec.fieldContext_RoutedOrder_realizedMargin(ctx, field)
+			case "settlementStatus":
+				return ec.fieldContext_RoutedOrder_settlementStatus(ctx, field)
+			case "settlementNotes":
+				return ec.fieldContext_RoutedOrder_settlementNotes(ctx, field)
+			case "shippedAt":
+				return ec.fieldContext_RoutedOrder_shippedAt(ctx, field)
+			case "deliveredAt":
+				return ec.fieldContext_RoutedOrder_deliveredAt(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_RoutedOrder_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_RoutedOrder_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RoutedOrder", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoutedOrderPage_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.RoutedOrderPage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RoutedOrderPage_pageInfo,
+		func(ctx context.Context) (any, error) {
+			return obj.PageInfo, nil
+		},
+		nil,
+		ec.marshalNPageInfo2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐPageInfo,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RoutedOrderPage_pageInfo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoutedOrderPage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "total":
+				return ec.fieldContext_PageInfo_total(ctx, field)
+			case "page":
+				return ec.fieldContext_PageInfo_page(ctx, field)
+			case "pageSize":
+				return ec.fieldContext_PageInfo_pageSize(ctx, field)
+			case "totalPages":
+				return ec.fieldContext_PageInfo_totalPages(ctx, field)
+			case "hasNext":
+				return ec.fieldContext_PageInfo_hasNext(ctx, field)
+			case "hasPrevious":
+				return ec.fieldContext_PageInfo_hasPrevious(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
 		},
 	}
 	return fc, nil
@@ -11500,6 +11629,50 @@ func (ec *executionContext) _RoutedOrderActivityFeedPage(ctx context.Context, se
 	return out
 }
 
+var routedOrderPageImplementors = []string{"RoutedOrderPage"}
+
+func (ec *executionContext) _RoutedOrderPage(ctx context.Context, sel ast.SelectionSet, obj *model.RoutedOrderPage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, routedOrderPageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RoutedOrderPage")
+		case "items":
+			out.Values[i] = ec._RoutedOrderPage_items(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pageInfo":
+			out.Values[i] = ec._RoutedOrderPage_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var routedOrderRecommendationImplementors = []string{"RoutedOrderRecommendation"}
 
 func (ec *executionContext) _RoutedOrderRecommendation(ctx context.Context, sel ast.SelectionSet, obj *model.RoutedOrderRecommendation) graphql.Marshaler {
@@ -12180,6 +12353,16 @@ func (ec *executionContext) unmarshalNOpenOrderExceptionInput2githubᚗcomᚋtua
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *model.PageInfo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PageInfo(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNPartnerRoutingProfile2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐPartnerRoutingProfile(ctx context.Context, sel ast.SelectionSet, v *model.PartnerRoutingProfile) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -12680,6 +12863,20 @@ func (ec *executionContext) marshalNRoutedOrderActivityFeedPage2ᚖgithubᚗcom�
 		return graphql.Null
 	}
 	return ec._RoutedOrderActivityFeedPage(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNRoutedOrderPage2githubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐRoutedOrderPage(ctx context.Context, sel ast.SelectionSet, v model.RoutedOrderPage) graphql.Marshaler {
+	return ec._RoutedOrderPage(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNRoutedOrderPage2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐRoutedOrderPage(ctx context.Context, sel ast.SelectionSet, v *model.RoutedOrderPage) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._RoutedOrderPage(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNRoutedOrderRecommendation2githubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐRoutedOrderRecommendation(ctx context.Context, sel ast.SelectionSet, v model.RoutedOrderRecommendation) graphql.Marshaler {
@@ -13199,6 +13396,14 @@ func (ec *executionContext) unmarshalOCollectionFilterInput2ᚕᚖgithubᚗcom�
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) unmarshalOCollectionInput2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐCollectionInput(ctx context.Context, v any) (*model.CollectionInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCollectionInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOCollectionSortDirection2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐCollectionSortDirection(ctx context.Context, v any) (*model.CollectionSortDirection, error) {
