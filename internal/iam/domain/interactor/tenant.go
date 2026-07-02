@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 func (s *interactor) AddMember(ctx context.Context, tenantID string, userID uint, roleName string) error {
@@ -108,14 +109,20 @@ func (s *interactor) ListTenantUserInlinePolicies(
 	ctx context.Context,
 	tenantID string,
 	userID uint,
-) ([]entity.UserInlinePolicy, error) {
+	query collection.Query,
+) (collection.Page[entity.UserInlinePolicy], error) {
 	if strings.TrimSpace(tenantID) == "" {
-		return nil, entity.ErrTenantNotFound
+		return collection.Page[entity.UserInlinePolicy]{}, entity.ErrTenantNotFound
 	}
 	if userID == 0 {
-		return nil, entity.ErrInvalidUserID
+		return collection.Page[entity.UserInlinePolicy]{}, entity.ErrInvalidUserID
 	}
-	return s.policyQueries.ListTenantUserInlinePolicies(ctx, strings.TrimSpace(tenantID), userID)
+	return s.policyQueries.ListTenantUserInlinePolicies(
+		ctx,
+		strings.TrimSpace(tenantID),
+		userID,
+		query.Normalize(),
+	)
 }
 
 func (s *interactor) DeleteTenantUserInlinePolicy(
@@ -199,14 +206,15 @@ func (s *interactor) ListTenantUserPolicies(
 	ctx context.Context,
 	tenantID string,
 	userID uint,
-) ([]entity.Policy, error) {
+	query collection.Query,
+) (collection.Page[entity.Policy], error) {
 	if strings.TrimSpace(tenantID) == "" {
-		return nil, entity.ErrTenantNotFound
+		return collection.Page[entity.Policy]{}, entity.ErrTenantNotFound
 	}
 	if userID == 0 {
-		return nil, entity.ErrInvalidUserID
+		return collection.Page[entity.Policy]{}, entity.ErrInvalidUserID
 	}
-	return s.policyQueries.ListTenantUserPolicies(ctx, tenantID, userID)
+	return s.policyQueries.ListTenantUserPolicies(ctx, tenantID, userID, query.Normalize())
 }
 
 func (s *interactor) PutTenantUserPermissionBoundary(

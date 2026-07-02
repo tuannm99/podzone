@@ -234,28 +234,35 @@ func (r *GroupRepositoryImpl) GetInlinePolicy(
 func (r *GroupRepositoryImpl) ListInlinePolicies(
 	ctx context.Context,
 	groupID uint64,
-) ([]entity.GroupInlinePolicy, error) {
-	var policies []groupInlinePolicyModel
-	if err := r.db.SelectContext(
+	query collection.Query,
+) (collection.Page[entity.GroupInlinePolicy], error) {
+	modelPage, err := listIAMCollectionModels[groupInlinePolicyModel](
 		ctx,
-		&policies,
-		`SELECT group_id, name, description, created_at, updated_at
-		 FROM iam_group_inline_policies
-		 WHERE group_id = $1
-		 ORDER BY name ASC`,
-		groupID,
-	); err != nil {
-		return nil, err
+		r.db,
+		query,
+		"iam_group_inline_policies ip",
+		[]string{"ip.group_id", "ip.name", "ip.description", "ip.created_at", "ip.updated_at"},
+		[]sq.Sqlizer{sq.Eq{"ip.group_id": groupID}},
+		inlinePolicyCollectionColumns,
+		[]string{"ip.name", "ip.description"},
+		"ip.created_at",
+		"ip.name ASC",
+	)
+	if err != nil {
+		return collection.Page[entity.GroupInlinePolicy]{}, err
 	}
-	out := make([]entity.GroupInlinePolicy, 0, len(policies))
-	for _, policy := range policies {
+	out := make([]entity.GroupInlinePolicy, 0, len(modelPage.Items))
+	for _, policy := range modelPage.Items {
 		statements, err := r.listInlinePolicyStatements(ctx, groupID, policy.Name)
 		if err != nil {
-			return nil, err
+			return collection.Page[entity.GroupInlinePolicy]{}, err
 		}
 		out = append(out, policy.toEntity(statements))
 	}
-	return out, nil
+	return collection.NewPage(out, modelPage.Total, collection.Query{
+		Page:     modelPage.Page,
+		PageSize: modelPage.PageSize,
+	}), nil
 }
 
 func (r *GroupRepositoryImpl) DeleteInlinePolicy(ctx context.Context, groupID uint64, name string) error {
@@ -290,17 +297,37 @@ func (r *GroupRepositoryImpl) RemoveMember(ctx context.Context, groupID uint64, 
 	return err
 }
 
-func (r *GroupRepositoryImpl) ListMembers(ctx context.Context, groupID uint64) ([]uint, error) {
-	var rows []uint
-	if err := r.db.SelectContext(
-		ctx,
-		&rows,
-		`SELECT user_id FROM iam_group_members WHERE group_id = $1 ORDER BY user_id ASC`,
-		groupID,
-	); err != nil {
-		return nil, err
+func (r *GroupRepositoryImpl) ListMembers(
+	ctx context.Context,
+	groupID uint64,
+	query collection.Query,
+) (collection.Page[uint], error) {
+	type memberModel struct {
+		UserID uint `db:"user_id"`
 	}
-	return rows, nil
+	modelPage, err := listIAMCollectionModels[memberModel](
+		ctx,
+		r.db,
+		query,
+		"iam_group_members gm",
+		[]string{"gm.user_id"},
+		[]sq.Sqlizer{sq.Eq{"gm.group_id": groupID}},
+		groupMemberCollectionColumns,
+		[]string{"CAST(gm.user_id AS TEXT)"},
+		"gm.created_at",
+		"gm.user_id ASC",
+	)
+	if err != nil {
+		return collection.Page[uint]{}, err
+	}
+	items := make([]uint, 0, len(modelPage.Items))
+	for _, row := range modelPage.Items {
+		items = append(items, row.UserID)
+	}
+	return collection.NewPage(items, modelPage.Total, collection.Query{
+		Page:     modelPage.Page,
+		PageSize: modelPage.PageSize,
+	}), nil
 }
 
 func (r *GroupRepositoryImpl) AttachPolicy(ctx context.Context, groupID uint64, policyID uint64) error {
@@ -325,21 +352,39 @@ func (r *GroupRepositoryImpl) DetachPolicy(ctx context.Context, groupID uint64, 
 	return err
 }
 
-func (r *GroupRepositoryImpl) ListPolicies(ctx context.Context, groupID uint64) ([]entity.Policy, error) {
-	var rows []policyModel
-	if err := r.db.SelectContext(
+func (r *GroupRepositoryImpl) ListPolicies(
+	ctx context.Context,
+	groupID uint64,
+	query collection.Query,
+) (collection.Page[entity.Policy], error) {
+	modelPage, err := listIAMCollectionModels[policyModel](
 		ctx,
-		&rows,
-		`SELECT p.id, p.scope, p.name, p.description, p.is_system, p.created_at, p.updated_at
-		 FROM iam_policies p
-		 JOIN iam_group_policy_attachments gpa ON gpa.policy_id = p.id
-		 WHERE gpa.group_id = $1
-		 ORDER BY p.name ASC`,
-		groupID,
-	); err != nil {
-		return nil, err
+		r.db,
+		query,
+		"iam_policies p JOIN iam_group_policy_attachments gpa ON gpa.policy_id = p.id",
+		[]string{
+			"p.id",
+			"p.scope",
+			"p.name",
+			"p.description",
+			"p.is_system",
+			"p.default_version",
+			"p.created_at",
+			"p.updated_at",
+		},
+		[]sq.Sqlizer{sq.Eq{"gpa.group_id": groupID}},
+		managedPolicyCollectionColumns,
+		[]string{"p.scope", "p.name", "p.description", "p.default_version"},
+		"p.created_at",
+		"p.id ASC",
+	)
+	if err != nil {
+		return collection.Page[entity.Policy]{}, err
 	}
-	return toPolicies(rows), nil
+	return collection.NewPage(toPolicies(modelPage.Items), modelPage.Total, collection.Query{
+		Page:     modelPage.Page,
+		PageSize: modelPage.PageSize,
+	}), nil
 }
 
 func (r *GroupRepositoryImpl) listInlinePolicyStatements(

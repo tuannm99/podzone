@@ -205,11 +205,18 @@ func (s *IAMQueryServer) ListPlatformUserPolicies(
 	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
 		return nil, iamStatusError(err)
 	}
-	items, err := s.queries.ListPlatformUserPolicies(ctx, targetUserID)
+	page, err := s.queries.ListPlatformUserPolicies(
+		ctx,
+		targetUserID,
+		iammapper.ToCollectionQuery(req.Collection),
+	)
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	return &pbiamv1.ListPlatformUserPoliciesResponse{Policies: iammapper.ToPBPolicies(items)}, nil
+	return &pbiamv1.ListPlatformUserPoliciesResponse{
+		Policies: iammapper.ToPBPolicies(page.Items),
+		PageInfo: iammapper.ToPBPageInfo(page),
+	}, nil
 }
 
 func (s *IAMQueryServer) GetPlatformUserInlinePolicy(
@@ -249,15 +256,22 @@ func (s *IAMQueryServer) ListPlatformUserInlinePolicies(
 	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
 		return nil, iamStatusError(err)
 	}
-	items, err := s.queries.ListPlatformUserInlinePolicies(ctx, targetUserID)
+	page, err := s.queries.ListPlatformUserInlinePolicies(
+		ctx,
+		targetUserID,
+		iammapper.ToCollectionQuery(req.Collection),
+	)
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	out := make([]*pbiamv1.UserInlinePolicy, 0, len(items))
-	for i := range items {
-		out = append(out, iammapper.ToPBUserInlinePolicy(&items[i]))
+	out := make([]*pbiamv1.UserInlinePolicy, 0, len(page.Items))
+	for i := range page.Items {
+		out = append(out, iammapper.ToPBUserInlinePolicy(&page.Items[i]))
 	}
-	return &pbiamv1.ListPlatformUserInlinePoliciesResponse{Policies: out}, nil
+	return &pbiamv1.ListPlatformUserInlinePoliciesResponse{
+		Policies: out,
+		PageInfo: iammapper.ToPBPageInfo(page),
+	}, nil
 }
 
 func (s *IAMQueryServer) GetPlatformUserPermissionBoundary(

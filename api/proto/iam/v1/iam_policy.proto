@@ -195,10 +195,12 @@ message GetPolicyResponse {
 
 message ListPolicyVersionsRequest {
   string name = 1;
+  common.CollectionRequest collection = 2;
 }
 
 message ListPolicyVersionsResponse {
   repeated PolicyVersion versions = 1;
+  common.PageInfo page_info = 2;
 }
 
 message SetDefaultPolicyVersionRequest {
@@ -227,10 +229,12 @@ message ListPoliciesResponse {
 
 message ListPolicyAttachmentsRequest {
   string name = 1;
+  common.CollectionRequest collection = 2;
 }
 
 message ListPolicyAttachmentsResponse {
   repeated PolicyAttachment attachments = 1;
+  common.PageInfo page_info = 2;
 }
 
 message DeletePolicyRequest {
@@ -297,10 +301,12 @@ message AddGroupMemberResponse {}
 
 message ListGroupMembersRequest {
   uint64 group_id = 1;
+  common.CollectionRequest collection = 2;
 }
 
 message ListGroupMembersResponse {
   repeated uint64 user_ids = 1;
+  common.PageInfo page_info = 2;
 }
 
 message RemoveGroupMemberRequest {
@@ -319,10 +325,12 @@ message AttachGroupPolicyResponse {}
 
 message ListGroupPoliciesRequest {
   uint64 group_id = 1;
+  common.CollectionRequest collection = 2;
 }
 
 message ListGroupPoliciesResponse {
   repeated Policy policies = 1;
+  common.PageInfo page_info = 2;
 }
 
 message DetachGroupPolicyRequest {
@@ -352,10 +360,12 @@ message GetGroupInlinePolicyResponse {
 
 message ListGroupInlinePoliciesRequest {
   uint64 group_id = 1;
+  common.CollectionRequest collection = 2;
 }
 
 message ListGroupInlinePoliciesResponse {
   repeated GroupInlinePolicy policies = 1;
+  common.PageInfo page_info = 2;
 }
 
 message DeleteGroupInlinePolicyRequest {
@@ -367,10 +377,12 @@ message DeleteGroupInlinePolicyResponse {}
 
 message ListPlatformUserPoliciesRequest {
   uint64 target_user_id = 1;
+  common.CollectionRequest collection = 2;
 }
 
 message ListPlatformUserPoliciesResponse {
   repeated Policy policies = 1;
+  common.PageInfo page_info = 2;
 }
 
 message PutPlatformUserInlinePolicyRequest {
@@ -393,10 +405,12 @@ message GetPlatformUserInlinePolicyResponse {
 
 message ListPlatformUserInlinePoliciesRequest {
   uint64 target_user_id = 1;
+  common.CollectionRequest collection = 2;
 }
 
 message ListPlatformUserInlinePoliciesResponse {
   repeated UserInlinePolicy policies = 1;
+  common.PageInfo page_info = 2;
 }
 
 message DeletePlatformUserInlinePolicyRequest {
@@ -460,10 +474,12 @@ message CheckPermissionResponse {
 message ListTenantUserPoliciesRequest {
   string tenant_id = 1;
   uint64 user_id = 2;
+  common.CollectionRequest collection = 3;
 }
 
 message ListTenantUserPoliciesResponse {
   repeated Policy policies = 1;
+  common.PageInfo page_info = 2;
 }
 
 message PutTenantUserInlinePolicyRequest {
@@ -489,10 +505,12 @@ message GetTenantUserInlinePolicyResponse {
 message ListTenantUserInlinePoliciesRequest {
   string tenant_id = 1;
   uint64 user_id = 2;
+  common.CollectionRequest collection = 3;
 }
 
 message ListTenantUserInlinePoliciesResponse {
   repeated UserInlinePolicy policies = 1;
+  common.PageInfo page_info = 2;
 }
 
 message DeleteTenantUserInlinePolicyRequest {

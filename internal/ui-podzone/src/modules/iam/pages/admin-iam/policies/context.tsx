@@ -44,7 +44,17 @@ export type AdminIamPolicyContextValue = {
   updateQuery: (patch: Partial<CollectionQuery>) => void
   policyDetail: Accessor<PolicyInfo | undefined>
   policyVersions: Accessor<PolicyVersionInfo[]>
+  policyVersionsQuery: CollectionQuery
+  policyVersionsPageInfo: Accessor<PageInfo>
+  policyVersionsLoading: Accessor<boolean>
+  policyVersionsError: Accessor<string>
+  updatePolicyVersionsQuery: (patch: Partial<CollectionQuery>) => void
   policyAttachments: Accessor<PolicyAttachmentInfo[]>
+  policyAttachmentsQuery: CollectionQuery
+  policyAttachmentsPageInfo: Accessor<PageInfo>
+  policyAttachmentsLoading: Accessor<boolean>
+  policyAttachmentsError: Accessor<string>
+  updatePolicyAttachmentsQuery: (patch: Partial<CollectionQuery>) => void
   attachmentColor: (
     type: string
   ) => 'blue' | 'green' | 'yellow' | 'pink' | 'dark'

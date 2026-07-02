@@ -91,13 +91,23 @@ export async function createPolicyVersion(
 }
 
 export async function listPolicyVersions(
-  name: string
-): Promise<IamResult<PolicyVersionInfo[]>> {
+  name: string,
+  query: CollectionQuery
+): Promise<IamResult<CollectionPage<PolicyVersionInfo>>> {
   try {
-    const { data } = await http.get<{ versions?: PolicyVersionInfo[] }>(
-      `/auth/v1/iam/policies/${name}/versions`
-    )
-    return { success: true, data: data.versions || [] }
+    const { data } = await http.get<{
+      versions?: PolicyVersionInfo[]
+      pageInfo?: WirePageInfo
+    }>(`/auth/v1/iam/policies/${name}/versions`, {
+      params: toCollectionParams(query),
+    })
+    return {
+      success: true,
+      data: {
+        items: data.versions || [],
+        pageInfo: normalizePageInfo(data.pageInfo, query),
+      },
+    }
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to load policy versions')
   }
@@ -134,13 +144,23 @@ export async function deletePolicyVersion(
 }
 
 export async function listPolicyAttachments(
-  name: string
-): Promise<IamResult<PolicyAttachmentInfo[]>> {
+  name: string,
+  query: CollectionQuery
+): Promise<IamResult<CollectionPage<PolicyAttachmentInfo>>> {
   try {
-    const { data } = await http.get<{ attachments?: PolicyAttachmentInfo[] }>(
-      `/auth/v1/iam/policies/${name}/attachments`
-    )
-    return { success: true, data: data.attachments || [] }
+    const { data } = await http.get<{
+      attachments?: PolicyAttachmentInfo[]
+      pageInfo?: WirePageInfo
+    }>(`/auth/v1/iam/policies/${name}/attachments`, {
+      params: toCollectionParams(query),
+    })
+    return {
+      success: true,
+      data: {
+        items: data.attachments || [],
+        pageInfo: normalizePageInfo(data.pageInfo, query),
+      },
+    }
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to load policy attachments')
   }

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type TenantUsecase interface {
@@ -16,11 +17,21 @@ type TenantUsecase interface {
 		userID uint,
 		name string,
 	) (*entity.UserInlinePolicy, error)
-	ListTenantUserInlinePolicies(ctx context.Context, tenantID string, userID uint) ([]entity.UserInlinePolicy, error)
+	ListTenantUserInlinePolicies(
+		ctx context.Context,
+		tenantID string,
+		userID uint,
+		query collection.Query,
+	) (collection.Page[entity.UserInlinePolicy], error)
 	DeleteTenantUserInlinePolicy(ctx context.Context, tenantID string, userID uint, name string) error
 	AttachTenantUserPolicy(ctx context.Context, tenantID string, userID uint, policyName string) error
 	DetachTenantUserPolicy(ctx context.Context, tenantID string, userID uint, policyName string) error
-	ListTenantUserPolicies(ctx context.Context, tenantID string, userID uint) ([]entity.Policy, error)
+	ListTenantUserPolicies(
+		ctx context.Context,
+		tenantID string,
+		userID uint,
+		query collection.Query,
+	) (collection.Page[entity.Policy], error)
 	PutTenantUserPermissionBoundary(ctx context.Context, tenantID string, userID uint, policyName string) error
 	GetTenantUserPermissionBoundary(
 		ctx context.Context,

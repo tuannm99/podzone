@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	entity "github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 func TestIAMService_CreatePolicy(t *testing.T) {
@@ -130,11 +131,15 @@ func TestIAMService_ListPolicyAttachments(t *testing.T) {
 		{AttachmentType: "group", Scope: entity.PolicyScopeTenant, TenantID: "t1", GroupID: 12, GroupName: "ops-team"},
 	}
 
-	items, err := svc.ListPolicyAttachments(context.Background(), "tenant/orders_editor")
+	page, err := svc.ListPolicyAttachments(
+		context.Background(),
+		"tenant/orders_editor",
+		collection.Query{},
+	)
 	require.NoError(t, err)
-	require.Len(t, items, 2)
-	require.Equal(t, "tenant_editor", items[0].RoleName)
-	require.Equal(t, uint64(12), items[1].GroupID)
+	require.Len(t, page.Items, 2)
+	require.Equal(t, "tenant_editor", page.Items[0].RoleName)
+	require.Equal(t, uint64(12), page.Items[1].GroupID)
 }
 
 func TestIAMService_DeletePolicy(t *testing.T) {

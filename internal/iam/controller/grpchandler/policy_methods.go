@@ -171,15 +171,18 @@ func (s *IAMQueryServer) ListPolicyVersions(
 	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
 		return nil, iamStatusError(err)
 	}
-	items, err := s.queries.ListPolicyVersions(ctx, req.Name)
+	page, err := s.queries.ListPolicyVersions(ctx, req.Name, iammapper.ToCollectionQuery(req.Collection))
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	out := make([]*pbiamv1.PolicyVersion, 0, len(items))
-	for i := range items {
-		out = append(out, iammapper.ToPBPolicyVersion(&items[i]))
+	out := make([]*pbiamv1.PolicyVersion, 0, len(page.Items))
+	for i := range page.Items {
+		out = append(out, iammapper.ToPBPolicyVersion(&page.Items[i]))
 	}
-	return &pbiamv1.ListPolicyVersionsResponse{Versions: out}, nil
+	return &pbiamv1.ListPolicyVersionsResponse{
+		Versions: out,
+		PageInfo: iammapper.ToPBPageInfo(page),
+	}, nil
 }
 
 func (s *IAMQueryServer) ListPolicies(
@@ -214,9 +217,12 @@ func (s *IAMQueryServer) ListPolicyAttachments(
 	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
 		return nil, iamStatusError(err)
 	}
-	items, err := s.queries.ListPolicyAttachments(ctx, req.Name)
+	page, err := s.queries.ListPolicyAttachments(ctx, req.Name, iammapper.ToCollectionQuery(req.Collection))
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	return &pbiamv1.ListPolicyAttachmentsResponse{Attachments: iammapper.ToPBPolicyAttachments(items)}, nil
+	return &pbiamv1.ListPolicyAttachmentsResponse{
+		Attachments: iammapper.ToPBPolicyAttachments(page.Items),
+		PageInfo:    iammapper.ToPBPageInfo(page),
+	}, nil
 }

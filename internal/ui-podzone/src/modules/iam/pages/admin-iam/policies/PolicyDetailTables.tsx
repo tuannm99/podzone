@@ -10,18 +10,39 @@ import {
 import { EmptyBlock } from '@/solid/components/common/Feedback'
 import { Pagination } from '@/solid/components/common/Pagination'
 import { Badge, Button } from '@/solid/components/common/Primitives'
-import { createClientPagination } from '@/solid/pagination'
+import { ChildCollectionControls } from '../shared/ChildCollectionControls'
 import { useAdminIamPolicy } from './context'
 
 export function PolicyDetailTables() {
   const policy = useAdminIamPolicy()
-  const versionsPage = createClientPagination(policy.policyVersions, 6)
-  const attachmentsPage = createClientPagination(policy.policyAttachments, 6)
 
   return (
     <div class="grid gap-6 xl:grid-cols-2">
       <section class="min-w-0 space-y-3">
         <p class="text-sm font-semibold text-gray-900">Versions</p>
+        <ChildCollectionControls
+          query={policy.policyVersionsQuery}
+          loading={policy.policyVersionsLoading}
+          error={policy.policyVersionsError}
+          searchPlaceholder="Search version"
+          sortOptions={[
+            { label: 'Created', value: 'createdAt' },
+            { label: 'Version', value: 'version' },
+          ]}
+          filterFields={[
+            {
+              label: 'Version',
+              value: 'version',
+              operators: ['FILTER_OPERATOR_EQ', 'FILTER_OPERATOR_CONTAINS'],
+            },
+            {
+              label: 'Default',
+              value: 'isDefault',
+              operators: ['FILTER_OPERATOR_EQ'],
+            },
+          ]}
+          updateQuery={policy.updatePolicyVersionsQuery}
+        />
         <Show
           when={policy.policyVersions().length > 0}
           fallback={
@@ -40,7 +61,7 @@ export function PolicyDetailTables() {
               </TableRow>
             </TableHead>
             <TableBody>
-              <For each={versionsPage.pageItems()}>
+              <For each={policy.policyVersions()}>
                 {(version) => (
                   <TableRow>
                     <TableCell class="font-semibold text-gray-900">
@@ -88,16 +109,46 @@ export function PolicyDetailTables() {
             </TableBody>
           </DataTable>
           <Pagination
-            page={versionsPage.page()}
-            pageSize={versionsPage.pageSize}
-            total={versionsPage.total()}
-            onPageChange={versionsPage.setPage}
+            page={policy.policyVersionsPageInfo().page}
+            pageSize={policy.policyVersionsPageInfo().pageSize}
+            total={policy.policyVersionsPageInfo().total}
+            loading={policy.policyVersionsLoading()}
+            onPageChange={(page) => policy.updatePolicyVersionsQuery({ page })}
           />
         </Show>
       </section>
 
       <section class="min-w-0 space-y-3">
         <p class="text-sm font-semibold text-gray-900">Attachments</p>
+        <ChildCollectionControls
+          query={policy.policyAttachmentsQuery}
+          loading={policy.policyAttachmentsLoading}
+          error={policy.policyAttachmentsError}
+          searchPlaceholder="Search type, scope, or principal"
+          sortOptions={[
+            { label: 'Created', value: 'createdAt' },
+            { label: 'Type', value: 'attachmentType' },
+            { label: 'Scope', value: 'scope' },
+          ]}
+          filterFields={[
+            {
+              label: 'Type',
+              value: 'attachmentType',
+              operators: ['FILTER_OPERATOR_EQ', 'FILTER_OPERATOR_IN'],
+            },
+            {
+              label: 'Scope',
+              value: 'scope',
+              operators: ['FILTER_OPERATOR_EQ', 'FILTER_OPERATOR_IN'],
+            },
+            {
+              label: 'Tenant ID',
+              value: 'tenantId',
+              operators: ['FILTER_OPERATOR_EQ'],
+            },
+          ]}
+          updateQuery={policy.updatePolicyAttachmentsQuery}
+        />
         <Show
           when={policy.policyAttachments().length > 0}
           fallback={
@@ -116,7 +167,7 @@ export function PolicyDetailTables() {
               </TableRow>
             </TableHead>
             <TableBody>
-              <For each={attachmentsPage.pageItems()}>
+              <For each={policy.policyAttachments()}>
                 {(attachment) => (
                   <TableRow>
                     <TableCell>
@@ -143,10 +194,13 @@ export function PolicyDetailTables() {
             </TableBody>
           </DataTable>
           <Pagination
-            page={attachmentsPage.page()}
-            pageSize={attachmentsPage.pageSize}
-            total={attachmentsPage.total()}
-            onPageChange={attachmentsPage.setPage}
+            page={policy.policyAttachmentsPageInfo().page}
+            pageSize={policy.policyAttachmentsPageInfo().pageSize}
+            total={policy.policyAttachmentsPageInfo().total}
+            loading={policy.policyAttachmentsLoading()}
+            onPageChange={(page) =>
+              policy.updatePolicyAttachmentsQuery({ page })
+            }
           />
         </Show>
       </section>

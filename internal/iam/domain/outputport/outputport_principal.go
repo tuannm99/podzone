@@ -27,9 +27,17 @@ type GroupQueryRepository interface {
 		query collection.Query,
 	) (collection.Page[entity.Group], error)
 	GetInlinePolicy(ctx context.Context, groupID uint64, name string) (*entity.GroupInlinePolicy, error)
-	ListInlinePolicies(ctx context.Context, groupID uint64) ([]entity.GroupInlinePolicy, error)
-	ListMembers(ctx context.Context, groupID uint64) ([]uint, error)
-	ListPolicies(ctx context.Context, groupID uint64) ([]entity.Policy, error)
+	ListInlinePolicies(
+		ctx context.Context,
+		groupID uint64,
+		query collection.Query,
+	) (collection.Page[entity.GroupInlinePolicy], error)
+	ListMembers(ctx context.Context, groupID uint64, query collection.Query) (collection.Page[uint], error)
+	ListPolicies(
+		ctx context.Context,
+		groupID uint64,
+		query collection.Query,
+	) (collection.Page[entity.Policy], error)
 }
 
 type GroupRepository interface {

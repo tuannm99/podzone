@@ -60,27 +60,54 @@ type PolicyCommandRepository interface {
 type PolicyQueryRepository interface {
 	GetPolicyByName(ctx context.Context, name string) (*entity.Policy, error)
 	GetPolicyStatements(ctx context.Context, policyID uint64) ([]entity.PolicyStatement, error)
-	ListPolicyVersions(ctx context.Context, policyID uint64, policyName string) ([]entity.PolicyVersion, error)
+	ListPolicyVersions(
+		ctx context.Context,
+		policyID uint64,
+		policyName string,
+		query collection.Query,
+	) (collection.Page[entity.PolicyVersion], error)
 	ListPolicies(ctx context.Context, scope string, query collection.Query) (collection.Page[entity.Policy], error)
-	ListPolicyAttachments(ctx context.Context, policyID uint64) ([]entity.PolicyAttachment, error)
+	ListPolicyAttachments(
+		ctx context.Context,
+		policyID uint64,
+		query collection.Query,
+	) (collection.Page[entity.PolicyAttachment], error)
 	ListRoleStatements(ctx context.Context, roleID uint64) ([]entity.PolicyStatement, error)
 	ListPlatformUserStatements(ctx context.Context, userID uint) ([]entity.PolicyStatement, error)
 	ListTenantUserStatements(ctx context.Context, tenantID string, userID uint) ([]entity.PolicyStatement, error)
 	ListPlatformGroupStatements(ctx context.Context, userID uint) ([]entity.PolicyStatement, error)
 	ListTenantGroupStatements(ctx context.Context, tenantID string, userID uint) ([]entity.PolicyStatement, error)
-	ListPlatformUserPolicies(ctx context.Context, userID uint) ([]entity.Policy, error)
+	ListPlatformUserPolicies(
+		ctx context.Context,
+		userID uint,
+		query collection.Query,
+	) (collection.Page[entity.Policy], error)
 	GetPlatformUserInlinePolicy(ctx context.Context, userID uint, name string) (*entity.UserInlinePolicy, error)
-	ListPlatformUserInlinePolicies(ctx context.Context, userID uint) ([]entity.UserInlinePolicy, error)
+	ListPlatformUserInlinePolicies(
+		ctx context.Context,
+		userID uint,
+		query collection.Query,
+	) (collection.Page[entity.UserInlinePolicy], error)
 	GetPlatformUserPermissionBoundary(ctx context.Context, userID uint) (*entity.PermissionBoundary, error)
 	GetPlatformUserPermissionBoundaryStatements(ctx context.Context, userID uint) ([]entity.PolicyStatement, error)
-	ListTenantUserPolicies(ctx context.Context, tenantID string, userID uint) ([]entity.Policy, error)
+	ListTenantUserPolicies(
+		ctx context.Context,
+		tenantID string,
+		userID uint,
+		query collection.Query,
+	) (collection.Page[entity.Policy], error)
 	GetTenantUserInlinePolicy(
 		ctx context.Context,
 		tenantID string,
 		userID uint,
 		name string,
 	) (*entity.UserInlinePolicy, error)
-	ListTenantUserInlinePolicies(ctx context.Context, tenantID string, userID uint) ([]entity.UserInlinePolicy, error)
+	ListTenantUserInlinePolicies(
+		ctx context.Context,
+		tenantID string,
+		userID uint,
+		query collection.Query,
+	) (collection.Page[entity.UserInlinePolicy], error)
 	GetTenantUserPermissionBoundary(
 		ctx context.Context,
 		tenantID string,

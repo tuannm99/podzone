@@ -1,4 +1,11 @@
 import { http, type HttpError } from '../http'
+import {
+  normalizePageInfo,
+  toCollectionParams,
+  type CollectionPage,
+  type CollectionQuery,
+  type WirePageInfo,
+} from '../collection'
 import { toFailure } from './result'
 import type {
   IamResult,
@@ -9,13 +16,23 @@ import type {
 } from './types'
 
 export async function listPlatformUserPolicies(
-  targetUserId: number
-): Promise<IamResult<PolicyInfo[]>> {
+  targetUserId: number,
+  query: CollectionQuery
+): Promise<IamResult<CollectionPage<PolicyInfo>>> {
   try {
-    const { data } = await http.get<{ policies?: PolicyInfo[] }>(
-      `/auth/v1/iam/platform-users/${targetUserId}/policies`
-    )
-    return { success: true, data: data.policies || [] }
+    const { data } = await http.get<{
+      policies?: PolicyInfo[]
+      pageInfo?: WirePageInfo
+    }>(`/auth/v1/iam/platform-users/${targetUserId}/policies`, {
+      params: toCollectionParams(query),
+    })
+    return {
+      success: true,
+      data: {
+        items: data.policies || [],
+        pageInfo: normalizePageInfo(data.pageInfo, query),
+      },
+    }
   } catch (error) {
     return toFailure(
       error as HttpError,
@@ -60,13 +77,23 @@ export async function detachPlatformUserPolicy(
 }
 
 export async function listPlatformUserInlinePolicies(
-  targetUserId: number
-): Promise<IamResult<UserInlinePolicy[]>> {
+  targetUserId: number,
+  query: CollectionQuery
+): Promise<IamResult<CollectionPage<UserInlinePolicy>>> {
   try {
-    const { data } = await http.get<{ policies?: UserInlinePolicy[] }>(
-      `/auth/v1/iam/platform-users/${targetUserId}/inline-policies`
-    )
-    return { success: true, data: data.policies || [] }
+    const { data } = await http.get<{
+      policies?: UserInlinePolicy[]
+      pageInfo?: WirePageInfo
+    }>(`/auth/v1/iam/platform-users/${targetUserId}/inline-policies`, {
+      params: toCollectionParams(query),
+    })
+    return {
+      success: true,
+      data: {
+        items: data.policies || [],
+        pageInfo: normalizePageInfo(data.pageInfo, query),
+      },
+    }
   } catch (error) {
     return toFailure(
       error as HttpError,
@@ -172,13 +199,23 @@ export async function deletePlatformUserPermissionBoundary(
 
 export async function listTenantUserPolicies(
   tenantId: string,
-  userId: number
-): Promise<IamResult<PolicyInfo[]>> {
+  userId: number,
+  query: CollectionQuery
+): Promise<IamResult<CollectionPage<PolicyInfo>>> {
   try {
-    const { data } = await http.get<{ policies?: PolicyInfo[] }>(
-      `/auth/v1/iam/tenants/${tenantId}/members/${userId}/policies`
-    )
-    return { success: true, data: data.policies || [] }
+    const { data } = await http.get<{
+      policies?: PolicyInfo[]
+      pageInfo?: WirePageInfo
+    }>(`/auth/v1/iam/tenants/${tenantId}/members/${userId}/policies`, {
+      params: toCollectionParams(query),
+    })
+    return {
+      success: true,
+      data: {
+        items: data.policies || [],
+        pageInfo: normalizePageInfo(data.pageInfo, query),
+      },
+    }
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to load tenant user policies')
   }
@@ -221,13 +258,23 @@ export async function detachTenantUserPolicy(
 
 export async function listTenantUserInlinePolicies(
   tenantId: string,
-  userId: number
-): Promise<IamResult<UserInlinePolicy[]>> {
+  userId: number,
+  query: CollectionQuery
+): Promise<IamResult<CollectionPage<UserInlinePolicy>>> {
   try {
-    const { data } = await http.get<{ policies?: UserInlinePolicy[] }>(
-      `/auth/v1/iam/tenants/${tenantId}/members/${userId}/inline-policies`
-    )
-    return { success: true, data: data.policies || [] }
+    const { data } = await http.get<{
+      policies?: UserInlinePolicy[]
+      pageInfo?: WirePageInfo
+    }>(`/auth/v1/iam/tenants/${tenantId}/members/${userId}/inline-policies`, {
+      params: toCollectionParams(query),
+    })
+    return {
+      success: true,
+      data: {
+        items: data.policies || [],
+        pageInfo: normalizePageInfo(data.pageInfo, query),
+      },
+    }
   } catch (error) {
     return toFailure(
       error as HttpError,

@@ -116,9 +116,15 @@ func configurePolicyRepoMocks(policyRepo *outputportmocks.MockPolicyRepository, 
 		}).
 		Maybe()
 	policyRepo.EXPECT().
-		ListPolicyVersions(mock.Anything, mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, policyID uint64, policyName string) ([]entity.PolicyVersion, error) {
-			return append([]entity.PolicyVersion(nil), state.policyVersions[policyID]...), nil
+		ListPolicyVersions(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(
+			ctx context.Context,
+			policyID uint64,
+			policyName string,
+			query collection.Query,
+		) (collection.Page[entity.PolicyVersion], error) {
+			items := append([]entity.PolicyVersion(nil), state.policyVersions[policyID]...)
+			return collection.NewPage(items, int64(len(items)), query), nil
 		}).
 		Maybe()
 	policyRepo.EXPECT().
@@ -156,9 +162,14 @@ func configurePolicyRepoMocks(policyRepo *outputportmocks.MockPolicyRepository, 
 		}).
 		Maybe()
 	policyRepo.EXPECT().
-		ListPolicyAttachments(mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, policyID uint64) ([]entity.PolicyAttachment, error) {
-			return append([]entity.PolicyAttachment(nil), state.policyAttachments[policyID]...), nil
+		ListPolicyAttachments(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(
+			ctx context.Context,
+			policyID uint64,
+			query collection.Query,
+		) (collection.Page[entity.PolicyAttachment], error) {
+			items := append([]entity.PolicyAttachment(nil), state.policyAttachments[policyID]...)
+			return collection.NewPage(items, int64(len(items)), query), nil
 		}).
 		Maybe()
 	policyRepo.EXPECT().
@@ -285,15 +296,19 @@ func configurePolicyRepoMocks(policyRepo *outputportmocks.MockPolicyRepository, 
 		Maybe()
 	policyRepo.EXPECT().DetachPlatformUserPolicy(mock.Anything, mock.Anything, mock.Anything).Return(nil).Maybe()
 	policyRepo.EXPECT().
-		ListPlatformUserPolicies(mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, userID uint) ([]entity.Policy, error) {
+		ListPlatformUserPolicies(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(
+			ctx context.Context,
+			userID uint,
+			query collection.Query,
+		) (collection.Page[entity.Policy], error) {
 			out := make([]entity.Policy, 0, len(state.platformDirect[userID]))
 			for _, statement := range state.platformDirect[userID] {
 				if policy, ok := state.policiesByID[statement.PolicyID]; ok {
 					out = append(out, policy)
 				}
 			}
-			return out, nil
+			return collection.NewPage(out, int64(len(out)), query), nil
 		}).
 		Maybe()
 	policyRepo.EXPECT().
@@ -325,14 +340,18 @@ func configurePolicyRepoMocks(policyRepo *outputportmocks.MockPolicyRepository, 
 		}).
 		Maybe()
 	policyRepo.EXPECT().
-		ListPlatformUserInlinePolicies(mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, userID uint) ([]entity.UserInlinePolicy, error) {
+		ListPlatformUserInlinePolicies(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(
+			ctx context.Context,
+			userID uint,
+			query collection.Query,
+		) (collection.Page[entity.UserInlinePolicy], error) {
 			policies := state.platformInlinePolicies[userID]
 			out := make([]entity.UserInlinePolicy, 0, len(policies))
 			for _, policy := range policies {
 				out = append(out, policy)
 			}
-			return out, nil
+			return collection.NewPage(out, int64(len(out)), query), nil
 		}).
 		Maybe()
 	policyRepo.EXPECT().
@@ -414,8 +433,13 @@ func configurePolicyRepoMocks(policyRepo *outputportmocks.MockPolicyRepository, 
 		Return(nil).
 		Maybe()
 	policyRepo.EXPECT().
-		ListTenantUserPolicies(mock.Anything, mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, tenantID string, userID uint) ([]entity.Policy, error) {
+		ListTenantUserPolicies(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(
+			ctx context.Context,
+			tenantID string,
+			userID uint,
+			query collection.Query,
+		) (collection.Page[entity.Policy], error) {
 			key := membershipKey(tenantID, userID)
 			out := make([]entity.Policy, 0, len(state.tenantDirect[key]))
 			for _, statement := range state.tenantDirect[key] {
@@ -423,7 +447,7 @@ func configurePolicyRepoMocks(policyRepo *outputportmocks.MockPolicyRepository, 
 					out = append(out, policy)
 				}
 			}
-			return out, nil
+			return collection.NewPage(out, int64(len(out)), query), nil
 		}).
 		Maybe()
 	policyRepo.EXPECT().
@@ -457,14 +481,19 @@ func configurePolicyRepoMocks(policyRepo *outputportmocks.MockPolicyRepository, 
 		}).
 		Maybe()
 	policyRepo.EXPECT().
-		ListTenantUserInlinePolicies(mock.Anything, mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, tenantID string, userID uint) ([]entity.UserInlinePolicy, error) {
+		ListTenantUserInlinePolicies(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(
+			ctx context.Context,
+			tenantID string,
+			userID uint,
+			query collection.Query,
+		) (collection.Page[entity.UserInlinePolicy], error) {
 			policies := state.tenantInlinePolicies[membershipKey(tenantID, userID)]
 			out := make([]entity.UserInlinePolicy, 0, len(policies))
 			for _, policy := range policies {
 				out = append(out, policy)
 			}
-			return out, nil
+			return collection.NewPage(out, int64(len(out)), query), nil
 		}).
 		Maybe()
 	policyRepo.EXPECT().
@@ -618,14 +647,18 @@ func configureGroupRepoMocks(groupRepo *outputportmocks.MockGroupRepository, sta
 		}).
 		Maybe()
 	groupRepo.EXPECT().
-		ListInlinePolicies(mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, groupID uint64) ([]entity.GroupInlinePolicy, error) {
+		ListInlinePolicies(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(
+			ctx context.Context,
+			groupID uint64,
+			query collection.Query,
+		) (collection.Page[entity.GroupInlinePolicy], error) {
 			policies := state.groupInlinePolicies[groupID]
 			out := make([]entity.GroupInlinePolicy, 0, len(policies))
 			for _, policy := range policies {
 				out = append(out, policy)
 			}
-			return out, nil
+			return collection.NewPage(out, int64(len(out)), query), nil
 		}).
 		Maybe()
 	groupRepo.EXPECT().
@@ -649,6 +682,23 @@ func configureGroupRepoMocks(groupRepo *outputportmocks.MockGroupRepository, sta
 		}).
 		Maybe()
 	groupRepo.EXPECT().
+		ListMembers(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(
+			ctx context.Context,
+			groupID uint64,
+			query collection.Query,
+		) (collection.Page[uint], error) {
+			prefix := fmt.Sprintf("group:%d:", groupID)
+			items := make([]uint, 0)
+			for key, membership := range state.memberships.items {
+				if strings.HasPrefix(key, prefix) {
+					items = append(items, membership.UserID)
+				}
+			}
+			return collection.NewPage(items, int64(len(items)), query), nil
+		}).
+		Maybe()
+	groupRepo.EXPECT().
 		AttachPolicy(mock.Anything, mock.Anything, mock.Anything).
 		RunAndReturn(func(ctx context.Context, groupID uint64, policyID uint64) error {
 			group := state.groupsByID[groupID]
@@ -664,6 +714,25 @@ func configureGroupRepoMocks(groupRepo *outputportmocks.MockGroupRepository, sta
 				GroupName:      group.Name,
 			})
 			return nil
+		}).
+		Maybe()
+	groupRepo.EXPECT().
+		ListPolicies(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(
+			ctx context.Context,
+			groupID uint64,
+			query collection.Query,
+		) (collection.Page[entity.Policy], error) {
+			items := make([]entity.Policy, 0)
+			for policyID, attachments := range state.policyAttachments {
+				for _, attachment := range attachments {
+					if attachment.GroupID == groupID {
+						items = append(items, state.policiesByID[policyID])
+						break
+					}
+				}
+			}
+			return collection.NewPage(items, int64(len(items)), query), nil
 		}).
 		Maybe()
 }

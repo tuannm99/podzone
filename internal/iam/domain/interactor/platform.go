@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 func (s *interactor) CheckPlatformPermission(ctx context.Context, userID uint, permission string) (bool, error) {
@@ -199,11 +200,12 @@ func (s *interactor) GetPlatformUserInlinePolicy(
 func (s *interactor) ListPlatformUserInlinePolicies(
 	ctx context.Context,
 	userID uint,
-) ([]entity.UserInlinePolicy, error) {
+	query collection.Query,
+) (collection.Page[entity.UserInlinePolicy], error) {
 	if userID == 0 {
-		return nil, entity.ErrInvalidUserID
+		return collection.Page[entity.UserInlinePolicy]{}, entity.ErrInvalidUserID
 	}
-	return s.policyQueries.ListPlatformUserInlinePolicies(ctx, userID)
+	return s.policyQueries.ListPlatformUserInlinePolicies(ctx, userID, query.Normalize())
 }
 
 func (s *interactor) DeletePlatformUserInlinePolicy(ctx context.Context, userID uint, name string) error {
@@ -253,11 +255,15 @@ func (s *interactor) DetachPlatformUserPolicy(ctx context.Context, userID uint, 
 	return s.policyCommands.DetachPlatformUserPolicy(ctx, userID, policy.ID)
 }
 
-func (s *interactor) ListPlatformUserPolicies(ctx context.Context, userID uint) ([]entity.Policy, error) {
+func (s *interactor) ListPlatformUserPolicies(
+	ctx context.Context,
+	userID uint,
+	query collection.Query,
+) (collection.Page[entity.Policy], error) {
 	if userID == 0 {
-		return nil, entity.ErrInvalidUserID
+		return collection.Page[entity.Policy]{}, entity.ErrInvalidUserID
 	}
-	return s.policyQueries.ListPlatformUserPolicies(ctx, userID)
+	return s.policyQueries.ListPlatformUserPolicies(ctx, userID, query.Normalize())
 }
 
 func (s *interactor) PutPlatformUserPermissionBoundary(ctx context.Context, userID uint, policyName string) error {

@@ -90,11 +90,15 @@ func (s *interactor) GetGroupInlinePolicy(
 	return s.groupQueries.GetInlinePolicy(ctx, groupID, strings.TrimSpace(name))
 }
 
-func (s *interactor) ListGroupInlinePolicies(ctx context.Context, groupID uint64) ([]entity.GroupInlinePolicy, error) {
+func (s *interactor) ListGroupInlinePolicies(
+	ctx context.Context,
+	groupID uint64,
+	query collection.Query,
+) (collection.Page[entity.GroupInlinePolicy], error) {
 	if groupID == 0 {
-		return nil, entity.ErrGroupNotFound
+		return collection.Page[entity.GroupInlinePolicy]{}, entity.ErrGroupNotFound
 	}
-	return s.groupQueries.ListInlinePolicies(ctx, groupID)
+	return s.groupQueries.ListInlinePolicies(ctx, groupID, query.Normalize())
 }
 
 func (s *interactor) DeleteGroupInlinePolicy(ctx context.Context, groupID uint64, name string) error {
@@ -127,11 +131,15 @@ func (s *interactor) RemoveGroupMember(ctx context.Context, groupID uint64, user
 	return s.groupCommands.RemoveMember(ctx, groupID, userID)
 }
 
-func (s *interactor) ListGroupMembers(ctx context.Context, groupID uint64) ([]uint, error) {
+func (s *interactor) ListGroupMembers(
+	ctx context.Context,
+	groupID uint64,
+	query collection.Query,
+) (collection.Page[uint], error) {
 	if groupID == 0 {
-		return nil, entity.ErrRoleNotFound
+		return collection.Page[uint]{}, entity.ErrRoleNotFound
 	}
-	return s.groupQueries.ListMembers(ctx, groupID)
+	return s.groupQueries.ListMembers(ctx, groupID, query.Normalize())
 }
 
 func (s *interactor) AttachGroupPolicy(ctx context.Context, groupID uint64, policyName string) error {
@@ -184,9 +192,13 @@ func (s *interactor) DetachGroupPolicy(ctx context.Context, groupID uint64, poli
 	return s.groupCommands.DetachPolicy(ctx, groupID, policy.ID)
 }
 
-func (s *interactor) ListGroupPolicies(ctx context.Context, groupID uint64) ([]entity.Policy, error) {
+func (s *interactor) ListGroupPolicies(
+	ctx context.Context,
+	groupID uint64,
+	query collection.Query,
+) (collection.Page[entity.Policy], error) {
 	if groupID == 0 {
-		return nil, entity.ErrRoleNotFound
+		return collection.Page[entity.Policy]{}, entity.ErrRoleNotFound
 	}
-	return s.groupQueries.ListPolicies(ctx, groupID)
+	return s.groupQueries.ListPolicies(ctx, groupID, query.Normalize())
 }

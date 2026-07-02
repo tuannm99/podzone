@@ -66,6 +66,64 @@ func TestBuildIAMCollectionQuery(t *testing.T) {
 			wantOrder:   "created_at DESC",
 			wantWhere:   1,
 		},
+		{
+			name: "policy version default filter",
+			query: collection.Query{
+				Filters: []collection.Filter{{
+					Field:    "isDefault",
+					Operator: collection.FilterEqual,
+					Values:   []string{"true"},
+				}},
+				SortBy: "version",
+			},
+			columns:     policyVersionCollectionColumns,
+			search:      []string{"pv.version"},
+			defaultSort: "pv.created_at",
+			wantOrder:   "pv.version DESC",
+			wantWhere:   1,
+		},
+		{
+			name: "group member search",
+			query: collection.Query{
+				Search: "42",
+				SortBy: "userId",
+			},
+			columns:     groupMemberCollectionColumns,
+			search:      []string{"CAST(gm.user_id AS TEXT)"},
+			defaultSort: "gm.created_at",
+			wantOrder:   "gm.user_id DESC",
+			wantWhere:   1,
+		},
+		{
+			name: "inline policy name filter",
+			query: collection.Query{
+				Filters: []collection.Filter{{
+					Field:    "name",
+					Operator: collection.FilterContains,
+					Values:   []string{"orders"},
+				}},
+			},
+			columns:     inlinePolicyCollectionColumns,
+			search:      []string{"ip.name", "ip.description"},
+			defaultSort: "ip.created_at",
+			wantOrder:   "ip.created_at DESC",
+			wantWhere:   1,
+		},
+		{
+			name: "attachment type filter",
+			query: collection.Query{
+				Filters: []collection.Filter{{
+					Field:    "attachmentType",
+					Operator: collection.FilterIn,
+					Values:   []string{"group", "role"},
+				}},
+			},
+			columns:     policyAttachmentCollectionColumns,
+			search:      []string{"attachment_type", "scope", "tenant_id"},
+			defaultSort: "created_at",
+			wantOrder:   "created_at DESC",
+			wantWhere:   1,
+		},
 	}
 
 	for _, tt := range tests {
@@ -93,7 +151,7 @@ func TestBuildIAMCollectionQuery(t *testing.T) {
 			if tt.query.Search != "" {
 				assert.NotContains(t, query, tt.query.Search)
 				require.NotEmpty(t, args)
-				assert.Equal(t, `%ops\%\_team%`, args[0])
+				assert.Equal(t, "%"+escapeIAMLike(tt.query.Search)+"%", args[0])
 			}
 		})
 	}

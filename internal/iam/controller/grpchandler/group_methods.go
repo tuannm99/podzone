@@ -230,15 +230,18 @@ func (s *IAMQueryServer) ListGroupMembers(
 	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
 		return nil, iamStatusError(err)
 	}
-	items, err := s.queries.ListGroupMembers(ctx, req.GroupId)
+	page, err := s.queries.ListGroupMembers(ctx, req.GroupId, iammapper.ToCollectionQuery(req.Collection))
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	out := make([]uint64, 0, len(items))
-	for _, item := range items {
+	out := make([]uint64, 0, len(page.Items))
+	for _, item := range page.Items {
 		out = append(out, uint64(item))
 	}
-	return &pbiamv1.ListGroupMembersResponse{UserIds: out}, nil
+	return &pbiamv1.ListGroupMembersResponse{
+		UserIds:  out,
+		PageInfo: iammapper.ToPBPageInfo(page),
+	}, nil
 }
 
 func (s *IAMQueryServer) ListGroupPolicies(
@@ -252,11 +255,14 @@ func (s *IAMQueryServer) ListGroupPolicies(
 	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
 		return nil, iamStatusError(err)
 	}
-	items, err := s.queries.ListGroupPolicies(ctx, req.GroupId)
+	page, err := s.queries.ListGroupPolicies(ctx, req.GroupId, iammapper.ToCollectionQuery(req.Collection))
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	return &pbiamv1.ListGroupPoliciesResponse{Policies: iammapper.ToPBPolicies(items)}, nil
+	return &pbiamv1.ListGroupPoliciesResponse{
+		Policies: iammapper.ToPBPolicies(page.Items),
+		PageInfo: iammapper.ToPBPageInfo(page),
+	}, nil
 }
 
 func (s *IAMQueryServer) GetGroupInlinePolicy(
@@ -288,13 +294,16 @@ func (s *IAMQueryServer) ListGroupInlinePolicies(
 	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
 		return nil, iamStatusError(err)
 	}
-	items, err := s.queries.ListGroupInlinePolicies(ctx, req.GroupId)
+	page, err := s.queries.ListGroupInlinePolicies(ctx, req.GroupId, iammapper.ToCollectionQuery(req.Collection))
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	out := make([]*pbiamv1.GroupInlinePolicy, 0, len(items))
-	for i := range items {
-		out = append(out, iammapper.ToPBGroupInlinePolicy(&items[i]))
+	out := make([]*pbiamv1.GroupInlinePolicy, 0, len(page.Items))
+	for i := range page.Items {
+		out = append(out, iammapper.ToPBGroupInlinePolicy(&page.Items[i]))
 	}
-	return &pbiamv1.ListGroupInlinePoliciesResponse{Policies: out}, nil
+	return &pbiamv1.ListGroupInlinePoliciesResponse{
+		Policies: out,
+		PageInfo: iammapper.ToPBPageInfo(page),
+	}, nil
 }

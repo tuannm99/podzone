@@ -83,7 +83,17 @@ export function createAdminIamViewModel() {
     updateQuery: state.updatePoliciesQuery,
     policyDetail: state.policyDetail,
     policyVersions: state.policyVersions,
+    policyVersionsQuery: state.policyVersionsQuery,
+    policyVersionsPageInfo: state.policyVersionsPageInfo,
+    policyVersionsLoading: state.policyVersionsLoading,
+    policyVersionsError: state.policyVersionsError,
+    updatePolicyVersionsQuery: state.updatePolicyVersionsQuery,
     policyAttachments: state.policyAttachments,
+    policyAttachmentsQuery: state.policyAttachmentsQuery,
+    policyAttachmentsPageInfo: state.policyAttachmentsPageInfo,
+    policyAttachmentsLoading: state.policyAttachmentsLoading,
+    policyAttachmentsError: state.policyAttachmentsError,
+    updatePolicyAttachmentsQuery: state.updatePolicyAttachmentsQuery,
     attachmentColor,
     submitCreatePolicy: actions.submitCreatePolicy,
     createPolicyFromForm: actions.createPolicyFromForm,
@@ -126,8 +136,18 @@ export function createAdminIamViewModel() {
     handleAttachGroupPolicy: actions.handleAttachGroupPolicy,
     handleDeleteGroup: actions.handleDeleteGroup,
     groupMembers: state.groupMembers,
+    groupMembersQuery: state.groupMembersQuery,
+    groupMembersPageInfo: state.groupMembersPageInfo,
+    groupMembersLoading: state.groupMembersLoading,
+    groupMembersError: state.groupMembersError,
+    updateGroupMembersQuery: state.updateGroupMembersQuery,
     handleRemoveGroupMember: actions.handleRemoveGroupMember,
     groupPolicies: state.groupPolicies,
+    groupPoliciesQuery: state.groupPoliciesQuery,
+    groupPoliciesPageInfo: state.groupPoliciesPageInfo,
+    groupPoliciesLoading: state.groupPoliciesLoading,
+    groupPoliciesError: state.groupPoliciesError,
+    updateGroupPoliciesQuery: state.updateGroupPoliciesQuery,
     handleDetachGroupPolicy: actions.handleDetachGroupPolicy,
     groupInlinePolicyName: state.groupInlinePolicyName,
     setGroupInlinePolicyName: state.setGroupInlinePolicyName,
@@ -138,6 +158,11 @@ export function createAdminIamViewModel() {
     saveGroupInlinePolicyFromForm: actions.saveGroupInlinePolicyFromForm,
     handleSaveGroupInlinePolicy: actions.handleSaveGroupInlinePolicy,
     groupInlinePolicies: state.groupInlinePolicies,
+    groupInlinePoliciesQuery: state.groupInlinePoliciesQuery,
+    groupInlinePoliciesPageInfo: state.groupInlinePoliciesPageInfo,
+    groupInlinePoliciesLoading: state.groupInlinePoliciesLoading,
+    groupInlinePoliciesError: state.groupInlinePoliciesError,
+    updateGroupInlinePoliciesQuery: state.updateGroupInlinePoliciesQuery,
     handleDeleteGroupInlinePolicy: actions.handleDeleteGroupInlinePolicy,
   }
 
@@ -158,10 +183,12 @@ export function createAdminIamViewModel() {
       actions.attachPrincipalManagedPolicyFromForm,
     handleAttachPrincipalManagedPolicy:
       actions.handleAttachPrincipalManagedPolicy,
-    currentManagedPolicies: () =>
-      state.principalMode() === 'platform'
-        ? state.platformUserPolicies()
-        : state.tenantUserPolicies(),
+    currentManagedPolicies: state.principalManagedPolicies,
+    managedPoliciesQuery: state.principalManagedPoliciesQuery,
+    managedPoliciesPageInfo: state.principalManagedPoliciesPageInfo,
+    managedPoliciesLoading: state.principalManagedPoliciesLoading,
+    managedPoliciesError: state.principalManagedPoliciesError,
+    updateManagedPoliciesQuery: state.updatePrincipalManagedPoliciesQuery,
     handleDetachPrincipalManagedPolicy:
       actions.handleDetachPrincipalManagedPolicy,
     principalBoundaryPolicyName: state.principalBoundaryPolicyName,
@@ -183,10 +210,12 @@ export function createAdminIamViewModel() {
     savePrincipalInlinePolicyFromForm:
       actions.savePrincipalInlinePolicyFromForm,
     handleSavePrincipalInlinePolicy: actions.handleSavePrincipalInlinePolicy,
-    currentInlinePolicies: () =>
-      state.principalMode() === 'platform'
-        ? state.platformUserInlinePolicies()
-        : state.tenantUserInlinePolicies(),
+    currentInlinePolicies: state.principalInlinePolicies,
+    inlinePoliciesQuery: state.principalInlinePoliciesQuery,
+    inlinePoliciesPageInfo: state.principalInlinePoliciesPageInfo,
+    inlinePoliciesLoading: state.principalInlinePoliciesLoading,
+    inlinePoliciesError: state.principalInlinePoliciesError,
+    updateInlinePoliciesQuery: state.updatePrincipalInlinePoliciesQuery,
     handleDeletePrincipalInlinePolicy:
       actions.handleDeletePrincipalInlinePolicy,
   }

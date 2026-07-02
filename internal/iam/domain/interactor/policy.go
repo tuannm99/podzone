@@ -110,12 +110,16 @@ func (s *interactor) GetPolicy(ctx context.Context, name string) (*entity.Policy
 	return policy, statements, nil
 }
 
-func (s *interactor) ListPolicyVersions(ctx context.Context, name string) ([]entity.PolicyVersion, error) {
+func (s *interactor) ListPolicyVersions(
+	ctx context.Context,
+	name string,
+	query collection.Query,
+) (collection.Page[entity.PolicyVersion], error) {
 	policy, err := s.policyQueries.GetPolicyByName(ctx, strings.TrimSpace(name))
 	if err != nil {
-		return nil, err
+		return collection.Page[entity.PolicyVersion]{}, err
 	}
-	return s.policyQueries.ListPolicyVersions(ctx, policy.ID, policy.Name)
+	return s.policyQueries.ListPolicyVersions(ctx, policy.ID, policy.Name, query.Normalize())
 }
 
 func (s *interactor) SetDefaultPolicyVersion(ctx context.Context, name string, version string) error {
@@ -130,12 +134,16 @@ func (s *interactor) SetDefaultPolicyVersion(ctx context.Context, name string, v
 	return s.policyCommands.SetDefaultPolicyVersion(ctx, policy.ID, version)
 }
 
-func (s *interactor) ListPolicyAttachments(ctx context.Context, name string) ([]entity.PolicyAttachment, error) {
+func (s *interactor) ListPolicyAttachments(
+	ctx context.Context,
+	name string,
+	query collection.Query,
+) (collection.Page[entity.PolicyAttachment], error) {
 	policy, err := s.policyQueries.GetPolicyByName(ctx, strings.TrimSpace(name))
 	if err != nil {
-		return nil, err
+		return collection.Page[entity.PolicyAttachment]{}, err
 	}
-	return s.policyQueries.ListPolicyAttachments(ctx, policy.ID)
+	return s.policyQueries.ListPolicyAttachments(ctx, policy.ID, query.Normalize())
 }
 
 func (s *interactor) DeletePolicy(ctx context.Context, name string) error {

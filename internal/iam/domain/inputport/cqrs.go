@@ -53,8 +53,18 @@ type TenantQueryUsecase interface {
 		userID uint,
 		name string,
 	) (*entity.UserInlinePolicy, error)
-	ListTenantUserInlinePolicies(ctx context.Context, tenantID string, userID uint) ([]entity.UserInlinePolicy, error)
-	ListTenantUserPolicies(ctx context.Context, tenantID string, userID uint) ([]entity.Policy, error)
+	ListTenantUserInlinePolicies(
+		ctx context.Context,
+		tenantID string,
+		userID uint,
+		query collection.Query,
+	) (collection.Page[entity.UserInlinePolicy], error)
+	ListTenantUserPolicies(
+		ctx context.Context,
+		tenantID string,
+		userID uint,
+		query collection.Query,
+	) (collection.Page[entity.Policy], error)
 	GetTenantUserPermissionBoundary(
 		ctx context.Context,
 		tenantID string,
@@ -97,9 +107,17 @@ type PolicyCommandUsecase interface {
 
 type PolicyQueryUsecase interface {
 	GetPolicy(ctx context.Context, name string) (*entity.Policy, []entity.PolicyStatement, error)
-	ListPolicyVersions(ctx context.Context, name string) ([]entity.PolicyVersion, error)
+	ListPolicyVersions(
+		ctx context.Context,
+		name string,
+		query collection.Query,
+	) (collection.Page[entity.PolicyVersion], error)
 	ListPolicies(ctx context.Context, scope string, query collection.Query) (collection.Page[entity.Policy], error)
-	ListPolicyAttachments(ctx context.Context, name string) ([]entity.PolicyAttachment, error)
+	ListPolicyAttachments(
+		ctx context.Context,
+		name string,
+		query collection.Query,
+	) (collection.Page[entity.PolicyAttachment], error)
 	GetRoleTrustPolicy(ctx context.Context, roleName string) ([]entity.RoleTrustStatement, error)
 	GetRolePermissionBoundary(ctx context.Context, roleName string) (*entity.RolePermissionBoundary, error)
 }
@@ -123,9 +141,17 @@ type GroupQueryUsecase interface {
 		query collection.Query,
 	) (collection.Page[entity.Group], error)
 	GetGroupInlinePolicy(ctx context.Context, groupID uint64, name string) (*entity.GroupInlinePolicy, error)
-	ListGroupInlinePolicies(ctx context.Context, groupID uint64) ([]entity.GroupInlinePolicy, error)
-	ListGroupMembers(ctx context.Context, groupID uint64) ([]uint, error)
-	ListGroupPolicies(ctx context.Context, groupID uint64) ([]entity.Policy, error)
+	ListGroupInlinePolicies(
+		ctx context.Context,
+		groupID uint64,
+		query collection.Query,
+	) (collection.Page[entity.GroupInlinePolicy], error)
+	ListGroupMembers(ctx context.Context, groupID uint64, query collection.Query) (collection.Page[uint], error)
+	ListGroupPolicies(
+		ctx context.Context,
+		groupID uint64,
+		query collection.Query,
+	) (collection.Page[entity.Policy], error)
 }
 
 type PlatformPrincipalCommandUsecase interface {
@@ -144,8 +170,16 @@ type PlatformPrincipalQueryUsecase interface {
 	RequirePlatformPermission(ctx context.Context, userID uint, permission string) error
 	ListPlatformRoles(ctx context.Context, userID uint) ([]entity.PlatformMembership, error)
 	GetPlatformUserInlinePolicy(ctx context.Context, userID uint, name string) (*entity.UserInlinePolicy, error)
-	ListPlatformUserInlinePolicies(ctx context.Context, userID uint) ([]entity.UserInlinePolicy, error)
-	ListPlatformUserPolicies(ctx context.Context, userID uint) ([]entity.Policy, error)
+	ListPlatformUserInlinePolicies(
+		ctx context.Context,
+		userID uint,
+		query collection.Query,
+	) (collection.Page[entity.UserInlinePolicy], error)
+	ListPlatformUserPolicies(
+		ctx context.Context,
+		userID uint,
+		query collection.Query,
+	) (collection.Page[entity.Policy], error)
 	GetPlatformUserPermissionBoundary(ctx context.Context, userID uint) (*entity.PermissionBoundary, error)
 }
 

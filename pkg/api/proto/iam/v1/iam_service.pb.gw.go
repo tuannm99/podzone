@@ -1003,6 +1003,8 @@ func local_request_IAMService_GetPolicy_0(ctx context.Context, marshaler runtime
 	return msg, metadata, err
 }
 
+var filter_IAMService_ListPolicyVersions_0 = &utilities.DoubleArray{Encoding: map[string]int{"name": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+
 func request_IAMService_ListPolicyVersions_0(ctx context.Context, marshaler runtime.Marshaler, client IAMServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq ListPolicyVersionsRequest
@@ -1019,6 +1021,12 @@ func request_IAMService_ListPolicyVersions_0(ctx context.Context, marshaler runt
 	protoReq.Name, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_ListPolicyVersions_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := client.ListPolicyVersions(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -1037,6 +1045,12 @@ func local_request_IAMService_ListPolicyVersions_0(ctx context.Context, marshale
 	protoReq.Name, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_ListPolicyVersions_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := server.ListPolicyVersions(ctx, &protoReq)
 	return msg, metadata, err
@@ -1193,6 +1207,8 @@ func local_request_IAMService_ListPolicies_0(ctx context.Context, marshaler runt
 	return msg, metadata, err
 }
 
+var filter_IAMService_ListPolicyAttachments_0 = &utilities.DoubleArray{Encoding: map[string]int{"name": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+
 func request_IAMService_ListPolicyAttachments_0(ctx context.Context, marshaler runtime.Marshaler, client IAMServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq ListPolicyAttachmentsRequest
@@ -1209,6 +1225,12 @@ func request_IAMService_ListPolicyAttachments_0(ctx context.Context, marshaler r
 	protoReq.Name, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_ListPolicyAttachments_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := client.ListPolicyAttachments(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -1227,6 +1249,12 @@ func local_request_IAMService_ListPolicyAttachments_0(ctx context.Context, marsh
 	protoReq.Name, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_ListPolicyAttachments_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := server.ListPolicyAttachments(ctx, &protoReq)
 	return msg, metadata, err
@@ -1417,6 +1445,8 @@ func local_request_IAMService_AddGroupMember_0(ctx context.Context, marshaler ru
 	return msg, metadata, err
 }
 
+var filter_IAMService_ListGroupMembers_0 = &utilities.DoubleArray{Encoding: map[string]int{"group_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+
 func request_IAMService_ListGroupMembers_0(ctx context.Context, marshaler runtime.Marshaler, client IAMServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq ListGroupMembersRequest
@@ -1433,6 +1463,12 @@ func request_IAMService_ListGroupMembers_0(ctx context.Context, marshaler runtim
 	protoReq.GroupId, err = runtime.Uint64(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "group_id", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_ListGroupMembers_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := client.ListGroupMembers(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -1451,6 +1487,12 @@ func local_request_IAMService_ListGroupMembers_0(ctx context.Context, marshaler 
 	protoReq.GroupId, err = runtime.Uint64(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "group_id", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_ListGroupMembers_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := server.ListGroupMembers(ctx, &protoReq)
 	return msg, metadata, err
@@ -1556,6 +1598,8 @@ func local_request_IAMService_AttachGroupPolicy_0(ctx context.Context, marshaler
 	return msg, metadata, err
 }
 
+var filter_IAMService_ListGroupPolicies_0 = &utilities.DoubleArray{Encoding: map[string]int{"group_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+
 func request_IAMService_ListGroupPolicies_0(ctx context.Context, marshaler runtime.Marshaler, client IAMServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq ListGroupPoliciesRequest
@@ -1572,6 +1616,12 @@ func request_IAMService_ListGroupPolicies_0(ctx context.Context, marshaler runti
 	protoReq.GroupId, err = runtime.Uint64(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "group_id", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_ListGroupPolicies_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := client.ListGroupPolicies(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -1590,6 +1640,12 @@ func local_request_IAMService_ListGroupPolicies_0(ctx context.Context, marshaler
 	protoReq.GroupId, err = runtime.Uint64(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "group_id", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_ListGroupPolicies_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := server.ListGroupPolicies(ctx, &protoReq)
 	return msg, metadata, err
@@ -1766,6 +1822,8 @@ func local_request_IAMService_GetGroupInlinePolicy_0(ctx context.Context, marsha
 	return msg, metadata, err
 }
 
+var filter_IAMService_ListGroupInlinePolicies_0 = &utilities.DoubleArray{Encoding: map[string]int{"group_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+
 func request_IAMService_ListGroupInlinePolicies_0(ctx context.Context, marshaler runtime.Marshaler, client IAMServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq ListGroupInlinePoliciesRequest
@@ -1782,6 +1840,12 @@ func request_IAMService_ListGroupInlinePolicies_0(ctx context.Context, marshaler
 	protoReq.GroupId, err = runtime.Uint64(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "group_id", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_ListGroupInlinePolicies_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := client.ListGroupInlinePolicies(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -1800,6 +1864,12 @@ func local_request_IAMService_ListGroupInlinePolicies_0(ctx context.Context, mar
 	protoReq.GroupId, err = runtime.Uint64(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "group_id", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_ListGroupInlinePolicies_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := server.ListGroupInlinePolicies(ctx, &protoReq)
 	return msg, metadata, err
@@ -1976,6 +2046,8 @@ func local_request_IAMService_GetPlatformUserInlinePolicy_0(ctx context.Context,
 	return msg, metadata, err
 }
 
+var filter_IAMService_ListPlatformUserInlinePolicies_0 = &utilities.DoubleArray{Encoding: map[string]int{"target_user_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+
 func request_IAMService_ListPlatformUserInlinePolicies_0(ctx context.Context, marshaler runtime.Marshaler, client IAMServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq ListPlatformUserInlinePoliciesRequest
@@ -1992,6 +2064,12 @@ func request_IAMService_ListPlatformUserInlinePolicies_0(ctx context.Context, ma
 	protoReq.TargetUserId, err = runtime.Uint64(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "target_user_id", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_ListPlatformUserInlinePolicies_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := client.ListPlatformUserInlinePolicies(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -2010,6 +2088,12 @@ func local_request_IAMService_ListPlatformUserInlinePolicies_0(ctx context.Conte
 	protoReq.TargetUserId, err = runtime.Uint64(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "target_user_id", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_ListPlatformUserInlinePolicies_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := server.ListPlatformUserInlinePolicies(ctx, &protoReq)
 	return msg, metadata, err
@@ -2070,6 +2154,8 @@ func local_request_IAMService_DeletePlatformUserInlinePolicy_0(ctx context.Conte
 	return msg, metadata, err
 }
 
+var filter_IAMService_ListPlatformUserPolicies_0 = &utilities.DoubleArray{Encoding: map[string]int{"target_user_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+
 func request_IAMService_ListPlatformUserPolicies_0(ctx context.Context, marshaler runtime.Marshaler, client IAMServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq ListPlatformUserPoliciesRequest
@@ -2086,6 +2172,12 @@ func request_IAMService_ListPlatformUserPolicies_0(ctx context.Context, marshale
 	protoReq.TargetUserId, err = runtime.Uint64(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "target_user_id", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_ListPlatformUserPolicies_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := client.ListPlatformUserPolicies(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -2104,6 +2196,12 @@ func local_request_IAMService_ListPlatformUserPolicies_0(ctx context.Context, ma
 	protoReq.TargetUserId, err = runtime.Uint64(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "target_user_id", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_ListPlatformUserPolicies_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := server.ListPlatformUserPolicies(ctx, &protoReq)
 	return msg, metadata, err
@@ -2643,6 +2741,8 @@ func local_request_IAMService_GetTenantUserInlinePolicy_0(ctx context.Context, m
 	return msg, metadata, err
 }
 
+var filter_IAMService_ListTenantUserInlinePolicies_0 = &utilities.DoubleArray{Encoding: map[string]int{"tenant_id": 0, "user_id": 1}, Base: []int{1, 1, 2, 0, 0}, Check: []int{0, 1, 1, 2, 3}}
+
 func request_IAMService_ListTenantUserInlinePolicies_0(ctx context.Context, marshaler runtime.Marshaler, client IAMServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq ListTenantUserInlinePoliciesRequest
@@ -2667,6 +2767,12 @@ func request_IAMService_ListTenantUserInlinePolicies_0(ctx context.Context, mars
 	protoReq.UserId, err = runtime.Uint64(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "user_id", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_ListTenantUserInlinePolicies_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := client.ListTenantUserInlinePolicies(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -2693,6 +2799,12 @@ func local_request_IAMService_ListTenantUserInlinePolicies_0(ctx context.Context
 	protoReq.UserId, err = runtime.Uint64(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "user_id", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_ListTenantUserInlinePolicies_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := server.ListTenantUserInlinePolicies(ctx, &protoReq)
 	return msg, metadata, err
@@ -2769,6 +2881,8 @@ func local_request_IAMService_DeleteTenantUserInlinePolicy_0(ctx context.Context
 	return msg, metadata, err
 }
 
+var filter_IAMService_ListTenantUserPolicies_0 = &utilities.DoubleArray{Encoding: map[string]int{"tenant_id": 0, "user_id": 1}, Base: []int{1, 1, 2, 0, 0}, Check: []int{0, 1, 1, 2, 3}}
+
 func request_IAMService_ListTenantUserPolicies_0(ctx context.Context, marshaler runtime.Marshaler, client IAMServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq ListTenantUserPoliciesRequest
@@ -2793,6 +2907,12 @@ func request_IAMService_ListTenantUserPolicies_0(ctx context.Context, marshaler 
 	protoReq.UserId, err = runtime.Uint64(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "user_id", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_ListTenantUserPolicies_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := client.ListTenantUserPolicies(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -2819,6 +2939,12 @@ func local_request_IAMService_ListTenantUserPolicies_0(ctx context.Context, mars
 	protoReq.UserId, err = runtime.Uint64(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "user_id", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_ListTenantUserPolicies_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := server.ListTenantUserPolicies(ctx, &protoReq)
 	return msg, metadata, err

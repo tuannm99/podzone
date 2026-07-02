@@ -209,130 +209,9 @@ func (r *PolicyRepositoryImpl) ListPolicies(
 func (r *PolicyRepositoryImpl) ListPolicyAttachments(
 	ctx context.Context,
 	policyID uint64,
-) ([]entity.PolicyAttachment, error) {
-	var rows []policyAttachmentModel
-	if err := r.db.SelectContext(
-		ctx,
-		&rows,
-		`SELECT attachment_type, scope, tenant_id, role_id, role_name, user_id, group_id, group_name, created_at
-		 FROM (
-		   SELECT
-		     'role' AS attachment_type,
-		     '' AS scope,
-		     '' AS tenant_id,
-		     r.id AS role_id,
-		     r.name AS role_name,
-		     0::bigint AS user_id,
-		     0::bigint AS group_id,
-		     '' AS group_name,
-		     arpa.created_at AS created_at
-		   FROM iam_role_policy_attachments arpa
-		   JOIN iam_roles r ON r.id = arpa.role_id
-		   WHERE arpa.policy_id = $1
-		   UNION ALL
-		   SELECT
-		     'platform_user' AS attachment_type,
-		     upa.scope AS scope,
-		     '' AS tenant_id,
-		     0::bigint AS role_id,
-		     '' AS role_name,
-		     upa.user_id AS user_id,
-		     0::bigint AS group_id,
-		     '' AS group_name,
-		     upa.created_at AS created_at
-		   FROM iam_user_policy_attachments upa
-		   WHERE upa.policy_id = $1
-		   UNION ALL
-		   SELECT
-		     'tenant_user' AS attachment_type,
-		     'tenant' AS scope,
-		     tupa.tenant_id AS tenant_id,
-		     0::bigint AS role_id,
-		     '' AS role_name,
-		     tupa.user_id AS user_id,
-		     0::bigint AS group_id,
-		     '' AS group_name,
-		     tupa.created_at AS created_at
-		   FROM iam_tenant_user_policy_attachments tupa
-		   WHERE tupa.policy_id = $1
-		   UNION ALL
-		   SELECT
-		     'group' AS attachment_type,
-		     g.scope AS scope,
-		     COALESCE(g.tenant_id, '') AS tenant_id,
-		     0::bigint AS role_id,
-		     '' AS role_name,
-		     0::bigint AS user_id,
-		     g.id AS group_id,
-		     g.name AS group_name,
-		     gpa.created_at AS created_at
-		   FROM iam_group_policy_attachments gpa
-		   JOIN iam_groups g ON g.id = gpa.group_id
-		   WHERE gpa.policy_id = $1
-		   UNION ALL
-		   SELECT
-		     'role_boundary' AS attachment_type,
-		     r.scope AS scope,
-		     '' AS tenant_id,
-		     r.id AS role_id,
-		     r.name AS role_name,
-		     0::bigint AS user_id,
-		     0::bigint AS group_id,
-		     '' AS group_name,
-		     rpb.created_at AS created_at
-		   FROM iam_role_permission_boundaries rpb
-		   JOIN iam_roles r ON r.id = rpb.role_id
-		   WHERE rpb.policy_id = $1
-		   UNION ALL
-		   SELECT
-		     'platform_user_boundary' AS attachment_type,
-		     'platform' AS scope,
-		     '' AS tenant_id,
-		     0::bigint AS role_id,
-		     '' AS role_name,
-		     pub.user_id AS user_id,
-		     0::bigint AS group_id,
-		     '' AS group_name,
-		     pub.created_at AS created_at
-		   FROM iam_platform_user_permission_boundaries pub
-		   WHERE pub.policy_id = $1
-		   UNION ALL
-		   SELECT
-		     'tenant_user_boundary' AS attachment_type,
-		     'tenant' AS scope,
-		     tub.tenant_id AS tenant_id,
-		     0::bigint AS role_id,
-		     '' AS role_name,
-		     tub.user_id AS user_id,
-		     0::bigint AS group_id,
-		     '' AS group_name,
-		     tub.created_at AS created_at
-		   FROM iam_tenant_user_permission_boundaries tub
-		   WHERE tub.policy_id = $1
-		   UNION ALL
-		   SELECT
-		     'service_control_policy' AS attachment_type,
-		     'organization' AS scope,
-		     osp.org_id AS tenant_id,
-		     0::bigint AS role_id,
-		     '' AS role_name,
-		     0::bigint AS user_id,
-		     0::bigint AS group_id,
-		     '' AS group_name,
-		     osp.created_at AS created_at
-		   FROM iam_org_service_control_policies osp
-		   WHERE osp.policy_id = $1
-		 ) attachments
-		 ORDER BY created_at ASC, attachment_type ASC`,
-		policyID,
-	); err != nil {
-		return nil, err
-	}
-	out := make([]entity.PolicyAttachment, 0, len(rows))
-	for _, row := range rows {
-		out = append(out, row.toEntity())
-	}
-	return out, nil
+	query collection.Query,
+) (collection.Page[entity.PolicyAttachment], error) {
+	return r.listPolicyAttachmentPage(ctx, policyID, query)
 }
 
 func (r *PolicyRepositoryImpl) DeletePolicy(ctx context.Context, policyID uint64) error {
@@ -472,25 +351,33 @@ func (r *PolicyRepositoryImpl) ListPolicyVersions(
 	ctx context.Context,
 	policyID uint64,
 	policyName string,
-) ([]entity.PolicyVersion, error) {
-	var rows []policyVersionModel
-	if err := r.db.SelectContext(
+	query collection.Query,
+) (collection.Page[entity.PolicyVersion], error) {
+	modelPage, err := listIAMCollectionModels[policyVersionModel](
 		ctx,
-		&rows,
-		`SELECT id, policy_id, $2 AS policy_name, version, is_default, created_at
-		 FROM iam_policy_versions
-		 WHERE policy_id = $1
-		 ORDER BY created_at ASC, id ASC`,
-		policyID,
-		policyName,
-	); err != nil {
-		return nil, err
+		r.db,
+		query,
+		"iam_policy_versions pv",
+		[]string{"pv.id", "pv.policy_id", "'' AS policy_name", "pv.version", "pv.is_default", "pv.created_at"},
+		[]sq.Sqlizer{sq.Eq{"pv.policy_id": policyID}},
+		policyVersionCollectionColumns,
+		[]string{"pv.version"},
+		"pv.created_at",
+		"pv.id ASC",
+	)
+	if err != nil {
+		return collection.Page[entity.PolicyVersion]{}, err
 	}
-	out := make([]entity.PolicyVersion, 0, len(rows))
-	for _, row := range rows {
-		out = append(out, row.toEntity())
+	out := make([]entity.PolicyVersion, 0, len(modelPage.Items))
+	for _, row := range modelPage.Items {
+		version := row.toEntity()
+		version.PolicyName = policyName
+		out = append(out, version)
 	}
-	return out, nil
+	return collection.NewPage(out, modelPage.Total, collection.Query{
+		Page:     modelPage.Page,
+		PageSize: modelPage.PageSize,
+	}), nil
 }
 
 func (r *PolicyRepositoryImpl) DeletePolicyVersion(ctx context.Context, policyID uint64, version string) error {
@@ -900,21 +787,32 @@ func (r *PolicyRepositoryImpl) DetachPlatformUserPolicy(ctx context.Context, use
 	return err
 }
 
-func (r *PolicyRepositoryImpl) ListPlatformUserPolicies(ctx context.Context, userID uint) ([]entity.Policy, error) {
-	var rows []policyModel
-	if err := r.db.SelectContext(
+func (r *PolicyRepositoryImpl) ListPlatformUserPolicies(
+	ctx context.Context,
+	userID uint,
+	query collection.Query,
+) (collection.Page[entity.Policy], error) {
+	modelPage, err := listIAMCollectionModels[policyModel](
 		ctx,
-		&rows,
-		`SELECT p.id, p.scope, p.name, p.description, p.is_system, p.created_at, p.updated_at
-		 FROM iam_policies p
-		 JOIN iam_user_policy_attachments upa ON upa.policy_id = p.id
-		 WHERE upa.user_id = $1 AND upa.scope = 'platform'
-		 ORDER BY p.name ASC`,
-		userID,
-	); err != nil {
-		return nil, err
+		r.db,
+		query,
+		"iam_policies p JOIN iam_user_policy_attachments upa ON upa.policy_id = p.id",
+		[]string{
+			"p.id", "p.scope", "p.name", "p.description", "p.is_system",
+			"p.default_version", "p.created_at", "p.updated_at",
+		},
+		[]sq.Sqlizer{sq.Eq{"upa.user_id": userID, "upa.scope": entity.PolicyScopePlatform}},
+		managedPolicyCollectionColumns,
+		[]string{"p.scope", "p.name", "p.description", "p.default_version"},
+		"p.created_at",
+		"p.id ASC",
+	)
+	if err != nil {
+		return collection.Page[entity.Policy]{}, err
 	}
-	return toPolicies(rows), nil
+	return collection.NewPage(toPolicies(modelPage.Items), modelPage.Total, collection.Query{
+		Page: modelPage.Page, PageSize: modelPage.PageSize,
+	}), nil
 }
 
 func (r *PolicyRepositoryImpl) PutPlatformUserInlinePolicy(
@@ -940,8 +838,9 @@ func (r *PolicyRepositoryImpl) GetPlatformUserInlinePolicy(
 func (r *PolicyRepositoryImpl) ListPlatformUserInlinePolicies(
 	ctx context.Context,
 	userID uint,
-) ([]entity.UserInlinePolicy, error) {
-	return r.listPlatformUserInlinePolicies(ctx, userID)
+	query collection.Query,
+) (collection.Page[entity.UserInlinePolicy], error) {
+	return r.listPlatformUserInlinePolicies(ctx, userID, query)
 }
 
 func (r *PolicyRepositoryImpl) DeletePlatformUserInlinePolicy(ctx context.Context, userID uint, name string) error {
@@ -993,22 +892,29 @@ func (r *PolicyRepositoryImpl) ListTenantUserPolicies(
 	ctx context.Context,
 	tenantID string,
 	userID uint,
-) ([]entity.Policy, error) {
-	var rows []policyModel
-	if err := r.db.SelectContext(
+	query collection.Query,
+) (collection.Page[entity.Policy], error) {
+	modelPage, err := listIAMCollectionModels[policyModel](
 		ctx,
-		&rows,
-		`SELECT p.id, p.scope, p.name, p.description, p.is_system, p.created_at, p.updated_at
-		 FROM iam_policies p
-		 JOIN iam_tenant_user_policy_attachments tupa ON tupa.policy_id = p.id
-		 WHERE tupa.tenant_id = $1 AND tupa.user_id = $2
-		 ORDER BY p.name ASC`,
-		tenantID,
-		userID,
-	); err != nil {
-		return nil, err
+		r.db,
+		query,
+		"iam_policies p JOIN iam_tenant_user_policy_attachments tupa ON tupa.policy_id = p.id",
+		[]string{
+			"p.id", "p.scope", "p.name", "p.description", "p.is_system",
+			"p.default_version", "p.created_at", "p.updated_at",
+		},
+		[]sq.Sqlizer{sq.Eq{"tupa.tenant_id": tenantID, "tupa.user_id": userID}},
+		managedPolicyCollectionColumns,
+		[]string{"p.scope", "p.name", "p.description", "p.default_version"},
+		"p.created_at",
+		"p.id ASC",
+	)
+	if err != nil {
+		return collection.Page[entity.Policy]{}, err
 	}
-	return toPolicies(rows), nil
+	return collection.NewPage(toPolicies(modelPage.Items), modelPage.Total, collection.Query{
+		Page: modelPage.Page, PageSize: modelPage.PageSize,
+	}), nil
 }
 
 func (r *PolicyRepositoryImpl) PutTenantUserInlinePolicy(
@@ -1037,8 +943,9 @@ func (r *PolicyRepositoryImpl) ListTenantUserInlinePolicies(
 	ctx context.Context,
 	tenantID string,
 	userID uint,
-) ([]entity.UserInlinePolicy, error) {
-	return r.listTenantUserInlinePolicies(ctx, tenantID, userID)
+	query collection.Query,
+) (collection.Page[entity.UserInlinePolicy], error) {
+	return r.listTenantUserInlinePolicies(ctx, tenantID, userID, query)
 }
 
 func (r *PolicyRepositoryImpl) DeleteTenantUserInlinePolicy(
@@ -1182,28 +1089,37 @@ func (r *PolicyRepositoryImpl) getPlatformUserInlinePolicy(
 func (r *PolicyRepositoryImpl) listPlatformUserInlinePolicies(
 	ctx context.Context,
 	userID uint,
-) ([]entity.UserInlinePolicy, error) {
-	var policies []userInlinePolicyModel
-	if err := r.db.SelectContext(
+	query collection.Query,
+) (collection.Page[entity.UserInlinePolicy], error) {
+	modelPage, err := listIAMCollectionModels[userInlinePolicyModel](
 		ctx,
-		&policies,
-		`SELECT 'platform' AS scope, '' AS tenant_id, user_id, name, description, created_at, updated_at
-		 FROM iam_platform_user_inline_policies
-		 WHERE user_id = $1
-		 ORDER BY name ASC`,
-		userID,
-	); err != nil {
-		return nil, err
+		r.db,
+		query,
+		"iam_platform_user_inline_policies ip",
+		[]string{
+			"'platform' AS scope", "'' AS tenant_id", "ip.user_id", "ip.name",
+			"ip.description", "ip.created_at", "ip.updated_at",
+		},
+		[]sq.Sqlizer{sq.Eq{"ip.user_id": userID}},
+		inlinePolicyCollectionColumns,
+		[]string{"ip.name", "ip.description"},
+		"ip.created_at",
+		"ip.name ASC",
+	)
+	if err != nil {
+		return collection.Page[entity.UserInlinePolicy]{}, err
 	}
-	out := make([]entity.UserInlinePolicy, 0, len(policies))
-	for _, policy := range policies {
+	out := make([]entity.UserInlinePolicy, 0, len(modelPage.Items))
+	for _, policy := range modelPage.Items {
 		statements, err := r.listPlatformUserInlinePolicyStatements(ctx, userID, policy.Name)
 		if err != nil {
-			return nil, err
+			return collection.Page[entity.UserInlinePolicy]{}, err
 		}
 		out = append(out, policy.toEntity(statements))
 	}
-	return out, nil
+	return collection.NewPage(out, modelPage.Total, collection.Query{
+		Page: modelPage.Page, PageSize: modelPage.PageSize,
+	}), nil
 }
 
 func (r *PolicyRepositoryImpl) getTenantUserInlinePolicy(
@@ -1240,29 +1156,37 @@ func (r *PolicyRepositoryImpl) listTenantUserInlinePolicies(
 	ctx context.Context,
 	tenantID string,
 	userID uint,
-) ([]entity.UserInlinePolicy, error) {
-	var policies []userInlinePolicyModel
-	if err := r.db.SelectContext(
+	query collection.Query,
+) (collection.Page[entity.UserInlinePolicy], error) {
+	modelPage, err := listIAMCollectionModels[userInlinePolicyModel](
 		ctx,
-		&policies,
-		`SELECT 'tenant' AS scope, tenant_id, user_id, name, description, created_at, updated_at
-		 FROM iam_tenant_user_inline_policies
-		 WHERE tenant_id = $1 AND user_id = $2
-		 ORDER BY name ASC`,
-		tenantID,
-		userID,
-	); err != nil {
-		return nil, err
+		r.db,
+		query,
+		"iam_tenant_user_inline_policies ip",
+		[]string{
+			"'tenant' AS scope", "ip.tenant_id", "ip.user_id", "ip.name",
+			"ip.description", "ip.created_at", "ip.updated_at",
+		},
+		[]sq.Sqlizer{sq.Eq{"ip.tenant_id": tenantID, "ip.user_id": userID}},
+		inlinePolicyCollectionColumns,
+		[]string{"ip.name", "ip.description"},
+		"ip.created_at",
+		"ip.name ASC",
+	)
+	if err != nil {
+		return collection.Page[entity.UserInlinePolicy]{}, err
 	}
-	out := make([]entity.UserInlinePolicy, 0, len(policies))
-	for _, policy := range policies {
+	out := make([]entity.UserInlinePolicy, 0, len(modelPage.Items))
+	for _, policy := range modelPage.Items {
 		statements, err := r.listTenantUserInlinePolicyStatements(ctx, tenantID, userID, policy.Name)
 		if err != nil {
-			return nil, err
+			return collection.Page[entity.UserInlinePolicy]{}, err
 		}
 		out = append(out, policy.toEntity(statements))
 	}
-	return out, nil
+	return collection.NewPage(out, modelPage.Total, collection.Query{
+		Page: modelPage.Page, PageSize: modelPage.PageSize,
+	}), nil
 }
 
 func (r *PolicyRepositoryImpl) listPlatformUserInlinePolicyStatements(

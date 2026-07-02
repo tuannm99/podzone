@@ -572,11 +572,19 @@ func (s *IAMQueryServer) ListTenantUserPolicies(
 	if err := s.queries.RequirePermission(ctx, req.TenantId, actorUserID, "tenant:manage_members"); err != nil {
 		return nil, iamStatusError(err)
 	}
-	items, err := s.queries.ListTenantUserPolicies(ctx, req.TenantId, userID)
+	page, err := s.queries.ListTenantUserPolicies(
+		ctx,
+		req.TenantId,
+		userID,
+		iammapper.ToCollectionQuery(req.Collection),
+	)
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	return &pbiamv1.ListTenantUserPoliciesResponse{Policies: iammapper.ToPBPolicies(items)}, nil
+	return &pbiamv1.ListTenantUserPoliciesResponse{
+		Policies: iammapper.ToPBPolicies(page.Items),
+		PageInfo: iammapper.ToPBPageInfo(page),
+	}, nil
 }
 
 func (s *IAMQueryServer) GetTenantUserInlinePolicy(
@@ -616,15 +624,23 @@ func (s *IAMQueryServer) ListTenantUserInlinePolicies(
 	if err := s.queries.RequirePermission(ctx, req.TenantId, actorUserID, "tenant:manage_members"); err != nil {
 		return nil, iamStatusError(err)
 	}
-	items, err := s.queries.ListTenantUserInlinePolicies(ctx, req.TenantId, userID)
+	page, err := s.queries.ListTenantUserInlinePolicies(
+		ctx,
+		req.TenantId,
+		userID,
+		iammapper.ToCollectionQuery(req.Collection),
+	)
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	out := make([]*pbiamv1.UserInlinePolicy, 0, len(items))
-	for i := range items {
-		out = append(out, iammapper.ToPBUserInlinePolicy(&items[i]))
+	out := make([]*pbiamv1.UserInlinePolicy, 0, len(page.Items))
+	for i := range page.Items {
+		out = append(out, iammapper.ToPBUserInlinePolicy(&page.Items[i]))
 	}
-	return &pbiamv1.ListTenantUserInlinePoliciesResponse{Policies: out}, nil
+	return &pbiamv1.ListTenantUserInlinePoliciesResponse{
+		Policies: out,
+		PageInfo: iammapper.ToPBPageInfo(page),
+	}, nil
 }
 
 func (s *IAMQueryServer) GetTenantUserPermissionBoundary(

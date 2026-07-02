@@ -1,8 +1,4 @@
-import {
-  getPolicy,
-  listPolicyAttachments,
-  listPolicyVersions,
-} from '@/services/iam'
+import { getPolicy } from '@/services/iam'
 import type { AdminIamState } from '../createAdminIamState'
 
 export function createPoliciesLoaders(state: AdminIamState) {
@@ -13,13 +9,11 @@ export function createPoliciesLoaders(state: AdminIamState) {
     const name = state.selectedPolicyName().trim()
     if (!name) {
       state.setPolicyDetail(undefined)
-      state.setPolicyVersions([])
-      state.setPolicyAttachments([])
+      state.clearPolicyVersions()
+      state.clearPolicyAttachments()
       return
     }
-    const [policyResult, versionsResult, attachmentsResult] = await Promise.all(
-      [getPolicy(name), listPolicyVersions(name), listPolicyAttachments(name)]
-    )
+    const policyResult = await getPolicy(name)
     if (
       currentRequest !== requestID ||
       name !== state.selectedPolicyName().trim()
@@ -27,11 +21,10 @@ export function createPoliciesLoaders(state: AdminIamState) {
       return
     if (policyResult.success) state.setPolicyDetail(policyResult.data)
     else state.setPageError(policyResult.message)
-    if (versionsResult.success) state.setPolicyVersions(versionsResult.data)
-    else state.setPageError(versionsResult.message)
-    if (attachmentsResult.success)
-      state.setPolicyAttachments(attachmentsResult.data)
-    else state.setPageError(attachmentsResult.message)
+    await Promise.all([
+      state.reloadPolicyVersions(),
+      state.reloadPolicyAttachments(),
+    ])
   }
 
   return { loadSelectedPolicy }

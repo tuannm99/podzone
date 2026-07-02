@@ -12,7 +12,7 @@ export function createPaginatedResource<T>(
   options?: { enabled?: Accessor<boolean> }
 ) {
   const [query, setQuery] = createStore(initialQuery)
-  const [resource, { refetch }] = createResource(
+  const [resource, { mutate, refetch }] = createResource(
     () => (options?.enabled && !options.enabled() ? undefined : { ...query }),
     fetcher
   )
@@ -27,6 +27,7 @@ export function createPaginatedResource<T>(
     setQuery({ ...patch, page: patch.page ?? 1 })
   }
   const reload = async () => void (await refetch())
+  const clear = () => mutate(undefined)
 
   return {
     query,
@@ -36,5 +37,6 @@ export function createPaginatedResource<T>(
     error,
     updateQuery,
     reload,
+    clear,
   }
 }

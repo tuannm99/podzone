@@ -58,8 +58,18 @@ export type AdminIamGroupContextValue = {
   handleAttachGroupPolicy: () => Promise<void>
   handleDeleteGroup: () => Promise<void>
   groupMembers: Accessor<number[]>
+  groupMembersQuery: CollectionQuery
+  groupMembersPageInfo: Accessor<PageInfo>
+  groupMembersLoading: Accessor<boolean>
+  groupMembersError: Accessor<string>
+  updateGroupMembersQuery: (patch: Partial<CollectionQuery>) => void
   handleRemoveGroupMember: (userId: number) => Promise<void>
   groupPolicies: Accessor<PolicyInfo[]>
+  groupPoliciesQuery: CollectionQuery
+  groupPoliciesPageInfo: Accessor<PageInfo>
+  groupPoliciesLoading: Accessor<boolean>
+  groupPoliciesError: Accessor<string>
+  updateGroupPoliciesQuery: (patch: Partial<CollectionQuery>) => void
   handleDetachGroupPolicy: (policyName: string) => Promise<void>
   groupInlinePolicyName: Accessor<string>
   setGroupInlinePolicyName: Setter<string>
@@ -72,6 +82,11 @@ export type AdminIamGroupContextValue = {
   ) => Promise<void>
   handleSaveGroupInlinePolicy: () => Promise<void>
   groupInlinePolicies: Accessor<GroupInlinePolicy[]>
+  groupInlinePoliciesQuery: CollectionQuery
+  groupInlinePoliciesPageInfo: Accessor<PageInfo>
+  groupInlinePoliciesLoading: Accessor<boolean>
+  groupInlinePoliciesError: Accessor<string>
+  updateGroupInlinePoliciesQuery: (patch: Partial<CollectionQuery>) => void
   handleDeleteGroupInlinePolicy: (name: string) => Promise<void>
 }
 

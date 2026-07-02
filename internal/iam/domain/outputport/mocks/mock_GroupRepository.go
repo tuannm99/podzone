@@ -17,7 +17,8 @@ import (
 func NewMockGroupRepository(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockGroupRepository {
+},
+) *MockGroupRepository {
 	mock := &MockGroupRepository{}
 	mock.Mock.Test(t)
 
@@ -637,27 +638,25 @@ func (_c *MockGroupRepository_ListGroups_Call) RunAndReturn(run func(ctx context
 }
 
 // ListInlinePolicies provides a mock function for the type MockGroupRepository
-func (_mock *MockGroupRepository) ListInlinePolicies(ctx context.Context, groupID uint64) ([]entity.GroupInlinePolicy, error) {
-	ret := _mock.Called(ctx, groupID)
+func (_mock *MockGroupRepository) ListInlinePolicies(ctx context.Context, groupID uint64, query collection.Query) (collection.Page[entity.GroupInlinePolicy], error) {
+	ret := _mock.Called(ctx, groupID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListInlinePolicies")
 	}
 
-	var r0 []entity.GroupInlinePolicy
+	var r0 collection.Page[entity.GroupInlinePolicy]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) ([]entity.GroupInlinePolicy, error)); ok {
-		return returnFunc(ctx, groupID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, collection.Query) (collection.Page[entity.GroupInlinePolicy], error)); ok {
+		return returnFunc(ctx, groupID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) []entity.GroupInlinePolicy); ok {
-		r0 = returnFunc(ctx, groupID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, collection.Query) collection.Page[entity.GroupInlinePolicy]); ok {
+		r0 = returnFunc(ctx, groupID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.GroupInlinePolicy)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.GroupInlinePolicy])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
-		r1 = returnFunc(ctx, groupID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64, collection.Query) error); ok {
+		r1 = returnFunc(ctx, groupID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -672,11 +671,12 @@ type MockGroupRepository_ListInlinePolicies_Call struct {
 // ListInlinePolicies is a helper method to define mock.On call
 //   - ctx context.Context
 //   - groupID uint64
-func (_e *MockGroupRepository_Expecter) ListInlinePolicies(ctx interface{}, groupID interface{}) *MockGroupRepository_ListInlinePolicies_Call {
-	return &MockGroupRepository_ListInlinePolicies_Call{Call: _e.mock.On("ListInlinePolicies", ctx, groupID)}
+//   - query collection.Query
+func (_e *MockGroupRepository_Expecter) ListInlinePolicies(ctx interface{}, groupID interface{}, query interface{}) *MockGroupRepository_ListInlinePolicies_Call {
+	return &MockGroupRepository_ListInlinePolicies_Call{Call: _e.mock.On("ListInlinePolicies", ctx, groupID, query)}
 }
 
-func (_c *MockGroupRepository_ListInlinePolicies_Call) Run(run func(ctx context.Context, groupID uint64)) *MockGroupRepository_ListInlinePolicies_Call {
+func (_c *MockGroupRepository_ListInlinePolicies_Call) Run(run func(ctx context.Context, groupID uint64, query collection.Query)) *MockGroupRepository_ListInlinePolicies_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -686,46 +686,49 @@ func (_c *MockGroupRepository_ListInlinePolicies_Call) Run(run func(ctx context.
 		if args[1] != nil {
 			arg1 = args[1].(uint64)
 		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockGroupRepository_ListInlinePolicies_Call) Return(groupInlinePolicys []entity.GroupInlinePolicy, err error) *MockGroupRepository_ListInlinePolicies_Call {
-	_c.Call.Return(groupInlinePolicys, err)
+func (_c *MockGroupRepository_ListInlinePolicies_Call) Return(page collection.Page[entity.GroupInlinePolicy], err error) *MockGroupRepository_ListInlinePolicies_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockGroupRepository_ListInlinePolicies_Call) RunAndReturn(run func(ctx context.Context, groupID uint64) ([]entity.GroupInlinePolicy, error)) *MockGroupRepository_ListInlinePolicies_Call {
+func (_c *MockGroupRepository_ListInlinePolicies_Call) RunAndReturn(run func(ctx context.Context, groupID uint64, query collection.Query) (collection.Page[entity.GroupInlinePolicy], error)) *MockGroupRepository_ListInlinePolicies_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListMembers provides a mock function for the type MockGroupRepository
-func (_mock *MockGroupRepository) ListMembers(ctx context.Context, groupID uint64) ([]uint, error) {
-	ret := _mock.Called(ctx, groupID)
+func (_mock *MockGroupRepository) ListMembers(ctx context.Context, groupID uint64, query collection.Query) (collection.Page[uint], error) {
+	ret := _mock.Called(ctx, groupID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListMembers")
 	}
 
-	var r0 []uint
+	var r0 collection.Page[uint]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) ([]uint, error)); ok {
-		return returnFunc(ctx, groupID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, collection.Query) (collection.Page[uint], error)); ok {
+		return returnFunc(ctx, groupID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) []uint); ok {
-		r0 = returnFunc(ctx, groupID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, collection.Query) collection.Page[uint]); ok {
+		r0 = returnFunc(ctx, groupID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]uint)
-		}
+		r0 = ret.Get(0).(collection.Page[uint])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
-		r1 = returnFunc(ctx, groupID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64, collection.Query) error); ok {
+		r1 = returnFunc(ctx, groupID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -740,11 +743,12 @@ type MockGroupRepository_ListMembers_Call struct {
 // ListMembers is a helper method to define mock.On call
 //   - ctx context.Context
 //   - groupID uint64
-func (_e *MockGroupRepository_Expecter) ListMembers(ctx interface{}, groupID interface{}) *MockGroupRepository_ListMembers_Call {
-	return &MockGroupRepository_ListMembers_Call{Call: _e.mock.On("ListMembers", ctx, groupID)}
+//   - query collection.Query
+func (_e *MockGroupRepository_Expecter) ListMembers(ctx interface{}, groupID interface{}, query interface{}) *MockGroupRepository_ListMembers_Call {
+	return &MockGroupRepository_ListMembers_Call{Call: _e.mock.On("ListMembers", ctx, groupID, query)}
 }
 
-func (_c *MockGroupRepository_ListMembers_Call) Run(run func(ctx context.Context, groupID uint64)) *MockGroupRepository_ListMembers_Call {
+func (_c *MockGroupRepository_ListMembers_Call) Run(run func(ctx context.Context, groupID uint64, query collection.Query)) *MockGroupRepository_ListMembers_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -754,46 +758,49 @@ func (_c *MockGroupRepository_ListMembers_Call) Run(run func(ctx context.Context
 		if args[1] != nil {
 			arg1 = args[1].(uint64)
 		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockGroupRepository_ListMembers_Call) Return(uints []uint, err error) *MockGroupRepository_ListMembers_Call {
-	_c.Call.Return(uints, err)
+func (_c *MockGroupRepository_ListMembers_Call) Return(page collection.Page[uint], err error) *MockGroupRepository_ListMembers_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockGroupRepository_ListMembers_Call) RunAndReturn(run func(ctx context.Context, groupID uint64) ([]uint, error)) *MockGroupRepository_ListMembers_Call {
+func (_c *MockGroupRepository_ListMembers_Call) RunAndReturn(run func(ctx context.Context, groupID uint64, query collection.Query) (collection.Page[uint], error)) *MockGroupRepository_ListMembers_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListPolicies provides a mock function for the type MockGroupRepository
-func (_mock *MockGroupRepository) ListPolicies(ctx context.Context, groupID uint64) ([]entity.Policy, error) {
-	ret := _mock.Called(ctx, groupID)
+func (_mock *MockGroupRepository) ListPolicies(ctx context.Context, groupID uint64, query collection.Query) (collection.Page[entity.Policy], error) {
+	ret := _mock.Called(ctx, groupID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListPolicies")
 	}
 
-	var r0 []entity.Policy
+	var r0 collection.Page[entity.Policy]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) ([]entity.Policy, error)); ok {
-		return returnFunc(ctx, groupID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, collection.Query) (collection.Page[entity.Policy], error)); ok {
+		return returnFunc(ctx, groupID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) []entity.Policy); ok {
-		r0 = returnFunc(ctx, groupID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, collection.Query) collection.Page[entity.Policy]); ok {
+		r0 = returnFunc(ctx, groupID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.Policy)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.Policy])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
-		r1 = returnFunc(ctx, groupID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64, collection.Query) error); ok {
+		r1 = returnFunc(ctx, groupID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -808,11 +815,12 @@ type MockGroupRepository_ListPolicies_Call struct {
 // ListPolicies is a helper method to define mock.On call
 //   - ctx context.Context
 //   - groupID uint64
-func (_e *MockGroupRepository_Expecter) ListPolicies(ctx interface{}, groupID interface{}) *MockGroupRepository_ListPolicies_Call {
-	return &MockGroupRepository_ListPolicies_Call{Call: _e.mock.On("ListPolicies", ctx, groupID)}
+//   - query collection.Query
+func (_e *MockGroupRepository_Expecter) ListPolicies(ctx interface{}, groupID interface{}, query interface{}) *MockGroupRepository_ListPolicies_Call {
+	return &MockGroupRepository_ListPolicies_Call{Call: _e.mock.On("ListPolicies", ctx, groupID, query)}
 }
 
-func (_c *MockGroupRepository_ListPolicies_Call) Run(run func(ctx context.Context, groupID uint64)) *MockGroupRepository_ListPolicies_Call {
+func (_c *MockGroupRepository_ListPolicies_Call) Run(run func(ctx context.Context, groupID uint64, query collection.Query)) *MockGroupRepository_ListPolicies_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -822,20 +830,25 @@ func (_c *MockGroupRepository_ListPolicies_Call) Run(run func(ctx context.Contex
 		if args[1] != nil {
 			arg1 = args[1].(uint64)
 		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockGroupRepository_ListPolicies_Call) Return(policys []entity.Policy, err error) *MockGroupRepository_ListPolicies_Call {
-	_c.Call.Return(policys, err)
+func (_c *MockGroupRepository_ListPolicies_Call) Return(page collection.Page[entity.Policy], err error) *MockGroupRepository_ListPolicies_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockGroupRepository_ListPolicies_Call) RunAndReturn(run func(ctx context.Context, groupID uint64) ([]entity.Policy, error)) *MockGroupRepository_ListPolicies_Call {
+func (_c *MockGroupRepository_ListPolicies_Call) RunAndReturn(run func(ctx context.Context, groupID uint64, query collection.Query) (collection.Page[entity.Policy], error)) *MockGroupRepository_ListPolicies_Call {
 	_c.Call.Return(run)
 	return _c
 }

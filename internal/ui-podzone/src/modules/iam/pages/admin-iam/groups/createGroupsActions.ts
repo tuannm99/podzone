@@ -104,9 +104,9 @@ export function createGroupsActions(
       if (!result.success) throw new Error(result.message)
       state.setPageMessage(`Deleted group ${state.selectedGroupId().trim()}.`)
       state.setSelectedGroupId('')
-      state.setGroupMembers([])
-      state.setGroupPolicies([])
-      state.setGroupInlinePolicies([])
+      state.clearGroupMembers()
+      state.clearGroupPolicies()
+      state.clearGroupInlinePolicies()
       await loaders.loadGroupsForScope()
     })
 

@@ -17,7 +17,8 @@ import (
 func NewMockIAMQueryUsecase(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockIAMQueryUsecase {
+},
+) *MockIAMQueryUsecase {
 	mock := &MockIAMQueryUsecase{}
 	mock.Mock.Test(t)
 
@@ -998,27 +999,25 @@ func (_c *MockIAMQueryUsecase_GetTenantUserPermissionBoundary_Call) RunAndReturn
 }
 
 // ListGroupInlinePolicies provides a mock function for the type MockIAMQueryUsecase
-func (_mock *MockIAMQueryUsecase) ListGroupInlinePolicies(ctx context.Context, groupID uint64) ([]entity.GroupInlinePolicy, error) {
-	ret := _mock.Called(ctx, groupID)
+func (_mock *MockIAMQueryUsecase) ListGroupInlinePolicies(ctx context.Context, groupID uint64, query collection.Query) (collection.Page[entity.GroupInlinePolicy], error) {
+	ret := _mock.Called(ctx, groupID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListGroupInlinePolicies")
 	}
 
-	var r0 []entity.GroupInlinePolicy
+	var r0 collection.Page[entity.GroupInlinePolicy]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) ([]entity.GroupInlinePolicy, error)); ok {
-		return returnFunc(ctx, groupID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, collection.Query) (collection.Page[entity.GroupInlinePolicy], error)); ok {
+		return returnFunc(ctx, groupID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) []entity.GroupInlinePolicy); ok {
-		r0 = returnFunc(ctx, groupID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, collection.Query) collection.Page[entity.GroupInlinePolicy]); ok {
+		r0 = returnFunc(ctx, groupID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.GroupInlinePolicy)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.GroupInlinePolicy])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
-		r1 = returnFunc(ctx, groupID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64, collection.Query) error); ok {
+		r1 = returnFunc(ctx, groupID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1033,11 +1032,12 @@ type MockIAMQueryUsecase_ListGroupInlinePolicies_Call struct {
 // ListGroupInlinePolicies is a helper method to define mock.On call
 //   - ctx context.Context
 //   - groupID uint64
-func (_e *MockIAMQueryUsecase_Expecter) ListGroupInlinePolicies(ctx interface{}, groupID interface{}) *MockIAMQueryUsecase_ListGroupInlinePolicies_Call {
-	return &MockIAMQueryUsecase_ListGroupInlinePolicies_Call{Call: _e.mock.On("ListGroupInlinePolicies", ctx, groupID)}
+//   - query collection.Query
+func (_e *MockIAMQueryUsecase_Expecter) ListGroupInlinePolicies(ctx interface{}, groupID interface{}, query interface{}) *MockIAMQueryUsecase_ListGroupInlinePolicies_Call {
+	return &MockIAMQueryUsecase_ListGroupInlinePolicies_Call{Call: _e.mock.On("ListGroupInlinePolicies", ctx, groupID, query)}
 }
 
-func (_c *MockIAMQueryUsecase_ListGroupInlinePolicies_Call) Run(run func(ctx context.Context, groupID uint64)) *MockIAMQueryUsecase_ListGroupInlinePolicies_Call {
+func (_c *MockIAMQueryUsecase_ListGroupInlinePolicies_Call) Run(run func(ctx context.Context, groupID uint64, query collection.Query)) *MockIAMQueryUsecase_ListGroupInlinePolicies_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -1047,46 +1047,49 @@ func (_c *MockIAMQueryUsecase_ListGroupInlinePolicies_Call) Run(run func(ctx con
 		if args[1] != nil {
 			arg1 = args[1].(uint64)
 		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockIAMQueryUsecase_ListGroupInlinePolicies_Call) Return(groupInlinePolicys []entity.GroupInlinePolicy, err error) *MockIAMQueryUsecase_ListGroupInlinePolicies_Call {
-	_c.Call.Return(groupInlinePolicys, err)
+func (_c *MockIAMQueryUsecase_ListGroupInlinePolicies_Call) Return(page collection.Page[entity.GroupInlinePolicy], err error) *MockIAMQueryUsecase_ListGroupInlinePolicies_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockIAMQueryUsecase_ListGroupInlinePolicies_Call) RunAndReturn(run func(ctx context.Context, groupID uint64) ([]entity.GroupInlinePolicy, error)) *MockIAMQueryUsecase_ListGroupInlinePolicies_Call {
+func (_c *MockIAMQueryUsecase_ListGroupInlinePolicies_Call) RunAndReturn(run func(ctx context.Context, groupID uint64, query collection.Query) (collection.Page[entity.GroupInlinePolicy], error)) *MockIAMQueryUsecase_ListGroupInlinePolicies_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListGroupMembers provides a mock function for the type MockIAMQueryUsecase
-func (_mock *MockIAMQueryUsecase) ListGroupMembers(ctx context.Context, groupID uint64) ([]uint, error) {
-	ret := _mock.Called(ctx, groupID)
+func (_mock *MockIAMQueryUsecase) ListGroupMembers(ctx context.Context, groupID uint64, query collection.Query) (collection.Page[uint], error) {
+	ret := _mock.Called(ctx, groupID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListGroupMembers")
 	}
 
-	var r0 []uint
+	var r0 collection.Page[uint]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) ([]uint, error)); ok {
-		return returnFunc(ctx, groupID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, collection.Query) (collection.Page[uint], error)); ok {
+		return returnFunc(ctx, groupID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) []uint); ok {
-		r0 = returnFunc(ctx, groupID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, collection.Query) collection.Page[uint]); ok {
+		r0 = returnFunc(ctx, groupID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]uint)
-		}
+		r0 = ret.Get(0).(collection.Page[uint])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
-		r1 = returnFunc(ctx, groupID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64, collection.Query) error); ok {
+		r1 = returnFunc(ctx, groupID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1101,11 +1104,12 @@ type MockIAMQueryUsecase_ListGroupMembers_Call struct {
 // ListGroupMembers is a helper method to define mock.On call
 //   - ctx context.Context
 //   - groupID uint64
-func (_e *MockIAMQueryUsecase_Expecter) ListGroupMembers(ctx interface{}, groupID interface{}) *MockIAMQueryUsecase_ListGroupMembers_Call {
-	return &MockIAMQueryUsecase_ListGroupMembers_Call{Call: _e.mock.On("ListGroupMembers", ctx, groupID)}
+//   - query collection.Query
+func (_e *MockIAMQueryUsecase_Expecter) ListGroupMembers(ctx interface{}, groupID interface{}, query interface{}) *MockIAMQueryUsecase_ListGroupMembers_Call {
+	return &MockIAMQueryUsecase_ListGroupMembers_Call{Call: _e.mock.On("ListGroupMembers", ctx, groupID, query)}
 }
 
-func (_c *MockIAMQueryUsecase_ListGroupMembers_Call) Run(run func(ctx context.Context, groupID uint64)) *MockIAMQueryUsecase_ListGroupMembers_Call {
+func (_c *MockIAMQueryUsecase_ListGroupMembers_Call) Run(run func(ctx context.Context, groupID uint64, query collection.Query)) *MockIAMQueryUsecase_ListGroupMembers_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -1115,46 +1119,49 @@ func (_c *MockIAMQueryUsecase_ListGroupMembers_Call) Run(run func(ctx context.Co
 		if args[1] != nil {
 			arg1 = args[1].(uint64)
 		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockIAMQueryUsecase_ListGroupMembers_Call) Return(uints []uint, err error) *MockIAMQueryUsecase_ListGroupMembers_Call {
-	_c.Call.Return(uints, err)
+func (_c *MockIAMQueryUsecase_ListGroupMembers_Call) Return(page collection.Page[uint], err error) *MockIAMQueryUsecase_ListGroupMembers_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockIAMQueryUsecase_ListGroupMembers_Call) RunAndReturn(run func(ctx context.Context, groupID uint64) ([]uint, error)) *MockIAMQueryUsecase_ListGroupMembers_Call {
+func (_c *MockIAMQueryUsecase_ListGroupMembers_Call) RunAndReturn(run func(ctx context.Context, groupID uint64, query collection.Query) (collection.Page[uint], error)) *MockIAMQueryUsecase_ListGroupMembers_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListGroupPolicies provides a mock function for the type MockIAMQueryUsecase
-func (_mock *MockIAMQueryUsecase) ListGroupPolicies(ctx context.Context, groupID uint64) ([]entity.Policy, error) {
-	ret := _mock.Called(ctx, groupID)
+func (_mock *MockIAMQueryUsecase) ListGroupPolicies(ctx context.Context, groupID uint64, query collection.Query) (collection.Page[entity.Policy], error) {
+	ret := _mock.Called(ctx, groupID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListGroupPolicies")
 	}
 
-	var r0 []entity.Policy
+	var r0 collection.Page[entity.Policy]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) ([]entity.Policy, error)); ok {
-		return returnFunc(ctx, groupID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, collection.Query) (collection.Page[entity.Policy], error)); ok {
+		return returnFunc(ctx, groupID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) []entity.Policy); ok {
-		r0 = returnFunc(ctx, groupID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, collection.Query) collection.Page[entity.Policy]); ok {
+		r0 = returnFunc(ctx, groupID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.Policy)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.Policy])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
-		r1 = returnFunc(ctx, groupID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64, collection.Query) error); ok {
+		r1 = returnFunc(ctx, groupID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1169,11 +1176,12 @@ type MockIAMQueryUsecase_ListGroupPolicies_Call struct {
 // ListGroupPolicies is a helper method to define mock.On call
 //   - ctx context.Context
 //   - groupID uint64
-func (_e *MockIAMQueryUsecase_Expecter) ListGroupPolicies(ctx interface{}, groupID interface{}) *MockIAMQueryUsecase_ListGroupPolicies_Call {
-	return &MockIAMQueryUsecase_ListGroupPolicies_Call{Call: _e.mock.On("ListGroupPolicies", ctx, groupID)}
+//   - query collection.Query
+func (_e *MockIAMQueryUsecase_Expecter) ListGroupPolicies(ctx interface{}, groupID interface{}, query interface{}) *MockIAMQueryUsecase_ListGroupPolicies_Call {
+	return &MockIAMQueryUsecase_ListGroupPolicies_Call{Call: _e.mock.On("ListGroupPolicies", ctx, groupID, query)}
 }
 
-func (_c *MockIAMQueryUsecase_ListGroupPolicies_Call) Run(run func(ctx context.Context, groupID uint64)) *MockIAMQueryUsecase_ListGroupPolicies_Call {
+func (_c *MockIAMQueryUsecase_ListGroupPolicies_Call) Run(run func(ctx context.Context, groupID uint64, query collection.Query)) *MockIAMQueryUsecase_ListGroupPolicies_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -1183,20 +1191,25 @@ func (_c *MockIAMQueryUsecase_ListGroupPolicies_Call) Run(run func(ctx context.C
 		if args[1] != nil {
 			arg1 = args[1].(uint64)
 		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockIAMQueryUsecase_ListGroupPolicies_Call) Return(policys []entity.Policy, err error) *MockIAMQueryUsecase_ListGroupPolicies_Call {
-	_c.Call.Return(policys, err)
+func (_c *MockIAMQueryUsecase_ListGroupPolicies_Call) Return(page collection.Page[entity.Policy], err error) *MockIAMQueryUsecase_ListGroupPolicies_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockIAMQueryUsecase_ListGroupPolicies_Call) RunAndReturn(run func(ctx context.Context, groupID uint64) ([]entity.Policy, error)) *MockIAMQueryUsecase_ListGroupPolicies_Call {
+func (_c *MockIAMQueryUsecase_ListGroupPolicies_Call) RunAndReturn(run func(ctx context.Context, groupID uint64, query collection.Query) (collection.Page[entity.Policy], error)) *MockIAMQueryUsecase_ListGroupPolicies_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1414,27 +1427,25 @@ func (_c *MockIAMQueryUsecase_ListPlatformRoles_Call) RunAndReturn(run func(ctx 
 }
 
 // ListPlatformUserInlinePolicies provides a mock function for the type MockIAMQueryUsecase
-func (_mock *MockIAMQueryUsecase) ListPlatformUserInlinePolicies(ctx context.Context, userID uint) ([]entity.UserInlinePolicy, error) {
-	ret := _mock.Called(ctx, userID)
+func (_mock *MockIAMQueryUsecase) ListPlatformUserInlinePolicies(ctx context.Context, userID uint, query collection.Query) (collection.Page[entity.UserInlinePolicy], error) {
+	ret := _mock.Called(ctx, userID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListPlatformUserInlinePolicies")
 	}
 
-	var r0 []entity.UserInlinePolicy
+	var r0 collection.Page[entity.UserInlinePolicy]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) ([]entity.UserInlinePolicy, error)); ok {
-		return returnFunc(ctx, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, collection.Query) (collection.Page[entity.UserInlinePolicy], error)); ok {
+		return returnFunc(ctx, userID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) []entity.UserInlinePolicy); ok {
-		r0 = returnFunc(ctx, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, collection.Query) collection.Page[entity.UserInlinePolicy]); ok {
+		r0 = returnFunc(ctx, userID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.UserInlinePolicy)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.UserInlinePolicy])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, uint) error); ok {
-		r1 = returnFunc(ctx, userID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint, collection.Query) error); ok {
+		r1 = returnFunc(ctx, userID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1449,11 +1460,12 @@ type MockIAMQueryUsecase_ListPlatformUserInlinePolicies_Call struct {
 // ListPlatformUserInlinePolicies is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID uint
-func (_e *MockIAMQueryUsecase_Expecter) ListPlatformUserInlinePolicies(ctx interface{}, userID interface{}) *MockIAMQueryUsecase_ListPlatformUserInlinePolicies_Call {
-	return &MockIAMQueryUsecase_ListPlatformUserInlinePolicies_Call{Call: _e.mock.On("ListPlatformUserInlinePolicies", ctx, userID)}
+//   - query collection.Query
+func (_e *MockIAMQueryUsecase_Expecter) ListPlatformUserInlinePolicies(ctx interface{}, userID interface{}, query interface{}) *MockIAMQueryUsecase_ListPlatformUserInlinePolicies_Call {
+	return &MockIAMQueryUsecase_ListPlatformUserInlinePolicies_Call{Call: _e.mock.On("ListPlatformUserInlinePolicies", ctx, userID, query)}
 }
 
-func (_c *MockIAMQueryUsecase_ListPlatformUserInlinePolicies_Call) Run(run func(ctx context.Context, userID uint)) *MockIAMQueryUsecase_ListPlatformUserInlinePolicies_Call {
+func (_c *MockIAMQueryUsecase_ListPlatformUserInlinePolicies_Call) Run(run func(ctx context.Context, userID uint, query collection.Query)) *MockIAMQueryUsecase_ListPlatformUserInlinePolicies_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -1463,46 +1475,49 @@ func (_c *MockIAMQueryUsecase_ListPlatformUserInlinePolicies_Call) Run(run func(
 		if args[1] != nil {
 			arg1 = args[1].(uint)
 		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockIAMQueryUsecase_ListPlatformUserInlinePolicies_Call) Return(userInlinePolicys []entity.UserInlinePolicy, err error) *MockIAMQueryUsecase_ListPlatformUserInlinePolicies_Call {
-	_c.Call.Return(userInlinePolicys, err)
+func (_c *MockIAMQueryUsecase_ListPlatformUserInlinePolicies_Call) Return(page collection.Page[entity.UserInlinePolicy], err error) *MockIAMQueryUsecase_ListPlatformUserInlinePolicies_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockIAMQueryUsecase_ListPlatformUserInlinePolicies_Call) RunAndReturn(run func(ctx context.Context, userID uint) ([]entity.UserInlinePolicy, error)) *MockIAMQueryUsecase_ListPlatformUserInlinePolicies_Call {
+func (_c *MockIAMQueryUsecase_ListPlatformUserInlinePolicies_Call) RunAndReturn(run func(ctx context.Context, userID uint, query collection.Query) (collection.Page[entity.UserInlinePolicy], error)) *MockIAMQueryUsecase_ListPlatformUserInlinePolicies_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListPlatformUserPolicies provides a mock function for the type MockIAMQueryUsecase
-func (_mock *MockIAMQueryUsecase) ListPlatformUserPolicies(ctx context.Context, userID uint) ([]entity.Policy, error) {
-	ret := _mock.Called(ctx, userID)
+func (_mock *MockIAMQueryUsecase) ListPlatformUserPolicies(ctx context.Context, userID uint, query collection.Query) (collection.Page[entity.Policy], error) {
+	ret := _mock.Called(ctx, userID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListPlatformUserPolicies")
 	}
 
-	var r0 []entity.Policy
+	var r0 collection.Page[entity.Policy]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) ([]entity.Policy, error)); ok {
-		return returnFunc(ctx, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, collection.Query) (collection.Page[entity.Policy], error)); ok {
+		return returnFunc(ctx, userID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) []entity.Policy); ok {
-		r0 = returnFunc(ctx, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, collection.Query) collection.Page[entity.Policy]); ok {
+		r0 = returnFunc(ctx, userID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.Policy)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.Policy])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, uint) error); ok {
-		r1 = returnFunc(ctx, userID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint, collection.Query) error); ok {
+		r1 = returnFunc(ctx, userID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1517,11 +1532,12 @@ type MockIAMQueryUsecase_ListPlatformUserPolicies_Call struct {
 // ListPlatformUserPolicies is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID uint
-func (_e *MockIAMQueryUsecase_Expecter) ListPlatformUserPolicies(ctx interface{}, userID interface{}) *MockIAMQueryUsecase_ListPlatformUserPolicies_Call {
-	return &MockIAMQueryUsecase_ListPlatformUserPolicies_Call{Call: _e.mock.On("ListPlatformUserPolicies", ctx, userID)}
+//   - query collection.Query
+func (_e *MockIAMQueryUsecase_Expecter) ListPlatformUserPolicies(ctx interface{}, userID interface{}, query interface{}) *MockIAMQueryUsecase_ListPlatformUserPolicies_Call {
+	return &MockIAMQueryUsecase_ListPlatformUserPolicies_Call{Call: _e.mock.On("ListPlatformUserPolicies", ctx, userID, query)}
 }
 
-func (_c *MockIAMQueryUsecase_ListPlatformUserPolicies_Call) Run(run func(ctx context.Context, userID uint)) *MockIAMQueryUsecase_ListPlatformUserPolicies_Call {
+func (_c *MockIAMQueryUsecase_ListPlatformUserPolicies_Call) Run(run func(ctx context.Context, userID uint, query collection.Query)) *MockIAMQueryUsecase_ListPlatformUserPolicies_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -1531,20 +1547,25 @@ func (_c *MockIAMQueryUsecase_ListPlatformUserPolicies_Call) Run(run func(ctx co
 		if args[1] != nil {
 			arg1 = args[1].(uint)
 		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockIAMQueryUsecase_ListPlatformUserPolicies_Call) Return(policys []entity.Policy, err error) *MockIAMQueryUsecase_ListPlatformUserPolicies_Call {
-	_c.Call.Return(policys, err)
+func (_c *MockIAMQueryUsecase_ListPlatformUserPolicies_Call) Return(page collection.Page[entity.Policy], err error) *MockIAMQueryUsecase_ListPlatformUserPolicies_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockIAMQueryUsecase_ListPlatformUserPolicies_Call) RunAndReturn(run func(ctx context.Context, userID uint) ([]entity.Policy, error)) *MockIAMQueryUsecase_ListPlatformUserPolicies_Call {
+func (_c *MockIAMQueryUsecase_ListPlatformUserPolicies_Call) RunAndReturn(run func(ctx context.Context, userID uint, query collection.Query) (collection.Page[entity.Policy], error)) *MockIAMQueryUsecase_ListPlatformUserPolicies_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1622,27 +1643,25 @@ func (_c *MockIAMQueryUsecase_ListPolicies_Call) RunAndReturn(run func(ctx conte
 }
 
 // ListPolicyAttachments provides a mock function for the type MockIAMQueryUsecase
-func (_mock *MockIAMQueryUsecase) ListPolicyAttachments(ctx context.Context, name string) ([]entity.PolicyAttachment, error) {
-	ret := _mock.Called(ctx, name)
+func (_mock *MockIAMQueryUsecase) ListPolicyAttachments(ctx context.Context, name string, query collection.Query) (collection.Page[entity.PolicyAttachment], error) {
+	ret := _mock.Called(ctx, name, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListPolicyAttachments")
 	}
 
-	var r0 []entity.PolicyAttachment
+	var r0 collection.Page[entity.PolicyAttachment]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]entity.PolicyAttachment, error)); ok {
-		return returnFunc(ctx, name)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) (collection.Page[entity.PolicyAttachment], error)); ok {
+		return returnFunc(ctx, name, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []entity.PolicyAttachment); ok {
-		r0 = returnFunc(ctx, name)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) collection.Page[entity.PolicyAttachment]); ok {
+		r0 = returnFunc(ctx, name, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.PolicyAttachment)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.PolicyAttachment])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, name)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, collection.Query) error); ok {
+		r1 = returnFunc(ctx, name, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1657,11 +1676,12 @@ type MockIAMQueryUsecase_ListPolicyAttachments_Call struct {
 // ListPolicyAttachments is a helper method to define mock.On call
 //   - ctx context.Context
 //   - name string
-func (_e *MockIAMQueryUsecase_Expecter) ListPolicyAttachments(ctx interface{}, name interface{}) *MockIAMQueryUsecase_ListPolicyAttachments_Call {
-	return &MockIAMQueryUsecase_ListPolicyAttachments_Call{Call: _e.mock.On("ListPolicyAttachments", ctx, name)}
+//   - query collection.Query
+func (_e *MockIAMQueryUsecase_Expecter) ListPolicyAttachments(ctx interface{}, name interface{}, query interface{}) *MockIAMQueryUsecase_ListPolicyAttachments_Call {
+	return &MockIAMQueryUsecase_ListPolicyAttachments_Call{Call: _e.mock.On("ListPolicyAttachments", ctx, name, query)}
 }
 
-func (_c *MockIAMQueryUsecase_ListPolicyAttachments_Call) Run(run func(ctx context.Context, name string)) *MockIAMQueryUsecase_ListPolicyAttachments_Call {
+func (_c *MockIAMQueryUsecase_ListPolicyAttachments_Call) Run(run func(ctx context.Context, name string, query collection.Query)) *MockIAMQueryUsecase_ListPolicyAttachments_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -1671,46 +1691,49 @@ func (_c *MockIAMQueryUsecase_ListPolicyAttachments_Call) Run(run func(ctx conte
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockIAMQueryUsecase_ListPolicyAttachments_Call) Return(policyAttachments []entity.PolicyAttachment, err error) *MockIAMQueryUsecase_ListPolicyAttachments_Call {
-	_c.Call.Return(policyAttachments, err)
+func (_c *MockIAMQueryUsecase_ListPolicyAttachments_Call) Return(page collection.Page[entity.PolicyAttachment], err error) *MockIAMQueryUsecase_ListPolicyAttachments_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockIAMQueryUsecase_ListPolicyAttachments_Call) RunAndReturn(run func(ctx context.Context, name string) ([]entity.PolicyAttachment, error)) *MockIAMQueryUsecase_ListPolicyAttachments_Call {
+func (_c *MockIAMQueryUsecase_ListPolicyAttachments_Call) RunAndReturn(run func(ctx context.Context, name string, query collection.Query) (collection.Page[entity.PolicyAttachment], error)) *MockIAMQueryUsecase_ListPolicyAttachments_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListPolicyVersions provides a mock function for the type MockIAMQueryUsecase
-func (_mock *MockIAMQueryUsecase) ListPolicyVersions(ctx context.Context, name string) ([]entity.PolicyVersion, error) {
-	ret := _mock.Called(ctx, name)
+func (_mock *MockIAMQueryUsecase) ListPolicyVersions(ctx context.Context, name string, query collection.Query) (collection.Page[entity.PolicyVersion], error) {
+	ret := _mock.Called(ctx, name, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListPolicyVersions")
 	}
 
-	var r0 []entity.PolicyVersion
+	var r0 collection.Page[entity.PolicyVersion]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]entity.PolicyVersion, error)); ok {
-		return returnFunc(ctx, name)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) (collection.Page[entity.PolicyVersion], error)); ok {
+		return returnFunc(ctx, name, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []entity.PolicyVersion); ok {
-		r0 = returnFunc(ctx, name)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) collection.Page[entity.PolicyVersion]); ok {
+		r0 = returnFunc(ctx, name, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.PolicyVersion)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.PolicyVersion])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, name)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, collection.Query) error); ok {
+		r1 = returnFunc(ctx, name, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1725,11 +1748,12 @@ type MockIAMQueryUsecase_ListPolicyVersions_Call struct {
 // ListPolicyVersions is a helper method to define mock.On call
 //   - ctx context.Context
 //   - name string
-func (_e *MockIAMQueryUsecase_Expecter) ListPolicyVersions(ctx interface{}, name interface{}) *MockIAMQueryUsecase_ListPolicyVersions_Call {
-	return &MockIAMQueryUsecase_ListPolicyVersions_Call{Call: _e.mock.On("ListPolicyVersions", ctx, name)}
+//   - query collection.Query
+func (_e *MockIAMQueryUsecase_Expecter) ListPolicyVersions(ctx interface{}, name interface{}, query interface{}) *MockIAMQueryUsecase_ListPolicyVersions_Call {
+	return &MockIAMQueryUsecase_ListPolicyVersions_Call{Call: _e.mock.On("ListPolicyVersions", ctx, name, query)}
 }
 
-func (_c *MockIAMQueryUsecase_ListPolicyVersions_Call) Run(run func(ctx context.Context, name string)) *MockIAMQueryUsecase_ListPolicyVersions_Call {
+func (_c *MockIAMQueryUsecase_ListPolicyVersions_Call) Run(run func(ctx context.Context, name string, query collection.Query)) *MockIAMQueryUsecase_ListPolicyVersions_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -1739,20 +1763,25 @@ func (_c *MockIAMQueryUsecase_ListPolicyVersions_Call) Run(run func(ctx context.
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockIAMQueryUsecase_ListPolicyVersions_Call) Return(policyVersions []entity.PolicyVersion, err error) *MockIAMQueryUsecase_ListPolicyVersions_Call {
-	_c.Call.Return(policyVersions, err)
+func (_c *MockIAMQueryUsecase_ListPolicyVersions_Call) Return(page collection.Page[entity.PolicyVersion], err error) *MockIAMQueryUsecase_ListPolicyVersions_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockIAMQueryUsecase_ListPolicyVersions_Call) RunAndReturn(run func(ctx context.Context, name string) ([]entity.PolicyVersion, error)) *MockIAMQueryUsecase_ListPolicyVersions_Call {
+func (_c *MockIAMQueryUsecase_ListPolicyVersions_Call) RunAndReturn(run func(ctx context.Context, name string, query collection.Query) (collection.Page[entity.PolicyVersion], error)) *MockIAMQueryUsecase_ListPolicyVersions_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1962,27 +1991,25 @@ func (_c *MockIAMQueryUsecase_ListTenantMembers_Call) RunAndReturn(run func(ctx 
 }
 
 // ListTenantUserInlinePolicies provides a mock function for the type MockIAMQueryUsecase
-func (_mock *MockIAMQueryUsecase) ListTenantUserInlinePolicies(ctx context.Context, tenantID string, userID uint) ([]entity.UserInlinePolicy, error) {
-	ret := _mock.Called(ctx, tenantID, userID)
+func (_mock *MockIAMQueryUsecase) ListTenantUserInlinePolicies(ctx context.Context, tenantID string, userID uint, query collection.Query) (collection.Page[entity.UserInlinePolicy], error) {
+	ret := _mock.Called(ctx, tenantID, userID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListTenantUserInlinePolicies")
 	}
 
-	var r0 []entity.UserInlinePolicy
+	var r0 collection.Page[entity.UserInlinePolicy]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) ([]entity.UserInlinePolicy, error)); ok {
-		return returnFunc(ctx, tenantID, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint, collection.Query) (collection.Page[entity.UserInlinePolicy], error)); ok {
+		return returnFunc(ctx, tenantID, userID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) []entity.UserInlinePolicy); ok {
-		r0 = returnFunc(ctx, tenantID, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint, collection.Query) collection.Page[entity.UserInlinePolicy]); ok {
+		r0 = returnFunc(ctx, tenantID, userID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.UserInlinePolicy)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.UserInlinePolicy])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint) error); ok {
-		r1 = returnFunc(ctx, tenantID, userID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint, collection.Query) error); ok {
+		r1 = returnFunc(ctx, tenantID, userID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1998,11 +2025,12 @@ type MockIAMQueryUsecase_ListTenantUserInlinePolicies_Call struct {
 //   - ctx context.Context
 //   - tenantID string
 //   - userID uint
-func (_e *MockIAMQueryUsecase_Expecter) ListTenantUserInlinePolicies(ctx interface{}, tenantID interface{}, userID interface{}) *MockIAMQueryUsecase_ListTenantUserInlinePolicies_Call {
-	return &MockIAMQueryUsecase_ListTenantUserInlinePolicies_Call{Call: _e.mock.On("ListTenantUserInlinePolicies", ctx, tenantID, userID)}
+//   - query collection.Query
+func (_e *MockIAMQueryUsecase_Expecter) ListTenantUserInlinePolicies(ctx interface{}, tenantID interface{}, userID interface{}, query interface{}) *MockIAMQueryUsecase_ListTenantUserInlinePolicies_Call {
+	return &MockIAMQueryUsecase_ListTenantUserInlinePolicies_Call{Call: _e.mock.On("ListTenantUserInlinePolicies", ctx, tenantID, userID, query)}
 }
 
-func (_c *MockIAMQueryUsecase_ListTenantUserInlinePolicies_Call) Run(run func(ctx context.Context, tenantID string, userID uint)) *MockIAMQueryUsecase_ListTenantUserInlinePolicies_Call {
+func (_c *MockIAMQueryUsecase_ListTenantUserInlinePolicies_Call) Run(run func(ctx context.Context, tenantID string, userID uint, query collection.Query)) *MockIAMQueryUsecase_ListTenantUserInlinePolicies_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -2016,47 +2044,50 @@ func (_c *MockIAMQueryUsecase_ListTenantUserInlinePolicies_Call) Run(run func(ct
 		if args[2] != nil {
 			arg2 = args[2].(uint)
 		}
+		var arg3 collection.Query
+		if args[3] != nil {
+			arg3 = args[3].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
 		)
 	})
 	return _c
 }
 
-func (_c *MockIAMQueryUsecase_ListTenantUserInlinePolicies_Call) Return(userInlinePolicys []entity.UserInlinePolicy, err error) *MockIAMQueryUsecase_ListTenantUserInlinePolicies_Call {
-	_c.Call.Return(userInlinePolicys, err)
+func (_c *MockIAMQueryUsecase_ListTenantUserInlinePolicies_Call) Return(page collection.Page[entity.UserInlinePolicy], err error) *MockIAMQueryUsecase_ListTenantUserInlinePolicies_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockIAMQueryUsecase_ListTenantUserInlinePolicies_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint) ([]entity.UserInlinePolicy, error)) *MockIAMQueryUsecase_ListTenantUserInlinePolicies_Call {
+func (_c *MockIAMQueryUsecase_ListTenantUserInlinePolicies_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint, query collection.Query) (collection.Page[entity.UserInlinePolicy], error)) *MockIAMQueryUsecase_ListTenantUserInlinePolicies_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListTenantUserPolicies provides a mock function for the type MockIAMQueryUsecase
-func (_mock *MockIAMQueryUsecase) ListTenantUserPolicies(ctx context.Context, tenantID string, userID uint) ([]entity.Policy, error) {
-	ret := _mock.Called(ctx, tenantID, userID)
+func (_mock *MockIAMQueryUsecase) ListTenantUserPolicies(ctx context.Context, tenantID string, userID uint, query collection.Query) (collection.Page[entity.Policy], error) {
+	ret := _mock.Called(ctx, tenantID, userID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListTenantUserPolicies")
 	}
 
-	var r0 []entity.Policy
+	var r0 collection.Page[entity.Policy]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) ([]entity.Policy, error)); ok {
-		return returnFunc(ctx, tenantID, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint, collection.Query) (collection.Page[entity.Policy], error)); ok {
+		return returnFunc(ctx, tenantID, userID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) []entity.Policy); ok {
-		r0 = returnFunc(ctx, tenantID, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint, collection.Query) collection.Page[entity.Policy]); ok {
+		r0 = returnFunc(ctx, tenantID, userID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.Policy)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.Policy])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint) error); ok {
-		r1 = returnFunc(ctx, tenantID, userID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint, collection.Query) error); ok {
+		r1 = returnFunc(ctx, tenantID, userID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -2072,11 +2103,12 @@ type MockIAMQueryUsecase_ListTenantUserPolicies_Call struct {
 //   - ctx context.Context
 //   - tenantID string
 //   - userID uint
-func (_e *MockIAMQueryUsecase_Expecter) ListTenantUserPolicies(ctx interface{}, tenantID interface{}, userID interface{}) *MockIAMQueryUsecase_ListTenantUserPolicies_Call {
-	return &MockIAMQueryUsecase_ListTenantUserPolicies_Call{Call: _e.mock.On("ListTenantUserPolicies", ctx, tenantID, userID)}
+//   - query collection.Query
+func (_e *MockIAMQueryUsecase_Expecter) ListTenantUserPolicies(ctx interface{}, tenantID interface{}, userID interface{}, query interface{}) *MockIAMQueryUsecase_ListTenantUserPolicies_Call {
+	return &MockIAMQueryUsecase_ListTenantUserPolicies_Call{Call: _e.mock.On("ListTenantUserPolicies", ctx, tenantID, userID, query)}
 }
 
-func (_c *MockIAMQueryUsecase_ListTenantUserPolicies_Call) Run(run func(ctx context.Context, tenantID string, userID uint)) *MockIAMQueryUsecase_ListTenantUserPolicies_Call {
+func (_c *MockIAMQueryUsecase_ListTenantUserPolicies_Call) Run(run func(ctx context.Context, tenantID string, userID uint, query collection.Query)) *MockIAMQueryUsecase_ListTenantUserPolicies_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -2090,21 +2122,26 @@ func (_c *MockIAMQueryUsecase_ListTenantUserPolicies_Call) Run(run func(ctx cont
 		if args[2] != nil {
 			arg2 = args[2].(uint)
 		}
+		var arg3 collection.Query
+		if args[3] != nil {
+			arg3 = args[3].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
 		)
 	})
 	return _c
 }
 
-func (_c *MockIAMQueryUsecase_ListTenantUserPolicies_Call) Return(policys []entity.Policy, err error) *MockIAMQueryUsecase_ListTenantUserPolicies_Call {
-	_c.Call.Return(policys, err)
+func (_c *MockIAMQueryUsecase_ListTenantUserPolicies_Call) Return(page collection.Page[entity.Policy], err error) *MockIAMQueryUsecase_ListTenantUserPolicies_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockIAMQueryUsecase_ListTenantUserPolicies_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint) ([]entity.Policy, error)) *MockIAMQueryUsecase_ListTenantUserPolicies_Call {
+func (_c *MockIAMQueryUsecase_ListTenantUserPolicies_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint, query collection.Query) (collection.Page[entity.Policy], error)) *MockIAMQueryUsecase_ListTenantUserPolicies_Call {
 	_c.Call.Return(run)
 	return _c
 }

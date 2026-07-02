@@ -18,14 +18,22 @@ type GroupUsecase interface {
 	DeleteGroup(ctx context.Context, groupID uint64) error
 	PutGroupInlinePolicy(ctx context.Context, input entity.PutGroupInlinePolicyInput) error
 	GetGroupInlinePolicy(ctx context.Context, groupID uint64, name string) (*entity.GroupInlinePolicy, error)
-	ListGroupInlinePolicies(ctx context.Context, groupID uint64) ([]entity.GroupInlinePolicy, error)
+	ListGroupInlinePolicies(
+		ctx context.Context,
+		groupID uint64,
+		query collection.Query,
+	) (collection.Page[entity.GroupInlinePolicy], error)
 	DeleteGroupInlinePolicy(ctx context.Context, groupID uint64, name string) error
 	AddGroupMember(ctx context.Context, groupID uint64, userID uint) error
 	RemoveGroupMember(ctx context.Context, groupID uint64, userID uint) error
-	ListGroupMembers(ctx context.Context, groupID uint64) ([]uint, error)
+	ListGroupMembers(ctx context.Context, groupID uint64, query collection.Query) (collection.Page[uint], error)
 	AttachGroupPolicy(ctx context.Context, groupID uint64, policyName string) error
 	DetachGroupPolicy(ctx context.Context, groupID uint64, policyName string) error
-	ListGroupPolicies(ctx context.Context, groupID uint64) ([]entity.Policy, error)
+	ListGroupPolicies(
+		ctx context.Context,
+		groupID uint64,
+		query collection.Query,
+	) (collection.Page[entity.Policy], error)
 }
 
 type PlatformPrincipalUsecase interface {
@@ -36,11 +44,19 @@ type PlatformPrincipalUsecase interface {
 	RemovePlatformRole(ctx context.Context, userID uint, roleName string) error
 	PutPlatformUserInlinePolicy(ctx context.Context, input entity.PutPlatformUserInlinePolicyInput) error
 	GetPlatformUserInlinePolicy(ctx context.Context, userID uint, name string) (*entity.UserInlinePolicy, error)
-	ListPlatformUserInlinePolicies(ctx context.Context, userID uint) ([]entity.UserInlinePolicy, error)
+	ListPlatformUserInlinePolicies(
+		ctx context.Context,
+		userID uint,
+		query collection.Query,
+	) (collection.Page[entity.UserInlinePolicy], error)
 	DeletePlatformUserInlinePolicy(ctx context.Context, userID uint, name string) error
 	AttachPlatformUserPolicy(ctx context.Context, userID uint, policyName string) error
 	DetachPlatformUserPolicy(ctx context.Context, userID uint, policyName string) error
-	ListPlatformUserPolicies(ctx context.Context, userID uint) ([]entity.Policy, error)
+	ListPlatformUserPolicies(
+		ctx context.Context,
+		userID uint,
+		query collection.Query,
+	) (collection.Page[entity.Policy], error)
 	PutPlatformUserPermissionBoundary(ctx context.Context, userID uint, policyName string) error
 	GetPlatformUserPermissionBoundary(ctx context.Context, userID uint) (*entity.PermissionBoundary, error)
 	DeletePlatformUserPermissionBoundary(ctx context.Context, userID uint) error

@@ -245,6 +245,44 @@
             "required": true,
             "type": "string",
             "format": "uint64"
+          },
+          {
+            "name": "collection.page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.search",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortDirection",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_DIRECTION_UNSPECIFIED",
+              "SORT_DIRECTION_ASC",
+              "SORT_DIRECTION_DESC"
+            ],
+            "default": "SORT_DIRECTION_UNSPECIFIED"
           }
         ],
         "tags": [
@@ -391,6 +429,44 @@
             "required": true,
             "type": "string",
             "format": "uint64"
+          },
+          {
+            "name": "collection.page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.search",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortDirection",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_DIRECTION_UNSPECIFIED",
+              "SORT_DIRECTION_ASC",
+              "SORT_DIRECTION_DESC"
+            ],
+            "default": "SORT_DIRECTION_UNSPECIFIED"
           }
         ],
         "tags": [
@@ -497,6 +573,44 @@
             "required": true,
             "type": "string",
             "format": "uint64"
+          },
+          {
+            "name": "collection.page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.search",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortDirection",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_DIRECTION_UNSPECIFIED",
+              "SORT_DIRECTION_ASC",
+              "SORT_DIRECTION_DESC"
+            ],
+            "default": "SORT_DIRECTION_UNSPECIFIED"
           }
         ],
         "tags": [
@@ -1000,6 +1114,44 @@
             "required": true,
             "type": "string",
             "format": "uint64"
+          },
+          {
+            "name": "collection.page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.search",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortDirection",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_DIRECTION_UNSPECIFIED",
+              "SORT_DIRECTION_ASC",
+              "SORT_DIRECTION_DESC"
+            ],
+            "default": "SORT_DIRECTION_UNSPECIFIED"
           }
         ],
         "tags": [
@@ -1243,6 +1395,44 @@
             "required": true,
             "type": "string",
             "format": "uint64"
+          },
+          {
+            "name": "collection.page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.search",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortDirection",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_DIRECTION_UNSPECIFIED",
+              "SORT_DIRECTION_ASC",
+              "SORT_DIRECTION_DESC"
+            ],
+            "default": "SORT_DIRECTION_UNSPECIFIED"
           }
         ],
         "tags": [
@@ -1625,6 +1815,44 @@
             "required": true,
             "type": "string",
             "pattern": ".+"
+          },
+          {
+            "name": "collection.page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.search",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortDirection",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_DIRECTION_UNSPECIFIED",
+              "SORT_DIRECTION_ASC",
+              "SORT_DIRECTION_DESC"
+            ],
+            "default": "SORT_DIRECTION_UNSPECIFIED"
           }
         ],
         "tags": [
@@ -1656,6 +1884,44 @@
             "required": true,
             "type": "string",
             "pattern": ".+"
+          },
+          {
+            "name": "collection.page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.search",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortDirection",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_DIRECTION_UNSPECIFIED",
+              "SORT_DIRECTION_ASC",
+              "SORT_DIRECTION_DESC"
+            ],
+            "default": "SORT_DIRECTION_UNSPECIFIED"
           }
         ],
         "tags": [
@@ -2236,6 +2502,44 @@
             "required": true,
             "type": "string",
             "format": "uint64"
+          },
+          {
+            "name": "collection.page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.search",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortDirection",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_DIRECTION_UNSPECIFIED",
+              "SORT_DIRECTION_ASC",
+              "SORT_DIRECTION_DESC"
+            ],
+            "default": "SORT_DIRECTION_UNSPECIFIED"
           }
         ],
         "tags": [
@@ -2521,6 +2825,44 @@
             "required": true,
             "type": "string",
             "format": "uint64"
+          },
+          {
+            "name": "collection.page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.search",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortDirection",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_DIRECTION_UNSPECIFIED",
+              "SORT_DIRECTION_ASC",
+              "SORT_DIRECTION_DESC"
+            ],
+            "default": "SORT_DIRECTION_UNSPECIFIED"
           }
         ],
         "tags": [
@@ -3589,6 +3931,9 @@
             "type": "object",
             "$ref": "#/definitions/iamGroupInlinePolicy"
           }
+        },
+        "pageInfo": {
+          "$ref": "#/definitions/commonPageInfo"
         }
       }
     },
@@ -3601,6 +3946,9 @@
             "type": "string",
             "format": "uint64"
           }
+        },
+        "pageInfo": {
+          "$ref": "#/definitions/commonPageInfo"
         }
       }
     },
@@ -3613,6 +3961,9 @@
             "type": "object",
             "$ref": "#/definitions/iamPolicy"
           }
+        },
+        "pageInfo": {
+          "$ref": "#/definitions/commonPageInfo"
         }
       }
     },
@@ -3667,6 +4018,9 @@
             "type": "object",
             "$ref": "#/definitions/iamUserInlinePolicy"
           }
+        },
+        "pageInfo": {
+          "$ref": "#/definitions/commonPageInfo"
         }
       }
     },
@@ -3679,6 +4033,9 @@
             "type": "object",
             "$ref": "#/definitions/iamPolicy"
           }
+        },
+        "pageInfo": {
+          "$ref": "#/definitions/commonPageInfo"
         }
       }
     },
@@ -3706,6 +4063,9 @@
             "type": "object",
             "$ref": "#/definitions/iamPolicyAttachment"
           }
+        },
+        "pageInfo": {
+          "$ref": "#/definitions/commonPageInfo"
         }
       }
     },
@@ -3718,6 +4078,9 @@
             "type": "object",
             "$ref": "#/definitions/iamPolicyVersion"
           }
+        },
+        "pageInfo": {
+          "$ref": "#/definitions/commonPageInfo"
         }
       }
     },
@@ -3766,6 +4129,9 @@
             "type": "object",
             "$ref": "#/definitions/iamUserInlinePolicy"
           }
+        },
+        "pageInfo": {
+          "$ref": "#/definitions/commonPageInfo"
         }
       }
     },
@@ -3778,6 +4144,9 @@
             "type": "object",
             "$ref": "#/definitions/iamPolicy"
           }
+        },
+        "pageInfo": {
+          "$ref": "#/definitions/commonPageInfo"
         }
       }
     },

@@ -17,7 +17,8 @@ import (
 func NewMockPolicyRepository(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockPolicyRepository {
+},
+) *MockPolicyRepository {
 	mock := &MockPolicyRepository{}
 	mock.Mock.Test(t)
 
@@ -1494,27 +1495,25 @@ func (_c *MockPolicyRepository_ListPlatformGroupStatements_Call) RunAndReturn(ru
 }
 
 // ListPlatformUserInlinePolicies provides a mock function for the type MockPolicyRepository
-func (_mock *MockPolicyRepository) ListPlatformUserInlinePolicies(ctx context.Context, userID uint) ([]entity.UserInlinePolicy, error) {
-	ret := _mock.Called(ctx, userID)
+func (_mock *MockPolicyRepository) ListPlatformUserInlinePolicies(ctx context.Context, userID uint, query collection.Query) (collection.Page[entity.UserInlinePolicy], error) {
+	ret := _mock.Called(ctx, userID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListPlatformUserInlinePolicies")
 	}
 
-	var r0 []entity.UserInlinePolicy
+	var r0 collection.Page[entity.UserInlinePolicy]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) ([]entity.UserInlinePolicy, error)); ok {
-		return returnFunc(ctx, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, collection.Query) (collection.Page[entity.UserInlinePolicy], error)); ok {
+		return returnFunc(ctx, userID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) []entity.UserInlinePolicy); ok {
-		r0 = returnFunc(ctx, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, collection.Query) collection.Page[entity.UserInlinePolicy]); ok {
+		r0 = returnFunc(ctx, userID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.UserInlinePolicy)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.UserInlinePolicy])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, uint) error); ok {
-		r1 = returnFunc(ctx, userID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint, collection.Query) error); ok {
+		r1 = returnFunc(ctx, userID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1529,11 +1528,12 @@ type MockPolicyRepository_ListPlatformUserInlinePolicies_Call struct {
 // ListPlatformUserInlinePolicies is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID uint
-func (_e *MockPolicyRepository_Expecter) ListPlatformUserInlinePolicies(ctx interface{}, userID interface{}) *MockPolicyRepository_ListPlatformUserInlinePolicies_Call {
-	return &MockPolicyRepository_ListPlatformUserInlinePolicies_Call{Call: _e.mock.On("ListPlatformUserInlinePolicies", ctx, userID)}
+//   - query collection.Query
+func (_e *MockPolicyRepository_Expecter) ListPlatformUserInlinePolicies(ctx interface{}, userID interface{}, query interface{}) *MockPolicyRepository_ListPlatformUserInlinePolicies_Call {
+	return &MockPolicyRepository_ListPlatformUserInlinePolicies_Call{Call: _e.mock.On("ListPlatformUserInlinePolicies", ctx, userID, query)}
 }
 
-func (_c *MockPolicyRepository_ListPlatformUserInlinePolicies_Call) Run(run func(ctx context.Context, userID uint)) *MockPolicyRepository_ListPlatformUserInlinePolicies_Call {
+func (_c *MockPolicyRepository_ListPlatformUserInlinePolicies_Call) Run(run func(ctx context.Context, userID uint, query collection.Query)) *MockPolicyRepository_ListPlatformUserInlinePolicies_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -1543,46 +1543,49 @@ func (_c *MockPolicyRepository_ListPlatformUserInlinePolicies_Call) Run(run func
 		if args[1] != nil {
 			arg1 = args[1].(uint)
 		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockPolicyRepository_ListPlatformUserInlinePolicies_Call) Return(userInlinePolicys []entity.UserInlinePolicy, err error) *MockPolicyRepository_ListPlatformUserInlinePolicies_Call {
-	_c.Call.Return(userInlinePolicys, err)
+func (_c *MockPolicyRepository_ListPlatformUserInlinePolicies_Call) Return(page collection.Page[entity.UserInlinePolicy], err error) *MockPolicyRepository_ListPlatformUserInlinePolicies_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockPolicyRepository_ListPlatformUserInlinePolicies_Call) RunAndReturn(run func(ctx context.Context, userID uint) ([]entity.UserInlinePolicy, error)) *MockPolicyRepository_ListPlatformUserInlinePolicies_Call {
+func (_c *MockPolicyRepository_ListPlatformUserInlinePolicies_Call) RunAndReturn(run func(ctx context.Context, userID uint, query collection.Query) (collection.Page[entity.UserInlinePolicy], error)) *MockPolicyRepository_ListPlatformUserInlinePolicies_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListPlatformUserPolicies provides a mock function for the type MockPolicyRepository
-func (_mock *MockPolicyRepository) ListPlatformUserPolicies(ctx context.Context, userID uint) ([]entity.Policy, error) {
-	ret := _mock.Called(ctx, userID)
+func (_mock *MockPolicyRepository) ListPlatformUserPolicies(ctx context.Context, userID uint, query collection.Query) (collection.Page[entity.Policy], error) {
+	ret := _mock.Called(ctx, userID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListPlatformUserPolicies")
 	}
 
-	var r0 []entity.Policy
+	var r0 collection.Page[entity.Policy]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) ([]entity.Policy, error)); ok {
-		return returnFunc(ctx, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, collection.Query) (collection.Page[entity.Policy], error)); ok {
+		return returnFunc(ctx, userID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) []entity.Policy); ok {
-		r0 = returnFunc(ctx, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, collection.Query) collection.Page[entity.Policy]); ok {
+		r0 = returnFunc(ctx, userID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.Policy)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.Policy])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, uint) error); ok {
-		r1 = returnFunc(ctx, userID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint, collection.Query) error); ok {
+		r1 = returnFunc(ctx, userID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1597,11 +1600,12 @@ type MockPolicyRepository_ListPlatformUserPolicies_Call struct {
 // ListPlatformUserPolicies is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID uint
-func (_e *MockPolicyRepository_Expecter) ListPlatformUserPolicies(ctx interface{}, userID interface{}) *MockPolicyRepository_ListPlatformUserPolicies_Call {
-	return &MockPolicyRepository_ListPlatformUserPolicies_Call{Call: _e.mock.On("ListPlatformUserPolicies", ctx, userID)}
+//   - query collection.Query
+func (_e *MockPolicyRepository_Expecter) ListPlatformUserPolicies(ctx interface{}, userID interface{}, query interface{}) *MockPolicyRepository_ListPlatformUserPolicies_Call {
+	return &MockPolicyRepository_ListPlatformUserPolicies_Call{Call: _e.mock.On("ListPlatformUserPolicies", ctx, userID, query)}
 }
 
-func (_c *MockPolicyRepository_ListPlatformUserPolicies_Call) Run(run func(ctx context.Context, userID uint)) *MockPolicyRepository_ListPlatformUserPolicies_Call {
+func (_c *MockPolicyRepository_ListPlatformUserPolicies_Call) Run(run func(ctx context.Context, userID uint, query collection.Query)) *MockPolicyRepository_ListPlatformUserPolicies_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -1611,20 +1615,25 @@ func (_c *MockPolicyRepository_ListPlatformUserPolicies_Call) Run(run func(ctx c
 		if args[1] != nil {
 			arg1 = args[1].(uint)
 		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockPolicyRepository_ListPlatformUserPolicies_Call) Return(policys []entity.Policy, err error) *MockPolicyRepository_ListPlatformUserPolicies_Call {
-	_c.Call.Return(policys, err)
+func (_c *MockPolicyRepository_ListPlatformUserPolicies_Call) Return(page collection.Page[entity.Policy], err error) *MockPolicyRepository_ListPlatformUserPolicies_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockPolicyRepository_ListPlatformUserPolicies_Call) RunAndReturn(run func(ctx context.Context, userID uint) ([]entity.Policy, error)) *MockPolicyRepository_ListPlatformUserPolicies_Call {
+func (_c *MockPolicyRepository_ListPlatformUserPolicies_Call) RunAndReturn(run func(ctx context.Context, userID uint, query collection.Query) (collection.Page[entity.Policy], error)) *MockPolicyRepository_ListPlatformUserPolicies_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1770,27 +1779,25 @@ func (_c *MockPolicyRepository_ListPolicies_Call) RunAndReturn(run func(ctx cont
 }
 
 // ListPolicyAttachments provides a mock function for the type MockPolicyRepository
-func (_mock *MockPolicyRepository) ListPolicyAttachments(ctx context.Context, policyID uint64) ([]entity.PolicyAttachment, error) {
-	ret := _mock.Called(ctx, policyID)
+func (_mock *MockPolicyRepository) ListPolicyAttachments(ctx context.Context, policyID uint64, query collection.Query) (collection.Page[entity.PolicyAttachment], error) {
+	ret := _mock.Called(ctx, policyID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListPolicyAttachments")
 	}
 
-	var r0 []entity.PolicyAttachment
+	var r0 collection.Page[entity.PolicyAttachment]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) ([]entity.PolicyAttachment, error)); ok {
-		return returnFunc(ctx, policyID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, collection.Query) (collection.Page[entity.PolicyAttachment], error)); ok {
+		return returnFunc(ctx, policyID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) []entity.PolicyAttachment); ok {
-		r0 = returnFunc(ctx, policyID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, collection.Query) collection.Page[entity.PolicyAttachment]); ok {
+		r0 = returnFunc(ctx, policyID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.PolicyAttachment)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.PolicyAttachment])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
-		r1 = returnFunc(ctx, policyID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64, collection.Query) error); ok {
+		r1 = returnFunc(ctx, policyID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1805,11 +1812,12 @@ type MockPolicyRepository_ListPolicyAttachments_Call struct {
 // ListPolicyAttachments is a helper method to define mock.On call
 //   - ctx context.Context
 //   - policyID uint64
-func (_e *MockPolicyRepository_Expecter) ListPolicyAttachments(ctx interface{}, policyID interface{}) *MockPolicyRepository_ListPolicyAttachments_Call {
-	return &MockPolicyRepository_ListPolicyAttachments_Call{Call: _e.mock.On("ListPolicyAttachments", ctx, policyID)}
+//   - query collection.Query
+func (_e *MockPolicyRepository_Expecter) ListPolicyAttachments(ctx interface{}, policyID interface{}, query interface{}) *MockPolicyRepository_ListPolicyAttachments_Call {
+	return &MockPolicyRepository_ListPolicyAttachments_Call{Call: _e.mock.On("ListPolicyAttachments", ctx, policyID, query)}
 }
 
-func (_c *MockPolicyRepository_ListPolicyAttachments_Call) Run(run func(ctx context.Context, policyID uint64)) *MockPolicyRepository_ListPolicyAttachments_Call {
+func (_c *MockPolicyRepository_ListPolicyAttachments_Call) Run(run func(ctx context.Context, policyID uint64, query collection.Query)) *MockPolicyRepository_ListPolicyAttachments_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -1819,46 +1827,49 @@ func (_c *MockPolicyRepository_ListPolicyAttachments_Call) Run(run func(ctx cont
 		if args[1] != nil {
 			arg1 = args[1].(uint64)
 		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockPolicyRepository_ListPolicyAttachments_Call) Return(policyAttachments []entity.PolicyAttachment, err error) *MockPolicyRepository_ListPolicyAttachments_Call {
-	_c.Call.Return(policyAttachments, err)
+func (_c *MockPolicyRepository_ListPolicyAttachments_Call) Return(page collection.Page[entity.PolicyAttachment], err error) *MockPolicyRepository_ListPolicyAttachments_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockPolicyRepository_ListPolicyAttachments_Call) RunAndReturn(run func(ctx context.Context, policyID uint64) ([]entity.PolicyAttachment, error)) *MockPolicyRepository_ListPolicyAttachments_Call {
+func (_c *MockPolicyRepository_ListPolicyAttachments_Call) RunAndReturn(run func(ctx context.Context, policyID uint64, query collection.Query) (collection.Page[entity.PolicyAttachment], error)) *MockPolicyRepository_ListPolicyAttachments_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListPolicyVersions provides a mock function for the type MockPolicyRepository
-func (_mock *MockPolicyRepository) ListPolicyVersions(ctx context.Context, policyID uint64, policyName string) ([]entity.PolicyVersion, error) {
-	ret := _mock.Called(ctx, policyID, policyName)
+func (_mock *MockPolicyRepository) ListPolicyVersions(ctx context.Context, policyID uint64, policyName string, query collection.Query) (collection.Page[entity.PolicyVersion], error) {
+	ret := _mock.Called(ctx, policyID, policyName, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListPolicyVersions")
 	}
 
-	var r0 []entity.PolicyVersion
+	var r0 collection.Page[entity.PolicyVersion]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, string) ([]entity.PolicyVersion, error)); ok {
-		return returnFunc(ctx, policyID, policyName)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, string, collection.Query) (collection.Page[entity.PolicyVersion], error)); ok {
+		return returnFunc(ctx, policyID, policyName, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, string) []entity.PolicyVersion); ok {
-		r0 = returnFunc(ctx, policyID, policyName)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, string, collection.Query) collection.Page[entity.PolicyVersion]); ok {
+		r0 = returnFunc(ctx, policyID, policyName, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.PolicyVersion)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.PolicyVersion])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64, string) error); ok {
-		r1 = returnFunc(ctx, policyID, policyName)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64, string, collection.Query) error); ok {
+		r1 = returnFunc(ctx, policyID, policyName, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1874,11 +1885,12 @@ type MockPolicyRepository_ListPolicyVersions_Call struct {
 //   - ctx context.Context
 //   - policyID uint64
 //   - policyName string
-func (_e *MockPolicyRepository_Expecter) ListPolicyVersions(ctx interface{}, policyID interface{}, policyName interface{}) *MockPolicyRepository_ListPolicyVersions_Call {
-	return &MockPolicyRepository_ListPolicyVersions_Call{Call: _e.mock.On("ListPolicyVersions", ctx, policyID, policyName)}
+//   - query collection.Query
+func (_e *MockPolicyRepository_Expecter) ListPolicyVersions(ctx interface{}, policyID interface{}, policyName interface{}, query interface{}) *MockPolicyRepository_ListPolicyVersions_Call {
+	return &MockPolicyRepository_ListPolicyVersions_Call{Call: _e.mock.On("ListPolicyVersions", ctx, policyID, policyName, query)}
 }
 
-func (_c *MockPolicyRepository_ListPolicyVersions_Call) Run(run func(ctx context.Context, policyID uint64, policyName string)) *MockPolicyRepository_ListPolicyVersions_Call {
+func (_c *MockPolicyRepository_ListPolicyVersions_Call) Run(run func(ctx context.Context, policyID uint64, policyName string, query collection.Query)) *MockPolicyRepository_ListPolicyVersions_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -1892,21 +1904,26 @@ func (_c *MockPolicyRepository_ListPolicyVersions_Call) Run(run func(ctx context
 		if args[2] != nil {
 			arg2 = args[2].(string)
 		}
+		var arg3 collection.Query
+		if args[3] != nil {
+			arg3 = args[3].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
 		)
 	})
 	return _c
 }
 
-func (_c *MockPolicyRepository_ListPolicyVersions_Call) Return(policyVersions []entity.PolicyVersion, err error) *MockPolicyRepository_ListPolicyVersions_Call {
-	_c.Call.Return(policyVersions, err)
+func (_c *MockPolicyRepository_ListPolicyVersions_Call) Return(page collection.Page[entity.PolicyVersion], err error) *MockPolicyRepository_ListPolicyVersions_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockPolicyRepository_ListPolicyVersions_Call) RunAndReturn(run func(ctx context.Context, policyID uint64, policyName string) ([]entity.PolicyVersion, error)) *MockPolicyRepository_ListPolicyVersions_Call {
+func (_c *MockPolicyRepository_ListPolicyVersions_Call) RunAndReturn(run func(ctx context.Context, policyID uint64, policyName string, query collection.Query) (collection.Page[entity.PolicyVersion], error)) *MockPolicyRepository_ListPolicyVersions_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2054,27 +2071,25 @@ func (_c *MockPolicyRepository_ListTenantGroupStatements_Call) RunAndReturn(run 
 }
 
 // ListTenantUserInlinePolicies provides a mock function for the type MockPolicyRepository
-func (_mock *MockPolicyRepository) ListTenantUserInlinePolicies(ctx context.Context, tenantID string, userID uint) ([]entity.UserInlinePolicy, error) {
-	ret := _mock.Called(ctx, tenantID, userID)
+func (_mock *MockPolicyRepository) ListTenantUserInlinePolicies(ctx context.Context, tenantID string, userID uint, query collection.Query) (collection.Page[entity.UserInlinePolicy], error) {
+	ret := _mock.Called(ctx, tenantID, userID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListTenantUserInlinePolicies")
 	}
 
-	var r0 []entity.UserInlinePolicy
+	var r0 collection.Page[entity.UserInlinePolicy]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) ([]entity.UserInlinePolicy, error)); ok {
-		return returnFunc(ctx, tenantID, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint, collection.Query) (collection.Page[entity.UserInlinePolicy], error)); ok {
+		return returnFunc(ctx, tenantID, userID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) []entity.UserInlinePolicy); ok {
-		r0 = returnFunc(ctx, tenantID, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint, collection.Query) collection.Page[entity.UserInlinePolicy]); ok {
+		r0 = returnFunc(ctx, tenantID, userID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.UserInlinePolicy)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.UserInlinePolicy])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint) error); ok {
-		r1 = returnFunc(ctx, tenantID, userID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint, collection.Query) error); ok {
+		r1 = returnFunc(ctx, tenantID, userID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -2090,11 +2105,12 @@ type MockPolicyRepository_ListTenantUserInlinePolicies_Call struct {
 //   - ctx context.Context
 //   - tenantID string
 //   - userID uint
-func (_e *MockPolicyRepository_Expecter) ListTenantUserInlinePolicies(ctx interface{}, tenantID interface{}, userID interface{}) *MockPolicyRepository_ListTenantUserInlinePolicies_Call {
-	return &MockPolicyRepository_ListTenantUserInlinePolicies_Call{Call: _e.mock.On("ListTenantUserInlinePolicies", ctx, tenantID, userID)}
+//   - query collection.Query
+func (_e *MockPolicyRepository_Expecter) ListTenantUserInlinePolicies(ctx interface{}, tenantID interface{}, userID interface{}, query interface{}) *MockPolicyRepository_ListTenantUserInlinePolicies_Call {
+	return &MockPolicyRepository_ListTenantUserInlinePolicies_Call{Call: _e.mock.On("ListTenantUserInlinePolicies", ctx, tenantID, userID, query)}
 }
 
-func (_c *MockPolicyRepository_ListTenantUserInlinePolicies_Call) Run(run func(ctx context.Context, tenantID string, userID uint)) *MockPolicyRepository_ListTenantUserInlinePolicies_Call {
+func (_c *MockPolicyRepository_ListTenantUserInlinePolicies_Call) Run(run func(ctx context.Context, tenantID string, userID uint, query collection.Query)) *MockPolicyRepository_ListTenantUserInlinePolicies_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -2108,47 +2124,50 @@ func (_c *MockPolicyRepository_ListTenantUserInlinePolicies_Call) Run(run func(c
 		if args[2] != nil {
 			arg2 = args[2].(uint)
 		}
+		var arg3 collection.Query
+		if args[3] != nil {
+			arg3 = args[3].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
 		)
 	})
 	return _c
 }
 
-func (_c *MockPolicyRepository_ListTenantUserInlinePolicies_Call) Return(userInlinePolicys []entity.UserInlinePolicy, err error) *MockPolicyRepository_ListTenantUserInlinePolicies_Call {
-	_c.Call.Return(userInlinePolicys, err)
+func (_c *MockPolicyRepository_ListTenantUserInlinePolicies_Call) Return(page collection.Page[entity.UserInlinePolicy], err error) *MockPolicyRepository_ListTenantUserInlinePolicies_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockPolicyRepository_ListTenantUserInlinePolicies_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint) ([]entity.UserInlinePolicy, error)) *MockPolicyRepository_ListTenantUserInlinePolicies_Call {
+func (_c *MockPolicyRepository_ListTenantUserInlinePolicies_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint, query collection.Query) (collection.Page[entity.UserInlinePolicy], error)) *MockPolicyRepository_ListTenantUserInlinePolicies_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListTenantUserPolicies provides a mock function for the type MockPolicyRepository
-func (_mock *MockPolicyRepository) ListTenantUserPolicies(ctx context.Context, tenantID string, userID uint) ([]entity.Policy, error) {
-	ret := _mock.Called(ctx, tenantID, userID)
+func (_mock *MockPolicyRepository) ListTenantUserPolicies(ctx context.Context, tenantID string, userID uint, query collection.Query) (collection.Page[entity.Policy], error) {
+	ret := _mock.Called(ctx, tenantID, userID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListTenantUserPolicies")
 	}
 
-	var r0 []entity.Policy
+	var r0 collection.Page[entity.Policy]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) ([]entity.Policy, error)); ok {
-		return returnFunc(ctx, tenantID, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint, collection.Query) (collection.Page[entity.Policy], error)); ok {
+		return returnFunc(ctx, tenantID, userID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) []entity.Policy); ok {
-		r0 = returnFunc(ctx, tenantID, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint, collection.Query) collection.Page[entity.Policy]); ok {
+		r0 = returnFunc(ctx, tenantID, userID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.Policy)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.Policy])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint) error); ok {
-		r1 = returnFunc(ctx, tenantID, userID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint, collection.Query) error); ok {
+		r1 = returnFunc(ctx, tenantID, userID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -2164,11 +2183,12 @@ type MockPolicyRepository_ListTenantUserPolicies_Call struct {
 //   - ctx context.Context
 //   - tenantID string
 //   - userID uint
-func (_e *MockPolicyRepository_Expecter) ListTenantUserPolicies(ctx interface{}, tenantID interface{}, userID interface{}) *MockPolicyRepository_ListTenantUserPolicies_Call {
-	return &MockPolicyRepository_ListTenantUserPolicies_Call{Call: _e.mock.On("ListTenantUserPolicies", ctx, tenantID, userID)}
+//   - query collection.Query
+func (_e *MockPolicyRepository_Expecter) ListTenantUserPolicies(ctx interface{}, tenantID interface{}, userID interface{}, query interface{}) *MockPolicyRepository_ListTenantUserPolicies_Call {
+	return &MockPolicyRepository_ListTenantUserPolicies_Call{Call: _e.mock.On("ListTenantUserPolicies", ctx, tenantID, userID, query)}
 }
 
-func (_c *MockPolicyRepository_ListTenantUserPolicies_Call) Run(run func(ctx context.Context, tenantID string, userID uint)) *MockPolicyRepository_ListTenantUserPolicies_Call {
+func (_c *MockPolicyRepository_ListTenantUserPolicies_Call) Run(run func(ctx context.Context, tenantID string, userID uint, query collection.Query)) *MockPolicyRepository_ListTenantUserPolicies_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -2182,21 +2202,26 @@ func (_c *MockPolicyRepository_ListTenantUserPolicies_Call) Run(run func(ctx con
 		if args[2] != nil {
 			arg2 = args[2].(uint)
 		}
+		var arg3 collection.Query
+		if args[3] != nil {
+			arg3 = args[3].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
 		)
 	})
 	return _c
 }
 
-func (_c *MockPolicyRepository_ListTenantUserPolicies_Call) Return(policys []entity.Policy, err error) *MockPolicyRepository_ListTenantUserPolicies_Call {
-	_c.Call.Return(policys, err)
+func (_c *MockPolicyRepository_ListTenantUserPolicies_Call) Return(page collection.Page[entity.Policy], err error) *MockPolicyRepository_ListTenantUserPolicies_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockPolicyRepository_ListTenantUserPolicies_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint) ([]entity.Policy, error)) *MockPolicyRepository_ListTenantUserPolicies_Call {
+func (_c *MockPolicyRepository_ListTenantUserPolicies_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint, query collection.Query) (collection.Page[entity.Policy], error)) *MockPolicyRepository_ListTenantUserPolicies_Call {
 	_c.Call.Return(run)
 	return _c
 }

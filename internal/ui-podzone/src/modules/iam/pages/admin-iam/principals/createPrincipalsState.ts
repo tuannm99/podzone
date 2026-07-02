@@ -1,23 +1,20 @@
-import { createSignal } from 'solid-js'
-import type {
-  PermissionBoundary,
-  PolicyInfo,
-  UserInlinePolicy,
+import { createSignal, type Accessor } from 'solid-js'
+import {
+  listPlatformUserInlinePolicies,
+  listPlatformUserPolicies,
+  listTenantUserInlinePolicies,
+  listTenantUserPolicies,
+  type PermissionBoundary,
+  type PolicyInfo,
+  type UserInlinePolicy,
 } from '@/services/iam'
+import { createPaginatedResource } from '@/solid/pagination'
 import { prettyJSON } from '../presentation'
 
-export function createPrincipalsState(userID: number) {
-  const [platformUserPolicies, setPlatformUserPolicies] = createSignal<
-    PolicyInfo[]
-  >([])
-  const [tenantUserPolicies, setTenantUserPolicies] = createSignal<
-    PolicyInfo[]
-  >([])
-  const [platformUserInlinePolicies, setPlatformUserInlinePolicies] =
-    createSignal<UserInlinePolicy[]>([])
-  const [tenantUserInlinePolicies, setTenantUserInlinePolicies] = createSignal<
-    UserInlinePolicy[]
-  >([])
+export function createPrincipalsState(
+  userID: number,
+  enabled: Accessor<boolean>
+) {
   const [platformUserBoundary, setPlatformUserBoundary] =
     createSignal<PermissionBoundary | null>(null)
   const [tenantUserBoundary, setTenantUserBoundary] =
@@ -30,6 +27,58 @@ export function createPrincipalsState(userID: number) {
   )
   const [principalTenantId, setPrincipalTenantId] = createSignal('')
   const [principalTenantUserId, setPrincipalTenantUserId] = createSignal('')
+  const platformUserID = () =>
+    Number.parseInt(principalPlatformUserId().trim(), 10)
+  const tenantUserID = () => Number.parseInt(principalTenantUserId().trim(), 10)
+  const collectionEnabled = () =>
+    enabled() &&
+    (principalMode() === 'platform'
+      ? Number.isFinite(platformUserID()) && platformUserID() > 0
+      : principalTenantId().trim().length > 0 &&
+        Number.isFinite(tenantUserID()) &&
+        tenantUserID() > 0)
+  const managedPolicies = createPaginatedResource<PolicyInfo>(
+    {
+      page: 1,
+      pageSize: 10,
+      sortBy: 'createdAt',
+      sortDirection: 'SORT_DIRECTION_DESC',
+    },
+    async (query) => {
+      const result =
+        principalMode() === 'platform'
+          ? await listPlatformUserPolicies(platformUserID(), query)
+          : await listTenantUserPolicies(
+              principalTenantId().trim(),
+              tenantUserID(),
+              query
+            )
+      if (!result.success) throw new Error(result.message)
+      return result.data
+    },
+    { enabled: collectionEnabled }
+  )
+  const inlinePolicies = createPaginatedResource<UserInlinePolicy>(
+    {
+      page: 1,
+      pageSize: 10,
+      sortBy: 'createdAt',
+      sortDirection: 'SORT_DIRECTION_DESC',
+    },
+    async (query) => {
+      const result =
+        principalMode() === 'platform'
+          ? await listPlatformUserInlinePolicies(platformUserID(), query)
+          : await listTenantUserInlinePolicies(
+              principalTenantId().trim(),
+              tenantUserID(),
+              query
+            )
+      if (!result.success) throw new Error(result.message)
+      return result.data
+    },
+    { enabled: collectionEnabled }
+  )
   const [principalManagedPolicyName, setPrincipalManagedPolicyName] =
     createSignal('')
   const [principalBoundaryPolicyName, setPrincipalBoundaryPolicyName] =
@@ -53,14 +102,22 @@ export function createPrincipalsState(userID: number) {
     )
 
   return {
-    platformUserPolicies,
-    setPlatformUserPolicies,
-    tenantUserPolicies,
-    setTenantUserPolicies,
-    platformUserInlinePolicies,
-    setPlatformUserInlinePolicies,
-    tenantUserInlinePolicies,
-    setTenantUserInlinePolicies,
+    principalManagedPolicies: managedPolicies.items,
+    principalManagedPoliciesQuery: managedPolicies.query,
+    principalManagedPoliciesPageInfo: managedPolicies.pageInfo,
+    principalManagedPoliciesLoading: managedPolicies.loading,
+    principalManagedPoliciesError: managedPolicies.error,
+    updatePrincipalManagedPoliciesQuery: managedPolicies.updateQuery,
+    reloadPrincipalManagedPolicies: managedPolicies.reload,
+    clearPrincipalManagedPolicies: managedPolicies.clear,
+    principalInlinePolicies: inlinePolicies.items,
+    principalInlinePoliciesQuery: inlinePolicies.query,
+    principalInlinePoliciesPageInfo: inlinePolicies.pageInfo,
+    principalInlinePoliciesLoading: inlinePolicies.loading,
+    principalInlinePoliciesError: inlinePolicies.error,
+    updatePrincipalInlinePoliciesQuery: inlinePolicies.updateQuery,
+    reloadPrincipalInlinePolicies: inlinePolicies.reload,
+    clearPrincipalInlinePolicies: inlinePolicies.clear,
     platformUserBoundary,
     setPlatformUserBoundary,
     tenantUserBoundary,

@@ -14,7 +14,7 @@ export function createAdminIamState(userID: number) {
     ...createPoliciesState(shell.allowed),
     ...createGroupsState(shell.allowed),
     ...createAssignmentsState(userID),
-    ...createPrincipalsState(userID),
+    ...createPrincipalsState(userID, shell.allowed),
     ...createTrustSimulationState(userID),
   }
 }

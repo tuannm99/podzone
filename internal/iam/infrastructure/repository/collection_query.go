@@ -1,10 +1,12 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/jmoiron/sqlx"
 	"github.com/tuannm99/podzone/pkg/collection"
 )
 
@@ -41,6 +43,103 @@ var groupCollectionColumns = map[string]collectionColumn{
 	"isSystem":    {sql: "is_system"},
 	"createdAt":   {sql: "created_at"},
 	"updatedAt":   {sql: "updated_at"},
+}
+
+var policyVersionCollectionColumns = map[string]collectionColumn{
+	"id":        {sql: "pv.id"},
+	"version":   {sql: "pv.version", text: true},
+	"isDefault": {sql: "pv.is_default"},
+	"createdAt": {sql: "pv.created_at"},
+}
+
+var managedPolicyCollectionColumns = map[string]collectionColumn{
+	"id":             {sql: "p.id"},
+	"scope":          {sql: "p.scope", text: true},
+	"name":           {sql: "p.name", text: true},
+	"description":    {sql: "p.description", text: true},
+	"isSystem":       {sql: "p.is_system"},
+	"defaultVersion": {sql: "p.default_version", text: true},
+	"createdAt":      {sql: "p.created_at"},
+	"updatedAt":      {sql: "p.updated_at"},
+}
+
+var groupMemberCollectionColumns = map[string]collectionColumn{
+	"userId":    {sql: "gm.user_id"},
+	"createdAt": {sql: "gm.created_at"},
+}
+
+var inlinePolicyCollectionColumns = map[string]collectionColumn{
+	"name":        {sql: "ip.name", text: true},
+	"description": {sql: "ip.description", text: true},
+	"createdAt":   {sql: "ip.created_at"},
+	"updatedAt":   {sql: "ip.updated_at"},
+}
+
+var policyAttachmentCollectionColumns = map[string]collectionColumn{
+	"attachmentType": {sql: "attachment_type", text: true},
+	"scope":          {sql: "scope", text: true},
+	"tenantId":       {sql: "tenant_id", text: true},
+	"roleId":         {sql: "role_id"},
+	"roleName":       {sql: "role_name", text: true},
+	"userId":         {sql: "user_id"},
+	"groupId":        {sql: "group_id"},
+	"groupName":      {sql: "group_name", text: true},
+	"createdAt":      {sql: "created_at"},
+}
+
+func listIAMCollectionModels[M any](
+	ctx context.Context,
+	db *sqlx.DB,
+	query collection.Query,
+	from string,
+	selectColumns []string,
+	fixedWhere []sq.Sqlizer,
+	columns map[string]collectionColumn,
+	searchColumns []string,
+	defaultSort string,
+	stableSort string,
+) (collection.Page[M], error) {
+	normalized, dynamicWhere, orderBy, err := buildIAMCollectionQuery(
+		query,
+		columns,
+		searchColumns,
+		defaultSort,
+	)
+	if err != nil {
+		return collection.Page[M]{}, err
+	}
+	where := append(append([]sq.Sqlizer{}, fixedWhere...), dynamicWhere...)
+	countBuilder := sq.Select("COUNT(*)").From(from)
+	for _, predicate := range where {
+		countBuilder = countBuilder.Where(predicate)
+	}
+	countSQL, countArgs, err := countBuilder.PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		return collection.Page[M]{}, err
+	}
+	var total int64
+	if err := db.GetContext(ctx, &total, countSQL, countArgs...); err != nil {
+		return collection.Page[M]{}, err
+	}
+
+	listBuilder := sq.Select(selectColumns...).From(from)
+	for _, predicate := range where {
+		listBuilder = listBuilder.Where(predicate)
+	}
+	listSQL, listArgs, err := listBuilder.
+		OrderBy(orderBy, stableSort).
+		Limit(uint64(normalized.PageSize)).
+		Offset(uint64(normalized.Offset())).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return collection.Page[M]{}, err
+	}
+	var rows []M
+	if err := db.SelectContext(ctx, &rows, listSQL, listArgs...); err != nil {
+		return collection.Page[M]{}, err
+	}
+	return collection.NewPage(rows, total, normalized), nil
 }
 
 func buildIAMCollectionQuery(

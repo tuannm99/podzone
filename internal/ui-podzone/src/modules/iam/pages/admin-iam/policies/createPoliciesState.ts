@@ -1,10 +1,12 @@
 import { createSignal, type Accessor } from 'solid-js'
-import type {
-  PolicyAttachmentInfo,
-  PolicyInfo,
-  PolicyVersionInfo,
+import {
+  listPolicies,
+  listPolicyAttachments,
+  listPolicyVersions,
+  type PolicyAttachmentInfo,
+  type PolicyInfo,
+  type PolicyVersionInfo,
 } from '@/services/iam'
-import { listPolicies } from '@/services/iam'
 import { createPaginatedResource } from '@/solid/pagination'
 import { prettyJSON } from '../presentation'
 
@@ -24,13 +26,41 @@ export function createPoliciesState(enabled: Accessor<boolean>) {
     { enabled }
   )
   const [selectedPolicyName, setSelectedPolicyName] = createSignal('')
-  const [policyDetail, setPolicyDetail] = createSignal<PolicyInfo>()
-  const [policyVersions, setPolicyVersions] = createSignal<PolicyVersionInfo[]>(
-    []
+  const versions = createPaginatedResource<PolicyVersionInfo>(
+    {
+      page: 1,
+      pageSize: 10,
+      sortBy: 'createdAt',
+      sortDirection: 'SORT_DIRECTION_DESC',
+    },
+    async (query) => {
+      const result = await listPolicyVersions(
+        selectedPolicyName().trim(),
+        query
+      )
+      if (!result.success) throw new Error(result.message)
+      return result.data
+    },
+    { enabled: () => enabled() && selectedPolicyName().trim().length > 0 }
   )
-  const [policyAttachments, setPolicyAttachments] = createSignal<
-    PolicyAttachmentInfo[]
-  >([])
+  const attachments = createPaginatedResource<PolicyAttachmentInfo>(
+    {
+      page: 1,
+      pageSize: 10,
+      sortBy: 'createdAt',
+      sortDirection: 'SORT_DIRECTION_DESC',
+    },
+    async (query) => {
+      const result = await listPolicyAttachments(
+        selectedPolicyName().trim(),
+        query
+      )
+      if (!result.success) throw new Error(result.message)
+      return result.data
+    },
+    { enabled: () => enabled() && selectedPolicyName().trim().length > 0 }
+  )
+  const [policyDetail, setPolicyDetail] = createSignal<PolicyInfo>()
   const [policyScope, setPolicyScope] = createSignal('platform')
   const [policyName, setPolicyName] = createSignal('')
   const [policyDescription, setPolicyDescription] = createSignal('')
@@ -72,10 +102,22 @@ export function createPoliciesState(enabled: Accessor<boolean>) {
     setSelectedPolicyName,
     policyDetail,
     setPolicyDetail,
-    policyVersions,
-    setPolicyVersions,
-    policyAttachments,
-    setPolicyAttachments,
+    policyVersions: versions.items,
+    policyVersionsQuery: versions.query,
+    policyVersionsPageInfo: versions.pageInfo,
+    policyVersionsLoading: versions.loading,
+    policyVersionsError: versions.error,
+    updatePolicyVersionsQuery: versions.updateQuery,
+    reloadPolicyVersions: versions.reload,
+    clearPolicyVersions: versions.clear,
+    policyAttachments: attachments.items,
+    policyAttachmentsQuery: attachments.query,
+    policyAttachmentsPageInfo: attachments.pageInfo,
+    policyAttachmentsLoading: attachments.loading,
+    policyAttachmentsError: attachments.error,
+    updatePolicyAttachmentsQuery: attachments.updateQuery,
+    reloadPolicyAttachments: attachments.reload,
+    clearPolicyAttachments: attachments.clear,
     policyScope,
     setPolicyScope,
     policyName,

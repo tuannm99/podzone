@@ -5,6 +5,7 @@ import type {
   PolicyInfo,
   UserInlinePolicy,
 } from '@/services/iam'
+import type { CollectionQuery, PageInfo } from '@/services/collection'
 import type {
   PrincipalBoundaryFormValues,
   PrincipalInlinePolicyFormValues,
@@ -36,6 +37,11 @@ export type AdminIamPrincipalContextValue = {
   ) => Promise<void>
   handleAttachPrincipalManagedPolicy: () => Promise<void>
   currentManagedPolicies: Accessor<PolicyInfo[]>
+  managedPoliciesQuery: CollectionQuery
+  managedPoliciesPageInfo: Accessor<PageInfo>
+  managedPoliciesLoading: Accessor<boolean>
+  managedPoliciesError: Accessor<string>
+  updateManagedPoliciesQuery: (patch: Partial<CollectionQuery>) => void
   handleDetachPrincipalManagedPolicy: (policyName: string) => Promise<void>
   principalBoundaryPolicyName: Accessor<string>
   setPrincipalBoundaryPolicyName: Setter<string>
@@ -56,6 +62,11 @@ export type AdminIamPrincipalContextValue = {
   ) => Promise<void>
   handleSavePrincipalInlinePolicy: () => Promise<void>
   currentInlinePolicies: Accessor<UserInlinePolicy[]>
+  inlinePoliciesQuery: CollectionQuery
+  inlinePoliciesPageInfo: Accessor<PageInfo>
+  inlinePoliciesLoading: Accessor<boolean>
+  inlinePoliciesError: Accessor<string>
+  updateInlinePoliciesQuery: (patch: Partial<CollectionQuery>) => void
   handleDeletePrincipalInlinePolicy: (name: string) => Promise<void>
 }
 

@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	entity "github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 func TestIAMService_PlatformUserInlinePolicyAffectsPermission(t *testing.T) {
@@ -97,16 +98,16 @@ func TestIAMService_AttachAndListDirectPolicies(t *testing.T) {
 	state.policiesByID[6] = state.policiesByName["tenant/custom"]
 
 	require.NoError(t, svc.AttachPlatformUserPolicy(context.Background(), 21, "managed/platform_owner"))
-	platformPolicies, err := svc.ListPlatformUserPolicies(context.Background(), 21)
+	platformPolicies, err := svc.ListPlatformUserPolicies(context.Background(), 21, collection.Query{})
 	require.NoError(t, err)
-	require.Len(t, platformPolicies, 1)
-	require.Equal(t, "managed/platform_owner", platformPolicies[0].Name)
+	require.Len(t, platformPolicies.Items, 1)
+	require.Equal(t, "managed/platform_owner", platformPolicies.Items[0].Name)
 
 	require.NoError(t, svc.AttachTenantUserPolicy(context.Background(), "t1", 21, "tenant/custom"))
-	tenantPolicies, err := svc.ListTenantUserPolicies(context.Background(), "t1", 21)
+	tenantPolicies, err := svc.ListTenantUserPolicies(context.Background(), "t1", 21, collection.Query{})
 	require.NoError(t, err)
-	require.Len(t, tenantPolicies, 1)
-	require.Equal(t, "tenant/custom", tenantPolicies[0].Name)
+	require.Len(t, tenantPolicies.Items, 1)
+	require.Equal(t, "tenant/custom", tenantPolicies.Items[0].Name)
 	require.Len(t, state.outboxRecords, 2)
 	require.Equal(t, "policy.attached", state.outboxRecords[0].Envelope.Type)
 	require.Equal(t, "policy.attached", state.outboxRecords[1].Envelope.Type)

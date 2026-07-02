@@ -83,13 +83,23 @@ export async function addGroupMember(
 }
 
 export async function listGroupMembers(
-  groupId: number
-): Promise<IamResult<number[]>> {
+  groupId: number,
+  query: CollectionQuery
+): Promise<IamResult<CollectionPage<number>>> {
   try {
-    const { data } = await http.get<{ userIds?: number[] }>(
-      `/auth/v1/iam/groups/${groupId}/members`
-    )
-    return { success: true, data: data.userIds || [] }
+    const { data } = await http.get<{
+      userIds?: number[]
+      pageInfo?: WirePageInfo
+    }>(`/auth/v1/iam/groups/${groupId}/members`, {
+      params: toCollectionParams(query),
+    })
+    return {
+      success: true,
+      data: {
+        items: data.userIds || [],
+        pageInfo: normalizePageInfo(data.pageInfo, query),
+      },
+    }
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to load group members')
   }
@@ -123,13 +133,23 @@ export async function attachGroupPolicy(
 }
 
 export async function listGroupPolicies(
-  groupId: number
-): Promise<IamResult<PolicyInfo[]>> {
+  groupId: number,
+  query: CollectionQuery
+): Promise<IamResult<CollectionPage<PolicyInfo>>> {
   try {
-    const { data } = await http.get<{ policies?: PolicyInfo[] }>(
-      `/auth/v1/iam/groups/${groupId}/policies`
-    )
-    return { success: true, data: data.policies || [] }
+    const { data } = await http.get<{
+      policies?: PolicyInfo[]
+      pageInfo?: WirePageInfo
+    }>(`/auth/v1/iam/groups/${groupId}/policies`, {
+      params: toCollectionParams(query),
+    })
+    return {
+      success: true,
+      data: {
+        items: data.policies || [],
+        pageInfo: normalizePageInfo(data.pageInfo, query),
+      },
+    }
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to load group policies')
   }
@@ -148,13 +168,23 @@ export async function detachGroupPolicy(
 }
 
 export async function listGroupInlinePolicies(
-  groupId: number
-): Promise<IamResult<GroupInlinePolicy[]>> {
+  groupId: number,
+  query: CollectionQuery
+): Promise<IamResult<CollectionPage<GroupInlinePolicy>>> {
   try {
-    const { data } = await http.get<{ policies?: GroupInlinePolicy[] }>(
-      `/auth/v1/iam/groups/${groupId}/inline-policies`
-    )
-    return { success: true, data: data.policies || [] }
+    const { data } = await http.get<{
+      policies?: GroupInlinePolicy[]
+      pageInfo?: WirePageInfo
+    }>(`/auth/v1/iam/groups/${groupId}/inline-policies`, {
+      params: toCollectionParams(query),
+    })
+    return {
+      success: true,
+      data: {
+        items: data.policies || [],
+        pageInfo: normalizePageInfo(data.pageInfo, query),
+      },
+    }
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to load group inline policies')
   }
