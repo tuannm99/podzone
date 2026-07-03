@@ -8,6 +8,7 @@ import (
 
 	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/entity"
 	storeoutputport "github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/outputport"
+	"github.com/tuannm99/podzone/pkg/collection"
 	"github.com/tuannm99/podzone/pkg/messaging"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -301,43 +302,36 @@ func (s *MongoStore) Get(
 func (s *MongoStore) ListConnections(
 	ctx context.Context,
 	tenantID string,
-	infraType entity.InfraType,
 	includeDeleted bool,
-	limit, offset int,
-) ([]entity.ConnectionInfo, error) {
+	query collection.Query,
+) (collection.Page[entity.ConnectionInfo], error) {
 	ctx, cancel := context.WithTimeout(ctx, 8*time.Second)
 	defer cancel()
 
-	if limit <= 0 {
-		limit = 50
+	normalized, filter, sort, err := buildConnectionCollection(tenantID, includeDeleted, query)
+	if err != nil {
+		return collection.Page[entity.ConnectionInfo]{}, err
 	}
-	if offset < 0 {
-		offset = 0
-	}
-
-	filter := bson.M{"tenant_id": tenantID}
-	if infraType != "" {
-		filter["infra_type"] = string(infraType)
-	}
-	if !includeDeleted {
-		filter["deleted_at"] = bson.M{"$eq": nil}
+	total, err := s.connCol.CountDocuments(ctx, filter)
+	if err != nil {
+		return collection.Page[entity.ConnectionInfo]{}, err
 	}
 
-	cur, err := s.connCol.Find(
+	cursor, err := s.connCol.Find(
 		ctx,
 		filter,
 		options.Find().
-			SetSort(bson.D{{Key: "updated_at", Value: -1}}).
-			SetSkip(int64(offset)).
-			SetLimit(int64(limit)),
+			SetSort(sort).
+			SetSkip(int64(normalized.Offset())).
+			SetLimit(int64(normalized.PageSize)),
 	)
 	if err != nil {
-		return nil, err
+		return collection.Page[entity.ConnectionInfo]{}, err
 	}
-	defer cur.Close(ctx)
+	defer cursor.Close(ctx)
 
-	out := make([]entity.ConnectionInfo, 0, limit)
-	for cur.Next(ctx) {
+	out := make([]entity.ConnectionInfo, 0, normalized.PageSize)
+	for cursor.Next(ctx) {
 		var doc struct {
 			TenantID  string                 `bson:"tenant_id"`
 			InfraType string                 `bson:"infra_type"`
@@ -352,8 +346,8 @@ func (s *MongoStore) ListConnections(
 			UpdatedAt time.Time              `bson:"updated_at"`
 			DeletedAt *time.Time             `bson:"deleted_at,omitempty"`
 		}
-		if err := cur.Decode(&doc); err != nil {
-			return nil, err
+		if err := cursor.Decode(&doc); err != nil {
+			return collection.Page[entity.ConnectionInfo]{}, err
 		}
 		out = append(out, entity.ConnectionInfo{
 			TenantID:  doc.TenantID,
@@ -370,53 +364,44 @@ func (s *MongoStore) ListConnections(
 			DeletedAt: doc.DeletedAt,
 		})
 	}
-	return out, cur.Err()
+	if err := cursor.Err(); err != nil {
+		return collection.Page[entity.ConnectionInfo]{}, err
+	}
+	return collection.NewPage(out, total, normalized), nil
 }
 
 func (s *MongoStore) ListEvents(
 	ctx context.Context,
 	tenantID string,
-	infraType entity.InfraType,
-	name string,
-	correlationID string,
-	limit, offset int,
-) ([]entity.ConnectionEvent, error) {
+	query collection.Query,
+) (collection.Page[entity.ConnectionEvent], error) {
 	ctx, cancel := context.WithTimeout(ctx, 8*time.Second)
 	defer cancel()
 
-	if limit <= 0 {
-		limit = 50
+	normalized, filter, sort, err := buildEventCollection(tenantID, query)
+	if err != nil {
+		return collection.Page[entity.ConnectionEvent]{}, err
 	}
-	if offset < 0 {
-		offset = 0
-	}
-
-	filter := bson.M{"tenant_id": tenantID}
-	if infraType != "" {
-		filter["infra_type"] = string(infraType)
-	}
-	if name != "" {
-		filter["name"] = name
-	}
-	if correlationID != "" {
-		filter["correlation_id"] = correlationID
+	total, err := s.eventCol.CountDocuments(ctx, filter)
+	if err != nil {
+		return collection.Page[entity.ConnectionEvent]{}, err
 	}
 
-	cur, err := s.eventCol.Find(
+	cursor, err := s.eventCol.Find(
 		ctx,
 		filter,
 		options.Find().
-			SetSort(bson.D{{Key: "created_at", Value: -1}}).
-			SetSkip(int64(offset)).
-			SetLimit(int64(limit)),
+			SetSort(sort).
+			SetSkip(int64(normalized.Offset())).
+			SetLimit(int64(normalized.PageSize)),
 	)
 	if err != nil {
-		return nil, err
+		return collection.Page[entity.ConnectionEvent]{}, err
 	}
-	defer cur.Close(ctx)
+	defer cursor.Close(ctx)
 
-	out := make([]entity.ConnectionEvent, 0, limit)
-	for cur.Next(ctx) {
+	out := make([]entity.ConnectionEvent, 0, normalized.PageSize)
+	for cursor.Next(ctx) {
 		var doc struct {
 			ID            string                 `bson:"id"`
 			CorrelationID string                 `bson:"correlation_id"`
@@ -431,8 +416,8 @@ func (s *MongoStore) ListEvents(
 			Actor         map[string]string      `bson:"actor"`
 			CreatedAt     time.Time              `bson:"created_at"`
 		}
-		if err := cur.Decode(&doc); err != nil {
-			return nil, err
+		if err := cursor.Decode(&doc); err != nil {
+			return collection.Page[entity.ConnectionEvent]{}, err
 		}
 		out = append(out, entity.ConnectionEvent{
 			ID:            doc.ID,
@@ -449,7 +434,10 @@ func (s *MongoStore) ListEvents(
 			CreatedAt:     doc.CreatedAt,
 		})
 	}
-	return out, cur.Err()
+	if err := cursor.Err(); err != nil {
+		return collection.Page[entity.ConnectionEvent]{}, err
+	}
+	return collection.NewPage(out, total, normalized), nil
 }
 
 func (s *MongoStore) AppendEvent(ctx context.Context, ev entity.ConnectionEvent) error {

@@ -10,6 +10,7 @@ import (
 	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/entity"
 	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/inputport"
 	coremocks "github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/outputport/mocks"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type connectionStoreState struct {
@@ -56,12 +57,12 @@ func newConnectionStoreMock(t *testing.T, state *connectionStoreState) *coremock
 		}).
 		Maybe()
 	store.EXPECT().
-		ListConnections(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-		Return([]entity.ConnectionInfo(nil), nil).
+		ListConnections(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		Return(collection.Page[entity.ConnectionInfo]{}, nil).
 		Maybe()
 	store.EXPECT().
-		ListEvents(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-		Return([]entity.ConnectionEvent(nil), nil).
+		ListEvents(mock.Anything, mock.Anything, mock.Anything).
+		Return(collection.Page[entity.ConnectionEvent]{}, nil).
 		Maybe()
 	store.EXPECT().
 		AppendEvent(mock.Anything, mock.Anything).

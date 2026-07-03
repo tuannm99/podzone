@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type ConnectionStore interface {
@@ -15,18 +16,14 @@ type ConnectionStore interface {
 	ListConnections(
 		ctx context.Context,
 		tenantID string,
-		infraType entity.InfraType,
 		includeDeleted bool,
-		limit, offset int,
-	) ([]entity.ConnectionInfo, error)
+		query collection.Query,
+	) (collection.Page[entity.ConnectionInfo], error)
 	ListEvents(
 		ctx context.Context,
 		tenantID string,
-		infraType entity.InfraType,
-		name string,
-		correlationID string,
-		limit, offset int,
-	) ([]entity.ConnectionEvent, error)
+		query collection.Query,
+	) (collection.Page[entity.ConnectionEvent], error)
 	AppendEvent(ctx context.Context, ev entity.ConnectionEvent) error
 	EnqueueOutbox(ctx context.Context, msg entity.OutboxMessage) error
 	FindDueOutbox(ctx context.Context, limit int) ([]entity.OutboxMessage, error)

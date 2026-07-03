@@ -41,6 +41,10 @@ Use this guide when changing Go code in this repo.
 - Do not import another service's interactor/domain directly. Cross-service calls must go through:
   - gRPC client adapters
   - Kafka events / projections
+- Frontends must not call IAM permission-check endpoints as authorization
+  probes. Every business service owns authorization at its inbound boundary and
+  delegates policy evaluation to IAM over gRPC. Forward the caller credential
+  metadata and return permission/resource details in transport errors.
 
 ## DDD + Clean Architecture
 

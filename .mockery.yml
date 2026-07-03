@@ -159,6 +159,7 @@ packages:
     config:
       dir: internal/onboarding/domain/infrasmanager/outputport/mocks
     interfaces:
+      AccessAuthorizer:
       ConnectionStore:
       PlacementPlanner:
       StorageProvisioner:

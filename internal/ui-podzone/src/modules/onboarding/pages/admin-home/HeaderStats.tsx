@@ -1,11 +1,7 @@
 import { Show } from 'solid-js'
 import { storeStorage } from '@/services/storeStorage'
 import { tokenStorage } from '@/services/tokenStorage'
-import {
-  ErrorAlert,
-  InfoAlert,
-  LoadingInline,
-} from '@/solid/components/common/Feedback'
+import { ErrorAlert, InfoAlert } from '@/solid/components/common/Feedback'
 import { Button, Card } from '@/solid/components/common/Primitives'
 import { SectionLead } from '@/solid/components/common/SectionLead'
 import { StatCard } from '@/solid/components/dashboard/StatCard'
@@ -27,12 +23,6 @@ export function HeaderStats() {
             Open IAM console
           </Button>
         </div>
-        <Show when={!vm.canManagePlatformIAM()}>
-          <InfoAlert>
-            Platform IAM is available only for platform admins. This session can
-            still manage workspace and store access.
-          </InfoAlert>
-        </Show>
       </Card>
 
       <Show when={vm.tenantError()}>
@@ -83,10 +73,6 @@ export function HeaderStats() {
           )}
         />
       </div>
-
-      <Show when={vm.checkingPlatformAccess()}>
-        <LoadingInline label="Checking workspace creation access..." />
-      </Show>
     </>
   )
 }

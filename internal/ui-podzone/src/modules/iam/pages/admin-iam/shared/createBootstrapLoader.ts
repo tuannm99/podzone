@@ -1,4 +1,4 @@
-import { checkPlatformPermission, listUserTenants } from '@/services/iam'
+import { listUserTenants } from '@/services/iam'
 import type { AdminIamState } from '../createAdminIamState'
 
 export function createBootstrapLoader(state: AdminIamState, userID: number) {
@@ -8,19 +8,7 @@ export function createBootstrapLoader(state: AdminIamState, userID: number) {
     const currentRequest = ++requestID
     state.setLoading(true)
     state.setPageError('')
-    const permission = await checkPlatformPermission('platform:manage_roles')
-    if (currentRequest !== requestID) return
-    if (!permission.success) {
-      state.setLoading(false)
-      state.setPageError(permission.message)
-      return
-    }
-    state.setAllowed(permission.data)
-    if (!permission.data) {
-      state.setLoading(false)
-      state.setPageError('Missing permission: platform:manage_roles')
-      return
-    }
+    state.setAllowed(true)
 
     const tenantResult = await listUserTenants(userID)
     if (currentRequest !== requestID) return

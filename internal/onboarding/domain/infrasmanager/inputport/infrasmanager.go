@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type UpsertConnectionRequest struct {
@@ -68,7 +69,8 @@ type Connection struct {
 }
 
 type ListConnectionsResponse struct {
-	Items []Connection `json:"items"`
+	Items    []Connection        `json:"items"`
+	PageInfo collection.PageInfo `json:"pageInfo"`
 }
 
 type ConnectionEvent struct {
@@ -87,7 +89,8 @@ type ConnectionEvent struct {
 }
 
 type ListEventsResponse struct {
-	Items []ConnectionEvent `json:"items"`
+	Items    []ConnectionEvent   `json:"items"`
+	PageInfo collection.PageInfo `json:"pageInfo"`
 }
 
 type Usecase interface {
@@ -120,16 +123,12 @@ type Usecase interface {
 	ListConnections(
 		ctx context.Context,
 		tenantID string,
-		infraType entity.InfraType,
 		includeDeleted bool,
-		limit, offset int,
-	) ([]Connection, error)
+		query collection.Query,
+	) (collection.Page[Connection], error)
 	ListEvents(
 		ctx context.Context,
 		tenantID string,
-		infraType entity.InfraType,
-		name string,
-		correlationID string,
-		limit, offset int,
-	) ([]ConnectionEvent, error)
+		query collection.Query,
+	) (collection.Page[ConnectionEvent], error)
 }

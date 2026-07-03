@@ -74,11 +74,7 @@ export {
   upsertPlatformRole,
   removePlatformRole,
 } from './iam/roles'
-export {
-  simulateAccess,
-  checkPermission,
-  checkPlatformPermission,
-} from './iam/permissions'
+export { simulateAccess } from './iam/permissions'
 export type {
   TenantMembership,
   IamResult,
@@ -111,7 +107,6 @@ export type {
   CreateOrganizationResult,
   PlatformRoleMembership,
   TenantInvite,
-  CheckPermissionPayload,
   UpsertPlatformRolePayload,
   CreateTenantInvitePayload,
 } from './iam/types'

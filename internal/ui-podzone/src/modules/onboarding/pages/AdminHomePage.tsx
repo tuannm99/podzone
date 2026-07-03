@@ -8,7 +8,6 @@ import {
 } from 'solid-js'
 import { ensureActiveTenant } from '@/services/auth'
 import {
-  checkPlatformPermission,
   createTenant,
   listUserTenants,
   type TenantMembership,
@@ -80,44 +79,9 @@ export function createAdminHomeViewModel() {
     workspaceDataResource.error instanceof Error
       ? workspaceDataResource.error.message
       : ''
-  const [platformAccessResource, { refetch: refetchPlatformAccess }] =
-    createResource(
-      () =>
-        userID && workspaceDataResource() !== undefined
-          ? `${userID}:${memberships().length === 0}`
-          : undefined,
-      async () => {
-        if (memberships().length === 0) {
-          return { canCreateTenant: true, canManagePlatformIAM: false }
-        }
-        const [tenantResult, iamResult] = await Promise.all([
-          checkPlatformPermission('tenant:create'),
-          checkPlatformPermission('platform:manage_roles'),
-        ])
-        if (!tenantResult.success) throw new Error(tenantResult.message)
-        return {
-          canCreateTenant: tenantResult.data,
-          canManagePlatformIAM: iamResult.success ? iamResult.data : false,
-        }
-      }
-    )
-  const canCreateTenant = () =>
-    platformAccessResource()?.canCreateTenant || false
-  const canManagePlatformIAM = () =>
-    platformAccessResource()?.canManagePlatformIAM || false
-  const checkingPlatformAccess = () => platformAccessResource.loading
-  const tenantError = () =>
-    tenantMutationError() ||
-    workspaceReadError() ||
-    (platformAccessResource.error instanceof Error
-      ? platformAccessResource.error.message
-      : '')
+  const tenantError = () => tenantMutationError() || workspaceReadError()
   const activeMemberships = () =>
     memberships().filter((membership) => membership.status === 'active')
-  const canBootstrapFirstWorkspace = () =>
-    !!userID &&
-    workspaceDataResource() !== undefined &&
-    memberships().length === 0
   const activeWorkspaceSummaries = () =>
     workspaceSummaries().filter((workspace) => workspace.status === 'active')
   const selectedWorkspace = () =>
@@ -183,11 +147,6 @@ export function createAdminHomeViewModel() {
   const loadMemberships = async () => {
     if (!userID) return
     await refetchWorkspaceData()
-  }
-
-  const loadPlatformAccess = async () => {
-    if (!userID) return
-    await refetchPlatformAccess()
   }
 
   const openStore = async (nextTenantID: string, nextStoreID: string) => {
@@ -322,11 +281,6 @@ export function createAdminHomeViewModel() {
       setTenantError('No signed-in account found.')
       return false
     }
-    if (!canCreateTenant() && !canBootstrapFirstWorkspace()) {
-      setTenantError('Your account cannot create another workspace yet.')
-      return false
-    }
-
     const normalizedName = values.name.trim()
     const normalizedSlug = slugify(values.slug || normalizedName)
     if (!normalizedName || !normalizedSlug) {
@@ -360,7 +314,6 @@ export function createAdminHomeViewModel() {
           : `Created workspace ${createdSlug}.`
       )
       await loadMemberships()
-      await loadPlatformAccess()
       return true
     } finally {
       setCreatingTenant(false)
@@ -415,12 +368,9 @@ export function createAdminHomeViewModel() {
     storeNameByTenant,
     loadingTenants,
     loadingAttention,
-    checkingPlatformAccess,
     memberships,
     workspaceSummaries,
     storeAttention,
-    canCreateTenant,
-    canManagePlatformIAM,
     selectedWorkspaceId,
     setSelectedWorkspaceId,
     selectedStoreId,
@@ -430,7 +380,6 @@ export function createAdminHomeViewModel() {
     storeRequests,
     storeRequestsError: storeCollections.requestsError,
     activeMemberships,
-    canBootstrapFirstWorkspace,
     activeWorkspaceSummaries,
     selectedWorkspace,
     selectedWorkspaceOptions,

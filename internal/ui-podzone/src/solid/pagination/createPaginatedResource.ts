@@ -35,6 +35,8 @@ export function createPaginatedResource<T>(
   const pageInfo = () =>
     resource.latest?.pageInfo || emptyPageInfo({ ...query })
   const loading = () => resource.loading
+  const resolved = () =>
+    resource.state === 'ready' || resource.state === 'refreshing'
   const error = () =>
     resource.error instanceof Error ? resource.error.message : ''
   const updateQuery = (patch: Partial<CollectionQuery>) => {
@@ -48,6 +50,7 @@ export function createPaginatedResource<T>(
     items,
     pageInfo,
     loading,
+    resolved,
     error,
     updateQuery,
     reload,

@@ -67,6 +67,9 @@ This document records migration work. Stable conventions live in
   explicit compatibility traversal until backend projections replace it.
 - Promoted the paginated resource owner to `solid/pagination` so Onboarding and
   Backoffice use the same resource behavior.
+- Removed direct IAM permission probes from Onboarding, Admin Settings, and the
+  IAM console. UI capabilities now come only from protected business responses;
+  backend services remain the authorization boundary.
 
 ## P0: Correctness And Safety
 
@@ -93,6 +96,20 @@ stale-response and cancellation behavior.
 Orders, store attention, and workspace summary consumers intentionally walk all
 pages until their aggregate metrics move to backend projections. Operational
 tables use backend page/search/filter/sort state directly.
+
+### Remaining Collection Contract Gaps
+
+The active UI still has three non-common read shapes:
+
+- user workspace memberships are returned as one array and feed workspace
+  selectors across Onboarding and IAM;
+- organization service-control-policy attachments are returned as one nested
+  array;
+- Product Setup returns draft and candidate arrays in one snapshot.
+
+The routed-order activity feed already has bounded cursor pagination and does
+not need offset pagination. Migrate the three array contracts before adding
+more consumers; do not replace them with client-side slicing.
 
 ### Route State Is Mostly Local
 

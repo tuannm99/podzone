@@ -50,13 +50,17 @@ export function TeamMembersList() {
         ]}
         updateQuery={access.members.updateQuery}
       />
-      <Show when={!access.canRead()}>
+      <Show when={!access.loadingAccess() && !access.canRead()}>
         <EmptyBlock
           title="No workspace access"
           copy="You do not currently have permission to inspect team access for this workspace."
         />
       </Show>
-      <Show when={access.canRead() && !access.canManage()}>
+      <Show
+        when={
+          access.canRead() && !access.loadingAccess() && !access.canManage()
+        }
+      >
         <InfoAlert>
           You can inspect this workspace, but only authorized workspace owners
           or admins can manage team access.

@@ -64,7 +64,7 @@ export function InvitesPanel() {
       <Show when={invites.message()}>
         <InfoAlert>{invites.message()}</InfoAlert>
       </Show>
-      <Show when={!access.canManage()}>
+      <Show when={!access.loadingAccess() && !access.canManage()}>
         <InfoAlert>
           Workspace invites require access to manage team permissions for this
           workspace.

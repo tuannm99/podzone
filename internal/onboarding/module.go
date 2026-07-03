@@ -46,6 +46,7 @@ var Module = fx.Options(
 	fx.Provide(
 		onboardingconfig.NewAuthConfig,
 		httphandler.NewAuthentication,
+		iamclient.NewAccessAuthorizer,
 		fx.Annotate(provideCORSMiddleware, fx.ResultTags(`group:"gin-middleware"`)),
 		fx.Annotate(
 			RegisterHTTPRoutes,
@@ -162,6 +163,9 @@ var (
 
 		// --- Domain layer ---
 		fx.Annotate(infrasmanager.NewInteractorWithParams, fx.As(new(infrasinputport.Usecase))),
+		func(authorizer *iamclient.AccessAuthorizer) infrasoutputport.AccessAuthorizer {
+			return authorizer
+		},
 
 		// --- HTTP handler layer ---
 		fx.Annotate(
@@ -175,7 +179,9 @@ var (
 		// --- Infrastructure layer ---
 		onboardingconfig.NewStoreProvisioningConfig,
 		onboardingconfig.NewStoreProvisioningDomainConfig,
-		fx.Annotate(iamclient.NewAccessAuthorizer, fx.As(new(storeoutputport.AccessAuthorizer))),
+		func(authorizer *iamclient.AccessAuthorizer) storeoutputport.AccessAuthorizer {
+			return authorizer
+		},
 		fx.Annotate(
 			backofficeclient.NewStoreFinalizer,
 			fx.As(new(storeoutputport.OperationalStoreFinalizer)),

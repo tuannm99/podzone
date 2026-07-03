@@ -10,6 +10,7 @@ import (
 	mock "github.com/stretchr/testify/mock"
 	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/entity"
 	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/inputport"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 // NewMockUsecase creates a new instance of MockUsecase. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -17,7 +18,8 @@ import (
 func NewMockUsecase(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockUsecase {
+},
+) *MockUsecase {
 	mock := &MockUsecase{}
 	mock.Mock.Test(t)
 
@@ -342,27 +344,25 @@ func (_c *MockUsecase_IsPlacementRouteReady_Call) RunAndReturn(run func(ctx cont
 }
 
 // ListConnections provides a mock function for the type MockUsecase
-func (_mock *MockUsecase) ListConnections(ctx context.Context, tenantID string, infraType entity.InfraType, includeDeleted bool, limit int, offset int) ([]inputport.Connection, error) {
-	ret := _mock.Called(ctx, tenantID, infraType, includeDeleted, limit, offset)
+func (_mock *MockUsecase) ListConnections(ctx context.Context, tenantID string, includeDeleted bool, query collection.Query) (collection.Page[inputport.Connection], error) {
+	ret := _mock.Called(ctx, tenantID, includeDeleted, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListConnections")
 	}
 
-	var r0 []inputport.Connection
+	var r0 collection.Page[inputport.Connection]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, entity.InfraType, bool, int, int) ([]inputport.Connection, error)); ok {
-		return returnFunc(ctx, tenantID, infraType, includeDeleted, limit, offset)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, bool, collection.Query) (collection.Page[inputport.Connection], error)); ok {
+		return returnFunc(ctx, tenantID, includeDeleted, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, entity.InfraType, bool, int, int) []inputport.Connection); ok {
-		r0 = returnFunc(ctx, tenantID, infraType, includeDeleted, limit, offset)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, bool, collection.Query) collection.Page[inputport.Connection]); ok {
+		r0 = returnFunc(ctx, tenantID, includeDeleted, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]inputport.Connection)
-		}
+		r0 = ret.Get(0).(collection.Page[inputport.Connection])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, entity.InfraType, bool, int, int) error); ok {
-		r1 = returnFunc(ctx, tenantID, infraType, includeDeleted, limit, offset)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, bool, collection.Query) error); ok {
+		r1 = returnFunc(ctx, tenantID, includeDeleted, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -377,15 +377,13 @@ type MockUsecase_ListConnections_Call struct {
 // ListConnections is a helper method to define mock.On call
 //   - ctx context.Context
 //   - tenantID string
-//   - infraType entity.InfraType
 //   - includeDeleted bool
-//   - limit int
-//   - offset int
-func (_e *MockUsecase_Expecter) ListConnections(ctx interface{}, tenantID interface{}, infraType interface{}, includeDeleted interface{}, limit interface{}, offset interface{}) *MockUsecase_ListConnections_Call {
-	return &MockUsecase_ListConnections_Call{Call: _e.mock.On("ListConnections", ctx, tenantID, infraType, includeDeleted, limit, offset)}
+//   - query collection.Query
+func (_e *MockUsecase_Expecter) ListConnections(ctx interface{}, tenantID interface{}, includeDeleted interface{}, query interface{}) *MockUsecase_ListConnections_Call {
+	return &MockUsecase_ListConnections_Call{Call: _e.mock.On("ListConnections", ctx, tenantID, includeDeleted, query)}
 }
 
-func (_c *MockUsecase_ListConnections_Call) Run(run func(ctx context.Context, tenantID string, infraType entity.InfraType, includeDeleted bool, limit int, offset int)) *MockUsecase_ListConnections_Call {
+func (_c *MockUsecase_ListConnections_Call) Run(run func(ctx context.Context, tenantID string, includeDeleted bool, query collection.Query)) *MockUsecase_ListConnections_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -395,66 +393,54 @@ func (_c *MockUsecase_ListConnections_Call) Run(run func(ctx context.Context, te
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
-		var arg2 entity.InfraType
+		var arg2 bool
 		if args[2] != nil {
-			arg2 = args[2].(entity.InfraType)
+			arg2 = args[2].(bool)
 		}
-		var arg3 bool
+		var arg3 collection.Query
 		if args[3] != nil {
-			arg3 = args[3].(bool)
-		}
-		var arg4 int
-		if args[4] != nil {
-			arg4 = args[4].(int)
-		}
-		var arg5 int
-		if args[5] != nil {
-			arg5 = args[5].(int)
+			arg3 = args[3].(collection.Query)
 		}
 		run(
 			arg0,
 			arg1,
 			arg2,
 			arg3,
-			arg4,
-			arg5,
 		)
 	})
 	return _c
 }
 
-func (_c *MockUsecase_ListConnections_Call) Return(connections []inputport.Connection, err error) *MockUsecase_ListConnections_Call {
-	_c.Call.Return(connections, err)
+func (_c *MockUsecase_ListConnections_Call) Return(page collection.Page[inputport.Connection], err error) *MockUsecase_ListConnections_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockUsecase_ListConnections_Call) RunAndReturn(run func(ctx context.Context, tenantID string, infraType entity.InfraType, includeDeleted bool, limit int, offset int) ([]inputport.Connection, error)) *MockUsecase_ListConnections_Call {
+func (_c *MockUsecase_ListConnections_Call) RunAndReturn(run func(ctx context.Context, tenantID string, includeDeleted bool, query collection.Query) (collection.Page[inputport.Connection], error)) *MockUsecase_ListConnections_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListEvents provides a mock function for the type MockUsecase
-func (_mock *MockUsecase) ListEvents(ctx context.Context, tenantID string, infraType entity.InfraType, name string, correlationID string, limit int, offset int) ([]inputport.ConnectionEvent, error) {
-	ret := _mock.Called(ctx, tenantID, infraType, name, correlationID, limit, offset)
+func (_mock *MockUsecase) ListEvents(ctx context.Context, tenantID string, query collection.Query) (collection.Page[inputport.ConnectionEvent], error) {
+	ret := _mock.Called(ctx, tenantID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListEvents")
 	}
 
-	var r0 []inputport.ConnectionEvent
+	var r0 collection.Page[inputport.ConnectionEvent]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, entity.InfraType, string, string, int, int) ([]inputport.ConnectionEvent, error)); ok {
-		return returnFunc(ctx, tenantID, infraType, name, correlationID, limit, offset)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) (collection.Page[inputport.ConnectionEvent], error)); ok {
+		return returnFunc(ctx, tenantID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, entity.InfraType, string, string, int, int) []inputport.ConnectionEvent); ok {
-		r0 = returnFunc(ctx, tenantID, infraType, name, correlationID, limit, offset)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) collection.Page[inputport.ConnectionEvent]); ok {
+		r0 = returnFunc(ctx, tenantID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]inputport.ConnectionEvent)
-		}
+		r0 = ret.Get(0).(collection.Page[inputport.ConnectionEvent])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, entity.InfraType, string, string, int, int) error); ok {
-		r1 = returnFunc(ctx, tenantID, infraType, name, correlationID, limit, offset)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, collection.Query) error); ok {
+		r1 = returnFunc(ctx, tenantID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -469,16 +455,12 @@ type MockUsecase_ListEvents_Call struct {
 // ListEvents is a helper method to define mock.On call
 //   - ctx context.Context
 //   - tenantID string
-//   - infraType entity.InfraType
-//   - name string
-//   - correlationID string
-//   - limit int
-//   - offset int
-func (_e *MockUsecase_Expecter) ListEvents(ctx interface{}, tenantID interface{}, infraType interface{}, name interface{}, correlationID interface{}, limit interface{}, offset interface{}) *MockUsecase_ListEvents_Call {
-	return &MockUsecase_ListEvents_Call{Call: _e.mock.On("ListEvents", ctx, tenantID, infraType, name, correlationID, limit, offset)}
+//   - query collection.Query
+func (_e *MockUsecase_Expecter) ListEvents(ctx interface{}, tenantID interface{}, query interface{}) *MockUsecase_ListEvents_Call {
+	return &MockUsecase_ListEvents_Call{Call: _e.mock.On("ListEvents", ctx, tenantID, query)}
 }
 
-func (_c *MockUsecase_ListEvents_Call) Run(run func(ctx context.Context, tenantID string, infraType entity.InfraType, name string, correlationID string, limit int, offset int)) *MockUsecase_ListEvents_Call {
+func (_c *MockUsecase_ListEvents_Call) Run(run func(ctx context.Context, tenantID string, query collection.Query)) *MockUsecase_ListEvents_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -488,45 +470,25 @@ func (_c *MockUsecase_ListEvents_Call) Run(run func(ctx context.Context, tenantI
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
-		var arg2 entity.InfraType
+		var arg2 collection.Query
 		if args[2] != nil {
-			arg2 = args[2].(entity.InfraType)
-		}
-		var arg3 string
-		if args[3] != nil {
-			arg3 = args[3].(string)
-		}
-		var arg4 string
-		if args[4] != nil {
-			arg4 = args[4].(string)
-		}
-		var arg5 int
-		if args[5] != nil {
-			arg5 = args[5].(int)
-		}
-		var arg6 int
-		if args[6] != nil {
-			arg6 = args[6].(int)
+			arg2 = args[2].(collection.Query)
 		}
 		run(
 			arg0,
 			arg1,
 			arg2,
-			arg3,
-			arg4,
-			arg5,
-			arg6,
 		)
 	})
 	return _c
 }
 
-func (_c *MockUsecase_ListEvents_Call) Return(connectionEvents []inputport.ConnectionEvent, err error) *MockUsecase_ListEvents_Call {
-	_c.Call.Return(connectionEvents, err)
+func (_c *MockUsecase_ListEvents_Call) Return(page collection.Page[inputport.ConnectionEvent], err error) *MockUsecase_ListEvents_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockUsecase_ListEvents_Call) RunAndReturn(run func(ctx context.Context, tenantID string, infraType entity.InfraType, name string, correlationID string, limit int, offset int) ([]inputport.ConnectionEvent, error)) *MockUsecase_ListEvents_Call {
+func (_c *MockUsecase_ListEvents_Call) RunAndReturn(run func(ctx context.Context, tenantID string, query collection.Query) (collection.Page[inputport.ConnectionEvent], error)) *MockUsecase_ListEvents_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -259,12 +259,6 @@ export type TenantInvite = {
   revokedAt?: string
 }
 
-export type CheckPermissionPayload = {
-  tenantId: string
-  userId: number
-  permission: string
-}
-
 export type UpsertPlatformRolePayload = {
   targetUserId: number
   roleName: string

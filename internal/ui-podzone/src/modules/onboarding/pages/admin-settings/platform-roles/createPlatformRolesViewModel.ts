@@ -1,6 +1,5 @@
-import { createResource, createSignal } from 'solid-js'
+import { createSignal } from 'solid-js'
 import {
-  checkPlatformPermission,
   listPlatformRoles,
   removePlatformRole,
   upsertPlatformRole,
@@ -16,15 +15,6 @@ export function createPlatformRolesViewModel(userID: number) {
   const [saving, setSaving] = createSignal(false)
   const [mutationError, setMutationError] = createSignal('')
   const [message, setMessage] = createSignal('')
-  const [permission] = createResource(
-    () => userID || undefined,
-    async () => {
-      const result = await checkPlatformPermission('platform:manage_roles')
-      if (!result.success) throw new Error(result.message)
-      return result.data
-    }
-  )
-  const canManage = () => Boolean(permission.latest)
   const roles = createPaginatedResource(
     {
       page: 1,
@@ -38,22 +28,16 @@ export function createPlatformRolesViewModel(userID: number) {
       return result.data
     },
     {
-      enabled: () =>
-        canManage() &&
-        Number.isFinite(selectedUserID()) &&
-        selectedUserID() > 0,
+      enabled: () => Number.isFinite(selectedUserID()) && selectedUserID() > 0,
       dependency: selectedUserID,
     }
   )
-  const error = () => {
-    const permissionError =
-      permission.error instanceof Error ? permission.error.message : ''
-    return mutationError() || permissionError
-  }
+  const canManage = () => roles.resolved()
+  const error = () => mutationError()
 
   const reload = async () => {
     const nextUserID = Number.parseInt(userId().trim(), 10)
-    if (!canManage() || !Number.isFinite(nextUserID) || nextUserID <= 0) return
+    if (!Number.isFinite(nextUserID) || nextUserID <= 0) return
     if (selectedUserID() === nextUserID) {
       await roles.reload()
       return
@@ -63,12 +47,6 @@ export function createPlatformRolesViewModel(userID: number) {
 
   const save = async (values: PlatformRoleFormValues) => {
     const nextUserID = Number.parseInt(values.userId.trim(), 10)
-    if (!canManage()) {
-      setMutationError(
-        'You do not have permission to manage platform administration roles.'
-      )
-      return
-    }
     if (!Number.isFinite(nextUserID) || nextUserID <= 0) {
       setMutationError(
         'Target user id is required for platform administration roles.'
@@ -103,12 +81,6 @@ export function createPlatformRolesViewModel(userID: number) {
   }
 
   const remove = async (memberUserID: number, targetRoleName: string) => {
-    if (!canManage()) {
-      setMutationError(
-        'You do not have permission to manage platform administration roles.'
-      )
-      return
-    }
     setMutationError('')
     setMessage('')
     const result = await removePlatformRole(memberUserID, targetRoleName)

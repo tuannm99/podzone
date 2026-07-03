@@ -10,6 +10,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	onboardingconfig "github.com/tuannm99/podzone/internal/onboarding/config"
+	infrasdomain "github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/entity"
+	infrasoutputport "github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/outputport"
 	storedomain "github.com/tuannm99/podzone/internal/onboarding/domain/store"
 	storeoutputport "github.com/tuannm99/podzone/internal/onboarding/domain/store/outputport"
 	"github.com/tuannm99/podzone/internal/onboarding/runtime/identity"
@@ -23,7 +25,10 @@ type AccessAuthorizer struct {
 	client pbiamv1.IAMQueryServiceClient
 }
 
-var _ storeoutputport.AccessAuthorizer = (*AccessAuthorizer)(nil)
+var (
+	_ storeoutputport.AccessAuthorizer  = (*AccessAuthorizer)(nil)
+	_ infrasoutputport.AccessAuthorizer = (*AccessAuthorizer)(nil)
+)
 
 type AccessAuthorizerParams struct {
 	fx.In
@@ -119,6 +124,50 @@ func (a *AccessAuthorizer) AuthorizeStoreApproval(ctx context.Context, requested
 	}
 	if !response.GetAllowed() {
 		return fmt.Errorf("%w: %s", storedomain.ErrAccessDenied, storeApprovalPermission)
+	}
+	return nil
+}
+
+func (a *AccessAuthorizer) AuthorizeInfrastructureRead(ctx context.Context, requestedBy string) error {
+	return a.authorizePlatform(
+		ctx,
+		requestedBy,
+		"platform:read_infrastructure",
+		infrasdomain.ErrAccessDenied,
+	)
+}
+
+func (a *AccessAuthorizer) AuthorizeInfrastructureManage(ctx context.Context, requestedBy string) error {
+	return a.authorizePlatform(
+		ctx,
+		requestedBy,
+		"platform:manage_infrastructure",
+		infrasdomain.ErrAccessDenied,
+	)
+}
+
+func (a *AccessAuthorizer) authorizePlatform(
+	ctx context.Context,
+	requestedBy string,
+	permission string,
+	deniedError error,
+) error {
+	if identity.IsTrustedService(ctx) {
+		return nil
+	}
+	userID, err := parseUserID(requestedBy)
+	if err != nil {
+		return err
+	}
+	response, err := a.client.CheckPlatformPermission(ctx, &pbiamv1.CheckPlatformPermissionRequest{
+		UserId:     userID,
+		Permission: permission,
+	})
+	if err != nil {
+		return fmt.Errorf("check %s permission: %w", permission, err)
+	}
+	if !response.GetAllowed() {
+		return fmt.Errorf("%w: %s", deniedError, permission)
 	}
 	return nil
 }

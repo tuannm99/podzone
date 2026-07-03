@@ -53,7 +53,7 @@ export function PlatformAdminPanel() {
       <Show when={platformRoles.message()}>
         <InfoAlert>{platformRoles.message()}</InfoAlert>
       </Show>
-      <Show when={!platformRoles.canManage()}>
+      <Show when={!platformRoles.loading() && !platformRoles.canManage()}>
         <InfoAlert>
           Platform administration requires dedicated platform access.
         </InfoAlert>

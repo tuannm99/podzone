@@ -1,11 +1,15 @@
 package infrasmanager
 
 import (
+	"context"
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/entity"
 	infrasinputport "github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/inputport"
+	infrasoutputport "github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/outputport"
+	"github.com/tuannm99/podzone/pkg/collection"
 	pdlog "github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 	"go.uber.org/fx"
@@ -14,6 +18,7 @@ import (
 type Controller struct {
 	logger  pdlog.Logger
 	service infrasinputport.Usecase
+	authz   infrasoutputport.AccessAuthorizer
 }
 
 type ControllerParams struct {
@@ -21,12 +26,14 @@ type ControllerParams struct {
 
 	Logger        pdlog.Logger
 	InfrasUsecase infrasinputport.Usecase
+	Authorizer    infrasoutputport.AccessAuthorizer
 }
 
 func NewController(params ControllerParams) *Controller {
 	return &Controller{
 		logger:  params.Logger,
 		service: params.InfrasUsecase,
+		authz:   params.Authorizer,
 	}
 }
 
@@ -34,18 +41,53 @@ func (c *Controller) RegisterRoutes(r *gin.RouterGroup) {
 	infras := r.Group("/infras")
 	{
 		// Connections
-		infras.GET("/connections", c.ListConnections)
-		infras.GET("/connections/:infraType/:name", c.GetConnection)
-		infras.POST("/connections", c.UpsertConnection)
-		infras.DELETE("/connections/:infraType/:name", c.DeleteConnection)
+		infras.GET("/connections", c.requireInfrastructureRead, c.ListConnections)
+		infras.GET("/connections/:infraType/:name", c.requireInfrastructureRead, c.GetConnection)
+		infras.POST("/connections", c.requireInfrastructureManage, c.UpsertConnection)
+		infras.DELETE(
+			"/connections/:infraType/:name",
+			c.requireInfrastructureManage,
+			c.DeleteConnection,
+		)
 
 		// Events (history)
-		infras.GET("/events", c.ListEvents)
+		infras.GET("/events", c.requireInfrastructureRead, c.ListEvents)
 	}
 }
 
+func (c *Controller) requireInfrastructureRead(ctx *gin.Context) {
+	c.authorize(ctx, c.authz.AuthorizeInfrastructureRead)
+}
+
+func (c *Controller) requireInfrastructureManage(ctx *gin.Context) {
+	c.authorize(ctx, c.authz.AuthorizeInfrastructureManage)
+}
+
+func (c *Controller) authorize(
+	ctx *gin.Context,
+	check func(context.Context, string) error,
+) {
+	requestCtx := ctx.Request.Context()
+	userID, err := toolkit.GetUserID(requestCtx)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			"error": "authenticated user is required",
+		})
+		return
+	}
+	if err := check(requestCtx, userID); err != nil {
+		statusCode := http.StatusServiceUnavailable
+		if errors.Is(err, entity.ErrAccessDenied) {
+			statusCode = http.StatusForbidden
+		}
+		ctx.AbortWithStatusJSON(statusCode, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.Next()
+}
+
 func (c *Controller) UpsertConnection(ctx *gin.Context) {
-	tenantID, ok := toolkit.GetTenantIDFromGinCtx(ctx)
+	tenantID, ok := tenantIDFromRequest(ctx)
 	if !ok {
 		return
 	}
@@ -66,7 +108,7 @@ func (c *Controller) UpsertConnection(ctx *gin.Context) {
 }
 
 func (c *Controller) DeleteConnection(ctx *gin.Context) {
-	tenantID, ok := toolkit.GetTenantIDFromGinCtx(ctx)
+	tenantID, ok := tenantIDFromRequest(ctx)
 	if !ok {
 		return
 	}
@@ -87,7 +129,7 @@ func (c *Controller) DeleteConnection(ctx *gin.Context) {
 }
 
 func (c *Controller) GetConnection(ctx *gin.Context) {
-	tenantID, ok := toolkit.GetTenantIDFromGinCtx(ctx)
+	tenantID, ok := tenantIDFromRequest(ctx)
 	if !ok {
 		return
 	}
@@ -108,44 +150,84 @@ func (c *Controller) GetConnection(ctx *gin.Context) {
 }
 
 func (c *Controller) ListConnections(ctx *gin.Context) {
-	tenantID, ok := toolkit.GetTenantIDFromGinCtx(ctx)
+	tenantID, ok := tenantIDFromRequest(ctx)
 	if !ok {
 		return
 	}
 
-	infraType := entity.InfraType(ctx.Query("infra_type")) // optional: "" => all
 	includeDeleted := ctx.Query("include_deleted") == "true"
-
-	limit := toolkit.ParseInt(ctx.Query("limit"), 50)
-	offset := toolkit.ParseInt(ctx.Query("offset"), 0)
-
-	items, err := c.service.ListConnections(
-		ctx, tenantID, infraType, includeDeleted, limit, offset)
+	query, err := collection.ParseURLValues(ctx.Request.URL.Query(), "collection.")
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal_error", "message": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, infrasinputport.ListConnectionsResponse{Items: items})
+	query = withLegacyFilter(query, "infraType", ctx.Query("infra_type"))
+
+	page, err := c.service.ListConnections(ctx, tenantID, includeDeleted, query)
+	if err != nil {
+		writeInfrastructureError(ctx, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, infrasinputport.ListConnectionsResponse{
+		Items:    page.Items,
+		PageInfo: page.Info(),
+	})
 }
 
 func (c *Controller) ListEvents(ctx *gin.Context) {
-	tenantID, ok := toolkit.GetTenantIDFromGinCtx(ctx)
+	tenantID, ok := tenantIDFromRequest(ctx)
 	if !ok {
 		return
 	}
 
-	infraType := entity.InfraType(ctx.Query("infra_type")) // optional
-	name := ctx.Query("name")                              // optional
-	corrID := ctx.Query("correlation_id")                  // optional
-
-	limit := toolkit.ParseInt(ctx.Query("limit"), 50)
-	offset := toolkit.ParseInt(ctx.Query("offset"), 0)
-
-	items, err := c.service.ListEvents(
-		ctx, tenantID, infraType, name, corrID, limit, offset)
+	query, err := collection.ParseURLValues(ctx.Request.URL.Query(), "collection.")
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal_error", "message": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, infrasinputport.ListEventsResponse{Items: items})
+	query = withLegacyFilter(query, "infraType", ctx.Query("infra_type"))
+	query = withLegacyFilter(query, "name", ctx.Query("name"))
+	query = withLegacyFilter(query, "correlationId", ctx.Query("correlation_id"))
+
+	page, err := c.service.ListEvents(ctx, tenantID, query)
+	if err != nil {
+		writeInfrastructureError(ctx, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, infrasinputport.ListEventsResponse{
+		Items:    page.Items,
+		PageInfo: page.Info(),
+	})
+}
+
+func withLegacyFilter(query collection.Query, field string, value string) collection.Query {
+	if value == "" {
+		return query
+	}
+	query.Filters = append(query.Filters, collection.Filter{
+		Field:    field,
+		Operator: collection.FilterEqual,
+		Values:   []string{value},
+	})
+	return query
+}
+
+func writeInfrastructureError(ctx *gin.Context, err error) {
+	if errors.Is(err, collection.ErrInvalidQuery) {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusInternalServerError, gin.H{
+		"error":   "internal_error",
+		"message": err.Error(),
+	})
+}
+
+func tenantIDFromRequest(ctx *gin.Context) (string, bool) {
+	tenantID, err := toolkit.GetTenantID(ctx.Request.Context())
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "authenticated workspace is required"})
+		return "", false
+	}
+	return tenantID, true
 }

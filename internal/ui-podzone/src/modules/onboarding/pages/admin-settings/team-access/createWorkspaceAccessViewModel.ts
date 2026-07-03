@@ -6,7 +6,6 @@ import {
   type Accessor,
 } from 'solid-js'
 import {
-  checkPermission,
   listTenantInvites,
   listTenantMembers,
   listUserTenants,
@@ -27,39 +26,7 @@ export function createWorkspaceAccessViewModel(
       return result.data
     }
   )
-  const [accessResource, { refetch: reloadAccess }] = createResource(
-    () => {
-      const tenantID = selectedTenantID().trim()
-      return userID && tenantID ? { userID, tenantID } : undefined
-    },
-    async ({ userID: currentUserID, tenantID }) => {
-      const [readResult, manageResult] = await Promise.all([
-        checkPermission({
-          tenantId: tenantID,
-          userId: currentUserID,
-          permission: 'tenant:read',
-        }),
-        checkPermission({
-          tenantId: tenantID,
-          userId: currentUserID,
-          permission: 'tenant:manage_members',
-        }),
-      ])
-      if (!readResult.success) throw new Error(readResult.message)
-      if (!manageResult.success) throw new Error(manageResult.message)
-
-      return {
-        canRead: readResult.data,
-        canManage: manageResult.data,
-      }
-    }
-  )
-
   const memberships = () => membershipsResource.latest || []
-  const canRead = () =>
-    !accessResource.loading && Boolean(accessResource.latest?.canRead)
-  const canManage = () =>
-    !accessResource.loading && Boolean(accessResource.latest?.canManage)
   const members = createPaginatedResource(
     {
       page: 1,
@@ -73,7 +40,7 @@ export function createWorkspaceAccessViewModel(
       return result.data
     },
     {
-      enabled: () => canRead() && Boolean(selectedTenantID().trim()),
+      enabled: () => Boolean(userID && selectedTenantID().trim()),
       dependency: selectedTenantID,
     }
   )
@@ -90,14 +57,16 @@ export function createWorkspaceAccessViewModel(
       return result.data
     },
     {
-      enabled: () => canManage() && Boolean(selectedTenantID().trim()),
+      enabled: () => Boolean(userID && selectedTenantID().trim()),
       dependency: selectedTenantID,
     }
   )
+  const canRead = () => members.resolved()
+  const canManage = () => invites.resolved()
   const loadingMemberships = () => membershipsResource.loading
-  const loadingAccess = () => accessResource.loading
+  const loadingAccess = () => members.loading() || invites.loading()
   const error = () => {
-    const resourceError = membershipsResource.error || accessResource.error
+    const resourceError = membershipsResource.error
     return resourceError instanceof Error ? resourceError.message : ''
   }
   const tenantOptions = () =>
@@ -135,7 +104,9 @@ export function createWorkspaceAccessViewModel(
     error,
     tenantOptions,
     reloadMemberships: async () => void (await reloadMemberships()),
-    reloadAccess: async () => void (await reloadAccess()),
+    reloadAccess: async () => {
+      await Promise.all([members.reload(), invites.reload()])
+    },
   }
 }
 

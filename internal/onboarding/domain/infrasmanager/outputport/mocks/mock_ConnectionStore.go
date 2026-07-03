@@ -10,6 +10,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 // NewMockConnectionStore creates a new instance of MockConnectionStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -17,7 +18,8 @@ import (
 func NewMockConnectionStore(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockConnectionStore {
+},
+) *MockConnectionStore {
 	mock := &MockConnectionStore{}
 	mock.Mock.Test(t)
 
@@ -353,27 +355,25 @@ func (_c *MockConnectionStore_Get_Call) RunAndReturn(run func(ctx context.Contex
 }
 
 // ListConnections provides a mock function for the type MockConnectionStore
-func (_mock *MockConnectionStore) ListConnections(ctx context.Context, tenantID string, infraType entity.InfraType, includeDeleted bool, limit int, offset int) ([]entity.ConnectionInfo, error) {
-	ret := _mock.Called(ctx, tenantID, infraType, includeDeleted, limit, offset)
+func (_mock *MockConnectionStore) ListConnections(ctx context.Context, tenantID string, includeDeleted bool, query collection.Query) (collection.Page[entity.ConnectionInfo], error) {
+	ret := _mock.Called(ctx, tenantID, includeDeleted, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListConnections")
 	}
 
-	var r0 []entity.ConnectionInfo
+	var r0 collection.Page[entity.ConnectionInfo]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, entity.InfraType, bool, int, int) ([]entity.ConnectionInfo, error)); ok {
-		return returnFunc(ctx, tenantID, infraType, includeDeleted, limit, offset)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, bool, collection.Query) (collection.Page[entity.ConnectionInfo], error)); ok {
+		return returnFunc(ctx, tenantID, includeDeleted, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, entity.InfraType, bool, int, int) []entity.ConnectionInfo); ok {
-		r0 = returnFunc(ctx, tenantID, infraType, includeDeleted, limit, offset)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, bool, collection.Query) collection.Page[entity.ConnectionInfo]); ok {
+		r0 = returnFunc(ctx, tenantID, includeDeleted, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.ConnectionInfo)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.ConnectionInfo])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, entity.InfraType, bool, int, int) error); ok {
-		r1 = returnFunc(ctx, tenantID, infraType, includeDeleted, limit, offset)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, bool, collection.Query) error); ok {
+		r1 = returnFunc(ctx, tenantID, includeDeleted, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -388,15 +388,13 @@ type MockConnectionStore_ListConnections_Call struct {
 // ListConnections is a helper method to define mock.On call
 //   - ctx context.Context
 //   - tenantID string
-//   - infraType entity.InfraType
 //   - includeDeleted bool
-//   - limit int
-//   - offset int
-func (_e *MockConnectionStore_Expecter) ListConnections(ctx interface{}, tenantID interface{}, infraType interface{}, includeDeleted interface{}, limit interface{}, offset interface{}) *MockConnectionStore_ListConnections_Call {
-	return &MockConnectionStore_ListConnections_Call{Call: _e.mock.On("ListConnections", ctx, tenantID, infraType, includeDeleted, limit, offset)}
+//   - query collection.Query
+func (_e *MockConnectionStore_Expecter) ListConnections(ctx interface{}, tenantID interface{}, includeDeleted interface{}, query interface{}) *MockConnectionStore_ListConnections_Call {
+	return &MockConnectionStore_ListConnections_Call{Call: _e.mock.On("ListConnections", ctx, tenantID, includeDeleted, query)}
 }
 
-func (_c *MockConnectionStore_ListConnections_Call) Run(run func(ctx context.Context, tenantID string, infraType entity.InfraType, includeDeleted bool, limit int, offset int)) *MockConnectionStore_ListConnections_Call {
+func (_c *MockConnectionStore_ListConnections_Call) Run(run func(ctx context.Context, tenantID string, includeDeleted bool, query collection.Query)) *MockConnectionStore_ListConnections_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -406,66 +404,54 @@ func (_c *MockConnectionStore_ListConnections_Call) Run(run func(ctx context.Con
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
-		var arg2 entity.InfraType
+		var arg2 bool
 		if args[2] != nil {
-			arg2 = args[2].(entity.InfraType)
+			arg2 = args[2].(bool)
 		}
-		var arg3 bool
+		var arg3 collection.Query
 		if args[3] != nil {
-			arg3 = args[3].(bool)
-		}
-		var arg4 int
-		if args[4] != nil {
-			arg4 = args[4].(int)
-		}
-		var arg5 int
-		if args[5] != nil {
-			arg5 = args[5].(int)
+			arg3 = args[3].(collection.Query)
 		}
 		run(
 			arg0,
 			arg1,
 			arg2,
 			arg3,
-			arg4,
-			arg5,
 		)
 	})
 	return _c
 }
 
-func (_c *MockConnectionStore_ListConnections_Call) Return(connectionInfos []entity.ConnectionInfo, err error) *MockConnectionStore_ListConnections_Call {
-	_c.Call.Return(connectionInfos, err)
+func (_c *MockConnectionStore_ListConnections_Call) Return(page collection.Page[entity.ConnectionInfo], err error) *MockConnectionStore_ListConnections_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockConnectionStore_ListConnections_Call) RunAndReturn(run func(ctx context.Context, tenantID string, infraType entity.InfraType, includeDeleted bool, limit int, offset int) ([]entity.ConnectionInfo, error)) *MockConnectionStore_ListConnections_Call {
+func (_c *MockConnectionStore_ListConnections_Call) RunAndReturn(run func(ctx context.Context, tenantID string, includeDeleted bool, query collection.Query) (collection.Page[entity.ConnectionInfo], error)) *MockConnectionStore_ListConnections_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListEvents provides a mock function for the type MockConnectionStore
-func (_mock *MockConnectionStore) ListEvents(ctx context.Context, tenantID string, infraType entity.InfraType, name string, correlationID string, limit int, offset int) ([]entity.ConnectionEvent, error) {
-	ret := _mock.Called(ctx, tenantID, infraType, name, correlationID, limit, offset)
+func (_mock *MockConnectionStore) ListEvents(ctx context.Context, tenantID string, query collection.Query) (collection.Page[entity.ConnectionEvent], error) {
+	ret := _mock.Called(ctx, tenantID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListEvents")
 	}
 
-	var r0 []entity.ConnectionEvent
+	var r0 collection.Page[entity.ConnectionEvent]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, entity.InfraType, string, string, int, int) ([]entity.ConnectionEvent, error)); ok {
-		return returnFunc(ctx, tenantID, infraType, name, correlationID, limit, offset)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) (collection.Page[entity.ConnectionEvent], error)); ok {
+		return returnFunc(ctx, tenantID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, entity.InfraType, string, string, int, int) []entity.ConnectionEvent); ok {
-		r0 = returnFunc(ctx, tenantID, infraType, name, correlationID, limit, offset)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) collection.Page[entity.ConnectionEvent]); ok {
+		r0 = returnFunc(ctx, tenantID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.ConnectionEvent)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.ConnectionEvent])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, entity.InfraType, string, string, int, int) error); ok {
-		r1 = returnFunc(ctx, tenantID, infraType, name, correlationID, limit, offset)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, collection.Query) error); ok {
+		r1 = returnFunc(ctx, tenantID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -480,16 +466,12 @@ type MockConnectionStore_ListEvents_Call struct {
 // ListEvents is a helper method to define mock.On call
 //   - ctx context.Context
 //   - tenantID string
-//   - infraType entity.InfraType
-//   - name string
-//   - correlationID string
-//   - limit int
-//   - offset int
-func (_e *MockConnectionStore_Expecter) ListEvents(ctx interface{}, tenantID interface{}, infraType interface{}, name interface{}, correlationID interface{}, limit interface{}, offset interface{}) *MockConnectionStore_ListEvents_Call {
-	return &MockConnectionStore_ListEvents_Call{Call: _e.mock.On("ListEvents", ctx, tenantID, infraType, name, correlationID, limit, offset)}
+//   - query collection.Query
+func (_e *MockConnectionStore_Expecter) ListEvents(ctx interface{}, tenantID interface{}, query interface{}) *MockConnectionStore_ListEvents_Call {
+	return &MockConnectionStore_ListEvents_Call{Call: _e.mock.On("ListEvents", ctx, tenantID, query)}
 }
 
-func (_c *MockConnectionStore_ListEvents_Call) Run(run func(ctx context.Context, tenantID string, infraType entity.InfraType, name string, correlationID string, limit int, offset int)) *MockConnectionStore_ListEvents_Call {
+func (_c *MockConnectionStore_ListEvents_Call) Run(run func(ctx context.Context, tenantID string, query collection.Query)) *MockConnectionStore_ListEvents_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -499,45 +481,25 @@ func (_c *MockConnectionStore_ListEvents_Call) Run(run func(ctx context.Context,
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
-		var arg2 entity.InfraType
+		var arg2 collection.Query
 		if args[2] != nil {
-			arg2 = args[2].(entity.InfraType)
-		}
-		var arg3 string
-		if args[3] != nil {
-			arg3 = args[3].(string)
-		}
-		var arg4 string
-		if args[4] != nil {
-			arg4 = args[4].(string)
-		}
-		var arg5 int
-		if args[5] != nil {
-			arg5 = args[5].(int)
-		}
-		var arg6 int
-		if args[6] != nil {
-			arg6 = args[6].(int)
+			arg2 = args[2].(collection.Query)
 		}
 		run(
 			arg0,
 			arg1,
 			arg2,
-			arg3,
-			arg4,
-			arg5,
-			arg6,
 		)
 	})
 	return _c
 }
 
-func (_c *MockConnectionStore_ListEvents_Call) Return(connectionEvents []entity.ConnectionEvent, err error) *MockConnectionStore_ListEvents_Call {
-	_c.Call.Return(connectionEvents, err)
+func (_c *MockConnectionStore_ListEvents_Call) Return(page collection.Page[entity.ConnectionEvent], err error) *MockConnectionStore_ListEvents_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockConnectionStore_ListEvents_Call) RunAndReturn(run func(ctx context.Context, tenantID string, infraType entity.InfraType, name string, correlationID string, limit int, offset int) ([]entity.ConnectionEvent, error)) *MockConnectionStore_ListEvents_Call {
+func (_c *MockConnectionStore_ListEvents_Call) RunAndReturn(run func(ctx context.Context, tenantID string, query collection.Query) (collection.Page[entity.ConnectionEvent], error)) *MockConnectionStore_ListEvents_Call {
 	_c.Call.Return(run)
 	return _c
 }

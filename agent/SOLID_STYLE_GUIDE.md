@@ -69,6 +69,10 @@ src/solid/                 domain-neutral components and primitives
 - Set submitting/saving before mutation and clear it in `finally`.
 - Prevent stale responses where the transport/query primitive does not.
 - Authorization is enforced by the backend; UI only renders backend results.
+- FE must never call IAM permission-check endpoints to decide access. Each
+  business service must authorize through its IAM gRPC guard, while IAM-owned
+  endpoints enforce their own guards. UI capability state may only be derived
+  from protected business responses and is never a security boundary.
 
 ## Forms
 

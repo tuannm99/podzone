@@ -12,6 +12,7 @@ import (
 	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/entity"
 	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/inputport"
 	storeoutputport "github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/outputport"
+	"github.com/tuannm99/podzone/pkg/collection"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
@@ -550,36 +551,48 @@ func (s *Interactor) GetConnection(
 func (s *Interactor) ListConnections(
 	ctx context.Context,
 	tenantID string,
-	infraType entity.InfraType,
 	includeDeleted bool,
-	limit, offset int,
-) ([]inputport.Connection, error) {
-	items, err := s.st.ListConnections(ctx, tenantID, infraType, includeDeleted, limit, offset)
+	query collection.Query,
+) (collection.Page[inputport.Connection], error) {
+	page, err := s.st.ListConnections(ctx, tenantID, includeDeleted, query)
 	if err != nil {
-		return nil, err
+		return collection.Page[inputport.Connection]{}, err
 	}
-	out := make([]inputport.Connection, 0, len(items))
-	for _, it := range items {
+	out := make([]inputport.Connection, 0, len(page.Items))
+	for _, it := range page.Items {
 		out = append(out, toDTO(it))
 	}
-	return out, nil
+	return collection.Page[inputport.Connection]{
+		Items:       out,
+		Total:       page.Total,
+		Page:        page.Page,
+		PageSize:    page.PageSize,
+		TotalPages:  page.TotalPages,
+		HasNext:     page.HasNext,
+		HasPrevious: page.HasPrevious,
+	}, nil
 }
 
 func (s *Interactor) ListEvents(
 	ctx context.Context,
 	tenantID string,
-	infraType entity.InfraType,
-	name string,
-	correlationID string,
-	limit, offset int,
-) ([]inputport.ConnectionEvent, error) {
-	items, err := s.st.ListEvents(ctx, tenantID, infraType, name, correlationID, limit, offset)
+	query collection.Query,
+) (collection.Page[inputport.ConnectionEvent], error) {
+	page, err := s.st.ListEvents(ctx, tenantID, query)
 	if err != nil {
-		return nil, err
+		return collection.Page[inputport.ConnectionEvent]{}, err
 	}
-	out := make([]inputport.ConnectionEvent, 0, len(items))
-	for _, it := range items {
+	out := make([]inputport.ConnectionEvent, 0, len(page.Items))
+	for _, it := range page.Items {
 		out = append(out, toEventDTO(it))
 	}
-	return out, nil
+	return collection.Page[inputport.ConnectionEvent]{
+		Items:       out,
+		Total:       page.Total,
+		Page:        page.Page,
+		PageSize:    page.PageSize,
+		TotalPages:  page.TotalPages,
+		HasNext:     page.HasNext,
+		HasPrevious: page.HasPrevious,
+	}, nil
 }
