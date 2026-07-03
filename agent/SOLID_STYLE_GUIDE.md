@@ -66,6 +66,9 @@ src/solid/                 domain-neutral components and primitives
 - Paginated resources use `.latest` so refetching preserves rows and DOM height.
 - Feature mutations expose explicit `saving`, `error`, and success state, then
   refetch/invalidate affected reads.
+- Expected transport failures such as permission denial and validation errors
+  stay in feature/resource error state. They must not escape to the route error
+  boundary or replace the current screen.
 - Set submitting/saving before mutation and clear it in `finally`.
 - Prevent stale responses where the transport/query primitive does not.
 - Authorization is enforced by the backend; UI only renders backend results.

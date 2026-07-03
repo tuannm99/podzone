@@ -485,6 +485,7 @@ service IAMCommandService {
   rpc AssumeRole(IAMAssumeRoleRequest) returns (IAMAssumeRoleResponse);
   rpc CreateTenant(CreateTenantRequest) returns (CreateTenantResponse);
   rpc CreateOrganization(CreateOrganizationRequest) returns (CreateOrganizationResponse);
+  rpc EnsureRootOrganization(EnsureRootOrganizationRequest) returns (EnsureRootOrganizationResponse);
   rpc AttachTenantToOrganization(AttachTenantToOrganizationRequest) returns (AttachTenantToOrganizationResponse);
   rpc DetachTenantFromOrganization(DetachTenantFromOrganizationRequest) returns (DetachTenantFromOrganizationResponse);
   rpc AttachServiceControlPolicy(AttachServiceControlPolicyRequest) returns (AttachServiceControlPolicyResponse);

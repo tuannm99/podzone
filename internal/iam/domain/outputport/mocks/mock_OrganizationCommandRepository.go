@@ -231,3 +231,71 @@ func (_c *MockOrganizationCommandRepository_DetachServiceControlPolicy_Call) Run
 	_c.Call.Return(run)
 	return _c
 }
+
+// EnsureRoot provides a mock function for the type MockOrganizationCommandRepository
+func (_mock *MockOrganizationCommandRepository) EnsureRoot(ctx context.Context, org entity.Organization) (*entity.Organization, error) {
+	ret := _mock.Called(ctx, org)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EnsureRoot")
+	}
+
+	var r0 *entity.Organization
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.Organization) (*entity.Organization, error)); ok {
+		return returnFunc(ctx, org)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.Organization) *entity.Organization); ok {
+		r0 = returnFunc(ctx, org)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.Organization)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, entity.Organization) error); ok {
+		r1 = returnFunc(ctx, org)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockOrganizationCommandRepository_EnsureRoot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EnsureRoot'
+type MockOrganizationCommandRepository_EnsureRoot_Call struct {
+	*mock.Call
+}
+
+// EnsureRoot is a helper method to define mock.On call
+//   - ctx context.Context
+//   - org entity.Organization
+func (_e *MockOrganizationCommandRepository_Expecter) EnsureRoot(ctx interface{}, org interface{}) *MockOrganizationCommandRepository_EnsureRoot_Call {
+	return &MockOrganizationCommandRepository_EnsureRoot_Call{Call: _e.mock.On("EnsureRoot", ctx, org)}
+}
+
+func (_c *MockOrganizationCommandRepository_EnsureRoot_Call) Run(run func(ctx context.Context, org entity.Organization)) *MockOrganizationCommandRepository_EnsureRoot_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 entity.Organization
+		if args[1] != nil {
+			arg1 = args[1].(entity.Organization)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockOrganizationCommandRepository_EnsureRoot_Call) Return(organization *entity.Organization, err error) *MockOrganizationCommandRepository_EnsureRoot_Call {
+	_c.Call.Return(organization, err)
+	return _c
+}
+
+func (_c *MockOrganizationCommandRepository_EnsureRoot_Call) RunAndReturn(run func(ctx context.Context, org entity.Organization) (*entity.Organization, error)) *MockOrganizationCommandRepository_EnsureRoot_Call {
+	_c.Call.Return(run)
+	return _c
+}

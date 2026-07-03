@@ -26,11 +26,33 @@ Responsibilities:
 
 Important distinction:
 
-- a first-time tenant owner is not automatically a system admin
-- creating the first tenant/workspace only makes that user the owner of that tenant
+- a self-service signup becomes the root account of exactly one organization
+- organization root has full authority only inside that organization and its tenants
+- organization root is a durable IAM binding, not a role re-seeded on every login
+- invited or platform-created users do not become organization root automatically
+- creating an organization or tenant never makes that user a system admin
 - system admin access is a separate platform-level grant and must be modeled independently
 
-## 2. Store Owner
+## 2. Organization Root Account
+
+The organization root is the initial human identity that owns a merchant
+organization. It is not a platform administrator.
+
+Responsibilities:
+
+- manage tenants, stores, IAM membership, and policies inside its organization
+- delegate operational access without sharing root credentials
+- retain recovery authority for organization-scoped administration
+
+Invariants:
+
+- one self-service identity owns at most one organization
+- one organization has exactly one root identity
+- root ownership is persisted by IAM and bootstrap is idempotent
+- root authority cannot cross organization boundaries
+- platform authority always requires an explicit platform role or policy grant
+
+## 3. Store Owner
 
 The store owner is the main merchant account for a specific store.
 
@@ -41,7 +63,7 @@ Responsibilities:
 - configure store settings
 - oversee product and order operations
 
-## 3. Store Admin / Operations Manager
+## 4. Store Admin / Operations Manager
 
 A team member responsible for day-to-day store operations.
 
@@ -52,7 +74,7 @@ Responsibilities:
 - process orders
 - monitor store health
 
-## 4. Store Staff
+## 5. Store Staff
 
 Internal operator with limited access.
 
@@ -61,7 +83,7 @@ Responsibilities:
 - work on assigned operational tasks
 - view or update records according to permissions
 
-## 5. Print Or Fulfillment Partner
+## 6. Print Or Fulfillment Partner
 
 This actor is a core actor in the target POD model.
 
@@ -76,11 +98,11 @@ Current status:
 
 - conceptually required, but not yet implemented as a polished product surface
 
-## 6. End Customer
+## 7. End Customer
 
 The buyer who purchases from a merchant storefront.
 
-## 7. Internal Support / Compliance / Finance Roles
+## 8. Internal Support / Compliance / Finance Roles
 
 These are likely future platform roles.
 
@@ -95,8 +117,9 @@ Responsibilities:
 
 - one user can belong to multiple stores
 - one store can have many users
-- platform roles are global
-- store roles are scoped to one store
+- organization root authority is scoped to one organization
+- platform roles are global and explicitly granted
+- store roles are scoped to one tenant/store
 - a user acts inside one `active store context` at a time
 
 ## High-level business flows
@@ -109,10 +132,12 @@ Let a user sign in and obtain a valid session for platform access.
 
 ### Current flow
 
-1. User signs in via username/password or Google OAuth.
-2. Auth service issues access token and refresh token.
-3. Session is created and tracked.
-4. User enters the admin surface.
+1. A self-service user registers an Auth identity.
+2. Auth creates a session and calls IAM with that user's signed access token.
+3. IAM idempotently creates or returns the user's root organization.
+4. Later logins reconcile missing bootstrap state for existing self-service users.
+5. Invited users skip root bootstrap and use their granted memberships.
+6. User enters store selection before entering a store workspace.
 
 ## Flow B. Store creation
 

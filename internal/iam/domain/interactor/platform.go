@@ -111,7 +111,7 @@ func (s *interactor) RequirePlatformPermission(ctx context.Context, userID uint,
 		return err
 	}
 	if !allowed {
-		return entity.ErrPermissionDenied
+		return entity.NewPermissionDeniedError(permission, "*")
 	}
 	return nil
 }

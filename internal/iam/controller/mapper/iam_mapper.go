@@ -28,11 +28,12 @@ func ToPBOrganization(org *iamdomain.Organization) *pbiamv1.Organization {
 		return nil
 	}
 	return &pbiamv1.Organization{
-		Id:        org.ID,
-		Slug:      org.Slug,
-		Name:      org.Name,
-		CreatedAt: org.CreatedAt.Format(time.RFC3339),
-		UpdatedAt: org.UpdatedAt.Format(time.RFC3339),
+		Id:         org.ID,
+		Slug:       org.Slug,
+		Name:       org.Name,
+		CreatedAt:  org.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:  org.UpdatedAt.Format(time.RFC3339),
+		RootUserId: uint64(org.RootUserID),
 	}
 }
 

@@ -409,7 +409,11 @@ func (s *interactor) GetMembership(ctx context.Context, tenantID string, userID 
 	if userID == 0 {
 		return nil, entity.ErrInvalidUserID
 	}
-	return s.membershipQueries.GetByTenantAndUser(ctx, tenantID, userID)
+	tenant, err := s.tenantQueries.GetByID(ctx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	return s.membershipForAuthorization(ctx, tenant, userID)
 }
 
 func (s *interactor) ListUserTenants(ctx context.Context, userID uint) ([]entity.Membership, error) {

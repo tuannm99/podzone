@@ -66,6 +66,7 @@ packages:
       AuditLogRepository:
       TenantAccessChecker:
       RoleAssumer:
+      AccountBootstrapper:
       IAMProjectionRepository:
 
   github.com/tuannm99/podzone/internal/backoffice:

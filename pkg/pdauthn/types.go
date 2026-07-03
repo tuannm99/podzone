@@ -19,6 +19,7 @@ type Claims struct {
 	UserID                      uint              `json:"user_id"`
 	Email                       string            `json:"email"`
 	Username                    string            `json:"user_name"`
+	IdentitySource              string            `json:"identity_source,omitempty"`
 	ActiveTenantID              string            `json:"active_tenant_id,omitempty"`
 	SessionID                   string            `json:"session_id,omitempty"`
 	SessionPolicy               []PolicyStatement `json:"session_policy,omitempty"`

@@ -2,6 +2,7 @@ package interactor
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"time"
 
@@ -190,10 +191,19 @@ func (s *interactor) CreateTenant(
 	}
 
 	now := time.Now().UTC()
+	orgID := ""
+	rootOrg, orgErr := s.orgQueries.GetByRootUserID(ctx, ownerUserID)
+	switch {
+	case orgErr == nil:
+		orgID = rootOrg.ID
+	case !errors.Is(orgErr, entity.ErrOrganizationNotFound):
+		return nil, orgErr
+	}
 	tenant, err := s.tenantCommands.Create(ctx, entity.Tenant{
 		ID:        uuid.NewString(),
 		Name:      name,
 		Slug:      slug,
+		OrgID:     orgID,
 		CreatedAt: now,
 		UpdatedAt: now,
 	})

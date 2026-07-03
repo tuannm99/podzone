@@ -2,6 +2,7 @@ package interactor
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -44,7 +45,7 @@ func (s *interactor) CheckPermissionForResource(
 	if err != nil {
 		return false, err
 	}
-	membership, err := s.GetMembership(ctx, tenantID, userID)
+	membership, err := s.membershipForAuthorization(ctx, tenant, userID)
 	if err != nil {
 		return false, err
 	}
@@ -132,13 +133,45 @@ tenantRoleEvaluation:
 	return true, nil
 }
 
+func (s *interactor) membershipForAuthorization(
+	ctx context.Context,
+	tenant *entity.Tenant,
+	userID uint,
+) (*entity.Membership, error) {
+	membership, err := s.membershipQueries.GetByTenantAndUser(ctx, tenant.ID, userID)
+	if err == nil {
+		return membership, nil
+	}
+	if !errors.Is(err, entity.ErrMembershipNotFound) || tenant.OrgID == "" {
+		return nil, err
+	}
+	isRoot, rootErr := s.orgQueries.IsRoot(ctx, tenant.OrgID, userID)
+	if rootErr != nil {
+		return nil, rootErr
+	}
+	if !isRoot {
+		return nil, err
+	}
+	role, roleErr := s.roleQueries.GetByName(ctx, entity.RoleTenantOwner)
+	if roleErr != nil {
+		return nil, roleErr
+	}
+	return &entity.Membership{
+		TenantID: tenant.ID,
+		UserID:   userID,
+		RoleID:   role.ID,
+		RoleName: role.Name,
+		Status:   entity.MembershipStatusActive,
+	}, nil
+}
+
 func (s *interactor) RequirePermission(ctx context.Context, tenantID string, userID uint, permission string) error {
 	allowed, err := s.CheckPermission(ctx, tenantID, userID, permission)
 	if err != nil {
 		return err
 	}
 	if !allowed {
-		return entity.ErrPermissionDenied
+		return entity.NewPermissionDeniedError(permission, "*")
 	}
 	return nil
 }

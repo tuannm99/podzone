@@ -21,6 +21,7 @@ message Organization {
   string name = 3;
   string created_at = 4;
   string updated_at = 5;
+  uint64 root_user_id = 6;
 }
 
 message TenantMembership {
@@ -66,6 +67,15 @@ message CreateOrganizationRequest {
 }
 
 message CreateOrganizationResponse {
+  Organization organization = 1;
+}
+
+message EnsureRootOrganizationRequest {
+  string name = 1;
+  string slug = 2;
+}
+
+message EnsureRootOrganizationResponse {
   Organization organization = 1;
 }
 

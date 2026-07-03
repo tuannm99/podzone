@@ -32,6 +32,33 @@ func (s *IAMCommandServer) CreateOrganization(
 	return &pbiamv1.CreateOrganizationResponse{Organization: iammapper.ToPBOrganization(org)}, nil
 }
 
+func (s *IAMCommandServer) EnsureRootOrganization(
+	ctx context.Context,
+	req *pbiamv1.EnsureRootOrganizationRequest,
+) (*pbiamv1.EnsureRootOrganizationResponse, error) {
+	claims, err := s.claimsFromContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if claims.IdentitySource != "podzone" {
+		return nil, status.Error(codes.PermissionDenied, "organization root bootstrap requires a self-service identity")
+	}
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	org, err := s.commands.EnsureRootOrganization(ctx, actorUserID, req.Name, req.Slug)
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "organization.root.bootstrapped", "organization", org.ID, "", map[string]any{
+		"root_user_id": actorUserID,
+	})
+	return &pbiamv1.EnsureRootOrganizationResponse{
+		Organization: iammapper.ToPBOrganization(org),
+	}, nil
+}
+
 func (s *IAMCommandServer) AttachTenantToOrganization(
 	ctx context.Context,
 	req *pbiamv1.AttachTenantToOrganizationRequest,

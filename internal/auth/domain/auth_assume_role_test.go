@@ -99,6 +99,7 @@ func TestAssumeRole_Success(t *testing.T) {
 		refreshRepo,
 		tenantAccessChecker,
 		roleAssumer,
+		outputmocks.NewMockAccountBootstrapper(t),
 		cfg,
 	)
 	state.sessions["session-1"] = entity.Session{
@@ -178,6 +179,7 @@ func TestAssumeRole_IAMDeny(t *testing.T) {
 		refreshRepo,
 		tenantAccessChecker,
 		roleAssumer,
+		outputmocks.NewMockAccountBootstrapper(t),
 		cfg,
 	)
 	state.sessions["session-1"] = entity.Session{
@@ -263,6 +265,7 @@ func TestClearAssumedRole_PreservesSessionPolicy(t *testing.T) {
 		refreshRepo,
 		tenantAccessChecker,
 		roleAssumer,
+		outputmocks.NewMockAccountBootstrapper(t),
 		cfg,
 	)
 	state.sessions["session-1"] = entity.Session{

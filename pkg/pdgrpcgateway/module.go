@@ -3,6 +3,7 @@ package pdgrpcgateway
 import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/fx"
+	_ "google.golang.org/genproto/googleapis/rpc/errdetails"
 )
 
 var Module = fx.Options(

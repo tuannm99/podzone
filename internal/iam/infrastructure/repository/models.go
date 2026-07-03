@@ -16,11 +16,12 @@ type tenantModel struct {
 }
 
 type organizationModel struct {
-	ID        string    `db:"id"`
-	Slug      string    `db:"slug"`
-	Name      string    `db:"name"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	ID         string    `db:"id"`
+	Slug       string    `db:"slug"`
+	Name       string    `db:"name"`
+	RootUserID uint      `db:"root_user_id"`
+	CreatedAt  time.Time `db:"created_at"`
+	UpdatedAt  time.Time `db:"updated_at"`
 }
 
 type roleModel struct {

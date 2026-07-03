@@ -29,6 +29,34 @@ func (s *interactor) CreateOrganization(ctx context.Context, name string, slug s
 	})
 }
 
+func (s *interactor) EnsureRootOrganization(
+	ctx context.Context,
+	rootUserID uint,
+	name string,
+	slug string,
+) (*entity.Organization, error) {
+	if rootUserID == 0 {
+		return nil, entity.ErrInvalidUserID
+	}
+	name = strings.TrimSpace(name)
+	slug = strings.TrimSpace(slug)
+	if name == "" {
+		return nil, entity.ErrInvalidOrganizationName
+	}
+	if slug == "" {
+		return nil, entity.ErrInvalidOrganizationSlug
+	}
+	now := time.Now().UTC()
+	return s.orgCommands.EnsureRoot(ctx, entity.Organization{
+		ID:         uuid.NewString(),
+		Name:       name,
+		Slug:       slug,
+		RootUserID: rootUserID,
+		CreatedAt:  now,
+		UpdatedAt:  now,
+	})
+}
+
 func (s *interactor) ListOrganizations(
 	ctx context.Context,
 	query collection.Query,

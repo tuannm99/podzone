@@ -32,6 +32,7 @@ var Module = fx.Options(
 		fx.Annotate(repository.NewAuditLogRepositoryImpl, fx.As(new(outputport.AuditLogRepository))),
 		fx.Annotate(iamclient.NewTenantAccessChecker, fx.As(new(outputport.TenantAccessChecker))),
 		fx.Annotate(iamclient.NewRoleAssumer, fx.As(new(outputport.RoleAssumer))),
+		fx.Annotate(iamclient.NewAccountBootstrapper, fx.As(new(outputport.AccountBootstrapper))),
 
 		fx.Annotate(domain.NewTokenUsecase, fx.As(new(inputport.TokenUsecase))),
 		fx.Annotate(domain.NewUserUsecase, fx.As(new(inputport.UserUsecase))),

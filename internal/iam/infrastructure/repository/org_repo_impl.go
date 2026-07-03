@@ -30,20 +30,65 @@ func (r *OrganizationRepositoryImpl) Create(
 	if err := r.db.GetContext(
 		ctx,
 		&out,
-		`INSERT INTO iam_organizations (id, slug, name, created_at, updated_at)
-		 VALUES ($1, $2, $3, $4, $5)
-		 RETURNING id, slug, name, created_at, updated_at`,
-		org.ID, org.Slug, org.Name, org.CreatedAt, org.UpdatedAt,
+		`INSERT INTO iam_organizations (id, slug, name, root_user_id, created_at, updated_at)
+		 VALUES ($1, $2, $3, $4, $5, $6)
+		 RETURNING id, slug, name, root_user_id, created_at, updated_at`,
+		org.ID, org.Slug, org.Name, org.RootUserID, org.CreatedAt, org.UpdatedAt,
 	); err != nil {
 		return nil, err
 	}
 	return &entity.Organization{
-		ID:        out.ID,
-		Slug:      out.Slug,
-		Name:      out.Name,
-		CreatedAt: out.CreatedAt,
-		UpdatedAt: out.UpdatedAt,
+		ID:         out.ID,
+		Slug:       out.Slug,
+		Name:       out.Name,
+		RootUserID: out.RootUserID,
+		CreatedAt:  out.CreatedAt,
+		UpdatedAt:  out.UpdatedAt,
 	}, nil
+}
+
+func (r *OrganizationRepositoryImpl) EnsureRoot(
+	ctx context.Context,
+	org entity.Organization,
+) (*entity.Organization, error) {
+	var out organizationModel
+	err := r.db.GetContext(
+		ctx,
+		&out,
+		`WITH root_org AS (
+			INSERT INTO iam_organizations (id, slug, name, root_user_id, created_at, updated_at)
+			VALUES ($1, $2, $3, $4, $5, $6)
+			ON CONFLICT (root_user_id) WHERE root_user_id > 0
+			DO UPDATE SET root_user_id = EXCLUDED.root_user_id
+			RETURNING id, slug, name, root_user_id, created_at, updated_at
+		), attached_tenants AS (
+			UPDATE tenants t
+			SET org_id = (SELECT id FROM root_org), updated_at = now()
+			WHERE t.org_id = ''
+			  AND EXISTS (
+				SELECT 1
+				FROM tenant_memberships tm
+				JOIN iam_roles r ON r.id = tm.role_id
+				WHERE tm.tenant_id = t.id
+				  AND tm.user_id = $4
+				  AND tm.status = 'active'
+				  AND r.name = 'tenant_owner'
+			  )
+			RETURNING t.id
+		)
+		SELECT id, slug, name, root_user_id, created_at, updated_at
+		FROM root_org`,
+		org.ID,
+		org.Slug,
+		org.Name,
+		org.RootUserID,
+		org.CreatedAt,
+		org.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return organizationModelToEntity(out), nil
 }
 
 func (r *OrganizationRepositoryImpl) List(
@@ -72,7 +117,7 @@ func (r *OrganizationRepositoryImpl) List(
 		return collection.Page[entity.Organization]{}, err
 	}
 
-	builder := sq.Select("id", "slug", "name", "created_at", "updated_at").
+	builder := sq.Select("id", "slug", "name", "root_user_id", "created_at", "updated_at").
 		From("iam_organizations")
 	for _, predicate := range where {
 		builder = builder.Where(predicate)
@@ -93,11 +138,12 @@ func (r *OrganizationRepositoryImpl) List(
 	out := make([]entity.Organization, 0, len(rows))
 	for _, row := range rows {
 		out = append(out, entity.Organization{
-			ID:        row.ID,
-			Slug:      row.Slug,
-			Name:      row.Name,
-			CreatedAt: row.CreatedAt,
-			UpdatedAt: row.UpdatedAt,
+			ID:         row.ID,
+			Slug:       row.Slug,
+			Name:       row.Name,
+			RootUserID: row.RootUserID,
+			CreatedAt:  row.CreatedAt,
+			UpdatedAt:  row.UpdatedAt,
 		})
 	}
 	return collection.NewPage(out, total, normalized), nil
@@ -105,19 +151,66 @@ func (r *OrganizationRepositoryImpl) List(
 
 func (r *OrganizationRepositoryImpl) GetByID(ctx context.Context, orgID string) (*entity.Organization, error) {
 	var row organizationModel
-	if err := r.db.GetContext(ctx, &row, `SELECT id, slug, name, created_at, updated_at FROM iam_organizations WHERE id = $1`, orgID); err != nil {
+	if err := r.db.GetContext(
+		ctx,
+		&row,
+		`SELECT id, slug, name, root_user_id, created_at, updated_at
+		 FROM iam_organizations
+		 WHERE id = $1`,
+		orgID,
+	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, entity.ErrOrganizationNotFound
 		}
 		return nil, err
 	}
+	return organizationModelToEntity(row), nil
+}
+
+func (r *OrganizationRepositoryImpl) GetByRootUserID(
+	ctx context.Context,
+	userID uint,
+) (*entity.Organization, error) {
+	var row organizationModel
+	if err := r.db.GetContext(
+		ctx,
+		&row,
+		`SELECT id, slug, name, root_user_id, created_at, updated_at
+		 FROM iam_organizations
+		 WHERE root_user_id = $1`,
+		userID,
+	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, entity.ErrOrganizationNotFound
+		}
+		return nil, err
+	}
+	return organizationModelToEntity(row), nil
+}
+
+func (r *OrganizationRepositoryImpl) IsRoot(ctx context.Context, orgID string, userID uint) (bool, error) {
+	var exists bool
+	err := r.db.GetContext(
+		ctx,
+		&exists,
+		`SELECT EXISTS(
+			SELECT 1 FROM iam_organizations WHERE id = $1 AND root_user_id = $2
+		)`,
+		orgID,
+		userID,
+	)
+	return exists, err
+}
+
+func organizationModelToEntity(row organizationModel) *entity.Organization {
 	return &entity.Organization{
-		ID:        row.ID,
-		Slug:      row.Slug,
-		Name:      row.Name,
-		CreatedAt: row.CreatedAt,
-		UpdatedAt: row.UpdatedAt,
-	}, nil
+		ID:         row.ID,
+		Slug:       row.Slug,
+		Name:       row.Name,
+		RootUserID: row.RootUserID,
+		CreatedAt:  row.CreatedAt,
+		UpdatedAt:  row.UpdatedAt,
+	}
 }
 
 func (r *OrganizationRepositoryImpl) AttachServiceControlPolicy(

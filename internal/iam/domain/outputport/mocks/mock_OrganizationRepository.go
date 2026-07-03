@@ -233,6 +233,74 @@ func (_c *MockOrganizationRepository_DetachServiceControlPolicy_Call) RunAndRetu
 	return _c
 }
 
+// EnsureRoot provides a mock function for the type MockOrganizationRepository
+func (_mock *MockOrganizationRepository) EnsureRoot(ctx context.Context, org entity.Organization) (*entity.Organization, error) {
+	ret := _mock.Called(ctx, org)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EnsureRoot")
+	}
+
+	var r0 *entity.Organization
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.Organization) (*entity.Organization, error)); ok {
+		return returnFunc(ctx, org)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.Organization) *entity.Organization); ok {
+		r0 = returnFunc(ctx, org)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.Organization)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, entity.Organization) error); ok {
+		r1 = returnFunc(ctx, org)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockOrganizationRepository_EnsureRoot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EnsureRoot'
+type MockOrganizationRepository_EnsureRoot_Call struct {
+	*mock.Call
+}
+
+// EnsureRoot is a helper method to define mock.On call
+//   - ctx context.Context
+//   - org entity.Organization
+func (_e *MockOrganizationRepository_Expecter) EnsureRoot(ctx interface{}, org interface{}) *MockOrganizationRepository_EnsureRoot_Call {
+	return &MockOrganizationRepository_EnsureRoot_Call{Call: _e.mock.On("EnsureRoot", ctx, org)}
+}
+
+func (_c *MockOrganizationRepository_EnsureRoot_Call) Run(run func(ctx context.Context, org entity.Organization)) *MockOrganizationRepository_EnsureRoot_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 entity.Organization
+		if args[1] != nil {
+			arg1 = args[1].(entity.Organization)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockOrganizationRepository_EnsureRoot_Call) Return(organization *entity.Organization, err error) *MockOrganizationRepository_EnsureRoot_Call {
+	_c.Call.Return(organization, err)
+	return _c
+}
+
+func (_c *MockOrganizationRepository_EnsureRoot_Call) RunAndReturn(run func(ctx context.Context, org entity.Organization) (*entity.Organization, error)) *MockOrganizationRepository_EnsureRoot_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetByID provides a mock function for the type MockOrganizationRepository
 func (_mock *MockOrganizationRepository) GetByID(ctx context.Context, orgID string) (*entity.Organization, error) {
 	ret := _mock.Called(ctx, orgID)
@@ -297,6 +365,146 @@ func (_c *MockOrganizationRepository_GetByID_Call) Return(organization *entity.O
 }
 
 func (_c *MockOrganizationRepository_GetByID_Call) RunAndReturn(run func(ctx context.Context, orgID string) (*entity.Organization, error)) *MockOrganizationRepository_GetByID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetByRootUserID provides a mock function for the type MockOrganizationRepository
+func (_mock *MockOrganizationRepository) GetByRootUserID(ctx context.Context, userID uint) (*entity.Organization, error) {
+	ret := _mock.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByRootUserID")
+	}
+
+	var r0 *entity.Organization
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) (*entity.Organization, error)); ok {
+		return returnFunc(ctx, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) *entity.Organization); ok {
+		r0 = returnFunc(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.Organization)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint) error); ok {
+		r1 = returnFunc(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockOrganizationRepository_GetByRootUserID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetByRootUserID'
+type MockOrganizationRepository_GetByRootUserID_Call struct {
+	*mock.Call
+}
+
+// GetByRootUserID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uint
+func (_e *MockOrganizationRepository_Expecter) GetByRootUserID(ctx interface{}, userID interface{}) *MockOrganizationRepository_GetByRootUserID_Call {
+	return &MockOrganizationRepository_GetByRootUserID_Call{Call: _e.mock.On("GetByRootUserID", ctx, userID)}
+}
+
+func (_c *MockOrganizationRepository_GetByRootUserID_Call) Run(run func(ctx context.Context, userID uint)) *MockOrganizationRepository_GetByRootUserID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockOrganizationRepository_GetByRootUserID_Call) Return(organization *entity.Organization, err error) *MockOrganizationRepository_GetByRootUserID_Call {
+	_c.Call.Return(organization, err)
+	return _c
+}
+
+func (_c *MockOrganizationRepository_GetByRootUserID_Call) RunAndReturn(run func(ctx context.Context, userID uint) (*entity.Organization, error)) *MockOrganizationRepository_GetByRootUserID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// IsRoot provides a mock function for the type MockOrganizationRepository
+func (_mock *MockOrganizationRepository) IsRoot(ctx context.Context, orgID string, userID uint) (bool, error) {
+	ret := _mock.Called(ctx, orgID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsRoot")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) (bool, error)); ok {
+		return returnFunc(ctx, orgID, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) bool); ok {
+		r0 = returnFunc(ctx, orgID, userID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint) error); ok {
+		r1 = returnFunc(ctx, orgID, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockOrganizationRepository_IsRoot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsRoot'
+type MockOrganizationRepository_IsRoot_Call struct {
+	*mock.Call
+}
+
+// IsRoot is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orgID string
+//   - userID uint
+func (_e *MockOrganizationRepository_Expecter) IsRoot(ctx interface{}, orgID interface{}, userID interface{}) *MockOrganizationRepository_IsRoot_Call {
+	return &MockOrganizationRepository_IsRoot_Call{Call: _e.mock.On("IsRoot", ctx, orgID, userID)}
+}
+
+func (_c *MockOrganizationRepository_IsRoot_Call) Run(run func(ctx context.Context, orgID string, userID uint)) *MockOrganizationRepository_IsRoot_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockOrganizationRepository_IsRoot_Call) Return(b bool, err error) *MockOrganizationRepository_IsRoot_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *MockOrganizationRepository_IsRoot_Call) RunAndReturn(run func(ctx context.Context, orgID string, userID uint) (bool, error)) *MockOrganizationRepository_IsRoot_Call {
 	_c.Call.Return(run)
 	return _c
 }

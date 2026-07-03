@@ -6,7 +6,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
 	iamentity "github.com/tuannm99/podzone/internal/iam/domain/entity"
@@ -14,6 +16,30 @@ import (
 	pbiamv1 "github.com/tuannm99/podzone/pkg/api/proto/iam/v1"
 	"github.com/tuannm99/podzone/pkg/collection"
 )
+
+func TestIAMStatusErrorIncludesMissingPermissionDetails(t *testing.T) {
+	t.Parallel()
+
+	err := iamStatusError(iamentity.NewPermissionDeniedError(
+		"platform:manage_roles",
+		"podzone:platform",
+	))
+	grpcStatus, ok := status.FromError(err)
+
+	require.True(t, ok)
+	require.Equal(t, codes.PermissionDenied, grpcStatus.Code())
+	require.Equal(
+		t,
+		`iam: missing permission "platform:manage_roles" on "podzone:platform"`,
+		grpcStatus.Message(),
+	)
+	require.Len(t, grpcStatus.Details(), 1)
+	detail, ok := grpcStatus.Details()[0].(*errdetails.ErrorInfo)
+	require.True(t, ok)
+	require.Equal(t, "IAM_PERMISSION_DENIED", detail.Reason)
+	require.Equal(t, "platform:manage_roles", detail.Metadata["permission"])
+	require.Equal(t, "podzone:platform", detail.Metadata["resource"])
+}
 
 func TestCreateTenant_OK(t *testing.T) {
 	srv := newIAMServerForTest(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
@@ -309,4 +335,48 @@ func TestAssumeRoleRPC_OK(t *testing.T) {
 	require.NotNil(t, res)
 	assert.Equal(t, uint64(5), res.AssumedRole.RoleId)
 	assert.Equal(t, "tenant-1", res.AssumedRole.TenantId)
+}
+
+func TestEnsureRootOrganization_UsesAuthenticatedSelfServiceUser(t *testing.T) {
+	srv := newIAMServerForTest(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		ensureRootOrganizationFunc: func(
+			_ context.Context,
+			rootUserID uint,
+			name string,
+			slug string,
+		) (*iamentity.Organization, error) {
+			assert.Equal(t, uint(7), rootUserID)
+			return &iamentity.Organization{
+				ID:         "org-1",
+				Name:       name,
+				Slug:       slug,
+				RootUserID: rootUserID,
+			}, nil
+		},
+	}))
+
+	res, err := srv.EnsureRootOrganization(
+		authContextForIAMUser(t, 7),
+		&pbiamv1.EnsureRootOrganizationRequest{Name: "Neo", Slug: "account-7"},
+	)
+	require.NoError(t, err)
+	require.NotNil(t, res.Organization)
+	assert.Equal(t, uint64(7), res.Organization.RootUserId)
+}
+
+func TestEnsureRootOrganization_RejectsNonSelfServiceUser(t *testing.T) {
+	srv := newIAMServerForTest(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{}))
+	ctx := metadata.NewIncomingContext(
+		context.Background(),
+		metadata.Pairs(
+			"authorization",
+			"Bearer "+rawAccessTokenForIAMUserSource(t, 7, "iam-invite"),
+		),
+	)
+
+	_, err := srv.EnsureRootOrganization(
+		ctx,
+		&pbiamv1.EnsureRootOrganizationRequest{Name: "Neo", Slug: "account-7"},
+	)
+	require.Equal(t, codes.PermissionDenied, status.Code(err))
 }

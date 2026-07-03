@@ -17,8 +17,7 @@ import (
 func NewMockIAMUsecase(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *MockIAMUsecase {
+}) *MockIAMUsecase {
 	mock := &MockIAMUsecase{}
 	mock.Mock.Test(t)
 
@@ -2315,6 +2314,86 @@ func (_c *MockIAMUsecase_DetachTenantUserPolicy_Call) Return(err error) *MockIAM
 }
 
 func (_c *MockIAMUsecase_DetachTenantUserPolicy_Call) RunAndReturn(run func(ctx context.Context, tenantID string, userID uint, policyName string) error) *MockIAMUsecase_DetachTenantUserPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// EnsureRootOrganization provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) EnsureRootOrganization(ctx context.Context, rootUserID uint, name string, slug string) (*entity.Organization, error) {
+	ret := _mock.Called(ctx, rootUserID, name, slug)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EnsureRootOrganization")
+	}
+
+	var r0 *entity.Organization
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string, string) (*entity.Organization, error)); ok {
+		return returnFunc(ctx, rootUserID, name, slug)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string, string) *entity.Organization); ok {
+		r0 = returnFunc(ctx, rootUserID, name, slug)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.Organization)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint, string, string) error); ok {
+		r1 = returnFunc(ctx, rootUserID, name, slug)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMUsecase_EnsureRootOrganization_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EnsureRootOrganization'
+type MockIAMUsecase_EnsureRootOrganization_Call struct {
+	*mock.Call
+}
+
+// EnsureRootOrganization is a helper method to define mock.On call
+//   - ctx context.Context
+//   - rootUserID uint
+//   - name string
+//   - slug string
+func (_e *MockIAMUsecase_Expecter) EnsureRootOrganization(ctx interface{}, rootUserID interface{}, name interface{}, slug interface{}) *MockIAMUsecase_EnsureRootOrganization_Call {
+	return &MockIAMUsecase_EnsureRootOrganization_Call{Call: _e.mock.On("EnsureRootOrganization", ctx, rootUserID, name, slug)}
+}
+
+func (_c *MockIAMUsecase_EnsureRootOrganization_Call) Run(run func(ctx context.Context, rootUserID uint, name string, slug string)) *MockIAMUsecase_EnsureRootOrganization_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_EnsureRootOrganization_Call) Return(organization *entity.Organization, err error) *MockIAMUsecase_EnsureRootOrganization_Call {
+	_c.Call.Return(organization, err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_EnsureRootOrganization_Call) RunAndReturn(run func(ctx context.Context, rootUserID uint, name string, slug string) (*entity.Organization, error)) *MockIAMUsecase_EnsureRootOrganization_Call {
 	_c.Call.Return(run)
 	return _c
 }

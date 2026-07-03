@@ -2083,6 +2083,86 @@ func (_c *MockIAMCommandUsecase_DetachTenantUserPolicy_Call) RunAndReturn(run fu
 	return _c
 }
 
+// EnsureRootOrganization provides a mock function for the type MockIAMCommandUsecase
+func (_mock *MockIAMCommandUsecase) EnsureRootOrganization(ctx context.Context, rootUserID uint, name string, slug string) (*entity.Organization, error) {
+	ret := _mock.Called(ctx, rootUserID, name, slug)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EnsureRootOrganization")
+	}
+
+	var r0 *entity.Organization
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string, string) (*entity.Organization, error)); ok {
+		return returnFunc(ctx, rootUserID, name, slug)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, string, string) *entity.Organization); ok {
+		r0 = returnFunc(ctx, rootUserID, name, slug)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.Organization)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint, string, string) error); ok {
+		r1 = returnFunc(ctx, rootUserID, name, slug)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMCommandUsecase_EnsureRootOrganization_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'EnsureRootOrganization'
+type MockIAMCommandUsecase_EnsureRootOrganization_Call struct {
+	*mock.Call
+}
+
+// EnsureRootOrganization is a helper method to define mock.On call
+//   - ctx context.Context
+//   - rootUserID uint
+//   - name string
+//   - slug string
+func (_e *MockIAMCommandUsecase_Expecter) EnsureRootOrganization(ctx interface{}, rootUserID interface{}, name interface{}, slug interface{}) *MockIAMCommandUsecase_EnsureRootOrganization_Call {
+	return &MockIAMCommandUsecase_EnsureRootOrganization_Call{Call: _e.mock.On("EnsureRootOrganization", ctx, rootUserID, name, slug)}
+}
+
+func (_c *MockIAMCommandUsecase_EnsureRootOrganization_Call) Run(run func(ctx context.Context, rootUserID uint, name string, slug string)) *MockIAMCommandUsecase_EnsureRootOrganization_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMCommandUsecase_EnsureRootOrganization_Call) Return(organization *entity.Organization, err error) *MockIAMCommandUsecase_EnsureRootOrganization_Call {
+	_c.Call.Return(organization, err)
+	return _c
+}
+
+func (_c *MockIAMCommandUsecase_EnsureRootOrganization_Call) RunAndReturn(run func(ctx context.Context, rootUserID uint, name string, slug string) (*entity.Organization, error)) *MockIAMCommandUsecase_EnsureRootOrganization_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // PutGroupInlinePolicy provides a mock function for the type MockIAMCommandUsecase
 func (_mock *MockIAMCommandUsecase) PutGroupInlinePolicy(ctx context.Context, input entity.PutGroupInlinePolicyInput) error {
 	ret := _mock.Called(ctx, input)

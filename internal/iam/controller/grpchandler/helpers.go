@@ -13,6 +13,7 @@ import (
 	iamdomain "github.com/tuannm99/podzone/internal/iam/domain/entity"
 	"github.com/tuannm99/podzone/pkg/collection"
 	"github.com/tuannm99/podzone/pkg/pdauthn"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -117,7 +118,7 @@ func iamStatusError(err error) error {
 		return status.Error(codes.AlreadyExists, err.Error())
 	case errors.Is(err, iamdomain.ErrPermissionDenied),
 		errors.Is(err, iamdomain.ErrAssumeRoleDenied):
-		return status.Error(codes.PermissionDenied, err.Error())
+		return permissionDeniedStatus(err)
 	case errors.Is(err, iamdomain.ErrInactiveMembership):
 		return status.Error(codes.FailedPrecondition, err.Error())
 	case errors.Is(err, iamdomain.ErrImmutablePolicy),
@@ -128,6 +129,30 @@ func iamStatusError(err error) error {
 	default:
 		return status.Error(codes.Internal, err.Error())
 	}
+}
+
+func permissionDeniedStatus(err error) error {
+	baseStatus := status.New(codes.PermissionDenied, err.Error())
+	var permissionError *iamdomain.PermissionDeniedError
+	if !errors.As(err, &permissionError) {
+		return baseStatus.Err()
+	}
+
+	metadata := map[string]string{
+		"permission": permissionError.Permission,
+	}
+	if permissionError.Resource != "" {
+		metadata["resource"] = permissionError.Resource
+	}
+	detailedStatus, detailErr := baseStatus.WithDetails(&errdetails.ErrorInfo{
+		Reason:   "IAM_PERMISSION_DENIED",
+		Domain:   "iam.podzone",
+		Metadata: metadata,
+	})
+	if detailErr != nil {
+		return baseStatus.Err()
+	}
+	return detailedStatus.Err()
 }
 
 func (s *iamHandlerBase) authorizedContext(ctx context.Context) (context.Context, uint, error) {

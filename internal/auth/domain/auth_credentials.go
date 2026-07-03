@@ -20,7 +20,14 @@ func (u *authInteractorImpl) Login(ctx context.Context, username, password strin
 		return nil, err
 	}
 
-	return u.newSessionAuthResult(ctx, user, "")
+	result, err := u.newSessionAuthResult(ctx, user, "")
+	if err != nil {
+		return nil, err
+	}
+	if err := u.ensureRootOrganization(ctx, user, result.JwtToken); err != nil {
+		return nil, fmt.Errorf("bootstrap organization account: %w", err)
+	}
+	return result, nil
 }
 
 func (u *authInteractorImpl) Register(ctx context.Context, req inputport.RegisterCmd) (*inputport.AuthResult, error) {
@@ -39,8 +46,32 @@ func (u *authInteractorImpl) Register(ctx context.Context, req inputport.Registe
 	if err != nil {
 		return nil, err
 	}
+	user.InitialFrom = "podzone"
 
-	return u.newSessionAuthResult(ctx, user, "")
+	result, err := u.newSessionAuthResult(ctx, user, "")
+	if err != nil {
+		return nil, err
+	}
+	if err := u.ensureRootOrganization(ctx, user, result.JwtToken); err != nil {
+		return nil, fmt.Errorf("bootstrap organization account: %w", err)
+	}
+	return result, nil
+}
+
+func (u *authInteractorImpl) ensureRootOrganization(
+	ctx context.Context,
+	user *entity.User,
+	accessToken string,
+) error {
+	if user == nil || user.InitialFrom != "podzone" {
+		return nil
+	}
+	return u.accountBootstrapper.EnsureRootOrganization(
+		ctx,
+		accessToken,
+		user.Id,
+		user.Username,
+	)
 }
 
 func (u *authInteractorImpl) SwitchActiveTenant(

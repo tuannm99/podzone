@@ -2866,6 +2866,7 @@ const (
 	IAMCommandService_AssumeRole_FullMethodName                           = "/iam.IAMCommandService/AssumeRole"
 	IAMCommandService_CreateTenant_FullMethodName                         = "/iam.IAMCommandService/CreateTenant"
 	IAMCommandService_CreateOrganization_FullMethodName                   = "/iam.IAMCommandService/CreateOrganization"
+	IAMCommandService_EnsureRootOrganization_FullMethodName               = "/iam.IAMCommandService/EnsureRootOrganization"
 	IAMCommandService_AttachTenantToOrganization_FullMethodName           = "/iam.IAMCommandService/AttachTenantToOrganization"
 	IAMCommandService_DetachTenantFromOrganization_FullMethodName         = "/iam.IAMCommandService/DetachTenantFromOrganization"
 	IAMCommandService_AttachServiceControlPolicy_FullMethodName           = "/iam.IAMCommandService/AttachServiceControlPolicy"
@@ -2919,6 +2920,7 @@ type IAMCommandServiceClient interface {
 	AssumeRole(ctx context.Context, in *IAMAssumeRoleRequest, opts ...grpc.CallOption) (*IAMAssumeRoleResponse, error)
 	CreateTenant(ctx context.Context, in *CreateTenantRequest, opts ...grpc.CallOption) (*CreateTenantResponse, error)
 	CreateOrganization(ctx context.Context, in *CreateOrganizationRequest, opts ...grpc.CallOption) (*CreateOrganizationResponse, error)
+	EnsureRootOrganization(ctx context.Context, in *EnsureRootOrganizationRequest, opts ...grpc.CallOption) (*EnsureRootOrganizationResponse, error)
 	AttachTenantToOrganization(ctx context.Context, in *AttachTenantToOrganizationRequest, opts ...grpc.CallOption) (*AttachTenantToOrganizationResponse, error)
 	DetachTenantFromOrganization(ctx context.Context, in *DetachTenantFromOrganizationRequest, opts ...grpc.CallOption) (*DetachTenantFromOrganizationResponse, error)
 	AttachServiceControlPolicy(ctx context.Context, in *AttachServiceControlPolicyRequest, opts ...grpc.CallOption) (*AttachServiceControlPolicyResponse, error)
@@ -2994,6 +2996,16 @@ func (c *iAMCommandServiceClient) CreateOrganization(ctx context.Context, in *Cr
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateOrganizationResponse)
 	err := c.cc.Invoke(ctx, IAMCommandService_CreateOrganization_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMCommandServiceClient) EnsureRootOrganization(ctx context.Context, in *EnsureRootOrganizationRequest, opts ...grpc.CallOption) (*EnsureRootOrganizationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EnsureRootOrganizationResponse)
+	err := c.cc.Invoke(ctx, IAMCommandService_EnsureRootOrganization_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3420,6 +3432,7 @@ type IAMCommandServiceServer interface {
 	AssumeRole(context.Context, *IAMAssumeRoleRequest) (*IAMAssumeRoleResponse, error)
 	CreateTenant(context.Context, *CreateTenantRequest) (*CreateTenantResponse, error)
 	CreateOrganization(context.Context, *CreateOrganizationRequest) (*CreateOrganizationResponse, error)
+	EnsureRootOrganization(context.Context, *EnsureRootOrganizationRequest) (*EnsureRootOrganizationResponse, error)
 	AttachTenantToOrganization(context.Context, *AttachTenantToOrganizationRequest) (*AttachTenantToOrganizationResponse, error)
 	DetachTenantFromOrganization(context.Context, *DetachTenantFromOrganizationRequest) (*DetachTenantFromOrganizationResponse, error)
 	AttachServiceControlPolicy(context.Context, *AttachServiceControlPolicyRequest) (*AttachServiceControlPolicyResponse, error)
@@ -3479,6 +3492,9 @@ func (UnimplementedIAMCommandServiceServer) CreateTenant(context.Context, *Creat
 }
 func (UnimplementedIAMCommandServiceServer) CreateOrganization(context.Context, *CreateOrganizationRequest) (*CreateOrganizationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateOrganization not implemented")
+}
+func (UnimplementedIAMCommandServiceServer) EnsureRootOrganization(context.Context, *EnsureRootOrganizationRequest) (*EnsureRootOrganizationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EnsureRootOrganization not implemented")
 }
 func (UnimplementedIAMCommandServiceServer) AttachTenantToOrganization(context.Context, *AttachTenantToOrganizationRequest) (*AttachTenantToOrganizationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AttachTenantToOrganization not implemented")
@@ -3674,6 +3690,24 @@ func _IAMCommandService_CreateOrganization_Handler(srv interface{}, ctx context.
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(IAMCommandServiceServer).CreateOrganization(ctx, req.(*CreateOrganizationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMCommandService_EnsureRootOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EnsureRootOrganizationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMCommandServiceServer).EnsureRootOrganization(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMCommandService_EnsureRootOrganization_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMCommandServiceServer).EnsureRootOrganization(ctx, req.(*EnsureRootOrganizationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -4434,6 +4468,10 @@ var IAMCommandService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateOrganization",
 			Handler:    _IAMCommandService_CreateOrganization_Handler,
+		},
+		{
+			MethodName: "EnsureRootOrganization",
+			Handler:    _IAMCommandService_EnsureRootOrganization_Handler,
 		},
 		{
 			MethodName: "AttachTenantToOrganization",

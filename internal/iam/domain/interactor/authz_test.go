@@ -26,11 +26,12 @@ func TestIAMService_RequirePermission(t *testing.T) {
 	}
 
 	require.NoError(t, svc.RequirePermission(context.Background(), "t1", 9, "store:update"))
-	require.ErrorIs(
-		t,
-		svc.RequirePermission(context.Background(), "t1", 9, "tenant:manage_members"),
-		entity.ErrPermissionDenied,
-	)
+	err := svc.RequirePermission(context.Background(), "t1", 9, "tenant:manage_members")
+	require.ErrorIs(t, err, entity.ErrPermissionDenied)
+	var permissionError *entity.PermissionDeniedError
+	require.ErrorAs(t, err, &permissionError)
+	require.Equal(t, "tenant:manage_members", permissionError.Permission)
+	require.Equal(t, "*", permissionError.Resource)
 }
 
 func TestIAMService_RequirePermission_ExplicitDenyWins(t *testing.T) {

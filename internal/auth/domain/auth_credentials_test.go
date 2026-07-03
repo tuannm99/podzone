@@ -53,7 +53,14 @@ func TestRegister_Success(t *testing.T) {
 
 	ur.On("Create", entity.User{Username: "neo", Password: "TheOne!", Email: "neo@mx.io"}).Return(created, nil)
 	ur.On("UpdateById", uint(10), entity.User{InitialFrom: "podzone"}).Return(nil)
-	tuc.On("CreateJwtTokenForSession", *created, "", mock.AnythingOfType("string")).Return("jwt-register", nil)
+	tuc.On(
+		"CreateJwtTokenForSession",
+		mock.MatchedBy(func(user entity.User) bool {
+			return user.Id == created.Id && user.InitialFrom == "podzone"
+		}),
+		"",
+		mock.AnythingOfType("string"),
+	).Return("jwt-register", nil)
 
 	uc := newUC(t, uuc, tuc, ext, ur, sr)
 

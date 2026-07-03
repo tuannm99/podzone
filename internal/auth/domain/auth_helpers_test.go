@@ -89,6 +89,7 @@ func newStatefulAuthUC(
 	refreshRepo := outputmocks.NewMockRefreshTokenRepository(t)
 	tenantAccessChecker := outputmocks.NewMockTenantAccessChecker(t)
 	roleAssumer := outputmocks.NewMockRoleAssumer(t)
+	accountBootstrapper := outputmocks.NewMockAccountBootstrapper(t)
 
 	sessionRepo.EXPECT().
 		Create(mock.Anything, mock.Anything).
@@ -218,6 +219,10 @@ func newStatefulAuthUC(
 		EnsureActiveMembership(mock.Anything, mock.Anything, mock.Anything).
 		RunAndReturn(tenantAccessFn).
 		Maybe()
+	accountBootstrapper.EXPECT().
+		EnsureRootOrganization(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		Return(nil).
+		Maybe()
 
 	return NewAuthUsecase(
 		uuc,
@@ -229,6 +234,7 @@ func newStatefulAuthUC(
 		refreshRepo,
 		tenantAccessChecker,
 		roleAssumer,
+		accountBootstrapper,
 		cfg,
 	), state, sessionRepo, refreshRepo
 }

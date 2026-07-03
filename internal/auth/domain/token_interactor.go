@@ -62,6 +62,7 @@ func (t *tokenUCImpl) CreateJwtTokenForSessionState(
 		UserID:                      user.Id,
 		Email:                       user.Email,
 		Username:                    user.Username,
+		IdentitySource:              user.InitialFrom,
 		ActiveTenantID:              session.ActiveTenantID,
 		SessionID:                   session.ID,
 		SessionPolicy:               session.SessionPolicy,

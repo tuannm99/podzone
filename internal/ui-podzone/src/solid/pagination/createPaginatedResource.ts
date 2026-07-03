@@ -1,4 +1,10 @@
-import { createEffect, createResource, on, type Accessor } from 'solid-js'
+import {
+  createEffect,
+  createResource,
+  createSignal,
+  on,
+  type Accessor,
+} from 'solid-js'
 import { createStore } from 'solid-js/store'
 import {
   emptyPageInfo,
@@ -14,8 +20,17 @@ export function createPaginatedResource<T>(
     dependency?: Accessor<unknown>
   }
 ) {
+  type ResourceSource = {
+    query: CollectionQuery
+    dependency: unknown
+  }
+
   const [query, setQuery] = createStore(initialQuery)
-  const [resource, { mutate, refetch }] = createResource(
+  const [readError, setReadError] = createSignal('')
+  const [resource, { mutate, refetch }] = createResource<
+    CollectionPage<T>,
+    ResourceSource
+  >(
     () =>
       options?.enabled && !options.enabled()
         ? undefined
@@ -23,7 +38,23 @@ export function createPaginatedResource<T>(
             query: { ...query },
             dependency: options?.dependency?.(),
           },
-    ({ query: currentQuery }) => fetcher(currentQuery)
+    async ({ query: currentQuery }, info): Promise<CollectionPage<T>> => {
+      try {
+        const page = await fetcher(currentQuery)
+        setReadError('')
+        return page
+      } catch (error) {
+        setReadError(
+          error instanceof Error ? error.message : 'Failed to load collection'
+        )
+        return (
+          info.value || {
+            items: [],
+            pageInfo: emptyPageInfo(currentQuery),
+          }
+        )
+      }
+    }
   )
   if (options?.dependency) {
     createEffect(
@@ -36,14 +67,17 @@ export function createPaginatedResource<T>(
     resource.latest?.pageInfo || emptyPageInfo({ ...query })
   const loading = () => resource.loading
   const resolved = () =>
-    resource.state === 'ready' || resource.state === 'refreshing'
-  const error = () =>
-    resource.error instanceof Error ? resource.error.message : ''
+    !readError() &&
+    (resource.state === 'ready' || resource.state === 'refreshing')
+  const error = readError
   const updateQuery = (patch: Partial<CollectionQuery>) => {
     setQuery({ ...patch, page: patch.page ?? 1 })
   }
   const reload = async () => void (await refetch())
-  const clear = () => mutate(undefined)
+  const clear = () => {
+    setReadError('')
+    mutate(undefined)
+  }
 
   return {
     query,

@@ -299,6 +299,10 @@ func newIAMTestUsecase(t *testing.T) (inputport.IAMUsecase, *iamTestState) {
 	configurePlatformRepoMocks(platformRepo, state)
 	configureMembershipRepoMocks(membershipRepo, state)
 	configureInviteRepoMocks(inviteRepo, state)
+	orgRepo.EXPECT().
+		GetByRootUserID(mock.Anything, mock.Anything).
+		Return(nil, entity.ErrOrganizationNotFound).
+		Maybe()
 
 	return iaminteractor.NewIAMUsecase(
 		tenantRepo,

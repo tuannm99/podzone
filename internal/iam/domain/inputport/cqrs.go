@@ -87,6 +87,12 @@ type TenantQueryUsecase interface {
 
 type OrganizationCommandUsecase interface {
 	CreateOrganization(ctx context.Context, name string, slug string) (*entity.Organization, error)
+	EnsureRootOrganization(
+		ctx context.Context,
+		rootUserID uint,
+		name string,
+		slug string,
+	) (*entity.Organization, error)
 	AttachTenantToOrganization(ctx context.Context, tenantID string, orgID string) error
 	DetachTenantFromOrganization(ctx context.Context, tenantID string) error
 	AttachServiceControlPolicy(ctx context.Context, orgID string, policyName string) error

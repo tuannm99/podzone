@@ -66,6 +66,12 @@ type iamUsecaseMockConfig struct {
 		ctx context.Context,
 		query collection.Query,
 	) (collection.Page[iamentity.Organization], error)
+	ensureRootOrganizationFunc func(
+		ctx context.Context,
+		rootUserID uint,
+		name string,
+		slug string,
+	) (*iamentity.Organization, error)
 	listPoliciesFunc func(
 		ctx context.Context,
 		scope string,
@@ -145,6 +151,12 @@ func newIAMUsecaseMock(t *testing.T, cfg iamUsecaseMockConfig) iamUsecaseMocks {
 			RunAndReturn(cfg.listOrganizationsFunc).
 			Maybe()
 	}
+	if cfg.ensureRootOrganizationFunc != nil {
+		commands.EXPECT().
+			EnsureRootOrganization(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+			RunAndReturn(cfg.ensureRootOrganizationFunc).
+			Maybe()
+	}
 	if cfg.listPoliciesFunc != nil {
 		queries.EXPECT().
 			ListPolicies(mock.Anything, mock.Anything, mock.Anything).
@@ -190,11 +202,16 @@ func authContextForIAMUser(t *testing.T, userID uint) context.Context {
 }
 
 func rawAccessTokenForIAMUser(t *testing.T, userID uint) string {
+	return rawAccessTokenForIAMUserSource(t, userID, "podzone")
+}
+
+func rawAccessTokenForIAMUserSource(t *testing.T, userID uint, identitySource string) string {
 	t.Helper()
 	claims := pdauthn.Claims{
-		UserID:    userID,
-		Key:       testIAMServerCfg.Authn.JWTKey,
-		SessionID: "session-test",
+		UserID:         userID,
+		IdentitySource: identitySource,
+		Key:            testIAMServerCfg.Authn.JWTKey,
+		SessionID:      "session-test",
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: nowPlusHour().Unix(),
 			IssuedAt:  time.Now().UTC().Unix(),

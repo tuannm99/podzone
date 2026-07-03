@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -27,6 +28,7 @@ func NewAuthUsecase(
 	refreshTokenRepository outputport.RefreshTokenRepository,
 	tenantAccessChecker outputport.TenantAccessChecker,
 	roleAssumer outputport.RoleAssumer,
+	accountBootstrapper outputport.AccountBootstrapper,
 	cfg config.AuthConfig,
 ) *authInteractorImpl {
 	return &authInteractorImpl{
@@ -42,6 +44,7 @@ func NewAuthUsecase(
 		refreshTokenRepo:     refreshTokenRepository,
 		tenantAccessChecker:  tenantAccessChecker,
 		roleAssumer:          roleAssumer,
+		accountBootstrapper:  accountBootstrapper,
 	}
 }
 
@@ -60,6 +63,7 @@ type authInteractorImpl struct {
 	refreshTokenRepo     outputport.RefreshTokenRepository
 	tenantAccessChecker  outputport.TenantAccessChecker
 	roleAssumer          outputport.RoleAssumer
+	accountBootstrapper  outputport.AccountBootstrapper
 }
 
 func (u *authInteractorImpl) newSessionAuthResult(
@@ -163,9 +167,7 @@ func cloneStringMap(items map[string]string) map[string]string {
 		return nil
 	}
 	out := make(map[string]string, len(items))
-	for k, v := range items {
-		out[k] = v
-	}
+	maps.Copy(out, items)
 	return out
 }
 
@@ -174,7 +176,7 @@ func (u *authInteractorImpl) sessionFromAccessToken(raw string) (*entity.Session
 		return nil, entity.ErrSessionNotFound
 	}
 	claims := &entity.JWTClaims{}
-	token, err := jwt.ParseWithClaims(raw, claims, func(tok *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(raw, claims, func(tok *jwt.Token) (any, error) {
 		if tok.Method != jwt.SigningMethodHS256 {
 			return nil, fmt.Errorf("unexpected signing method")
 		}

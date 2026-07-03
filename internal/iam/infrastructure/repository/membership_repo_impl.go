@@ -122,11 +122,43 @@ func (r *MembershipRepositoryImpl) ListByUser(ctx context.Context, userID uint) 
 	if err := r.db.SelectContext(
 		ctx,
 		&rows,
-		`SELECT tm.tenant_id, tm.user_id, tm.role_id, r.name AS role_name, tm.status, tm.created_at, tm.updated_at
-		 FROM tenant_memberships tm
-		 JOIN iam_roles r ON r.id = tm.role_id
-		 WHERE tm.user_id = $1
-		 ORDER BY tm.created_at ASC`,
+		`SELECT memberships.tenant_id,
+		        memberships.user_id,
+		        memberships.role_id,
+		        memberships.role_name,
+		        memberships.status,
+		        memberships.created_at,
+		        memberships.updated_at
+		 FROM (
+			SELECT tm.tenant_id,
+			       tm.user_id,
+			       tm.role_id,
+			       r.name AS role_name,
+			       tm.status,
+			       tm.created_at,
+			       tm.updated_at
+			FROM tenant_memberships tm
+			JOIN iam_roles r ON r.id = tm.role_id
+			WHERE tm.user_id = $1
+			UNION ALL
+			SELECT t.id,
+			       $1,
+			       owner_role.id,
+			       owner_role.name,
+			       'active',
+			       t.created_at,
+			       t.updated_at
+			FROM iam_organizations o
+			JOIN tenants t ON t.org_id = o.id
+			JOIN iam_roles owner_role ON owner_role.name = 'tenant_owner'
+			WHERE o.root_user_id = $1
+			  AND NOT EXISTS (
+				SELECT 1
+				FROM tenant_memberships tm
+				WHERE tm.tenant_id = t.id AND tm.user_id = $1
+			  )
+		 ) AS memberships
+		 ORDER BY memberships.created_at ASC`,
 		userID,
 	); err != nil {
 		return nil, err

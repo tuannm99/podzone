@@ -20,9 +20,10 @@ func TestTokenUsecase_CreateJwtToken_Success(t *testing.T) {
 	uc := NewTokenUsecase(cfg)
 
 	user := entity.User{
-		Id:       42,
-		Email:    "neo@mx.io",
-		Username: "neo",
+		Id:          42,
+		Email:       "neo@mx.io",
+		Username:    "neo",
+		InitialFrom: "podzone",
 	}
 
 	tokenStr, err := uc.CreateJwtToken(user)
@@ -39,6 +40,7 @@ func TestTokenUsecase_CreateJwtToken_Success(t *testing.T) {
 	assert.Equal(t, uint(42), claims.UserID)
 	assert.Equal(t, "neo@mx.io", claims.Email)
 	assert.Equal(t, "neo", claims.Username)
+	assert.Equal(t, "podzone", claims.IdentitySource)
 	assert.Equal(t, "app-key", claims.Key)
 	assert.Empty(t, claims.ActiveTenantID)
 
