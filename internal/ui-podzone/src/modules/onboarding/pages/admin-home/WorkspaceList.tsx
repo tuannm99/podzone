@@ -61,130 +61,16 @@ function WorkspaceCard(props: { workspace: WorkspaceSummary }) {
         {workspace.storeCount} stores · {workspace.activeStoreCount} active
       </p>
       <div class="mt-4 space-y-3">
-        <StoreRequests workspace={workspace} />
-        <Stores workspace={workspace} />
+        <Button
+          size="sm"
+          color="alternative"
+          onClick={() => vm.setSelectedWorkspaceId(workspace.tenantId)}
+        >
+          Choose stores
+        </Button>
         <CreateStoreInline tenantId={workspace.tenantId} />
       </div>
     </div>
-  )
-}
-
-function StoreRequests(props: { workspace: WorkspaceSummary }) {
-  const vm = useAdminHome()
-
-  return (
-    <Show when={props.workspace.storeRequests.length > 0}>
-      <For each={props.workspace.storeRequests}>
-        {(request) => (
-          <div class="rounded-md border border-gray-200 bg-white p-3">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div class="min-w-0">
-                <div class="truncate text-sm font-semibold text-gray-950">
-                  {request.name}
-                </div>
-                <div class="mt-1 text-xs text-gray-500">
-                  {request.subdomain}
-                </div>
-              </div>
-              <Badge
-                content={vm.provisioningStatusLabel(request.status)}
-                color={
-                  request.status === 'ready'
-                    ? 'green'
-                    : request.status === 'failed'
-                      ? 'red'
-                      : 'yellow'
-                }
-              />
-            </div>
-            <div
-              class="mt-3 grid grid-cols-4 gap-1"
-              aria-label={`Provisioning progress: ${vm.provisioningStatusLabel(request.status)}`}
-            >
-              <For each={vm.provisioningSteps}>
-                {(step, index) => (
-                  <div>
-                    <div
-                      class={`h-1.5 rounded-full ${
-                        index() <= vm.provisioningStepIndex(request.status)
-                          ? request.status === 'failed'
-                            ? 'bg-red-500'
-                            : 'bg-gray-950'
-                          : 'bg-gray-200'
-                      }`}
-                    />
-                    <p class="mt-1 truncate text-[11px] text-gray-500">
-                      {vm.provisioningStatusLabel(step)}
-                    </p>
-                  </div>
-                )}
-              </For>
-            </div>
-            <Show when={request.last_error}>
-              <p class="mt-2 text-sm text-red-700">{request.last_error}</p>
-            </Show>
-            <Show when={request.status === 'failed'}>
-              <div class="mt-3">
-                <Button
-                  size="xs"
-                  color="alternative"
-                  loading={vm.retryingStoreRequestId() === request.id}
-                  disabled={vm.retryingStoreRequestId() === request.id}
-                  onClick={() => {
-                    void vm.retryStore(props.workspace.tenantId, request.id)
-                  }}
-                >
-                  Retry provisioning
-                </Button>
-              </div>
-            </Show>
-          </div>
-        )}
-      </For>
-    </Show>
-  )
-}
-
-function Stores(props: { workspace: WorkspaceSummary }) {
-  const vm = useAdminHome()
-
-  return (
-    <Show
-      when={props.workspace.stores.length > 0}
-      fallback={
-        <EmptyBlock
-          title="No stores in this workspace"
-          copy="Create the first store here, then the backoffice will open in that store scope."
-        />
-      }
-    >
-      <For each={props.workspace.stores}>
-        {(store) => (
-          <div class="flex flex-col gap-3 rounded-md border border-gray-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
-            <div class="min-w-0">
-              <div class="truncate text-sm font-semibold text-gray-950">
-                {store.name}
-              </div>
-              <div class="mt-1 flex flex-wrap gap-2">
-                <Badge
-                  content={store.status || 'unknown'}
-                  color={store.isActive ? 'green' : 'dark'}
-                />
-                <Badge content={store.id} color="dark" />
-              </div>
-            </div>
-            <Button
-              size="sm"
-              onClick={() => {
-                void vm.openStore(props.workspace.tenantId, store.id)
-              }}
-            >
-              Open store
-            </Button>
-          </div>
-        )}
-      </For>
-    </Show>
   )
 }
 

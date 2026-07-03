@@ -9,13 +9,18 @@ type Store {
   updated_at: Time!
 }
 
+type StorePage {
+  items: [Store!]!
+  pageInfo: PageInfo!
+}
+
 input CreateStoreInput {
   name: String!
   description: String!
 }
 
 extend type Query {
-  stores: [Store!]!
+  stores(collection: CollectionInput): StorePage!
   store(id: ID!): Store
 }
 

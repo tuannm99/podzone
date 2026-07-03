@@ -9,6 +9,8 @@ import (
 	"fmt"
 
 	"github.com/tuannm99/podzone/internal/backoffice/controller/graphql/generated/model"
+	backofficemapper "github.com/tuannm99/podzone/internal/backoffice/controller/mapper"
+	storectx "github.com/tuannm99/podzone/internal/backoffice/domain/store"
 )
 
 // CreateStore is the resolver for the createStore field.
@@ -39,16 +41,21 @@ func (r *mutationResolver) DeactivateStore(ctx context.Context, id string) (*mod
 }
 
 // Stores is the resolver for the stores field.
-func (r *queryResolver) Stores(ctx context.Context) ([]*model.Store, error) {
-	stores, err := r.StoreUsecase.GetAllStores(ctx)
+func (r *queryResolver) Stores(ctx context.Context, collection *model.CollectionInput) (*model.StorePage, error) {
+	page, err := r.StoreUsecase.ListStores(ctx, storectx.ListStoresQuery{
+		Collection: backofficemapper.ToCollectionQuery(collection),
+	})
 	if err != nil {
 		return nil, err
 	}
-	out := make([]*model.Store, 0, len(stores))
-	for _, store := range stores {
+	out := make([]*model.Store, 0, len(page.Items))
+	for _, store := range page.Items {
 		out = append(out, toGraphQLStore(store))
 	}
-	return out, nil
+	return &model.StorePage{
+		Items:    out,
+		PageInfo: backofficemapper.ToPageInfo(page),
+	}, nil
 }
 
 // Store is the resolver for the store field.

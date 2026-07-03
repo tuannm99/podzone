@@ -1,8 +1,7 @@
 import { ensureActiveTenant } from '@/services/auth'
 import type { TenantMembership } from '@/services/iam'
 import { getRoutedOrders } from '@/services/orders'
-import { listStoreRequests } from '@/services/onboarding'
-import { listStores } from '@/services/store'
+import { listAllStores } from '@/services/store'
 import { storeStorage } from '@/services/storeStorage'
 import { tenantStorage } from '@/services/tenantStorage'
 import { tokenStorage } from '@/services/tokenStorage'
@@ -38,17 +37,13 @@ export async function collectWorkspaceData(
       const switched = await ensureActiveTenant(membership.tenantId)
       if (!switched.success) continue
 
-      const requestsResult = await listStoreRequests(membership.tenantId)
-      const storesResult = await listStores()
-      const storeRequests = requestsResult.success ? requestsResult.data : []
+      const storesResult = await listAllStores()
       const stores = storesResult.success ? storesResult.data : []
       summaries.push({
         tenantId: membership.tenantId,
         roleName: membership.roleName,
         status: membership.status,
         userId: membership.userId,
-        stores,
-        storeRequests,
         storeCount: stores.length,
         activeStoreCount: stores.filter((store) => store.isActive).length,
       })

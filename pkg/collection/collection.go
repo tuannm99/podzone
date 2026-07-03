@@ -77,6 +77,15 @@ type Page[T any] struct {
 	HasPrevious bool
 }
 
+type PageInfo struct {
+	Total       int64 `json:"total"`
+	Page        int   `json:"page"`
+	PageSize    int   `json:"pageSize"`
+	TotalPages  int   `json:"totalPages"`
+	HasNext     bool  `json:"hasNext"`
+	HasPrevious bool  `json:"hasPrevious"`
+}
+
 func NewPage[T any](items []T, total int64, query Query) Page[T] {
 	normalized := query.Normalize()
 	totalPages := 0
@@ -94,5 +103,16 @@ func NewPage[T any](items []T, total int64, query Query) Page[T] {
 		TotalPages:  totalPages,
 		HasNext:     normalized.Page < totalPages,
 		HasPrevious: normalized.Page > DefaultPage && totalPages > 0,
+	}
+}
+
+func (p Page[T]) Info() PageInfo {
+	return PageInfo{
+		Total:       p.Total,
+		Page:        p.Page,
+		PageSize:    p.PageSize,
+		TotalPages:  p.TotalPages,
+		HasNext:     p.HasNext,
+		HasPrevious: p.HasPrevious,
 	}
 }

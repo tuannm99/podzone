@@ -320,11 +320,15 @@ func (s *interactor) CreateInvite(
 	return &invite, rawToken, nil
 }
 
-func (s *interactor) ListTenantInvites(ctx context.Context, tenantID string) ([]entity.TenantInvite, error) {
+func (s *interactor) ListTenantInvites(
+	ctx context.Context,
+	tenantID string,
+	query collection.Query,
+) (collection.Page[entity.TenantInvite], error) {
 	if strings.TrimSpace(tenantID) == "" {
-		return nil, entity.ErrTenantNotFound
+		return collection.Page[entity.TenantInvite]{}, entity.ErrTenantNotFound
 	}
-	return s.inviteQueries.ListByTenant(ctx, tenantID)
+	return s.inviteQueries.ListPageByTenant(ctx, tenantID, query.Normalize())
 }
 
 func (s *interactor) GetInvite(ctx context.Context, inviteID string) (*entity.TenantInvite, error) {
@@ -415,11 +419,15 @@ func (s *interactor) ListUserTenants(ctx context.Context, userID uint) ([]entity
 	return s.membershipQueries.ListByUser(ctx, userID)
 }
 
-func (s *interactor) ListTenantMembers(ctx context.Context, tenantID string) ([]entity.Membership, error) {
+func (s *interactor) ListTenantMembers(
+	ctx context.Context,
+	tenantID string,
+	query collection.Query,
+) (collection.Page[entity.Membership], error) {
 	if strings.TrimSpace(tenantID) == "" {
-		return nil, entity.ErrTenantNotFound
+		return collection.Page[entity.Membership]{}, entity.ErrTenantNotFound
 	}
-	return s.membershipQueries.ListByTenant(ctx, tenantID)
+	return s.membershipQueries.ListPageByTenant(ctx, tenantID, query.Normalize())
 }
 
 func (s *interactor) RemoveMember(ctx context.Context, tenantID string, userID uint) error {

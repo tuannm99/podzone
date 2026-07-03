@@ -541,6 +541,8 @@ func local_request_IAMService_CreateTenantInvite_0(ctx context.Context, marshale
 	return msg, metadata, err
 }
 
+var filter_IAMService_ListTenantInvites_0 = &utilities.DoubleArray{Encoding: map[string]int{"tenant_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+
 func request_IAMService_ListTenantInvites_0(ctx context.Context, marshaler runtime.Marshaler, client IAMServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq ListTenantInvitesRequest
@@ -557,6 +559,12 @@ func request_IAMService_ListTenantInvites_0(ctx context.Context, marshaler runti
 	protoReq.TenantId, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tenant_id", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_ListTenantInvites_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := client.ListTenantInvites(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -575,6 +583,12 @@ func local_request_IAMService_ListTenantInvites_0(ctx context.Context, marshaler
 	protoReq.TenantId, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tenant_id", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_ListTenantInvites_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := server.ListTenantInvites(ctx, &protoReq)
 	return msg, metadata, err
@@ -2499,6 +2513,8 @@ func local_request_IAMService_RemovePlatformRole_0(ctx context.Context, marshale
 	return msg, metadata, err
 }
 
+var filter_IAMService_ListTenantMembers_0 = &utilities.DoubleArray{Encoding: map[string]int{"tenant_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+
 func request_IAMService_ListTenantMembers_0(ctx context.Context, marshaler runtime.Marshaler, client IAMServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq ListTenantMembersRequest
@@ -2515,6 +2531,12 @@ func request_IAMService_ListTenantMembers_0(ctx context.Context, marshaler runti
 	protoReq.TenantId, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tenant_id", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_ListTenantMembers_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := client.ListTenantMembers(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -2533,6 +2555,12 @@ func local_request_IAMService_ListTenantMembers_0(ctx context.Context, marshaler
 	protoReq.TenantId, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tenant_id", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_ListTenantMembers_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := server.ListTenantMembers(ctx, &protoReq)
 	return msg, metadata, err

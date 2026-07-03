@@ -1,5 +1,4 @@
-import type { StoreRequest, StoreRequestStatus } from '@/services/onboarding'
-import type { StoreInfo } from '@/services/store'
+import type { StoreRequestStatus } from '@/services/onboarding'
 
 export type StoreAttention = {
   tenantId: string
@@ -15,18 +14,9 @@ export type WorkspaceSummary = {
   roleName: string
   status: string
   userId: number
-  stores: StoreInfo[]
-  storeRequests: StoreRequest[]
   storeCount: number
   activeStoreCount: number
 }
-
-export const provisioningSteps: StoreRequestStatus[] = [
-  'requested',
-  'queued',
-  'provisioning',
-  'ready',
-]
 
 export function parseUserID(raw: unknown): number {
   if (typeof raw === 'number' && Number.isFinite(raw)) return raw
@@ -49,14 +39,12 @@ export function membershipStatusColor(status: string) {
   return status === 'active' ? 'green' : 'dark'
 }
 
-export function provisioningStepIndex(status: StoreRequestStatus) {
-  if (status === 'pending_approval') return 0
-  if (status === 'failed') return 2
-  return provisioningSteps.indexOf(status)
-}
-
 export function provisioningStatusLabel(status: StoreRequestStatus) {
   switch (status) {
+    case 'planning':
+      return 'Planning placement'
+    case 'planned':
+      return 'Placement planned'
     case 'pending_approval':
       return 'Pending approval'
     case 'queued':
@@ -67,6 +55,12 @@ export function provisioningStatusLabel(status: StoreRequestStatus) {
       return 'Ready'
     case 'failed':
       return 'Provisioning failed'
+    case 'failed_retryable':
+      return 'Failed, retry available'
+    case 'failed_non_retryable':
+      return 'Failed, platform action required'
+    case 'pending_platform_setup':
+      return 'Pending platform setup'
     default:
       return status.charAt(0).toUpperCase() + status.slice(1)
   }

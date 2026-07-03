@@ -139,10 +139,12 @@ message ListServiceControlPoliciesResponse {
 message ListPlatformRolesRequest {
   uint64 actor_user_id = 1;
   uint64 target_user_id = 2;
+  common.CollectionRequest collection = 3;
 }
 
 message ListPlatformRolesResponse {
   repeated PlatformRoleMembership memberships = 1;
+  common.PageInfo page_info = 2;
 }
 
 message AddPlatformRoleRequest {

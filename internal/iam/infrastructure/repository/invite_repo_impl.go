@@ -6,9 +6,11 @@ import (
 	"errors"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	entity "github.com/tuannm99/podzone/internal/iam/domain/entity"
 	"github.com/tuannm99/podzone/internal/iam/domain/outputport"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type InviteRepositoryImpl struct {
@@ -82,23 +84,46 @@ func (r *InviteRepositoryImpl) GetByTokenHash(ctx context.Context, tokenHash str
 	return out.toEntity(), nil
 }
 
-func (r *InviteRepositoryImpl) ListByTenant(ctx context.Context, tenantID string) ([]entity.TenantInvite, error) {
-	var rows []inviteModel
-	if err := r.db.SelectContext(ctx, &rows, `
-		SELECT ti.id, ti.tenant_id, ti.email, ti.role_id, r.name AS role_name, ti.status, ti.invited_by_user_id,
-		       ti.accepted_by_user_id, ti.token_hash, ti.created_at, ti.updated_at, ti.expires_at, ti.accepted_at, ti.revoked_at
-		FROM tenant_invites ti
-		JOIN iam_roles r ON r.id = ti.role_id
-		WHERE ti.tenant_id = $1
-		ORDER BY ti.created_at DESC
-	`, tenantID); err != nil {
-		return nil, err
+func (r *InviteRepositoryImpl) ListPageByTenant(
+	ctx context.Context,
+	tenantID string,
+	query collection.Query,
+) (collection.Page[entity.TenantInvite], error) {
+	page, err := listIAMCollectionModels[inviteModel](
+		ctx,
+		r.db,
+		query,
+		"tenant_invites ti JOIN iam_roles r ON r.id = ti.role_id",
+		[]string{
+			"ti.id",
+			"ti.tenant_id",
+			"ti.email",
+			"ti.role_id",
+			"r.name AS role_name",
+			"ti.status",
+			"ti.invited_by_user_id",
+			"ti.accepted_by_user_id",
+			"ti.token_hash",
+			"ti.created_at",
+			"ti.updated_at",
+			"ti.expires_at",
+			"ti.accepted_at",
+			"ti.revoked_at",
+		},
+		[]sq.Sqlizer{sq.Eq{"ti.tenant_id": tenantID}},
+		tenantInviteCollectionColumns,
+		[]string{"ti.email", "r.name", "ti.status"},
+		"ti.created_at",
+		"ti.id ASC",
+	)
+	if err != nil {
+		return collection.Page[entity.TenantInvite]{}, err
 	}
-	out := make([]entity.TenantInvite, 0, len(rows))
-	for _, row := range rows {
+	out := make([]entity.TenantInvite, 0, len(page.Items))
+	for _, row := range page.Items {
 		out = append(out, *row.toEntity())
 	}
-	return out, nil
+	return collection.NewPage(out, page.Total, query), nil
 }
 
 func (r *InviteRepositoryImpl) MarkAccepted(

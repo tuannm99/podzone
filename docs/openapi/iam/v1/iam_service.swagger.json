@@ -1545,6 +1545,44 @@
             "required": false,
             "type": "string",
             "format": "uint64"
+          },
+          {
+            "name": "collection.page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.search",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortDirection",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_DIRECTION_UNSPECIFIED",
+              "SORT_DIRECTION_ASC",
+              "SORT_DIRECTION_DESC"
+            ],
+            "default": "SORT_DIRECTION_UNSPECIFIED"
           }
         ],
         "tags": [
@@ -2291,6 +2329,44 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "collection.page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.search",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortDirection",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_DIRECTION_UNSPECIFIED",
+              "SORT_DIRECTION_ASC",
+              "SORT_DIRECTION_DESC"
+            ],
+            "default": "SORT_DIRECTION_UNSPECIFIED"
           }
         ],
         "tags": [
@@ -2357,6 +2433,44 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "collection.page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.search",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortDirection",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_DIRECTION_UNSPECIFIED",
+              "SORT_DIRECTION_ASC",
+              "SORT_DIRECTION_DESC"
+            ],
+            "default": "SORT_DIRECTION_UNSPECIFIED"
           }
         ],
         "tags": [
@@ -4006,6 +4120,9 @@
             "type": "object",
             "$ref": "#/definitions/iamPlatformRoleMembership"
           }
+        },
+        "pageInfo": {
+          "$ref": "#/definitions/commonPageInfo"
         }
       }
     },
@@ -4105,6 +4222,9 @@
             "type": "object",
             "$ref": "#/definitions/iamTenantInvite"
           }
+        },
+        "pageInfo": {
+          "$ref": "#/definitions/commonPageInfo"
         }
       }
     },
@@ -4117,6 +4237,9 @@
             "type": "object",
             "$ref": "#/definitions/iamTenantMembership"
           }
+        },
+        "pageInfo": {
+          "$ref": "#/definitions/commonPageInfo"
         }
       }
     },

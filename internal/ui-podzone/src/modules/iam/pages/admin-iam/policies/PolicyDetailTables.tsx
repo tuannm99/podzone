@@ -10,7 +10,7 @@ import {
 import { EmptyBlock } from '@/solid/components/common/Feedback'
 import { Pagination } from '@/solid/components/common/Pagination'
 import { Badge, Button } from '@/solid/components/common/Primitives'
-import { ChildCollectionControls } from '../shared/ChildCollectionControls'
+import { CollectionControls } from '@/solid/components/common/CollectionControls'
 import { useAdminIamPolicy } from './context'
 
 export function PolicyDetailTables() {
@@ -20,7 +20,7 @@ export function PolicyDetailTables() {
     <div class="grid gap-6 xl:grid-cols-2">
       <section class="min-w-0 space-y-3">
         <p class="text-sm font-semibold text-gray-900">Versions</p>
-        <ChildCollectionControls
+        <CollectionControls
           query={policy.policyVersionsQuery}
           loading={policy.policyVersionsLoading}
           error={policy.policyVersionsError}
@@ -120,7 +120,7 @@ export function PolicyDetailTables() {
 
       <section class="min-w-0 space-y-3">
         <p class="text-sm font-semibold text-gray-900">Attachments</p>
-        <ChildCollectionControls
+        <CollectionControls
           query={policy.policyAttachmentsQuery}
           loading={policy.policyAttachmentsLoading}
           error={policy.policyAttachmentsError}

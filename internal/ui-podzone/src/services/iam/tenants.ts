@@ -1,4 +1,11 @@
 import { http, type HttpError } from '../http'
+import {
+  normalizePageInfo,
+  toCollectionParams,
+  type CollectionPage,
+  type CollectionQuery,
+  type WirePageInfo,
+} from '../collection'
 import { toFailure } from './result'
 import type {
   TenantMembership,
@@ -39,13 +46,23 @@ export async function createTenant(
 }
 
 export async function listTenantMembers(
-  tenantId: string
-): Promise<IamResult<TenantMembership[]>> {
+  tenantId: string,
+  query: CollectionQuery
+): Promise<IamResult<CollectionPage<TenantMembership>>> {
   try {
-    const { data } = await http.get<{ memberships?: TenantMembership[] }>(
-      `/auth/v1/iam/tenants/${tenantId}/members`
-    )
-    return { success: true, data: data.memberships || [] }
+    const { data } = await http.get<{
+      memberships?: TenantMembership[]
+      pageInfo?: WirePageInfo
+    }>(`/auth/v1/iam/tenants/${tenantId}/members`, {
+      params: toCollectionParams(query),
+    })
+    return {
+      success: true,
+      data: {
+        items: data.memberships || [],
+        pageInfo: normalizePageInfo(data.pageInfo, query),
+      },
+    }
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to load tenant members')
   }
@@ -122,13 +139,23 @@ export async function createTenantInvite(
 }
 
 export async function listTenantInvites(
-  tenantId: string
-): Promise<IamResult<TenantInvite[]>> {
+  tenantId: string,
+  query: CollectionQuery
+): Promise<IamResult<CollectionPage<TenantInvite>>> {
   try {
-    const { data } = await http.get<{ invites?: TenantInvite[] }>(
-      `/auth/v1/iam/tenants/${tenantId}/invites`
-    )
-    return { success: true, data: data.invites || [] }
+    const { data } = await http.get<{
+      invites?: TenantInvite[]
+      pageInfo?: WirePageInfo
+    }>(`/auth/v1/iam/tenants/${tenantId}/invites`, {
+      params: toCollectionParams(query),
+    })
+    return {
+      success: true,
+      data: {
+        items: data.invites || [],
+        pageInfo: normalizePageInfo(data.pageInfo, query),
+      },
+    }
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to load tenant invites')
   }

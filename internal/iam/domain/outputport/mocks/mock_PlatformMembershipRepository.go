@@ -9,6 +9,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 	"github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 // NewMockPlatformMembershipRepository creates a new instance of MockPlatformMembershipRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -16,7 +17,8 @@ import (
 func NewMockPlatformMembershipRepository(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockPlatformMembershipRepository {
+},
+) *MockPlatformMembershipRepository {
 	mock := &MockPlatformMembershipRepository{}
 	mock.Mock.Test(t)
 
@@ -165,6 +167,78 @@ func (_c *MockPlatformMembershipRepository_ListByUser_Call) Return(platformMembe
 }
 
 func (_c *MockPlatformMembershipRepository_ListByUser_Call) RunAndReturn(run func(ctx context.Context, userID uint) ([]entity.PlatformMembership, error)) *MockPlatformMembershipRepository_ListByUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListPageByUser provides a mock function for the type MockPlatformMembershipRepository
+func (_mock *MockPlatformMembershipRepository) ListPageByUser(ctx context.Context, userID uint, query collection.Query) (collection.Page[entity.PlatformMembership], error) {
+	ret := _mock.Called(ctx, userID, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListPageByUser")
+	}
+
+	var r0 collection.Page[entity.PlatformMembership]
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, collection.Query) (collection.Page[entity.PlatformMembership], error)); ok {
+		return returnFunc(ctx, userID, query)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, collection.Query) collection.Page[entity.PlatformMembership]); ok {
+		r0 = returnFunc(ctx, userID, query)
+	} else {
+		r0 = ret.Get(0).(collection.Page[entity.PlatformMembership])
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint, collection.Query) error); ok {
+		r1 = returnFunc(ctx, userID, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockPlatformMembershipRepository_ListPageByUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPageByUser'
+type MockPlatformMembershipRepository_ListPageByUser_Call struct {
+	*mock.Call
+}
+
+// ListPageByUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uint
+//   - query collection.Query
+func (_e *MockPlatformMembershipRepository_Expecter) ListPageByUser(ctx interface{}, userID interface{}, query interface{}) *MockPlatformMembershipRepository_ListPageByUser_Call {
+	return &MockPlatformMembershipRepository_ListPageByUser_Call{Call: _e.mock.On("ListPageByUser", ctx, userID, query)}
+}
+
+func (_c *MockPlatformMembershipRepository_ListPageByUser_Call) Run(run func(ctx context.Context, userID uint, query collection.Query)) *MockPlatformMembershipRepository_ListPageByUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPlatformMembershipRepository_ListPageByUser_Call) Return(page collection.Page[entity.PlatformMembership], err error) *MockPlatformMembershipRepository_ListPageByUser_Call {
+	_c.Call.Return(page, err)
+	return _c
+}
+
+func (_c *MockPlatformMembershipRepository_ListPageByUser_Call) RunAndReturn(run func(ctx context.Context, userID uint, query collection.Query) (collection.Page[entity.PlatformMembership], error)) *MockPlatformMembershipRepository_ListPageByUser_Call {
 	_c.Call.Return(run)
 	return _c
 }

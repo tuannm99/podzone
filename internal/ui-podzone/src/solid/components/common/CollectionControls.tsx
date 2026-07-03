@@ -3,14 +3,14 @@ import type { CollectionQuery } from '@/services/collection'
 import {
   CollectionFilters,
   type CollectionFilterField,
-} from '@/solid/components/common/CollectionFilters'
+} from './CollectionFilters'
 import {
   CollectionToolbar,
   type CollectionSortOption,
-} from '@/solid/components/common/CollectionToolbar'
-import { ErrorAlert, LoadingInline } from '@/solid/components/common/Feedback'
+} from './CollectionToolbar'
+import { ErrorAlert, LoadingInline } from './Feedback'
 
-type ChildCollectionControlsProps = {
+type CollectionControlsProps = {
   query: CollectionQuery
   loading: Accessor<boolean>
   error: Accessor<string>
@@ -20,7 +20,7 @@ type ChildCollectionControlsProps = {
   updateQuery: (patch: Partial<CollectionQuery>) => void
 }
 
-export function ChildCollectionControls(props: ChildCollectionControlsProps) {
+export function CollectionControls(props: CollectionControlsProps) {
   return (
     <div class="space-y-3">
       <CollectionToolbar

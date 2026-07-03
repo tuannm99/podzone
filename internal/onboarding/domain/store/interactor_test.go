@@ -15,6 +15,7 @@ import (
 	storeentity "github.com/tuannm99/podzone/internal/onboarding/domain/store/entity"
 	storeinputport "github.com/tuannm99/podzone/internal/onboarding/domain/store/inputport"
 	storemocks "github.com/tuannm99/podzone/internal/onboarding/domain/store/outputport/mocks"
+	"github.com/tuannm99/podzone/pkg/collection"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
@@ -97,6 +98,39 @@ func TestCreateStoreRequest_AuthorizesAuthenticatedWorkspace(t *testing.T) {
 		storeinputport.CreateStoreRequestCommand{Name: "New", Subdomain: "new"},
 	)
 	require.ErrorIs(t, err, context.Canceled)
+}
+
+func TestListStoreRequestsReturnsRepositoryPage(t *testing.T) {
+	t.Parallel()
+
+	svc, repo := setupStoreInteractor(t)
+	query := collection.Query{
+		Page:          2,
+		PageSize:      5,
+		Search:        "urban",
+		SortDirection: collection.SortDescending,
+	}
+	request := storeentity.StoreRequest{
+		ID:          primitive.NewObjectID(),
+		WorkspaceID: "workspace-1",
+		Name:        "Urban Finds",
+		Status:      storeentity.RequestStatusQueued,
+	}
+	repo.EXPECT().
+		ListPage(mock.Anything, "workspace-1", query).
+		Return(collection.NewPage([]storeentity.StoreRequest{request}, 6, query), nil)
+
+	page, err := svc.ListStoreRequests(
+		authenticatedContext("workspace-1", "7"),
+		"workspace-1",
+		query,
+	)
+
+	require.NoError(t, err)
+	require.Len(t, page.Items, 1)
+	require.Equal(t, request.ID.Hex(), page.Items[0].ID)
+	require.Equal(t, int64(6), page.Total)
+	require.True(t, page.HasPrevious)
 }
 
 func TestApproveStoreRequest_TransitionsToQueued(t *testing.T) {

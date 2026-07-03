@@ -8,35 +8,28 @@ import {
   TableHeaderCell,
   TableRow,
 } from '@/solid/components/common/DataTable'
-import { EmptyBlock, InfoAlert } from '@/solid/components/common/Feedback'
+import { EmptyBlock } from '@/solid/components/common/Feedback'
 import { Pagination } from '@/solid/components/common/Pagination'
 import { Badge, Button } from '@/solid/components/common/Primitives'
 import { useAdminSettings } from '../context'
 import { membershipStatusColor } from '../presentation'
 
-export function TeamMembersList() {
-  const { teamAccess } = useAdminSettings()
-  const { access } = teamAccess
+export function PlatformRolesTable() {
+  const { platformRoles } = useAdminSettings()
 
   return (
     <section class="space-y-3">
       <CollectionControls
-        query={access.members.query}
-        loading={access.members.loading}
-        error={access.members.error}
-        searchPlaceholder="Search user, role, or status"
+        query={platformRoles.query}
+        loading={platformRoles.loading}
+        error={platformRoles.collectionError}
+        searchPlaceholder="Search role or status"
         sortOptions={[
-          { label: 'Added', value: 'createdAt' },
-          { label: 'User ID', value: 'userId' },
+          { label: 'Assigned', value: 'createdAt' },
           { label: 'Role', value: 'roleName' },
           { label: 'Status', value: 'status' },
         ]}
         filterFields={[
-          {
-            label: 'User ID',
-            value: 'userId',
-            operators: ['FILTER_OPERATOR_EQ', 'FILTER_OPERATOR_IN'],
-          },
           {
             label: 'Role',
             value: 'roleName',
@@ -48,27 +41,15 @@ export function TeamMembersList() {
             operators: ['FILTER_OPERATOR_EQ', 'FILTER_OPERATOR_IN'],
           },
         ]}
-        updateQuery={access.members.updateQuery}
+        updateQuery={platformRoles.updateQuery}
       />
-      <Show when={!access.canRead()}>
-        <EmptyBlock
-          title="No workspace access"
-          copy="You do not currently have permission to inspect team access for this workspace."
-        />
-      </Show>
-      <Show when={access.canRead() && !access.canManage()}>
-        <InfoAlert>
-          You can inspect this workspace, but only authorized workspace owners
-          or admins can manage team access.
-        </InfoAlert>
-      </Show>
       <Show
-        when={access.canRead() && access.members.items().length > 0}
+        when={platformRoles.items().length > 0}
         fallback={
-          <Show when={access.canRead() && !access.members.loading()}>
+          <Show when={!platformRoles.loading()}>
             <EmptyBlock
-              title="No team members"
-              copy="No workspace members match the current collection query."
+              title="No admin roles"
+              copy="No platform roles match the current user and collection query."
             />
           </Show>
         }
@@ -83,16 +64,13 @@ export function TeamMembersList() {
             </TableRow>
           </TableHead>
           <TableBody>
-            <For each={access.members.items()}>
+            <For each={platformRoles.items()}>
               {(membership) => (
                 <TableRow>
-                  <TableCell>
-                    <p class="font-medium text-gray-900">{membership.userId}</p>
-                    <p class="text-xs text-gray-500">{membership.tenantId}</p>
+                  <TableCell class="font-medium text-gray-900">
+                    {membership.userId}
                   </TableCell>
-                  <TableCell>
-                    <Badge content={membership.roleName} color="blue" />
-                  </TableCell>
+                  <TableCell>{membership.roleName}</TableCell>
                   <TableCell>
                     <Badge
                       content={membership.status}
@@ -103,11 +81,11 @@ export function TeamMembersList() {
                     <Button
                       color="red"
                       size="xs"
-                      disabled={!access.canManage()}
+                      disabled={!platformRoles.canManage()}
                       onClick={() =>
-                        void teamAccess.remove(
-                          membership.tenantId,
-                          membership.userId
+                        void platformRoles.remove(
+                          membership.userId,
+                          membership.roleName
                         )
                       }
                     >
@@ -120,11 +98,11 @@ export function TeamMembersList() {
           </TableBody>
         </DataTable>
         <Pagination
-          page={access.members.pageInfo().page}
-          pageSize={access.members.pageInfo().pageSize}
-          total={access.members.pageInfo().total}
-          loading={access.members.loading()}
-          onPageChange={(page) => access.members.updateQuery({ page })}
+          page={platformRoles.pageInfo().page}
+          pageSize={platformRoles.pageInfo().pageSize}
+          total={platformRoles.pageInfo().total}
+          loading={platformRoles.loading()}
+          onPageChange={(page) => platformRoles.updateQuery({ page })}
         />
       </Show>
     </section>

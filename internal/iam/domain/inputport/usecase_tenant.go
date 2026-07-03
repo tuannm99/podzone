@@ -45,11 +45,19 @@ type TenantUsecase interface {
 		invitedByUserID uint,
 	) (*entity.TenantInvite, string, error)
 	GetInvite(ctx context.Context, inviteID string) (*entity.TenantInvite, error)
-	ListTenantInvites(ctx context.Context, tenantID string) ([]entity.TenantInvite, error)
+	ListTenantInvites(
+		ctx context.Context,
+		tenantID string,
+		query collection.Query,
+	) (collection.Page[entity.TenantInvite], error)
 	RevokeInvite(ctx context.Context, inviteID string) error
 	AcceptInvite(ctx context.Context, inviteToken string, userID uint, email string) (*entity.Membership, error)
 	GetMembership(ctx context.Context, tenantID string, userID uint) (*entity.Membership, error)
 	ListUserTenants(ctx context.Context, userID uint) ([]entity.Membership, error)
-	ListTenantMembers(ctx context.Context, tenantID string) ([]entity.Membership, error)
+	ListTenantMembers(
+		ctx context.Context,
+		tenantID string,
+		query collection.Query,
+	) (collection.Page[entity.Membership], error)
 	RemoveMember(ctx context.Context, tenantID string, userID uint) error
 }

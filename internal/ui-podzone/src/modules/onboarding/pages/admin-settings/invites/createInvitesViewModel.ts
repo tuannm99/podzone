@@ -16,7 +16,7 @@ export function createInvitesViewModel(access: WorkspaceAccessViewModel) {
   const reload = async (tenantID = access.selectedTenantID().trim()) => {
     if (!tenantID) return
     access.setSelectedTenantID(tenantID)
-    await access.reloadAccess()
+    await access.invites.reload()
   }
 
   const create = async (values: TenantInviteFormValues) => {

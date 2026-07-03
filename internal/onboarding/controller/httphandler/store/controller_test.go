@@ -14,6 +14,7 @@ import (
 	storedomain "github.com/tuannm99/podzone/internal/onboarding/domain/store"
 	storeinputport "github.com/tuannm99/podzone/internal/onboarding/domain/store/inputport"
 	storemocks "github.com/tuannm99/podzone/internal/onboarding/domain/store/inputport/mocks"
+	"github.com/tuannm99/podzone/pkg/collection"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
@@ -35,10 +36,21 @@ func TestController_ListStoreRequestsUsesRequestContext(t *testing.T) {
 					userID == "7"
 			}),
 			"tenant-1",
+			collection.Query{
+				Page:          2,
+				PageSize:      5,
+				Search:        "urban",
+				Filters:       []collection.Filter{},
+				SortDirection: collection.SortDescending,
+			},
 		).
-		Return([]*storeinputport.Request{}, nil)
+		Return(collection.NewPage([]*storeinputport.Request{}, 0, collection.Query{Page: 2, PageSize: 5}), nil)
 
-	request := httptest.NewRequest(http.MethodGet, "/onboarding/v1/requests", nil)
+	request := httptest.NewRequest(
+		http.MethodGet,
+		"/onboarding/v1/requests?collection.page=2&collection.pageSize=5&collection.search=urban",
+		nil,
+	)
 	requestCtx := toolkit.WithTenantID(request.Context(), "tenant-1")
 	requestCtx = toolkit.WithUserID(requestCtx, "7")
 	request = request.WithContext(requestCtx)
@@ -47,7 +59,17 @@ func TestController_ListStoreRequestsUsesRequestContext(t *testing.T) {
 	router.ServeHTTP(response, request)
 
 	require.Equal(t, http.StatusOK, response.Code)
-	require.JSONEq(t, `[]`, response.Body.String())
+	require.JSONEq(t, `{
+		"items": [],
+		"pageInfo": {
+			"total": 0,
+			"page": 2,
+			"pageSize": 5,
+			"totalPages": 0,
+			"hasNext": false,
+			"hasPrevious": false
+		}
+	}`, response.Body.String())
 }
 
 func TestController_ListStoreRequestsReturnsForbiddenForAccessDenied(t *testing.T) {
@@ -58,8 +80,11 @@ func TestController_ListStoreRequestsReturnsForbiddenForAccessDenied(t *testing.
 	controller.RegisterRoutes(router.Group("/onboarding/v1"))
 
 	usecase.EXPECT().
-		ListStoreRequests(mock.Anything, "tenant-1").
-		Return(nil, errors.Join(storedomain.ErrAccessDenied, errors.New("store:read")))
+		ListStoreRequests(mock.Anything, "tenant-1", mock.Anything).
+		Return(
+			collection.Page[*storeinputport.Request]{},
+			errors.Join(storedomain.ErrAccessDenied, errors.New("store:read")),
+		)
 
 	request := httptest.NewRequest(http.MethodGet, "/onboarding/v1/requests", nil)
 	requestCtx := toolkit.WithTenantID(request.Context(), "tenant-1")

@@ -43,8 +43,7 @@ type ResolverRoot interface {
 	Query() QueryResolver
 }
 
-type DirectiveRoot struct {
-}
+type DirectiveRoot struct{}
 
 type ComplexityRoot struct {
 	Mutation struct {
@@ -149,7 +148,7 @@ type ComplexityRoot struct {
 		RoutedOrderRecommendation func(childComplexity int, input model.RoutedOrderRecommendationInput) int
 		RoutedOrders              func(childComplexity int, collection *model.CollectionInput) int
 		Store                     func(childComplexity int, id string) int
-		Stores                    func(childComplexity int) int
+		Stores                    func(childComplexity int, collection *model.CollectionInput) int
 	}
 
 	RoutedOrder struct {
@@ -254,6 +253,11 @@ type ComplexityRoot struct {
 		Status      func(childComplexity int) int
 		UpdatedAt   func(childComplexity int) int
 	}
+
+	StorePage struct {
+		Items    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+	}
 }
 
 type MutationResolver interface {
@@ -279,7 +283,7 @@ type QueryResolver interface {
 	RoutedOrders(ctx context.Context, collection *model.CollectionInput) (*model.RoutedOrderPage, error)
 	RoutedOrderActivities(ctx context.Context, input *model.RoutedOrderActivityFeedInput) (*model.RoutedOrderActivityFeedPage, error)
 	RoutedOrderRecommendation(ctx context.Context, input model.RoutedOrderRecommendationInput) (*model.RoutedOrderRecommendation, error)
-	Stores(ctx context.Context) ([]*model.Store, error)
+	Stores(ctx context.Context, collection *model.CollectionInput) (*model.StorePage, error)
 	Store(ctx context.Context, id string) (*model.Store, error)
 }
 
@@ -860,7 +864,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			break
 		}
 
-		return e.complexity.Query.Stores(childComplexity), true
+		args, err := ec.field_Query_stores_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Stores(childComplexity, args["collection"].(*model.CollectionInput)), true
 
 	case "RoutedOrder.activityLog":
 		if e.complexity.RoutedOrder.ActivityLog == nil {
@@ -1326,6 +1335,19 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Store.UpdatedAt(childComplexity), true
+
+	case "StorePage.items":
+		if e.complexity.StorePage.Items == nil {
+			break
+		}
+
+		return e.complexity.StorePage.Items(childComplexity), true
+	case "StorePage.pageInfo":
+		if e.complexity.StorePage.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.StorePage.PageInfo(childComplexity), true
 
 	}
 	return 0, false
@@ -1811,13 +1833,18 @@ extend type Mutation {
   updated_at: Time!
 }
 
+type StorePage {
+  items: [Store!]!
+  pageInfo: PageInfo!
+}
+
 input CreateStoreInput {
   name: String!
   description: String!
 }
 
 extend type Query {
-  stores: [Store!]!
+  stores(collection: CollectionInput): StorePage!
   store(id: ID!): Store
 }
 
@@ -2067,6 +2094,17 @@ func (ec *executionContext) field_Query_store_args(ctx context.Context, rawArgs 
 		return nil, err
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_stores_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "collection", ec.unmarshalOCollectionInput2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐCollectionInput)
+	if err != nil {
+		return nil, err
+	}
+	args["collection"] = arg0
 	return args, nil
 }
 
@@ -5448,16 +5486,17 @@ func (ec *executionContext) _Query_stores(ctx context.Context, field graphql.Col
 		field,
 		ec.fieldContext_Query_stores,
 		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Query().Stores(ctx)
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().Stores(ctx, fc.Args["collection"].(*model.CollectionInput))
 		},
 		nil,
-		ec.marshalNStore2ᚕᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐStoreᚄ,
+		ec.marshalNStorePage2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐStorePage,
 		true,
 		true,
 	)
 }
 
-func (ec *executionContext) fieldContext_Query_stores(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_stores(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -5465,25 +5504,24 @@ func (ec *executionContext) fieldContext_Query_stores(_ context.Context, field g
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Store_id(ctx, field)
-			case "name":
-				return ec.fieldContext_Store_name(ctx, field)
-			case "owner_id":
-				return ec.fieldContext_Store_owner_id(ctx, field)
-			case "is_active":
-				return ec.fieldContext_Store_is_active(ctx, field)
-			case "description":
-				return ec.fieldContext_Store_description(ctx, field)
-			case "status":
-				return ec.fieldContext_Store_status(ctx, field)
-			case "created_at":
-				return ec.fieldContext_Store_created_at(ctx, field)
-			case "updated_at":
-				return ec.fieldContext_Store_updated_at(ctx, field)
+			case "items":
+				return ec.fieldContext_StorePage_items(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_StorePage_pageInfo(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Store", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type StorePage", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_stores_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -8020,6 +8058,96 @@ func (ec *executionContext) fieldContext_Store_updated_at(_ context.Context, fie
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StorePage_items(ctx context.Context, field graphql.CollectedField, obj *model.StorePage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StorePage_items,
+		func(ctx context.Context) (any, error) {
+			return obj.Items, nil
+		},
+		nil,
+		ec.marshalNStore2ᚕᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐStoreᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StorePage_items(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StorePage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Store_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Store_name(ctx, field)
+			case "owner_id":
+				return ec.fieldContext_Store_owner_id(ctx, field)
+			case "is_active":
+				return ec.fieldContext_Store_is_active(ctx, field)
+			case "description":
+				return ec.fieldContext_Store_description(ctx, field)
+			case "status":
+				return ec.fieldContext_Store_status(ctx, field)
+			case "created_at":
+				return ec.fieldContext_Store_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_Store_updated_at(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Store", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _StorePage_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.StorePage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_StorePage_pageInfo,
+		func(ctx context.Context) (any, error) {
+			return obj.PageInfo, nil
+		},
+		nil,
+		ec.marshalNPageInfo2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐPageInfo,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_StorePage_pageInfo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "StorePage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "total":
+				return ec.fieldContext_PageInfo_total(ctx, field)
+			case "page":
+				return ec.fieldContext_PageInfo_page(ctx, field)
+			case "pageSize":
+				return ec.fieldContext_PageInfo_pageSize(ctx, field)
+			case "totalPages":
+				return ec.fieldContext_PageInfo_totalPages(ctx, field)
+			case "hasNext":
+				return ec.fieldContext_PageInfo_hasNext(ctx, field)
+			case "hasPrevious":
+				return ec.fieldContext_PageInfo_hasPrevious(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
 		},
 	}
 	return fc, nil
@@ -11895,6 +12023,50 @@ func (ec *executionContext) _Store(ctx context.Context, sel ast.SelectionSet, ob
 	return out
 }
 
+var storePageImplementors = []string{"StorePage"}
+
+func (ec *executionContext) _StorePage(ctx context.Context, sel ast.SelectionSet, obj *model.StorePage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, storePageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("StorePage")
+		case "items":
+			out.Values[i] = ec._StorePage_items(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pageInfo":
+			out.Values[i] = ec._StorePage_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var __DirectiveImplementors = []string{"__Directive"}
 
 func (ec *executionContext) ___Directive(ctx context.Context, sel ast.SelectionSet, obj *introspection.Directive) graphql.Marshaler {
@@ -13010,6 +13182,20 @@ func (ec *executionContext) marshalNStore2ᚖgithubᚗcomᚋtuannm99ᚋpodzone�
 	return ec._Store(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNStorePage2githubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐStorePage(ctx context.Context, sel ast.SelectionSet, v model.StorePage) graphql.Marshaler {
+	return ec._StorePage(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNStorePage2ᚖgithubᚗcomᚋtuannm99ᚋpodzoneᚋinternalᚋbackofficeᚋcontrollerᚋgraphqlᚋgeneratedᚋmodelᚐStorePage(ctx context.Context, sel ast.SelectionSet, v *model.StorePage) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._StorePage(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v any) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -13410,7 +13596,7 @@ func (ec *executionContext) unmarshalOCollectionSortDirection2ᚖgithubᚗcomᚋ
 	if v == nil {
 		return nil, nil
 	}
-	var res = new(model.CollectionSortDirection)
+	res := new(model.CollectionSortDirection)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }

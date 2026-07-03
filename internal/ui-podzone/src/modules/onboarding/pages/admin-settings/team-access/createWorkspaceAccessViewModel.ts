@@ -2,6 +2,7 @@ import {
   createEffect,
   createResource,
   createSignal,
+  on,
   type Accessor,
 } from 'solid-js'
 import {
@@ -11,6 +12,7 @@ import {
   listUserTenants,
   type TenantMembership,
 } from '@/services/iam'
+import { createPaginatedResource } from '@/solid/pagination'
 
 export function createWorkspaceAccessViewModel(
   userID: number,
@@ -46,30 +48,52 @@ export function createWorkspaceAccessViewModel(
       if (!readResult.success) throw new Error(readResult.message)
       if (!manageResult.success) throw new Error(manageResult.message)
 
-      const [membersResult, invitesResult] = await Promise.all([
-        readResult.data ? listTenantMembers(tenantID) : undefined,
-        manageResult.data ? listTenantInvites(tenantID) : undefined,
-      ])
-      if (membersResult && !membersResult.success) {
-        throw new Error(membersResult.message)
-      }
-      if (invitesResult && !invitesResult.success) {
-        throw new Error(invitesResult.message)
-      }
       return {
         canRead: readResult.data,
         canManage: manageResult.data,
-        members: membersResult?.success ? membersResult.data : [],
-        invites: invitesResult?.success ? invitesResult.data : [],
       }
     }
   )
 
   const memberships = () => membershipsResource.latest || []
-  const members = () => accessResource.latest?.members || []
-  const invites = () => accessResource.latest?.invites || []
-  const canRead = () => accessResource.latest?.canRead || false
-  const canManage = () => accessResource.latest?.canManage || false
+  const canRead = () =>
+    !accessResource.loading && Boolean(accessResource.latest?.canRead)
+  const canManage = () =>
+    !accessResource.loading && Boolean(accessResource.latest?.canManage)
+  const members = createPaginatedResource(
+    {
+      page: 1,
+      pageSize: 10,
+      sortBy: 'createdAt',
+      sortDirection: 'SORT_DIRECTION_DESC',
+    },
+    async (query) => {
+      const result = await listTenantMembers(selectedTenantID().trim(), query)
+      if (!result.success) throw new Error(result.message)
+      return result.data
+    },
+    {
+      enabled: () => canRead() && Boolean(selectedTenantID().trim()),
+      dependency: selectedTenantID,
+    }
+  )
+  const invites = createPaginatedResource(
+    {
+      page: 1,
+      pageSize: 10,
+      sortBy: 'createdAt',
+      sortDirection: 'SORT_DIRECTION_DESC',
+    },
+    async (query) => {
+      const result = await listTenantInvites(selectedTenantID().trim(), query)
+      if (!result.success) throw new Error(result.message)
+      return result.data
+    },
+    {
+      enabled: () => canManage() && Boolean(selectedTenantID().trim()),
+      dependency: selectedTenantID,
+    }
+  )
   const loadingMemberships = () => membershipsResource.loading
   const loadingAccess = () => accessResource.loading
   const error = () => {
@@ -87,6 +111,16 @@ export function createWorkspaceAccessViewModel(
     const tenantID = activeTenantID() || memberships()[0]?.tenantId || ''
     if (tenantID) setSelectedTenantID(tenantID)
   })
+  createEffect(
+    on(
+      selectedTenantID,
+      () => {
+        members.clear()
+        invites.clear()
+      },
+      { defer: true }
+    )
+  )
 
   return {
     selectedTenantID,

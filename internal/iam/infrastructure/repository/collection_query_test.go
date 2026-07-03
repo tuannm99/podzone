@@ -124,6 +124,50 @@ func TestBuildIAMCollectionQuery(t *testing.T) {
 			wantOrder:   "created_at DESC",
 			wantWhere:   1,
 		},
+		{
+			name: "tenant membership role filter",
+			query: collection.Query{
+				Filters: []collection.Filter{{
+					Field:    "roleName",
+					Operator: collection.FilterEqual,
+					Values:   []string{"tenant_admin"},
+				}},
+			},
+			columns:     tenantMembershipCollectionColumns,
+			search:      []string{"CAST(tm.user_id AS TEXT)", "r.name", "tm.status"},
+			defaultSort: "tm.created_at",
+			wantOrder:   "tm.created_at DESC",
+			wantWhere:   1,
+		},
+		{
+			name: "tenant invite email search",
+			query: collection.Query{
+				Search: "ops@example.com",
+				SortBy: "expiresAt",
+			},
+			columns:     tenantInviteCollectionColumns,
+			search:      []string{"ti.email", "r.name", "ti.status"},
+			defaultSort: "ti.created_at",
+			wantOrder:   "ti.expires_at DESC",
+			wantWhere:   1,
+		},
+		{
+			name: "platform role status filter",
+			query: collection.Query{
+				Filters: []collection.Filter{{
+					Field:    "status",
+					Operator: collection.FilterEqual,
+					Values:   []string{"active"},
+				}},
+				SortBy:        "roleName",
+				SortDirection: collection.SortAscending,
+			},
+			columns:     platformRoleCollectionColumns,
+			search:      []string{"r.name", "upr.status"},
+			defaultSort: "upr.created_at",
+			wantOrder:   "r.name ASC",
+			wantWhere:   1,
+		},
 	}
 
 	for _, tt := range tests {

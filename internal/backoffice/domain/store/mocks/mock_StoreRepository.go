@@ -9,6 +9,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 	"github.com/tuannm99/podzone/internal/backoffice/domain/store"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 // NewMockStoreRepository creates a new instance of MockStoreRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -16,7 +17,8 @@ import (
 func NewMockStoreRepository(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockStoreRepository {
+},
+) *MockStoreRepository {
 	mock := &MockStoreRepository{}
 	mock.Mock.Test(t)
 
@@ -152,68 +154,6 @@ func (_c *MockStoreRepository_Create_Call) RunAndReturn(run func(ctx context.Con
 	return _c
 }
 
-// FindAll provides a mock function for the type MockStoreRepository
-func (_mock *MockStoreRepository) FindAll(ctx context.Context) ([]store.Store, error) {
-	ret := _mock.Called(ctx)
-
-	if len(ret) == 0 {
-		panic("no return value specified for FindAll")
-	}
-
-	var r0 []store.Store
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context) ([]store.Store, error)); ok {
-		return returnFunc(ctx)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context) []store.Store); ok {
-		r0 = returnFunc(ctx)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]store.Store)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = returnFunc(ctx)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockStoreRepository_FindAll_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindAll'
-type MockStoreRepository_FindAll_Call struct {
-	*mock.Call
-}
-
-// FindAll is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *MockStoreRepository_Expecter) FindAll(ctx interface{}) *MockStoreRepository_FindAll_Call {
-	return &MockStoreRepository_FindAll_Call{Call: _e.mock.On("FindAll", ctx)}
-}
-
-func (_c *MockStoreRepository_FindAll_Call) Run(run func(ctx context.Context)) *MockStoreRepository_FindAll_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		run(
-			arg0,
-		)
-	})
-	return _c
-}
-
-func (_c *MockStoreRepository_FindAll_Call) Return(stores []store.Store, err error) *MockStoreRepository_FindAll_Call {
-	_c.Call.Return(stores, err)
-	return _c
-}
-
-func (_c *MockStoreRepository_FindAll_Call) RunAndReturn(run func(ctx context.Context) ([]store.Store, error)) *MockStoreRepository_FindAll_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // FindByID provides a mock function for the type MockStoreRepository
 func (_mock *MockStoreRepository) FindByID(ctx context.Context, id string) (*store.Store, error) {
 	ret := _mock.Called(ctx, id)
@@ -278,6 +218,72 @@ func (_c *MockStoreRepository_FindByID_Call) Return(store1 *store.Store, err err
 }
 
 func (_c *MockStoreRepository_FindByID_Call) RunAndReturn(run func(ctx context.Context, id string) (*store.Store, error)) *MockStoreRepository_FindByID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FindPage provides a mock function for the type MockStoreRepository
+func (_mock *MockStoreRepository) FindPage(ctx context.Context, query collection.Query) (collection.Page[store.Store], error) {
+	ret := _mock.Called(ctx, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindPage")
+	}
+
+	var r0 collection.Page[store.Store]
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) (collection.Page[store.Store], error)); ok {
+		return returnFunc(ctx, query)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) collection.Page[store.Store]); ok {
+		r0 = returnFunc(ctx, query)
+	} else {
+		r0 = ret.Get(0).(collection.Page[store.Store])
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, collection.Query) error); ok {
+		r1 = returnFunc(ctx, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStoreRepository_FindPage_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindPage'
+type MockStoreRepository_FindPage_Call struct {
+	*mock.Call
+}
+
+// FindPage is a helper method to define mock.On call
+//   - ctx context.Context
+//   - query collection.Query
+func (_e *MockStoreRepository_Expecter) FindPage(ctx interface{}, query interface{}) *MockStoreRepository_FindPage_Call {
+	return &MockStoreRepository_FindPage_Call{Call: _e.mock.On("FindPage", ctx, query)}
+}
+
+func (_c *MockStoreRepository_FindPage_Call) Run(run func(ctx context.Context, query collection.Query)) *MockStoreRepository_FindPage_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 collection.Query
+		if args[1] != nil {
+			arg1 = args[1].(collection.Query)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStoreRepository_FindPage_Call) Return(page collection.Page[store.Store], err error) *MockStoreRepository_FindPage_Call {
+	_c.Call.Return(page, err)
+	return _c
+}
+
+func (_c *MockStoreRepository_FindPage_Call) RunAndReturn(run func(ctx context.Context, query collection.Query) (collection.Page[store.Store], error)) *MockStoreRepository_FindPage_Call {
 	_c.Call.Return(run)
 	return _c
 }

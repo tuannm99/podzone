@@ -1,12 +1,7 @@
-import { For, Show, createEffect, on } from 'solid-js'
+import { Show, createEffect, on } from 'solid-js'
 import { tokenStorage } from '@/services/tokenStorage'
-import {
-  EmptyBlock,
-  ErrorAlert,
-  InfoAlert,
-  LoadingInline,
-} from '@/solid/components/common/Feedback'
-import { Badge, Button, Card } from '@/solid/components/common/Primitives'
+import { ErrorAlert, InfoAlert } from '@/solid/components/common/Feedback'
+import { Button, Card } from '@/solid/components/common/Primitives'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'
 import {
   FormInputField,
@@ -17,7 +12,8 @@ import {
 } from '@/solid/forms'
 import { useAdminSettings } from '../context'
 import type { TenantInviteFormValues } from '../forms'
-import { membershipStatusColor, roleOptions } from '../presentation'
+import { roleOptions } from '../presentation'
+import { InvitesTable } from './InvitesTable'
 
 export function InvitesPanel() {
   const { invites } = useAdminSettings()
@@ -137,58 +133,7 @@ export function InvitesPanel() {
           <p class="mt-2 break-all">{invites.latestAcceptURL()}</p>
         </div>
       </Show>
-      <Show when={access.loadingAccess()}>
-        <LoadingInline label="Loading workspace invites..." />
-      </Show>
-      <Show
-        when={!access.loadingAccess() && access.invites().length > 0}
-        fallback={
-          <EmptyBlock
-            title="No workspace invites loaded"
-            copy="Create an invite or reload invites for the selected workspace."
-          />
-        }
-      >
-        <div class="space-y-3">
-          <For each={access.invites()}>
-            {(invite) => (
-              <div class="rounded-lg border border-gray-200 p-4">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p class="font-semibold text-gray-900">{invite.email}</p>
-                    <p class="mt-1 text-sm text-gray-500">
-                      workspace {invite.tenantId} · {invite.roleName} · expires{' '}
-                      {invite.expiresAt || 'unknown'}
-                    </p>
-                  </div>
-                  <div class="flex flex-wrap items-center gap-2">
-                    <Badge
-                      content={invite.status}
-                      color={membershipStatusColor(invite.status)}
-                    />
-                    <Button
-                      color="red"
-                      size="xs"
-                      disabled={
-                        !access.canManage() || invite.status !== 'pending'
-                      }
-                      onClick={() =>
-                        void invites.revoke(
-                          invite.id,
-                          invite.tenantId,
-                          invite.email
-                        )
-                      }
-                    >
-                      Revoke
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </For>
-        </div>
-      </Show>
+      <InvitesTable />
     </Card>
   )
 }

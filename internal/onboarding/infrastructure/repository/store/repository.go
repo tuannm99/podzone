@@ -13,6 +13,7 @@ import (
 
 	storeentity "github.com/tuannm99/podzone/internal/onboarding/domain/store/entity"
 	storeoutputport "github.com/tuannm99/podzone/internal/onboarding/domain/store/outputport"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 var _ storeoutputport.StoreRepository = (*MongoRepository)(nil)
@@ -107,27 +108,38 @@ func (r *MongoRepository) FindByID(ctx context.Context, id string) (*storeentity
 	return &request, nil
 }
 
-func (r *MongoRepository) List(ctx context.Context, workspaceID string) ([]storeentity.StoreRequest, error) {
-	filter := bson.M{}
-	if workspaceID != "" {
-		filter["workspace_id"] = workspaceID
+func (r *MongoRepository) ListPage(
+	ctx context.Context,
+	workspaceID string,
+	query collection.Query,
+) (collection.Page[storeentity.StoreRequest], error) {
+	normalized, filter, sort, err := buildStoreRequestCollection(workspaceID, query)
+	if err != nil {
+		return collection.Page[storeentity.StoreRequest]{}, err
+	}
+	total, err := r.collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return collection.Page[storeentity.StoreRequest]{}, err
 	}
 
 	cursor, err := r.collection.Find(
 		ctx,
 		filter,
-		options.Find().SetSort(bson.D{{Key: "updated_at", Value: -1}}),
+		options.Find().
+			SetSort(sort).
+			SetSkip(int64(normalized.Offset())).
+			SetLimit(int64(normalized.PageSize)),
 	)
 	if err != nil {
-		return nil, err
+		return collection.Page[storeentity.StoreRequest]{}, err
 	}
 	defer cursor.Close(ctx)
 
 	var requests []storeentity.StoreRequest
 	if err = cursor.All(ctx, &requests); err != nil {
-		return nil, err
+		return collection.Page[storeentity.StoreRequest]{}, err
 	}
-	return requests, nil
+	return collection.NewPage(requests, total, normalized), nil
 }
 
 func (r *MongoRepository) ClaimNextQueued(ctx context.Context) (*storeentity.StoreRequest, error) {

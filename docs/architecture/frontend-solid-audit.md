@@ -57,6 +57,14 @@ This document records migration work. Stable conventions live in
 - Migrated IAM policy versions and attachments, group members and policies, and
   platform/tenant principal policies to the same server collection contract.
   IAM no longer uses client pagination for operational collections.
+- Migrated tenant members, tenant invites, and platform role memberships to the
+  common server collection contract. Admin Settings now owns separate paginated
+  resources for each collection and renders operational tables instead of
+  unbounded cards.
+- Migrated onboarding store requests and Backoffice stores to the common server
+  collection contract. Store selection and provisioning now use dedicated
+  paginated resources and operational tables; dashboard metrics retain an
+  explicit compatibility traversal until backend projections replace it.
 - Promoted the paginated resource owner to `solid/pagination` so Onboarding and
   Backoffice use the same resource behavior.
 
@@ -80,25 +88,11 @@ stale-response and cancellation behavior.
 
 ## P1: Architecture And Scale
 
-### Collection APIs Return Full Arrays
+### Aggregate Metrics Still Traverse Pages
 
-Client pagination currently limits DOM work but not network or backend work.
-
-Auth sessions and audit logs now use the common server collection contract.
-
-Add server cursor/page contracts to:
-
-- IAM tenant members, roles, and invites
-- `services/store.ts`
-- `services/onboarding.ts`
-
-Return `items`, `total` or `hasNextPage`, and an opaque cursor. Put cursor,
-filters, and sort in route search state.
-
-Orders now exposes pages, but dashboard and finance consumers intentionally walk
-all pages until their aggregate metrics move to backend projections. The main
-Orders queue uses backend page/search/queue-filter/sort state directly; only
-cross-page aggregate metrics retain the compatibility traversal.
+Orders, store attention, and workspace summary consumers intentionally walk all
+pages until their aggregate metrics move to backend projections. Operational
+tables use backend page/search/filter/sort state directly.
 
 ### Route State Is Mostly Local
 

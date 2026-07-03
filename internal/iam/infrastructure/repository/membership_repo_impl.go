@@ -5,9 +5,11 @@ import (
 	"database/sql"
 	"errors"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	entity "github.com/tuannm99/podzone/internal/iam/domain/entity"
 	"github.com/tuannm99/podzone/internal/iam/domain/outputport"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type MembershipRepositoryImpl struct {
@@ -72,22 +74,36 @@ func (r *MembershipRepositoryImpl) GetByTenantAndUser(
 	}, nil
 }
 
-func (r *MembershipRepositoryImpl) ListByTenant(ctx context.Context, tenantID string) ([]entity.Membership, error) {
-	var rows []membershipModel
-	if err := r.db.SelectContext(
+func (r *MembershipRepositoryImpl) ListPageByTenant(
+	ctx context.Context,
+	tenantID string,
+	query collection.Query,
+) (collection.Page[entity.Membership], error) {
+	page, err := listIAMCollectionModels[membershipModel](
 		ctx,
-		&rows,
-		`SELECT tm.tenant_id, tm.user_id, tm.role_id, r.name AS role_name, tm.status, tm.created_at, tm.updated_at
-		 FROM tenant_memberships tm
-		 JOIN iam_roles r ON r.id = tm.role_id
-		 WHERE tm.tenant_id = $1
-		 ORDER BY tm.created_at ASC`,
-		tenantID,
-	); err != nil {
-		return nil, err
+		r.db,
+		query,
+		"tenant_memberships tm JOIN iam_roles r ON r.id = tm.role_id",
+		[]string{
+			"tm.tenant_id",
+			"tm.user_id",
+			"tm.role_id",
+			"r.name AS role_name",
+			"tm.status",
+			"tm.created_at",
+			"tm.updated_at",
+		},
+		[]sq.Sqlizer{sq.Eq{"tm.tenant_id": tenantID}},
+		tenantMembershipCollectionColumns,
+		[]string{"CAST(tm.user_id AS TEXT)", "r.name", "tm.status"},
+		"tm.created_at",
+		"tm.user_id ASC",
+	)
+	if err != nil {
+		return collection.Page[entity.Membership]{}, err
 	}
-	out := make([]entity.Membership, 0, len(rows))
-	for _, row := range rows {
+	out := make([]entity.Membership, 0, len(page.Items))
+	for _, row := range page.Items {
 		out = append(out, entity.Membership{
 			TenantID:  row.TenantID,
 			UserID:    row.UserID,
@@ -98,7 +114,7 @@ func (r *MembershipRepositoryImpl) ListByTenant(ctx context.Context, tenantID st
 			UpdatedAt: row.UpdatedAt,
 		})
 	}
-	return out, nil
+	return collection.NewPage(out, page.Total, query), nil
 }
 
 func (r *MembershipRepositoryImpl) ListByUser(ctx context.Context, userID uint) ([]entity.Membership, error) {

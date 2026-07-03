@@ -87,6 +87,38 @@ var policyAttachmentCollectionColumns = map[string]collectionColumn{
 	"createdAt":      {sql: "created_at"},
 }
 
+var tenantMembershipCollectionColumns = map[string]collectionColumn{
+	"tenantId":  {sql: "tm.tenant_id", text: true},
+	"userId":    {sql: "tm.user_id"},
+	"roleId":    {sql: "tm.role_id"},
+	"roleName":  {sql: "r.name", text: true},
+	"status":    {sql: "tm.status", text: true},
+	"createdAt": {sql: "tm.created_at"},
+	"updatedAt": {sql: "tm.updated_at"},
+}
+
+var tenantInviteCollectionColumns = map[string]collectionColumn{
+	"id":              {sql: "ti.id", text: true},
+	"tenantId":        {sql: "ti.tenant_id", text: true},
+	"email":           {sql: "ti.email", text: true},
+	"roleId":          {sql: "ti.role_id"},
+	"roleName":        {sql: "r.name", text: true},
+	"status":          {sql: "ti.status", text: true},
+	"invitedByUserId": {sql: "ti.invited_by_user_id"},
+	"expiresAt":       {sql: "ti.expires_at"},
+	"createdAt":       {sql: "ti.created_at"},
+	"updatedAt":       {sql: "ti.updated_at"},
+}
+
+var platformRoleCollectionColumns = map[string]collectionColumn{
+	"userId":    {sql: "upr.user_id"},
+	"roleId":    {sql: "upr.role_id"},
+	"roleName":  {sql: "r.name", text: true},
+	"status":    {sql: "upr.status", text: true},
+	"createdAt": {sql: "upr.created_at"},
+	"updatedAt": {sql: "upr.updated_at"},
+}
+
 func listIAMCollectionModels[M any](
 	ctx context.Context,
 	db *sqlx.DB,

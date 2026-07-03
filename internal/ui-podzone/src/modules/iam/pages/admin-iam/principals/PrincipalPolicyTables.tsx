@@ -10,7 +10,7 @@ import {
 import { EmptyBlock } from '@/solid/components/common/Feedback'
 import { Pagination } from '@/solid/components/common/Pagination'
 import { Badge, Button } from '@/solid/components/common/Primitives'
-import { ChildCollectionControls } from '../shared/ChildCollectionControls'
+import { CollectionControls } from '@/solid/components/common/CollectionControls'
 import { useAdminIamPrincipal } from './context'
 
 export function PrincipalManagedPoliciesTable() {
@@ -18,7 +18,7 @@ export function PrincipalManagedPoliciesTable() {
 
   return (
     <div class="space-y-3">
-      <ChildCollectionControls
+      <CollectionControls
         query={principal.managedPoliciesQuery}
         loading={principal.managedPoliciesLoading}
         error={principal.managedPoliciesError}
@@ -106,7 +106,7 @@ export function PrincipalInlinePoliciesTable() {
 
   return (
     <div class="space-y-3">
-      <ChildCollectionControls
+      <CollectionControls
         query={principal.inlinePoliciesQuery}
         loading={principal.inlinePoliciesLoading}
         error={principal.inlinePoliciesError}

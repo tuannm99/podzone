@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	storedomain "github.com/tuannm99/podzone/internal/onboarding/domain/store"
 	storeinputport "github.com/tuannm99/podzone/internal/onboarding/domain/store/inputport"
+	"github.com/tuannm99/podzone/pkg/collection"
 	pdlog "github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 	"go.uber.org/fx"
@@ -58,6 +59,11 @@ type CreateStoreRequest struct {
 	Subdomain string `json:"subdomain" binding:"required"`
 }
 
+type listStoreRequestsResponse struct {
+	Items    []*storeinputport.Request `json:"items"`
+	PageInfo collection.PageInfo       `json:"pageInfo"`
+}
+
 func (c *Controller) CreateStoreRequest(ctx *gin.Context) {
 	var req CreateStoreRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -86,13 +92,21 @@ func (c *Controller) ListStoreRequests(ctx *gin.Context) {
 		return
 	}
 
-	requests, err := c.service.ListStoreRequests(requestCtx, workspaceID)
+	query, err := collection.ParseURLValues(ctx.Request.URL.Query(), "collection.")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	page, err := c.service.ListStoreRequests(requestCtx, workspaceID, query)
 	if err != nil {
 		writeStoreError(ctx, err, "Failed to list stores")
 		return
 	}
 
-	ctx.JSON(http.StatusOK, requests)
+	ctx.JSON(http.StatusOK, listStoreRequestsResponse{
+		Items:    page.Items,
+		PageInfo: page.Info(),
+	})
 }
 
 func (c *Controller) GetStoreRequest(ctx *gin.Context) {
@@ -180,7 +194,8 @@ func writeStoreError(ctx *gin.Context, err error, fallback string) {
 	case errors.Is(err, storedomain.ErrInvalidStatus):
 		ctx.JSON(http.StatusConflict, gin.H{"error": "Invalid store request status transition"})
 	case errors.Is(err, storedomain.ErrNameRequired),
-		errors.Is(err, storedomain.ErrSubdomainRequired):
+		errors.Is(err, storedomain.ErrSubdomainRequired),
+		errors.Is(err, collection.ErrInvalidQuery):
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	default:
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": fallback})

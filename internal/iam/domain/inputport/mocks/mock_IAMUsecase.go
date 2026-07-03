@@ -3404,27 +3404,25 @@ func (_c *MockIAMUsecase_ListOrganizations_Call) RunAndReturn(run func(ctx conte
 }
 
 // ListPlatformRoles provides a mock function for the type MockIAMUsecase
-func (_mock *MockIAMUsecase) ListPlatformRoles(ctx context.Context, userID uint) ([]entity.PlatformMembership, error) {
-	ret := _mock.Called(ctx, userID)
+func (_mock *MockIAMUsecase) ListPlatformRoles(ctx context.Context, userID uint, query collection.Query) (collection.Page[entity.PlatformMembership], error) {
+	ret := _mock.Called(ctx, userID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListPlatformRoles")
 	}
 
-	var r0 []entity.PlatformMembership
+	var r0 collection.Page[entity.PlatformMembership]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) ([]entity.PlatformMembership, error)); ok {
-		return returnFunc(ctx, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, collection.Query) (collection.Page[entity.PlatformMembership], error)); ok {
+		return returnFunc(ctx, userID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint) []entity.PlatformMembership); ok {
-		r0 = returnFunc(ctx, userID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, collection.Query) collection.Page[entity.PlatformMembership]); ok {
+		r0 = returnFunc(ctx, userID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.PlatformMembership)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.PlatformMembership])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, uint) error); ok {
-		r1 = returnFunc(ctx, userID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint, collection.Query) error); ok {
+		r1 = returnFunc(ctx, userID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -3439,11 +3437,12 @@ type MockIAMUsecase_ListPlatformRoles_Call struct {
 // ListPlatformRoles is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID uint
-func (_e *MockIAMUsecase_Expecter) ListPlatformRoles(ctx interface{}, userID interface{}) *MockIAMUsecase_ListPlatformRoles_Call {
-	return &MockIAMUsecase_ListPlatformRoles_Call{Call: _e.mock.On("ListPlatformRoles", ctx, userID)}
+//   - query collection.Query
+func (_e *MockIAMUsecase_Expecter) ListPlatformRoles(ctx interface{}, userID interface{}, query interface{}) *MockIAMUsecase_ListPlatformRoles_Call {
+	return &MockIAMUsecase_ListPlatformRoles_Call{Call: _e.mock.On("ListPlatformRoles", ctx, userID, query)}
 }
 
-func (_c *MockIAMUsecase_ListPlatformRoles_Call) Run(run func(ctx context.Context, userID uint)) *MockIAMUsecase_ListPlatformRoles_Call {
+func (_c *MockIAMUsecase_ListPlatformRoles_Call) Run(run func(ctx context.Context, userID uint, query collection.Query)) *MockIAMUsecase_ListPlatformRoles_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -3453,20 +3452,25 @@ func (_c *MockIAMUsecase_ListPlatformRoles_Call) Run(run func(ctx context.Contex
 		if args[1] != nil {
 			arg1 = args[1].(uint)
 		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockIAMUsecase_ListPlatformRoles_Call) Return(platformMemberships []entity.PlatformMembership, err error) *MockIAMUsecase_ListPlatformRoles_Call {
-	_c.Call.Return(platformMemberships, err)
+func (_c *MockIAMUsecase_ListPlatformRoles_Call) Return(page collection.Page[entity.PlatformMembership], err error) *MockIAMUsecase_ListPlatformRoles_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockIAMUsecase_ListPlatformRoles_Call) RunAndReturn(run func(ctx context.Context, userID uint) ([]entity.PlatformMembership, error)) *MockIAMUsecase_ListPlatformRoles_Call {
+func (_c *MockIAMUsecase_ListPlatformRoles_Call) RunAndReturn(run func(ctx context.Context, userID uint, query collection.Query) (collection.Page[entity.PlatformMembership], error)) *MockIAMUsecase_ListPlatformRoles_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -3900,27 +3904,25 @@ func (_c *MockIAMUsecase_ListServiceControlPolicies_Call) RunAndReturn(run func(
 }
 
 // ListTenantInvites provides a mock function for the type MockIAMUsecase
-func (_mock *MockIAMUsecase) ListTenantInvites(ctx context.Context, tenantID string) ([]entity.TenantInvite, error) {
-	ret := _mock.Called(ctx, tenantID)
+func (_mock *MockIAMUsecase) ListTenantInvites(ctx context.Context, tenantID string, query collection.Query) (collection.Page[entity.TenantInvite], error) {
+	ret := _mock.Called(ctx, tenantID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListTenantInvites")
 	}
 
-	var r0 []entity.TenantInvite
+	var r0 collection.Page[entity.TenantInvite]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]entity.TenantInvite, error)); ok {
-		return returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) (collection.Page[entity.TenantInvite], error)); ok {
+		return returnFunc(ctx, tenantID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []entity.TenantInvite); ok {
-		r0 = returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) collection.Page[entity.TenantInvite]); ok {
+		r0 = returnFunc(ctx, tenantID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.TenantInvite)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.TenantInvite])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, collection.Query) error); ok {
+		r1 = returnFunc(ctx, tenantID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -3935,11 +3937,12 @@ type MockIAMUsecase_ListTenantInvites_Call struct {
 // ListTenantInvites is a helper method to define mock.On call
 //   - ctx context.Context
 //   - tenantID string
-func (_e *MockIAMUsecase_Expecter) ListTenantInvites(ctx interface{}, tenantID interface{}) *MockIAMUsecase_ListTenantInvites_Call {
-	return &MockIAMUsecase_ListTenantInvites_Call{Call: _e.mock.On("ListTenantInvites", ctx, tenantID)}
+//   - query collection.Query
+func (_e *MockIAMUsecase_Expecter) ListTenantInvites(ctx interface{}, tenantID interface{}, query interface{}) *MockIAMUsecase_ListTenantInvites_Call {
+	return &MockIAMUsecase_ListTenantInvites_Call{Call: _e.mock.On("ListTenantInvites", ctx, tenantID, query)}
 }
 
-func (_c *MockIAMUsecase_ListTenantInvites_Call) Run(run func(ctx context.Context, tenantID string)) *MockIAMUsecase_ListTenantInvites_Call {
+func (_c *MockIAMUsecase_ListTenantInvites_Call) Run(run func(ctx context.Context, tenantID string, query collection.Query)) *MockIAMUsecase_ListTenantInvites_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -3949,46 +3952,49 @@ func (_c *MockIAMUsecase_ListTenantInvites_Call) Run(run func(ctx context.Contex
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockIAMUsecase_ListTenantInvites_Call) Return(tenantInvites []entity.TenantInvite, err error) *MockIAMUsecase_ListTenantInvites_Call {
-	_c.Call.Return(tenantInvites, err)
+func (_c *MockIAMUsecase_ListTenantInvites_Call) Return(page collection.Page[entity.TenantInvite], err error) *MockIAMUsecase_ListTenantInvites_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockIAMUsecase_ListTenantInvites_Call) RunAndReturn(run func(ctx context.Context, tenantID string) ([]entity.TenantInvite, error)) *MockIAMUsecase_ListTenantInvites_Call {
+func (_c *MockIAMUsecase_ListTenantInvites_Call) RunAndReturn(run func(ctx context.Context, tenantID string, query collection.Query) (collection.Page[entity.TenantInvite], error)) *MockIAMUsecase_ListTenantInvites_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListTenantMembers provides a mock function for the type MockIAMUsecase
-func (_mock *MockIAMUsecase) ListTenantMembers(ctx context.Context, tenantID string) ([]entity.Membership, error) {
-	ret := _mock.Called(ctx, tenantID)
+func (_mock *MockIAMUsecase) ListTenantMembers(ctx context.Context, tenantID string, query collection.Query) (collection.Page[entity.Membership], error) {
+	ret := _mock.Called(ctx, tenantID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListTenantMembers")
 	}
 
-	var r0 []entity.Membership
+	var r0 collection.Page[entity.Membership]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]entity.Membership, error)); ok {
-		return returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) (collection.Page[entity.Membership], error)); ok {
+		return returnFunc(ctx, tenantID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []entity.Membership); ok {
-		r0 = returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) collection.Page[entity.Membership]); ok {
+		r0 = returnFunc(ctx, tenantID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.Membership)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.Membership])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, collection.Query) error); ok {
+		r1 = returnFunc(ctx, tenantID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -4003,11 +4009,12 @@ type MockIAMUsecase_ListTenantMembers_Call struct {
 // ListTenantMembers is a helper method to define mock.On call
 //   - ctx context.Context
 //   - tenantID string
-func (_e *MockIAMUsecase_Expecter) ListTenantMembers(ctx interface{}, tenantID interface{}) *MockIAMUsecase_ListTenantMembers_Call {
-	return &MockIAMUsecase_ListTenantMembers_Call{Call: _e.mock.On("ListTenantMembers", ctx, tenantID)}
+//   - query collection.Query
+func (_e *MockIAMUsecase_Expecter) ListTenantMembers(ctx interface{}, tenantID interface{}, query interface{}) *MockIAMUsecase_ListTenantMembers_Call {
+	return &MockIAMUsecase_ListTenantMembers_Call{Call: _e.mock.On("ListTenantMembers", ctx, tenantID, query)}
 }
 
-func (_c *MockIAMUsecase_ListTenantMembers_Call) Run(run func(ctx context.Context, tenantID string)) *MockIAMUsecase_ListTenantMembers_Call {
+func (_c *MockIAMUsecase_ListTenantMembers_Call) Run(run func(ctx context.Context, tenantID string, query collection.Query)) *MockIAMUsecase_ListTenantMembers_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -4017,20 +4024,25 @@ func (_c *MockIAMUsecase_ListTenantMembers_Call) Run(run func(ctx context.Contex
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockIAMUsecase_ListTenantMembers_Call) Return(memberships []entity.Membership, err error) *MockIAMUsecase_ListTenantMembers_Call {
-	_c.Call.Return(memberships, err)
+func (_c *MockIAMUsecase_ListTenantMembers_Call) Return(page collection.Page[entity.Membership], err error) *MockIAMUsecase_ListTenantMembers_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockIAMUsecase_ListTenantMembers_Call) RunAndReturn(run func(ctx context.Context, tenantID string) ([]entity.Membership, error)) *MockIAMUsecase_ListTenantMembers_Call {
+func (_c *MockIAMUsecase_ListTenantMembers_Call) RunAndReturn(run func(ctx context.Context, tenantID string, query collection.Query) (collection.Page[entity.Membership], error)) *MockIAMUsecase_ListTenantMembers_Call {
 	_c.Call.Return(run)
 	return _c
 }

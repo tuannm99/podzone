@@ -9,6 +9,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 	"github.com/tuannm99/podzone/internal/onboarding/domain/store/inputport"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 // NewMockUsecase creates a new instance of MockUsecase. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -16,7 +17,8 @@ import (
 func NewMockUsecase(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockUsecase {
+},
+) *MockUsecase {
 	mock := &MockUsecase{}
 	mock.Mock.Test(t)
 
@@ -294,27 +296,25 @@ func (_c *MockUsecase_GetStoreRequest_Call) RunAndReturn(run func(ctx context.Co
 }
 
 // ListStoreRequests provides a mock function for the type MockUsecase
-func (_mock *MockUsecase) ListStoreRequests(ctx context.Context, workspaceID string) ([]*inputport.Request, error) {
-	ret := _mock.Called(ctx, workspaceID)
+func (_mock *MockUsecase) ListStoreRequests(ctx context.Context, workspaceID string, query collection.Query) (collection.Page[*inputport.Request], error) {
+	ret := _mock.Called(ctx, workspaceID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListStoreRequests")
 	}
 
-	var r0 []*inputport.Request
+	var r0 collection.Page[*inputport.Request]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]*inputport.Request, error)); ok {
-		return returnFunc(ctx, workspaceID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) (collection.Page[*inputport.Request], error)); ok {
+		return returnFunc(ctx, workspaceID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []*inputport.Request); ok {
-		r0 = returnFunc(ctx, workspaceID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) collection.Page[*inputport.Request]); ok {
+		r0 = returnFunc(ctx, workspaceID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*inputport.Request)
-		}
+		r0 = ret.Get(0).(collection.Page[*inputport.Request])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, workspaceID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, collection.Query) error); ok {
+		r1 = returnFunc(ctx, workspaceID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -329,11 +329,12 @@ type MockUsecase_ListStoreRequests_Call struct {
 // ListStoreRequests is a helper method to define mock.On call
 //   - ctx context.Context
 //   - workspaceID string
-func (_e *MockUsecase_Expecter) ListStoreRequests(ctx interface{}, workspaceID interface{}) *MockUsecase_ListStoreRequests_Call {
-	return &MockUsecase_ListStoreRequests_Call{Call: _e.mock.On("ListStoreRequests", ctx, workspaceID)}
+//   - query collection.Query
+func (_e *MockUsecase_Expecter) ListStoreRequests(ctx interface{}, workspaceID interface{}, query interface{}) *MockUsecase_ListStoreRequests_Call {
+	return &MockUsecase_ListStoreRequests_Call{Call: _e.mock.On("ListStoreRequests", ctx, workspaceID, query)}
 }
 
-func (_c *MockUsecase_ListStoreRequests_Call) Run(run func(ctx context.Context, workspaceID string)) *MockUsecase_ListStoreRequests_Call {
+func (_c *MockUsecase_ListStoreRequests_Call) Run(run func(ctx context.Context, workspaceID string, query collection.Query)) *MockUsecase_ListStoreRequests_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -343,20 +344,25 @@ func (_c *MockUsecase_ListStoreRequests_Call) Run(run func(ctx context.Context, 
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockUsecase_ListStoreRequests_Call) Return(requests []*inputport.Request, err error) *MockUsecase_ListStoreRequests_Call {
-	_c.Call.Return(requests, err)
+func (_c *MockUsecase_ListStoreRequests_Call) Return(page collection.Page[*inputport.Request], err error) *MockUsecase_ListStoreRequests_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockUsecase_ListStoreRequests_Call) RunAndReturn(run func(ctx context.Context, workspaceID string) ([]*inputport.Request, error)) *MockUsecase_ListStoreRequests_Call {
+func (_c *MockUsecase_ListStoreRequests_Call) RunAndReturn(run func(ctx context.Context, workspaceID string, query collection.Query) (collection.Page[*inputport.Request], error)) *MockUsecase_ListStoreRequests_Call {
 	_c.Call.Return(run)
 	return _c
 }

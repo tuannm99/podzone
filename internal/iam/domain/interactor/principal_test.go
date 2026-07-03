@@ -73,15 +73,15 @@ func TestIAMService_AddAndRemovePlatformRole(t *testing.T) {
 	state.roleByName[entity.RolePlatformAdmin] = entity.Role{ID: 8, Name: entity.RolePlatformAdmin}
 
 	require.NoError(t, svc.AddPlatformRole(context.Background(), 21, entity.RolePlatformAdmin))
-	items, err := svc.ListPlatformRoles(context.Background(), 21)
+	page, err := svc.ListPlatformRoles(context.Background(), 21, collection.Query{})
 	require.NoError(t, err)
-	require.Len(t, items, 1)
-	require.Equal(t, uint64(8), items[0].RoleID)
+	require.Len(t, page.Items, 1)
+	require.Equal(t, uint64(8), page.Items[0].RoleID)
 
 	require.NoError(t, svc.RemovePlatformRole(context.Background(), 21, entity.RolePlatformAdmin))
-	items, err = svc.ListPlatformRoles(context.Background(), 21)
+	page, err = svc.ListPlatformRoles(context.Background(), 21, collection.Query{})
 	require.NoError(t, err)
-	require.Len(t, items, 0)
+	require.Empty(t, page.Items)
 }
 
 func TestIAMService_AttachAndListDirectPolicies(t *testing.T) {

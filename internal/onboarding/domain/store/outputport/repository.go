@@ -4,6 +4,7 @@ import (
 	"context"
 
 	storeentity "github.com/tuannm99/podzone/internal/onboarding/domain/store/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type AccessAuthorizer interface {
@@ -21,7 +22,11 @@ type StoreRepository interface {
 	FindBySubdomain(ctx context.Context, subdomain string) (*storeentity.StoreRequest, error)
 	Create(ctx context.Context, request storeentity.StoreRequest) (*storeentity.StoreRequest, error)
 	FindByID(ctx context.Context, id string) (*storeentity.StoreRequest, error)
-	List(ctx context.Context, workspaceID string) ([]storeentity.StoreRequest, error)
+	ListPage(
+		ctx context.Context,
+		workspaceID string,
+		query collection.Query,
+	) (collection.Page[storeentity.StoreRequest], error)
 	ClaimNextQueued(ctx context.Context) (*storeentity.StoreRequest, error)
 	FindNextProvisioning(ctx context.Context) (*storeentity.StoreRequest, error)
 	UpdateStatus(ctx context.Context, id string, status storeentity.RequestStatus) error

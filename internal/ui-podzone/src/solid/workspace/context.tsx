@@ -2,12 +2,13 @@ import {
   createContext,
   createEffect,
   createMemo,
+  createResource,
   createSignal,
   type ParentProps,
   useContext,
 } from 'solid-js'
 import { tenantStorage } from '../../services/tenantStorage'
-import { listStores, type StoreInfo } from '../../services/store'
+import { getStore, listStores, type StoreInfo } from '../../services/store'
 import { storeStorage } from '../../services/storeStorage'
 
 type WorkspaceContextValue = {
@@ -22,16 +23,10 @@ type WorkspaceContextValue = {
 
 const WorkspaceContext = createContext<WorkspaceContextValue>()
 
-function pickInitialStore(tenantId: string, stores: StoreInfo[]) {
+function initialStoreID(tenantId: string) {
   const requested =
     new URLSearchParams(window.location.search).get('storeId') || ''
-  const requestedMatch = stores.find((store) => store.id === requested.trim())
-  if (requestedMatch) return requestedMatch.id
-
-  const persisted = storeStorage.getStoreID(tenantId)
-  const persistedMatch = stores.find((store) => store.id === persisted)
-  if (persistedMatch) return persistedMatch.id
-  return ''
+  return requested.trim() || storeStorage.getStoreID(tenantId)
 }
 
 function syncStoreIdToURL(storeId: string) {
@@ -49,12 +44,34 @@ function syncStoreIdToURL(storeId: string) {
 export function TenantWorkspaceProvider(
   props: ParentProps<{ tenantId: string }>
 ) {
-  const [stores, setStores] = createSignal<StoreInfo[]>([])
   const [currentStoreId, setCurrentStoreIdState] = createSignal('')
-  const [loading, setLoading] = createSignal(false)
-  const [error, setError] = createSignal('')
-
   const tenantId = createMemo(() => props.tenantId.trim())
+  const [storeResource, { mutate: clearStore }] = createResource(
+    () => {
+      const currentTenantID = tenantId()
+      return currentTenantID
+        ? { tenantId: currentTenantID, storeId: currentStoreId() }
+        : undefined
+    },
+    async ({ tenantId: currentTenantID, storeId }) => {
+      tenantStorage.setTenantID(currentTenantID)
+      if (storeId) {
+        const result = await getStore(storeId)
+        if (result.success) return result.data
+        if (!result.message.toLowerCase().includes('not found')) {
+          throw new Error(result.message)
+        }
+      }
+      const result = await listStores({
+        page: 1,
+        pageSize: 1,
+        sortBy: 'createdAt',
+        sortDirection: 'SORT_DIRECTION_DESC',
+      })
+      if (!result.success) throw new Error(result.message)
+      return result.data.items[0]
+    }
+  )
 
   const setCurrentStoreId = (storeId: string) => {
     const normalizedStoreId = storeId.trim()
@@ -64,42 +81,30 @@ export function TenantWorkspaceProvider(
     syncStoreIdToURL(normalizedStoreId)
   }
 
+  let loadedTenantID = ''
   createEffect(() => {
     const nextTenantId = tenantId()
+    if (nextTenantId === loadedTenantID) return
+    loadedTenantID = nextTenantId
+    clearStore(undefined)
     if (!nextTenantId) {
-      setStores([])
       setCurrentStoreIdState('')
-      setError('')
       return
     }
-
-    tenantStorage.setTenantID(nextTenantId)
-    setLoading(true)
-    setError('')
-    void listStores()
-      .then((result) => {
-        if (!result.success) {
-          setStores([])
-          setCurrentStoreIdState('')
-          setError(result.message)
-          return
-        }
-        setStores(result.data)
-        const initialStoreId = pickInitialStore(nextTenantId, result.data)
-        setCurrentStoreIdState(initialStoreId)
-        if (initialStoreId) {
-          storeStorage.setStoreID(nextTenantId, initialStoreId)
-          syncStoreIdToURL(initialStoreId)
-        }
-      })
-      .finally(() => {
-        setLoading(false)
-      })
+    setCurrentStoreIdState(initialStoreID(nextTenantId))
   })
 
-  const currentStore = createMemo(() =>
-    stores().find((store) => store.id === currentStoreId())
-  )
+  createEffect(() => {
+    const store = storeResource.latest
+    if (!store || currentStoreId() === store.id) return
+    setCurrentStoreId(store.id)
+  })
+
+  const stores = () => (storeResource.latest ? [storeResource.latest] : [])
+  const currentStore = () => storeResource.latest
+  const loading = () => storeResource.loading
+  const error = () =>
+    storeResource.error instanceof Error ? storeResource.error.message : ''
 
   return (
     <WorkspaceContext.Provider

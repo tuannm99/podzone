@@ -9,6 +9,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 	"github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 // NewMockInviteQueryRepository creates a new instance of MockInviteQueryRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -16,7 +17,8 @@ import (
 func NewMockInviteQueryRepository(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockInviteQueryRepository {
+},
+) *MockInviteQueryRepository {
 	mock := &MockInviteQueryRepository{}
 	mock.Mock.Test(t)
 
@@ -174,47 +176,46 @@ func (_c *MockInviteQueryRepository_GetByTokenHash_Call) RunAndReturn(run func(c
 	return _c
 }
 
-// ListByTenant provides a mock function for the type MockInviteQueryRepository
-func (_mock *MockInviteQueryRepository) ListByTenant(ctx context.Context, tenantID string) ([]entity.TenantInvite, error) {
-	ret := _mock.Called(ctx, tenantID)
+// ListPageByTenant provides a mock function for the type MockInviteQueryRepository
+func (_mock *MockInviteQueryRepository) ListPageByTenant(ctx context.Context, tenantID string, query collection.Query) (collection.Page[entity.TenantInvite], error) {
+	ret := _mock.Called(ctx, tenantID, query)
 
 	if len(ret) == 0 {
-		panic("no return value specified for ListByTenant")
+		panic("no return value specified for ListPageByTenant")
 	}
 
-	var r0 []entity.TenantInvite
+	var r0 collection.Page[entity.TenantInvite]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]entity.TenantInvite, error)); ok {
-		return returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) (collection.Page[entity.TenantInvite], error)); ok {
+		return returnFunc(ctx, tenantID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []entity.TenantInvite); ok {
-		r0 = returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) collection.Page[entity.TenantInvite]); ok {
+		r0 = returnFunc(ctx, tenantID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.TenantInvite)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.TenantInvite])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, tenantID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, collection.Query) error); ok {
+		r1 = returnFunc(ctx, tenantID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
 	return r0, r1
 }
 
-// MockInviteQueryRepository_ListByTenant_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListByTenant'
-type MockInviteQueryRepository_ListByTenant_Call struct {
+// MockInviteQueryRepository_ListPageByTenant_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPageByTenant'
+type MockInviteQueryRepository_ListPageByTenant_Call struct {
 	*mock.Call
 }
 
-// ListByTenant is a helper method to define mock.On call
+// ListPageByTenant is a helper method to define mock.On call
 //   - ctx context.Context
 //   - tenantID string
-func (_e *MockInviteQueryRepository_Expecter) ListByTenant(ctx interface{}, tenantID interface{}) *MockInviteQueryRepository_ListByTenant_Call {
-	return &MockInviteQueryRepository_ListByTenant_Call{Call: _e.mock.On("ListByTenant", ctx, tenantID)}
+//   - query collection.Query
+func (_e *MockInviteQueryRepository_Expecter) ListPageByTenant(ctx interface{}, tenantID interface{}, query interface{}) *MockInviteQueryRepository_ListPageByTenant_Call {
+	return &MockInviteQueryRepository_ListPageByTenant_Call{Call: _e.mock.On("ListPageByTenant", ctx, tenantID, query)}
 }
 
-func (_c *MockInviteQueryRepository_ListByTenant_Call) Run(run func(ctx context.Context, tenantID string)) *MockInviteQueryRepository_ListByTenant_Call {
+func (_c *MockInviteQueryRepository_ListPageByTenant_Call) Run(run func(ctx context.Context, tenantID string, query collection.Query)) *MockInviteQueryRepository_ListPageByTenant_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -224,20 +225,25 @@ func (_c *MockInviteQueryRepository_ListByTenant_Call) Run(run func(ctx context.
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockInviteQueryRepository_ListByTenant_Call) Return(tenantInvites []entity.TenantInvite, err error) *MockInviteQueryRepository_ListByTenant_Call {
-	_c.Call.Return(tenantInvites, err)
+func (_c *MockInviteQueryRepository_ListPageByTenant_Call) Return(page collection.Page[entity.TenantInvite], err error) *MockInviteQueryRepository_ListPageByTenant_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockInviteQueryRepository_ListByTenant_Call) RunAndReturn(run func(ctx context.Context, tenantID string) ([]entity.TenantInvite, error)) *MockInviteQueryRepository_ListByTenant_Call {
+func (_c *MockInviteQueryRepository_ListPageByTenant_Call) RunAndReturn(run func(ctx context.Context, tenantID string, query collection.Query) (collection.Page[entity.TenantInvite], error)) *MockInviteQueryRepository_ListPageByTenant_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -71,10 +71,18 @@ type TenantQueryUsecase interface {
 		userID uint,
 	) (*entity.PermissionBoundary, error)
 	GetInvite(ctx context.Context, inviteID string) (*entity.TenantInvite, error)
-	ListTenantInvites(ctx context.Context, tenantID string) ([]entity.TenantInvite, error)
+	ListTenantInvites(
+		ctx context.Context,
+		tenantID string,
+		query collection.Query,
+	) (collection.Page[entity.TenantInvite], error)
 	GetMembership(ctx context.Context, tenantID string, userID uint) (*entity.Membership, error)
 	ListUserTenants(ctx context.Context, userID uint) ([]entity.Membership, error)
-	ListTenantMembers(ctx context.Context, tenantID string) ([]entity.Membership, error)
+	ListTenantMembers(
+		ctx context.Context,
+		tenantID string,
+		query collection.Query,
+	) (collection.Page[entity.Membership], error)
 }
 
 type OrganizationCommandUsecase interface {
@@ -168,7 +176,11 @@ type PlatformPrincipalCommandUsecase interface {
 type PlatformPrincipalQueryUsecase interface {
 	CheckPlatformPermission(ctx context.Context, userID uint, permission string) (bool, error)
 	RequirePlatformPermission(ctx context.Context, userID uint, permission string) error
-	ListPlatformRoles(ctx context.Context, userID uint) ([]entity.PlatformMembership, error)
+	ListPlatformRoles(
+		ctx context.Context,
+		userID uint,
+		query collection.Query,
+	) (collection.Page[entity.PlatformMembership], error)
 	GetPlatformUserInlinePolicy(ctx context.Context, userID uint, name string) (*entity.UserInlinePolicy, error)
 	ListPlatformUserInlinePolicies(
 		ctx context.Context,

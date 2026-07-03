@@ -91,3 +91,15 @@ export function toCollectionParams(query: CollectionQuery) {
   })
   return params
 }
+
+export function toGraphQLCollectionInput(query: CollectionQuery) {
+  return {
+    ...query,
+    filters: query.filters?.map((filter) => ({
+      ...filter,
+      operator: filter.operator.replace('FILTER_OPERATOR_', ''),
+    })),
+    sortDirection:
+      query.sortDirection === 'SORT_DIRECTION_ASC' ? 'ASC' : 'DESC',
+  }
+}

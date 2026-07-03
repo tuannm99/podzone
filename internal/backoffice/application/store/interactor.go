@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	storectx "github.com/tuannm99/podzone/internal/backoffice/domain/store"
+	"github.com/tuannm99/podzone/pkg/collection"
 	"github.com/tuannm99/podzone/pkg/ddd"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
@@ -26,8 +27,11 @@ func NewInteractor(
 	return &Interactor{repo: repo, ids: ids, clock: clock}
 }
 
-func (i *Interactor) ListStores(ctx context.Context, _ storectx.ListStoresQuery) ([]storectx.Store, error) {
-	return i.repo.FindAll(ctx)
+func (i *Interactor) ListStores(
+	ctx context.Context,
+	query storectx.ListStoresQuery,
+) (collection.Page[storectx.Store], error) {
+	return i.repo.FindPage(ctx, query.Collection.Normalize())
 }
 
 func (i *Interactor) GetStore(ctx context.Context, query storectx.GetStoreQuery) (*storectx.Store, error) {
@@ -113,10 +117,6 @@ func (i *Interactor) BootstrapStore(
 		return nil, err
 	}
 	return i.repo.FindByID(ctx, store.ID)
-}
-
-func (i *Interactor) GetAllStores(ctx context.Context) ([]storectx.Store, error) {
-	return i.ListStores(ctx, storectx.ListStoresQuery{})
 }
 
 func (i *Interactor) GetStoreByID(ctx context.Context, id string) (*storectx.Store, error) {

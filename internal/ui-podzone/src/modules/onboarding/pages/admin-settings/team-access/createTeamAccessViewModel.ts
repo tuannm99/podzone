@@ -23,7 +23,7 @@ export function createTeamAccessViewModel(
   const reload = async (tenantID = access.selectedTenantID().trim()) => {
     if (!tenantID) return
     access.setSelectedTenantID(tenantID)
-    await access.reloadAccess()
+    await access.members.reload()
   }
 
   const save = async (values: TeamMemberFormValues) => {

@@ -4,9 +4,11 @@ import (
 	"context"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	entity "github.com/tuannm99/podzone/internal/iam/domain/entity"
 	"github.com/tuannm99/podzone/internal/iam/domain/outputport"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type PlatformMembershipRepositoryImpl struct {
@@ -95,6 +97,47 @@ func (r *PlatformMembershipRepositoryImpl) ListByUser(
 		})
 	}
 	return out, nil
+}
+
+func (r *PlatformMembershipRepositoryImpl) ListPageByUser(
+	ctx context.Context,
+	userID uint,
+	query collection.Query,
+) (collection.Page[entity.PlatformMembership], error) {
+	page, err := listIAMCollectionModels[platformMembershipRoleModel](
+		ctx,
+		r.db,
+		query,
+		"user_platform_roles upr JOIN iam_roles r ON r.id = upr.role_id",
+		[]string{
+			"upr.user_id",
+			"upr.role_id",
+			"r.name AS role_name",
+			"upr.status",
+			"upr.created_at",
+			"upr.updated_at",
+		},
+		[]sq.Sqlizer{sq.Eq{"upr.user_id": userID}},
+		platformRoleCollectionColumns,
+		[]string{"r.name", "upr.status"},
+		"upr.created_at",
+		"upr.role_id ASC",
+	)
+	if err != nil {
+		return collection.Page[entity.PlatformMembership]{}, err
+	}
+	out := make([]entity.PlatformMembership, 0, len(page.Items))
+	for _, row := range page.Items {
+		out = append(out, entity.PlatformMembership{
+			UserID:    row.UserID,
+			RoleID:    row.RoleID,
+			RoleName:  row.RoleName,
+			Status:    row.Status,
+			CreatedAt: row.CreatedAt,
+			UpdatedAt: row.UpdatedAt,
+		})
+	}
+	return collection.NewPage(out, page.Total, query), nil
 }
 
 func (r *PlatformMembershipRepositoryImpl) Delete(ctx context.Context, userID uint, roleID uint64) error {

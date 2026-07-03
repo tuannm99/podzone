@@ -1,6 +1,7 @@
 import { postBackofficeGraphQL } from '../backofficeGraphql'
 import {
   normalizePageInfo,
+  toGraphQLCollectionInput,
   type CollectionPage,
   type CollectionQuery,
   type WirePageInfo,
@@ -42,15 +43,7 @@ ${routedOrderFields}
     }
   `,
     {
-      collection: {
-        ...query,
-        filters: query.filters?.map((filter) => ({
-          ...filter,
-          operator: filter.operator.replace('FILTER_OPERATOR_', ''),
-        })),
-        sortDirection:
-          query.sortDirection === 'SORT_DIRECTION_ASC' ? 'ASC' : 'DESC',
-      },
+      collection: toGraphQLCollectionInput(query),
     }
   )
   if (!result.success) {

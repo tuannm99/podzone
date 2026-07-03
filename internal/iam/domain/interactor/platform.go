@@ -131,11 +131,15 @@ func (s *interactor) AddPlatformRole(ctx context.Context, userID uint, roleName 
 	return s.platformMembershipCommands.Upsert(ctx, userID, role.ID, entity.MembershipStatusActive)
 }
 
-func (s *interactor) ListPlatformRoles(ctx context.Context, userID uint) ([]entity.PlatformMembership, error) {
+func (s *interactor) ListPlatformRoles(
+	ctx context.Context,
+	userID uint,
+	query collection.Query,
+) (collection.Page[entity.PlatformMembership], error) {
 	if userID == 0 {
-		return nil, entity.ErrInvalidUserID
+		return collection.Page[entity.PlatformMembership]{}, entity.ErrInvalidUserID
 	}
-	return s.platformMembershipQueries.ListByUser(ctx, userID)
+	return s.platformMembershipQueries.ListPageByUser(ctx, userID, query.Normalize())
 }
 
 func (s *interactor) RemovePlatformRole(ctx context.Context, userID uint, roleName string) error {

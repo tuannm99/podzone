@@ -478,15 +478,22 @@ func (s *IAMQueryServer) ListTenantInvites(
 	if err := s.queries.RequirePermission(ctx, req.TenantId, actorUserID, "tenant:manage_members"); err != nil {
 		return nil, iamStatusError(err)
 	}
-	items, err := s.queries.ListTenantInvites(ctx, req.TenantId)
+	page, err := s.queries.ListTenantInvites(
+		ctx,
+		req.TenantId,
+		iammapper.ToCollectionQuery(req.Collection),
+	)
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	out := make([]*pbiamv1.TenantInvite, 0, len(items))
-	for i := range items {
-		out = append(out, iammapper.ToPBTenantInvite(&items[i]))
+	out := make([]*pbiamv1.TenantInvite, 0, len(page.Items))
+	for i := range page.Items {
+		out = append(out, iammapper.ToPBTenantInvite(&page.Items[i]))
 	}
-	return &pbiamv1.ListTenantInvitesResponse{Invites: out}, nil
+	return &pbiamv1.ListTenantInvitesResponse{
+		Invites:  out,
+		PageInfo: iammapper.ToPBPageInfo(page),
+	}, nil
 }
 
 func (s *IAMQueryServer) GetTenantMembership(
@@ -542,19 +549,26 @@ func (s *IAMQueryServer) ListTenantMembers(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePermission(ctx, req.TenantId, actorUserID, "tenant:manage_members"); err != nil {
+	if err := s.queries.RequirePermission(ctx, req.TenantId, actorUserID, "tenant:read"); err != nil {
 		return nil, iamStatusError(err)
 	}
-	items, err := s.queries.ListTenantMembers(ctx, req.TenantId)
+	page, err := s.queries.ListTenantMembers(
+		ctx,
+		req.TenantId,
+		iammapper.ToCollectionQuery(req.Collection),
+	)
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	out := make([]*pbiamv1.TenantMembership, 0, len(items))
-	for i := range items {
-		item := items[i]
+	out := make([]*pbiamv1.TenantMembership, 0, len(page.Items))
+	for i := range page.Items {
+		item := page.Items[i]
 		out = append(out, iammapper.ToPBMembership(&item))
 	}
-	return &pbiamv1.ListTenantMembersResponse{Memberships: out}, nil
+	return &pbiamv1.ListTenantMembersResponse{
+		Memberships: out,
+		PageInfo:    iammapper.ToPBPageInfo(page),
+	}, nil
 }
 
 func (s *IAMQueryServer) ListTenantUserPolicies(

@@ -2,6 +2,7 @@ import {
   createEffect,
   createResource,
   createSignal,
+  on,
   onCleanup,
   onMount,
 } from 'solid-js'
@@ -22,14 +23,13 @@ import {
   buildOrdersHref,
   membershipStatusColor,
   parseUserID,
-  provisioningStepIndex,
   provisioningStatusLabel,
-  provisioningSteps,
   slugify,
   type StoreAttention,
   type WorkspaceSummary,
 } from './admin-home/presentation'
 import { collectWorkspaceData } from './admin-home/loadWorkspaceData'
+import { createStoreCollectionsViewModel } from './admin-home/createStoreCollectionsViewModel'
 import type {
   CreateStoreFormValues,
   CreateWorkspaceFormValues,
@@ -129,16 +129,15 @@ export function createAdminHomeViewModel() {
       name: `${workspace.tenantId} · ${workspace.roleName}`,
       value: workspace.tenantId,
     }))
-  const selectedStoreOptions = () =>
-    (selectedWorkspace()?.stores || []).map((store) => ({
-      name: `${store.name}${store.isActive ? ' · active' : ''}`,
-      value: store.id,
-    }))
+  const storeCollections = createStoreCollectionsViewModel(
+    selectedWorkspaceId,
+    loadingTenants
+  )
+  const stores = storeCollections.stores
+  const storeRequests = storeCollections.requests
   const currentSelectionLabel = () => {
     const workspace = selectedWorkspace()
-    const store = workspace?.stores.find(
-      (item) => item.id === selectedStoreId()
-    )
+    const store = stores.items().find((item) => item.id === selectedStoreId())
     if (!workspace) return 'No workspace selected'
     if (!store) return `${workspace.tenantId} selected, no store chosen`
     return `${workspace.tenantId} / ${store.name}`
@@ -157,18 +156,29 @@ export function createAdminHomeViewModel() {
   })
 
   createEffect(() => {
-    const stores = selectedWorkspace()?.stores || []
-    if (stores.length === 0) {
+    const items = stores.items()
+    if (items.length === 0) {
       setSelectedStoreId('')
       return
     }
     const current = selectedStoreId()
-    if (stores.some((store) => store.id === current)) {
+    if (items.some((store) => store.id === current)) {
       return
     }
-    const preferred = stores.find((store) => store.isActive) || stores[0]
+    const preferred = items.find((store) => store.isActive) || items[0]
     setSelectedStoreId(preferred?.id || '')
   })
+  createEffect(
+    on(
+      selectedWorkspaceId,
+      () => {
+        stores.clear()
+        storeRequests.clear()
+        setSelectedStoreId('')
+      },
+      { defer: true }
+    )
+  )
 
   const loadMemberships = async () => {
     if (!userID) return
@@ -263,6 +273,9 @@ export function createAdminHomeViewModel() {
       setTenantMessage(
         `Store request ${created.data.name} is ${created.data.status}. It will become selectable after provisioning completes.`
       )
+      if (selectedWorkspaceId() === normalizedTenantID) {
+        await storeRequests.reload()
+      }
       await loadMemberships()
       return true
     } finally {
@@ -295,6 +308,9 @@ export function createAdminHomeViewModel() {
         return
       }
       setTenantMessage('Store provisioning has been queued again.')
+      if (selectedWorkspaceId() === tenantID) {
+        await storeRequests.reload()
+      }
       await loadMemberships()
     } finally {
       setRetryingStoreRequestId('')
@@ -361,15 +377,22 @@ export function createAdminHomeViewModel() {
 
   onMount(() => {
     const refreshTimer = window.setInterval(() => {
-      const hasActiveProvisioning = workspaceSummaries().some((workspace) =>
-        workspace.storeRequests.some((request) =>
-          ['requested', 'pending_approval', 'queued', 'provisioning'].includes(
-            request.status
-          )
+      const hasActiveProvisioning = storeRequests
+        .items()
+        .some((request) =>
+          [
+            'requested',
+            'planning',
+            'planned',
+            'pending_approval',
+            'queued',
+            'provisioning',
+            'pending_platform_setup',
+          ].includes(request.status)
         )
-      )
-      if (hasActiveProvisioning && !loadingTenants()) {
-        void loadMemberships()
+      if (hasActiveProvisioning && !storeRequests.loading()) {
+        void storeRequests.reload()
+        void stores.reload()
       }
     }, 10000)
     onCleanup(() => window.clearInterval(refreshTimer))
@@ -402,17 +425,18 @@ export function createAdminHomeViewModel() {
     setSelectedWorkspaceId,
     selectedStoreId,
     setSelectedStoreId,
+    stores,
+    storesError: storeCollections.storesError,
+    storeRequests,
+    storeRequestsError: storeCollections.requestsError,
     activeMemberships,
     canBootstrapFirstWorkspace,
     activeWorkspaceSummaries,
     selectedWorkspace,
     selectedWorkspaceOptions,
-    selectedStoreOptions,
     currentSelectionLabel,
     slugify,
     membershipStatusColor,
-    provisioningSteps,
-    provisioningStepIndex,
     provisioningStatusLabel,
     buildOrdersHref,
     prepareTenant,

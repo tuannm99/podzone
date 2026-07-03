@@ -125,10 +125,12 @@ message CreateTenantInviteResponse {
 
 message ListTenantInvitesRequest {
   string tenant_id = 1;
+  common.CollectionRequest collection = 2;
 }
 
 message ListTenantInvitesResponse {
   repeated TenantInvite invites = 1;
+  common.PageInfo page_info = 2;
 }
 
 message RevokeTenantInviteRequest {
@@ -164,10 +166,12 @@ message ListUserTenantsResponse {
 
 message ListTenantMembersRequest {
   string tenant_id = 1;
+  common.CollectionRequest collection = 2;
 }
 
 message ListTenantMembersResponse {
   repeated TenantMembership memberships = 1;
+  common.PageInfo page_info = 2;
 }
 
 message RemoveTenantMemberRequest {

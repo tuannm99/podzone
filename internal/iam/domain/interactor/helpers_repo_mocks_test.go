@@ -768,6 +768,26 @@ func configurePlatformRepoMocks(platformRepo *outputportmocks.MockPlatformMember
 		}).
 		Maybe()
 	platformRepo.EXPECT().
+		ListPageByUser(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(
+			ctx context.Context,
+			userID uint,
+			query collection.Query,
+		) (collection.Page[entity.PlatformMembership], error) {
+			roleIDs := state.platformRoleIDs[userID]
+			out := make([]entity.PlatformMembership, 0, len(roleIDs))
+			for _, roleID := range roleIDs {
+				out = append(out, entity.PlatformMembership{
+					UserID:   userID,
+					RoleID:   roleID,
+					RoleName: fmt.Sprintf("role-%d", roleID),
+					Status:   entity.MembershipStatusActive,
+				})
+			}
+			return collection.NewPage(out, int64(len(out)), query), nil
+		}).
+		Maybe()
+	platformRepo.EXPECT().
 		Delete(mock.Anything, mock.Anything, mock.Anything).
 		RunAndReturn(func(ctx context.Context, userID uint, roleID uint64) error {
 			roleIDs := state.platformRoleIDs[userID]
@@ -804,15 +824,19 @@ func configureMembershipRepoMocks(membershipRepo *outputportmocks.MockMembership
 		}).
 		Maybe()
 	membershipRepo.EXPECT().
-		ListByTenant(mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, tenantID string) ([]entity.Membership, error) {
+		ListPageByTenant(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(
+			ctx context.Context,
+			tenantID string,
+			query collection.Query,
+		) (collection.Page[entity.Membership], error) {
 			out := make([]entity.Membership, 0)
 			for _, item := range state.memberships.items {
 				if item.TenantID == tenantID {
 					out = append(out, item)
 				}
 			}
-			return out, nil
+			return collection.NewPage(out, int64(len(out)), query), nil
 		}).
 		Maybe()
 	membershipRepo.EXPECT().
@@ -866,15 +890,19 @@ func configureInviteRepoMocks(inviteRepo *outputportmocks.MockInviteRepository, 
 		}).
 		Maybe()
 	inviteRepo.EXPECT().
-		ListByTenant(mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, tenantID string) ([]entity.TenantInvite, error) {
+		ListPageByTenant(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(
+			ctx context.Context,
+			tenantID string,
+			query collection.Query,
+		) (collection.Page[entity.TenantInvite], error) {
 			out := make([]entity.TenantInvite, 0)
 			for _, item := range state.invites.items {
 				if item.TenantID == tenantID {
 					out = append(out, item)
 				}
 			}
-			return out, nil
+			return collection.NewPage(out, int64(len(out)), query), nil
 		}).
 		Maybe()
 	inviteRepo.EXPECT().

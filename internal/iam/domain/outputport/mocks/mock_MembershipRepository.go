@@ -9,6 +9,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 	"github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 // NewMockMembershipRepository creates a new instance of MockMembershipRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -16,7 +17,8 @@ import (
 func NewMockMembershipRepository(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockMembershipRepository {
+},
+) *MockMembershipRepository {
 	mock := &MockMembershipRepository{}
 	mock.Mock.Test(t)
 
@@ -175,74 +177,6 @@ func (_c *MockMembershipRepository_GetByTenantAndUser_Call) RunAndReturn(run fun
 	return _c
 }
 
-// ListByTenant provides a mock function for the type MockMembershipRepository
-func (_mock *MockMembershipRepository) ListByTenant(ctx context.Context, tenantID string) ([]entity.Membership, error) {
-	ret := _mock.Called(ctx, tenantID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ListByTenant")
-	}
-
-	var r0 []entity.Membership
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]entity.Membership, error)); ok {
-		return returnFunc(ctx, tenantID)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []entity.Membership); ok {
-		r0 = returnFunc(ctx, tenantID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.Membership)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, tenantID)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockMembershipRepository_ListByTenant_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListByTenant'
-type MockMembershipRepository_ListByTenant_Call struct {
-	*mock.Call
-}
-
-// ListByTenant is a helper method to define mock.On call
-//   - ctx context.Context
-//   - tenantID string
-func (_e *MockMembershipRepository_Expecter) ListByTenant(ctx interface{}, tenantID interface{}) *MockMembershipRepository_ListByTenant_Call {
-	return &MockMembershipRepository_ListByTenant_Call{Call: _e.mock.On("ListByTenant", ctx, tenantID)}
-}
-
-func (_c *MockMembershipRepository_ListByTenant_Call) Run(run func(ctx context.Context, tenantID string)) *MockMembershipRepository_ListByTenant_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		run(
-			arg0,
-			arg1,
-		)
-	})
-	return _c
-}
-
-func (_c *MockMembershipRepository_ListByTenant_Call) Return(memberships []entity.Membership, err error) *MockMembershipRepository_ListByTenant_Call {
-	_c.Call.Return(memberships, err)
-	return _c
-}
-
-func (_c *MockMembershipRepository_ListByTenant_Call) RunAndReturn(run func(ctx context.Context, tenantID string) ([]entity.Membership, error)) *MockMembershipRepository_ListByTenant_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // ListByUser provides a mock function for the type MockMembershipRepository
 func (_mock *MockMembershipRepository) ListByUser(ctx context.Context, userID uint) ([]entity.Membership, error) {
 	ret := _mock.Called(ctx, userID)
@@ -307,6 +241,78 @@ func (_c *MockMembershipRepository_ListByUser_Call) Return(memberships []entity.
 }
 
 func (_c *MockMembershipRepository_ListByUser_Call) RunAndReturn(run func(ctx context.Context, userID uint) ([]entity.Membership, error)) *MockMembershipRepository_ListByUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListPageByTenant provides a mock function for the type MockMembershipRepository
+func (_mock *MockMembershipRepository) ListPageByTenant(ctx context.Context, tenantID string, query collection.Query) (collection.Page[entity.Membership], error) {
+	ret := _mock.Called(ctx, tenantID, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListPageByTenant")
+	}
+
+	var r0 collection.Page[entity.Membership]
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) (collection.Page[entity.Membership], error)); ok {
+		return returnFunc(ctx, tenantID, query)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) collection.Page[entity.Membership]); ok {
+		r0 = returnFunc(ctx, tenantID, query)
+	} else {
+		r0 = ret.Get(0).(collection.Page[entity.Membership])
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, collection.Query) error); ok {
+		r1 = returnFunc(ctx, tenantID, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockMembershipRepository_ListPageByTenant_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPageByTenant'
+type MockMembershipRepository_ListPageByTenant_Call struct {
+	*mock.Call
+}
+
+// ListPageByTenant is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - query collection.Query
+func (_e *MockMembershipRepository_Expecter) ListPageByTenant(ctx interface{}, tenantID interface{}, query interface{}) *MockMembershipRepository_ListPageByTenant_Call {
+	return &MockMembershipRepository_ListPageByTenant_Call{Call: _e.mock.On("ListPageByTenant", ctx, tenantID, query)}
+}
+
+func (_c *MockMembershipRepository_ListPageByTenant_Call) Run(run func(ctx context.Context, tenantID string, query collection.Query)) *MockMembershipRepository_ListPageByTenant_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockMembershipRepository_ListPageByTenant_Call) Return(page collection.Page[entity.Membership], err error) *MockMembershipRepository_ListPageByTenant_Call {
+	_c.Call.Return(page, err)
+	return _c
+}
+
+func (_c *MockMembershipRepository_ListPageByTenant_Call) RunAndReturn(run func(ctx context.Context, tenantID string, query collection.Query) (collection.Page[entity.Membership], error)) *MockMembershipRepository_ListPageByTenant_Call {
 	_c.Call.Return(run)
 	return _c
 }

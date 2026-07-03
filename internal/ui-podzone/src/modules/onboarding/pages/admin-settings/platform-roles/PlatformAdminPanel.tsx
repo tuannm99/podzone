@@ -1,11 +1,6 @@
-import { For, Show } from 'solid-js'
-import {
-  EmptyBlock,
-  ErrorAlert,
-  InfoAlert,
-  LoadingInline,
-} from '@/solid/components/common/Feedback'
-import { Badge, Button, Card } from '@/solid/components/common/Primitives'
+import { Show } from 'solid-js'
+import { ErrorAlert, InfoAlert } from '@/solid/components/common/Feedback'
+import { Button, Card } from '@/solid/components/common/Primitives'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'
 import {
   FormInputField,
@@ -16,7 +11,8 @@ import {
 } from '@/solid/forms'
 import { useAdminSettings } from '../context'
 import type { PlatformRoleFormValues } from '../forms'
-import { membershipStatusColor, platformRoleOptions } from '../presentation'
+import { platformRoleOptions } from '../presentation'
+import { PlatformRolesTable } from './PlatformRolesTable'
 
 export function PlatformAdminPanel() {
   const { platformRoles } = useAdminSettings()
@@ -110,56 +106,7 @@ export function PlatformAdminPanel() {
         </div>
       </form>
 
-      <Show when={platformRoles.loading()}>
-        <LoadingInline label="Loading admin roles..." />
-      </Show>
-      <Show
-        when={!platformRoles.loading() && platformRoles.items().length > 0}
-        fallback={
-          <EmptyBlock
-            title="No admin roles loaded"
-            copy="Choose a target user to inspect platform-level administration access."
-          />
-        }
-      >
-        <div class="space-y-3">
-          <For each={platformRoles.items()}>
-            {(membership) => (
-              <div class="rounded-lg border border-gray-200 p-4">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p class="font-semibold text-gray-900">
-                      user {membership.userId}
-                    </p>
-                    <p class="mt-1 text-sm text-gray-500">
-                      {membership.roleName}
-                    </p>
-                  </div>
-                  <div class="flex flex-wrap items-center gap-2">
-                    <Badge
-                      content={membership.status}
-                      color={membershipStatusColor(membership.status)}
-                    />
-                    <Button
-                      color="red"
-                      size="xs"
-                      disabled={!platformRoles.canManage()}
-                      onClick={() =>
-                        void platformRoles.remove(
-                          membership.userId,
-                          membership.roleName
-                        )
-                      }
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </For>
-        </div>
-      </Show>
+      <PlatformRolesTable />
     </Card>
   )
 }

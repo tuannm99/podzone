@@ -1,4 +1,11 @@
 import { http, type HttpError } from '../http'
+import {
+  normalizePageInfo,
+  toCollectionParams,
+  type CollectionPage,
+  type CollectionQuery,
+  type WirePageInfo,
+} from '../collection'
 import { toFailure } from './result'
 import type {
   IamResult,
@@ -85,13 +92,23 @@ export async function deleteRolePermissionBoundary(
 }
 
 export async function listPlatformRoles(
-  targetUserId: number
-): Promise<IamResult<PlatformRoleMembership[]>> {
+  targetUserId: number,
+  query: CollectionQuery
+): Promise<IamResult<CollectionPage<PlatformRoleMembership>>> {
   try {
-    const { data } = await http.get<{ memberships?: PlatformRoleMembership[] }>(
-      `/auth/v1/iam/platform-users/${targetUserId}/roles`
-    )
-    return { success: true, data: data.memberships || [] }
+    const { data } = await http.get<{
+      memberships?: PlatformRoleMembership[]
+      pageInfo?: WirePageInfo
+    }>(`/auth/v1/iam/platform-users/${targetUserId}/roles`, {
+      params: toCollectionParams(query),
+    })
+    return {
+      success: true,
+      data: {
+        items: data.memberships || [],
+        pageInfo: normalizePageInfo(data.pageInfo, query),
+      },
+    }
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to load platform roles')
   }

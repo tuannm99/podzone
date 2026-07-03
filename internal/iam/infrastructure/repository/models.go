@@ -143,6 +143,15 @@ type platformMembershipModel struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
+type platformMembershipRoleModel struct {
+	UserID    uint      `db:"user_id"`
+	RoleID    uint64    `db:"role_id"`
+	RoleName  string    `db:"role_name"`
+	Status    string    `db:"status"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
 type inviteModel struct {
 	ID               string     `db:"id"`
 	TenantID         string     `db:"tenant_id"`

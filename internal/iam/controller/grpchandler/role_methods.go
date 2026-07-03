@@ -208,16 +208,23 @@ func (s *IAMQueryServer) ListPlatformRoles(
 	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
 		return nil, iamStatusError(err)
 	}
-	items, err := s.queries.ListPlatformRoles(ctx, targetUserID)
+	page, err := s.queries.ListPlatformRoles(
+		ctx,
+		targetUserID,
+		iammapper.ToCollectionQuery(req.Collection),
+	)
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	out := make([]*pbiamv1.PlatformRoleMembership, 0, len(items))
-	for i := range items {
-		item := items[i]
+	out := make([]*pbiamv1.PlatformRoleMembership, 0, len(page.Items))
+	for i := range page.Items {
+		item := page.Items[i]
 		out = append(out, iammapper.ToPBPlatformMembership(&item))
 	}
-	return &pbiamv1.ListPlatformRolesResponse{Memberships: out}, nil
+	return &pbiamv1.ListPlatformRolesResponse{
+		Memberships: out,
+		PageInfo:    iammapper.ToPBPageInfo(page),
+	}, nil
 }
 
 func (s *IAMQueryServer) GetRoleTrustPolicy(

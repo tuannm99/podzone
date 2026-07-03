@@ -40,7 +40,11 @@ type PlatformPrincipalUsecase interface {
 	CheckPlatformPermission(ctx context.Context, userID uint, permission string) (bool, error)
 	RequirePlatformPermission(ctx context.Context, userID uint, permission string) error
 	AddPlatformRole(ctx context.Context, userID uint, roleName string) error
-	ListPlatformRoles(ctx context.Context, userID uint) ([]entity.PlatformMembership, error)
+	ListPlatformRoles(
+		ctx context.Context,
+		userID uint,
+		query collection.Query,
+	) (collection.Page[entity.PlatformMembership], error)
 	RemovePlatformRole(ctx context.Context, userID uint, roleName string) error
 	PutPlatformUserInlinePolicy(ctx context.Context, input entity.PutPlatformUserInlinePolicyInput) error
 	GetPlatformUserInlinePolicy(ctx context.Context, userID uint, name string) (*entity.UserInlinePolicy, error)

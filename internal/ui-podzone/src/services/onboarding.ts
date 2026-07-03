@@ -1,16 +1,29 @@
 import { ONBOARDING_API_URL } from './baseurl'
+import {
+  normalizePageInfo,
+  toCollectionParams,
+  type CollectionPage,
+  type CollectionQuery,
+  type WirePageInfo,
+} from './collection'
 import { http, type HttpError } from './http'
 
 export type StoreRequestStatus =
   | 'requested'
+  | 'planning'
+  | 'planned'
   | 'pending_approval'
   | 'queued'
   | 'provisioning'
   | 'ready'
   | 'failed'
+  | 'failed_retryable'
+  | 'failed_non_retryable'
+  | 'pending_platform_setup'
   | 'rejected'
   | 'suspended'
   | 'archived'
+  | 'cancelled'
 
 export type StoreRequest = {
   id: string
@@ -39,14 +52,24 @@ function tenantHeaders(tenantId: string) {
 }
 
 export async function listStoreRequests(
-  tenantId: string
-): Promise<Result<StoreRequest[]>> {
+  tenantId: string,
+  query: CollectionQuery
+): Promise<Result<CollectionPage<StoreRequest>>> {
   try {
-    const response = await http.get<StoreRequest[]>(
-      `${ONBOARDING_API_URL}/onboarding/v1/requests`,
-      { headers: tenantHeaders(tenantId) }
-    )
-    return { success: true, data: response.data || [] }
+    const response = await http.get<{
+      items?: StoreRequest[]
+      pageInfo?: WirePageInfo
+    }>(`${ONBOARDING_API_URL}/onboarding/v1/requests`, {
+      headers: tenantHeaders(tenantId),
+      params: toCollectionParams(query),
+    })
+    return {
+      success: true,
+      data: {
+        items: response.data.items || [],
+        pageInfo: normalizePageInfo(response.data.pageInfo, query),
+      },
+    }
   } catch (error) {
     return { success: false, message: errorMessage(error) }
   }

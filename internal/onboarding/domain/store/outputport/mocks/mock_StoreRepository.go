@@ -9,6 +9,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 	"github.com/tuannm99/podzone/internal/onboarding/domain/store/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 // NewMockStoreRepository creates a new instance of MockStoreRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -418,47 +419,46 @@ func (_c *MockStoreRepository_FindNextProvisioning_Call) RunAndReturn(run func(c
 	return _c
 }
 
-// List provides a mock function for the type MockStoreRepository
-func (_mock *MockStoreRepository) List(ctx context.Context, workspaceID string) ([]entity.StoreRequest, error) {
-	ret := _mock.Called(ctx, workspaceID)
+// ListPage provides a mock function for the type MockStoreRepository
+func (_mock *MockStoreRepository) ListPage(ctx context.Context, workspaceID string, query collection.Query) (collection.Page[entity.StoreRequest], error) {
+	ret := _mock.Called(ctx, workspaceID, query)
 
 	if len(ret) == 0 {
-		panic("no return value specified for List")
+		panic("no return value specified for ListPage")
 	}
 
-	var r0 []entity.StoreRequest
+	var r0 collection.Page[entity.StoreRequest]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]entity.StoreRequest, error)); ok {
-		return returnFunc(ctx, workspaceID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) (collection.Page[entity.StoreRequest], error)); ok {
+		return returnFunc(ctx, workspaceID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []entity.StoreRequest); ok {
-		r0 = returnFunc(ctx, workspaceID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) collection.Page[entity.StoreRequest]); ok {
+		r0 = returnFunc(ctx, workspaceID, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]entity.StoreRequest)
-		}
+		r0 = ret.Get(0).(collection.Page[entity.StoreRequest])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, workspaceID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, collection.Query) error); ok {
+		r1 = returnFunc(ctx, workspaceID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
 	return r0, r1
 }
 
-// MockStoreRepository_List_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'List'
-type MockStoreRepository_List_Call struct {
+// MockStoreRepository_ListPage_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPage'
+type MockStoreRepository_ListPage_Call struct {
 	*mock.Call
 }
 
-// List is a helper method to define mock.On call
+// ListPage is a helper method to define mock.On call
 //   - ctx context.Context
 //   - workspaceID string
-func (_e *MockStoreRepository_Expecter) List(ctx interface{}, workspaceID interface{}) *MockStoreRepository_List_Call {
-	return &MockStoreRepository_List_Call{Call: _e.mock.On("List", ctx, workspaceID)}
+//   - query collection.Query
+func (_e *MockStoreRepository_Expecter) ListPage(ctx interface{}, workspaceID interface{}, query interface{}) *MockStoreRepository_ListPage_Call {
+	return &MockStoreRepository_ListPage_Call{Call: _e.mock.On("ListPage", ctx, workspaceID, query)}
 }
 
-func (_c *MockStoreRepository_List_Call) Run(run func(ctx context.Context, workspaceID string)) *MockStoreRepository_List_Call {
+func (_c *MockStoreRepository_ListPage_Call) Run(run func(ctx context.Context, workspaceID string, query collection.Query)) *MockStoreRepository_ListPage_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -468,20 +468,25 @@ func (_c *MockStoreRepository_List_Call) Run(run func(ctx context.Context, works
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockStoreRepository_List_Call) Return(storeRequests []entity.StoreRequest, err error) *MockStoreRepository_List_Call {
-	_c.Call.Return(storeRequests, err)
+func (_c *MockStoreRepository_ListPage_Call) Return(page collection.Page[entity.StoreRequest], err error) *MockStoreRepository_ListPage_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockStoreRepository_List_Call) RunAndReturn(run func(ctx context.Context, workspaceID string) ([]entity.StoreRequest, error)) *MockStoreRepository_List_Call {
+func (_c *MockStoreRepository_ListPage_Call) RunAndReturn(run func(ctx context.Context, workspaceID string, query collection.Query) (collection.Page[entity.StoreRequest], error)) *MockStoreRepository_ListPage_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -1279,6 +1279,7 @@ type ListPlatformRolesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ActorUserId   uint64                 `protobuf:"varint,1,opt,name=actor_user_id,json=actorUserId,proto3" json:"actor_user_id,omitempty"`
 	TargetUserId  uint64                 `protobuf:"varint,2,opt,name=target_user_id,json=targetUserId,proto3" json:"target_user_id,omitempty"`
+	Collection    *v1.CollectionRequest  `protobuf:"bytes,3,opt,name=collection,proto3" json:"collection,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1327,9 +1328,17 @@ func (x *ListPlatformRolesRequest) GetTargetUserId() uint64 {
 	return 0
 }
 
+func (x *ListPlatformRolesRequest) GetCollection() *v1.CollectionRequest {
+	if x != nil {
+		return x.Collection
+	}
+	return nil
+}
+
 type ListPlatformRolesResponse struct {
 	state         protoimpl.MessageState    `protogen:"open.v1"`
 	Memberships   []*PlatformRoleMembership `protobuf:"bytes,1,rep,name=memberships,proto3" json:"memberships,omitempty"`
+	PageInfo      *v1.PageInfo              `protobuf:"bytes,2,opt,name=page_info,json=pageInfo,proto3" json:"page_info,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1367,6 +1376,13 @@ func (*ListPlatformRolesResponse) Descriptor() ([]byte, []int) {
 func (x *ListPlatformRolesResponse) GetMemberships() []*PlatformRoleMembership {
 	if x != nil {
 		return x.Memberships
+	}
+	return nil
+}
+
+func (x *ListPlatformRolesResponse) GetPageInfo() *v1.PageInfo {
+	if x != nil {
+		return x.PageInfo
 	}
 	return nil
 }
@@ -6456,12 +6472,16 @@ const file_iam_v1_iam_policy_proto_rawDesc = "" +
 	"!ListServiceControlPoliciesRequest\x12\x15\n" +
 	"\x06org_id\x18\x01 \x01(\tR\x05orgId\"M\n" +
 	"\"ListServiceControlPoliciesResponse\x12'\n" +
-	"\bpolicies\x18\x01 \x03(\v2\v.iam.PolicyR\bpolicies\"d\n" +
+	"\bpolicies\x18\x01 \x03(\v2\v.iam.PolicyR\bpolicies\"\x9f\x01\n" +
 	"\x18ListPlatformRolesRequest\x12\"\n" +
 	"\ractor_user_id\x18\x01 \x01(\x04R\vactorUserId\x12$\n" +
-	"\x0etarget_user_id\x18\x02 \x01(\x04R\ftargetUserId\"Z\n" +
+	"\x0etarget_user_id\x18\x02 \x01(\x04R\ftargetUserId\x129\n" +
+	"\n" +
+	"collection\x18\x03 \x01(\v2\x19.common.CollectionRequestR\n" +
+	"collection\"\x89\x01\n" +
 	"\x19ListPlatformRolesResponse\x12=\n" +
-	"\vmemberships\x18\x01 \x03(\v2\x1b.iam.PlatformRoleMembershipR\vmemberships\"\x7f\n" +
+	"\vmemberships\x18\x01 \x03(\v2\x1b.iam.PlatformRoleMembershipR\vmemberships\x12-\n" +
+	"\tpage_info\x18\x02 \x01(\v2\x10.common.PageInfoR\bpageInfo\"\x7f\n" +
 	"\x16AddPlatformRoleRequest\x12\"\n" +
 	"\ractor_user_id\x18\x01 \x01(\x04R\vactorUserId\x12$\n" +
 	"\x0etarget_user_id\x18\x02 \x01(\x04R\ftargetUserId\x12\x1b\n" +
@@ -6926,64 +6946,66 @@ var file_iam_v1_iam_policy_proto_depIdxs = []int32{
 	122, // 0: iam.GroupInlinePolicy.statements:type_name -> common.PolicyStatement
 	122, // 1: iam.UserInlinePolicy.statements:type_name -> common.PolicyStatement
 	1,   // 2: iam.ListServiceControlPoliciesResponse.policies:type_name -> iam.Policy
-	0,   // 3: iam.ListPlatformRolesResponse.memberships:type_name -> iam.PlatformRoleMembership
-	122, // 4: iam.CreatePolicyRequest.statements:type_name -> common.PolicyStatement
-	1,   // 5: iam.CreatePolicyResponse.policy:type_name -> iam.Policy
-	122, // 6: iam.CreatePolicyResponse.statements:type_name -> common.PolicyStatement
-	122, // 7: iam.CreatePolicyVersionRequest.statements:type_name -> common.PolicyStatement
-	2,   // 8: iam.CreatePolicyVersionResponse.policy_version:type_name -> iam.PolicyVersion
-	122, // 9: iam.CreatePolicyVersionResponse.statements:type_name -> common.PolicyStatement
-	1,   // 10: iam.GetPolicyResponse.policy:type_name -> iam.Policy
-	122, // 11: iam.GetPolicyResponse.statements:type_name -> common.PolicyStatement
-	123, // 12: iam.ListPolicyVersionsRequest.collection:type_name -> common.CollectionRequest
-	2,   // 13: iam.ListPolicyVersionsResponse.versions:type_name -> iam.PolicyVersion
-	124, // 14: iam.ListPolicyVersionsResponse.page_info:type_name -> common.PageInfo
-	123, // 15: iam.ListPoliciesRequest.collection:type_name -> common.CollectionRequest
-	1,   // 16: iam.ListPoliciesResponse.policies:type_name -> iam.Policy
-	124, // 17: iam.ListPoliciesResponse.page_info:type_name -> common.PageInfo
-	123, // 18: iam.ListPolicyAttachmentsRequest.collection:type_name -> common.CollectionRequest
-	3,   // 19: iam.ListPolicyAttachmentsResponse.attachments:type_name -> iam.PolicyAttachment
-	124, // 20: iam.ListPolicyAttachmentsResponse.page_info:type_name -> common.PageInfo
-	5,   // 21: iam.PutRoleTrustPolicyRequest.statements:type_name -> iam.RoleTrustStatement
-	5,   // 22: iam.GetRoleTrustPolicyResponse.statements:type_name -> iam.RoleTrustStatement
-	6,   // 23: iam.CreateGroupResponse.group:type_name -> iam.Group
-	123, // 24: iam.ListGroupsRequest.collection:type_name -> common.CollectionRequest
-	6,   // 25: iam.ListGroupsResponse.groups:type_name -> iam.Group
-	124, // 26: iam.ListGroupsResponse.page_info:type_name -> common.PageInfo
-	123, // 27: iam.ListGroupMembersRequest.collection:type_name -> common.CollectionRequest
-	124, // 28: iam.ListGroupMembersResponse.page_info:type_name -> common.PageInfo
-	123, // 29: iam.ListGroupPoliciesRequest.collection:type_name -> common.CollectionRequest
-	1,   // 30: iam.ListGroupPoliciesResponse.policies:type_name -> iam.Policy
-	124, // 31: iam.ListGroupPoliciesResponse.page_info:type_name -> common.PageInfo
-	122, // 32: iam.PutGroupInlinePolicyRequest.statements:type_name -> common.PolicyStatement
-	7,   // 33: iam.GetGroupInlinePolicyResponse.policy:type_name -> iam.GroupInlinePolicy
-	123, // 34: iam.ListGroupInlinePoliciesRequest.collection:type_name -> common.CollectionRequest
-	7,   // 35: iam.ListGroupInlinePoliciesResponse.policies:type_name -> iam.GroupInlinePolicy
-	124, // 36: iam.ListGroupInlinePoliciesResponse.page_info:type_name -> common.PageInfo
-	123, // 37: iam.ListPlatformUserPoliciesRequest.collection:type_name -> common.CollectionRequest
-	1,   // 38: iam.ListPlatformUserPoliciesResponse.policies:type_name -> iam.Policy
-	124, // 39: iam.ListPlatformUserPoliciesResponse.page_info:type_name -> common.PageInfo
-	122, // 40: iam.PutPlatformUserInlinePolicyRequest.statements:type_name -> common.PolicyStatement
-	8,   // 41: iam.GetPlatformUserInlinePolicyResponse.policy:type_name -> iam.UserInlinePolicy
-	123, // 42: iam.ListPlatformUserInlinePoliciesRequest.collection:type_name -> common.CollectionRequest
-	8,   // 43: iam.ListPlatformUserInlinePoliciesResponse.policies:type_name -> iam.UserInlinePolicy
-	124, // 44: iam.ListPlatformUserInlinePoliciesResponse.page_info:type_name -> common.PageInfo
-	9,   // 45: iam.GetPlatformUserPermissionBoundaryResponse.boundary:type_name -> iam.PermissionBoundary
-	123, // 46: iam.ListTenantUserPoliciesRequest.collection:type_name -> common.CollectionRequest
-	1,   // 47: iam.ListTenantUserPoliciesResponse.policies:type_name -> iam.Policy
-	124, // 48: iam.ListTenantUserPoliciesResponse.page_info:type_name -> common.PageInfo
-	122, // 49: iam.PutTenantUserInlinePolicyRequest.statements:type_name -> common.PolicyStatement
-	8,   // 50: iam.GetTenantUserInlinePolicyResponse.policy:type_name -> iam.UserInlinePolicy
-	123, // 51: iam.ListTenantUserInlinePoliciesRequest.collection:type_name -> common.CollectionRequest
-	8,   // 52: iam.ListTenantUserInlinePoliciesResponse.policies:type_name -> iam.UserInlinePolicy
-	124, // 53: iam.ListTenantUserInlinePoliciesResponse.page_info:type_name -> common.PageInfo
-	9,   // 54: iam.GetTenantUserPermissionBoundaryResponse.boundary:type_name -> iam.PermissionBoundary
-	10,  // 55: iam.GetRolePermissionBoundaryResponse.boundary:type_name -> iam.RolePermissionBoundary
-	56,  // [56:56] is the sub-list for method output_type
-	56,  // [56:56] is the sub-list for method input_type
-	56,  // [56:56] is the sub-list for extension type_name
-	56,  // [56:56] is the sub-list for extension extendee
-	0,   // [0:56] is the sub-list for field type_name
+	123, // 3: iam.ListPlatformRolesRequest.collection:type_name -> common.CollectionRequest
+	0,   // 4: iam.ListPlatformRolesResponse.memberships:type_name -> iam.PlatformRoleMembership
+	124, // 5: iam.ListPlatformRolesResponse.page_info:type_name -> common.PageInfo
+	122, // 6: iam.CreatePolicyRequest.statements:type_name -> common.PolicyStatement
+	1,   // 7: iam.CreatePolicyResponse.policy:type_name -> iam.Policy
+	122, // 8: iam.CreatePolicyResponse.statements:type_name -> common.PolicyStatement
+	122, // 9: iam.CreatePolicyVersionRequest.statements:type_name -> common.PolicyStatement
+	2,   // 10: iam.CreatePolicyVersionResponse.policy_version:type_name -> iam.PolicyVersion
+	122, // 11: iam.CreatePolicyVersionResponse.statements:type_name -> common.PolicyStatement
+	1,   // 12: iam.GetPolicyResponse.policy:type_name -> iam.Policy
+	122, // 13: iam.GetPolicyResponse.statements:type_name -> common.PolicyStatement
+	123, // 14: iam.ListPolicyVersionsRequest.collection:type_name -> common.CollectionRequest
+	2,   // 15: iam.ListPolicyVersionsResponse.versions:type_name -> iam.PolicyVersion
+	124, // 16: iam.ListPolicyVersionsResponse.page_info:type_name -> common.PageInfo
+	123, // 17: iam.ListPoliciesRequest.collection:type_name -> common.CollectionRequest
+	1,   // 18: iam.ListPoliciesResponse.policies:type_name -> iam.Policy
+	124, // 19: iam.ListPoliciesResponse.page_info:type_name -> common.PageInfo
+	123, // 20: iam.ListPolicyAttachmentsRequest.collection:type_name -> common.CollectionRequest
+	3,   // 21: iam.ListPolicyAttachmentsResponse.attachments:type_name -> iam.PolicyAttachment
+	124, // 22: iam.ListPolicyAttachmentsResponse.page_info:type_name -> common.PageInfo
+	5,   // 23: iam.PutRoleTrustPolicyRequest.statements:type_name -> iam.RoleTrustStatement
+	5,   // 24: iam.GetRoleTrustPolicyResponse.statements:type_name -> iam.RoleTrustStatement
+	6,   // 25: iam.CreateGroupResponse.group:type_name -> iam.Group
+	123, // 26: iam.ListGroupsRequest.collection:type_name -> common.CollectionRequest
+	6,   // 27: iam.ListGroupsResponse.groups:type_name -> iam.Group
+	124, // 28: iam.ListGroupsResponse.page_info:type_name -> common.PageInfo
+	123, // 29: iam.ListGroupMembersRequest.collection:type_name -> common.CollectionRequest
+	124, // 30: iam.ListGroupMembersResponse.page_info:type_name -> common.PageInfo
+	123, // 31: iam.ListGroupPoliciesRequest.collection:type_name -> common.CollectionRequest
+	1,   // 32: iam.ListGroupPoliciesResponse.policies:type_name -> iam.Policy
+	124, // 33: iam.ListGroupPoliciesResponse.page_info:type_name -> common.PageInfo
+	122, // 34: iam.PutGroupInlinePolicyRequest.statements:type_name -> common.PolicyStatement
+	7,   // 35: iam.GetGroupInlinePolicyResponse.policy:type_name -> iam.GroupInlinePolicy
+	123, // 36: iam.ListGroupInlinePoliciesRequest.collection:type_name -> common.CollectionRequest
+	7,   // 37: iam.ListGroupInlinePoliciesResponse.policies:type_name -> iam.GroupInlinePolicy
+	124, // 38: iam.ListGroupInlinePoliciesResponse.page_info:type_name -> common.PageInfo
+	123, // 39: iam.ListPlatformUserPoliciesRequest.collection:type_name -> common.CollectionRequest
+	1,   // 40: iam.ListPlatformUserPoliciesResponse.policies:type_name -> iam.Policy
+	124, // 41: iam.ListPlatformUserPoliciesResponse.page_info:type_name -> common.PageInfo
+	122, // 42: iam.PutPlatformUserInlinePolicyRequest.statements:type_name -> common.PolicyStatement
+	8,   // 43: iam.GetPlatformUserInlinePolicyResponse.policy:type_name -> iam.UserInlinePolicy
+	123, // 44: iam.ListPlatformUserInlinePoliciesRequest.collection:type_name -> common.CollectionRequest
+	8,   // 45: iam.ListPlatformUserInlinePoliciesResponse.policies:type_name -> iam.UserInlinePolicy
+	124, // 46: iam.ListPlatformUserInlinePoliciesResponse.page_info:type_name -> common.PageInfo
+	9,   // 47: iam.GetPlatformUserPermissionBoundaryResponse.boundary:type_name -> iam.PermissionBoundary
+	123, // 48: iam.ListTenantUserPoliciesRequest.collection:type_name -> common.CollectionRequest
+	1,   // 49: iam.ListTenantUserPoliciesResponse.policies:type_name -> iam.Policy
+	124, // 50: iam.ListTenantUserPoliciesResponse.page_info:type_name -> common.PageInfo
+	122, // 51: iam.PutTenantUserInlinePolicyRequest.statements:type_name -> common.PolicyStatement
+	8,   // 52: iam.GetTenantUserInlinePolicyResponse.policy:type_name -> iam.UserInlinePolicy
+	123, // 53: iam.ListTenantUserInlinePoliciesRequest.collection:type_name -> common.CollectionRequest
+	8,   // 54: iam.ListTenantUserInlinePoliciesResponse.policies:type_name -> iam.UserInlinePolicy
+	124, // 55: iam.ListTenantUserInlinePoliciesResponse.page_info:type_name -> common.PageInfo
+	9,   // 56: iam.GetTenantUserPermissionBoundaryResponse.boundary:type_name -> iam.PermissionBoundary
+	10,  // 57: iam.GetRolePermissionBoundaryResponse.boundary:type_name -> iam.RolePermissionBoundary
+	58,  // [58:58] is the sub-list for method output_type
+	58,  // [58:58] is the sub-list for method input_type
+	58,  // [58:58] is the sub-list for extension type_name
+	58,  // [58:58] is the sub-list for extension extendee
+	0,   // [0:58] is the sub-list for field type_name
 }
 
 func init() { file_iam_v1_iam_policy_proto_init() }

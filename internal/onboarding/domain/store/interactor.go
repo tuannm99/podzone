@@ -11,6 +11,7 @@ import (
 	storeentity "github.com/tuannm99/podzone/internal/onboarding/domain/store/entity"
 	storeinputport "github.com/tuannm99/podzone/internal/onboarding/domain/store/inputport"
 	storeoutputport "github.com/tuannm99/podzone/internal/onboarding/domain/store/outputport"
+	"github.com/tuannm99/podzone/pkg/collection"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
@@ -190,27 +191,28 @@ func (s *StoreInteractor) RetryStoreRequest(ctx context.Context, id string) erro
 func (s *StoreInteractor) ListStoreRequests(
 	ctx context.Context,
 	workspaceID string,
-) ([]*storeinputport.Request, error) {
+	query collection.Query,
+) (collection.Page[*storeinputport.Request], error) {
 	requestedBy, err := toolkit.GetUserID(ctx)
 	if err != nil {
-		return nil, ErrRequestedByRequired
+		return collection.Page[*storeinputport.Request]{}, ErrRequestedByRequired
 	}
 	if s.authorizer != nil {
 		if err := s.authorizer.AuthorizeStoreRead(ctx, workspaceID, requestedBy); err != nil {
-			return nil, err
+			return collection.Page[*storeinputport.Request]{}, err
 		}
 	}
-	requests, err := s.repo.List(ctx, workspaceID)
+	page, err := s.repo.ListPage(ctx, workspaceID, query.Normalize())
 	if err != nil {
-		return nil, err
+		return collection.Page[*storeinputport.Request]{}, err
 	}
 
-	out := make([]*storeinputport.Request, 0, len(requests))
-	for _, req := range requests {
+	out := make([]*storeinputport.Request, 0, len(page.Items))
+	for _, req := range page.Items {
 		copyReq := req
 		out = append(out, toInputPortRequest(&copyReq))
 	}
-	return out, nil
+	return collection.NewPage(out, page.Total, query), nil
 }
 
 func (s *StoreInteractor) UpdateStoreRequestStatus(

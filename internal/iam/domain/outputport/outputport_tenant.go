@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type TenantCommandRepository interface {
@@ -29,6 +30,11 @@ type PlatformMembershipCommandRepository interface {
 
 type PlatformMembershipQueryRepository interface {
 	ListByUser(ctx context.Context, userID uint) ([]entity.PlatformMembership, error)
+	ListPageByUser(
+		ctx context.Context,
+		userID uint,
+		query collection.Query,
+	) (collection.Page[entity.PlatformMembership], error)
 	ListRoleIDsByUser(ctx context.Context, userID uint) ([]uint64, error)
 }
 
@@ -44,7 +50,11 @@ type MembershipCommandRepository interface {
 
 type MembershipQueryRepository interface {
 	GetByTenantAndUser(ctx context.Context, tenantID string, userID uint) (*entity.Membership, error)
-	ListByTenant(ctx context.Context, tenantID string) ([]entity.Membership, error)
+	ListPageByTenant(
+		ctx context.Context,
+		tenantID string,
+		query collection.Query,
+	) (collection.Page[entity.Membership], error)
 	ListByUser(ctx context.Context, userID uint) ([]entity.Membership, error)
 }
 
@@ -62,7 +72,11 @@ type InviteCommandRepository interface {
 type InviteQueryRepository interface {
 	GetByID(ctx context.Context, inviteID string) (*entity.TenantInvite, error)
 	GetByTokenHash(ctx context.Context, tokenHash string) (*entity.TenantInvite, error)
-	ListByTenant(ctx context.Context, tenantID string) ([]entity.TenantInvite, error)
+	ListPageByTenant(
+		ctx context.Context,
+		tenantID string,
+		query collection.Query,
+	) (collection.Page[entity.TenantInvite], error)
 }
 
 type InviteRepository interface {

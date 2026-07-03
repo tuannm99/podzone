@@ -11,6 +11,7 @@ import (
 
 	storectx "github.com/tuannm99/podzone/internal/backoffice/domain/store"
 	"github.com/tuannm99/podzone/internal/backoffice/migrations"
+	"github.com/tuannm99/podzone/pkg/collection"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
@@ -39,37 +40,58 @@ func New(mgr pdtenantdb.Manager) storectx.StoreRepository {
 	return &Repository{mgr: mgr}
 }
 
-func (r *Repository) FindAll(ctx context.Context) ([]storectx.Store, error) {
+func (r *Repository) FindPage(
+	ctx context.Context,
+	collectionQuery collection.Query,
+) (collection.Page[storectx.Store], error) {
 	ownerID, err := toolkit.GetUserID(ctx)
 	if err != nil {
-		return nil, err
+		return collection.Page[storectx.Store]{}, err
 	}
-
-	query, args, err := psql.
-		Select("id", "name", "description", "owner_id", "status", "created_at", "updated_at").
-		From(storesTable).
-		Where(sq.Eq{"owner_id": ownerID}).
-		OrderBy("created_at DESC").
-		ToSql()
+	normalized, predicates, orderBy, err := buildStoreCollectionQuery(collectionQuery)
 	if err != nil {
-		return nil, err
+		return collection.Page[storectx.Store]{}, err
 	}
-
+	predicates = append([]sq.Sqlizer{sq.Eq{"owner_id": ownerID}}, predicates...)
 	var stores []storeRow
+	var total int64
 	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
 		if err := ensureStoreTables(ctx, tx); err != nil {
 			return err
 		}
-		return tx.SelectContext(ctx, &stores, query, args...)
+		countBuilder := psql.Select("COUNT(*)").From(storesTable)
+		listBuilder := psql.
+			Select("id", "name", "description", "owner_id", "status", "created_at", "updated_at").
+			From(storesTable)
+		for _, predicate := range predicates {
+			countBuilder = countBuilder.Where(predicate)
+			listBuilder = listBuilder.Where(predicate)
+		}
+		countSQL, countArgs, err := countBuilder.ToSql()
+		if err != nil {
+			return err
+		}
+		if err := tx.GetContext(ctx, &total, countSQL, countArgs...); err != nil {
+			return err
+		}
+		listSQL, listArgs, err := listBuilder.
+			OrderBy(orderBy, "id ASC").
+			Limit(uint64(normalized.PageSize)).
+			Offset(uint64(normalized.Offset())).
+			ToSql()
+		if err != nil {
+			return err
+		}
+		return tx.SelectContext(ctx, &stores, listSQL, listArgs...)
 	}); err != nil {
-		return nil, err
+		return collection.Page[storectx.Store]{}, err
 	}
 
 	res := make([]storectx.Store, 0, len(stores))
 	for _, s := range stores {
 		res = append(res, toEntity(s))
 	}
-	return res, nil
+	return collection.NewPage(res, total, normalized), nil
 }
 
 func (r *Repository) FindByID(ctx context.Context, id string) (*storectx.Store, error) {

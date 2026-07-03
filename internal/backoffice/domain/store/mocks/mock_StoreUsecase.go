@@ -9,6 +9,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 	"github.com/tuannm99/podzone/internal/backoffice/domain/store"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 // NewMockStoreUsecase creates a new instance of MockStoreUsecase. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -16,7 +17,8 @@ import (
 func NewMockStoreUsecase(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockStoreUsecase {
+},
+) *MockStoreUsecase {
 	mock := &MockStoreUsecase{}
 	mock.Mock.Test(t)
 
@@ -248,68 +250,6 @@ func (_c *MockStoreUsecase_CreateStoreFromCommand_Call) RunAndReturn(run func(ct
 	return _c
 }
 
-// GetAllStores provides a mock function for the type MockStoreUsecase
-func (_mock *MockStoreUsecase) GetAllStores(ctx context.Context) ([]store.Store, error) {
-	ret := _mock.Called(ctx)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetAllStores")
-	}
-
-	var r0 []store.Store
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context) ([]store.Store, error)); ok {
-		return returnFunc(ctx)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context) []store.Store); ok {
-		r0 = returnFunc(ctx)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]store.Store)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = returnFunc(ctx)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockStoreUsecase_GetAllStores_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAllStores'
-type MockStoreUsecase_GetAllStores_Call struct {
-	*mock.Call
-}
-
-// GetAllStores is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *MockStoreUsecase_Expecter) GetAllStores(ctx interface{}) *MockStoreUsecase_GetAllStores_Call {
-	return &MockStoreUsecase_GetAllStores_Call{Call: _e.mock.On("GetAllStores", ctx)}
-}
-
-func (_c *MockStoreUsecase_GetAllStores_Call) Run(run func(ctx context.Context)) *MockStoreUsecase_GetAllStores_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		run(
-			arg0,
-		)
-	})
-	return _c
-}
-
-func (_c *MockStoreUsecase_GetAllStores_Call) Return(stores []store.Store, err error) *MockStoreUsecase_GetAllStores_Call {
-	_c.Call.Return(stores, err)
-	return _c
-}
-
-func (_c *MockStoreUsecase_GetAllStores_Call) RunAndReturn(run func(ctx context.Context) ([]store.Store, error)) *MockStoreUsecase_GetAllStores_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetStore provides a mock function for the type MockStoreUsecase
 func (_mock *MockStoreUsecase) GetStore(ctx context.Context, query store.GetStoreQuery) (*store.Store, error) {
 	ret := _mock.Called(ctx, query)
@@ -447,24 +387,22 @@ func (_c *MockStoreUsecase_GetStoreByID_Call) RunAndReturn(run func(ctx context.
 }
 
 // ListStores provides a mock function for the type MockStoreUsecase
-func (_mock *MockStoreUsecase) ListStores(ctx context.Context, query store.ListStoresQuery) ([]store.Store, error) {
+func (_mock *MockStoreUsecase) ListStores(ctx context.Context, query store.ListStoresQuery) (collection.Page[store.Store], error) {
 	ret := _mock.Called(ctx, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListStores")
 	}
 
-	var r0 []store.Store
+	var r0 collection.Page[store.Store]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, store.ListStoresQuery) ([]store.Store, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, store.ListStoresQuery) (collection.Page[store.Store], error)); ok {
 		return returnFunc(ctx, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, store.ListStoresQuery) []store.Store); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, store.ListStoresQuery) collection.Page[store.Store]); ok {
 		r0 = returnFunc(ctx, query)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]store.Store)
-		}
+		r0 = ret.Get(0).(collection.Page[store.Store])
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, store.ListStoresQuery) error); ok {
 		r1 = returnFunc(ctx, query)
@@ -504,12 +442,12 @@ func (_c *MockStoreUsecase_ListStores_Call) Run(run func(ctx context.Context, qu
 	return _c
 }
 
-func (_c *MockStoreUsecase_ListStores_Call) Return(stores []store.Store, err error) *MockStoreUsecase_ListStores_Call {
-	_c.Call.Return(stores, err)
+func (_c *MockStoreUsecase_ListStores_Call) Return(page collection.Page[store.Store], err error) *MockStoreUsecase_ListStores_Call {
+	_c.Call.Return(page, err)
 	return _c
 }
 
-func (_c *MockStoreUsecase_ListStores_Call) RunAndReturn(run func(ctx context.Context, query store.ListStoresQuery) ([]store.Store, error)) *MockStoreUsecase_ListStores_Call {
+func (_c *MockStoreUsecase_ListStores_Call) RunAndReturn(run func(ctx context.Context, query store.ListStoresQuery) (collection.Page[store.Store], error)) *MockStoreUsecase_ListStores_Call {
 	_c.Call.Return(run)
 	return _c
 }

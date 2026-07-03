@@ -7,12 +7,13 @@
 package pbiamv1
 
 import (
-	v1 "github.com/tuannm99/podzone/pkg/api/proto/common/v1"
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	v1 "github.com/tuannm99/podzone/pkg/api/proto/common/v1"
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -1225,6 +1226,7 @@ func (x *CreateTenantInviteResponse) GetAcceptUrl() string {
 type ListTenantInvitesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TenantId      string                 `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
+	Collection    *v1.CollectionRequest  `protobuf:"bytes,2,opt,name=collection,proto3" json:"collection,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1266,9 +1268,17 @@ func (x *ListTenantInvitesRequest) GetTenantId() string {
 	return ""
 }
 
+func (x *ListTenantInvitesRequest) GetCollection() *v1.CollectionRequest {
+	if x != nil {
+		return x.Collection
+	}
+	return nil
+}
+
 type ListTenantInvitesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Invites       []*TenantInvite        `protobuf:"bytes,1,rep,name=invites,proto3" json:"invites,omitempty"`
+	PageInfo      *v1.PageInfo           `protobuf:"bytes,2,opt,name=page_info,json=pageInfo,proto3" json:"page_info,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1306,6 +1316,13 @@ func (*ListTenantInvitesResponse) Descriptor() ([]byte, []int) {
 func (x *ListTenantInvitesResponse) GetInvites() []*TenantInvite {
 	if x != nil {
 		return x.Invites
+	}
+	return nil
+}
+
+func (x *ListTenantInvitesResponse) GetPageInfo() *v1.PageInfo {
+	if x != nil {
+		return x.PageInfo
 	}
 	return nil
 }
@@ -1665,6 +1682,7 @@ func (x *ListUserTenantsResponse) GetMemberships() []*TenantMembership {
 type ListTenantMembersRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	TenantId      string                 `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
+	Collection    *v1.CollectionRequest  `protobuf:"bytes,2,opt,name=collection,proto3" json:"collection,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1706,9 +1724,17 @@ func (x *ListTenantMembersRequest) GetTenantId() string {
 	return ""
 }
 
+func (x *ListTenantMembersRequest) GetCollection() *v1.CollectionRequest {
+	if x != nil {
+		return x.Collection
+	}
+	return nil
+}
+
 type ListTenantMembersResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Memberships   []*TenantMembership    `protobuf:"bytes,1,rep,name=memberships,proto3" json:"memberships,omitempty"`
+	PageInfo      *v1.PageInfo           `protobuf:"bytes,2,opt,name=page_info,json=pageInfo,proto3" json:"page_info,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1746,6 +1772,13 @@ func (*ListTenantMembersResponse) Descriptor() ([]byte, []int) {
 func (x *ListTenantMembersResponse) GetMemberships() []*TenantMembership {
 	if x != nil {
 		return x.Memberships
+	}
+	return nil
+}
+
+func (x *ListTenantMembersResponse) GetPageInfo() *v1.PageInfo {
+	if x != nil {
+		return x.PageInfo
 	}
 	return nil
 }
@@ -1937,11 +1970,15 @@ const file_iam_v1_iam_tenant_proto_rawDesc = "" +
 	"\x06invite\x18\x01 \x01(\v2\x11.iam.TenantInviteR\x06invite\x12!\n" +
 	"\finvite_token\x18\x02 \x01(\tR\vinviteToken\x12\x1d\n" +
 	"\n" +
-	"accept_url\x18\x03 \x01(\tR\tacceptUrl\"7\n" +
+	"accept_url\x18\x03 \x01(\tR\tacceptUrl\"r\n" +
 	"\x18ListTenantInvitesRequest\x12\x1b\n" +
-	"\ttenant_id\x18\x01 \x01(\tR\btenantId\"H\n" +
+	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x129\n" +
+	"\n" +
+	"collection\x18\x02 \x01(\v2\x19.common.CollectionRequestR\n" +
+	"collection\"w\n" +
 	"\x19ListTenantInvitesResponse\x12+\n" +
-	"\ainvites\x18\x01 \x03(\v2\x11.iam.TenantInviteR\ainvites\"8\n" +
+	"\ainvites\x18\x01 \x03(\v2\x11.iam.TenantInviteR\ainvites\x12-\n" +
+	"\tpage_info\x18\x02 \x01(\v2\x10.common.PageInfoR\bpageInfo\"8\n" +
 	"\x19RevokeTenantInviteRequest\x12\x1b\n" +
 	"\tinvite_id\x18\x01 \x01(\tR\binviteId\"\x1c\n" +
 	"\x1aRevokeTenantInviteResponse\">\n" +
@@ -1961,11 +1998,15 @@ const file_iam_v1_iam_tenant_proto_rawDesc = "" +
 	"\x16ListUserTenantsRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x04R\x06userId\"R\n" +
 	"\x17ListUserTenantsResponse\x127\n" +
-	"\vmemberships\x18\x01 \x03(\v2\x15.iam.TenantMembershipR\vmemberships\"7\n" +
+	"\vmemberships\x18\x01 \x03(\v2\x15.iam.TenantMembershipR\vmemberships\"r\n" +
 	"\x18ListTenantMembersRequest\x12\x1b\n" +
-	"\ttenant_id\x18\x01 \x01(\tR\btenantId\"T\n" +
+	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x129\n" +
+	"\n" +
+	"collection\x18\x02 \x01(\v2\x19.common.CollectionRequestR\n" +
+	"collection\"\x83\x01\n" +
 	"\x19ListTenantMembersResponse\x127\n" +
-	"\vmemberships\x18\x01 \x03(\v2\x15.iam.TenantMembershipR\vmemberships\"Q\n" +
+	"\vmemberships\x18\x01 \x03(\v2\x15.iam.TenantMembershipR\vmemberships\x12-\n" +
+	"\tpage_info\x18\x02 \x01(\v2\x10.common.PageInfoR\bpageInfo\"Q\n" +
 	"\x19RemoveTenantMemberRequest\x12\x1b\n" +
 	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x04R\x06userId\"\x1c\n" +
@@ -1983,45 +2024,48 @@ func file_iam_v1_iam_tenant_proto_rawDescGZIP() []byte {
 	return file_iam_v1_iam_tenant_proto_rawDescData
 }
 
-var file_iam_v1_iam_tenant_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
-var file_iam_v1_iam_tenant_proto_goTypes = []any{
-	(*Tenant)(nil),                               // 0: iam.Tenant
-	(*Organization)(nil),                         // 1: iam.Organization
-	(*TenantMembership)(nil),                     // 2: iam.TenantMembership
-	(*TenantInvite)(nil),                         // 3: iam.TenantInvite
-	(*CreateTenantRequest)(nil),                  // 4: iam.CreateTenantRequest
-	(*CreateTenantResponse)(nil),                 // 5: iam.CreateTenantResponse
-	(*CreateOrganizationRequest)(nil),            // 6: iam.CreateOrganizationRequest
-	(*CreateOrganizationResponse)(nil),           // 7: iam.CreateOrganizationResponse
-	(*ListOrganizationsRequest)(nil),             // 8: iam.ListOrganizationsRequest
-	(*ListOrganizationsResponse)(nil),            // 9: iam.ListOrganizationsResponse
-	(*AttachTenantToOrganizationRequest)(nil),    // 10: iam.AttachTenantToOrganizationRequest
-	(*AttachTenantToOrganizationResponse)(nil),   // 11: iam.AttachTenantToOrganizationResponse
-	(*DetachTenantFromOrganizationRequest)(nil),  // 12: iam.DetachTenantFromOrganizationRequest
-	(*DetachTenantFromOrganizationResponse)(nil), // 13: iam.DetachTenantFromOrganizationResponse
-	(*AddTenantMemberRequest)(nil),               // 14: iam.AddTenantMemberRequest
-	(*AddTenantMemberResponse)(nil),              // 15: iam.AddTenantMemberResponse
-	(*AddTenantMemberByIdentityRequest)(nil),     // 16: iam.AddTenantMemberByIdentityRequest
-	(*AddTenantMemberByIdentityResponse)(nil),    // 17: iam.AddTenantMemberByIdentityResponse
-	(*CreateTenantInviteRequest)(nil),            // 18: iam.CreateTenantInviteRequest
-	(*CreateTenantInviteResponse)(nil),           // 19: iam.CreateTenantInviteResponse
-	(*ListTenantInvitesRequest)(nil),             // 20: iam.ListTenantInvitesRequest
-	(*ListTenantInvitesResponse)(nil),            // 21: iam.ListTenantInvitesResponse
-	(*RevokeTenantInviteRequest)(nil),            // 22: iam.RevokeTenantInviteRequest
-	(*RevokeTenantInviteResponse)(nil),           // 23: iam.RevokeTenantInviteResponse
-	(*AcceptTenantInviteRequest)(nil),            // 24: iam.AcceptTenantInviteRequest
-	(*AcceptTenantInviteResponse)(nil),           // 25: iam.AcceptTenantInviteResponse
-	(*GetTenantMembershipRequest)(nil),           // 26: iam.GetTenantMembershipRequest
-	(*GetTenantMembershipResponse)(nil),          // 27: iam.GetTenantMembershipResponse
-	(*ListUserTenantsRequest)(nil),               // 28: iam.ListUserTenantsRequest
-	(*ListUserTenantsResponse)(nil),              // 29: iam.ListUserTenantsResponse
-	(*ListTenantMembersRequest)(nil),             // 30: iam.ListTenantMembersRequest
-	(*ListTenantMembersResponse)(nil),            // 31: iam.ListTenantMembersResponse
-	(*RemoveTenantMemberRequest)(nil),            // 32: iam.RemoveTenantMemberRequest
-	(*RemoveTenantMemberResponse)(nil),           // 33: iam.RemoveTenantMemberResponse
-	(*v1.CollectionRequest)(nil),                 // 34: common.CollectionRequest
-	(*v1.PageInfo)(nil),                          // 35: common.PageInfo
-}
+var (
+	file_iam_v1_iam_tenant_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
+	file_iam_v1_iam_tenant_proto_goTypes  = []any{
+		(*Tenant)(nil),                               // 0: iam.Tenant
+		(*Organization)(nil),                         // 1: iam.Organization
+		(*TenantMembership)(nil),                     // 2: iam.TenantMembership
+		(*TenantInvite)(nil),                         // 3: iam.TenantInvite
+		(*CreateTenantRequest)(nil),                  // 4: iam.CreateTenantRequest
+		(*CreateTenantResponse)(nil),                 // 5: iam.CreateTenantResponse
+		(*CreateOrganizationRequest)(nil),            // 6: iam.CreateOrganizationRequest
+		(*CreateOrganizationResponse)(nil),           // 7: iam.CreateOrganizationResponse
+		(*ListOrganizationsRequest)(nil),             // 8: iam.ListOrganizationsRequest
+		(*ListOrganizationsResponse)(nil),            // 9: iam.ListOrganizationsResponse
+		(*AttachTenantToOrganizationRequest)(nil),    // 10: iam.AttachTenantToOrganizationRequest
+		(*AttachTenantToOrganizationResponse)(nil),   // 11: iam.AttachTenantToOrganizationResponse
+		(*DetachTenantFromOrganizationRequest)(nil),  // 12: iam.DetachTenantFromOrganizationRequest
+		(*DetachTenantFromOrganizationResponse)(nil), // 13: iam.DetachTenantFromOrganizationResponse
+		(*AddTenantMemberRequest)(nil),               // 14: iam.AddTenantMemberRequest
+		(*AddTenantMemberResponse)(nil),              // 15: iam.AddTenantMemberResponse
+		(*AddTenantMemberByIdentityRequest)(nil),     // 16: iam.AddTenantMemberByIdentityRequest
+		(*AddTenantMemberByIdentityResponse)(nil),    // 17: iam.AddTenantMemberByIdentityResponse
+		(*CreateTenantInviteRequest)(nil),            // 18: iam.CreateTenantInviteRequest
+		(*CreateTenantInviteResponse)(nil),           // 19: iam.CreateTenantInviteResponse
+		(*ListTenantInvitesRequest)(nil),             // 20: iam.ListTenantInvitesRequest
+		(*ListTenantInvitesResponse)(nil),            // 21: iam.ListTenantInvitesResponse
+		(*RevokeTenantInviteRequest)(nil),            // 22: iam.RevokeTenantInviteRequest
+		(*RevokeTenantInviteResponse)(nil),           // 23: iam.RevokeTenantInviteResponse
+		(*AcceptTenantInviteRequest)(nil),            // 24: iam.AcceptTenantInviteRequest
+		(*AcceptTenantInviteResponse)(nil),           // 25: iam.AcceptTenantInviteResponse
+		(*GetTenantMembershipRequest)(nil),           // 26: iam.GetTenantMembershipRequest
+		(*GetTenantMembershipResponse)(nil),          // 27: iam.GetTenantMembershipResponse
+		(*ListUserTenantsRequest)(nil),               // 28: iam.ListUserTenantsRequest
+		(*ListUserTenantsResponse)(nil),              // 29: iam.ListUserTenantsResponse
+		(*ListTenantMembersRequest)(nil),             // 30: iam.ListTenantMembersRequest
+		(*ListTenantMembersResponse)(nil),            // 31: iam.ListTenantMembersResponse
+		(*RemoveTenantMemberRequest)(nil),            // 32: iam.RemoveTenantMemberRequest
+		(*RemoveTenantMemberResponse)(nil),           // 33: iam.RemoveTenantMemberResponse
+		(*v1.CollectionRequest)(nil),                 // 34: common.CollectionRequest
+		(*v1.PageInfo)(nil),                          // 35: common.PageInfo
+	}
+)
+
 var file_iam_v1_iam_tenant_proto_depIdxs = []int32{
 	0,  // 0: iam.CreateTenantResponse.tenant:type_name -> iam.Tenant
 	2,  // 1: iam.CreateTenantResponse.owner_membership:type_name -> iam.TenantMembership
@@ -2030,16 +2074,20 @@ var file_iam_v1_iam_tenant_proto_depIdxs = []int32{
 	1,  // 4: iam.ListOrganizationsResponse.organizations:type_name -> iam.Organization
 	35, // 5: iam.ListOrganizationsResponse.page_info:type_name -> common.PageInfo
 	3,  // 6: iam.CreateTenantInviteResponse.invite:type_name -> iam.TenantInvite
-	3,  // 7: iam.ListTenantInvitesResponse.invites:type_name -> iam.TenantInvite
-	2,  // 8: iam.AcceptTenantInviteResponse.membership:type_name -> iam.TenantMembership
-	2,  // 9: iam.GetTenantMembershipResponse.membership:type_name -> iam.TenantMembership
-	2,  // 10: iam.ListUserTenantsResponse.memberships:type_name -> iam.TenantMembership
-	2,  // 11: iam.ListTenantMembersResponse.memberships:type_name -> iam.TenantMembership
-	12, // [12:12] is the sub-list for method output_type
-	12, // [12:12] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	34, // 7: iam.ListTenantInvitesRequest.collection:type_name -> common.CollectionRequest
+	3,  // 8: iam.ListTenantInvitesResponse.invites:type_name -> iam.TenantInvite
+	35, // 9: iam.ListTenantInvitesResponse.page_info:type_name -> common.PageInfo
+	2,  // 10: iam.AcceptTenantInviteResponse.membership:type_name -> iam.TenantMembership
+	2,  // 11: iam.GetTenantMembershipResponse.membership:type_name -> iam.TenantMembership
+	2,  // 12: iam.ListUserTenantsResponse.memberships:type_name -> iam.TenantMembership
+	34, // 13: iam.ListTenantMembersRequest.collection:type_name -> common.CollectionRequest
+	2,  // 14: iam.ListTenantMembersResponse.memberships:type_name -> iam.TenantMembership
+	35, // 15: iam.ListTenantMembersResponse.page_info:type_name -> common.PageInfo
+	16, // [16:16] is the sub-list for method output_type
+	16, // [16:16] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_iam_v1_iam_tenant_proto_init() }
