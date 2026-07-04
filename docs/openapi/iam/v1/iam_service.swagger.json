@@ -153,6 +153,12 @@
               "SORT_DIRECTION_DESC"
             ],
             "default": "SORT_DIRECTION_UNSPECIFIED"
+          },
+          {
+            "name": "orgId",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1873,6 +1879,12 @@
               "SORT_DIRECTION_DESC"
             ],
             "default": "SORT_DIRECTION_UNSPECIFIED"
+          },
+          {
+            "name": "orgId",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1934,6 +1946,18 @@
             "required": true,
             "type": "string",
             "pattern": ".+"
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "orgId",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1963,6 +1987,18 @@
             "required": true,
             "type": "string",
             "pattern": ".+"
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "orgId",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -2032,6 +2068,18 @@
               "SORT_DIRECTION_DESC"
             ],
             "default": "SORT_DIRECTION_UNSPECIFIED"
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "orgId",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -2101,6 +2149,18 @@
               "SORT_DIRECTION_DESC"
             ],
             "default": "SORT_DIRECTION_UNSPECIFIED"
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "orgId",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -2174,6 +2234,18 @@
             "name": "version",
             "in": "path",
             "required": true,
+            "type": "string"
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "orgId",
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -3604,6 +3676,9 @@
         },
         "description": {
           "type": "string"
+        },
+        "orgId": {
+          "type": "string"
         }
       }
     },
@@ -3652,6 +3727,9 @@
             "type": "object",
             "$ref": "#/definitions/commonPolicyStatement"
           }
+        },
+        "orgId": {
+          "type": "string"
         }
       }
     },
@@ -3888,6 +3966,9 @@
         },
         "updatedAt": {
           "type": "string"
+        },
+        "orgId": {
+          "type": "string"
         }
       }
     },
@@ -4102,6 +4183,12 @@
         },
         "setAsDefault": {
           "type": "boolean"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "orgId": {
+          "type": "string"
         }
       }
     },
@@ -4198,7 +4285,15 @@
       }
     },
     "iamIAMServiceSetDefaultPolicyVersionBody": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "scope": {
+          "type": "string"
+        },
+        "orgId": {
+          "type": "string"
+        }
+      }
     },
     "iamListGroupInlinePoliciesResponse": {
       "type": "object",
@@ -4595,6 +4690,9 @@
           "type": "string"
         },
         "updatedAt": {
+          "type": "string"
+        },
+        "orgId": {
           "type": "string"
         }
       }

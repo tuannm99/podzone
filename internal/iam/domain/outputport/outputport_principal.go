@@ -23,6 +23,7 @@ type GroupQueryRepository interface {
 	ListGroups(
 		ctx context.Context,
 		scope string,
+		orgID string,
 		tenantID string,
 		query collection.Query,
 	) (collection.Page[entity.Group], error)

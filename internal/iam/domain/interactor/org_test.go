@@ -16,12 +16,13 @@ func TestCheckOrganizationPermission(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name       string
-		userID     uint
-		isRoot     bool
-		membership *entity.OrganizationMembership
-		roleAllows bool
-		want       bool
+		name            string
+		userID          uint
+		isRoot          bool
+		membership      *entity.OrganizationMembership
+		roleAllows      bool
+		groupStatements []entity.PolicyStatement
+		want            bool
 	}{
 		{
 			name:   "root has implicit permission",
@@ -54,6 +55,25 @@ func TestCheckOrganizationPermission(t *testing.T) {
 			},
 			want: false,
 		},
+		{
+			name:   "organization group explicit deny overrides role",
+			userID: 10,
+			membership: &entity.OrganizationMembership{
+				OrgID:    "org-1",
+				UserID:   10,
+				RoleID:   12,
+				RoleName: entity.RoleOrganizationAdmin,
+				Status:   entity.MembershipStatusActive,
+			},
+			roleAllows: true,
+			groupStatements: []entity.PolicyStatement{{
+				PolicyName:      "deny-member-management",
+				Effect:          entity.PolicyEffectDeny,
+				ActionPattern:   "organization:manage_members",
+				ResourcePattern: "podzone:organization/org-1",
+			}},
+			want: false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -62,6 +82,7 @@ func TestCheckOrganizationPermission(t *testing.T) {
 
 			organizations := outputportmocks.NewMockOrganizationQueryRepository(t)
 			roles := outputportmocks.NewMockRoleQueryRepository(t)
+			policies := outputportmocks.NewMockPolicyQueryRepository(t)
 			organizations.EXPECT().
 				IsRoot(mock.Anything, "org-1", tt.userID).
 				Return(tt.isRoot, nil)
@@ -72,11 +93,14 @@ func TestCheckOrganizationPermission(t *testing.T) {
 				roles.EXPECT().
 					RoleHasPermission(mock.Anything, tt.membership.RoleID, "organization:manage_members").
 					Return(tt.roleAllows, nil)
+				policies.EXPECT().
+					ListOrganizationGroupStatements(mock.Anything, "org-1", tt.userID).
+					Return(tt.groupStatements, nil)
 			}
 			usecase := iaminteractor.NewQueryInteractor(
 				nil,
 				roles,
-				nil,
+				policies,
 				nil,
 				organizations,
 				nil,

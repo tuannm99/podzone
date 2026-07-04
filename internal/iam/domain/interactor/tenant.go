@@ -160,7 +160,10 @@ func (s *interactor) AttachTenantUserPolicy(
 	if userID == 0 {
 		return entity.ErrInvalidUserID
 	}
-	policy, err := s.policyQueries.GetPolicyByName(ctx, strings.TrimSpace(policyName))
+	policy, err := s.policyQueries.GetPolicy(ctx, entity.PolicyRef{
+		Scope: entity.PolicyScopeTenant,
+		Name:  strings.TrimSpace(policyName),
+	})
 	if err != nil {
 		return err
 	}
@@ -195,7 +198,10 @@ func (s *interactor) DetachTenantUserPolicy(
 	if userID == 0 {
 		return entity.ErrInvalidUserID
 	}
-	policy, err := s.policyQueries.GetPolicyByName(ctx, strings.TrimSpace(policyName))
+	policy, err := s.policyQueries.GetPolicy(ctx, entity.PolicyRef{
+		Scope: entity.PolicyScopeTenant,
+		Name:  strings.TrimSpace(policyName),
+	})
 	if err != nil {
 		return err
 	}
@@ -230,7 +236,10 @@ func (s *interactor) PutTenantUserPermissionBoundary(
 	if userID == 0 {
 		return entity.ErrInvalidUserID
 	}
-	policy, err := s.policyQueries.GetPolicyByName(ctx, strings.TrimSpace(policyName))
+	policy, err := s.policyQueries.GetPolicy(ctx, entity.PolicyRef{
+		Scope: entity.PolicyScopeTenant,
+		Name:  strings.TrimSpace(policyName),
+	})
 	if err != nil {
 		return err
 	}

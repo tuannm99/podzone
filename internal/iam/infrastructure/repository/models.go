@@ -58,6 +58,7 @@ type roleTrustStatementModel struct {
 type policyModel struct {
 	ID             uint64    `db:"id"`
 	Scope          string    `db:"scope"`
+	OrgID          string    `db:"org_id"`
 	Name           string    `db:"name"`
 	Description    string    `db:"description"`
 	IsSystem       bool      `db:"is_system"`
@@ -78,6 +79,7 @@ type policyVersionModel struct {
 type groupModel struct {
 	ID          uint64    `db:"id"`
 	Scope       string    `db:"scope"`
+	OrgID       string    `db:"org_id"`
 	TenantID    string    `db:"tenant_id"`
 	Name        string    `db:"name"`
 	Description string    `db:"description"`
@@ -241,6 +243,7 @@ func (m policyModel) toEntity() entity.Policy {
 	return entity.Policy{
 		ID:             m.ID,
 		Scope:          m.Scope,
+		OrgID:          m.OrgID,
 		Name:           m.Name,
 		Description:    m.Description,
 		IsSystem:       m.IsSystem,
@@ -265,6 +268,7 @@ func (m groupModel) toEntity() entity.Group {
 	return entity.Group{
 		ID:          m.ID,
 		Scope:       m.Scope,
+		OrgID:       m.OrgID,
 		TenantID:    m.TenantID,
 		Name:        m.Name,
 		Description: m.Description,

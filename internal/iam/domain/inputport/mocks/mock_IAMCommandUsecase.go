@@ -1472,16 +1472,16 @@ func (_c *MockIAMCommandUsecase_DeletePlatformUserPermissionBoundary_Call) RunAn
 }
 
 // DeletePolicy provides a mock function for the type MockIAMCommandUsecase
-func (_mock *MockIAMCommandUsecase) DeletePolicy(ctx context.Context, name string) error {
-	ret := _mock.Called(ctx, name)
+func (_mock *MockIAMCommandUsecase) DeletePolicy(ctx context.Context, ref entity.PolicyRef) error {
+	ret := _mock.Called(ctx, ref)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeletePolicy")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = returnFunc(ctx, name)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.PolicyRef) error); ok {
+		r0 = returnFunc(ctx, ref)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1495,20 +1495,20 @@ type MockIAMCommandUsecase_DeletePolicy_Call struct {
 
 // DeletePolicy is a helper method to define mock.On call
 //   - ctx context.Context
-//   - name string
-func (_e *MockIAMCommandUsecase_Expecter) DeletePolicy(ctx interface{}, name interface{}) *MockIAMCommandUsecase_DeletePolicy_Call {
-	return &MockIAMCommandUsecase_DeletePolicy_Call{Call: _e.mock.On("DeletePolicy", ctx, name)}
+//   - ref entity.PolicyRef
+func (_e *MockIAMCommandUsecase_Expecter) DeletePolicy(ctx interface{}, ref interface{}) *MockIAMCommandUsecase_DeletePolicy_Call {
+	return &MockIAMCommandUsecase_DeletePolicy_Call{Call: _e.mock.On("DeletePolicy", ctx, ref)}
 }
 
-func (_c *MockIAMCommandUsecase_DeletePolicy_Call) Run(run func(ctx context.Context, name string)) *MockIAMCommandUsecase_DeletePolicy_Call {
+func (_c *MockIAMCommandUsecase_DeletePolicy_Call) Run(run func(ctx context.Context, ref entity.PolicyRef)) *MockIAMCommandUsecase_DeletePolicy_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 entity.PolicyRef
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(entity.PolicyRef)
 		}
 		run(
 			arg0,
@@ -1523,22 +1523,22 @@ func (_c *MockIAMCommandUsecase_DeletePolicy_Call) Return(err error) *MockIAMCom
 	return _c
 }
 
-func (_c *MockIAMCommandUsecase_DeletePolicy_Call) RunAndReturn(run func(ctx context.Context, name string) error) *MockIAMCommandUsecase_DeletePolicy_Call {
+func (_c *MockIAMCommandUsecase_DeletePolicy_Call) RunAndReturn(run func(ctx context.Context, ref entity.PolicyRef) error) *MockIAMCommandUsecase_DeletePolicy_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // DeletePolicyVersion provides a mock function for the type MockIAMCommandUsecase
-func (_mock *MockIAMCommandUsecase) DeletePolicyVersion(ctx context.Context, name string, version string) error {
-	ret := _mock.Called(ctx, name, version)
+func (_mock *MockIAMCommandUsecase) DeletePolicyVersion(ctx context.Context, ref entity.PolicyRef, version string) error {
+	ret := _mock.Called(ctx, ref, version)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeletePolicyVersion")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = returnFunc(ctx, name, version)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.PolicyRef, string) error); ok {
+		r0 = returnFunc(ctx, ref, version)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1552,21 +1552,21 @@ type MockIAMCommandUsecase_DeletePolicyVersion_Call struct {
 
 // DeletePolicyVersion is a helper method to define mock.On call
 //   - ctx context.Context
-//   - name string
+//   - ref entity.PolicyRef
 //   - version string
-func (_e *MockIAMCommandUsecase_Expecter) DeletePolicyVersion(ctx interface{}, name interface{}, version interface{}) *MockIAMCommandUsecase_DeletePolicyVersion_Call {
-	return &MockIAMCommandUsecase_DeletePolicyVersion_Call{Call: _e.mock.On("DeletePolicyVersion", ctx, name, version)}
+func (_e *MockIAMCommandUsecase_Expecter) DeletePolicyVersion(ctx interface{}, ref interface{}, version interface{}) *MockIAMCommandUsecase_DeletePolicyVersion_Call {
+	return &MockIAMCommandUsecase_DeletePolicyVersion_Call{Call: _e.mock.On("DeletePolicyVersion", ctx, ref, version)}
 }
 
-func (_c *MockIAMCommandUsecase_DeletePolicyVersion_Call) Run(run func(ctx context.Context, name string, version string)) *MockIAMCommandUsecase_DeletePolicyVersion_Call {
+func (_c *MockIAMCommandUsecase_DeletePolicyVersion_Call) Run(run func(ctx context.Context, ref entity.PolicyRef, version string)) *MockIAMCommandUsecase_DeletePolicyVersion_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 entity.PolicyRef
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(entity.PolicyRef)
 		}
 		var arg2 string
 		if args[2] != nil {
@@ -1586,7 +1586,7 @@ func (_c *MockIAMCommandUsecase_DeletePolicyVersion_Call) Return(err error) *Moc
 	return _c
 }
 
-func (_c *MockIAMCommandUsecase_DeletePolicyVersion_Call) RunAndReturn(run func(ctx context.Context, name string, version string) error) *MockIAMCommandUsecase_DeletePolicyVersion_Call {
+func (_c *MockIAMCommandUsecase_DeletePolicyVersion_Call) RunAndReturn(run func(ctx context.Context, ref entity.PolicyRef, version string) error) *MockIAMCommandUsecase_DeletePolicyVersion_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2965,16 +2965,16 @@ func (_c *MockIAMCommandUsecase_RevokeInvite_Call) RunAndReturn(run func(ctx con
 }
 
 // SetDefaultPolicyVersion provides a mock function for the type MockIAMCommandUsecase
-func (_mock *MockIAMCommandUsecase) SetDefaultPolicyVersion(ctx context.Context, name string, version string) error {
-	ret := _mock.Called(ctx, name, version)
+func (_mock *MockIAMCommandUsecase) SetDefaultPolicyVersion(ctx context.Context, ref entity.PolicyRef, version string) error {
+	ret := _mock.Called(ctx, ref, version)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SetDefaultPolicyVersion")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = returnFunc(ctx, name, version)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.PolicyRef, string) error); ok {
+		r0 = returnFunc(ctx, ref, version)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -2988,21 +2988,21 @@ type MockIAMCommandUsecase_SetDefaultPolicyVersion_Call struct {
 
 // SetDefaultPolicyVersion is a helper method to define mock.On call
 //   - ctx context.Context
-//   - name string
+//   - ref entity.PolicyRef
 //   - version string
-func (_e *MockIAMCommandUsecase_Expecter) SetDefaultPolicyVersion(ctx interface{}, name interface{}, version interface{}) *MockIAMCommandUsecase_SetDefaultPolicyVersion_Call {
-	return &MockIAMCommandUsecase_SetDefaultPolicyVersion_Call{Call: _e.mock.On("SetDefaultPolicyVersion", ctx, name, version)}
+func (_e *MockIAMCommandUsecase_Expecter) SetDefaultPolicyVersion(ctx interface{}, ref interface{}, version interface{}) *MockIAMCommandUsecase_SetDefaultPolicyVersion_Call {
+	return &MockIAMCommandUsecase_SetDefaultPolicyVersion_Call{Call: _e.mock.On("SetDefaultPolicyVersion", ctx, ref, version)}
 }
 
-func (_c *MockIAMCommandUsecase_SetDefaultPolicyVersion_Call) Run(run func(ctx context.Context, name string, version string)) *MockIAMCommandUsecase_SetDefaultPolicyVersion_Call {
+func (_c *MockIAMCommandUsecase_SetDefaultPolicyVersion_Call) Run(run func(ctx context.Context, ref entity.PolicyRef, version string)) *MockIAMCommandUsecase_SetDefaultPolicyVersion_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 entity.PolicyRef
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(entity.PolicyRef)
 		}
 		var arg2 string
 		if args[2] != nil {
@@ -3022,7 +3022,7 @@ func (_c *MockIAMCommandUsecase_SetDefaultPolicyVersion_Call) Return(err error) 
 	return _c
 }
 
-func (_c *MockIAMCommandUsecase_SetDefaultPolicyVersion_Call) RunAndReturn(run func(ctx context.Context, name string, version string) error) *MockIAMCommandUsecase_SetDefaultPolicyVersion_Call {
+func (_c *MockIAMCommandUsecase_SetDefaultPolicyVersion_Call) RunAndReturn(run func(ctx context.Context, ref entity.PolicyRef, version string) error) *MockIAMCommandUsecase_SetDefaultPolicyVersion_Call {
 	_c.Call.Return(run)
 	return _c
 }

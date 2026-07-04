@@ -226,7 +226,10 @@ func (s *interactor) AttachPlatformUserPolicy(ctx context.Context, userID uint, 
 	if userID == 0 {
 		return entity.ErrInvalidUserID
 	}
-	policy, err := s.policyQueries.GetPolicyByName(ctx, strings.TrimSpace(policyName))
+	policy, err := s.policyQueries.GetPolicy(ctx, entity.PolicyRef{
+		Scope: entity.PolicyScopePlatform,
+		Name:  strings.TrimSpace(policyName),
+	})
 	if err != nil {
 		return err
 	}
@@ -252,7 +255,10 @@ func (s *interactor) DetachPlatformUserPolicy(ctx context.Context, userID uint, 
 	if userID == 0 {
 		return entity.ErrInvalidUserID
 	}
-	policy, err := s.policyQueries.GetPolicyByName(ctx, strings.TrimSpace(policyName))
+	policy, err := s.policyQueries.GetPolicy(ctx, entity.PolicyRef{
+		Scope: entity.PolicyScopePlatform,
+		Name:  strings.TrimSpace(policyName),
+	})
 	if err != nil {
 		return err
 	}
@@ -274,7 +280,10 @@ func (s *interactor) PutPlatformUserPermissionBoundary(ctx context.Context, user
 	if userID == 0 {
 		return entity.ErrInvalidUserID
 	}
-	policy, err := s.policyQueries.GetPolicyByName(ctx, strings.TrimSpace(policyName))
+	policy, err := s.policyQueries.GetPolicy(ctx, entity.PolicyRef{
+		Scope: entity.PolicyScopePlatform,
+		Name:  strings.TrimSpace(policyName),
+	})
 	if err != nil {
 		return err
 	}

@@ -129,7 +129,7 @@ export function GroupsPanel() {
             form={createGroupForm}
             name="scope"
             label="Group scope"
-            options={group.groupScopeOptions}
+            options={group.groupScopeOptions()}
           />
           <Show when={createGroupForm.values.scope === 'tenant'}>
             <FormSelectField

@@ -130,9 +130,9 @@ type PolicyCommandUsecase interface {
 		ctx context.Context,
 		input entity.CreatePolicyVersionInput,
 	) (*entity.PolicyVersion, []entity.PolicyStatement, error)
-	DeletePolicyVersion(ctx context.Context, name string, version string) error
-	SetDefaultPolicyVersion(ctx context.Context, name string, version string) error
-	DeletePolicy(ctx context.Context, name string) error
+	DeletePolicyVersion(ctx context.Context, ref entity.PolicyRef, version string) error
+	SetDefaultPolicyVersion(ctx context.Context, ref entity.PolicyRef, version string) error
+	DeletePolicy(ctx context.Context, ref entity.PolicyRef) error
 	PutRoleTrustPolicy(ctx context.Context, input entity.PutRoleTrustPolicyInput) error
 	DeleteRoleTrustPolicy(ctx context.Context, roleName string) error
 	PutRolePermissionBoundary(ctx context.Context, roleName string, policyName string) error
@@ -140,16 +140,21 @@ type PolicyCommandUsecase interface {
 }
 
 type PolicyQueryUsecase interface {
-	GetPolicy(ctx context.Context, name string) (*entity.Policy, []entity.PolicyStatement, error)
+	GetPolicy(ctx context.Context, ref entity.PolicyRef) (*entity.Policy, []entity.PolicyStatement, error)
 	ListPolicyVersions(
 		ctx context.Context,
-		name string,
+		ref entity.PolicyRef,
 		query collection.Query,
 	) (collection.Page[entity.PolicyVersion], error)
-	ListPolicies(ctx context.Context, scope string, query collection.Query) (collection.Page[entity.Policy], error)
+	ListPolicies(
+		ctx context.Context,
+		scope string,
+		orgID string,
+		query collection.Query,
+	) (collection.Page[entity.Policy], error)
 	ListPolicyAttachments(
 		ctx context.Context,
-		name string,
+		ref entity.PolicyRef,
 		query collection.Query,
 	) (collection.Page[entity.PolicyAttachment], error)
 	GetRoleTrustPolicy(ctx context.Context, roleName string) ([]entity.RoleTrustStatement, error)
@@ -171,9 +176,11 @@ type GroupQueryUsecase interface {
 	ListGroups(
 		ctx context.Context,
 		scope string,
+		orgID string,
 		tenantID string,
 		query collection.Query,
 	) (collection.Page[entity.Group], error)
+	GetGroup(ctx context.Context, groupID uint64) (*entity.Group, error)
 	GetGroupInlinePolicy(ctx context.Context, groupID uint64, name string) (*entity.GroupInlinePolicy, error)
 	ListGroupInlinePolicies(
 		ctx context.Context,

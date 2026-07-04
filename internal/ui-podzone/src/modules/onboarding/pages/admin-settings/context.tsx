@@ -7,6 +7,10 @@ import type { TeamAccessViewModel } from './team-access/createTeamAccessViewMode
 import type { WorkspaceAccessViewModel } from './team-access/createWorkspaceAccessViewModel'
 
 export type AdminSettingsViewModel = {
+  navigation: {
+    activeTab: Accessor<AdminSettingsTab>
+    setActiveTab: (tab: AdminSettingsTab) => void
+  }
   user: {
     userID: number
     hasToken: Accessor<boolean>
@@ -22,6 +26,14 @@ export type AdminSettingsViewModel = {
   invites: InvitesViewModel
   platformRoles: PlatformRolesViewModel
 }
+
+export type AdminSettingsTab =
+  | 'overview'
+  | 'sessions'
+  | 'team'
+  | 'invites'
+  | 'audit'
+  | 'platform'
 
 export const AdminSettingsContext = createContext<AdminSettingsViewModel>()
 

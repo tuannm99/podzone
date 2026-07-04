@@ -1,4 +1,4 @@
-import { createEffect, onMount } from 'solid-js'
+import { createEffect, on, onMount } from 'solid-js'
 import { tokenStorage } from '@/services/tokenStorage'
 import {
   attachmentColor,
@@ -23,12 +23,7 @@ export function createAdminIamViewModel() {
 
   createEffect(() => {
     const firstPolicy = state.policies()[0]
-    if (
-      state.allowed() &&
-      state.canManagePlatform() &&
-      !state.selectedPolicyName() &&
-      firstPolicy
-    ) {
+    if (state.allowed() && !state.selectedPolicyName() && firstPolicy) {
       state.setSelectedPolicyName(firstPolicy.name)
     }
   })
@@ -42,8 +37,7 @@ export function createAdminIamViewModel() {
 
   createEffect(() => {
     void state.selectedPolicyName()
-    if (state.allowed() && state.canManagePlatform())
-      void loaders.loadSelectedPolicy()
+    if (state.allowed()) void loaders.loadSelectedPolicy()
   })
 
   createEffect(() => {
@@ -53,23 +47,50 @@ export function createAdminIamViewModel() {
 
   createEffect(() => {
     void state.selectedGroupId()
-    if (state.allowed() && state.canManagePlatform())
-      void loaders.loadSelectedGroup()
+    if (state.allowed()) void loaders.loadSelectedGroup()
   })
 
   createEffect(() => {
     void state.groupScope()
     void state.groupTenantId()
-    if (state.allowed() && state.canManagePlatform())
-      void loaders.loadGroupsForScope()
+    if (state.allowed()) void loaders.loadGroupsForScope()
   })
+
+  createEffect(
+    on(
+      state.canManagePlatform,
+      (canManagePlatform) => {
+        if (!canManagePlatform) return
+        state.setPolicyScope('platform')
+        state.setGroupScope('platform')
+      },
+      { defer: true }
+    )
+  )
+
+  createEffect(
+    on(
+      state.selectedOrgId,
+      () => {
+        if (state.policyScope() === 'organization')
+          state.setSelectedPolicyName('')
+        if (state.groupScope() === 'organization') state.setSelectedGroupId('')
+      },
+      { defer: true }
+    )
+  )
 
   onMount(() => {
     void loaders.loadBootstrap()
   })
 
   const policyContextValue = {
-    policyScopeOptions,
+    policyScopeOptions: () =>
+      state.canManagePlatform()
+        ? policyScopeOptions
+        : policyScopeOptions.filter(
+            (option) => option.value === 'organization'
+          ),
     policyScope: state.policyScope,
     setPolicyScope: state.setPolicyScope,
     policyName: state.policyName,
@@ -113,7 +134,10 @@ export function createAdminIamViewModel() {
   }
 
   const groupContextValue = {
-    groupScopeOptions,
+    groupScopeOptions: () =>
+      state.canManagePlatform()
+        ? groupScopeOptions
+        : groupScopeOptions.filter((option) => option.value === 'organization'),
     groupScope: state.groupScope,
     setGroupScope: state.setGroupScope,
     groupTenantId: state.groupTenantId,

@@ -90,6 +90,7 @@ func ToPBPolicy(policy *iamdomain.Policy) *pbiamv1.Policy {
 	return &pbiamv1.Policy{
 		Id:             policy.ID,
 		Scope:          policy.Scope,
+		OrgId:          policy.OrgID,
 		Name:           policy.Name,
 		Description:    policy.Description,
 		IsSystem:       policy.IsSystem,
@@ -120,6 +121,7 @@ func ToPBGroup(group *iamdomain.Group) *pbiamv1.Group {
 	return &pbiamv1.Group{
 		Id:          group.ID,
 		Scope:       group.Scope,
+		OrgId:       group.OrgID,
 		TenantId:    group.TenantID,
 		Name:        group.Name,
 		Description: group.Description,

@@ -19,11 +19,12 @@ func (s *IAMCommandServer) CreatePolicy(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+	if err := requirePolicyAccess(ctx, s.queries, actorUserID, req.Scope, req.OrgId, true); err != nil {
 		return nil, iamStatusError(err)
 	}
 	policy, statements, err := s.commands.CreatePolicy(ctx, iamdomain.CreatePolicyInput{
 		Scope:       req.Scope,
+		OrgID:       req.OrgId,
 		Name:        req.Name,
 		Description: req.Description,
 		Statements:  iammapper.FromPBPolicyStatements(req.Statements),
@@ -49,10 +50,12 @@ func (s *IAMCommandServer) CreatePolicyVersion(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+	if err := requirePolicyAccess(ctx, s.queries, actorUserID, req.Scope, req.OrgId, true); err != nil {
 		return nil, iamStatusError(err)
 	}
 	version, statements, err := s.commands.CreatePolicyVersion(ctx, iamdomain.CreatePolicyVersionInput{
+		Scope:        req.Scope,
+		OrgID:        req.OrgId,
 		PolicyName:   req.Name,
 		Statements:   iammapper.FromPBPolicyStatements(req.Statements),
 		SetAsDefault: req.SetAsDefault,
@@ -79,10 +82,14 @@ func (s *IAMCommandServer) SetDefaultPolicyVersion(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+	if err := requirePolicyAccess(ctx, s.queries, actorUserID, req.Scope, req.OrgId, true); err != nil {
 		return nil, iamStatusError(err)
 	}
-	if err := s.commands.SetDefaultPolicyVersion(ctx, req.Name, req.Version); err != nil {
+	if err := s.commands.SetDefaultPolicyVersion(
+		ctx,
+		policyRefFromRequest(req.Scope, req.OrgId, req.Name),
+		req.Version,
+	); err != nil {
 		return nil, iamStatusError(err)
 	}
 	s.recordAudit(
@@ -107,10 +114,14 @@ func (s *IAMCommandServer) DeletePolicyVersion(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+	if err := requirePolicyAccess(ctx, s.queries, actorUserID, req.Scope, req.OrgId, true); err != nil {
 		return nil, iamStatusError(err)
 	}
-	if err := s.commands.DeletePolicyVersion(ctx, req.Name, req.Version); err != nil {
+	if err := s.commands.DeletePolicyVersion(
+		ctx,
+		policyRefFromRequest(req.Scope, req.OrgId, req.Name),
+		req.Version,
+	); err != nil {
 		return nil, iamStatusError(err)
 	}
 	s.recordAudit(ctx, actorUserID, "iam.policy.version.deleted", "iam_policy_version", req.Name, "", map[string]any{
@@ -127,10 +138,10 @@ func (s *IAMCommandServer) DeletePolicy(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+	if err := requirePolicyAccess(ctx, s.queries, actorUserID, req.Scope, req.OrgId, true); err != nil {
 		return nil, iamStatusError(err)
 	}
-	if err := s.commands.DeletePolicy(ctx, req.Name); err != nil {
+	if err := s.commands.DeletePolicy(ctx, policyRefFromRequest(req.Scope, req.OrgId, req.Name)); err != nil {
 		return nil, iamStatusError(err)
 	}
 	s.recordAudit(ctx, actorUserID, "iam.policy.deleted", "iam_policy", req.Name, "", map[string]any{
@@ -147,10 +158,10 @@ func (s *IAMQueryServer) GetPolicy(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+	if err := requirePolicyAccess(ctx, s.queries, actorUserID, req.Scope, req.OrgId, false); err != nil {
 		return nil, iamStatusError(err)
 	}
-	policy, statements, err := s.queries.GetPolicy(ctx, req.Name)
+	policy, statements, err := s.queries.GetPolicy(ctx, policyRefFromRequest(req.Scope, req.OrgId, req.Name))
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
@@ -168,10 +179,14 @@ func (s *IAMQueryServer) ListPolicyVersions(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+	if err := requirePolicyAccess(ctx, s.queries, actorUserID, req.Scope, req.OrgId, false); err != nil {
 		return nil, iamStatusError(err)
 	}
-	page, err := s.queries.ListPolicyVersions(ctx, req.Name, iammapper.ToCollectionQuery(req.Collection))
+	page, err := s.queries.ListPolicyVersions(
+		ctx,
+		policyRefFromRequest(req.Scope, req.OrgId, req.Name),
+		iammapper.ToCollectionQuery(req.Collection),
+	)
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
@@ -193,10 +208,10 @@ func (s *IAMQueryServer) ListPolicies(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+	if err := requirePolicyAccess(ctx, s.queries, actorUserID, req.Scope, req.OrgId, false); err != nil {
 		return nil, iamStatusError(err)
 	}
-	page, err := s.queries.ListPolicies(ctx, req.Scope, iammapper.ToCollectionQuery(req.Collection))
+	page, err := s.queries.ListPolicies(ctx, req.Scope, req.OrgId, iammapper.ToCollectionQuery(req.Collection))
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
@@ -214,10 +229,14 @@ func (s *IAMQueryServer) ListPolicyAttachments(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+	if err := requirePolicyAccess(ctx, s.queries, actorUserID, req.Scope, req.OrgId, false); err != nil {
 		return nil, iamStatusError(err)
 	}
-	page, err := s.queries.ListPolicyAttachments(ctx, req.Name, iammapper.ToCollectionQuery(req.Collection))
+	page, err := s.queries.ListPolicyAttachments(
+		ctx,
+		policyRefFromRequest(req.Scope, req.OrgId, req.Name),
+		iammapper.ToCollectionQuery(req.Collection),
+	)
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
@@ -225,4 +244,8 @@ func (s *IAMQueryServer) ListPolicyAttachments(
 		Attachments: iammapper.ToPBPolicyAttachments(page.Items),
 		PageInfo:    iammapper.ToPBPageInfo(page),
 	}, nil
+}
+
+func policyRefFromRequest(scope string, orgID string, name string) iamdomain.PolicyRef {
+	return iamdomain.PolicyRef{Scope: scope, OrgID: orgID, Name: name}
 }

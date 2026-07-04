@@ -15,6 +15,7 @@ type Role struct {
 type Group struct {
 	ID          uint64    `json:"id"`
 	Scope       string    `json:"scope"`
+	OrgID       string    `json:"org_id,omitempty"`
 	TenantID    string    `json:"tenant_id,omitempty"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
@@ -41,6 +42,7 @@ type PutRoleTrustPolicyInput struct {
 
 type CreateGroupInput struct {
 	Scope       string `json:"scope"`
+	OrgID       string `json:"org_id,omitempty"`
 	TenantID    string `json:"tenant_id,omitempty"`
 	Name        string `json:"name"`
 	Description string `json:"description"`

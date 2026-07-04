@@ -89,6 +89,7 @@ export type {
   PolicyCondition,
   PolicyStatement,
   PolicyInfo,
+  PolicyLocator,
   PolicyVersionInfo,
   RolePermissionBoundary,
   UserInlinePolicy,

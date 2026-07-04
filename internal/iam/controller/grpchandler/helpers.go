@@ -102,6 +102,7 @@ func iamStatusError(err error) error {
 		errors.Is(err, iamdomain.ErrInvalidUserID),
 		errors.Is(err, iamdomain.ErrInvalidRoleName),
 		errors.Is(err, iamdomain.ErrInvalidPolicyName),
+		errors.Is(err, iamdomain.ErrInvalidPolicyOwner),
 		errors.Is(err, iamdomain.ErrInvalidAssumeRole),
 		errors.Is(err, iamdomain.ErrInvalidServicePrincipal),
 		errors.Is(err, iamdomain.ErrInvalidPolicyStatement):

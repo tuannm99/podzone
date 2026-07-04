@@ -5,7 +5,7 @@ export function createPoliciesLoaders(state: AdminIamState) {
   let requestID = 0
 
   const loadSelectedPolicy = async () => {
-    if (!state.canManagePlatform()) return
+    if (!state.allowed()) return
     const currentRequest = ++requestID
     const name = state.selectedPolicyName().trim()
     if (!name) {
@@ -14,7 +14,7 @@ export function createPoliciesLoaders(state: AdminIamState) {
       state.clearPolicyAttachments()
       return
     }
-    const policyResult = await getPolicy(name)
+    const policyResult = await getPolicy(state.policyRef(name))
     if (
       currentRequest !== requestID ||
       name !== state.selectedPolicyName().trim()

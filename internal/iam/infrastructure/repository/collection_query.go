@@ -26,6 +26,7 @@ var organizationCollectionColumns = map[string]collectionColumn{
 var policyCollectionColumns = map[string]collectionColumn{
 	"id":             {sql: "id"},
 	"scope":          {sql: "scope", text: true},
+	"organizationId": {sql: "org_id", text: true},
 	"name":           {sql: "name", text: true},
 	"description":    {sql: "description", text: true},
 	"isSystem":       {sql: "is_system"},
@@ -35,14 +36,15 @@ var policyCollectionColumns = map[string]collectionColumn{
 }
 
 var groupCollectionColumns = map[string]collectionColumn{
-	"id":          {sql: "id"},
-	"scope":       {sql: "scope", text: true},
-	"tenantId":    {sql: "tenant_id", text: true},
-	"name":        {sql: "name", text: true},
-	"description": {sql: "description", text: true},
-	"isSystem":    {sql: "is_system"},
-	"createdAt":   {sql: "created_at"},
-	"updatedAt":   {sql: "updated_at"},
+	"id":             {sql: "id"},
+	"scope":          {sql: "scope", text: true},
+	"organizationId": {sql: "org_id", text: true},
+	"tenantId":       {sql: "tenant_id", text: true},
+	"name":           {sql: "name", text: true},
+	"description":    {sql: "description", text: true},
+	"isSystem":       {sql: "is_system"},
+	"createdAt":      {sql: "created_at"},
+	"updatedAt":      {sql: "updated_at"},
 }
 
 var policyVersionCollectionColumns = map[string]collectionColumn{
@@ -55,6 +57,7 @@ var policyVersionCollectionColumns = map[string]collectionColumn{
 var managedPolicyCollectionColumns = map[string]collectionColumn{
 	"id":             {sql: "p.id"},
 	"scope":          {sql: "p.scope", text: true},
+	"organizationId": {sql: "p.org_id", text: true},
 	"name":           {sql: "p.name", text: true},
 	"description":    {sql: "p.description", text: true},
 	"isSystem":       {sql: "p.is_system"},

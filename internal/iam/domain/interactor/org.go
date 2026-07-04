@@ -173,7 +173,26 @@ func (s *interactor) CheckOrganizationPermission(
 	if membership.Status != entity.MembershipStatusActive {
 		return false, entity.ErrInactiveMembership
 	}
-	return s.roleQueries.RoleHasPermission(ctx, membership.RoleID, strings.TrimSpace(permission))
+	permission = strings.TrimSpace(permission)
+	roleAllowed, err := s.roleQueries.RoleHasPermission(ctx, membership.RoleID, permission)
+	if err != nil {
+		return false, err
+	}
+	groupStatements, err := s.policyQueries.ListOrganizationGroupStatements(ctx, orgID, userID)
+	if err != nil {
+		return false, err
+	}
+	groupDecision := explainPolicyStatements("organization_group", entity.AccessRequest{
+		OrgID:      orgID,
+		UserID:     userID,
+		Action:     permission,
+		Resource:   "podzone:organization/" + orgID,
+		Attributes: map[string]string{"org_id": orgID},
+	}, groupStatements)
+	if groupDecision.Reason == "explicit deny matched" {
+		return false, nil
+	}
+	return roleAllowed || groupDecision.Allowed, nil
 }
 
 func (s *interactor) RequireOrganizationPermission(
@@ -235,7 +254,10 @@ func (s *interactor) AttachServiceControlPolicy(ctx context.Context, orgID strin
 	if orgID == "" {
 		return entity.ErrOrganizationNotFound
 	}
-	policy, err := s.policyQueries.GetPolicyByName(ctx, strings.TrimSpace(policyName))
+	policy, err := s.policyQueries.GetPolicy(ctx, entity.PolicyRef{
+		Scope: entity.PolicyScopePlatform,
+		Name:  strings.TrimSpace(policyName),
+	})
 	if err != nil {
 		return err
 	}
@@ -247,7 +269,10 @@ func (s *interactor) DetachServiceControlPolicy(ctx context.Context, orgID strin
 	if orgID == "" {
 		return entity.ErrOrganizationNotFound
 	}
-	policy, err := s.policyQueries.GetPolicyByName(ctx, strings.TrimSpace(policyName))
+	policy, err := s.policyQueries.GetPolicy(ctx, entity.PolicyRef{
+		Scope: entity.PolicyScopePlatform,
+		Name:  strings.TrimSpace(policyName),
+	})
 	if err != nil {
 		return err
 	}

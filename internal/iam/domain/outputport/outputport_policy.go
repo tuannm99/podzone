@@ -58,7 +58,7 @@ type PolicyCommandRepository interface {
 }
 
 type PolicyQueryRepository interface {
-	GetPolicyByName(ctx context.Context, name string) (*entity.Policy, error)
+	GetPolicy(ctx context.Context, ref entity.PolicyRef) (*entity.Policy, error)
 	GetPolicyStatements(ctx context.Context, policyID uint64) ([]entity.PolicyStatement, error)
 	ListPolicyVersions(
 		ctx context.Context,
@@ -66,7 +66,12 @@ type PolicyQueryRepository interface {
 		policyName string,
 		query collection.Query,
 	) (collection.Page[entity.PolicyVersion], error)
-	ListPolicies(ctx context.Context, scope string, query collection.Query) (collection.Page[entity.Policy], error)
+	ListPolicies(
+		ctx context.Context,
+		scope string,
+		orgID string,
+		query collection.Query,
+	) (collection.Page[entity.Policy], error)
 	ListPolicyAttachments(
 		ctx context.Context,
 		policyID uint64,
@@ -76,6 +81,11 @@ type PolicyQueryRepository interface {
 	ListPlatformUserStatements(ctx context.Context, userID uint) ([]entity.PolicyStatement, error)
 	ListTenantUserStatements(ctx context.Context, tenantID string, userID uint) ([]entity.PolicyStatement, error)
 	ListPlatformGroupStatements(ctx context.Context, userID uint) ([]entity.PolicyStatement, error)
+	ListOrganizationGroupStatements(
+		ctx context.Context,
+		orgID string,
+		userID uint,
+	) ([]entity.PolicyStatement, error)
 	ListTenantGroupStatements(ctx context.Context, tenantID string, userID uint) ([]entity.PolicyStatement, error)
 	ListPlatformUserPolicies(
 		ctx context.Context,

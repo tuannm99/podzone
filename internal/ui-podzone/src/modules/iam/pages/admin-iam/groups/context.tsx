@@ -25,7 +25,7 @@ export type GroupOption = {
 }
 
 export type AdminIamGroupContextValue = {
-  groupScopeOptions: ScopeOption[]
+  groupScopeOptions: Accessor<ScopeOption[]>
   groupScope: Accessor<string>
   setGroupScope: Setter<string>
   groupTenantId: Accessor<string>

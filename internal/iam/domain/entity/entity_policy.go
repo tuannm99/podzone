@@ -5,12 +5,19 @@ import "time"
 type Policy struct {
 	ID             uint64    `json:"id"`
 	Scope          string    `json:"scope"`
+	OrgID          string    `json:"org_id,omitempty"`
 	Name           string    `json:"name"`
 	Description    string    `json:"description"`
 	IsSystem       bool      `json:"is_system"`
 	DefaultVersion string    `json:"default_version"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
+}
+
+type PolicyRef struct {
+	Scope string `json:"scope"`
+	OrgID string `json:"org_id,omitempty"`
+	Name  string `json:"name"`
 }
 
 type PolicyVersion struct {
@@ -53,12 +60,15 @@ type PolicyAttachment struct {
 
 type CreatePolicyInput struct {
 	Scope       string            `json:"scope"`
+	OrgID       string            `json:"org_id,omitempty"`
 	Name        string            `json:"name"`
 	Description string            `json:"description"`
 	Statements  []PolicyStatement `json:"statements"`
 }
 
 type CreatePolicyVersionInput struct {
+	Scope        string            `json:"scope"`
+	OrgID        string            `json:"org_id,omitempty"`
 	PolicyName   string            `json:"policy_name"`
 	Statements   []PolicyStatement `json:"statements"`
 	SetAsDefault bool              `json:"set_as_default"`

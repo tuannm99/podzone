@@ -30,6 +30,10 @@ export function createGroupsActions(
     runAction(async () => {
       const result = await createGroup({
         scope: values.scope,
+        orgId:
+          values.scope === 'organization'
+            ? state.selectedOrgId().trim()
+            : undefined,
         tenantId:
           values.scope === 'tenant' ? values.tenantId.trim() : undefined,
         name: values.name.trim(),

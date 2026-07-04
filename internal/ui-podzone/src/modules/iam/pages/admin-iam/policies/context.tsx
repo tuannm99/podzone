@@ -22,7 +22,7 @@ export type PolicyOption = {
 }
 
 export type AdminIamPolicyContextValue = {
-  policyScopeOptions: PolicyScopeOption[]
+  policyScopeOptions: Accessor<PolicyScopeOption[]>
   policyScope: Accessor<string>
   setPolicyScope: Setter<string>
   policyName: Accessor<string>

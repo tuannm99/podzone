@@ -235,6 +235,10 @@ func newIAMTestUsecase(t *testing.T) (inputport.IAMUsecase, *iamTestState) {
 			return &copyRole, nil
 		}).
 		Maybe()
+	policyRepo.EXPECT().
+		ListOrganizationGroupStatements(mock.Anything, mock.Anything, mock.Anything).
+		Return(nil, nil).
+		Maybe()
 	roleRepo.EXPECT().
 		RoleHasPermission(mock.Anything, mock.Anything, mock.Anything).
 		RunAndReturn(func(ctx context.Context, roleID uint64, permission string) (bool, error) {

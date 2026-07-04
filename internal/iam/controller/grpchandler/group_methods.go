@@ -21,7 +21,16 @@ func (s *IAMCommandServer) CreateGroup(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if req.Scope == iamdomain.PolicyScopePlatform {
+	if req.Scope == iamdomain.PolicyScopeOrganization {
+		if err := s.queries.RequireOrganizationPermission(
+			ctx,
+			req.OrgId,
+			actorUserID,
+			"organization:manage_iam",
+		); err != nil {
+			return nil, iamStatusError(err)
+		}
+	} else if req.Scope == iamdomain.PolicyScopePlatform {
 		if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
 			return nil, iamStatusError(err)
 		}
@@ -30,6 +39,7 @@ func (s *IAMCommandServer) CreateGroup(
 	}
 	group, err := s.commands.CreateGroup(ctx, iamdomain.CreateGroupInput{
 		Scope:       req.Scope,
+		OrgID:       req.OrgId,
 		TenantID:    req.TenantId,
 		Name:        req.Name,
 		Description: req.Description,
@@ -48,7 +58,8 @@ func (s *IAMCommandServer) DeleteGroup(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+	group, err := requireGroupAccess(ctx, s.queries, actorUserID, req.GroupId, true)
+	if err != nil {
 		return nil, iamStatusError(err)
 	}
 	if err := s.commands.DeleteGroup(ctx, req.GroupId); err != nil {
@@ -60,7 +71,7 @@ func (s *IAMCommandServer) DeleteGroup(
 		"iam.group.deleted",
 		"iam_group",
 		fmt.Sprintf("%d", req.GroupId),
-		"",
+		group.OrgID,
 		map[string]any{
 			"group_id": req.GroupId,
 		},
@@ -76,12 +87,22 @@ func (s *IAMCommandServer) AddGroupMember(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+	if _, err := requireGroupAccess(ctx, s.queries, actorUserID, req.GroupId, true); err != nil {
 		return nil, iamStatusError(err)
 	}
 	userID, err := toUint(req.UserId)
 	if err != nil {
 		return nil, err
+	}
+	if s.userDirectory == nil {
+		return nil, status.Error(codes.Internal, "user directory is not configured")
+	}
+	user, err := s.userDirectory.GetByID(ctx, userID)
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	if user == nil || user.ID == 0 {
+		return nil, iamStatusError(iamdomain.ErrUserNotFound)
 	}
 	if err := s.commands.AddGroupMember(ctx, req.GroupId, userID); err != nil {
 		return nil, iamStatusError(err)
@@ -97,7 +118,7 @@ func (s *IAMCommandServer) RemoveGroupMember(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+	if _, err := requireGroupAccess(ctx, s.queries, actorUserID, req.GroupId, true); err != nil {
 		return nil, iamStatusError(err)
 	}
 	userID, err := toUint(req.UserId)
@@ -118,7 +139,7 @@ func (s *IAMCommandServer) AttachGroupPolicy(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+	if _, err := requireGroupAccess(ctx, s.queries, actorUserID, req.GroupId, true); err != nil {
 		return nil, iamStatusError(err)
 	}
 	if err := s.commands.AttachGroupPolicy(ctx, req.GroupId, req.PolicyName); err != nil {
@@ -135,7 +156,7 @@ func (s *IAMCommandServer) DetachGroupPolicy(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+	if _, err := requireGroupAccess(ctx, s.queries, actorUserID, req.GroupId, true); err != nil {
 		return nil, iamStatusError(err)
 	}
 	if err := s.commands.DetachGroupPolicy(ctx, req.GroupId, req.PolicyName); err != nil {
@@ -152,7 +173,7 @@ func (s *IAMCommandServer) PutGroupInlinePolicy(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+	if _, err := requireGroupAccess(ctx, s.queries, actorUserID, req.GroupId, true); err != nil {
 		return nil, iamStatusError(err)
 	}
 	if err := s.commands.PutGroupInlinePolicy(ctx, iamdomain.PutGroupInlinePolicyInput{
@@ -174,7 +195,7 @@ func (s *IAMCommandServer) DeleteGroupInlinePolicy(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+	if _, err := requireGroupAccess(ctx, s.queries, actorUserID, req.GroupId, true); err != nil {
 		return nil, iamStatusError(err)
 	}
 	if err := s.commands.DeleteGroupInlinePolicy(ctx, req.GroupId, req.Name); err != nil {
@@ -191,7 +212,16 @@ func (s *IAMQueryServer) ListGroups(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if req.Scope == iamdomain.PolicyScopePlatform {
+	if req.Scope == iamdomain.PolicyScopeOrganization {
+		if err := s.queries.RequireOrganizationPermission(
+			ctx,
+			req.OrgId,
+			actorUserID,
+			"organization:read",
+		); err != nil {
+			return nil, iamStatusError(err)
+		}
+	} else if req.Scope == iamdomain.PolicyScopePlatform {
 		if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
 			return nil, iamStatusError(err)
 		}
@@ -203,6 +233,7 @@ func (s *IAMQueryServer) ListGroups(
 	page, err := s.queries.ListGroups(
 		ctx,
 		req.Scope,
+		req.OrgId,
 		req.TenantId,
 		iammapper.ToCollectionQuery(req.Collection),
 	)
@@ -227,7 +258,7 @@ func (s *IAMQueryServer) ListGroupMembers(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+	if _, err := requireGroupAccess(ctx, s.queries, actorUserID, req.GroupId, false); err != nil {
 		return nil, iamStatusError(err)
 	}
 	page, err := s.queries.ListGroupMembers(ctx, req.GroupId, iammapper.ToCollectionQuery(req.Collection))
@@ -252,7 +283,7 @@ func (s *IAMQueryServer) ListGroupPolicies(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+	if _, err := requireGroupAccess(ctx, s.queries, actorUserID, req.GroupId, false); err != nil {
 		return nil, iamStatusError(err)
 	}
 	page, err := s.queries.ListGroupPolicies(ctx, req.GroupId, iammapper.ToCollectionQuery(req.Collection))
@@ -273,7 +304,7 @@ func (s *IAMQueryServer) GetGroupInlinePolicy(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+	if _, err := requireGroupAccess(ctx, s.queries, actorUserID, req.GroupId, false); err != nil {
 		return nil, iamStatusError(err)
 	}
 	item, err := s.queries.GetGroupInlinePolicy(ctx, req.GroupId, req.Name)
@@ -291,7 +322,7 @@ func (s *IAMQueryServer) ListGroupInlinePolicies(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+	if _, err := requireGroupAccess(ctx, s.queries, actorUserID, req.GroupId, false); err != nil {
 		return nil, iamStatusError(err)
 	}
 	page, err := s.queries.ListGroupInlinePolicies(ctx, req.GroupId, iammapper.ToCollectionQuery(req.Collection))

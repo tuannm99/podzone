@@ -83,7 +83,7 @@ export function PoliciesPanel() {
             form={createPolicyForm}
             name="scope"
             label="Policy scope"
-            options={policy.policyScopeOptions}
+            options={policy.policyScopeOptions()}
           />
           <FormInputField
             form={createPolicyForm}

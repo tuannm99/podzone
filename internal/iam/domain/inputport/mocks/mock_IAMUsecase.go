@@ -1785,16 +1785,16 @@ func (_c *MockIAMUsecase_DeletePlatformUserPermissionBoundary_Call) RunAndReturn
 }
 
 // DeletePolicy provides a mock function for the type MockIAMUsecase
-func (_mock *MockIAMUsecase) DeletePolicy(ctx context.Context, name string) error {
-	ret := _mock.Called(ctx, name)
+func (_mock *MockIAMUsecase) DeletePolicy(ctx context.Context, ref entity.PolicyRef) error {
+	ret := _mock.Called(ctx, ref)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeletePolicy")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = returnFunc(ctx, name)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.PolicyRef) error); ok {
+		r0 = returnFunc(ctx, ref)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1808,20 +1808,20 @@ type MockIAMUsecase_DeletePolicy_Call struct {
 
 // DeletePolicy is a helper method to define mock.On call
 //   - ctx context.Context
-//   - name string
-func (_e *MockIAMUsecase_Expecter) DeletePolicy(ctx interface{}, name interface{}) *MockIAMUsecase_DeletePolicy_Call {
-	return &MockIAMUsecase_DeletePolicy_Call{Call: _e.mock.On("DeletePolicy", ctx, name)}
+//   - ref entity.PolicyRef
+func (_e *MockIAMUsecase_Expecter) DeletePolicy(ctx interface{}, ref interface{}) *MockIAMUsecase_DeletePolicy_Call {
+	return &MockIAMUsecase_DeletePolicy_Call{Call: _e.mock.On("DeletePolicy", ctx, ref)}
 }
 
-func (_c *MockIAMUsecase_DeletePolicy_Call) Run(run func(ctx context.Context, name string)) *MockIAMUsecase_DeletePolicy_Call {
+func (_c *MockIAMUsecase_DeletePolicy_Call) Run(run func(ctx context.Context, ref entity.PolicyRef)) *MockIAMUsecase_DeletePolicy_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 entity.PolicyRef
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(entity.PolicyRef)
 		}
 		run(
 			arg0,
@@ -1836,22 +1836,22 @@ func (_c *MockIAMUsecase_DeletePolicy_Call) Return(err error) *MockIAMUsecase_De
 	return _c
 }
 
-func (_c *MockIAMUsecase_DeletePolicy_Call) RunAndReturn(run func(ctx context.Context, name string) error) *MockIAMUsecase_DeletePolicy_Call {
+func (_c *MockIAMUsecase_DeletePolicy_Call) RunAndReturn(run func(ctx context.Context, ref entity.PolicyRef) error) *MockIAMUsecase_DeletePolicy_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // DeletePolicyVersion provides a mock function for the type MockIAMUsecase
-func (_mock *MockIAMUsecase) DeletePolicyVersion(ctx context.Context, name string, version string) error {
-	ret := _mock.Called(ctx, name, version)
+func (_mock *MockIAMUsecase) DeletePolicyVersion(ctx context.Context, ref entity.PolicyRef, version string) error {
+	ret := _mock.Called(ctx, ref, version)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeletePolicyVersion")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = returnFunc(ctx, name, version)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.PolicyRef, string) error); ok {
+		r0 = returnFunc(ctx, ref, version)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1865,21 +1865,21 @@ type MockIAMUsecase_DeletePolicyVersion_Call struct {
 
 // DeletePolicyVersion is a helper method to define mock.On call
 //   - ctx context.Context
-//   - name string
+//   - ref entity.PolicyRef
 //   - version string
-func (_e *MockIAMUsecase_Expecter) DeletePolicyVersion(ctx interface{}, name interface{}, version interface{}) *MockIAMUsecase_DeletePolicyVersion_Call {
-	return &MockIAMUsecase_DeletePolicyVersion_Call{Call: _e.mock.On("DeletePolicyVersion", ctx, name, version)}
+func (_e *MockIAMUsecase_Expecter) DeletePolicyVersion(ctx interface{}, ref interface{}, version interface{}) *MockIAMUsecase_DeletePolicyVersion_Call {
+	return &MockIAMUsecase_DeletePolicyVersion_Call{Call: _e.mock.On("DeletePolicyVersion", ctx, ref, version)}
 }
 
-func (_c *MockIAMUsecase_DeletePolicyVersion_Call) Run(run func(ctx context.Context, name string, version string)) *MockIAMUsecase_DeletePolicyVersion_Call {
+func (_c *MockIAMUsecase_DeletePolicyVersion_Call) Run(run func(ctx context.Context, ref entity.PolicyRef, version string)) *MockIAMUsecase_DeletePolicyVersion_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 entity.PolicyRef
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(entity.PolicyRef)
 		}
 		var arg2 string
 		if args[2] != nil {
@@ -1899,7 +1899,7 @@ func (_c *MockIAMUsecase_DeletePolicyVersion_Call) Return(err error) *MockIAMUse
 	return _c
 }
 
-func (_c *MockIAMUsecase_DeletePolicyVersion_Call) RunAndReturn(run func(ctx context.Context, name string, version string) error) *MockIAMUsecase_DeletePolicyVersion_Call {
+func (_c *MockIAMUsecase_DeletePolicyVersion_Call) RunAndReturn(run func(ctx context.Context, ref entity.PolicyRef, version string) error) *MockIAMUsecase_DeletePolicyVersion_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2545,6 +2545,74 @@ func (_c *MockIAMUsecase_EnsureRootOrganization_Call) RunAndReturn(run func(ctx 
 	return _c
 }
 
+// GetGroup provides a mock function for the type MockIAMUsecase
+func (_mock *MockIAMUsecase) GetGroup(ctx context.Context, groupID uint64) (*entity.Group, error) {
+	ret := _mock.Called(ctx, groupID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetGroup")
+	}
+
+	var r0 *entity.Group
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) (*entity.Group, error)); ok {
+		return returnFunc(ctx, groupID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) *entity.Group); ok {
+		r0 = returnFunc(ctx, groupID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.Group)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
+		r1 = returnFunc(ctx, groupID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMUsecase_GetGroup_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetGroup'
+type MockIAMUsecase_GetGroup_Call struct {
+	*mock.Call
+}
+
+// GetGroup is a helper method to define mock.On call
+//   - ctx context.Context
+//   - groupID uint64
+func (_e *MockIAMUsecase_Expecter) GetGroup(ctx interface{}, groupID interface{}) *MockIAMUsecase_GetGroup_Call {
+	return &MockIAMUsecase_GetGroup_Call{Call: _e.mock.On("GetGroup", ctx, groupID)}
+}
+
+func (_c *MockIAMUsecase_GetGroup_Call) Run(run func(ctx context.Context, groupID uint64)) *MockIAMUsecase_GetGroup_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMUsecase_GetGroup_Call) Return(group *entity.Group, err error) *MockIAMUsecase_GetGroup_Call {
+	_c.Call.Return(group, err)
+	return _c
+}
+
+func (_c *MockIAMUsecase_GetGroup_Call) RunAndReturn(run func(ctx context.Context, groupID uint64) (*entity.Group, error)) *MockIAMUsecase_GetGroup_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetGroupInlinePolicy provides a mock function for the type MockIAMUsecase
 func (_mock *MockIAMUsecase) GetGroupInlinePolicy(ctx context.Context, groupID uint64, name string) (*entity.GroupInlinePolicy, error) {
 	ret := _mock.Called(ctx, groupID, name)
@@ -2904,8 +2972,8 @@ func (_c *MockIAMUsecase_GetPlatformUserPermissionBoundary_Call) RunAndReturn(ru
 }
 
 // GetPolicy provides a mock function for the type MockIAMUsecase
-func (_mock *MockIAMUsecase) GetPolicy(ctx context.Context, name string) (*entity.Policy, []entity.PolicyStatement, error) {
-	ret := _mock.Called(ctx, name)
+func (_mock *MockIAMUsecase) GetPolicy(ctx context.Context, ref entity.PolicyRef) (*entity.Policy, []entity.PolicyStatement, error) {
+	ret := _mock.Called(ctx, ref)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetPolicy")
@@ -2914,25 +2982,25 @@ func (_mock *MockIAMUsecase) GetPolicy(ctx context.Context, name string) (*entit
 	var r0 *entity.Policy
 	var r1 []entity.PolicyStatement
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*entity.Policy, []entity.PolicyStatement, error)); ok {
-		return returnFunc(ctx, name)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.PolicyRef) (*entity.Policy, []entity.PolicyStatement, error)); ok {
+		return returnFunc(ctx, ref)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *entity.Policy); ok {
-		r0 = returnFunc(ctx, name)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.PolicyRef) *entity.Policy); ok {
+		r0 = returnFunc(ctx, ref)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*entity.Policy)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) []entity.PolicyStatement); ok {
-		r1 = returnFunc(ctx, name)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, entity.PolicyRef) []entity.PolicyStatement); ok {
+		r1 = returnFunc(ctx, ref)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).([]entity.PolicyStatement)
 		}
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, string) error); ok {
-		r2 = returnFunc(ctx, name)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, entity.PolicyRef) error); ok {
+		r2 = returnFunc(ctx, ref)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -2946,20 +3014,20 @@ type MockIAMUsecase_GetPolicy_Call struct {
 
 // GetPolicy is a helper method to define mock.On call
 //   - ctx context.Context
-//   - name string
-func (_e *MockIAMUsecase_Expecter) GetPolicy(ctx interface{}, name interface{}) *MockIAMUsecase_GetPolicy_Call {
-	return &MockIAMUsecase_GetPolicy_Call{Call: _e.mock.On("GetPolicy", ctx, name)}
+//   - ref entity.PolicyRef
+func (_e *MockIAMUsecase_Expecter) GetPolicy(ctx interface{}, ref interface{}) *MockIAMUsecase_GetPolicy_Call {
+	return &MockIAMUsecase_GetPolicy_Call{Call: _e.mock.On("GetPolicy", ctx, ref)}
 }
 
-func (_c *MockIAMUsecase_GetPolicy_Call) Run(run func(ctx context.Context, name string)) *MockIAMUsecase_GetPolicy_Call {
+func (_c *MockIAMUsecase_GetPolicy_Call) Run(run func(ctx context.Context, ref entity.PolicyRef)) *MockIAMUsecase_GetPolicy_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 entity.PolicyRef
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(entity.PolicyRef)
 		}
 		run(
 			arg0,
@@ -2974,7 +3042,7 @@ func (_c *MockIAMUsecase_GetPolicy_Call) Return(policy *entity.Policy, policySta
 	return _c
 }
 
-func (_c *MockIAMUsecase_GetPolicy_Call) RunAndReturn(run func(ctx context.Context, name string) (*entity.Policy, []entity.PolicyStatement, error)) *MockIAMUsecase_GetPolicy_Call {
+func (_c *MockIAMUsecase_GetPolicy_Call) RunAndReturn(run func(ctx context.Context, ref entity.PolicyRef) (*entity.Policy, []entity.PolicyStatement, error)) *MockIAMUsecase_GetPolicy_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -3558,8 +3626,8 @@ func (_c *MockIAMUsecase_ListGroupPolicies_Call) RunAndReturn(run func(ctx conte
 }
 
 // ListGroups provides a mock function for the type MockIAMUsecase
-func (_mock *MockIAMUsecase) ListGroups(ctx context.Context, scope string, tenantID string, query collection.Query) (collection.Page[entity.Group], error) {
-	ret := _mock.Called(ctx, scope, tenantID, query)
+func (_mock *MockIAMUsecase) ListGroups(ctx context.Context, scope string, orgID string, tenantID string, query collection.Query) (collection.Page[entity.Group], error) {
+	ret := _mock.Called(ctx, scope, orgID, tenantID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListGroups")
@@ -3567,16 +3635,16 @@ func (_mock *MockIAMUsecase) ListGroups(ctx context.Context, scope string, tenan
 
 	var r0 collection.Page[entity.Group]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, collection.Query) (collection.Page[entity.Group], error)); ok {
-		return returnFunc(ctx, scope, tenantID, query)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, collection.Query) (collection.Page[entity.Group], error)); ok {
+		return returnFunc(ctx, scope, orgID, tenantID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, collection.Query) collection.Page[entity.Group]); ok {
-		r0 = returnFunc(ctx, scope, tenantID, query)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, collection.Query) collection.Page[entity.Group]); ok {
+		r0 = returnFunc(ctx, scope, orgID, tenantID, query)
 	} else {
 		r0 = ret.Get(0).(collection.Page[entity.Group])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, collection.Query) error); ok {
-		r1 = returnFunc(ctx, scope, tenantID, query)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string, collection.Query) error); ok {
+		r1 = returnFunc(ctx, scope, orgID, tenantID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -3591,13 +3659,14 @@ type MockIAMUsecase_ListGroups_Call struct {
 // ListGroups is a helper method to define mock.On call
 //   - ctx context.Context
 //   - scope string
+//   - orgID string
 //   - tenantID string
 //   - query collection.Query
-func (_e *MockIAMUsecase_Expecter) ListGroups(ctx interface{}, scope interface{}, tenantID interface{}, query interface{}) *MockIAMUsecase_ListGroups_Call {
-	return &MockIAMUsecase_ListGroups_Call{Call: _e.mock.On("ListGroups", ctx, scope, tenantID, query)}
+func (_e *MockIAMUsecase_Expecter) ListGroups(ctx interface{}, scope interface{}, orgID interface{}, tenantID interface{}, query interface{}) *MockIAMUsecase_ListGroups_Call {
+	return &MockIAMUsecase_ListGroups_Call{Call: _e.mock.On("ListGroups", ctx, scope, orgID, tenantID, query)}
 }
 
-func (_c *MockIAMUsecase_ListGroups_Call) Run(run func(ctx context.Context, scope string, tenantID string, query collection.Query)) *MockIAMUsecase_ListGroups_Call {
+func (_c *MockIAMUsecase_ListGroups_Call) Run(run func(ctx context.Context, scope string, orgID string, tenantID string, query collection.Query)) *MockIAMUsecase_ListGroups_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -3611,15 +3680,20 @@ func (_c *MockIAMUsecase_ListGroups_Call) Run(run func(ctx context.Context, scop
 		if args[2] != nil {
 			arg2 = args[2].(string)
 		}
-		var arg3 collection.Query
+		var arg3 string
 		if args[3] != nil {
-			arg3 = args[3].(collection.Query)
+			arg3 = args[3].(string)
+		}
+		var arg4 collection.Query
+		if args[4] != nil {
+			arg4 = args[4].(collection.Query)
 		}
 		run(
 			arg0,
 			arg1,
 			arg2,
 			arg3,
+			arg4,
 		)
 	})
 	return _c
@@ -3630,7 +3704,7 @@ func (_c *MockIAMUsecase_ListGroups_Call) Return(page collection.Page[entity.Gro
 	return _c
 }
 
-func (_c *MockIAMUsecase_ListGroups_Call) RunAndReturn(run func(ctx context.Context, scope string, tenantID string, query collection.Query) (collection.Page[entity.Group], error)) *MockIAMUsecase_ListGroups_Call {
+func (_c *MockIAMUsecase_ListGroups_Call) RunAndReturn(run func(ctx context.Context, scope string, orgID string, tenantID string, query collection.Query) (collection.Page[entity.Group], error)) *MockIAMUsecase_ListGroups_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4062,8 +4136,8 @@ func (_c *MockIAMUsecase_ListPlatformUserPolicies_Call) RunAndReturn(run func(ct
 }
 
 // ListPolicies provides a mock function for the type MockIAMUsecase
-func (_mock *MockIAMUsecase) ListPolicies(ctx context.Context, scope string, query collection.Query) (collection.Page[entity.Policy], error) {
-	ret := _mock.Called(ctx, scope, query)
+func (_mock *MockIAMUsecase) ListPolicies(ctx context.Context, scope string, orgID string, query collection.Query) (collection.Page[entity.Policy], error) {
+	ret := _mock.Called(ctx, scope, orgID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListPolicies")
@@ -4071,16 +4145,16 @@ func (_mock *MockIAMUsecase) ListPolicies(ctx context.Context, scope string, que
 
 	var r0 collection.Page[entity.Policy]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) (collection.Page[entity.Policy], error)); ok {
-		return returnFunc(ctx, scope, query)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, collection.Query) (collection.Page[entity.Policy], error)); ok {
+		return returnFunc(ctx, scope, orgID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) collection.Page[entity.Policy]); ok {
-		r0 = returnFunc(ctx, scope, query)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, collection.Query) collection.Page[entity.Policy]); ok {
+		r0 = returnFunc(ctx, scope, orgID, query)
 	} else {
 		r0 = ret.Get(0).(collection.Page[entity.Policy])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, collection.Query) error); ok {
-		r1 = returnFunc(ctx, scope, query)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, collection.Query) error); ok {
+		r1 = returnFunc(ctx, scope, orgID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -4095,12 +4169,13 @@ type MockIAMUsecase_ListPolicies_Call struct {
 // ListPolicies is a helper method to define mock.On call
 //   - ctx context.Context
 //   - scope string
+//   - orgID string
 //   - query collection.Query
-func (_e *MockIAMUsecase_Expecter) ListPolicies(ctx interface{}, scope interface{}, query interface{}) *MockIAMUsecase_ListPolicies_Call {
-	return &MockIAMUsecase_ListPolicies_Call{Call: _e.mock.On("ListPolicies", ctx, scope, query)}
+func (_e *MockIAMUsecase_Expecter) ListPolicies(ctx interface{}, scope interface{}, orgID interface{}, query interface{}) *MockIAMUsecase_ListPolicies_Call {
+	return &MockIAMUsecase_ListPolicies_Call{Call: _e.mock.On("ListPolicies", ctx, scope, orgID, query)}
 }
 
-func (_c *MockIAMUsecase_ListPolicies_Call) Run(run func(ctx context.Context, scope string, query collection.Query)) *MockIAMUsecase_ListPolicies_Call {
+func (_c *MockIAMUsecase_ListPolicies_Call) Run(run func(ctx context.Context, scope string, orgID string, query collection.Query)) *MockIAMUsecase_ListPolicies_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -4110,14 +4185,19 @@ func (_c *MockIAMUsecase_ListPolicies_Call) Run(run func(ctx context.Context, sc
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
-		var arg2 collection.Query
+		var arg2 string
 		if args[2] != nil {
-			arg2 = args[2].(collection.Query)
+			arg2 = args[2].(string)
+		}
+		var arg3 collection.Query
+		if args[3] != nil {
+			arg3 = args[3].(collection.Query)
 		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
 		)
 	})
 	return _c
@@ -4128,14 +4208,14 @@ func (_c *MockIAMUsecase_ListPolicies_Call) Return(page collection.Page[entity.P
 	return _c
 }
 
-func (_c *MockIAMUsecase_ListPolicies_Call) RunAndReturn(run func(ctx context.Context, scope string, query collection.Query) (collection.Page[entity.Policy], error)) *MockIAMUsecase_ListPolicies_Call {
+func (_c *MockIAMUsecase_ListPolicies_Call) RunAndReturn(run func(ctx context.Context, scope string, orgID string, query collection.Query) (collection.Page[entity.Policy], error)) *MockIAMUsecase_ListPolicies_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListPolicyAttachments provides a mock function for the type MockIAMUsecase
-func (_mock *MockIAMUsecase) ListPolicyAttachments(ctx context.Context, name string, query collection.Query) (collection.Page[entity.PolicyAttachment], error) {
-	ret := _mock.Called(ctx, name, query)
+func (_mock *MockIAMUsecase) ListPolicyAttachments(ctx context.Context, ref entity.PolicyRef, query collection.Query) (collection.Page[entity.PolicyAttachment], error) {
+	ret := _mock.Called(ctx, ref, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListPolicyAttachments")
@@ -4143,16 +4223,16 @@ func (_mock *MockIAMUsecase) ListPolicyAttachments(ctx context.Context, name str
 
 	var r0 collection.Page[entity.PolicyAttachment]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) (collection.Page[entity.PolicyAttachment], error)); ok {
-		return returnFunc(ctx, name, query)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.PolicyRef, collection.Query) (collection.Page[entity.PolicyAttachment], error)); ok {
+		return returnFunc(ctx, ref, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) collection.Page[entity.PolicyAttachment]); ok {
-		r0 = returnFunc(ctx, name, query)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.PolicyRef, collection.Query) collection.Page[entity.PolicyAttachment]); ok {
+		r0 = returnFunc(ctx, ref, query)
 	} else {
 		r0 = ret.Get(0).(collection.Page[entity.PolicyAttachment])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, collection.Query) error); ok {
-		r1 = returnFunc(ctx, name, query)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, entity.PolicyRef, collection.Query) error); ok {
+		r1 = returnFunc(ctx, ref, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -4166,21 +4246,21 @@ type MockIAMUsecase_ListPolicyAttachments_Call struct {
 
 // ListPolicyAttachments is a helper method to define mock.On call
 //   - ctx context.Context
-//   - name string
+//   - ref entity.PolicyRef
 //   - query collection.Query
-func (_e *MockIAMUsecase_Expecter) ListPolicyAttachments(ctx interface{}, name interface{}, query interface{}) *MockIAMUsecase_ListPolicyAttachments_Call {
-	return &MockIAMUsecase_ListPolicyAttachments_Call{Call: _e.mock.On("ListPolicyAttachments", ctx, name, query)}
+func (_e *MockIAMUsecase_Expecter) ListPolicyAttachments(ctx interface{}, ref interface{}, query interface{}) *MockIAMUsecase_ListPolicyAttachments_Call {
+	return &MockIAMUsecase_ListPolicyAttachments_Call{Call: _e.mock.On("ListPolicyAttachments", ctx, ref, query)}
 }
 
-func (_c *MockIAMUsecase_ListPolicyAttachments_Call) Run(run func(ctx context.Context, name string, query collection.Query)) *MockIAMUsecase_ListPolicyAttachments_Call {
+func (_c *MockIAMUsecase_ListPolicyAttachments_Call) Run(run func(ctx context.Context, ref entity.PolicyRef, query collection.Query)) *MockIAMUsecase_ListPolicyAttachments_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 entity.PolicyRef
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(entity.PolicyRef)
 		}
 		var arg2 collection.Query
 		if args[2] != nil {
@@ -4200,14 +4280,14 @@ func (_c *MockIAMUsecase_ListPolicyAttachments_Call) Return(page collection.Page
 	return _c
 }
 
-func (_c *MockIAMUsecase_ListPolicyAttachments_Call) RunAndReturn(run func(ctx context.Context, name string, query collection.Query) (collection.Page[entity.PolicyAttachment], error)) *MockIAMUsecase_ListPolicyAttachments_Call {
+func (_c *MockIAMUsecase_ListPolicyAttachments_Call) RunAndReturn(run func(ctx context.Context, ref entity.PolicyRef, query collection.Query) (collection.Page[entity.PolicyAttachment], error)) *MockIAMUsecase_ListPolicyAttachments_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListPolicyVersions provides a mock function for the type MockIAMUsecase
-func (_mock *MockIAMUsecase) ListPolicyVersions(ctx context.Context, name string, query collection.Query) (collection.Page[entity.PolicyVersion], error) {
-	ret := _mock.Called(ctx, name, query)
+func (_mock *MockIAMUsecase) ListPolicyVersions(ctx context.Context, ref entity.PolicyRef, query collection.Query) (collection.Page[entity.PolicyVersion], error) {
+	ret := _mock.Called(ctx, ref, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListPolicyVersions")
@@ -4215,16 +4295,16 @@ func (_mock *MockIAMUsecase) ListPolicyVersions(ctx context.Context, name string
 
 	var r0 collection.Page[entity.PolicyVersion]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) (collection.Page[entity.PolicyVersion], error)); ok {
-		return returnFunc(ctx, name, query)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.PolicyRef, collection.Query) (collection.Page[entity.PolicyVersion], error)); ok {
+		return returnFunc(ctx, ref, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) collection.Page[entity.PolicyVersion]); ok {
-		r0 = returnFunc(ctx, name, query)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.PolicyRef, collection.Query) collection.Page[entity.PolicyVersion]); ok {
+		r0 = returnFunc(ctx, ref, query)
 	} else {
 		r0 = ret.Get(0).(collection.Page[entity.PolicyVersion])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, collection.Query) error); ok {
-		r1 = returnFunc(ctx, name, query)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, entity.PolicyRef, collection.Query) error); ok {
+		r1 = returnFunc(ctx, ref, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -4238,21 +4318,21 @@ type MockIAMUsecase_ListPolicyVersions_Call struct {
 
 // ListPolicyVersions is a helper method to define mock.On call
 //   - ctx context.Context
-//   - name string
+//   - ref entity.PolicyRef
 //   - query collection.Query
-func (_e *MockIAMUsecase_Expecter) ListPolicyVersions(ctx interface{}, name interface{}, query interface{}) *MockIAMUsecase_ListPolicyVersions_Call {
-	return &MockIAMUsecase_ListPolicyVersions_Call{Call: _e.mock.On("ListPolicyVersions", ctx, name, query)}
+func (_e *MockIAMUsecase_Expecter) ListPolicyVersions(ctx interface{}, ref interface{}, query interface{}) *MockIAMUsecase_ListPolicyVersions_Call {
+	return &MockIAMUsecase_ListPolicyVersions_Call{Call: _e.mock.On("ListPolicyVersions", ctx, ref, query)}
 }
 
-func (_c *MockIAMUsecase_ListPolicyVersions_Call) Run(run func(ctx context.Context, name string, query collection.Query)) *MockIAMUsecase_ListPolicyVersions_Call {
+func (_c *MockIAMUsecase_ListPolicyVersions_Call) Run(run func(ctx context.Context, ref entity.PolicyRef, query collection.Query)) *MockIAMUsecase_ListPolicyVersions_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 entity.PolicyRef
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(entity.PolicyRef)
 		}
 		var arg2 collection.Query
 		if args[2] != nil {
@@ -4272,7 +4352,7 @@ func (_c *MockIAMUsecase_ListPolicyVersions_Call) Return(page collection.Page[en
 	return _c
 }
 
-func (_c *MockIAMUsecase_ListPolicyVersions_Call) RunAndReturn(run func(ctx context.Context, name string, query collection.Query) (collection.Page[entity.PolicyVersion], error)) *MockIAMUsecase_ListPolicyVersions_Call {
+func (_c *MockIAMUsecase_ListPolicyVersions_Call) RunAndReturn(run func(ctx context.Context, ref entity.PolicyRef, query collection.Query) (collection.Page[entity.PolicyVersion], error)) *MockIAMUsecase_ListPolicyVersions_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -5647,16 +5727,16 @@ func (_c *MockIAMUsecase_RevokeInvite_Call) RunAndReturn(run func(ctx context.Co
 }
 
 // SetDefaultPolicyVersion provides a mock function for the type MockIAMUsecase
-func (_mock *MockIAMUsecase) SetDefaultPolicyVersion(ctx context.Context, name string, version string) error {
-	ret := _mock.Called(ctx, name, version)
+func (_mock *MockIAMUsecase) SetDefaultPolicyVersion(ctx context.Context, ref entity.PolicyRef, version string) error {
+	ret := _mock.Called(ctx, ref, version)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SetDefaultPolicyVersion")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
-		r0 = returnFunc(ctx, name, version)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.PolicyRef, string) error); ok {
+		r0 = returnFunc(ctx, ref, version)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -5670,21 +5750,21 @@ type MockIAMUsecase_SetDefaultPolicyVersion_Call struct {
 
 // SetDefaultPolicyVersion is a helper method to define mock.On call
 //   - ctx context.Context
-//   - name string
+//   - ref entity.PolicyRef
 //   - version string
-func (_e *MockIAMUsecase_Expecter) SetDefaultPolicyVersion(ctx interface{}, name interface{}, version interface{}) *MockIAMUsecase_SetDefaultPolicyVersion_Call {
-	return &MockIAMUsecase_SetDefaultPolicyVersion_Call{Call: _e.mock.On("SetDefaultPolicyVersion", ctx, name, version)}
+func (_e *MockIAMUsecase_Expecter) SetDefaultPolicyVersion(ctx interface{}, ref interface{}, version interface{}) *MockIAMUsecase_SetDefaultPolicyVersion_Call {
+	return &MockIAMUsecase_SetDefaultPolicyVersion_Call{Call: _e.mock.On("SetDefaultPolicyVersion", ctx, ref, version)}
 }
 
-func (_c *MockIAMUsecase_SetDefaultPolicyVersion_Call) Run(run func(ctx context.Context, name string, version string)) *MockIAMUsecase_SetDefaultPolicyVersion_Call {
+func (_c *MockIAMUsecase_SetDefaultPolicyVersion_Call) Run(run func(ctx context.Context, ref entity.PolicyRef, version string)) *MockIAMUsecase_SetDefaultPolicyVersion_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 entity.PolicyRef
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(entity.PolicyRef)
 		}
 		var arg2 string
 		if args[2] != nil {
@@ -5704,7 +5784,7 @@ func (_c *MockIAMUsecase_SetDefaultPolicyVersion_Call) Return(err error) *MockIA
 	return _c
 }
 
-func (_c *MockIAMUsecase_SetDefaultPolicyVersion_Call) RunAndReturn(run func(ctx context.Context, name string, version string) error) *MockIAMUsecase_SetDefaultPolicyVersion_Call {
+func (_c *MockIAMUsecase_SetDefaultPolicyVersion_Call) RunAndReturn(run func(ctx context.Context, ref entity.PolicyRef, version string) error) *MockIAMUsecase_SetDefaultPolicyVersion_Call {
 	_c.Call.Return(run)
 	return _c
 }

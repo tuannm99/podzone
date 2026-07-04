@@ -213,9 +213,11 @@ func TestListIAMCollections_MapCollectionQueryAndPageInfo(t *testing.T) {
 		listPoliciesFunc: func(
 			ctx context.Context,
 			scope string,
+			orgID string,
 			query collection.Query,
 		) (collection.Page[iamentity.Policy], error) {
 			assert.Equal(t, "platform", scope)
+			assert.Empty(t, orgID)
 			assertQuery(t, query)
 			return collection.NewPage(
 				[]iamentity.Policy{{ID: 1, Name: "ops", Scope: scope}},
@@ -226,10 +228,12 @@ func TestListIAMCollections_MapCollectionQueryAndPageInfo(t *testing.T) {
 		listGroupsFunc: func(
 			ctx context.Context,
 			scope string,
+			orgID string,
 			tenantID string,
 			query collection.Query,
 		) (collection.Page[iamentity.Group], error) {
 			assert.Equal(t, "platform", scope)
+			assert.Empty(t, orgID)
 			assert.Empty(t, tenantID)
 			assertQuery(t, query)
 			return collection.NewPage(
@@ -345,6 +349,49 @@ func TestListOrganizationMembersRequiresOrganizationReadPermission(t *testing.T)
 	require.Len(t, response.Memberships, 1)
 	assert.Equal(t, uint64(7), response.Memberships[0].UserId)
 	assert.Equal(t, iamentity.RoleOrganizationRoot, response.Memberships[0].RoleName)
+}
+
+func TestCreateOrganizationPolicyRequiresOrganizationIAMPermission(t *testing.T) {
+	t.Parallel()
+
+	srv := newIAMServerForTest(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		requireOrganizationPermissionFunc: func(
+			_ context.Context,
+			orgID string,
+			userID uint,
+			permission string,
+		) error {
+			assert.Equal(t, "org-1", orgID)
+			assert.Equal(t, uint(7), userID)
+			assert.Equal(t, "organization:manage_iam", permission)
+			return nil
+		},
+		createPolicyFunc: func(
+			_ context.Context,
+			input iamentity.CreatePolicyInput,
+		) (*iamentity.Policy, []iamentity.PolicyStatement, error) {
+			assert.Equal(t, "org-1", input.OrgID)
+			return &iamentity.Policy{
+				ID:    1,
+				Scope: input.Scope,
+				OrgID: input.OrgID,
+				Name:  input.Name,
+			}, input.Statements, nil
+		},
+	}))
+
+	response, err := srv.CreatePolicy(
+		authContextForIAMUser(t, 7),
+		&pbiamv1.CreatePolicyRequest{
+			Scope: iamentity.PolicyScopeOrganization,
+			OrgId: "org-1",
+			Name:  "operations",
+		},
+	)
+
+	require.NoError(t, err)
+	require.NotNil(t, response.Policy)
+	assert.Equal(t, "org-1", response.Policy.OrgId)
 }
 
 func TestGetTenantMembership_OK(t *testing.T) {

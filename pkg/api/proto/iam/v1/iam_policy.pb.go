@@ -7,13 +7,12 @@
 package pbiamv1
 
 import (
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
-
 	v1 "github.com/tuannm99/podzone/pkg/api/proto/common/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
 )
 
 const (
@@ -117,6 +116,7 @@ type Policy struct {
 	DefaultVersion string                 `protobuf:"bytes,6,opt,name=default_version,json=defaultVersion,proto3" json:"default_version,omitempty"`
 	CreatedAt      string                 `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt      string                 `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	OrgId          string                 `protobuf:"bytes,9,opt,name=org_id,json=orgId,proto3" json:"org_id,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -203,6 +203,13 @@ func (x *Policy) GetCreatedAt() string {
 func (x *Policy) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *Policy) GetOrgId() string {
+	if x != nil {
+		return x.OrgId
 	}
 	return ""
 }
@@ -577,6 +584,7 @@ type Group struct {
 	IsSystem      bool                   `protobuf:"varint,6,opt,name=is_system,json=isSystem,proto3" json:"is_system,omitempty"`
 	CreatedAt     string                 `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     string                 `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	OrgId         string                 `protobuf:"bytes,9,opt,name=org_id,json=orgId,proto3" json:"org_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -663,6 +671,13 @@ func (x *Group) GetCreatedAt() string {
 func (x *Group) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *Group) GetOrgId() string {
+	if x != nil {
+		return x.OrgId
 	}
 	return ""
 }
@@ -1585,6 +1600,7 @@ type CreatePolicyRequest struct {
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	Statements    []*v1.PolicyStatement  `protobuf:"bytes,4,rep,name=statements,proto3" json:"statements,omitempty"`
+	OrgId         string                 `protobuf:"bytes,5,opt,name=org_id,json=orgId,proto3" json:"org_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1647,6 +1663,13 @@ func (x *CreatePolicyRequest) GetStatements() []*v1.PolicyStatement {
 	return nil
 }
 
+func (x *CreatePolicyRequest) GetOrgId() string {
+	if x != nil {
+		return x.OrgId
+	}
+	return ""
+}
+
 type CreatePolicyResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Policy        *Policy                `protobuf:"bytes,1,opt,name=policy,proto3" json:"policy,omitempty"`
@@ -1704,6 +1727,8 @@ type CreatePolicyVersionRequest struct {
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Statements    []*v1.PolicyStatement  `protobuf:"bytes,2,rep,name=statements,proto3" json:"statements,omitempty"`
 	SetAsDefault  bool                   `protobuf:"varint,3,opt,name=set_as_default,json=setAsDefault,proto3" json:"set_as_default,omitempty"`
+	Scope         string                 `protobuf:"bytes,4,opt,name=scope,proto3" json:"scope,omitempty"`
+	OrgId         string                 `protobuf:"bytes,5,opt,name=org_id,json=orgId,proto3" json:"org_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1757,6 +1782,20 @@ func (x *CreatePolicyVersionRequest) GetSetAsDefault() bool {
 		return x.SetAsDefault
 	}
 	return false
+}
+
+func (x *CreatePolicyVersionRequest) GetScope() string {
+	if x != nil {
+		return x.Scope
+	}
+	return ""
+}
+
+func (x *CreatePolicyVersionRequest) GetOrgId() string {
+	if x != nil {
+		return x.OrgId
+	}
+	return ""
 }
 
 type CreatePolicyVersionResponse struct {
@@ -1814,6 +1853,8 @@ func (x *CreatePolicyVersionResponse) GetStatements() []*v1.PolicyStatement {
 type GetPolicyRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Scope         string                 `protobuf:"bytes,2,opt,name=scope,proto3" json:"scope,omitempty"`
+	OrgId         string                 `protobuf:"bytes,3,opt,name=org_id,json=orgId,proto3" json:"org_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1851,6 +1892,20 @@ func (*GetPolicyRequest) Descriptor() ([]byte, []int) {
 func (x *GetPolicyRequest) GetName() string {
 	if x != nil {
 		return x.Name
+	}
+	return ""
+}
+
+func (x *GetPolicyRequest) GetScope() string {
+	if x != nil {
+		return x.Scope
+	}
+	return ""
+}
+
+func (x *GetPolicyRequest) GetOrgId() string {
+	if x != nil {
+		return x.OrgId
 	}
 	return ""
 }
@@ -1911,6 +1966,8 @@ type ListPolicyVersionsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Collection    *v1.CollectionRequest  `protobuf:"bytes,2,opt,name=collection,proto3" json:"collection,omitempty"`
+	Scope         string                 `protobuf:"bytes,3,opt,name=scope,proto3" json:"scope,omitempty"`
+	OrgId         string                 `protobuf:"bytes,4,opt,name=org_id,json=orgId,proto3" json:"org_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1957,6 +2014,20 @@ func (x *ListPolicyVersionsRequest) GetCollection() *v1.CollectionRequest {
 		return x.Collection
 	}
 	return nil
+}
+
+func (x *ListPolicyVersionsRequest) GetScope() string {
+	if x != nil {
+		return x.Scope
+	}
+	return ""
+}
+
+func (x *ListPolicyVersionsRequest) GetOrgId() string {
+	if x != nil {
+		return x.OrgId
+	}
+	return ""
 }
 
 type ListPolicyVersionsResponse struct {
@@ -2015,6 +2086,8 @@ type SetDefaultPolicyVersionRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Version       string                 `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
+	Scope         string                 `protobuf:"bytes,3,opt,name=scope,proto3" json:"scope,omitempty"`
+	OrgId         string                 `protobuf:"bytes,4,opt,name=org_id,json=orgId,proto3" json:"org_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2063,6 +2136,20 @@ func (x *SetDefaultPolicyVersionRequest) GetVersion() string {
 	return ""
 }
 
+func (x *SetDefaultPolicyVersionRequest) GetScope() string {
+	if x != nil {
+		return x.Scope
+	}
+	return ""
+}
+
+func (x *SetDefaultPolicyVersionRequest) GetOrgId() string {
+	if x != nil {
+		return x.OrgId
+	}
+	return ""
+}
+
 type SetDefaultPolicyVersionResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -2103,6 +2190,8 @@ type DeletePolicyVersionRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Version       string                 `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
+	Scope         string                 `protobuf:"bytes,3,opt,name=scope,proto3" json:"scope,omitempty"`
+	OrgId         string                 `protobuf:"bytes,4,opt,name=org_id,json=orgId,proto3" json:"org_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2151,6 +2240,20 @@ func (x *DeletePolicyVersionRequest) GetVersion() string {
 	return ""
 }
 
+func (x *DeletePolicyVersionRequest) GetScope() string {
+	if x != nil {
+		return x.Scope
+	}
+	return ""
+}
+
+func (x *DeletePolicyVersionRequest) GetOrgId() string {
+	if x != nil {
+		return x.OrgId
+	}
+	return ""
+}
+
 type DeletePolicyVersionResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -2191,6 +2294,7 @@ type ListPoliciesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Scope         string                 `protobuf:"bytes,1,opt,name=scope,proto3" json:"scope,omitempty"`
 	Collection    *v1.CollectionRequest  `protobuf:"bytes,2,opt,name=collection,proto3" json:"collection,omitempty"`
+	OrgId         string                 `protobuf:"bytes,3,opt,name=org_id,json=orgId,proto3" json:"org_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2237,6 +2341,13 @@ func (x *ListPoliciesRequest) GetCollection() *v1.CollectionRequest {
 		return x.Collection
 	}
 	return nil
+}
+
+func (x *ListPoliciesRequest) GetOrgId() string {
+	if x != nil {
+		return x.OrgId
+	}
+	return ""
 }
 
 type ListPoliciesResponse struct {
@@ -2295,6 +2406,8 @@ type ListPolicyAttachmentsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Collection    *v1.CollectionRequest  `protobuf:"bytes,2,opt,name=collection,proto3" json:"collection,omitempty"`
+	Scope         string                 `protobuf:"bytes,3,opt,name=scope,proto3" json:"scope,omitempty"`
+	OrgId         string                 `protobuf:"bytes,4,opt,name=org_id,json=orgId,proto3" json:"org_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2341,6 +2454,20 @@ func (x *ListPolicyAttachmentsRequest) GetCollection() *v1.CollectionRequest {
 		return x.Collection
 	}
 	return nil
+}
+
+func (x *ListPolicyAttachmentsRequest) GetScope() string {
+	if x != nil {
+		return x.Scope
+	}
+	return ""
+}
+
+func (x *ListPolicyAttachmentsRequest) GetOrgId() string {
+	if x != nil {
+		return x.OrgId
+	}
+	return ""
 }
 
 type ListPolicyAttachmentsResponse struct {
@@ -2398,6 +2525,8 @@ func (x *ListPolicyAttachmentsResponse) GetPageInfo() *v1.PageInfo {
 type DeletePolicyRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Scope         string                 `protobuf:"bytes,2,opt,name=scope,proto3" json:"scope,omitempty"`
+	OrgId         string                 `protobuf:"bytes,3,opt,name=org_id,json=orgId,proto3" json:"org_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2435,6 +2564,20 @@ func (*DeletePolicyRequest) Descriptor() ([]byte, []int) {
 func (x *DeletePolicyRequest) GetName() string {
 	if x != nil {
 		return x.Name
+	}
+	return ""
+}
+
+func (x *DeletePolicyRequest) GetScope() string {
+	if x != nil {
+		return x.Scope
+	}
+	return ""
+}
+
+func (x *DeletePolicyRequest) GetOrgId() string {
+	if x != nil {
+		return x.OrgId
 	}
 	return ""
 }
@@ -2737,6 +2880,7 @@ type CreateGroupRequest struct {
 	TenantId      string                 `protobuf:"bytes,2,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
 	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 	Description   string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	OrgId         string                 `protobuf:"bytes,5,opt,name=org_id,json=orgId,proto3" json:"org_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2799,6 +2943,13 @@ func (x *CreateGroupRequest) GetDescription() string {
 	return ""
 }
 
+func (x *CreateGroupRequest) GetOrgId() string {
+	if x != nil {
+		return x.OrgId
+	}
+	return ""
+}
+
 type CreateGroupResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Group         *Group                 `protobuf:"bytes,1,opt,name=group,proto3" json:"group,omitempty"`
@@ -2848,6 +2999,7 @@ type ListGroupsRequest struct {
 	Scope         string                 `protobuf:"bytes,1,opt,name=scope,proto3" json:"scope,omitempty"`
 	TenantId      string                 `protobuf:"bytes,2,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
 	Collection    *v1.CollectionRequest  `protobuf:"bytes,3,opt,name=collection,proto3" json:"collection,omitempty"`
+	OrgId         string                 `protobuf:"bytes,4,opt,name=org_id,json=orgId,proto3" json:"org_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2901,6 +3053,13 @@ func (x *ListGroupsRequest) GetCollection() *v1.CollectionRequest {
 		return x.Collection
 	}
 	return nil
+}
+
+func (x *ListGroupsRequest) GetOrgId() string {
+	if x != nil {
+		return x.OrgId
+	}
+	return ""
 }
 
 type ListGroupsResponse struct {
@@ -6356,7 +6515,7 @@ const file_iam_v1_iam_policy_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\x06 \x01(\tR\tupdatedAt\"\xe8\x01\n" +
+	"updated_at\x18\x06 \x01(\tR\tupdatedAt\"\xff\x01\n" +
 	"\x06Policy\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x14\n" +
 	"\x05scope\x18\x02 \x01(\tR\x05scope\x12\x12\n" +
@@ -6367,7 +6526,8 @@ const file_iam_v1_iam_policy_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\b \x01(\tR\tupdatedAt\"\xb5\x01\n" +
+	"updated_at\x18\b \x01(\tR\tupdatedAt\x12\x15\n" +
+	"\x06org_id\x18\t \x01(\tR\x05orgId\"\xb5\x01\n" +
 	"\rPolicyVersion\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1b\n" +
 	"\tpolicy_id\x18\x02 \x01(\x04R\bpolicyId\x12\x1f\n" +
@@ -6406,7 +6566,7 @@ const file_iam_v1_iam_policy_proto_rawDesc = "" +
 	"\x0etenant_pattern\x18\x06 \x01(\tR\rtenantPattern\x12.\n" +
 	"\x13external_id_pattern\x18\a \x01(\tR\x11externalIdPattern\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\b \x01(\tR\tcreatedAt\"\xdb\x01\n" +
+	"created_at\x18\b \x01(\tR\tcreatedAt\"\xf2\x01\n" +
 	"\x05Group\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x14\n" +
 	"\x05scope\x18\x02 \x01(\tR\x05scope\x12\x1b\n" +
@@ -6417,7 +6577,8 @@ const file_iam_v1_iam_policy_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\b \x01(\tR\tupdatedAt\"\xdb\x01\n" +
+	"updated_at\x18\b \x01(\tR\tupdatedAt\x12\x15\n" +
+	"\x06org_id\x18\t \x01(\tR\x05orgId\"\xdb\x01\n" +
 	"\x11GroupInlinePolicy\x12\x19\n" +
 	"\bgroup_id\x18\x01 \x01(\x04R\agroupId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
@@ -6491,71 +6652,87 @@ const file_iam_v1_iam_policy_proto_rawDesc = "" +
 	"\ractor_user_id\x18\x01 \x01(\x04R\vactorUserId\x12$\n" +
 	"\x0etarget_user_id\x18\x02 \x01(\x04R\ftargetUserId\x12\x1b\n" +
 	"\trole_name\x18\x03 \x01(\tR\broleName\"\x1c\n" +
-	"\x1aRemovePlatformRoleResponse\"\x9a\x01\n" +
+	"\x1aRemovePlatformRoleResponse\"\xb1\x01\n" +
 	"\x13CreatePolicyRequest\x12\x14\n" +
 	"\x05scope\x18\x01 \x01(\tR\x05scope\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x127\n" +
 	"\n" +
 	"statements\x18\x04 \x03(\v2\x17.common.PolicyStatementR\n" +
-	"statements\"t\n" +
+	"statements\x12\x15\n" +
+	"\x06org_id\x18\x05 \x01(\tR\x05orgId\"t\n" +
 	"\x14CreatePolicyResponse\x12#\n" +
 	"\x06policy\x18\x01 \x01(\v2\v.iam.PolicyR\x06policy\x127\n" +
 	"\n" +
 	"statements\x18\x02 \x03(\v2\x17.common.PolicyStatementR\n" +
-	"statements\"\x8f\x01\n" +
+	"statements\"\xbc\x01\n" +
 	"\x1aCreatePolicyVersionRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x127\n" +
 	"\n" +
 	"statements\x18\x02 \x03(\v2\x17.common.PolicyStatementR\n" +
 	"statements\x12$\n" +
-	"\x0eset_as_default\x18\x03 \x01(\bR\fsetAsDefault\"\x91\x01\n" +
+	"\x0eset_as_default\x18\x03 \x01(\bR\fsetAsDefault\x12\x14\n" +
+	"\x05scope\x18\x04 \x01(\tR\x05scope\x12\x15\n" +
+	"\x06org_id\x18\x05 \x01(\tR\x05orgId\"\x91\x01\n" +
 	"\x1bCreatePolicyVersionResponse\x129\n" +
 	"\x0epolicy_version\x18\x01 \x01(\v2\x12.iam.PolicyVersionR\rpolicyVersion\x127\n" +
 	"\n" +
 	"statements\x18\x02 \x03(\v2\x17.common.PolicyStatementR\n" +
-	"statements\"&\n" +
+	"statements\"S\n" +
 	"\x10GetPolicyRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\"q\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
+	"\x05scope\x18\x02 \x01(\tR\x05scope\x12\x15\n" +
+	"\x06org_id\x18\x03 \x01(\tR\x05orgId\"q\n" +
 	"\x11GetPolicyResponse\x12#\n" +
 	"\x06policy\x18\x01 \x01(\v2\v.iam.PolicyR\x06policy\x127\n" +
 	"\n" +
 	"statements\x18\x02 \x03(\v2\x17.common.PolicyStatementR\n" +
-	"statements\"j\n" +
+	"statements\"\x97\x01\n" +
 	"\x19ListPolicyVersionsRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x129\n" +
 	"\n" +
 	"collection\x18\x02 \x01(\v2\x19.common.CollectionRequestR\n" +
-	"collection\"{\n" +
+	"collection\x12\x14\n" +
+	"\x05scope\x18\x03 \x01(\tR\x05scope\x12\x15\n" +
+	"\x06org_id\x18\x04 \x01(\tR\x05orgId\"{\n" +
 	"\x1aListPolicyVersionsResponse\x12.\n" +
 	"\bversions\x18\x01 \x03(\v2\x12.iam.PolicyVersionR\bversions\x12-\n" +
-	"\tpage_info\x18\x02 \x01(\v2\x10.common.PageInfoR\bpageInfo\"N\n" +
+	"\tpage_info\x18\x02 \x01(\v2\x10.common.PageInfoR\bpageInfo\"{\n" +
 	"\x1eSetDefaultPolicyVersionRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
-	"\aversion\x18\x02 \x01(\tR\aversion\"!\n" +
-	"\x1fSetDefaultPolicyVersionResponse\"J\n" +
+	"\aversion\x18\x02 \x01(\tR\aversion\x12\x14\n" +
+	"\x05scope\x18\x03 \x01(\tR\x05scope\x12\x15\n" +
+	"\x06org_id\x18\x04 \x01(\tR\x05orgId\"!\n" +
+	"\x1fSetDefaultPolicyVersionResponse\"w\n" +
 	"\x1aDeletePolicyVersionRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
-	"\aversion\x18\x02 \x01(\tR\aversion\"\x1d\n" +
-	"\x1bDeletePolicyVersionResponse\"f\n" +
+	"\aversion\x18\x02 \x01(\tR\aversion\x12\x14\n" +
+	"\x05scope\x18\x03 \x01(\tR\x05scope\x12\x15\n" +
+	"\x06org_id\x18\x04 \x01(\tR\x05orgId\"\x1d\n" +
+	"\x1bDeletePolicyVersionResponse\"}\n" +
 	"\x13ListPoliciesRequest\x12\x14\n" +
 	"\x05scope\x18\x01 \x01(\tR\x05scope\x129\n" +
 	"\n" +
 	"collection\x18\x02 \x01(\v2\x19.common.CollectionRequestR\n" +
-	"collection\"n\n" +
+	"collection\x12\x15\n" +
+	"\x06org_id\x18\x03 \x01(\tR\x05orgId\"n\n" +
 	"\x14ListPoliciesResponse\x12'\n" +
 	"\bpolicies\x18\x01 \x03(\v2\v.iam.PolicyR\bpolicies\x12-\n" +
-	"\tpage_info\x18\x02 \x01(\v2\x10.common.PageInfoR\bpageInfo\"m\n" +
+	"\tpage_info\x18\x02 \x01(\v2\x10.common.PageInfoR\bpageInfo\"\x9a\x01\n" +
 	"\x1cListPolicyAttachmentsRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x129\n" +
 	"\n" +
 	"collection\x18\x02 \x01(\v2\x19.common.CollectionRequestR\n" +
-	"collection\"\x87\x01\n" +
+	"collection\x12\x14\n" +
+	"\x05scope\x18\x03 \x01(\tR\x05scope\x12\x15\n" +
+	"\x06org_id\x18\x04 \x01(\tR\x05orgId\"\x87\x01\n" +
 	"\x1dListPolicyAttachmentsResponse\x127\n" +
 	"\vattachments\x18\x01 \x03(\v2\x15.iam.PolicyAttachmentR\vattachments\x12-\n" +
-	"\tpage_info\x18\x02 \x01(\v2\x10.common.PageInfoR\bpageInfo\")\n" +
+	"\tpage_info\x18\x02 \x01(\v2\x10.common.PageInfoR\bpageInfo\"V\n" +
 	"\x13DeletePolicyRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\"\x16\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
+	"\x05scope\x18\x02 \x01(\tR\x05scope\x12\x15\n" +
+	"\x06org_id\x18\x03 \x01(\tR\x05orgId\"\x16\n" +
 	"\x14DeletePolicyResponse\"q\n" +
 	"\x19PutRoleTrustPolicyRequest\x12\x1b\n" +
 	"\trole_name\x18\x01 \x01(\tR\broleName\x127\n" +
@@ -6571,21 +6748,23 @@ const file_iam_v1_iam_policy_proto_rawDesc = "" +
 	"statements\";\n" +
 	"\x1cDeleteRoleTrustPolicyRequest\x12\x1b\n" +
 	"\trole_name\x18\x01 \x01(\tR\broleName\"\x1f\n" +
-	"\x1dDeleteRoleTrustPolicyResponse\"}\n" +
+	"\x1dDeleteRoleTrustPolicyResponse\"\x94\x01\n" +
 	"\x12CreateGroupRequest\x12\x14\n" +
 	"\x05scope\x18\x01 \x01(\tR\x05scope\x12\x1b\n" +
 	"\ttenant_id\x18\x02 \x01(\tR\btenantId\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12 \n" +
-	"\vdescription\x18\x04 \x01(\tR\vdescription\"7\n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\x12\x15\n" +
+	"\x06org_id\x18\x05 \x01(\tR\x05orgId\"7\n" +
 	"\x13CreateGroupResponse\x12 \n" +
 	"\x05group\x18\x01 \x01(\v2\n" +
-	".iam.GroupR\x05group\"\x81\x01\n" +
+	".iam.GroupR\x05group\"\x98\x01\n" +
 	"\x11ListGroupsRequest\x12\x14\n" +
 	"\x05scope\x18\x01 \x01(\tR\x05scope\x12\x1b\n" +
 	"\ttenant_id\x18\x02 \x01(\tR\btenantId\x129\n" +
 	"\n" +
 	"collection\x18\x03 \x01(\v2\x19.common.CollectionRequestR\n" +
-	"collection\"g\n" +
+	"collection\x12\x15\n" +
+	"\x06org_id\x18\x04 \x01(\tR\x05orgId\"g\n" +
 	"\x12ListGroupsResponse\x12\"\n" +
 	"\x06groups\x18\x01 \x03(\v2\n" +
 	".iam.GroupR\x06groups\x12-\n" +
@@ -6811,137 +6990,134 @@ func file_iam_v1_iam_policy_proto_rawDescGZIP() []byte {
 	return file_iam_v1_iam_policy_proto_rawDescData
 }
 
-var (
-	file_iam_v1_iam_policy_proto_msgTypes = make([]protoimpl.MessageInfo, 122)
-	file_iam_v1_iam_policy_proto_goTypes  = []any{
-		(*PlatformRoleMembership)(nil),                       // 0: iam.PlatformRoleMembership
-		(*Policy)(nil),                                       // 1: iam.Policy
-		(*PolicyVersion)(nil),                                // 2: iam.PolicyVersion
-		(*PolicyAttachment)(nil),                             // 3: iam.PolicyAttachment
-		(*ServiceControlPolicyAttachment)(nil),               // 4: iam.ServiceControlPolicyAttachment
-		(*RoleTrustStatement)(nil),                           // 5: iam.RoleTrustStatement
-		(*Group)(nil),                                        // 6: iam.Group
-		(*GroupInlinePolicy)(nil),                            // 7: iam.GroupInlinePolicy
-		(*UserInlinePolicy)(nil),                             // 8: iam.UserInlinePolicy
-		(*PermissionBoundary)(nil),                           // 9: iam.PermissionBoundary
-		(*RolePermissionBoundary)(nil),                       // 10: iam.RolePermissionBoundary
-		(*AttachServiceControlPolicyRequest)(nil),            // 11: iam.AttachServiceControlPolicyRequest
-		(*AttachServiceControlPolicyResponse)(nil),           // 12: iam.AttachServiceControlPolicyResponse
-		(*DetachServiceControlPolicyRequest)(nil),            // 13: iam.DetachServiceControlPolicyRequest
-		(*DetachServiceControlPolicyResponse)(nil),           // 14: iam.DetachServiceControlPolicyResponse
-		(*ListServiceControlPoliciesRequest)(nil),            // 15: iam.ListServiceControlPoliciesRequest
-		(*ListServiceControlPoliciesResponse)(nil),           // 16: iam.ListServiceControlPoliciesResponse
-		(*ListPlatformRolesRequest)(nil),                     // 17: iam.ListPlatformRolesRequest
-		(*ListPlatformRolesResponse)(nil),                    // 18: iam.ListPlatformRolesResponse
-		(*AddPlatformRoleRequest)(nil),                       // 19: iam.AddPlatformRoleRequest
-		(*AddPlatformRoleResponse)(nil),                      // 20: iam.AddPlatformRoleResponse
-		(*RemovePlatformRoleRequest)(nil),                    // 21: iam.RemovePlatformRoleRequest
-		(*RemovePlatformRoleResponse)(nil),                   // 22: iam.RemovePlatformRoleResponse
-		(*CreatePolicyRequest)(nil),                          // 23: iam.CreatePolicyRequest
-		(*CreatePolicyResponse)(nil),                         // 24: iam.CreatePolicyResponse
-		(*CreatePolicyVersionRequest)(nil),                   // 25: iam.CreatePolicyVersionRequest
-		(*CreatePolicyVersionResponse)(nil),                  // 26: iam.CreatePolicyVersionResponse
-		(*GetPolicyRequest)(nil),                             // 27: iam.GetPolicyRequest
-		(*GetPolicyResponse)(nil),                            // 28: iam.GetPolicyResponse
-		(*ListPolicyVersionsRequest)(nil),                    // 29: iam.ListPolicyVersionsRequest
-		(*ListPolicyVersionsResponse)(nil),                   // 30: iam.ListPolicyVersionsResponse
-		(*SetDefaultPolicyVersionRequest)(nil),               // 31: iam.SetDefaultPolicyVersionRequest
-		(*SetDefaultPolicyVersionResponse)(nil),              // 32: iam.SetDefaultPolicyVersionResponse
-		(*DeletePolicyVersionRequest)(nil),                   // 33: iam.DeletePolicyVersionRequest
-		(*DeletePolicyVersionResponse)(nil),                  // 34: iam.DeletePolicyVersionResponse
-		(*ListPoliciesRequest)(nil),                          // 35: iam.ListPoliciesRequest
-		(*ListPoliciesResponse)(nil),                         // 36: iam.ListPoliciesResponse
-		(*ListPolicyAttachmentsRequest)(nil),                 // 37: iam.ListPolicyAttachmentsRequest
-		(*ListPolicyAttachmentsResponse)(nil),                // 38: iam.ListPolicyAttachmentsResponse
-		(*DeletePolicyRequest)(nil),                          // 39: iam.DeletePolicyRequest
-		(*DeletePolicyResponse)(nil),                         // 40: iam.DeletePolicyResponse
-		(*PutRoleTrustPolicyRequest)(nil),                    // 41: iam.PutRoleTrustPolicyRequest
-		(*PutRoleTrustPolicyResponse)(nil),                   // 42: iam.PutRoleTrustPolicyResponse
-		(*GetRoleTrustPolicyRequest)(nil),                    // 43: iam.GetRoleTrustPolicyRequest
-		(*GetRoleTrustPolicyResponse)(nil),                   // 44: iam.GetRoleTrustPolicyResponse
-		(*DeleteRoleTrustPolicyRequest)(nil),                 // 45: iam.DeleteRoleTrustPolicyRequest
-		(*DeleteRoleTrustPolicyResponse)(nil),                // 46: iam.DeleteRoleTrustPolicyResponse
-		(*CreateGroupRequest)(nil),                           // 47: iam.CreateGroupRequest
-		(*CreateGroupResponse)(nil),                          // 48: iam.CreateGroupResponse
-		(*ListGroupsRequest)(nil),                            // 49: iam.ListGroupsRequest
-		(*ListGroupsResponse)(nil),                           // 50: iam.ListGroupsResponse
-		(*DeleteGroupRequest)(nil),                           // 51: iam.DeleteGroupRequest
-		(*DeleteGroupResponse)(nil),                          // 52: iam.DeleteGroupResponse
-		(*AddGroupMemberRequest)(nil),                        // 53: iam.AddGroupMemberRequest
-		(*AddGroupMemberResponse)(nil),                       // 54: iam.AddGroupMemberResponse
-		(*ListGroupMembersRequest)(nil),                      // 55: iam.ListGroupMembersRequest
-		(*ListGroupMembersResponse)(nil),                     // 56: iam.ListGroupMembersResponse
-		(*RemoveGroupMemberRequest)(nil),                     // 57: iam.RemoveGroupMemberRequest
-		(*RemoveGroupMemberResponse)(nil),                    // 58: iam.RemoveGroupMemberResponse
-		(*AttachGroupPolicyRequest)(nil),                     // 59: iam.AttachGroupPolicyRequest
-		(*AttachGroupPolicyResponse)(nil),                    // 60: iam.AttachGroupPolicyResponse
-		(*ListGroupPoliciesRequest)(nil),                     // 61: iam.ListGroupPoliciesRequest
-		(*ListGroupPoliciesResponse)(nil),                    // 62: iam.ListGroupPoliciesResponse
-		(*DetachGroupPolicyRequest)(nil),                     // 63: iam.DetachGroupPolicyRequest
-		(*DetachGroupPolicyResponse)(nil),                    // 64: iam.DetachGroupPolicyResponse
-		(*PutGroupInlinePolicyRequest)(nil),                  // 65: iam.PutGroupInlinePolicyRequest
-		(*PutGroupInlinePolicyResponse)(nil),                 // 66: iam.PutGroupInlinePolicyResponse
-		(*GetGroupInlinePolicyRequest)(nil),                  // 67: iam.GetGroupInlinePolicyRequest
-		(*GetGroupInlinePolicyResponse)(nil),                 // 68: iam.GetGroupInlinePolicyResponse
-		(*ListGroupInlinePoliciesRequest)(nil),               // 69: iam.ListGroupInlinePoliciesRequest
-		(*ListGroupInlinePoliciesResponse)(nil),              // 70: iam.ListGroupInlinePoliciesResponse
-		(*DeleteGroupInlinePolicyRequest)(nil),               // 71: iam.DeleteGroupInlinePolicyRequest
-		(*DeleteGroupInlinePolicyResponse)(nil),              // 72: iam.DeleteGroupInlinePolicyResponse
-		(*ListPlatformUserPoliciesRequest)(nil),              // 73: iam.ListPlatformUserPoliciesRequest
-		(*ListPlatformUserPoliciesResponse)(nil),             // 74: iam.ListPlatformUserPoliciesResponse
-		(*PutPlatformUserInlinePolicyRequest)(nil),           // 75: iam.PutPlatformUserInlinePolicyRequest
-		(*PutPlatformUserInlinePolicyResponse)(nil),          // 76: iam.PutPlatformUserInlinePolicyResponse
-		(*GetPlatformUserInlinePolicyRequest)(nil),           // 77: iam.GetPlatformUserInlinePolicyRequest
-		(*GetPlatformUserInlinePolicyResponse)(nil),          // 78: iam.GetPlatformUserInlinePolicyResponse
-		(*ListPlatformUserInlinePoliciesRequest)(nil),        // 79: iam.ListPlatformUserInlinePoliciesRequest
-		(*ListPlatformUserInlinePoliciesResponse)(nil),       // 80: iam.ListPlatformUserInlinePoliciesResponse
-		(*DeletePlatformUserInlinePolicyRequest)(nil),        // 81: iam.DeletePlatformUserInlinePolicyRequest
-		(*DeletePlatformUserInlinePolicyResponse)(nil),       // 82: iam.DeletePlatformUserInlinePolicyResponse
-		(*AttachPlatformUserPolicyRequest)(nil),              // 83: iam.AttachPlatformUserPolicyRequest
-		(*AttachPlatformUserPolicyResponse)(nil),             // 84: iam.AttachPlatformUserPolicyResponse
-		(*DetachPlatformUserPolicyRequest)(nil),              // 85: iam.DetachPlatformUserPolicyRequest
-		(*DetachPlatformUserPolicyResponse)(nil),             // 86: iam.DetachPlatformUserPolicyResponse
-		(*PutPlatformUserPermissionBoundaryRequest)(nil),     // 87: iam.PutPlatformUserPermissionBoundaryRequest
-		(*PutPlatformUserPermissionBoundaryResponse)(nil),    // 88: iam.PutPlatformUserPermissionBoundaryResponse
-		(*GetPlatformUserPermissionBoundaryRequest)(nil),     // 89: iam.GetPlatformUserPermissionBoundaryRequest
-		(*GetPlatformUserPermissionBoundaryResponse)(nil),    // 90: iam.GetPlatformUserPermissionBoundaryResponse
-		(*DeletePlatformUserPermissionBoundaryRequest)(nil),  // 91: iam.DeletePlatformUserPermissionBoundaryRequest
-		(*DeletePlatformUserPermissionBoundaryResponse)(nil), // 92: iam.DeletePlatformUserPermissionBoundaryResponse
-		(*CheckPermissionRequest)(nil),                       // 93: iam.CheckPermissionRequest
-		(*CheckPlatformPermissionRequest)(nil),               // 94: iam.CheckPlatformPermissionRequest
-		(*CheckPermissionResponse)(nil),                      // 95: iam.CheckPermissionResponse
-		(*ListTenantUserPoliciesRequest)(nil),                // 96: iam.ListTenantUserPoliciesRequest
-		(*ListTenantUserPoliciesResponse)(nil),               // 97: iam.ListTenantUserPoliciesResponse
-		(*PutTenantUserInlinePolicyRequest)(nil),             // 98: iam.PutTenantUserInlinePolicyRequest
-		(*PutTenantUserInlinePolicyResponse)(nil),            // 99: iam.PutTenantUserInlinePolicyResponse
-		(*GetTenantUserInlinePolicyRequest)(nil),             // 100: iam.GetTenantUserInlinePolicyRequest
-		(*GetTenantUserInlinePolicyResponse)(nil),            // 101: iam.GetTenantUserInlinePolicyResponse
-		(*ListTenantUserInlinePoliciesRequest)(nil),          // 102: iam.ListTenantUserInlinePoliciesRequest
-		(*ListTenantUserInlinePoliciesResponse)(nil),         // 103: iam.ListTenantUserInlinePoliciesResponse
-		(*DeleteTenantUserInlinePolicyRequest)(nil),          // 104: iam.DeleteTenantUserInlinePolicyRequest
-		(*DeleteTenantUserInlinePolicyResponse)(nil),         // 105: iam.DeleteTenantUserInlinePolicyResponse
-		(*AttachTenantUserPolicyRequest)(nil),                // 106: iam.AttachTenantUserPolicyRequest
-		(*AttachTenantUserPolicyResponse)(nil),               // 107: iam.AttachTenantUserPolicyResponse
-		(*DetachTenantUserPolicyRequest)(nil),                // 108: iam.DetachTenantUserPolicyRequest
-		(*DetachTenantUserPolicyResponse)(nil),               // 109: iam.DetachTenantUserPolicyResponse
-		(*PutTenantUserPermissionBoundaryRequest)(nil),       // 110: iam.PutTenantUserPermissionBoundaryRequest
-		(*PutTenantUserPermissionBoundaryResponse)(nil),      // 111: iam.PutTenantUserPermissionBoundaryResponse
-		(*GetTenantUserPermissionBoundaryRequest)(nil),       // 112: iam.GetTenantUserPermissionBoundaryRequest
-		(*GetTenantUserPermissionBoundaryResponse)(nil),      // 113: iam.GetTenantUserPermissionBoundaryResponse
-		(*DeleteTenantUserPermissionBoundaryRequest)(nil),    // 114: iam.DeleteTenantUserPermissionBoundaryRequest
-		(*DeleteTenantUserPermissionBoundaryResponse)(nil),   // 115: iam.DeleteTenantUserPermissionBoundaryResponse
-		(*PutRolePermissionBoundaryRequest)(nil),             // 116: iam.PutRolePermissionBoundaryRequest
-		(*PutRolePermissionBoundaryResponse)(nil),            // 117: iam.PutRolePermissionBoundaryResponse
-		(*GetRolePermissionBoundaryRequest)(nil),             // 118: iam.GetRolePermissionBoundaryRequest
-		(*GetRolePermissionBoundaryResponse)(nil),            // 119: iam.GetRolePermissionBoundaryResponse
-		(*DeleteRolePermissionBoundaryRequest)(nil),          // 120: iam.DeleteRolePermissionBoundaryRequest
-		(*DeleteRolePermissionBoundaryResponse)(nil),         // 121: iam.DeleteRolePermissionBoundaryResponse
-		(*v1.PolicyStatement)(nil),                           // 122: common.PolicyStatement
-		(*v1.CollectionRequest)(nil),                         // 123: common.CollectionRequest
-		(*v1.PageInfo)(nil),                                  // 124: common.PageInfo
-	}
-)
-
+var file_iam_v1_iam_policy_proto_msgTypes = make([]protoimpl.MessageInfo, 122)
+var file_iam_v1_iam_policy_proto_goTypes = []any{
+	(*PlatformRoleMembership)(nil),                       // 0: iam.PlatformRoleMembership
+	(*Policy)(nil),                                       // 1: iam.Policy
+	(*PolicyVersion)(nil),                                // 2: iam.PolicyVersion
+	(*PolicyAttachment)(nil),                             // 3: iam.PolicyAttachment
+	(*ServiceControlPolicyAttachment)(nil),               // 4: iam.ServiceControlPolicyAttachment
+	(*RoleTrustStatement)(nil),                           // 5: iam.RoleTrustStatement
+	(*Group)(nil),                                        // 6: iam.Group
+	(*GroupInlinePolicy)(nil),                            // 7: iam.GroupInlinePolicy
+	(*UserInlinePolicy)(nil),                             // 8: iam.UserInlinePolicy
+	(*PermissionBoundary)(nil),                           // 9: iam.PermissionBoundary
+	(*RolePermissionBoundary)(nil),                       // 10: iam.RolePermissionBoundary
+	(*AttachServiceControlPolicyRequest)(nil),            // 11: iam.AttachServiceControlPolicyRequest
+	(*AttachServiceControlPolicyResponse)(nil),           // 12: iam.AttachServiceControlPolicyResponse
+	(*DetachServiceControlPolicyRequest)(nil),            // 13: iam.DetachServiceControlPolicyRequest
+	(*DetachServiceControlPolicyResponse)(nil),           // 14: iam.DetachServiceControlPolicyResponse
+	(*ListServiceControlPoliciesRequest)(nil),            // 15: iam.ListServiceControlPoliciesRequest
+	(*ListServiceControlPoliciesResponse)(nil),           // 16: iam.ListServiceControlPoliciesResponse
+	(*ListPlatformRolesRequest)(nil),                     // 17: iam.ListPlatformRolesRequest
+	(*ListPlatformRolesResponse)(nil),                    // 18: iam.ListPlatformRolesResponse
+	(*AddPlatformRoleRequest)(nil),                       // 19: iam.AddPlatformRoleRequest
+	(*AddPlatformRoleResponse)(nil),                      // 20: iam.AddPlatformRoleResponse
+	(*RemovePlatformRoleRequest)(nil),                    // 21: iam.RemovePlatformRoleRequest
+	(*RemovePlatformRoleResponse)(nil),                   // 22: iam.RemovePlatformRoleResponse
+	(*CreatePolicyRequest)(nil),                          // 23: iam.CreatePolicyRequest
+	(*CreatePolicyResponse)(nil),                         // 24: iam.CreatePolicyResponse
+	(*CreatePolicyVersionRequest)(nil),                   // 25: iam.CreatePolicyVersionRequest
+	(*CreatePolicyVersionResponse)(nil),                  // 26: iam.CreatePolicyVersionResponse
+	(*GetPolicyRequest)(nil),                             // 27: iam.GetPolicyRequest
+	(*GetPolicyResponse)(nil),                            // 28: iam.GetPolicyResponse
+	(*ListPolicyVersionsRequest)(nil),                    // 29: iam.ListPolicyVersionsRequest
+	(*ListPolicyVersionsResponse)(nil),                   // 30: iam.ListPolicyVersionsResponse
+	(*SetDefaultPolicyVersionRequest)(nil),               // 31: iam.SetDefaultPolicyVersionRequest
+	(*SetDefaultPolicyVersionResponse)(nil),              // 32: iam.SetDefaultPolicyVersionResponse
+	(*DeletePolicyVersionRequest)(nil),                   // 33: iam.DeletePolicyVersionRequest
+	(*DeletePolicyVersionResponse)(nil),                  // 34: iam.DeletePolicyVersionResponse
+	(*ListPoliciesRequest)(nil),                          // 35: iam.ListPoliciesRequest
+	(*ListPoliciesResponse)(nil),                         // 36: iam.ListPoliciesResponse
+	(*ListPolicyAttachmentsRequest)(nil),                 // 37: iam.ListPolicyAttachmentsRequest
+	(*ListPolicyAttachmentsResponse)(nil),                // 38: iam.ListPolicyAttachmentsResponse
+	(*DeletePolicyRequest)(nil),                          // 39: iam.DeletePolicyRequest
+	(*DeletePolicyResponse)(nil),                         // 40: iam.DeletePolicyResponse
+	(*PutRoleTrustPolicyRequest)(nil),                    // 41: iam.PutRoleTrustPolicyRequest
+	(*PutRoleTrustPolicyResponse)(nil),                   // 42: iam.PutRoleTrustPolicyResponse
+	(*GetRoleTrustPolicyRequest)(nil),                    // 43: iam.GetRoleTrustPolicyRequest
+	(*GetRoleTrustPolicyResponse)(nil),                   // 44: iam.GetRoleTrustPolicyResponse
+	(*DeleteRoleTrustPolicyRequest)(nil),                 // 45: iam.DeleteRoleTrustPolicyRequest
+	(*DeleteRoleTrustPolicyResponse)(nil),                // 46: iam.DeleteRoleTrustPolicyResponse
+	(*CreateGroupRequest)(nil),                           // 47: iam.CreateGroupRequest
+	(*CreateGroupResponse)(nil),                          // 48: iam.CreateGroupResponse
+	(*ListGroupsRequest)(nil),                            // 49: iam.ListGroupsRequest
+	(*ListGroupsResponse)(nil),                           // 50: iam.ListGroupsResponse
+	(*DeleteGroupRequest)(nil),                           // 51: iam.DeleteGroupRequest
+	(*DeleteGroupResponse)(nil),                          // 52: iam.DeleteGroupResponse
+	(*AddGroupMemberRequest)(nil),                        // 53: iam.AddGroupMemberRequest
+	(*AddGroupMemberResponse)(nil),                       // 54: iam.AddGroupMemberResponse
+	(*ListGroupMembersRequest)(nil),                      // 55: iam.ListGroupMembersRequest
+	(*ListGroupMembersResponse)(nil),                     // 56: iam.ListGroupMembersResponse
+	(*RemoveGroupMemberRequest)(nil),                     // 57: iam.RemoveGroupMemberRequest
+	(*RemoveGroupMemberResponse)(nil),                    // 58: iam.RemoveGroupMemberResponse
+	(*AttachGroupPolicyRequest)(nil),                     // 59: iam.AttachGroupPolicyRequest
+	(*AttachGroupPolicyResponse)(nil),                    // 60: iam.AttachGroupPolicyResponse
+	(*ListGroupPoliciesRequest)(nil),                     // 61: iam.ListGroupPoliciesRequest
+	(*ListGroupPoliciesResponse)(nil),                    // 62: iam.ListGroupPoliciesResponse
+	(*DetachGroupPolicyRequest)(nil),                     // 63: iam.DetachGroupPolicyRequest
+	(*DetachGroupPolicyResponse)(nil),                    // 64: iam.DetachGroupPolicyResponse
+	(*PutGroupInlinePolicyRequest)(nil),                  // 65: iam.PutGroupInlinePolicyRequest
+	(*PutGroupInlinePolicyResponse)(nil),                 // 66: iam.PutGroupInlinePolicyResponse
+	(*GetGroupInlinePolicyRequest)(nil),                  // 67: iam.GetGroupInlinePolicyRequest
+	(*GetGroupInlinePolicyResponse)(nil),                 // 68: iam.GetGroupInlinePolicyResponse
+	(*ListGroupInlinePoliciesRequest)(nil),               // 69: iam.ListGroupInlinePoliciesRequest
+	(*ListGroupInlinePoliciesResponse)(nil),              // 70: iam.ListGroupInlinePoliciesResponse
+	(*DeleteGroupInlinePolicyRequest)(nil),               // 71: iam.DeleteGroupInlinePolicyRequest
+	(*DeleteGroupInlinePolicyResponse)(nil),              // 72: iam.DeleteGroupInlinePolicyResponse
+	(*ListPlatformUserPoliciesRequest)(nil),              // 73: iam.ListPlatformUserPoliciesRequest
+	(*ListPlatformUserPoliciesResponse)(nil),             // 74: iam.ListPlatformUserPoliciesResponse
+	(*PutPlatformUserInlinePolicyRequest)(nil),           // 75: iam.PutPlatformUserInlinePolicyRequest
+	(*PutPlatformUserInlinePolicyResponse)(nil),          // 76: iam.PutPlatformUserInlinePolicyResponse
+	(*GetPlatformUserInlinePolicyRequest)(nil),           // 77: iam.GetPlatformUserInlinePolicyRequest
+	(*GetPlatformUserInlinePolicyResponse)(nil),          // 78: iam.GetPlatformUserInlinePolicyResponse
+	(*ListPlatformUserInlinePoliciesRequest)(nil),        // 79: iam.ListPlatformUserInlinePoliciesRequest
+	(*ListPlatformUserInlinePoliciesResponse)(nil),       // 80: iam.ListPlatformUserInlinePoliciesResponse
+	(*DeletePlatformUserInlinePolicyRequest)(nil),        // 81: iam.DeletePlatformUserInlinePolicyRequest
+	(*DeletePlatformUserInlinePolicyResponse)(nil),       // 82: iam.DeletePlatformUserInlinePolicyResponse
+	(*AttachPlatformUserPolicyRequest)(nil),              // 83: iam.AttachPlatformUserPolicyRequest
+	(*AttachPlatformUserPolicyResponse)(nil),             // 84: iam.AttachPlatformUserPolicyResponse
+	(*DetachPlatformUserPolicyRequest)(nil),              // 85: iam.DetachPlatformUserPolicyRequest
+	(*DetachPlatformUserPolicyResponse)(nil),             // 86: iam.DetachPlatformUserPolicyResponse
+	(*PutPlatformUserPermissionBoundaryRequest)(nil),     // 87: iam.PutPlatformUserPermissionBoundaryRequest
+	(*PutPlatformUserPermissionBoundaryResponse)(nil),    // 88: iam.PutPlatformUserPermissionBoundaryResponse
+	(*GetPlatformUserPermissionBoundaryRequest)(nil),     // 89: iam.GetPlatformUserPermissionBoundaryRequest
+	(*GetPlatformUserPermissionBoundaryResponse)(nil),    // 90: iam.GetPlatformUserPermissionBoundaryResponse
+	(*DeletePlatformUserPermissionBoundaryRequest)(nil),  // 91: iam.DeletePlatformUserPermissionBoundaryRequest
+	(*DeletePlatformUserPermissionBoundaryResponse)(nil), // 92: iam.DeletePlatformUserPermissionBoundaryResponse
+	(*CheckPermissionRequest)(nil),                       // 93: iam.CheckPermissionRequest
+	(*CheckPlatformPermissionRequest)(nil),               // 94: iam.CheckPlatformPermissionRequest
+	(*CheckPermissionResponse)(nil),                      // 95: iam.CheckPermissionResponse
+	(*ListTenantUserPoliciesRequest)(nil),                // 96: iam.ListTenantUserPoliciesRequest
+	(*ListTenantUserPoliciesResponse)(nil),               // 97: iam.ListTenantUserPoliciesResponse
+	(*PutTenantUserInlinePolicyRequest)(nil),             // 98: iam.PutTenantUserInlinePolicyRequest
+	(*PutTenantUserInlinePolicyResponse)(nil),            // 99: iam.PutTenantUserInlinePolicyResponse
+	(*GetTenantUserInlinePolicyRequest)(nil),             // 100: iam.GetTenantUserInlinePolicyRequest
+	(*GetTenantUserInlinePolicyResponse)(nil),            // 101: iam.GetTenantUserInlinePolicyResponse
+	(*ListTenantUserInlinePoliciesRequest)(nil),          // 102: iam.ListTenantUserInlinePoliciesRequest
+	(*ListTenantUserInlinePoliciesResponse)(nil),         // 103: iam.ListTenantUserInlinePoliciesResponse
+	(*DeleteTenantUserInlinePolicyRequest)(nil),          // 104: iam.DeleteTenantUserInlinePolicyRequest
+	(*DeleteTenantUserInlinePolicyResponse)(nil),         // 105: iam.DeleteTenantUserInlinePolicyResponse
+	(*AttachTenantUserPolicyRequest)(nil),                // 106: iam.AttachTenantUserPolicyRequest
+	(*AttachTenantUserPolicyResponse)(nil),               // 107: iam.AttachTenantUserPolicyResponse
+	(*DetachTenantUserPolicyRequest)(nil),                // 108: iam.DetachTenantUserPolicyRequest
+	(*DetachTenantUserPolicyResponse)(nil),               // 109: iam.DetachTenantUserPolicyResponse
+	(*PutTenantUserPermissionBoundaryRequest)(nil),       // 110: iam.PutTenantUserPermissionBoundaryRequest
+	(*PutTenantUserPermissionBoundaryResponse)(nil),      // 111: iam.PutTenantUserPermissionBoundaryResponse
+	(*GetTenantUserPermissionBoundaryRequest)(nil),       // 112: iam.GetTenantUserPermissionBoundaryRequest
+	(*GetTenantUserPermissionBoundaryResponse)(nil),      // 113: iam.GetTenantUserPermissionBoundaryResponse
+	(*DeleteTenantUserPermissionBoundaryRequest)(nil),    // 114: iam.DeleteTenantUserPermissionBoundaryRequest
+	(*DeleteTenantUserPermissionBoundaryResponse)(nil),   // 115: iam.DeleteTenantUserPermissionBoundaryResponse
+	(*PutRolePermissionBoundaryRequest)(nil),             // 116: iam.PutRolePermissionBoundaryRequest
+	(*PutRolePermissionBoundaryResponse)(nil),            // 117: iam.PutRolePermissionBoundaryResponse
+	(*GetRolePermissionBoundaryRequest)(nil),             // 118: iam.GetRolePermissionBoundaryRequest
+	(*GetRolePermissionBoundaryResponse)(nil),            // 119: iam.GetRolePermissionBoundaryResponse
+	(*DeleteRolePermissionBoundaryRequest)(nil),          // 120: iam.DeleteRolePermissionBoundaryRequest
+	(*DeleteRolePermissionBoundaryResponse)(nil),         // 121: iam.DeleteRolePermissionBoundaryResponse
+	(*v1.PolicyStatement)(nil),                           // 122: common.PolicyStatement
+	(*v1.CollectionRequest)(nil),                         // 123: common.CollectionRequest
+	(*v1.PageInfo)(nil),                                  // 124: common.PageInfo
+}
 var file_iam_v1_iam_policy_proto_depIdxs = []int32{
 	122, // 0: iam.GroupInlinePolicy.statements:type_name -> common.PolicyStatement
 	122, // 1: iam.UserInlinePolicy.statements:type_name -> common.PolicyStatement

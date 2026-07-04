@@ -31,7 +31,7 @@ export function GroupsCollection() {
         <SelectField
           label="Collection scope"
           value={group.groupScope()}
-          options={group.groupScopeOptions}
+          options={group.groupScopeOptions()}
           onChange={(event) => {
             group.setGroupScope(event.currentTarget.value)
             group.updateQuery({ page: 1 })

@@ -18,6 +18,7 @@ func (s *interactor) CreateGroup(ctx context.Context, input entity.CreateGroupIn
 	now := time.Now().UTC()
 	group := entity.Group{
 		Scope:       scope,
+		OrgID:       strings.TrimSpace(input.OrgID),
 		TenantID:    strings.TrimSpace(input.TenantID),
 		Name:        strings.TrimSpace(input.Name),
 		Description: strings.TrimSpace(input.Description),
@@ -25,21 +26,41 @@ func (s *interactor) CreateGroup(ctx context.Context, input entity.CreateGroupIn
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
+	if err := validateGroupOwner(group); err != nil {
+		return nil, err
+	}
 	return s.groupCommands.CreateGroup(ctx, group)
 }
 
 func (s *interactor) ListGroups(
 	ctx context.Context,
 	scope string,
+	orgID string,
 	tenantID string,
 	query collection.Query,
 ) (collection.Page[entity.Group], error) {
+	owner := entity.Group{
+		Scope:    strings.TrimSpace(scope),
+		OrgID:    strings.TrimSpace(orgID),
+		TenantID: strings.TrimSpace(tenantID),
+	}
+	if err := validateGroupOwner(owner); err != nil {
+		return collection.Page[entity.Group]{}, err
+	}
 	return s.groupQueries.ListGroups(
 		ctx,
-		strings.TrimSpace(scope),
-		strings.TrimSpace(tenantID),
+		owner.Scope,
+		owner.OrgID,
+		owner.TenantID,
 		query.Normalize(),
 	)
+}
+
+func (s *interactor) GetGroup(ctx context.Context, groupID uint64) (*entity.Group, error) {
+	if groupID == 0 {
+		return nil, entity.ErrGroupNotFound
+	}
+	return s.groupQueries.GetByID(ctx, groupID)
 }
 
 func (s *interactor) DeleteGroup(ctx context.Context, groupID uint64) error {
@@ -118,6 +139,19 @@ func (s *interactor) AddGroupMember(ctx context.Context, groupID uint64, userID 
 	if userID == 0 {
 		return entity.ErrInvalidUserID
 	}
+	group, err := s.groupQueries.GetByID(ctx, groupID)
+	if err != nil {
+		return err
+	}
+	if group.Scope == entity.PolicyScopeOrganization {
+		membership, membershipErr := s.orgQueries.GetMembership(ctx, group.OrgID, userID)
+		if membershipErr != nil {
+			return membershipErr
+		}
+		if membership.Status != entity.MembershipStatusActive {
+			return entity.ErrInactiveMembership
+		}
+	}
 	return s.groupCommands.AddMember(ctx, groupID, userID)
 }
 
@@ -146,11 +180,15 @@ func (s *interactor) AttachGroupPolicy(ctx context.Context, groupID uint64, poli
 	if groupID == 0 {
 		return entity.ErrRoleNotFound
 	}
-	policy, err := s.policyQueries.GetPolicyByName(ctx, strings.TrimSpace(policyName))
+	group, err := s.groupQueries.GetByID(ctx, groupID)
 	if err != nil {
 		return err
 	}
-	group, err := s.groupQueries.GetByID(ctx, groupID)
+	policy, err := s.policyQueries.GetPolicy(ctx, entity.PolicyRef{
+		Scope: group.Scope,
+		OrgID: group.OrgID,
+		Name:  strings.TrimSpace(policyName),
+	})
 	if err != nil {
 		return err
 	}
@@ -185,11 +223,39 @@ func (s *interactor) DetachGroupPolicy(ctx context.Context, groupID uint64, poli
 	if groupID == 0 {
 		return entity.ErrRoleNotFound
 	}
-	policy, err := s.policyQueries.GetPolicyByName(ctx, strings.TrimSpace(policyName))
+	group, err := s.groupQueries.GetByID(ctx, groupID)
+	if err != nil {
+		return err
+	}
+	policy, err := s.policyQueries.GetPolicy(ctx, entity.PolicyRef{
+		Scope: group.Scope,
+		OrgID: group.OrgID,
+		Name:  strings.TrimSpace(policyName),
+	})
 	if err != nil {
 		return err
 	}
 	return s.groupCommands.DetachPolicy(ctx, groupID, policy.ID)
+}
+
+func validateGroupOwner(group entity.Group) error {
+	switch group.Scope {
+	case entity.PolicyScopePlatform:
+		if group.OrgID != "" || group.TenantID != "" {
+			return entity.ErrInvalidPolicyOwner
+		}
+	case entity.PolicyScopeOrganization:
+		if group.OrgID == "" || group.TenantID != "" {
+			return entity.ErrInvalidPolicyOwner
+		}
+	case entity.PolicyScopeTenant:
+		if group.OrgID != "" || group.TenantID == "" {
+			return entity.ErrInvalidPolicyOwner
+		}
+	default:
+		return entity.ErrInvalidPolicyOwner
+	}
+	return nil
 }
 
 func (s *interactor) ListGroupPolicies(

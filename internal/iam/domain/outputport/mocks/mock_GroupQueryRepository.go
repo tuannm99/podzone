@@ -17,8 +17,7 @@ import (
 func NewMockGroupQueryRepository(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *MockGroupQueryRepository {
+}) *MockGroupQueryRepository {
 	mock := &MockGroupQueryRepository{}
 	mock.Mock.Test(t)
 
@@ -183,8 +182,8 @@ func (_c *MockGroupQueryRepository_GetInlinePolicy_Call) RunAndReturn(run func(c
 }
 
 // ListGroups provides a mock function for the type MockGroupQueryRepository
-func (_mock *MockGroupQueryRepository) ListGroups(ctx context.Context, scope string, tenantID string, query collection.Query) (collection.Page[entity.Group], error) {
-	ret := _mock.Called(ctx, scope, tenantID, query)
+func (_mock *MockGroupQueryRepository) ListGroups(ctx context.Context, scope string, orgID string, tenantID string, query collection.Query) (collection.Page[entity.Group], error) {
+	ret := _mock.Called(ctx, scope, orgID, tenantID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListGroups")
@@ -192,16 +191,16 @@ func (_mock *MockGroupQueryRepository) ListGroups(ctx context.Context, scope str
 
 	var r0 collection.Page[entity.Group]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, collection.Query) (collection.Page[entity.Group], error)); ok {
-		return returnFunc(ctx, scope, tenantID, query)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, collection.Query) (collection.Page[entity.Group], error)); ok {
+		return returnFunc(ctx, scope, orgID, tenantID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, collection.Query) collection.Page[entity.Group]); ok {
-		r0 = returnFunc(ctx, scope, tenantID, query)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, collection.Query) collection.Page[entity.Group]); ok {
+		r0 = returnFunc(ctx, scope, orgID, tenantID, query)
 	} else {
 		r0 = ret.Get(0).(collection.Page[entity.Group])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, collection.Query) error); ok {
-		r1 = returnFunc(ctx, scope, tenantID, query)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string, collection.Query) error); ok {
+		r1 = returnFunc(ctx, scope, orgID, tenantID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -216,13 +215,14 @@ type MockGroupQueryRepository_ListGroups_Call struct {
 // ListGroups is a helper method to define mock.On call
 //   - ctx context.Context
 //   - scope string
+//   - orgID string
 //   - tenantID string
 //   - query collection.Query
-func (_e *MockGroupQueryRepository_Expecter) ListGroups(ctx interface{}, scope interface{}, tenantID interface{}, query interface{}) *MockGroupQueryRepository_ListGroups_Call {
-	return &MockGroupQueryRepository_ListGroups_Call{Call: _e.mock.On("ListGroups", ctx, scope, tenantID, query)}
+func (_e *MockGroupQueryRepository_Expecter) ListGroups(ctx interface{}, scope interface{}, orgID interface{}, tenantID interface{}, query interface{}) *MockGroupQueryRepository_ListGroups_Call {
+	return &MockGroupQueryRepository_ListGroups_Call{Call: _e.mock.On("ListGroups", ctx, scope, orgID, tenantID, query)}
 }
 
-func (_c *MockGroupQueryRepository_ListGroups_Call) Run(run func(ctx context.Context, scope string, tenantID string, query collection.Query)) *MockGroupQueryRepository_ListGroups_Call {
+func (_c *MockGroupQueryRepository_ListGroups_Call) Run(run func(ctx context.Context, scope string, orgID string, tenantID string, query collection.Query)) *MockGroupQueryRepository_ListGroups_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -236,15 +236,20 @@ func (_c *MockGroupQueryRepository_ListGroups_Call) Run(run func(ctx context.Con
 		if args[2] != nil {
 			arg2 = args[2].(string)
 		}
-		var arg3 collection.Query
+		var arg3 string
 		if args[3] != nil {
-			arg3 = args[3].(collection.Query)
+			arg3 = args[3].(string)
+		}
+		var arg4 collection.Query
+		if args[4] != nil {
+			arg4 = args[4].(collection.Query)
 		}
 		run(
 			arg0,
 			arg1,
 			arg2,
 			arg3,
+			arg4,
 		)
 	})
 	return _c
@@ -255,7 +260,7 @@ func (_c *MockGroupQueryRepository_ListGroups_Call) Return(page collection.Page[
 	return _c
 }
 
-func (_c *MockGroupQueryRepository_ListGroups_Call) RunAndReturn(run func(ctx context.Context, scope string, tenantID string, query collection.Query) (collection.Page[entity.Group], error)) *MockGroupQueryRepository_ListGroups_Call {
+func (_c *MockGroupQueryRepository_ListGroups_Call) RunAndReturn(run func(ctx context.Context, scope string, orgID string, tenantID string, query collection.Query) (collection.Page[entity.Group], error)) *MockGroupQueryRepository_ListGroups_Call {
 	_c.Call.Return(run)
 	return _c
 }

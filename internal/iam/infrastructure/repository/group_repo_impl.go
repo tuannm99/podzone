@@ -28,10 +28,15 @@ func (r *GroupRepositoryImpl) CreateGroup(ctx context.Context, group entity.Grou
 	if err := r.db.GetContext(
 		ctx,
 		&out,
-		`INSERT INTO iam_groups (scope, tenant_id, name, description, is_system, created_at, updated_at)
-		 VALUES ($1, NULLIF($2, ''), $3, $4, $5, $6, $7)
-		 RETURNING id, scope, COALESCE(tenant_id, '') AS tenant_id, name, description, is_system, created_at, updated_at`,
+		`INSERT INTO iam_groups (
+		   scope, org_id, tenant_id, name, description, is_system, created_at, updated_at
+		 )
+		 VALUES ($1, NULLIF($2, ''), NULLIF($3, ''), $4, $5, $6, $7, $8)
+		 RETURNING id, scope, COALESCE(org_id, '') AS org_id,
+		           COALESCE(tenant_id, '') AS tenant_id, name, description,
+		           is_system, created_at, updated_at`,
 		group.Scope,
+		group.OrgID,
 		group.TenantID,
 		group.Name,
 		group.Description,
@@ -50,7 +55,9 @@ func (r *GroupRepositoryImpl) GetByID(ctx context.Context, groupID uint64) (*ent
 	if err := r.db.GetContext(
 		ctx,
 		&out,
-		`SELECT id, scope, COALESCE(tenant_id, '') AS tenant_id, name, description, is_system, created_at, updated_at
+		`SELECT id, scope, COALESCE(org_id, '') AS org_id,
+		        COALESCE(tenant_id, '') AS tenant_id, name, description,
+		        is_system, created_at, updated_at
 		 FROM iam_groups
 		 WHERE id = $1`,
 		groupID,
@@ -67,13 +74,14 @@ func (r *GroupRepositoryImpl) GetByID(ctx context.Context, groupID uint64) (*ent
 func (r *GroupRepositoryImpl) ListGroups(
 	ctx context.Context,
 	scope string,
+	orgID string,
 	tenantID string,
 	queryArg collection.Query,
 ) (collection.Page[entity.Group], error) {
 	normalized, where, orderBy, err := buildIAMCollectionQuery(
 		queryArg,
 		groupCollectionColumns,
-		[]string{"scope", "COALESCE(tenant_id, '')", "name", "description"},
+		[]string{"scope", "COALESCE(org_id, '')", "COALESCE(tenant_id, '')", "name", "description"},
 		"created_at",
 	)
 	if err != nil {
@@ -84,6 +92,9 @@ func (r *GroupRepositoryImpl) ListGroups(
 	}
 	if tenantID != "" {
 		where = append(where, sq.Eq{"tenant_id": tenantID})
+	}
+	if orgID != "" {
+		where = append(where, sq.Eq{"org_id": orgID})
 	}
 	countBuilder := sq.Select("COUNT(*)").From("iam_groups")
 	for _, predicate := range where {
@@ -101,6 +112,7 @@ func (r *GroupRepositoryImpl) ListGroups(
 	builder := sq.Select(
 		"id",
 		"scope",
+		"COALESCE(org_id, '') AS org_id",
 		"COALESCE(tenant_id, '') AS tenant_id",
 		"name",
 		"description",
@@ -136,7 +148,9 @@ func (r *GroupRepositoryImpl) DeleteGroup(ctx context.Context, groupID uint64) e
 	if err := r.db.GetContext(
 		ctx,
 		&group,
-		`SELECT id, scope, COALESCE(tenant_id, '') AS tenant_id, name, description, is_system, created_at, updated_at
+		`SELECT id, scope, COALESCE(org_id, '') AS org_id,
+		        COALESCE(tenant_id, '') AS tenant_id, name, description,
+		        is_system, created_at, updated_at
 		 FROM iam_groups
 		 WHERE id = $1`,
 		groupID,
@@ -365,6 +379,7 @@ func (r *GroupRepositoryImpl) ListPolicies(
 		[]string{
 			"p.id",
 			"p.scope",
+			"COALESCE(p.org_id, '') AS org_id",
 			"p.name",
 			"p.description",
 			"p.is_system",

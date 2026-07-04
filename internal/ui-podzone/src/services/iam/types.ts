@@ -73,6 +73,7 @@ export type PolicyStatement = {
 export type PolicyInfo = {
   id?: number
   scope: string
+  orgId?: string
   name: string
   description?: string
   isSystem?: boolean
@@ -143,6 +144,7 @@ export type PolicyAttachmentInfo = {
 export type GroupInfo = {
   id?: number
   scope: string
+  orgId?: string
   tenantId?: string
   name: string
   description?: string
@@ -199,6 +201,7 @@ export type CreateOrganizationPayload = {
 
 export type CreatePolicyPayload = {
   scope: string
+  orgId?: string
   name: string
   description?: string
   statements: PolicyStatement[]
@@ -206,15 +209,24 @@ export type CreatePolicyPayload = {
 
 export type CreatePolicyVersionPayload = {
   name: string
+  scope: string
+  orgId?: string
   statements: PolicyStatement[]
   setAsDefault?: boolean
 }
 
 export type CreateGroupPayload = {
   scope: string
+  orgId?: string
   tenantId?: string
   name: string
   description?: string
+}
+
+export type PolicyLocator = {
+  scope: string
+  orgId?: string
+  name: string
 }
 
 export type PutRoleTrustPolicyPayload = {

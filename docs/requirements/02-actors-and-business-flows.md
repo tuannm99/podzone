@@ -63,6 +63,12 @@ Organization delegation:
   cannot mutate them
 - organization membership is explicit, active-state checked, and never grants
   platform permissions
+- organization-managed policies are identified by organization, scope, and
+  name; names may be reused safely by different organizations
+- organization groups belong to exactly one organization and may only contain
+  active members of that organization
+- organization group policies participate in permission evaluation, with an
+  explicit deny overriding role and group allows
 - organization-scoped API operations must evaluate organization permissions in
   IAM; UI visibility is not an authorization boundary
 

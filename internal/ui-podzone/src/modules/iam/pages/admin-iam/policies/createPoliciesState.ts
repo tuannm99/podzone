@@ -10,7 +10,19 @@ import {
 import { createPaginatedResource } from '@/solid/pagination'
 import { prettyJSON } from '../presentation'
 
-export function createPoliciesState(enabled: Accessor<boolean>) {
+export function createPoliciesState(
+  enabled: Accessor<boolean>,
+  selectedOrgId: Accessor<string>
+) {
+  const [policyScope, setPolicyScope] = createSignal('organization')
+  const policyOrgId = () =>
+    policyScope() === 'organization' ? selectedOrgId().trim() : ''
+  const policyOwnerKey = () => `${policyScope()}:${policyOrgId()}`
+  const policyRef = (name = selectedPolicyName().trim()) => ({
+    scope: policyScope(),
+    orgId: policyOrgId() || undefined,
+    name,
+  })
   const collection = createPaginatedResource<PolicyInfo>(
     {
       page: 1,
@@ -19,11 +31,20 @@ export function createPoliciesState(enabled: Accessor<boolean>) {
       sortDirection: 'SORT_DIRECTION_DESC',
     },
     async (query) => {
-      const result = await listPolicies(query)
+      const result = await listPolicies(
+        query,
+        policyScope(),
+        policyOrgId() || undefined
+      )
       if (!result.success) throw new Error(result.message)
       return result.data
     },
-    { enabled }
+    {
+      enabled: () =>
+        enabled() &&
+        (policyScope() !== 'organization' || policyOrgId().length > 0),
+      dependency: policyOwnerKey,
+    }
   )
   const [selectedPolicyName, setSelectedPolicyName] = createSignal('')
   const versions = createPaginatedResource<PolicyVersionInfo>(
@@ -34,14 +55,14 @@ export function createPoliciesState(enabled: Accessor<boolean>) {
       sortDirection: 'SORT_DIRECTION_DESC',
     },
     async (query) => {
-      const result = await listPolicyVersions(
-        selectedPolicyName().trim(),
-        query
-      )
+      const result = await listPolicyVersions(policyRef(), query)
       if (!result.success) throw new Error(result.message)
       return result.data
     },
-    { enabled: () => enabled() && selectedPolicyName().trim().length > 0 }
+    {
+      enabled: () => enabled() && selectedPolicyName().trim().length > 0,
+      dependency: policyOwnerKey,
+    }
   )
   const attachments = createPaginatedResource<PolicyAttachmentInfo>(
     {
@@ -51,17 +72,16 @@ export function createPoliciesState(enabled: Accessor<boolean>) {
       sortDirection: 'SORT_DIRECTION_DESC',
     },
     async (query) => {
-      const result = await listPolicyAttachments(
-        selectedPolicyName().trim(),
-        query
-      )
+      const result = await listPolicyAttachments(policyRef(), query)
       if (!result.success) throw new Error(result.message)
       return result.data
     },
-    { enabled: () => enabled() && selectedPolicyName().trim().length > 0 }
+    {
+      enabled: () => enabled() && selectedPolicyName().trim().length > 0,
+      dependency: policyOwnerKey,
+    }
   )
   const [policyDetail, setPolicyDetail] = createSignal<PolicyInfo>()
-  const [policyScope, setPolicyScope] = createSignal('platform')
   const [policyName, setPolicyName] = createSignal('')
   const [policyDescription, setPolicyDescription] = createSignal('')
   const [policyStatementsJson, setPolicyStatementsJson] = createSignal(
@@ -120,6 +140,8 @@ export function createPoliciesState(enabled: Accessor<boolean>) {
     clearPolicyAttachments: attachments.clear,
     policyScope,
     setPolicyScope,
+    policyOrgId,
+    policyRef,
     policyName,
     setPolicyName,
     policyDescription,

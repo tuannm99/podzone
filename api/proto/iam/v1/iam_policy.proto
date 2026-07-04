@@ -25,6 +25,7 @@ message Policy {
   string default_version = 6;
   string created_at = 7;
   string updated_at = 8;
+  string org_id = 9;
 }
 
 message PolicyVersion {
@@ -75,6 +76,7 @@ message Group {
   bool is_system = 6;
   string created_at = 7;
   string updated_at = 8;
+  string org_id = 9;
 }
 
 message GroupInlinePolicy {
@@ -168,6 +170,7 @@ message CreatePolicyRequest {
   string name = 2;
   string description = 3;
   repeated common.PolicyStatement statements = 4;
+  string org_id = 5;
 }
 
 message CreatePolicyResponse {
@@ -179,6 +182,8 @@ message CreatePolicyVersionRequest {
   string name = 1;
   repeated common.PolicyStatement statements = 2;
   bool set_as_default = 3;
+  string scope = 4;
+  string org_id = 5;
 }
 
 message CreatePolicyVersionResponse {
@@ -188,6 +193,8 @@ message CreatePolicyVersionResponse {
 
 message GetPolicyRequest {
   string name = 1;
+  string scope = 2;
+  string org_id = 3;
 }
 
 message GetPolicyResponse {
@@ -198,6 +205,8 @@ message GetPolicyResponse {
 message ListPolicyVersionsRequest {
   string name = 1;
   common.CollectionRequest collection = 2;
+  string scope = 3;
+  string org_id = 4;
 }
 
 message ListPolicyVersionsResponse {
@@ -208,6 +217,8 @@ message ListPolicyVersionsResponse {
 message SetDefaultPolicyVersionRequest {
   string name = 1;
   string version = 2;
+  string scope = 3;
+  string org_id = 4;
 }
 
 message SetDefaultPolicyVersionResponse {}
@@ -215,6 +226,8 @@ message SetDefaultPolicyVersionResponse {}
 message DeletePolicyVersionRequest {
   string name = 1;
   string version = 2;
+  string scope = 3;
+  string org_id = 4;
 }
 
 message DeletePolicyVersionResponse {}
@@ -222,6 +235,7 @@ message DeletePolicyVersionResponse {}
 message ListPoliciesRequest {
   string scope = 1;
   common.CollectionRequest collection = 2;
+  string org_id = 3;
 }
 
 message ListPoliciesResponse {
@@ -232,6 +246,8 @@ message ListPoliciesResponse {
 message ListPolicyAttachmentsRequest {
   string name = 1;
   common.CollectionRequest collection = 2;
+  string scope = 3;
+  string org_id = 4;
 }
 
 message ListPolicyAttachmentsResponse {
@@ -241,6 +257,8 @@ message ListPolicyAttachmentsResponse {
 
 message DeletePolicyRequest {
   string name = 1;
+  string scope = 2;
+  string org_id = 3;
 }
 
 message DeletePolicyResponse {}
@@ -271,6 +289,7 @@ message CreateGroupRequest {
   string tenant_id = 2;
   string name = 3;
   string description = 4;
+  string org_id = 5;
 }
 
 message CreateGroupResponse {
@@ -281,6 +300,7 @@ message ListGroupsRequest {
   string scope = 1;
   string tenant_id = 2;
   common.CollectionRequest collection = 3;
+  string org_id = 4;
 }
 
 message ListGroupsResponse {

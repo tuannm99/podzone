@@ -2,12 +2,12 @@ import type { AdminIamState } from '../createAdminIamState'
 
 export function createGroupsLoaders(state: AdminIamState) {
   const loadGroupsForScope = async () => {
-    if (!state.allowed() || !state.canManagePlatform()) return
+    if (!state.allowed()) return
     await state.reloadGroups()
   }
 
   const loadSelectedGroup = async () => {
-    if (!state.canManagePlatform()) return
+    if (!state.allowed()) return
     const rawID = state.selectedGroupId().trim()
     if (!rawID) {
       state.clearGroupMembers()

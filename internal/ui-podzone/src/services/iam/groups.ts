@@ -32,6 +32,7 @@ export async function createGroup(
 
 export async function listGroups(
   scope: string,
+  orgId: string | undefined,
   tenantId: string | undefined,
   query: CollectionQuery
 ): Promise<IamResult<CollectionPage<GroupInfo>>> {
@@ -42,6 +43,7 @@ export async function listGroups(
     }>('/auth/v1/iam/groups', {
       params: {
         scope,
+        ...(orgId ? { orgId } : {}),
         ...(tenantId ? { tenantId } : {}),
         ...toCollectionParams(query),
       },

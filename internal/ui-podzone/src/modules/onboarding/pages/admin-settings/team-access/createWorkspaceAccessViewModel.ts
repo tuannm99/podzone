@@ -15,11 +15,12 @@ import { createPaginatedResource } from '@/solid/pagination'
 
 export function createWorkspaceAccessViewModel(
   userID: number,
-  activeTenantID: Accessor<string>
+  activeTenantID: Accessor<string>,
+  enabled: Accessor<boolean>
 ) {
   const [selectedTenantID, setSelectedTenantID] = createSignal(activeTenantID())
   const [membershipsResource, { refetch: reloadMemberships }] = createResource(
-    () => userID || undefined,
+    () => (enabled() && userID ? userID : undefined),
     async (currentUserID): Promise<TenantMembership[]> => {
       const result = await listUserTenants(currentUserID)
       if (!result.success) throw new Error(result.message)
@@ -40,7 +41,7 @@ export function createWorkspaceAccessViewModel(
       return result.data
     },
     {
-      enabled: () => Boolean(userID && selectedTenantID().trim()),
+      enabled: () => enabled() && Boolean(userID && selectedTenantID().trim()),
       dependency: selectedTenantID,
     }
   )
@@ -57,7 +58,7 @@ export function createWorkspaceAccessViewModel(
       return result.data
     },
     {
-      enabled: () => Boolean(userID && selectedTenantID().trim()),
+      enabled: () => enabled() && Boolean(userID && selectedTenantID().trim()),
       dependency: selectedTenantID,
     }
   )

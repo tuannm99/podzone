@@ -92,11 +92,13 @@ type iamUsecaseMockConfig struct {
 	listPoliciesFunc func(
 		ctx context.Context,
 		scope string,
+		orgID string,
 		query collection.Query,
 	) (collection.Page[iamentity.Policy], error)
 	listGroupsFunc func(
 		ctx context.Context,
 		scope string,
+		orgID string,
 		tenantID string,
 		query collection.Query,
 	) (collection.Page[iamentity.Group], error)
@@ -200,13 +202,13 @@ func newIAMUsecaseMock(t *testing.T, cfg iamUsecaseMockConfig) iamUsecaseMocks {
 	}
 	if cfg.listPoliciesFunc != nil {
 		queries.EXPECT().
-			ListPolicies(mock.Anything, mock.Anything, mock.Anything).
+			ListPolicies(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 			RunAndReturn(cfg.listPoliciesFunc).
 			Maybe()
 	}
 	if cfg.listGroupsFunc != nil {
 		queries.EXPECT().
-			ListGroups(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+			ListGroups(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 			RunAndReturn(cfg.listGroupsFunc).
 			Maybe()
 	}

@@ -31,6 +31,30 @@ func TestIAMService_CreatePolicy(t *testing.T) {
 	require.Equal(t, "v1", policy.DefaultVersion)
 }
 
+func TestIAMService_CreateOrganizationPolicyRequiresOwner(t *testing.T) {
+	t.Parallel()
+
+	svc, _ := newIAMTestUsecase(t)
+	input := entity.CreatePolicyInput{
+		Scope: entity.PolicyScopeOrganization,
+		Name:  "operations",
+		Statements: []entity.PolicyStatement{{
+			Effect:          entity.PolicyEffectAllow,
+			ActionPattern:   "organization:read",
+			ResourcePattern: "*",
+		}},
+	}
+
+	_, _, err := svc.CreatePolicy(context.Background(), input)
+	require.ErrorIs(t, err, entity.ErrInvalidPolicyOwner)
+
+	input.OrgID = "org-1"
+	policy, _, err := svc.CreatePolicy(context.Background(), input)
+	require.NoError(t, err)
+	require.Equal(t, "org-1", policy.OrgID)
+	require.Equal(t, entity.PolicyScopeOrganization, policy.Scope)
+}
+
 func TestIAMService_CreatePolicyVersionAndSetDefault(t *testing.T) {
 	t.Parallel()
 
@@ -46,6 +70,7 @@ func TestIAMService_CreatePolicyVersionAndSetDefault(t *testing.T) {
 	require.NoError(t, err)
 
 	version, statements, err := svc.CreatePolicyVersion(context.Background(), entity.CreatePolicyVersionInput{
+		Scope:      entity.PolicyScopeTenant,
 		PolicyName: policy.Name,
 		Statements: []entity.PolicyStatement{
 			{Effect: entity.PolicyEffectAllow, ActionPattern: "order:read", ResourcePattern: "*"},
@@ -57,7 +82,7 @@ func TestIAMService_CreatePolicyVersionAndSetDefault(t *testing.T) {
 	require.True(t, version.IsDefault)
 	require.Len(t, statements, 1)
 
-	gotPolicy, gotStatements, err := svc.GetPolicy(context.Background(), policy.Name)
+	gotPolicy, gotStatements, err := svc.GetPolicy(context.Background(), tenantPolicyRef(policy.Name))
 	require.NoError(t, err)
 	require.Equal(t, "v2", gotPolicy.DefaultVersion)
 	require.Len(t, gotStatements, 1)
@@ -77,6 +102,7 @@ func TestIAMService_DeleteNonDefaultPolicyVersion(t *testing.T) {
 	})
 	require.NoError(t, err)
 	_, _, err = svc.CreatePolicyVersion(context.Background(), entity.CreatePolicyVersionInput{
+		Scope:      entity.PolicyScopeTenant,
 		PolicyName: policy.Name,
 		Statements: []entity.PolicyStatement{
 			{Effect: entity.PolicyEffectAllow, ActionPattern: "order:read", ResourcePattern: "*"},
@@ -84,8 +110,12 @@ func TestIAMService_DeleteNonDefaultPolicyVersion(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	require.NoError(t, svc.DeletePolicyVersion(context.Background(), policy.Name, "v2"))
-	require.ErrorIs(t, svc.DeletePolicyVersion(context.Background(), policy.Name, "v1"), entity.ErrDefaultPolicyVersion)
+	require.NoError(t, svc.DeletePolicyVersion(context.Background(), tenantPolicyRef(policy.Name), "v2"))
+	require.ErrorIs(
+		t,
+		svc.DeletePolicyVersion(context.Background(), tenantPolicyRef(policy.Name), "v1"),
+		entity.ErrDefaultPolicyVersion,
+	)
 }
 
 func TestIAMService_GetPolicy(t *testing.T) {
@@ -109,7 +139,7 @@ func TestIAMService_GetPolicy(t *testing.T) {
 		},
 	}
 
-	policy, statements, err := svc.GetPolicy(context.Background(), "tenant/orders_editor")
+	policy, statements, err := svc.GetPolicy(context.Background(), tenantPolicyRef("tenant/orders_editor"))
 	require.NoError(t, err)
 	require.NotNil(t, policy)
 	require.Len(t, statements, 1)
@@ -133,7 +163,7 @@ func TestIAMService_ListPolicyAttachments(t *testing.T) {
 
 	page, err := svc.ListPolicyAttachments(
 		context.Background(),
-		"tenant/orders_editor",
+		tenantPolicyRef("tenant/orders_editor"),
 		collection.Query{},
 	)
 	require.NoError(t, err)
@@ -164,7 +194,7 @@ func TestIAMService_DeletePolicy(t *testing.T) {
 		},
 	}
 
-	require.NoError(t, svc.DeletePolicy(context.Background(), "tenant/orders_editor"))
+	require.NoError(t, svc.DeletePolicy(context.Background(), tenantPolicyRef("tenant/orders_editor")))
 	_, ok := state.policiesByName["tenant/orders_editor"]
 	require.False(t, ok)
 }
@@ -181,6 +211,10 @@ func TestIAMService_DeletePolicy_BlocksSystem(t *testing.T) {
 	}
 	state.policiesByID[5] = state.policiesByName["managed/tenant_owner"]
 
-	err := svc.DeletePolicy(context.Background(), "managed/tenant_owner")
+	err := svc.DeletePolicy(context.Background(), tenantPolicyRef("managed/tenant_owner"))
 	require.ErrorIs(t, err, entity.ErrImmutablePolicy)
+}
+
+func tenantPolicyRef(name string) entity.PolicyRef {
+	return entity.PolicyRef{Scope: entity.PolicyScopeTenant, Name: name}
 }

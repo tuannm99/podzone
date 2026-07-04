@@ -78,6 +78,7 @@ var (
 	ErrImmutableGroup          = errors.New("iam: system group cannot be deleted")
 	ErrPolicyInUse             = errors.New("iam: policy is still attached")
 	ErrInvalidPolicyName       = errors.New("iam: policy name is required")
+	ErrInvalidPolicyOwner      = errors.New("iam: policy owner does not match scope")
 	ErrPolicyVersionNotFound   = errors.New("iam: policy version not found")
 	ErrDefaultPolicyVersion    = errors.New("iam: default policy version cannot be deleted")
 	ErrInvalidAssumeRole       = errors.New("iam: invalid assume role target")

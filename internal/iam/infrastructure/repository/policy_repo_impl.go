@@ -39,10 +39,14 @@ func (r *PolicyRepositoryImpl) CreatePolicy(
 	if err := tx.GetContext(
 		ctx,
 		&created,
-		`INSERT INTO iam_policies (scope, name, description, is_system, default_version, created_at, updated_at)
-		 VALUES ($1, $2, $3, $4, 'v1', $5, $6)
-		 RETURNING id, scope, name, description, is_system, default_version, created_at, updated_at`,
+		`INSERT INTO iam_policies (
+		   scope, org_id, name, description, is_system, default_version, created_at, updated_at
+		 )
+		 VALUES ($1, NULLIF($2, ''), $3, $4, $5, 'v1', $6, $7)
+		 RETURNING id, scope, COALESCE(org_id, '') AS org_id, name, description,
+		           is_system, default_version, created_at, updated_at`,
 		policy.Scope,
+		policy.OrgID,
 		policy.Name,
 		policy.Description,
 		policy.IsSystem,
@@ -105,17 +109,24 @@ func (r *PolicyRepositoryImpl) CreatePolicy(
 	return &entity, outStatements, nil
 }
 
-func (r *PolicyRepositoryImpl) GetPolicyByName(ctx context.Context, name string) (*entity.Policy, error) {
+func (r *PolicyRepositoryImpl) GetPolicy(
+	ctx context.Context,
+	ref entity.PolicyRef,
+) (*entity.Policy, error) {
 	var out policyModel
 	if err := r.db.GetContext(
 		ctx,
 		&out,
-		`SELECT id, scope, name, description, is_system, default_version, created_at, updated_at
-		 FROM iam_policies WHERE name = $1`,
-		name,
+		`SELECT id, scope, COALESCE(org_id, '') AS org_id, name, description,
+		        is_system, default_version, created_at, updated_at
+		 FROM iam_policies
+		 WHERE scope = $1 AND COALESCE(org_id, '') = $2 AND name = $3`,
+		ref.Scope,
+		ref.OrgID,
+		ref.Name,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, entity.ErrRoleNotFound
+			return nil, entity.ErrPolicyNotFound
 		}
 		return nil, err
 	}
@@ -146,6 +157,7 @@ func (r *PolicyRepositoryImpl) GetPolicyStatements(
 func (r *PolicyRepositoryImpl) ListPolicies(
 	ctx context.Context,
 	scope string,
+	orgID string,
 	queryArg collection.Query,
 ) (collection.Page[entity.Policy], error) {
 	normalized, where, orderBy, err := buildIAMCollectionQuery(
@@ -160,6 +172,7 @@ func (r *PolicyRepositoryImpl) ListPolicies(
 	if scope != "" {
 		where = append(where, sq.Eq{"scope": scope})
 	}
+	where = append(where, sq.Expr("COALESCE(org_id, '') = ?", orgID))
 	countBuilder := sq.Select("COUNT(*)").From("iam_policies")
 	for _, predicate := range where {
 		countBuilder = countBuilder.Where(predicate)
@@ -176,6 +189,7 @@ func (r *PolicyRepositoryImpl) ListPolicies(
 	builder := sq.Select(
 		"id",
 		"scope",
+		"COALESCE(org_id, '') AS org_id",
 		"name",
 		"description",
 		"is_system",
@@ -724,6 +738,44 @@ func (r *PolicyRepositoryImpl) ListPlatformGroupStatements(
 		 ) group_statements
 		 ORDER BY created_at ASC, policy_name ASC, action_pattern ASC`,
 		userID,
+	); err != nil {
+		return nil, err
+	}
+	return toPolicyStatements(rows), nil
+}
+
+func (r *PolicyRepositoryImpl) ListOrganizationGroupStatements(
+	ctx context.Context,
+	orgID string,
+	userID uint,
+) ([]entity.PolicyStatement, error) {
+	var rows []policyStatementModel
+	if err := r.db.SelectContext(
+		ctx,
+		&rows,
+		`SELECT id, policy_id, policy_name, effect, action_pattern,
+		        resource_pattern, conditions_json, created_at
+		 FROM (
+		   SELECT ps.id, ps.policy_id, p.name AS policy_name, ps.effect,
+		          ps.action_pattern, ps.resource_pattern, ps.conditions_json, ps.created_at
+		   FROM iam_policy_statements ps
+		   JOIN iam_policies p ON p.id = ps.policy_id
+		   JOIN iam_group_policy_attachments gpa ON gpa.policy_id = p.id
+		   JOIN iam_group_members gm ON gm.group_id = gpa.group_id
+		   JOIN iam_groups g ON g.id = gpa.group_id
+		   WHERE gm.user_id = $1 AND g.scope = 'organization' AND g.org_id = $2
+		   UNION ALL
+		   SELECT 0 AS id, 0 AS policy_id, gps.policy_name AS policy_name,
+		          gps.effect, gps.action_pattern, gps.resource_pattern,
+		          '[]' AS conditions_json, gps.created_at
+		   FROM iam_group_inline_policy_statements gps
+		   JOIN iam_group_members gm ON gm.group_id = gps.group_id
+		   JOIN iam_groups g ON g.id = gps.group_id
+		   WHERE gm.user_id = $1 AND g.scope = 'organization' AND g.org_id = $2
+		 ) group_statements
+		 ORDER BY created_at ASC, policy_name ASC, action_pattern ASC`,
+		userID,
+		orgID,
 	); err != nil {
 		return nil, err
 	}

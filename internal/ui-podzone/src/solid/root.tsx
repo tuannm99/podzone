@@ -43,7 +43,7 @@ export default function Root() {
           <TenantWorkspaceProvider tenantId={tenantId()}>
             <PodzoneNavbar />
             <main class="pb-8 lg:pl-64">
-              <Container class="mt-5" width="7xl">
+              <Container class="mt-5" width="2xl">
                 <div class="grid min-h-0 grid-cols-1 gap-0 xl:grid-cols-[minmax(0,1fr)]">
                   <Outlet />
                 </div>
@@ -55,7 +55,7 @@ export default function Root() {
         <Match when={true}>
           <PodzoneNavbar />
           <main class="pb-8 lg:pl-64">
-            <Container class="mt-5" width="7xl">
+            <Container class="mt-5" width="2xl">
               <div class="grid min-h-0 grid-cols-1 gap-0 xl:grid-cols-[minmax(0,1fr)]">
                 <Outlet />
               </div>

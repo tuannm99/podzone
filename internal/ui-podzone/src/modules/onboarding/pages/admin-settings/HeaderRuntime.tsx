@@ -3,7 +3,6 @@ import { GW_API_URL, TENANT_GQL_URL } from '@/services/baseurl'
 import { tenantStorage } from '@/services/tenantStorage'
 import { InfoAlert, LoadingInline } from '@/solid/components/common/Feedback'
 import { Badge, Button, Card } from '@/solid/components/common/Primitives'
-import { SectionLead } from '@/solid/components/common/SectionLead'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'
 import { useAdminSettings } from './context'
 
@@ -12,11 +11,10 @@ export function HeaderRuntime() {
 
   return (
     <>
-      <Card class="space-y-4">
-        <SectionLead
-          eyebrow="Settings"
-          title="Manage workspace access, sessions, and platform controls."
-          copy="This area brings together the operational controls behind the backoffice: current sessions, workspace access, workspace invites, and platform administration."
+      <section class="flex flex-col gap-4 border-b border-gray-200 pb-5 lg:flex-row lg:items-center lg:justify-between">
+        <SectionTitle
+          title="Environment overview"
+          subtitle="Runtime targets, local session context, and available administration access."
         />
         <div class="flex flex-wrap gap-3">
           <Button
@@ -29,9 +27,11 @@ export function HeaderRuntime() {
           </Button>
         </div>
         <Show when={!platformRoles.canManage()}>
-          <InfoAlert>Platform IAM is not available in this session.</InfoAlert>
+          <span class="self-center text-sm text-gray-500">
+            Platform IAM is unavailable for this session.
+          </span>
         </Show>
-      </Card>
+      </section>
 
       <Show when={workspaceAccess.loadingAccess()}>
         <LoadingInline label="Checking workspace access permissions..." />

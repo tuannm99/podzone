@@ -17,8 +17,7 @@ import (
 func NewMockPolicyRepository(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *MockPolicyRepository {
+}) *MockPolicyRepository {
 	mock := &MockPolicyRepository{}
 	mock.Mock.Test(t)
 
@@ -1062,55 +1061,55 @@ func (_c *MockPolicyRepository_GetPlatformUserPermissionBoundaryStatements_Call)
 	return _c
 }
 
-// GetPolicyByName provides a mock function for the type MockPolicyRepository
-func (_mock *MockPolicyRepository) GetPolicyByName(ctx context.Context, name string) (*entity.Policy, error) {
-	ret := _mock.Called(ctx, name)
+// GetPolicy provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) GetPolicy(ctx context.Context, ref entity.PolicyRef) (*entity.Policy, error) {
+	ret := _mock.Called(ctx, ref)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetPolicyByName")
+		panic("no return value specified for GetPolicy")
 	}
 
 	var r0 *entity.Policy
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*entity.Policy, error)); ok {
-		return returnFunc(ctx, name)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.PolicyRef) (*entity.Policy, error)); ok {
+		return returnFunc(ctx, ref)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *entity.Policy); ok {
-		r0 = returnFunc(ctx, name)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.PolicyRef) *entity.Policy); ok {
+		r0 = returnFunc(ctx, ref)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*entity.Policy)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, name)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, entity.PolicyRef) error); ok {
+		r1 = returnFunc(ctx, ref)
 	} else {
 		r1 = ret.Error(1)
 	}
 	return r0, r1
 }
 
-// MockPolicyRepository_GetPolicyByName_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPolicyByName'
-type MockPolicyRepository_GetPolicyByName_Call struct {
+// MockPolicyRepository_GetPolicy_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPolicy'
+type MockPolicyRepository_GetPolicy_Call struct {
 	*mock.Call
 }
 
-// GetPolicyByName is a helper method to define mock.On call
+// GetPolicy is a helper method to define mock.On call
 //   - ctx context.Context
-//   - name string
-func (_e *MockPolicyRepository_Expecter) GetPolicyByName(ctx interface{}, name interface{}) *MockPolicyRepository_GetPolicyByName_Call {
-	return &MockPolicyRepository_GetPolicyByName_Call{Call: _e.mock.On("GetPolicyByName", ctx, name)}
+//   - ref entity.PolicyRef
+func (_e *MockPolicyRepository_Expecter) GetPolicy(ctx interface{}, ref interface{}) *MockPolicyRepository_GetPolicy_Call {
+	return &MockPolicyRepository_GetPolicy_Call{Call: _e.mock.On("GetPolicy", ctx, ref)}
 }
 
-func (_c *MockPolicyRepository_GetPolicyByName_Call) Run(run func(ctx context.Context, name string)) *MockPolicyRepository_GetPolicyByName_Call {
+func (_c *MockPolicyRepository_GetPolicy_Call) Run(run func(ctx context.Context, ref entity.PolicyRef)) *MockPolicyRepository_GetPolicy_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 entity.PolicyRef
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(entity.PolicyRef)
 		}
 		run(
 			arg0,
@@ -1120,12 +1119,12 @@ func (_c *MockPolicyRepository_GetPolicyByName_Call) Run(run func(ctx context.Co
 	return _c
 }
 
-func (_c *MockPolicyRepository_GetPolicyByName_Call) Return(policy *entity.Policy, err error) *MockPolicyRepository_GetPolicyByName_Call {
+func (_c *MockPolicyRepository_GetPolicy_Call) Return(policy *entity.Policy, err error) *MockPolicyRepository_GetPolicy_Call {
 	_c.Call.Return(policy, err)
 	return _c
 }
 
-func (_c *MockPolicyRepository_GetPolicyByName_Call) RunAndReturn(run func(ctx context.Context, name string) (*entity.Policy, error)) *MockPolicyRepository_GetPolicyByName_Call {
+func (_c *MockPolicyRepository_GetPolicy_Call) RunAndReturn(run func(ctx context.Context, ref entity.PolicyRef) (*entity.Policy, error)) *MockPolicyRepository_GetPolicy_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1426,6 +1425,80 @@ func (_c *MockPolicyRepository_GetTenantUserPermissionBoundaryStatements_Call) R
 	return _c
 }
 
+// ListOrganizationGroupStatements provides a mock function for the type MockPolicyRepository
+func (_mock *MockPolicyRepository) ListOrganizationGroupStatements(ctx context.Context, orgID string, userID uint) ([]entity.PolicyStatement, error) {
+	ret := _mock.Called(ctx, orgID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListOrganizationGroupStatements")
+	}
+
+	var r0 []entity.PolicyStatement
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) ([]entity.PolicyStatement, error)); ok {
+		return returnFunc(ctx, orgID, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) []entity.PolicyStatement); ok {
+		r0 = returnFunc(ctx, orgID, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]entity.PolicyStatement)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint) error); ok {
+		r1 = returnFunc(ctx, orgID, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockPolicyRepository_ListOrganizationGroupStatements_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListOrganizationGroupStatements'
+type MockPolicyRepository_ListOrganizationGroupStatements_Call struct {
+	*mock.Call
+}
+
+// ListOrganizationGroupStatements is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orgID string
+//   - userID uint
+func (_e *MockPolicyRepository_Expecter) ListOrganizationGroupStatements(ctx interface{}, orgID interface{}, userID interface{}) *MockPolicyRepository_ListOrganizationGroupStatements_Call {
+	return &MockPolicyRepository_ListOrganizationGroupStatements_Call{Call: _e.mock.On("ListOrganizationGroupStatements", ctx, orgID, userID)}
+}
+
+func (_c *MockPolicyRepository_ListOrganizationGroupStatements_Call) Run(run func(ctx context.Context, orgID string, userID uint)) *MockPolicyRepository_ListOrganizationGroupStatements_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPolicyRepository_ListOrganizationGroupStatements_Call) Return(policyStatements []entity.PolicyStatement, err error) *MockPolicyRepository_ListOrganizationGroupStatements_Call {
+	_c.Call.Return(policyStatements, err)
+	return _c
+}
+
+func (_c *MockPolicyRepository_ListOrganizationGroupStatements_Call) RunAndReturn(run func(ctx context.Context, orgID string, userID uint) ([]entity.PolicyStatement, error)) *MockPolicyRepository_ListOrganizationGroupStatements_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListPlatformGroupStatements provides a mock function for the type MockPolicyRepository
 func (_mock *MockPolicyRepository) ListPlatformGroupStatements(ctx context.Context, userID uint) ([]entity.PolicyStatement, error) {
 	ret := _mock.Called(ctx, userID)
@@ -1707,8 +1780,8 @@ func (_c *MockPolicyRepository_ListPlatformUserStatements_Call) RunAndReturn(run
 }
 
 // ListPolicies provides a mock function for the type MockPolicyRepository
-func (_mock *MockPolicyRepository) ListPolicies(ctx context.Context, scope string, query collection.Query) (collection.Page[entity.Policy], error) {
-	ret := _mock.Called(ctx, scope, query)
+func (_mock *MockPolicyRepository) ListPolicies(ctx context.Context, scope string, orgID string, query collection.Query) (collection.Page[entity.Policy], error) {
+	ret := _mock.Called(ctx, scope, orgID, query)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListPolicies")
@@ -1716,16 +1789,16 @@ func (_mock *MockPolicyRepository) ListPolicies(ctx context.Context, scope strin
 
 	var r0 collection.Page[entity.Policy]
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) (collection.Page[entity.Policy], error)); ok {
-		return returnFunc(ctx, scope, query)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, collection.Query) (collection.Page[entity.Policy], error)); ok {
+		return returnFunc(ctx, scope, orgID, query)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) collection.Page[entity.Policy]); ok {
-		r0 = returnFunc(ctx, scope, query)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, collection.Query) collection.Page[entity.Policy]); ok {
+		r0 = returnFunc(ctx, scope, orgID, query)
 	} else {
 		r0 = ret.Get(0).(collection.Page[entity.Policy])
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, collection.Query) error); ok {
-		r1 = returnFunc(ctx, scope, query)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, collection.Query) error); ok {
+		r1 = returnFunc(ctx, scope, orgID, query)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1740,12 +1813,13 @@ type MockPolicyRepository_ListPolicies_Call struct {
 // ListPolicies is a helper method to define mock.On call
 //   - ctx context.Context
 //   - scope string
+//   - orgID string
 //   - query collection.Query
-func (_e *MockPolicyRepository_Expecter) ListPolicies(ctx interface{}, scope interface{}, query interface{}) *MockPolicyRepository_ListPolicies_Call {
-	return &MockPolicyRepository_ListPolicies_Call{Call: _e.mock.On("ListPolicies", ctx, scope, query)}
+func (_e *MockPolicyRepository_Expecter) ListPolicies(ctx interface{}, scope interface{}, orgID interface{}, query interface{}) *MockPolicyRepository_ListPolicies_Call {
+	return &MockPolicyRepository_ListPolicies_Call{Call: _e.mock.On("ListPolicies", ctx, scope, orgID, query)}
 }
 
-func (_c *MockPolicyRepository_ListPolicies_Call) Run(run func(ctx context.Context, scope string, query collection.Query)) *MockPolicyRepository_ListPolicies_Call {
+func (_c *MockPolicyRepository_ListPolicies_Call) Run(run func(ctx context.Context, scope string, orgID string, query collection.Query)) *MockPolicyRepository_ListPolicies_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -1755,14 +1829,19 @@ func (_c *MockPolicyRepository_ListPolicies_Call) Run(run func(ctx context.Conte
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
-		var arg2 collection.Query
+		var arg2 string
 		if args[2] != nil {
-			arg2 = args[2].(collection.Query)
+			arg2 = args[2].(string)
+		}
+		var arg3 collection.Query
+		if args[3] != nil {
+			arg3 = args[3].(collection.Query)
 		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
 		)
 	})
 	return _c
@@ -1773,7 +1852,7 @@ func (_c *MockPolicyRepository_ListPolicies_Call) Return(page collection.Page[en
 	return _c
 }
 
-func (_c *MockPolicyRepository_ListPolicies_Call) RunAndReturn(run func(ctx context.Context, scope string, query collection.Query) (collection.Page[entity.Policy], error)) *MockPolicyRepository_ListPolicies_Call {
+func (_c *MockPolicyRepository_ListPolicies_Call) RunAndReturn(run func(ctx context.Context, scope string, orgID string, query collection.Query) (collection.Page[entity.Policy], error)) *MockPolicyRepository_ListPolicies_Call {
 	_c.Call.Return(run)
 	return _c
 }

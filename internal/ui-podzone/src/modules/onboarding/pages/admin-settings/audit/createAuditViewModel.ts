@@ -1,7 +1,8 @@
 import { listAuditLogs, type AuditLogInfo } from '@/services/auth'
 import { createPaginatedResource } from '@/solid/pagination'
+import type { Accessor } from 'solid-js'
 
-export function createAuditViewModel() {
+export function createAuditViewModel(enabled: Accessor<boolean>) {
   return createPaginatedResource<AuditLogInfo>(
     {
       page: 1,
@@ -13,7 +14,8 @@ export function createAuditViewModel() {
       const result = await listAuditLogs(query)
       if (!result.success) throw new Error(result.data.message)
       return result.data
-    }
+    },
+    { enabled }
   )
 }
 

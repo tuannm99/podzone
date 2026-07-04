@@ -11,9 +11,14 @@ import {
 import { createPaginatedResource } from '@/solid/pagination'
 import { prettyJSON } from '../presentation'
 
-export function createGroupsState(enabled: Accessor<boolean>) {
+export function createGroupsState(
+  enabled: Accessor<boolean>,
+  selectedOrgId: Accessor<string>
+) {
   const [selectedGroupId, setSelectedGroupId] = createSignal('')
-  const [groupScope, setGroupScope] = createSignal('platform')
+  const [groupScope, setGroupScope] = createSignal('organization')
+  const groupOrgId = () =>
+    groupScope() === 'organization' ? selectedOrgId().trim() : ''
   const [groupTenantId, setGroupTenantId] = createSignal('')
   const [groupName, setGroupName] = createSignal('')
   const [groupDescription, setGroupDescription] = createSignal('')
@@ -27,13 +32,20 @@ export function createGroupsState(enabled: Accessor<boolean>) {
     async (query) => {
       const result = await listGroups(
         groupScope(),
+        groupOrgId() || undefined,
         groupScope() === 'tenant' ? groupTenantId().trim() : undefined,
         query
       )
       if (!result.success) throw new Error(result.message)
       return result.data
     },
-    { enabled }
+    {
+      enabled: () =>
+        enabled() &&
+        (groupScope() !== 'organization' || groupOrgId().length > 0),
+      dependency: () =>
+        `${groupScope()}:${groupOrgId()}:${groupTenantId().trim()}`,
+    }
   )
   const selectedGroupID = () => Number.parseInt(selectedGroupId().trim(), 10)
   const childEnabled = () =>
@@ -137,6 +149,7 @@ export function createGroupsState(enabled: Accessor<boolean>) {
     clearGroupInlinePolicies: inlinePolicies.clear,
     groupScope,
     setGroupScope,
+    groupOrgId,
     groupTenantId,
     setGroupTenantId,
     groupName,

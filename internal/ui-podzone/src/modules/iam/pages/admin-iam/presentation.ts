@@ -1,9 +1,11 @@
 export const policyScopeOptions = [
+  { name: 'Organization', value: 'organization' },
   { name: 'Platform', value: 'platform' },
   { name: 'Tenant', value: 'tenant' },
 ]
 
 export const groupScopeOptions = [
+  { name: 'Organization', value: 'organization' },
   { name: 'Platform', value: 'platform' },
   { name: 'Tenant', value: 'tenant' },
 ]

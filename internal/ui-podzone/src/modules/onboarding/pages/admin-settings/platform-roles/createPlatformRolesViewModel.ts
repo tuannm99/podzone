@@ -1,4 +1,4 @@
-import { createSignal } from 'solid-js'
+import { createSignal, type Accessor } from 'solid-js'
 import {
   listPlatformRoles,
   removePlatformRole,
@@ -8,7 +8,10 @@ import { createPaginatedResource } from '@/solid/pagination'
 import type { PlatformRoleFormValues } from '../forms'
 import { platformRoleOptions } from '../presentation'
 
-export function createPlatformRolesViewModel(userID: number) {
+export function createPlatformRolesViewModel(
+  userID: number,
+  enabled: Accessor<boolean>
+) {
   const [userId, setUserId] = createSignal(userID ? String(userID) : '')
   const [selectedUserID, setSelectedUserID] = createSignal(userID)
   const [roleName, setRoleName] = createSignal(platformRoleOptions[1].value)
@@ -28,7 +31,8 @@ export function createPlatformRolesViewModel(userID: number) {
       return result.data
     },
     {
-      enabled: () => Number.isFinite(selectedUserID()) && selectedUserID() > 0,
+      enabled: () =>
+        enabled() && Number.isFinite(selectedUserID()) && selectedUserID() > 0,
       dependency: selectedUserID,
     }
   )

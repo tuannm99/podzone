@@ -28,7 +28,11 @@ export function AdminIamView(props: { model: AdminIamViewModel }) {
     const allSections = props.model.sectionLinks as IamSection[]
     if (props.model.feedback.canManagePlatform()) return allSections
     return allSections.filter(
-      (section) => section.id === 'iam-orgs' || section.id === 'iam-assignments'
+      (section) =>
+        section.id === 'iam-orgs' ||
+        section.id === 'iam-policies' ||
+        section.id === 'iam-groups' ||
+        section.id === 'iam-assignments'
     )
   }
   const [activeSection, setActiveSection] =

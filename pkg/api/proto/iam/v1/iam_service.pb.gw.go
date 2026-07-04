@@ -1131,6 +1131,8 @@ func local_request_IAMService_CreatePolicyVersion_0(ctx context.Context, marshal
 	return msg, metadata, err
 }
 
+var filter_IAMService_GetPolicy_0 = &utilities.DoubleArray{Encoding: map[string]int{"name": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+
 func request_IAMService_GetPolicy_0(ctx context.Context, marshaler runtime.Marshaler, client IAMServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq GetPolicyRequest
@@ -1147,6 +1149,12 @@ func request_IAMService_GetPolicy_0(ctx context.Context, marshaler runtime.Marsh
 	protoReq.Name, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_GetPolicy_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := client.GetPolicy(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -1165,6 +1173,12 @@ func local_request_IAMService_GetPolicy_0(ctx context.Context, marshaler runtime
 	protoReq.Name, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_GetPolicy_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := server.GetPolicy(ctx, &protoReq)
 	return msg, metadata, err
@@ -1284,6 +1298,8 @@ func local_request_IAMService_SetDefaultPolicyVersion_0(ctx context.Context, mar
 	return msg, metadata, err
 }
 
+var filter_IAMService_DeletePolicyVersion_0 = &utilities.DoubleArray{Encoding: map[string]int{"name": 0, "version": 1}, Base: []int{1, 1, 2, 0, 0}, Check: []int{0, 1, 1, 2, 3}}
+
 func request_IAMService_DeletePolicyVersion_0(ctx context.Context, marshaler runtime.Marshaler, client IAMServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq DeletePolicyVersionRequest
@@ -1308,6 +1324,12 @@ func request_IAMService_DeletePolicyVersion_0(ctx context.Context, marshaler run
 	protoReq.Version, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "version", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_DeletePolicyVersion_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := client.DeletePolicyVersion(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -1334,6 +1356,12 @@ func local_request_IAMService_DeletePolicyVersion_0(ctx context.Context, marshal
 	protoReq.Version, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "version", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_DeletePolicyVersion_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := server.DeletePolicyVersion(ctx, &protoReq)
 	return msg, metadata, err
@@ -1427,6 +1455,8 @@ func local_request_IAMService_ListPolicyAttachments_0(ctx context.Context, marsh
 	return msg, metadata, err
 }
 
+var filter_IAMService_DeletePolicy_0 = &utilities.DoubleArray{Encoding: map[string]int{"name": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+
 func request_IAMService_DeletePolicy_0(ctx context.Context, marshaler runtime.Marshaler, client IAMServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq DeletePolicyRequest
@@ -1443,6 +1473,12 @@ func request_IAMService_DeletePolicy_0(ctx context.Context, marshaler runtime.Ma
 	protoReq.Name, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_DeletePolicy_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := client.DeletePolicy(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -1461,6 +1497,12 @@ func local_request_IAMService_DeletePolicy_0(ctx context.Context, marshaler runt
 	protoReq.Name, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_IAMService_DeletePolicy_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := server.DeletePolicy(ctx, &protoReq)
 	return msg, metadata, err

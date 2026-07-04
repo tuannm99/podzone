@@ -12,9 +12,11 @@ type GroupUsecase interface {
 	ListGroups(
 		ctx context.Context,
 		scope string,
+		orgID string,
 		tenantID string,
 		query collection.Query,
 	) (collection.Page[entity.Group], error)
+	GetGroup(ctx context.Context, groupID uint64) (*entity.Group, error)
 	DeleteGroup(ctx context.Context, groupID uint64) error
 	PutGroupInlinePolicy(ctx context.Context, input entity.PutGroupInlinePolicyInput) error
 	GetGroupInlinePolicy(ctx context.Context, groupID uint64, name string) (*entity.GroupInlinePolicy, error)

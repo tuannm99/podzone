@@ -28,6 +28,10 @@ export function createPoliciesActions(
       )
       const result = await createPolicy({
         scope: values.scope,
+        orgId:
+          values.scope === 'organization'
+            ? state.selectedOrgId().trim()
+            : undefined,
         name: values.name.trim(),
         description: values.description.trim(),
         statements,
@@ -59,6 +63,8 @@ export function createPoliciesActions(
       )
       const result = await createPolicyVersion({
         name: state.selectedPolicyName().trim(),
+        scope: state.policyScope(),
+        orgId: state.policyOrgId() || undefined,
         statements,
         setAsDefault: false,
       })
@@ -78,7 +84,7 @@ export function createPoliciesActions(
   const handleDeletePolicy = () =>
     runAction(async () => {
       const name = state.selectedPolicyName().trim()
-      const result = await deletePolicy(name)
+      const result = await deletePolicy(state.policyRef(name))
       if (!result.success) throw new Error(result.message)
       state.setPageMessage(`Deleted policy ${name}.`)
       state.setPolicyDetail(undefined)
@@ -91,7 +97,10 @@ export function createPoliciesActions(
   const handleSetDefaultVersion = (version: string) =>
     runAction(async () => {
       const policyName = state.selectedPolicyName().trim()
-      const result = await setDefaultPolicyVersion(policyName, version)
+      const result = await setDefaultPolicyVersion(
+        state.policyRef(policyName),
+        version
+      )
       if (!result.success) throw new Error(result.message)
       state.setPageMessage(`Set ${version} as default for ${policyName}.`)
       await loaders.loadSelectedPolicy()
@@ -99,10 +108,7 @@ export function createPoliciesActions(
 
   const handleDeleteVersion = (version: string) =>
     runAction(async () => {
-      const result = await deletePolicyVersion(
-        state.selectedPolicyName().trim(),
-        version
-      )
+      const result = await deletePolicyVersion(state.policyRef(), version)
       if (!result.success) throw new Error(result.message)
       state.setPageMessage(`Deleted policy version ${version}.`)
       await loaders.loadSelectedPolicy()

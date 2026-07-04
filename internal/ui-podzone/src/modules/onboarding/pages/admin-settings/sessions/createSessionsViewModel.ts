@@ -2,7 +2,10 @@ import { createSignal, type Accessor } from 'solid-js'
 import { listSessions, revokeSession, type SessionInfo } from '@/services/auth'
 import { createPaginatedResource } from '@/solid/pagination'
 
-export function createSessionsViewModel(sessionID: Accessor<string>) {
+export function createSessionsViewModel(
+  sessionID: Accessor<string>,
+  enabled: Accessor<boolean>
+) {
   const list = createPaginatedResource<SessionInfo>(
     {
       page: 1,
@@ -14,7 +17,8 @@ export function createSessionsViewModel(sessionID: Accessor<string>) {
       const result = await listSessions(query)
       if (!result.success) throw new Error(result.data.message)
       return result.data
-    }
+    },
+    { enabled }
   )
   const [mutationError, setMutationError] = createSignal('')
   const [message, setMessage] = createSignal('')

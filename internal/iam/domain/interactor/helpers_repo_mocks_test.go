@@ -99,11 +99,14 @@ func configurePolicyRepoMocks(policyRepo *outputportmocks.MockPolicyRepository, 
 		}).
 		Maybe()
 	policyRepo.EXPECT().
-		GetPolicyByName(mock.Anything, mock.Anything).
-		RunAndReturn(func(ctx context.Context, name string) (*entity.Policy, error) {
-			policy, ok := state.policiesByName[name]
+		GetPolicy(mock.Anything, mock.Anything).
+		RunAndReturn(func(ctx context.Context, ref entity.PolicyRef) (*entity.Policy, error) {
+			policy, ok := state.policiesByName[ref.Name]
 			if !ok {
-				return nil, entity.ErrRoleNotFound
+				return nil, entity.ErrPolicyNotFound
+			}
+			if policy.Scope != ref.Scope || policy.OrgID != ref.OrgID {
+				return nil, entity.ErrPolicyNotFound
 			}
 			copyPolicy := policy
 			return &copyPolicy, nil
@@ -146,15 +149,16 @@ func configurePolicyRepoMocks(policyRepo *outputportmocks.MockPolicyRepository, 
 		}).
 		Maybe()
 	policyRepo.EXPECT().
-		ListPolicies(mock.Anything, mock.Anything, mock.Anything).
+		ListPolicies(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 		RunAndReturn(func(
 			ctx context.Context,
 			scope string,
+			orgID string,
 			query collection.Query,
 		) (collection.Page[entity.Policy], error) {
 			out := make([]entity.Policy, 0)
 			for _, policy := range state.policiesByName {
-				if scope == "" || policy.Scope == scope {
+				if (scope == "" || policy.Scope == scope) && policy.OrgID == orgID {
 					out = append(out, policy)
 				}
 			}
@@ -567,10 +571,11 @@ func configureGroupRepoMocks(groupRepo *outputportmocks.MockGroupRepository, sta
 		}).
 		Maybe()
 	groupRepo.EXPECT().
-		ListGroups(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		ListGroups(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 		RunAndReturn(func(
 			ctx context.Context,
 			scope string,
+			orgID string,
 			tenantID string,
 			query collection.Query,
 		) (collection.Page[entity.Group], error) {
@@ -580,6 +585,9 @@ func configureGroupRepoMocks(groupRepo *outputportmocks.MockGroupRepository, sta
 					continue
 				}
 				if tenantID != "" && group.TenantID != tenantID {
+					continue
+				}
+				if orgID != "" && group.OrgID != orgID {
 					continue
 				}
 				out = append(out, group)
