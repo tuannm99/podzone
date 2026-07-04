@@ -328,6 +328,7 @@ func newIAMTestUsecase(t *testing.T) (inputport.IAMUsecase, *iamTestState) {
 		membershipRepo,
 		inviteRepo,
 		outboxRepo,
+		nil,
 	), state
 }
 

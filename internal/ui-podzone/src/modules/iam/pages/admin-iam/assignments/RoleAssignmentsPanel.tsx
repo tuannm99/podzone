@@ -1,16 +1,23 @@
 import { Show, type Accessor, type Setter } from 'solid-js'
 import {
   Button,
-  InputField,
   SelectField,
   type SelectOption,
 } from '@/solid/components/common/Primitives'
+import {
+  SearchSelectField,
+  type SearchSelectOption,
+} from '@/solid/components/common/SearchSelectField'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'
 
 type RoleAssignmentsPanelProps = {
   canManagePlatform: Accessor<boolean>
   shortcutPlatformUserId: Accessor<string>
   setShortcutPlatformUserId: Setter<string>
+  platformUserOptions: Accessor<SearchSelectOption[]>
+  platformUsersLoading: Accessor<boolean>
+  platformUsersError: Accessor<string>
+  searchPlatformUsers: (search: string) => void
   shortcutPlatformRoleName: Accessor<string>
   setShortcutPlatformRoleName: Setter<string>
   platformRoleOptions: SelectOption[]
@@ -20,6 +27,10 @@ type RoleAssignmentsPanelProps = {
   setShortcutTenantId: Setter<string>
   shortcutTenantUserId: Accessor<string>
   setShortcutTenantUserId: Setter<string>
+  tenantUserOptions: Accessor<SearchSelectOption[]>
+  tenantUsersLoading: Accessor<boolean>
+  tenantUsersError: Accessor<string>
+  searchTenantUsers: (search: string) => void
   shortcutTenantRoleName: Accessor<string>
   setShortcutTenantRoleName: Setter<string>
   tenantOptions: Accessor<SelectOption[]>
@@ -42,12 +53,15 @@ export function RoleAssignmentsPanel(props: RoleAssignmentsPanelProps) {
         <Show when={props.canManagePlatform()}>
           <section class="space-y-3 border-b border-gray-200 pb-6 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-6">
             <p class="text-sm font-semibold text-gray-900">Platform role</p>
-            <InputField
-              label="Target user id"
+            <SearchSelectField
+              label="User"
               value={props.shortcutPlatformUserId()}
-              onInput={(event) =>
-                props.setShortcutPlatformUserId(event.currentTarget.value)
-              }
+              options={props.platformUserOptions()}
+              loading={props.platformUsersLoading()}
+              error={props.platformUsersError()}
+              onSearch={props.searchPlatformUsers}
+              onChange={props.setShortcutPlatformUserId}
+              placeholder="Search name, username, or email"
             />
             <SelectField
               label="Platform role"
@@ -89,12 +103,15 @@ export function RoleAssignmentsPanel(props: RoleAssignmentsPanelProps) {
               props.setShortcutTenantId(event.currentTarget.value)
             }
           />
-          <InputField
-            label="Target user id"
+          <SearchSelectField
+            label="User"
             value={props.shortcutTenantUserId()}
-            onInput={(event) =>
-              props.setShortcutTenantUserId(event.currentTarget.value)
-            }
+            options={props.tenantUserOptions()}
+            loading={props.tenantUsersLoading()}
+            error={props.tenantUsersError()}
+            onSearch={props.searchTenantUsers}
+            onChange={props.setShortcutTenantUserId}
+            placeholder="Search name, username, or email"
           />
           <SelectField
             label="Workspace role"

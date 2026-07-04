@@ -98,6 +98,7 @@ export function PoliciesPanel() {
         />
         <IamStatementBuilder
           label="Statements"
+          actionOptions={policy.permissionOptions()}
           value={createPolicyForm.values.statementsJson}
           onChange={(value) =>
             createPolicyForm.setValue('statementsJson', value)
@@ -149,6 +150,7 @@ export function PoliciesPanel() {
 
       <IamStatementBuilder
         label="New version statements"
+        actionOptions={policy.permissionOptions()}
         value={versionForm.values.statementsJson}
         onChange={(value) => versionForm.setValue('statementsJson', value)}
       />

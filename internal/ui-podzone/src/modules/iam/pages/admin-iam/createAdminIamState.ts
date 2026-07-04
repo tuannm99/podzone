@@ -1,4 +1,5 @@
 import { createAssignmentsState } from './assignments/createAssignmentsState'
+import { createDirectoryViewModel } from './directory/createDirectoryViewModel'
 import { createGroupsState } from './groups/createGroupsState'
 import { createOrganizationsState } from './organizations/createOrganizationsState'
 import { createPoliciesState } from './policies/createPoliciesState'
@@ -13,12 +14,20 @@ export function createAdminIamState(userID: number) {
     shell.allowed,
     shell.setCanManagePlatform
   )
+  const assignments = createAssignmentsState(userID)
+  const directory = createDirectoryViewModel({
+    allowed: shell.allowed,
+    canManagePlatform: shell.canManagePlatform,
+    selectedOrgId: organizations.selectedOrgId,
+    selectedTenantId: assignments.shortcutTenantId,
+  })
   return {
     ...shell,
     ...organizations,
     ...createPoliciesState(shell.allowed, organizations.selectedOrgId),
     ...createGroupsState(shell.allowed, organizations.selectedOrgId),
-    ...createAssignmentsState(userID),
+    ...assignments,
+    ...directory,
     ...createPrincipalsState(userID, platformEnabled),
     ...createTrustSimulationState(userID),
   }

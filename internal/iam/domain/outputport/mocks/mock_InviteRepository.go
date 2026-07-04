@@ -18,8 +18,7 @@ import (
 func NewMockInviteRepository(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *MockInviteRepository {
+}) *MockInviteRepository {
 	mock := &MockInviteRepository{}
 	mock.Mock.Test(t)
 

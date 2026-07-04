@@ -277,6 +277,66 @@ func TestListIAMCollections_MapCollectionQueryAndPageInfo(t *testing.T) {
 	assert.True(t, groups.PageInfo.HasNext)
 }
 
+func TestListDirectoryUsersRequiresScopedPermission(t *testing.T) {
+	t.Parallel()
+
+	srv := newIAMServerForTest(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		requireOrganizationPermissionFunc: func(
+			_ context.Context,
+			orgID string,
+			userID uint,
+			permission string,
+		) error {
+			assert.Equal(t, "org-1", orgID)
+			assert.Equal(t, uint(7), userID)
+			assert.Equal(t, "organization:manage_iam", permission)
+			return nil
+		},
+		listDirectoryUsersFunc: func(
+			_ context.Context,
+			query collection.Query,
+		) (collection.Page[iamentity.User], error) {
+			assert.Equal(t, "alice", query.Search)
+			return collection.NewPage([]iamentity.User{{
+				ID:          11,
+				Username:    "alice",
+				Email:       "alice@example.com",
+				DisplayName: "Alice",
+			}}, 1, query), nil
+		},
+	}))
+
+	response, err := srv.ListDirectoryUsers(
+		authContextForIAMUser(t, 7),
+		&pbiamv1.ListDirectoryUsersRequest{
+			Scope: "organization",
+			OrgId: "org-1",
+			Collection: &pbcommonv1.CollectionRequest{
+				Search: "alice",
+			},
+		},
+	)
+
+	require.NoError(t, err)
+	require.Len(t, response.Users, 1)
+	assert.Equal(t, uint64(11), response.Users[0].Id)
+	assert.Equal(t, "Alice", response.Users[0].DisplayName)
+}
+
+func TestListPermissionsRejectsIncompleteScope(t *testing.T) {
+	t.Parallel()
+
+	srv := newIAMServerForTest(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{}))
+
+	_, err := srv.ListPermissions(
+		authContextForIAMUser(t, 7),
+		&pbiamv1.ListPermissionsRequest{Scope: "tenant"},
+	)
+
+	require.Error(t, err)
+	assert.Equal(t, codes.InvalidArgument, status.Code(err))
+}
+
 func TestListOrganizationsFiltersForOrganizationRoot(t *testing.T) {
 	t.Parallel()
 

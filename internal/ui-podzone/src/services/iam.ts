@@ -78,6 +78,7 @@ export {
   removePlatformRole,
 } from './iam/roles'
 export { simulateAccess } from './iam/permissions'
+export { listDirectoryUsers, listPermissions } from './iam/directory'
 export type {
   TenantMembership,
   IamResult,
@@ -112,6 +113,9 @@ export type {
   CreateOrganizationResult,
   PlatformRoleMembership,
   TenantInvite,
+  DirectoryUser,
+  PermissionInfo,
+  DirectoryScope,
   UpsertPlatformRolePayload,
   CreateTenantInvitePayload,
 } from './iam/types'

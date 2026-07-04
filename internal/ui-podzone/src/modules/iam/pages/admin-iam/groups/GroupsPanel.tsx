@@ -1,13 +1,13 @@
 import { Show } from 'solid-js'
 import { IamStatementBuilder } from '@/solid/components/common/IamStatementBuilder'
 import { Button, SelectField } from '@/solid/components/common/Primitives'
+import { SearchSelectField } from '@/solid/components/common/SearchSelectField'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'
 import {
   FormInputField,
   FormSelectField,
   createFormStore,
   jsonArray,
-  numberValue,
   required,
 } from '@/solid/forms'
 import type {
@@ -46,10 +46,7 @@ export function GroupsPanel() {
   const memberForm = createFormStore<GroupMemberFormValues>({
     initialValues: { userId: group.groupMemberUserId() },
     validators: {
-      userId: [
-        required('Enter a user id.'),
-        numberValue('User id must be a number.'),
-      ],
+      userId: [required('Choose a user.')],
     },
   })
   const policyAttachmentForm = createFormStore<GroupPolicyAttachmentFormValues>(
@@ -173,10 +170,15 @@ export function GroupsPanel() {
       </Show>
 
       <div class="grid gap-3 md:grid-cols-2">
-        <FormInputField
-          form={memberForm}
-          name="userId"
-          label="Add member user id"
+        <SearchSelectField
+          label="Add member"
+          value={memberForm.values.userId}
+          options={group.memberUserOptions()}
+          loading={group.memberUsersLoading()}
+          error={memberForm.error('userId') || group.memberUsersError()}
+          onSearch={group.searchMemberUsers}
+          onChange={(value) => memberForm.setValue('userId', value)}
+          placeholder="Search name, username, or email"
         />
         <FormInputField
           form={policyAttachmentForm}
@@ -236,6 +238,7 @@ export function GroupsPanel() {
         </div>
         <IamStatementBuilder
           label="Statements"
+          actionOptions={group.permissionOptions()}
           value={inlinePolicyForm.values.statementsJson}
           onChange={(value) =>
             inlinePolicyForm.setValue('statementsJson', value)

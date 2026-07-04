@@ -106,6 +106,7 @@ func TestCheckOrganizationPermission(t *testing.T) {
 				nil,
 				nil,
 				nil,
+				nil,
 			)
 
 			allowed, err := usecase.CheckOrganizationPermission(

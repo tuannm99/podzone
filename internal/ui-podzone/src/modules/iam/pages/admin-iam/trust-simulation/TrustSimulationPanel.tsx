@@ -11,6 +11,7 @@ import {
   SelectField,
 } from '@/solid/components/common/Primitives'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'
+import { SearchSelectField } from '@/solid/components/common/SearchSelectField'
 import {
   FormInputField,
   createFormStore,
@@ -24,6 +25,19 @@ import { SimulationPresetButtons } from './SimulationPresetButtons'
 
 export function TrustSimulationPanel() {
   const trust = useAdminIamTrustSim()
+  const simulationActionOptions = () => [
+    { name: 'Choose a permission', value: '' },
+    ...trust.permissionOptions(),
+    { name: 'Custom action', value: '__custom__' },
+  ]
+  const simulationActionValue = () => {
+    if (!trust.simAction()) return ''
+    return trust
+      .permissionOptions()
+      .some((option) => option.value === trust.simAction())
+      ? trust.simAction()
+      : '__custom__'
+  }
   const trustPolicyForm = createFormStore<TrustPolicyFormValues>({
     initialValues: {
       roleName: trust.trustRoleName(),
@@ -141,10 +155,31 @@ export function TrustSimulationPanel() {
           options={trust.policyScopeOptions}
           onChange={(e) => trust.setSimScope(e.currentTarget.value)}
         />
-        <InputField
-          label="Target user id"
+        <SearchSelectField
+          label="Target user"
           value={trust.simTargetUserId()}
-          onInput={(e) => trust.setSimTargetUserId(e.currentTarget.value)}
+          options={
+            trust.simScope() === 'tenant'
+              ? trust.tenantUserOptions()
+              : trust.platformUserOptions()
+          }
+          loading={
+            trust.simScope() === 'tenant'
+              ? trust.tenantUsersLoading()
+              : trust.platformUsersLoading()
+          }
+          error={
+            trust.simScope() === 'tenant'
+              ? trust.tenantUsersError()
+              : trust.platformUsersError()
+          }
+          onSearch={
+            trust.simScope() === 'tenant'
+              ? trust.searchTenantUsers
+              : trust.searchPlatformUsers
+          }
+          onChange={trust.setSimTargetUserId}
+          placeholder="Search name, username, or email"
         />
       </div>
       <InfoAlert>
@@ -160,11 +195,27 @@ export function TrustSimulationPanel() {
             onChange={(e) => trust.setSimTenantId(e.currentTarget.value)}
           />
         </Show>
-        <InputField
-          label="Action"
-          value={trust.simAction()}
-          onInput={(e) => trust.setSimAction(e.currentTarget.value)}
-        />
+        <div class="space-y-3">
+          <SelectField
+            label="Permission"
+            value={simulationActionValue()}
+            options={simulationActionOptions()}
+            onChange={(event) =>
+              trust.setSimAction(
+                event.currentTarget.value === '__custom__'
+                  ? ''
+                  : event.currentTarget.value
+              )
+            }
+          />
+          <Show when={simulationActionValue() === '__custom__'}>
+            <InputField
+              label="Custom action"
+              value={trust.simAction()}
+              onInput={(e) => trust.setSimAction(e.currentTarget.value)}
+            />
+          </Show>
+        </div>
       </div>
       <InputField
         label="Resource"
@@ -202,6 +253,7 @@ export function TrustSimulationPanel() {
       <div class="grid gap-3 lg:grid-cols-2">
         <IamStatementBuilder
           label="Session policy"
+          actionOptions={trust.permissionOptions()}
           value={trust.simSessionPolicyJson()}
           onChange={trust.setSimSessionPolicyJson}
         />

@@ -16,6 +16,7 @@ type RoleCommandRepository interface {
 
 type RoleQueryRepository interface {
 	GetByName(ctx context.Context, name string) (*entity.Role, error)
+	ListPermissions(ctx context.Context, query collection.Query) (collection.Page[entity.Permission], error)
 	RoleHasPermission(ctx context.Context, roleID uint64, permission string) (bool, error)
 	GetTrustPolicy(ctx context.Context, roleID uint64) ([]entity.RoleTrustStatement, error)
 	GetPermissionBoundary(ctx context.Context, roleID uint64) (*entity.RolePermissionBoundary, error)

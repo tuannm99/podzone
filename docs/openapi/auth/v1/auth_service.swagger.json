@@ -967,6 +967,21 @@
         }
       }
     },
+    "authListUsersResponse": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/authUserInfo"
+          }
+        },
+        "pageInfo": {
+          "$ref": "#/definitions/commonPageInfo"
+        }
+      }
+    },
     "authLoginRequest": {
       "type": "object",
       "properties": {

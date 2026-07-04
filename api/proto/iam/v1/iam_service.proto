@@ -162,6 +162,18 @@ service IAMService {
     };
   }
 
+  rpc ListDirectoryUsers(ListDirectoryUsersRequest) returns (ListDirectoryUsersResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/directory/users"
+    };
+  }
+
+  rpc ListPermissions(ListPermissionsRequest) returns (ListPermissionsResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/permissions"
+    };
+  }
+
   rpc AddPlatformRole(AddPlatformRoleRequest) returns (AddPlatformRoleResponse) {
     option (google.api.http) = {
       post: "/auth/v1/iam/platform-users/{target_user_id}/roles"
@@ -562,6 +574,8 @@ service IAMQueryService {
   rpc CheckPlatformPermission(CheckPlatformPermissionRequest) returns (CheckPermissionResponse);
   rpc ListUserTenants(ListUserTenantsRequest) returns (ListUserTenantsResponse);
   rpc ListPlatformRoles(ListPlatformRolesRequest) returns (ListPlatformRolesResponse);
+  rpc ListDirectoryUsers(ListDirectoryUsersRequest) returns (ListDirectoryUsersResponse);
+  rpc ListPermissions(ListPermissionsRequest) returns (ListPermissionsResponse);
   rpc GetPolicy(GetPolicyRequest) returns (GetPolicyResponse);
   rpc ListPolicyVersions(ListPolicyVersionsRequest) returns (ListPolicyVersionsResponse);
   rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse);

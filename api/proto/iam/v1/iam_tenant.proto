@@ -60,6 +60,25 @@ message TenantInvite {
   string revoked_at = 13;
 }
 
+message DirectoryUser {
+  uint64 id = 1;
+  string email = 2;
+  string username = 3;
+  string display_name = 4;
+}
+
+message ListDirectoryUsersRequest {
+  string scope = 1;
+  string org_id = 2;
+  string tenant_id = 3;
+  common.CollectionRequest collection = 4;
+}
+
+message ListDirectoryUsersResponse {
+  repeated DirectoryUser users = 1;
+  common.PageInfo page_info = 2;
+}
+
 message CreateTenantRequest {
   uint64 owner_user_id = 1;
   string slug = 2;

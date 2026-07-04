@@ -19,12 +19,18 @@ type IAMCommandUsecase interface {
 
 // IAMQueryUsecase owns read/evaluation IAM operations.
 type IAMQueryUsecase interface {
+	DirectoryQueryUsecase
 	TenantQueryUsecase
 	OrganizationQueryUsecase
 	PolicyQueryUsecase
 	GroupQueryUsecase
 	PlatformPrincipalQueryUsecase
 	AuthzQueryUsecase
+}
+
+type DirectoryQueryUsecase interface {
+	ListDirectoryUsers(ctx context.Context, query collection.Query) (collection.Page[entity.User], error)
+	ListPermissions(ctx context.Context, query collection.Query) (collection.Page[entity.Permission], error)
 }
 
 type TenantCommandUsecase interface {

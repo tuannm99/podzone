@@ -16,6 +16,25 @@ message PlatformRoleMembership {
   string updated_at = 6;
 }
 
+message Permission {
+  uint64 id = 1;
+  string name = 2;
+  string resource = 3;
+  string action = 4;
+}
+
+message ListPermissionsRequest {
+  string scope = 1;
+  string org_id = 2;
+  string tenant_id = 3;
+  common.CollectionRequest collection = 4;
+}
+
+message ListPermissionsResponse {
+  repeated Permission permissions = 1;
+  common.PageInfo page_info = 2;
+}
+
 message Policy {
   uint64 id = 1;
   string scope = 2;

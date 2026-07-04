@@ -42,6 +42,8 @@ const (
 	IAMService_CheckPlatformPermission_FullMethodName              = "/iam.IAMService/CheckPlatformPermission"
 	IAMService_ListUserTenants_FullMethodName                      = "/iam.IAMService/ListUserTenants"
 	IAMService_ListPlatformRoles_FullMethodName                    = "/iam.IAMService/ListPlatformRoles"
+	IAMService_ListDirectoryUsers_FullMethodName                   = "/iam.IAMService/ListDirectoryUsers"
+	IAMService_ListPermissions_FullMethodName                      = "/iam.IAMService/ListPermissions"
 	IAMService_AddPlatformRole_FullMethodName                      = "/iam.IAMService/AddPlatformRole"
 	IAMService_CreatePolicy_FullMethodName                         = "/iam.IAMService/CreatePolicy"
 	IAMService_CreatePolicyVersion_FullMethodName                  = "/iam.IAMService/CreatePolicyVersion"
@@ -127,6 +129,8 @@ type IAMServiceClient interface {
 	CheckPlatformPermission(ctx context.Context, in *CheckPlatformPermissionRequest, opts ...grpc.CallOption) (*CheckPermissionResponse, error)
 	ListUserTenants(ctx context.Context, in *ListUserTenantsRequest, opts ...grpc.CallOption) (*ListUserTenantsResponse, error)
 	ListPlatformRoles(ctx context.Context, in *ListPlatformRolesRequest, opts ...grpc.CallOption) (*ListPlatformRolesResponse, error)
+	ListDirectoryUsers(ctx context.Context, in *ListDirectoryUsersRequest, opts ...grpc.CallOption) (*ListDirectoryUsersResponse, error)
+	ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*ListPermissionsResponse, error)
 	AddPlatformRole(ctx context.Context, in *AddPlatformRoleRequest, opts ...grpc.CallOption) (*AddPlatformRoleResponse, error)
 	CreatePolicy(ctx context.Context, in *CreatePolicyRequest, opts ...grpc.CallOption) (*CreatePolicyResponse, error)
 	CreatePolicyVersion(ctx context.Context, in *CreatePolicyVersionRequest, opts ...grpc.CallOption) (*CreatePolicyVersionResponse, error)
@@ -414,6 +418,26 @@ func (c *iAMServiceClient) ListPlatformRoles(ctx context.Context, in *ListPlatfo
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListPlatformRolesResponse)
 	err := c.cc.Invoke(ctx, IAMService_ListPlatformRoles_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) ListDirectoryUsers(ctx context.Context, in *ListDirectoryUsersRequest, opts ...grpc.CallOption) (*ListDirectoryUsersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListDirectoryUsersResponse)
+	err := c.cc.Invoke(ctx, IAMService_ListDirectoryUsers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*ListPermissionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPermissionsResponse)
+	err := c.cc.Invoke(ctx, IAMService_ListPermissions_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -980,6 +1004,8 @@ type IAMServiceServer interface {
 	CheckPlatformPermission(context.Context, *CheckPlatformPermissionRequest) (*CheckPermissionResponse, error)
 	ListUserTenants(context.Context, *ListUserTenantsRequest) (*ListUserTenantsResponse, error)
 	ListPlatformRoles(context.Context, *ListPlatformRolesRequest) (*ListPlatformRolesResponse, error)
+	ListDirectoryUsers(context.Context, *ListDirectoryUsersRequest) (*ListDirectoryUsersResponse, error)
+	ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error)
 	AddPlatformRole(context.Context, *AddPlatformRoleRequest) (*AddPlatformRoleResponse, error)
 	CreatePolicy(context.Context, *CreatePolicyRequest) (*CreatePolicyResponse, error)
 	CreatePolicyVersion(context.Context, *CreatePolicyVersionRequest) (*CreatePolicyVersionResponse, error)
@@ -1111,6 +1137,12 @@ func (UnimplementedIAMServiceServer) ListUserTenants(context.Context, *ListUserT
 }
 func (UnimplementedIAMServiceServer) ListPlatformRoles(context.Context, *ListPlatformRolesRequest) (*ListPlatformRolesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListPlatformRoles not implemented")
+}
+func (UnimplementedIAMServiceServer) ListDirectoryUsers(context.Context, *ListDirectoryUsersRequest) (*ListDirectoryUsersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListDirectoryUsers not implemented")
+}
+func (UnimplementedIAMServiceServer) ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPermissions not implemented")
 }
 func (UnimplementedIAMServiceServer) AddPlatformRole(context.Context, *AddPlatformRoleRequest) (*AddPlatformRoleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddPlatformRole not implemented")
@@ -1702,6 +1734,42 @@ func _IAMService_ListPlatformRoles_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(IAMServiceServer).ListPlatformRoles(ctx, req.(*ListPlatformRolesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_ListDirectoryUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListDirectoryUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).ListDirectoryUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_ListDirectoryUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).ListDirectoryUsers(ctx, req.(*ListDirectoryUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_ListPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPermissionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).ListPermissions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_ListPermissions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).ListPermissions(ctx, req.(*ListPermissionsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2758,6 +2826,14 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListPlatformRoles",
 			Handler:    _IAMService_ListPlatformRoles_Handler,
+		},
+		{
+			MethodName: "ListDirectoryUsers",
+			Handler:    _IAMService_ListDirectoryUsers_Handler,
+		},
+		{
+			MethodName: "ListPermissions",
+			Handler:    _IAMService_ListPermissions_Handler,
 		},
 		{
 			MethodName: "AddPlatformRole",
@@ -4842,6 +4918,8 @@ const (
 	IAMQueryService_CheckPlatformPermission_FullMethodName           = "/iam.IAMQueryService/CheckPlatformPermission"
 	IAMQueryService_ListUserTenants_FullMethodName                   = "/iam.IAMQueryService/ListUserTenants"
 	IAMQueryService_ListPlatformRoles_FullMethodName                 = "/iam.IAMQueryService/ListPlatformRoles"
+	IAMQueryService_ListDirectoryUsers_FullMethodName                = "/iam.IAMQueryService/ListDirectoryUsers"
+	IAMQueryService_ListPermissions_FullMethodName                   = "/iam.IAMQueryService/ListPermissions"
 	IAMQueryService_GetPolicy_FullMethodName                         = "/iam.IAMQueryService/GetPolicy"
 	IAMQueryService_ListPolicyVersions_FullMethodName                = "/iam.IAMQueryService/ListPolicyVersions"
 	IAMQueryService_ListPolicies_FullMethodName                      = "/iam.IAMQueryService/ListPolicies"
@@ -4881,6 +4959,8 @@ type IAMQueryServiceClient interface {
 	CheckPlatformPermission(ctx context.Context, in *CheckPlatformPermissionRequest, opts ...grpc.CallOption) (*CheckPermissionResponse, error)
 	ListUserTenants(ctx context.Context, in *ListUserTenantsRequest, opts ...grpc.CallOption) (*ListUserTenantsResponse, error)
 	ListPlatformRoles(ctx context.Context, in *ListPlatformRolesRequest, opts ...grpc.CallOption) (*ListPlatformRolesResponse, error)
+	ListDirectoryUsers(ctx context.Context, in *ListDirectoryUsersRequest, opts ...grpc.CallOption) (*ListDirectoryUsersResponse, error)
+	ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*ListPermissionsResponse, error)
 	GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error)
 	ListPolicyVersions(ctx context.Context, in *ListPolicyVersionsRequest, opts ...grpc.CallOption) (*ListPolicyVersionsResponse, error)
 	ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error)
@@ -4996,6 +5076,26 @@ func (c *iAMQueryServiceClient) ListPlatformRoles(ctx context.Context, in *ListP
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListPlatformRolesResponse)
 	err := c.cc.Invoke(ctx, IAMQueryService_ListPlatformRoles_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMQueryServiceClient) ListDirectoryUsers(ctx context.Context, in *ListDirectoryUsersRequest, opts ...grpc.CallOption) (*ListDirectoryUsersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListDirectoryUsersResponse)
+	err := c.cc.Invoke(ctx, IAMQueryService_ListDirectoryUsers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMQueryServiceClient) ListPermissions(ctx context.Context, in *ListPermissionsRequest, opts ...grpc.CallOption) (*ListPermissionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPermissionsResponse)
+	err := c.cc.Invoke(ctx, IAMQueryService_ListPermissions_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -5228,6 +5328,8 @@ type IAMQueryServiceServer interface {
 	CheckPlatformPermission(context.Context, *CheckPlatformPermissionRequest) (*CheckPermissionResponse, error)
 	ListUserTenants(context.Context, *ListUserTenantsRequest) (*ListUserTenantsResponse, error)
 	ListPlatformRoles(context.Context, *ListPlatformRolesRequest) (*ListPlatformRolesResponse, error)
+	ListDirectoryUsers(context.Context, *ListDirectoryUsersRequest) (*ListDirectoryUsersResponse, error)
+	ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error)
 	GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error)
 	ListPolicyVersions(context.Context, *ListPolicyVersionsRequest) (*ListPolicyVersionsResponse, error)
 	ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error)
@@ -5285,6 +5387,12 @@ func (UnimplementedIAMQueryServiceServer) ListUserTenants(context.Context, *List
 }
 func (UnimplementedIAMQueryServiceServer) ListPlatformRoles(context.Context, *ListPlatformRolesRequest) (*ListPlatformRolesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListPlatformRoles not implemented")
+}
+func (UnimplementedIAMQueryServiceServer) ListDirectoryUsers(context.Context, *ListDirectoryUsersRequest) (*ListDirectoryUsersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListDirectoryUsers not implemented")
+}
+func (UnimplementedIAMQueryServiceServer) ListPermissions(context.Context, *ListPermissionsRequest) (*ListPermissionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPermissions not implemented")
 }
 func (UnimplementedIAMQueryServiceServer) GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPolicy not implemented")
@@ -5528,6 +5636,42 @@ func _IAMQueryService_ListPlatformRoles_Handler(srv interface{}, ctx context.Con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(IAMQueryServiceServer).ListPlatformRoles(ctx, req.(*ListPlatformRolesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMQueryService_ListDirectoryUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListDirectoryUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMQueryServiceServer).ListDirectoryUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMQueryService_ListDirectoryUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMQueryServiceServer).ListDirectoryUsers(ctx, req.(*ListDirectoryUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMQueryService_ListPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPermissionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMQueryServiceServer).ListPermissions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMQueryService_ListPermissions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMQueryServiceServer).ListPermissions(ctx, req.(*ListPermissionsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -5952,6 +6096,14 @@ var IAMQueryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListPlatformRoles",
 			Handler:    _IAMQueryService_ListPlatformRoles_Handler,
+		},
+		{
+			MethodName: "ListDirectoryUsers",
+			Handler:    _IAMQueryService_ListDirectoryUsers_Handler,
+		},
+		{
+			MethodName: "ListPermissions",
+			Handler:    _IAMQueryService_ListPermissions_Handler,
 		},
 		{
 			MethodName: "GetPolicy",

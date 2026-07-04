@@ -47,6 +47,13 @@ var groupCollectionColumns = map[string]collectionColumn{
 	"updatedAt":      {sql: "updated_at"},
 }
 
+var permissionCollectionColumns = map[string]collectionColumn{
+	"id":       {sql: "id"},
+	"name":     {sql: "name", text: true},
+	"resource": {sql: "resource", text: true},
+	"action":   {sql: "action", text: true},
+}
+
 var policyVersionCollectionColumns = map[string]collectionColumn{
 	"id":        {sql: "pv.id"},
 	"version":   {sql: "pv.version", text: true},

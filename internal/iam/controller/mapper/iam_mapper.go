@@ -401,6 +401,24 @@ func ToPBIAMAssumedRole(item *iamdomain.AssumedRole) *pbiamv1.IAMAssumedRole {
 	}
 }
 
+func ToPBDirectoryUser(item iamdomain.User) *pbiamv1.DirectoryUser {
+	return &pbiamv1.DirectoryUser{
+		Id:          uint64(item.ID),
+		Email:       item.Email,
+		Username:    item.Username,
+		DisplayName: item.DisplayName,
+	}
+}
+
+func ToPBPermission(item iamdomain.Permission) *pbiamv1.Permission {
+	return &pbiamv1.Permission{
+		Id:       item.ID,
+		Name:     item.Name,
+		Resource: item.Resource,
+		Action:   item.Action,
+	}
+}
+
 func CloneStringMap(src map[string]string) map[string]string {
 	if len(src) == 0 {
 		return nil

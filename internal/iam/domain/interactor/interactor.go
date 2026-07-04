@@ -30,6 +30,7 @@ type interactor struct {
 	membershipQueries          outputport.MembershipQueryRepository
 	inviteCommands             outputport.InviteCommandRepository
 	inviteQueries              outputport.InviteQueryRepository
+	userDirectory              outputport.UserDirectory
 	outbox                     outputport.OutboxRepository
 }
 
@@ -57,6 +58,7 @@ func NewInteractor(
 	inviteCommands outputport.InviteCommandRepository,
 	inviteQueries outputport.InviteQueryRepository,
 	outbox outputport.OutboxRepository,
+	userDirectory outputport.UserDirectory,
 ) *interactor {
 	return &interactor{
 		tenantCommands:             tenantCommands,
@@ -75,6 +77,7 @@ func NewInteractor(
 		membershipQueries:          membershipQueries,
 		inviteCommands:             inviteCommands,
 		inviteQueries:              inviteQueries,
+		userDirectory:              userDirectory,
 		outbox:                     outbox,
 	}
 }
@@ -116,6 +119,7 @@ func NewCommandInteractor(
 		inviteCommands,
 		inviteQueries,
 		outbox,
+		nil,
 	)
 }
 
@@ -128,6 +132,7 @@ func NewQueryInteractor(
 	platformMembershipQueries outputport.PlatformMembershipQueryRepository,
 	membershipQueries outputport.MembershipQueryRepository,
 	inviteQueries outputport.InviteQueryRepository,
+	userDirectory outputport.UserDirectory,
 ) inputport.IAMQueryUsecase {
 	return &interactor{
 		tenantQueries:             tenantQueries,
@@ -138,6 +143,7 @@ func NewQueryInteractor(
 		platformMembershipQueries: platformMembershipQueries,
 		membershipQueries:         membershipQueries,
 		inviteQueries:             inviteQueries,
+		userDirectory:             userDirectory,
 	}
 }
 
@@ -151,6 +157,7 @@ func NewIAMUsecase(
 	memberships outputport.MembershipRepository,
 	invites outputport.InviteRepository,
 	outbox outputport.OutboxRepository,
+	userDirectory outputport.UserDirectory,
 ) inputport.IAMUsecase {
 	return NewInteractor(
 		tenants,
@@ -170,6 +177,7 @@ func NewIAMUsecase(
 		invites,
 		invites,
 		outbox,
+		userDirectory,
 	)
 }
 

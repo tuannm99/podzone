@@ -8,6 +8,7 @@ import {
   type SelectOption,
 } from '@/solid/components/common/Primitives'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'
+import type { SearchSelectOption } from '@/solid/components/common/SearchSelectField'
 import {
   OrganizationsCollection,
   type OrganizationsCollectionProps,
@@ -42,6 +43,10 @@ type OrganizationsPanelProps = OrganizationsCollectionProps & {
     roleName: string
   ) => Promise<void>
   handleRemoveOrganizationMember: (userID: string) => Promise<void>
+  userOptions: Accessor<SearchSelectOption[]>
+  usersLoading: Accessor<boolean>
+  usersError: Accessor<string>
+  searchUsers: (search: string) => void
 }
 
 export function OrganizationsPanel(props: OrganizationsPanelProps) {
@@ -146,6 +151,10 @@ export function OrganizationsPanel(props: OrganizationsPanelProps) {
         updateQuery={props.updateOrganizationMembersQuery}
         addMember={props.handleAddOrganizationMember}
         removeMember={props.handleRemoveOrganizationMember}
+        userOptions={props.userOptions}
+        usersLoading={props.usersLoading}
+        usersError={props.usersError}
+        searchUsers={props.searchUsers}
       />
     </div>
   )

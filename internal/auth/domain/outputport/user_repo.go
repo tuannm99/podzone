@@ -1,7 +1,10 @@
 package outputport
 
 import (
+	"context"
+
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type UserRepository interface {
@@ -11,4 +14,5 @@ type UserRepository interface {
 	UpdateById(id uint, e entity.User) error
 	CreateByEmailIfNotExisted(email string) (*entity.User, error)
 	GetByUsernameOrEmail(identity string) (*entity.User, error)
+	List(ctx context.Context, query collection.Query) (collection.Page[entity.User], error)
 }

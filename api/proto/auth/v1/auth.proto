@@ -4,6 +4,8 @@ package auth;
 
 option go_package = "github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1";
 
+import "common/v1/common.proto";
+
 message LoginRequest {
   string username = 1;
   string password = 2;
@@ -117,4 +119,13 @@ message GetUserByIDRequest {
 
 message GetUserByIDResponse {
   UserInfo user_info = 1;
+}
+
+message ListUsersRequest {
+  common.CollectionRequest collection = 1;
+}
+
+message ListUsersResponse {
+  repeated UserInfo users = 1;
+  common.PageInfo page_info = 2;
 }

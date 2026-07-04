@@ -7,6 +7,7 @@ import {
   InputField,
   SelectField,
   TextareaField,
+  type SelectOption,
 } from './Primitives'
 
 type Condition = {
@@ -81,6 +82,7 @@ export function IamStatementBuilder(props: {
   label: string
   value: string
   onChange: (value: string) => void
+  actionOptions?: SelectOption[]
   builderCopy?: string
 }) {
   const [mode, setMode] = createSignal<'builder' | 'json'>('builder')
@@ -100,6 +102,17 @@ export function IamStatementBuilder(props: {
   })
 
   const statementCount = createMemo(() => statements().length)
+  const actionOptions = () => [
+    { name: 'Choose a permission', value: '' },
+    ...(props.actionOptions || []),
+    { name: 'Custom or wildcard pattern', value: '__custom__' },
+  ]
+  const actionSelectValue = (value: string) => {
+    if (!value) return ''
+    return props.actionOptions?.some((option) => option.value === value)
+      ? value
+      : '__custom__'
+  }
 
   const commit = (next: Statement[]) => {
     setStatements(next)
@@ -230,16 +243,38 @@ export function IamStatementBuilder(props: {
                       })
                     }
                   />
-                  <InputField
-                    label="Action"
-                    value={statement.actionPattern}
-                    placeholder="order:update"
-                    onInput={(event) =>
-                      updateStatement(statementIndex(), {
-                        actionPattern: event.currentTarget.value,
-                      })
-                    }
-                  />
+                  <div class="space-y-3">
+                    <SelectField
+                      label="Permission"
+                      value={actionSelectValue(statement.actionPattern)}
+                      options={actionOptions()}
+                      onChange={(event) =>
+                        updateStatement(statementIndex(), {
+                          actionPattern:
+                            event.currentTarget.value === '__custom__'
+                              ? '*'
+                              : event.currentTarget.value,
+                        })
+                      }
+                    />
+                    <Show
+                      when={
+                        actionSelectValue(statement.actionPattern) ===
+                        '__custom__'
+                      }
+                    >
+                      <InputField
+                        label="Custom action pattern"
+                        value={statement.actionPattern}
+                        placeholder="orders:*"
+                        onInput={(event) =>
+                          updateStatement(statementIndex(), {
+                            actionPattern: event.currentTarget.value,
+                          })
+                        }
+                      />
+                    </Show>
+                  </div>
                   <InputField
                     label="Resource"
                     value={statement.resourcePattern}

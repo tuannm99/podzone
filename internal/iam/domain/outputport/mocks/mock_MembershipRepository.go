@@ -17,8 +17,7 @@ import (
 func NewMockMembershipRepository(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *MockMembershipRepository {
+}) *MockMembershipRepository {
 	mock := &MockMembershipRepository{}
 	mock.Mock.Test(t)
 

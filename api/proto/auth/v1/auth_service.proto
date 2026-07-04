@@ -135,4 +135,8 @@ service AuthService {
       get: "/auth/v1/users/{user_id}"
     };
   }
+
+  // Internal directory query. Public IAM management APIs authorize callers
+  // before proxying directory results.
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
 }

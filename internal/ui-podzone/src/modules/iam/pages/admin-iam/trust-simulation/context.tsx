@@ -4,6 +4,8 @@ import type {
   RolePermissionBoundary,
   SimulateAccessResult,
 } from '@/services/iam'
+import type { SelectOption } from '@/solid/components/common/Primitives'
+import type { SearchSelectOption } from '@/solid/components/common/SearchSelectField'
 
 export type ScopeOption = {
   name: string
@@ -16,6 +18,15 @@ export type TenantOption = {
 }
 
 export type AdminIamTrustSimContextValue = {
+  permissionOptions: Accessor<SelectOption[]>
+  platformUserOptions: Accessor<SearchSelectOption[]>
+  platformUsersLoading: Accessor<boolean>
+  platformUsersError: Accessor<string>
+  searchPlatformUsers: (search: string) => void
+  tenantUserOptions: Accessor<SearchSelectOption[]>
+  tenantUsersLoading: Accessor<boolean>
+  tenantUsersError: Accessor<string>
+  searchTenantUsers: (search: string) => void
   trustRoleName: Accessor<string>
   setTrustRoleName: Setter<string>
   loadTrustPolicy: () => Promise<void>

@@ -20,12 +20,10 @@ import { Pagination } from '@/solid/components/common/Pagination'
 import { Badge, Button } from '@/solid/components/common/Primitives'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'
 import {
-  createFormStore,
-  FormInputField,
-  FormSelectField,
-  numberValue,
-  required,
-} from '@/solid/forms'
+  SearchSelectField,
+  type SearchSelectOption,
+} from '@/solid/components/common/SearchSelectField'
+import { createFormStore, FormSelectField, required } from '@/solid/forms'
 
 type MemberForm = {
   userId: string
@@ -42,6 +40,10 @@ type OrganizationMembersPanelProps = {
   updateQuery: (patch: Partial<CollectionQuery>) => void
   addMember: (userID: number, roleName: string) => Promise<void>
   removeMember: (userID: string) => Promise<void>
+  userOptions: Accessor<SearchSelectOption[]>
+  usersLoading: Accessor<boolean>
+  usersError: Accessor<string>
+  searchUsers: (search: string) => void
 }
 
 export function OrganizationMembersPanel(props: OrganizationMembersPanelProps) {
@@ -51,10 +53,7 @@ export function OrganizationMembersPanel(props: OrganizationMembersPanelProps) {
       roleName: 'organization_viewer',
     },
     validators: {
-      userId: [
-        required('Enter a user ID.'),
-        numberValue('Enter a valid user ID.'),
-      ],
+      userId: [required('Choose a user.')],
       roleName: [required('Select an organization role.')],
     },
   })
@@ -81,7 +80,16 @@ export function OrganizationMembersPanel(props: OrganizationMembersPanelProps) {
       />
       <Show when={props.organizationId()}>
         <form class="grid gap-3 md:grid-cols-[1fr_1fr_auto]" onSubmit={submit}>
-          <FormInputField form={form} name="userId" label="User ID" />
+          <SearchSelectField
+            label="User"
+            value={form.values.userId}
+            options={props.userOptions()}
+            loading={props.usersLoading()}
+            error={form.error('userId') || props.usersError()}
+            onSearch={props.searchUsers}
+            onChange={(value) => form.setValue('userId', value)}
+            placeholder="Search name, username, or email"
+          />
           <FormSelectField
             form={form}
             name="roleName"

@@ -3,9 +3,9 @@ import { IamStatementBuilder } from '@/solid/components/common/IamStatementBuild
 import {
   Badge,
   Button,
-  InputField,
   SelectField,
 } from '@/solid/components/common/Primitives'
+import { SearchSelectField } from '@/solid/components/common/SearchSelectField'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'
 import {
   FormInputField,
@@ -121,22 +121,28 @@ export function PrincipalPoliciesPanel() {
             />
           }
         >
-          <InputField
-            label="Platform user id"
+          <SearchSelectField
+            label="Platform user"
             value={principal.principalPlatformUserId()}
-            onInput={(e) =>
-              principal.setPrincipalPlatformUserId(e.currentTarget.value)
-            }
+            options={principal.platformUserOptions()}
+            loading={principal.platformUsersLoading()}
+            error={principal.platformUsersError()}
+            onSearch={principal.searchPlatformUsers}
+            onChange={principal.setPrincipalPlatformUserId}
+            placeholder="Search name, username, or email"
           />
         </Show>
       </div>
       <Show when={principal.principalMode() === 'tenant'}>
-        <InputField
-          label="Tenant user id"
+        <SearchSelectField
+          label="Tenant user"
           value={principal.principalTenantUserId()}
-          onInput={(e) =>
-            principal.setPrincipalTenantUserId(e.currentTarget.value)
-          }
+          options={principal.tenantUserOptions()}
+          loading={principal.tenantUsersLoading()}
+          error={principal.tenantUsersError()}
+          onSearch={principal.searchTenantUsers}
+          onChange={principal.setPrincipalTenantUserId}
+          placeholder="Search name, username, or email"
         />
       </Show>
       <Button
@@ -230,6 +236,7 @@ export function PrincipalPoliciesPanel() {
         </div>
         <IamStatementBuilder
           label="Inline policy statements"
+          actionOptions={principal.permissionOptions()}
           value={inlinePolicyForm.values.statementsJson}
           onChange={(value) =>
             inlinePolicyForm.setValue('statementsJson', value)

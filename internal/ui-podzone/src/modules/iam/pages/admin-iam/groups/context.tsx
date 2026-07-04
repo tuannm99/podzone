@@ -2,6 +2,8 @@ import { createContext, useContext } from 'solid-js'
 import type { Accessor, ParentProps, Setter } from 'solid-js'
 import type { GroupInfo, GroupInlinePolicy, PolicyInfo } from '@/services/iam'
 import type { CollectionQuery, PageInfo } from '@/services/collection'
+import type { SelectOption } from '@/solid/components/common/Primitives'
+import type { SearchSelectOption } from '@/solid/components/common/SearchSelectField'
 import type {
   CreateGroupFormValues,
   GroupInlinePolicyFormValues,
@@ -25,6 +27,11 @@ export type GroupOption = {
 }
 
 export type AdminIamGroupContextValue = {
+  permissionOptions: Accessor<SelectOption[]>
+  memberUserOptions: Accessor<SearchSelectOption[]>
+  memberUsersLoading: Accessor<boolean>
+  memberUsersError: Accessor<string>
+  searchMemberUsers: (search: string) => void
   groupScopeOptions: Accessor<ScopeOption[]>
   groupScope: Accessor<string>
   setGroupScope: Setter<string>

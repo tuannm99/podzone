@@ -6,6 +6,7 @@ import type {
   PolicyVersionInfo,
 } from '@/services/iam'
 import type { CollectionQuery, PageInfo } from '@/services/collection'
+import type { SelectOption } from '@/solid/components/common/Primitives'
 import type {
   CreatePolicyFormValues,
   CreatePolicyVersionFormValues,
@@ -22,6 +23,7 @@ export type PolicyOption = {
 }
 
 export type AdminIamPolicyContextValue = {
+  permissionOptions: Accessor<SelectOption[]>
   policyScopeOptions: Accessor<PolicyScopeOption[]>
   policyScope: Accessor<string>
   setPolicyScope: Setter<string>

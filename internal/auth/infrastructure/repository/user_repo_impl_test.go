@@ -13,6 +13,7 @@ import (
 
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/migrations"
+	"github.com/tuannm99/podzone/pkg/collection"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/testkit"
 )
@@ -103,6 +104,31 @@ func TestUserRepository_GetByUsernameOrEmail_NotFound(t *testing.T) {
 	u, err := repo.GetByUsernameOrEmail("missing")
 	require.ErrorIs(t, err, entity.ErrUserNotFound)
 	require.Nil(t, u)
+}
+
+func TestUserRepository_ListSearchesAndPaginates(t *testing.T) {
+	repo, db := setupRepo(t)
+
+	insertUser(t, db, entity.User{Username: "alice", Email: "alice@example.com"})
+	insertUser(t, db, entity.User{Username: "alina", Email: "alina@example.com"})
+	insertUser(t, db, entity.User{Username: "bob", Email: "bob@example.com"})
+
+	page, err := repo.List(context.Background(), collection.Query{
+		Page:          2,
+		PageSize:      1,
+		Search:        "ali",
+		SortBy:        "username",
+		SortDirection: collection.SortAscending,
+	})
+
+	require.NoError(t, err)
+	require.Len(t, page.Items, 1)
+	require.Equal(t, "alina", page.Items[0].Username)
+	require.Equal(t, int64(2), page.Total)
+	require.Equal(t, 2, page.TotalPages)
+	require.False(t, page.HasNext)
+	require.True(t, page.HasPrevious)
+	require.Empty(t, page.Items[0].Password)
 }
 
 func TestUserRepository_GetByID(t *testing.T) {

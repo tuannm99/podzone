@@ -44,6 +44,13 @@ type roleModel struct {
 	UpdatedAt   time.Time `db:"updated_at"`
 }
 
+type permissionModel struct {
+	ID       uint64 `db:"id"`
+	Name     string `db:"name"`
+	Resource string `db:"resource"`
+	Action   string `db:"action"`
+}
+
 type roleTrustStatementModel struct {
 	ID                uint64    `db:"id"`
 	RoleID            uint64    `db:"role_id"`

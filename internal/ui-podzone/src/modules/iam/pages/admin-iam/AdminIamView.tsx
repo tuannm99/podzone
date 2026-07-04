@@ -7,12 +7,11 @@ import {
   LoadingInline,
 } from '@/solid/components/common/Feedback'
 import { PageShell } from '@/solid/components/common/PageShell'
-import { Button, Card } from '@/solid/components/common/Primitives'
-import { SectionLead } from '@/solid/components/common/SectionLead'
+import { Button } from '@/solid/components/common/Primitives'
+import { Tabs } from '@/solid/components/common/Tabs'
 import { RoleAssignmentsPanel } from './assignments/RoleAssignmentsPanel'
 import { AdminIamGroupProvider } from './groups/context'
 import { GroupsPanel } from './groups/GroupsPanel'
-import { IamWorkspaceNav } from './IamWorkspaceNav'
 import { OrganizationsPanel } from './organizations/OrganizationsPanel'
 import { AdminIamPolicyProvider } from './policies/context'
 import { PoliciesPanel } from './policies/PoliciesPanel'
@@ -57,12 +56,18 @@ export function AdminIamView(props: { model: AdminIamViewModel }) {
 
   return (
     <PageShell>
-      <header class="space-y-4 border-b border-gray-200 pb-5">
-        <SectionLead
-          eyebrow="IAM Console"
-          title="IAM control plane"
-          copy="Centralized policy, principal, organization, and access evaluation controls."
-        />
+      <header class="flex flex-col gap-4 border-b border-gray-200 pb-5 lg:flex-row lg:items-end lg:justify-between">
+        <div class="space-y-2">
+          <div class="text-xs font-semibold uppercase text-gray-500">
+            IAM Console
+          </div>
+          <h1 class="text-2xl font-semibold text-gray-950">
+            Identity and access control
+          </h1>
+          <p class="text-sm text-gray-600">
+            Organizations, policies, principals, and access evaluation.
+          </p>
+        </div>
         <div class="flex flex-wrap gap-3">
           <Button href="/admin/settings" color="alternative" size="sm">
             Back to admin settings
@@ -94,18 +99,27 @@ export function AdminIamView(props: { model: AdminIamViewModel }) {
       </Show>
 
       <Show when={props.model.feedback.allowed()}>
-        <IamWorkspaceNav
-          sections={sections()}
-          activeSection={activeSection()}
-          onSelect={selectSection}
+        <Tabs
+          ariaLabel="IAM sections"
+          items={sections().map((section) => ({
+            value: section.id,
+            label: section.label,
+          }))}
+          value={activeSection()}
+          onChange={selectSection}
+          variant="underline"
         />
 
-        <Card class="space-y-4">
+        <div role="tabpanel" class="min-w-0 pt-1">
           <Show when={activeSection() === 'iam-orgs'}>
             <OrganizationsPanel
               organizationOptions={
                 props.model.organizations.organizationOptions
               }
+              userOptions={props.model.organizations.userOptions}
+              usersLoading={props.model.organizations.usersLoading}
+              usersError={props.model.organizations.usersError}
+              searchUsers={props.model.organizations.searchUsers}
               selectedOrgId={props.model.organizations.selectedOrgId}
               setSelectedOrgId={props.model.organizations.setSelectedOrgId}
               submitCreateOrganization={
@@ -181,6 +195,12 @@ export function AdminIamView(props: { model: AdminIamViewModel }) {
               setShortcutPlatformUserId={
                 props.model.assignments.setPlatformUserId
               }
+              platformUserOptions={props.model.assignments.platformUserOptions}
+              platformUsersLoading={
+                props.model.assignments.platformUsersLoading
+              }
+              platformUsersError={props.model.assignments.platformUsersError}
+              searchPlatformUsers={props.model.assignments.searchPlatformUsers}
               shortcutPlatformRoleName={
                 props.model.assignments.platformRoleName
               }
@@ -198,6 +218,10 @@ export function AdminIamView(props: { model: AdminIamViewModel }) {
               setShortcutTenantId={props.model.assignments.setTenantId}
               shortcutTenantUserId={props.model.assignments.tenantUserId}
               setShortcutTenantUserId={props.model.assignments.setTenantUserId}
+              tenantUserOptions={props.model.assignments.tenantUserOptions}
+              tenantUsersLoading={props.model.assignments.tenantUsersLoading}
+              tenantUsersError={props.model.assignments.tenantUsersError}
+              searchTenantUsers={props.model.assignments.searchTenantUsers}
               shortcutTenantRoleName={props.model.assignments.tenantRoleName}
               setShortcutTenantRoleName={
                 props.model.assignments.setTenantRoleName
@@ -223,7 +247,7 @@ export function AdminIamView(props: { model: AdminIamViewModel }) {
               <TrustSimulationPanel />
             </AdminIamTrustSimProvider>
           </Show>
-        </Card>
+        </div>
       </Show>
     </PageShell>
   )

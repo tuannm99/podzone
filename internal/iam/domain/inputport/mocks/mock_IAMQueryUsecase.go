@@ -1215,6 +1215,72 @@ func (_c *MockIAMQueryUsecase_IsOrganizationRoot_Call) RunAndReturn(run func(ctx
 	return _c
 }
 
+// ListDirectoryUsers provides a mock function for the type MockIAMQueryUsecase
+func (_mock *MockIAMQueryUsecase) ListDirectoryUsers(ctx context.Context, query collection.Query) (collection.Page[entity.User], error) {
+	ret := _mock.Called(ctx, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListDirectoryUsers")
+	}
+
+	var r0 collection.Page[entity.User]
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) (collection.Page[entity.User], error)); ok {
+		return returnFunc(ctx, query)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) collection.Page[entity.User]); ok {
+		r0 = returnFunc(ctx, query)
+	} else {
+		r0 = ret.Get(0).(collection.Page[entity.User])
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, collection.Query) error); ok {
+		r1 = returnFunc(ctx, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMQueryUsecase_ListDirectoryUsers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListDirectoryUsers'
+type MockIAMQueryUsecase_ListDirectoryUsers_Call struct {
+	*mock.Call
+}
+
+// ListDirectoryUsers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - query collection.Query
+func (_e *MockIAMQueryUsecase_Expecter) ListDirectoryUsers(ctx interface{}, query interface{}) *MockIAMQueryUsecase_ListDirectoryUsers_Call {
+	return &MockIAMQueryUsecase_ListDirectoryUsers_Call{Call: _e.mock.On("ListDirectoryUsers", ctx, query)}
+}
+
+func (_c *MockIAMQueryUsecase_ListDirectoryUsers_Call) Run(run func(ctx context.Context, query collection.Query)) *MockIAMQueryUsecase_ListDirectoryUsers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 collection.Query
+		if args[1] != nil {
+			arg1 = args[1].(collection.Query)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMQueryUsecase_ListDirectoryUsers_Call) Return(page collection.Page[entity.User], err error) *MockIAMQueryUsecase_ListDirectoryUsers_Call {
+	_c.Call.Return(page, err)
+	return _c
+}
+
+func (_c *MockIAMQueryUsecase_ListDirectoryUsers_Call) RunAndReturn(run func(ctx context.Context, query collection.Query) (collection.Page[entity.User], error)) *MockIAMQueryUsecase_ListDirectoryUsers_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListGroupInlinePolicies provides a mock function for the type MockIAMQueryUsecase
 func (_mock *MockIAMQueryUsecase) ListGroupInlinePolicies(ctx context.Context, groupID uint64, query collection.Query) (collection.Page[entity.GroupInlinePolicy], error) {
 	ret := _mock.Called(ctx, groupID, query)
@@ -1721,6 +1787,72 @@ func (_c *MockIAMQueryUsecase_ListOrganizationsForUser_Call) Return(page collect
 }
 
 func (_c *MockIAMQueryUsecase_ListOrganizationsForUser_Call) RunAndReturn(run func(ctx context.Context, userID uint, query collection.Query) (collection.Page[entity.Organization], error)) *MockIAMQueryUsecase_ListOrganizationsForUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListPermissions provides a mock function for the type MockIAMQueryUsecase
+func (_mock *MockIAMQueryUsecase) ListPermissions(ctx context.Context, query collection.Query) (collection.Page[entity.Permission], error) {
+	ret := _mock.Called(ctx, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListPermissions")
+	}
+
+	var r0 collection.Page[entity.Permission]
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) (collection.Page[entity.Permission], error)); ok {
+		return returnFunc(ctx, query)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) collection.Page[entity.Permission]); ok {
+		r0 = returnFunc(ctx, query)
+	} else {
+		r0 = ret.Get(0).(collection.Page[entity.Permission])
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, collection.Query) error); ok {
+		r1 = returnFunc(ctx, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMQueryUsecase_ListPermissions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPermissions'
+type MockIAMQueryUsecase_ListPermissions_Call struct {
+	*mock.Call
+}
+
+// ListPermissions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - query collection.Query
+func (_e *MockIAMQueryUsecase_Expecter) ListPermissions(ctx interface{}, query interface{}) *MockIAMQueryUsecase_ListPermissions_Call {
+	return &MockIAMQueryUsecase_ListPermissions_Call{Call: _e.mock.On("ListPermissions", ctx, query)}
+}
+
+func (_c *MockIAMQueryUsecase_ListPermissions_Call) Run(run func(ctx context.Context, query collection.Query)) *MockIAMQueryUsecase_ListPermissions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 collection.Query
+		if args[1] != nil {
+			arg1 = args[1].(collection.Query)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMQueryUsecase_ListPermissions_Call) Return(page collection.Page[entity.Permission], err error) *MockIAMQueryUsecase_ListPermissions_Call {
+	_c.Call.Return(page, err)
+	return _c
+}
+
+func (_c *MockIAMQueryUsecase_ListPermissions_Call) RunAndReturn(run func(ctx context.Context, query collection.Query) (collection.Page[entity.Permission], error)) *MockIAMQueryUsecase_ListPermissions_Call {
 	_c.Call.Return(run)
 	return _c
 }

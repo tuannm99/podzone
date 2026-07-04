@@ -7,6 +7,7 @@
 package pbauthv1
 
 import (
+	v1 "github.com/tuannm99/podzone/pkg/api/proto/common/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -1193,11 +1194,107 @@ func (x *GetUserByIDResponse) GetUserInfo() *UserInfo {
 	return nil
 }
 
+type ListUsersRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Collection    *v1.CollectionRequest  `protobuf:"bytes,1,opt,name=collection,proto3" json:"collection,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListUsersRequest) Reset() {
+	*x = ListUsersRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListUsersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListUsersRequest) ProtoMessage() {}
+
+func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListUsersRequest.ProtoReflect.Descriptor instead.
+func (*ListUsersRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *ListUsersRequest) GetCollection() *v1.CollectionRequest {
+	if x != nil {
+		return x.Collection
+	}
+	return nil
+}
+
+type ListUsersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Users         []*UserInfo            `protobuf:"bytes,1,rep,name=users,proto3" json:"users,omitempty"`
+	PageInfo      *v1.PageInfo           `protobuf:"bytes,2,opt,name=page_info,json=pageInfo,proto3" json:"page_info,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListUsersResponse) Reset() {
+	*x = ListUsersResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListUsersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListUsersResponse) ProtoMessage() {}
+
+func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListUsersResponse.ProtoReflect.Descriptor instead.
+func (*ListUsersResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *ListUsersResponse) GetUsers() []*UserInfo {
+	if x != nil {
+		return x.Users
+	}
+	return nil
+}
+
+func (x *ListUsersResponse) GetPageInfo() *v1.PageInfo {
+	if x != nil {
+		return x.PageInfo
+	}
+	return nil
+}
+
 var File_auth_v1_auth_proto protoreflect.FileDescriptor
 
 const file_auth_v1_auth_proto_rawDesc = "" +
 	"\n" +
-	"\x12auth/v1/auth.proto\x12\x04auth\"F\n" +
+	"\x12auth/v1/auth.proto\x12\x04auth\x1a\x16common/v1/common.proto\"F\n" +
 	"\fLoginRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\"~\n" +
@@ -1275,7 +1372,14 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x12GetUserByIDRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x04R\x06userId\"B\n" +
 	"\x13GetUserByIDResponse\x12+\n" +
-	"\tuser_info\x18\x01 \x01(\v2\x0e.auth.UserInfoR\buserInfoB<Z:github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1b\x06proto3"
+	"\tuser_info\x18\x01 \x01(\v2\x0e.auth.UserInfoR\buserInfo\"M\n" +
+	"\x10ListUsersRequest\x129\n" +
+	"\n" +
+	"collection\x18\x01 \x01(\v2\x19.common.CollectionRequestR\n" +
+	"collection\"h\n" +
+	"\x11ListUsersResponse\x12$\n" +
+	"\x05users\x18\x01 \x03(\v2\x0e.auth.UserInfoR\x05users\x12-\n" +
+	"\tpage_info\x18\x02 \x01(\v2\x10.common.PageInfoR\bpageInfoB<Z:github.com/tuannm99/podzone/pkg/api/proto/auth/v1;pbauthv1b\x06proto3"
 
 var (
 	file_auth_v1_auth_proto_rawDescOnce sync.Once
@@ -1289,7 +1393,7 @@ func file_auth_v1_auth_proto_rawDescGZIP() []byte {
 	return file_auth_v1_auth_proto_rawDescData
 }
 
-var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
+var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_auth_v1_auth_proto_goTypes = []any{
 	(*LoginRequest)(nil),               // 0: auth.LoginRequest
 	(*LoginResponse)(nil),              // 1: auth.LoginResponse
@@ -1312,6 +1416,10 @@ var file_auth_v1_auth_proto_goTypes = []any{
 	(*EnsureUserByEmailResponse)(nil),  // 18: auth.EnsureUserByEmailResponse
 	(*GetUserByIDRequest)(nil),         // 19: auth.GetUserByIDRequest
 	(*GetUserByIDResponse)(nil),        // 20: auth.GetUserByIDResponse
+	(*ListUsersRequest)(nil),           // 21: auth.ListUsersRequest
+	(*ListUsersResponse)(nil),          // 22: auth.ListUsersResponse
+	(*v1.CollectionRequest)(nil),       // 23: common.CollectionRequest
+	(*v1.PageInfo)(nil),                // 24: common.PageInfo
 }
 var file_auth_v1_auth_proto_depIdxs = []int32{
 	14, // 0: auth.LoginResponse.user_info:type_name -> auth.UserInfo
@@ -1321,11 +1429,14 @@ var file_auth_v1_auth_proto_depIdxs = []int32{
 	14, // 4: auth.GetUserByIdentityResponse.user_info:type_name -> auth.UserInfo
 	14, // 5: auth.EnsureUserByEmailResponse.user_info:type_name -> auth.UserInfo
 	14, // 6: auth.GetUserByIDResponse.user_info:type_name -> auth.UserInfo
-	7,  // [7:7] is the sub-list for method output_type
-	7,  // [7:7] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	23, // 7: auth.ListUsersRequest.collection:type_name -> common.CollectionRequest
+	14, // 8: auth.ListUsersResponse.users:type_name -> auth.UserInfo
+	24, // 9: auth.ListUsersResponse.page_info:type_name -> common.PageInfo
+	10, // [10:10] is the sub-list for method output_type
+	10, // [10:10] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_auth_v1_auth_proto_init() }
@@ -1339,7 +1450,7 @@ func file_auth_v1_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_v1_auth_proto_rawDesc), len(file_auth_v1_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   21,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -9,6 +9,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	entity "github.com/tuannm99/podzone/internal/iam/domain/entity"
 	"github.com/tuannm99/podzone/internal/iam/domain/outputport"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 type RoleRepositoryImpl struct {
@@ -43,6 +44,37 @@ func (r *RoleRepositoryImpl) GetByName(ctx context.Context, name string) (*entit
 		CreatedAt:   out.CreatedAt,
 		UpdatedAt:   out.UpdatedAt,
 	}, nil
+}
+
+func (r *RoleRepositoryImpl) ListPermissions(
+	ctx context.Context,
+	query collection.Query,
+) (collection.Page[entity.Permission], error) {
+	page, err := listIAMCollectionModels[permissionModel](
+		ctx,
+		r.db,
+		query,
+		"iam_permissions",
+		[]string{"id", "name", "resource", "action"},
+		nil,
+		permissionCollectionColumns,
+		[]string{"name", "resource", "action"},
+		"name",
+		"id ASC",
+	)
+	if err != nil {
+		return collection.Page[entity.Permission]{}, err
+	}
+	items := make([]entity.Permission, 0, len(page.Items))
+	for _, row := range page.Items {
+		items = append(items, entity.Permission{
+			ID:       row.ID,
+			Name:     row.Name,
+			Resource: row.Resource,
+			Action:   row.Action,
+		})
+	}
+	return collection.NewPage(items, page.Total, query), nil
 }
 
 func (r *RoleRepositoryImpl) RoleHasPermission(ctx context.Context, roleID uint64, permission string) (bool, error) {

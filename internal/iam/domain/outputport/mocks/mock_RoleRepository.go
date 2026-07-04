@@ -9,6 +9,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 	"github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 // NewMockRoleRepository creates a new instance of MockRoleRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -420,6 +421,72 @@ func (_c *MockRoleRepository_GetTrustPolicy_Call) Return(roleTrustStatements []e
 }
 
 func (_c *MockRoleRepository_GetTrustPolicy_Call) RunAndReturn(run func(ctx context.Context, roleID uint64) ([]entity.RoleTrustStatement, error)) *MockRoleRepository_GetTrustPolicy_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListPermissions provides a mock function for the type MockRoleRepository
+func (_mock *MockRoleRepository) ListPermissions(ctx context.Context, query collection.Query) (collection.Page[entity.Permission], error) {
+	ret := _mock.Called(ctx, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListPermissions")
+	}
+
+	var r0 collection.Page[entity.Permission]
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) (collection.Page[entity.Permission], error)); ok {
+		return returnFunc(ctx, query)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) collection.Page[entity.Permission]); ok {
+		r0 = returnFunc(ctx, query)
+	} else {
+		r0 = ret.Get(0).(collection.Page[entity.Permission])
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, collection.Query) error); ok {
+		r1 = returnFunc(ctx, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRoleRepository_ListPermissions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListPermissions'
+type MockRoleRepository_ListPermissions_Call struct {
+	*mock.Call
+}
+
+// ListPermissions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - query collection.Query
+func (_e *MockRoleRepository_Expecter) ListPermissions(ctx interface{}, query interface{}) *MockRoleRepository_ListPermissions_Call {
+	return &MockRoleRepository_ListPermissions_Call{Call: _e.mock.On("ListPermissions", ctx, query)}
+}
+
+func (_c *MockRoleRepository_ListPermissions_Call) Run(run func(ctx context.Context, query collection.Query)) *MockRoleRepository_ListPermissions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 collection.Query
+		if args[1] != nil {
+			arg1 = args[1].(collection.Query)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRoleRepository_ListPermissions_Call) Return(page collection.Page[entity.Permission], err error) *MockRoleRepository_ListPermissions_Call {
+	_c.Call.Return(page, err)
+	return _c
+}
+
+func (_c *MockRoleRepository_ListPermissions_Call) RunAndReturn(run func(ctx context.Context, query collection.Query) (collection.Page[entity.Permission], error)) *MockRoleRepository_ListPermissions_Call {
 	_c.Call.Return(run)
 	return _c
 }

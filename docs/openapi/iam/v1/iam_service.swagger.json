@@ -86,6 +86,86 @@
         ]
       }
     },
+    "/auth/v1/iam/directory/users": {
+      "get": {
+        "operationId": "IAMService_ListDirectoryUsers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/iamListDirectoryUsersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "orgId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "tenantId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.search",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortDirection",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_DIRECTION_UNSPECIFIED",
+              "SORT_DIRECTION_ASC",
+              "SORT_DIRECTION_DESC"
+            ],
+            "default": "SORT_DIRECTION_UNSPECIFIED"
+          }
+        ],
+        "tags": [
+          "IAMService"
+        ]
+      }
+    },
     "/auth/v1/iam/groups": {
       "get": {
         "operationId": "IAMService_ListGroups",
@@ -1166,6 +1246,86 @@
             "schema": {
               "$ref": "#/definitions/iamIAMServiceAttachTenantToOrganizationBody"
             }
+          }
+        ],
+        "tags": [
+          "IAMService"
+        ]
+      }
+    },
+    "/auth/v1/iam/permissions": {
+      "get": {
+        "operationId": "IAMService_ListPermissions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/iamListPermissionsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "orgId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "tenantId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.search",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortDirection",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_DIRECTION_UNSPECIFIED",
+              "SORT_DIRECTION_ASC",
+              "SORT_DIRECTION_DESC"
+            ],
+            "default": "SORT_DIRECTION_UNSPECIFIED"
           }
         ],
         "tags": [
@@ -3848,6 +4008,24 @@
     "iamDetachTenantUserPolicyResponse": {
       "type": "object"
     },
+    "iamDirectoryUser": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "email": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "displayName": {
+          "type": "string"
+        }
+      }
+    },
     "iamEnsureRootOrganizationResponse": {
       "type": "object",
       "properties": {
@@ -4295,6 +4473,21 @@
         }
       }
     },
+    "iamListDirectoryUsersResponse": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/iamDirectoryUser"
+          }
+        },
+        "pageInfo": {
+          "$ref": "#/definitions/commonPageInfo"
+        }
+      }
+    },
     "iamListGroupInlinePoliciesResponse": {
       "type": "object",
       "properties": {
@@ -4385,6 +4578,21 @@
         },
         "canManagePlatform": {
           "type": "boolean"
+        }
+      }
+    },
+    "iamListPermissionsResponse": {
+      "type": "object",
+      "properties": {
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/iamPermission"
+          }
+        },
+        "pageInfo": {
+          "$ref": "#/definitions/commonPageInfo"
         }
       }
     },
@@ -4610,6 +4818,24 @@
           "type": "string"
         },
         "updatedAt": {
+          "type": "string"
+        }
+      }
+    },
+    "iamPermission": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "resource": {
+          "type": "string"
+        },
+        "action": {
           "type": "string"
         }
       }

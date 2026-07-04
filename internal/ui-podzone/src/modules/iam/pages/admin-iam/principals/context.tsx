@@ -6,6 +6,8 @@ import type {
   UserInlinePolicy,
 } from '@/services/iam'
 import type { CollectionQuery, PageInfo } from '@/services/collection'
+import type { SelectOption } from '@/solid/components/common/Primitives'
+import type { SearchSelectOption } from '@/solid/components/common/SearchSelectField'
 import type {
   PrincipalBoundaryFormValues,
   PrincipalInlinePolicyFormValues,
@@ -20,6 +22,15 @@ export type TenantOption = {
 export type PrincipalMode = 'platform' | 'tenant'
 
 export type AdminIamPrincipalContextValue = {
+  permissionOptions: Accessor<SelectOption[]>
+  platformUserOptions: Accessor<SearchSelectOption[]>
+  platformUsersLoading: Accessor<boolean>
+  platformUsersError: Accessor<string>
+  searchPlatformUsers: (search: string) => void
+  tenantUserOptions: Accessor<SearchSelectOption[]>
+  tenantUsersLoading: Accessor<boolean>
+  tenantUsersError: Accessor<string>
+  searchTenantUsers: (search: string) => void
   principalMode: Accessor<PrincipalMode>
   setPrincipalMode: Setter<PrincipalMode>
   principalPlatformUserId: Accessor<string>

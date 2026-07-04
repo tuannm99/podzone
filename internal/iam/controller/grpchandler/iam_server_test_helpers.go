@@ -102,6 +102,14 @@ type iamUsecaseMockConfig struct {
 		tenantID string,
 		query collection.Query,
 	) (collection.Page[iamentity.Group], error)
+	listDirectoryUsersFunc func(
+		ctx context.Context,
+		query collection.Query,
+	) (collection.Page[iamentity.User], error)
+	listPermissionsFunc func(
+		ctx context.Context,
+		query collection.Query,
+	) (collection.Page[iamentity.Permission], error)
 }
 
 type iamUsecaseMocks struct {
@@ -210,6 +218,18 @@ func newIAMUsecaseMock(t *testing.T, cfg iamUsecaseMockConfig) iamUsecaseMocks {
 		queries.EXPECT().
 			ListGroups(mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).
 			RunAndReturn(cfg.listGroupsFunc).
+			Maybe()
+	}
+	if cfg.listDirectoryUsersFunc != nil {
+		queries.EXPECT().
+			ListDirectoryUsers(mock.Anything, mock.Anything).
+			RunAndReturn(cfg.listDirectoryUsersFunc).
+			Maybe()
+	}
+	if cfg.listPermissionsFunc != nil {
+		queries.EXPECT().
+			ListPermissions(mock.Anything, mock.Anything).
+			RunAndReturn(cfg.listPermissionsFunc).
 			Maybe()
 	}
 	return iamUsecaseMocks{commands: commands, queries: queries}

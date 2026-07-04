@@ -18,6 +18,7 @@ This section documents the current Podzone architecture using a lightweight C4 s
 - [Frontend Solid Audit](./frontend-solid-audit.md)
 - [Collection API Contract](./collection-api-contract.md)
 - [Transport and Contracts](./transport-contracts.md)
+- [IAM Platform](./iam-platform.md)
 - [Data Ownership](./data-ownership.md)
 - [Code Map](./code-map.md)
 - [Deployment](./deployment.md)

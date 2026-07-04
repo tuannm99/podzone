@@ -66,11 +66,14 @@ flowchart LR
 ```mermaid
 flowchart LR
     Browser["Browser"]
+    Gateway["Gateway PEP"]
     Service["Business service inbound guard"]
-    IAM["IAM query gRPC"]
+    IAM["IAM decision plane / PDP"]
     Usecase["Authorized use case"]
 
-    Browser -->|"business request + bearer token"| Service
+    Browser -->|"business request + bearer token"| Gateway
+    Gateway -->|"coarse route check"| IAM
+    Gateway --> Service
     Service -->|"forward caller metadata + permission/resource"| IAM
     IAM -->|"allow or deny"| Service
     Service -->|"allow"| Usecase
@@ -83,5 +86,8 @@ flowchart LR
 - Frontends do not call permission-check endpoints to gate workflows. Backoffice
   and onboarding enforce access at their inbound boundaries through IAM query
   gRPC; IAM-owned endpoints enforce policy internally.
+- Gateway checks are optional coarse PEPs. Resource- and state-dependent
+  authorization remains mandatory at service handlers. See
+  [IAM Platform](./iam-platform.md).
 - `Backoffice` is GraphQL-owned and maps into context-local domain packages.
 - `grpcgateway` is only a transport adapter, not business logic.

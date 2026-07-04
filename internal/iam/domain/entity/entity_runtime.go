@@ -15,7 +15,15 @@ type AuditLog struct {
 }
 
 type User struct {
-	ID       uint
-	Email    string
-	Username string
+	ID          uint
+	Email       string
+	Username    string
+	DisplayName string
+}
+
+type Permission struct {
+	ID       uint64
+	Name     string
+	Resource string
+	Action   string
 }

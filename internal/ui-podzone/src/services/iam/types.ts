@@ -266,6 +266,26 @@ export type PlatformRoleMembership = {
   updatedAt?: string
 }
 
+export type DirectoryUser = {
+  id: number
+  email: string
+  username: string
+  displayName?: string
+}
+
+export type PermissionInfo = {
+  id: number
+  name: string
+  resource: string
+  action: string
+}
+
+export type DirectoryScope = {
+  scope: 'platform' | 'organization' | 'tenant'
+  orgId?: string
+  tenantId?: string
+}
+
 export type TenantInvite = {
   id: string
   tenantId: string

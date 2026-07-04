@@ -394,3 +394,21 @@ func (s *AuthServer) GetUserByID(
 		UserInfo: authmapper.ToPBUserInfo(user),
 	}, nil
 }
+
+func (s *AuthServer) ListUsers(
+	ctx context.Context,
+	req *pbauthv1.ListUsersRequest,
+) (*pbauthv1.ListUsersResponse, error) {
+	page, err := s.userRepo.List(ctx, authmapper.ToCollectionQuery(req.GetCollection()))
+	if err != nil {
+		return nil, authStatusError(err)
+	}
+	users := make([]*pbauthv1.UserInfo, 0, len(page.Items))
+	for i := range page.Items {
+		users = append(users, authmapper.ToPBUserInfo(&page.Items[i]))
+	}
+	return &pbauthv1.ListUsersResponse{
+		Users:    users,
+		PageInfo: authmapper.ToPBPageInfo(page),
+	}, nil
+}

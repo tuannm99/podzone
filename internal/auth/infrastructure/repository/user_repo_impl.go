@@ -12,6 +12,7 @@ import (
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/domain/outputport"
 	"github.com/tuannm99/podzone/internal/auth/infrastructure/model"
+	"github.com/tuannm99/podzone/pkg/collection"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 	"go.uber.org/fx"
@@ -71,6 +72,22 @@ var userColumns = []string{
 	"updated_at",
 }
 
+var userDirectoryColumns = []string{
+	"id",
+	"username",
+	"email",
+	"full_name",
+	"middle_name",
+	"first_name",
+	"last_name",
+	"address",
+	"initial_from",
+	"age",
+	"dob",
+	"created_at",
+	"updated_at",
+}
+
 // -------------------- helpers --------------------
 
 func isUniqueViolation(err error) bool {
@@ -116,6 +133,103 @@ func (u *UserRepositoryImpl) GetByUsernameOrEmail(identity string) (*entity.User
 		return nil, err
 	}
 	return m.ToEntity()
+}
+
+func (u *UserRepositoryImpl) List(
+	ctx context.Context,
+	listQuery collection.Query,
+) (collection.Page[entity.User], error) {
+	spec := collectionSpec{
+		searchColumns: []string{"username", "email", "full_name", "first_name", "last_name"},
+		filterFields: map[string]collectionField{
+			"id": {
+				column:    "id",
+				operators: operators(collection.FilterEqual, collection.FilterIn),
+			},
+			"username": {
+				column: "username",
+				operators: operators(
+					collection.FilterEqual,
+					collection.FilterContains,
+					collection.FilterStartsWith,
+				),
+			},
+			"email": {
+				column: "email",
+				operators: operators(
+					collection.FilterEqual,
+					collection.FilterContains,
+					collection.FilterStartsWith,
+				),
+			},
+			"initial_from": {
+				column:    "initial_from",
+				operators: operators(collection.FilterEqual, collection.FilterIn),
+			},
+			"created_at": {
+				column: "created_at",
+				operators: operators(
+					collection.FilterGreaterThan,
+					collection.FilterGreaterThanOrEqual,
+					collection.FilterLessThan,
+					collection.FilterLessThanOrEqual,
+				),
+			},
+		},
+		sortFields: map[string]string{
+			"id":         "id",
+			"username":   "username",
+			"email":      "email",
+			"full_name":  "full_name",
+			"created_at": "created_at",
+			"updated_at": "updated_at",
+		},
+		defaultSort: "created_at",
+	}
+	normalized, where, orderBy, err := buildCollectionQuery(listQuery, spec)
+	if err != nil {
+		return collection.Page[entity.User]{}, err
+	}
+
+	countBuilder := psql.Select("COUNT(*)").From("users")
+	for _, clause := range where {
+		countBuilder = countBuilder.Where(clause)
+	}
+	countSQL, countArgs, err := countBuilder.ToSql()
+	if err != nil {
+		return collection.Page[entity.User]{}, err
+	}
+	var total int64
+	if err := u.db.GetContext(ctx, &total, countSQL, countArgs...); err != nil {
+		return collection.Page[entity.User]{}, err
+	}
+
+	queryBuilder := psql.
+		Select(userDirectoryColumns...).
+		From("users").
+		OrderBy(orderBy, "id ASC").
+		Limit(uint64(normalized.PageSize)).
+		Offset(uint64(normalized.Offset()))
+	for _, clause := range where {
+		queryBuilder = queryBuilder.Where(clause)
+	}
+	querySQL, queryArgs, err := queryBuilder.ToSql()
+	if err != nil {
+		return collection.Page[entity.User]{}, err
+	}
+	var rows []model.User
+	if err := u.db.SelectContext(ctx, &rows, querySQL, queryArgs...); err != nil {
+		return collection.Page[entity.User]{}, err
+	}
+	users := make([]entity.User, 0, len(rows))
+	for i := range rows {
+		user, err := rows[i].ToEntity()
+		if err != nil {
+			return collection.Page[entity.User]{}, err
+		}
+		users = append(users, *user)
+	}
+	return collection.NewPage(users, total, normalized), nil
 }
 
 // Create implements outputport.UserRepository.

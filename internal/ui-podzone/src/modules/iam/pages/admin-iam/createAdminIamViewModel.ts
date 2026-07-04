@@ -85,6 +85,7 @@ export function createAdminIamViewModel() {
   })
 
   const policyContextValue = {
+    permissionOptions: state.permissionOptions,
     policyScopeOptions: () =>
       state.canManagePlatform()
         ? policyScopeOptions
@@ -134,6 +135,29 @@ export function createAdminIamViewModel() {
   }
 
   const groupContextValue = {
+    permissionOptions: state.permissionOptions,
+    memberUserOptions: () => {
+      if (state.groupScope() === 'platform') return state.platformUserOptions()
+      if (state.groupScope() === 'tenant') return state.tenantUserOptions()
+      return state.organizationUserOptions()
+    },
+    memberUsersLoading: () => {
+      if (state.groupScope() === 'platform') return state.platformUsersLoading()
+      if (state.groupScope() === 'tenant') return state.tenantUsersLoading()
+      return state.organizationUsersLoading()
+    },
+    memberUsersError: () => {
+      if (state.groupScope() === 'platform') return state.platformUsersError()
+      if (state.groupScope() === 'tenant') return state.tenantUsersError()
+      return state.organizationUsersError()
+    },
+    searchMemberUsers: (search: string) => {
+      if (state.groupScope() === 'platform')
+        return state.searchPlatformUsers(search)
+      if (state.groupScope() === 'tenant')
+        return state.searchTenantUsers(search, state.groupTenantId())
+      return state.searchOrganizationUsers(search)
+    },
     groupScopeOptions: () =>
       state.canManagePlatform()
         ? groupScopeOptions
@@ -199,6 +223,16 @@ export function createAdminIamViewModel() {
   }
 
   const principalContextValue = {
+    permissionOptions: state.permissionOptions,
+    platformUserOptions: state.platformUserOptions,
+    platformUsersLoading: state.platformUsersLoading,
+    platformUsersError: state.platformUsersError,
+    searchPlatformUsers: state.searchPlatformUsers,
+    tenantUserOptions: state.tenantUserOptions,
+    tenantUsersLoading: state.tenantUsersLoading,
+    tenantUsersError: state.tenantUsersError,
+    searchTenantUsers: (search: string) =>
+      state.searchTenantUsers(search, state.principalTenantId()),
     principalMode: state.principalMode,
     setPrincipalMode: state.setPrincipalMode,
     principalPlatformUserId: state.principalPlatformUserId,
@@ -253,6 +287,16 @@ export function createAdminIamViewModel() {
   }
 
   const trustSimContextValue = {
+    permissionOptions: state.permissionOptions,
+    platformUserOptions: state.platformUserOptions,
+    platformUsersLoading: state.platformUsersLoading,
+    platformUsersError: state.platformUsersError,
+    searchPlatformUsers: state.searchPlatformUsers,
+    tenantUserOptions: state.tenantUserOptions,
+    tenantUsersLoading: state.tenantUsersLoading,
+    tenantUsersError: state.tenantUsersError,
+    searchTenantUsers: (search: string) =>
+      state.searchTenantUsers(search, state.simTenantId()),
     trustRoleName: state.trustRoleName,
     setTrustRoleName: state.setTrustRoleName,
     loadTrustPolicy: loaders.loadTrustPolicy,
@@ -324,6 +368,10 @@ export function createAdminIamViewModel() {
     principals: principalContextValue,
     trustSimulation: trustSimContextValue,
     organizations: {
+      userOptions: state.organizationUserOptions,
+      usersLoading: state.organizationUsersLoading,
+      usersError: state.organizationUsersError,
+      searchUsers: state.searchOrganizationUsers,
       organizationOptions: state.organizationOptions,
       selectedOrgId: state.selectedOrgId,
       setSelectedOrgId: state.setSelectedOrgId,
@@ -359,6 +407,10 @@ export function createAdminIamViewModel() {
       handleRemoveOrganizationMember: actions.handleRemoveOrganizationMember,
     },
     assignments: {
+      platformUserOptions: state.platformUserOptions,
+      platformUsersLoading: state.platformUsersLoading,
+      platformUsersError: state.platformUsersError,
+      searchPlatformUsers: state.searchPlatformUsers,
       platformUserId: state.shortcutPlatformUserId,
       setPlatformUserId: state.setShortcutPlatformUserId,
       platformRoleName: state.shortcutPlatformRoleName,
@@ -370,6 +422,11 @@ export function createAdminIamViewModel() {
       setTenantId: state.setShortcutTenantId,
       tenantUserId: state.shortcutTenantUserId,
       setTenantUserId: state.setShortcutTenantUserId,
+      tenantUserOptions: state.tenantUserOptions,
+      tenantUsersLoading: state.tenantUsersLoading,
+      tenantUsersError: state.tenantUsersError,
+      searchTenantUsers: (search: string) =>
+        state.searchTenantUsers(search, state.shortcutTenantId()),
       tenantRoleName: state.shortcutTenantRoleName,
       setTenantRoleName: state.setShortcutTenantRoleName,
       tenantOptions: state.tenantOptions,
