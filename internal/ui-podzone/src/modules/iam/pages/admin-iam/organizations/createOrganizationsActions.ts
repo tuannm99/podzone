@@ -1,9 +1,11 @@
 import {
+  addOrganizationMember,
   attachServiceControlPolicy,
   attachTenantToOrganization,
   createOrganization,
   detachServiceControlPolicy,
   detachTenantFromOrganization,
+  removeOrganizationMember,
 } from '@/services/iam'
 import type { AdminIamLoaders } from '../createAdminIamLoaders'
 import type { AdminIamState } from '../createAdminIamState'
@@ -80,11 +82,36 @@ export function createOrganizationsActions(
       await loaders.loadSelectedPolicy()
     })
 
+  const handleAddOrganizationMember = (userID: number, roleName: string) =>
+    runAction(async () => {
+      const result = await addOrganizationMember(
+        state.selectedOrgId().trim(),
+        userID,
+        roleName
+      )
+      if (!result.success) throw new Error(result.message)
+      state.setPageMessage(`Added user ${userID} to the organization.`)
+      await state.reloadOrganizationMembers()
+    })
+
+  const handleRemoveOrganizationMember = (userID: string) =>
+    runAction(async () => {
+      const result = await removeOrganizationMember(
+        state.selectedOrgId().trim(),
+        userID
+      )
+      if (!result.success) throw new Error(result.message)
+      state.setPageMessage(`Removed user ${userID} from the organization.`)
+      await state.reloadOrganizationMembers()
+    })
+
   return {
     submitCreateOrganization,
     handleAttachTenantToOrg,
     handleDetachTenantFromOrg,
     handleAttachScp,
     handleDetachScp,
+    handleAddOrganizationMember,
+    handleRemoveOrganizationMember,
   }
 }

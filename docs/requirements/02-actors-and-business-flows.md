@@ -49,8 +49,22 @@ Invariants:
 - one self-service identity owns at most one organization
 - one organization has exactly one root identity
 - root ownership is persisted by IAM and bootstrap is idempotent
+- root membership is immutable and cannot be delegated or removed
 - root authority cannot cross organization boundaries
 - platform authority always requires an explicit platform role or policy grant
+
+Organization delegation:
+
+- `organization_root` has full organization authority and may manage every
+  tenant attached to the organization
+- `organization_admin` may manage organization members and IAM resources, and
+  may administer attached tenants without a duplicate tenant membership
+- `organization_viewer` may inspect organization membership and governance but
+  cannot mutate them
+- organization membership is explicit, active-state checked, and never grants
+  platform permissions
+- organization-scoped API operations must evaluate organization permissions in
+  IAM; UI visibility is not an authorization boundary
 
 ## 3. Store Owner
 

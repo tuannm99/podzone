@@ -14,6 +14,16 @@ type Organization struct {
 	UpdatedAt  time.Time `json:"updated_at"`
 }
 
+type OrganizationMembership struct {
+	OrgID     string    `json:"org_id"`
+	UserID    uint      `json:"user_id"`
+	RoleID    uint64    `json:"role_id"`
+	RoleName  string    `json:"role_name"`
+	Status    string    `json:"status"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 type ServiceControlPolicyAttachment struct {
 	OrgID      string    `json:"org_id"`
 	OrgName    string    `json:"org_name"`
@@ -23,8 +33,10 @@ type ServiceControlPolicyAttachment struct {
 }
 
 var (
-	ErrOrganizationNotFound    = errors.New("iam: organization not found")
-	ErrInvalidOrganizationName = errors.New("iam: organization name is required")
-	ErrInvalidOrganizationSlug = errors.New("iam: organization slug is required")
-	ErrOrganizationRootExists  = errors.New("iam: user already owns an organization")
+	ErrOrganizationNotFound           = errors.New("iam: organization not found")
+	ErrInvalidOrganizationName        = errors.New("iam: organization name is required")
+	ErrInvalidOrganizationSlug        = errors.New("iam: organization slug is required")
+	ErrOrganizationRootExists         = errors.New("iam: user already owns an organization")
+	ErrOrganizationMembershipNotFound = errors.New("iam: organization membership not found")
+	ErrImmutableOrganizationRoot      = errors.New("iam: organization root membership is immutable")
 )

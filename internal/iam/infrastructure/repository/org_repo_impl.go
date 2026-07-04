@@ -75,6 +75,16 @@ func (r *OrganizationRepositoryImpl) EnsureRoot(
 				  AND r.name = 'tenant_owner'
 			  )
 			RETURNING t.id
+		), root_membership AS (
+			INSERT INTO iam_organization_memberships (
+				org_id, user_id, role_id, status, created_at, updated_at
+			)
+			SELECT root_org.id, root_org.root_user_id, role.id, 'active', now(), now()
+			FROM root_org
+			JOIN iam_roles role ON role.name = 'organization_root'
+			ON CONFLICT (org_id, user_id) DO UPDATE
+			SET role_id = EXCLUDED.role_id, status = 'active', updated_at = now()
+			RETURNING org_id
 		)
 		SELECT id, slug, name, root_user_id, created_at, updated_at
 		FROM root_org`,
@@ -91,20 +101,164 @@ func (r *OrganizationRepositoryImpl) EnsureRoot(
 	return organizationModelToEntity(out), nil
 }
 
+func (r *OrganizationRepositoryImpl) UpsertMembership(
+	ctx context.Context,
+	membership entity.OrganizationMembership,
+) error {
+	_, err := r.db.ExecContext(
+		ctx,
+		`INSERT INTO iam_organization_memberships (
+			org_id, user_id, role_id, status, created_at, updated_at
+		 )
+		 VALUES ($1, $2, $3, $4, $5, $6)
+		 ON CONFLICT (org_id, user_id) DO UPDATE
+		 SET role_id = EXCLUDED.role_id,
+		     status = EXCLUDED.status,
+		     updated_at = EXCLUDED.updated_at`,
+		membership.OrgID,
+		membership.UserID,
+		membership.RoleID,
+		membership.Status,
+		membership.CreatedAt,
+		membership.UpdatedAt,
+	)
+	return err
+}
+
+func (r *OrganizationRepositoryImpl) DeleteMembership(ctx context.Context, orgID string, userID uint) error {
+	result, err := r.db.ExecContext(
+		ctx,
+		`DELETE FROM iam_organization_memberships WHERE org_id = $1 AND user_id = $2`,
+		orgID,
+		userID,
+	)
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return entity.ErrOrganizationMembershipNotFound
+	}
+	return nil
+}
+
+func (r *OrganizationRepositoryImpl) GetMembership(
+	ctx context.Context,
+	orgID string,
+	userID uint,
+) (*entity.OrganizationMembership, error) {
+	var row organizationMembershipModel
+	err := r.db.GetContext(
+		ctx,
+		&row,
+		`SELECT om.org_id, om.user_id, om.role_id, r.name AS role_name,
+		        om.status, om.created_at, om.updated_at
+		 FROM iam_organization_memberships om
+		 JOIN iam_roles r ON r.id = om.role_id
+		 WHERE om.org_id = $1 AND om.user_id = $2`,
+		orgID,
+		userID,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, entity.ErrOrganizationMembershipNotFound
+		}
+		return nil, err
+	}
+	return organizationMembershipModelToEntity(row), nil
+}
+
+func (r *OrganizationRepositoryImpl) ListMemberships(
+	ctx context.Context,
+	orgID string,
+	query collection.Query,
+) (collection.Page[entity.OrganizationMembership], error) {
+	page, err := listIAMCollectionModels[organizationMembershipModel](
+		ctx,
+		r.db,
+		query,
+		"iam_organization_memberships om JOIN iam_roles r ON r.id = om.role_id",
+		[]string{
+			"om.org_id",
+			"om.user_id",
+			"om.role_id",
+			"r.name AS role_name",
+			"om.status",
+			"om.created_at",
+			"om.updated_at",
+		},
+		[]sq.Sqlizer{sq.Eq{"om.org_id": orgID}},
+		organizationMembershipCollectionColumns,
+		[]string{"CAST(om.user_id AS TEXT)", "r.name", "om.status"},
+		"om.created_at",
+		"om.user_id ASC",
+	)
+	if err != nil {
+		return collection.Page[entity.OrganizationMembership]{}, err
+	}
+	items := make([]entity.OrganizationMembership, 0, len(page.Items))
+	for _, row := range page.Items {
+		items = append(items, *organizationMembershipModelToEntity(row))
+	}
+	return collection.NewPage(items, page.Total, query), nil
+}
+
+func organizationMembershipModelToEntity(row organizationMembershipModel) *entity.OrganizationMembership {
+	return &entity.OrganizationMembership{
+		OrgID:     row.OrgID,
+		UserID:    row.UserID,
+		RoleID:    row.RoleID,
+		RoleName:  row.RoleName,
+		Status:    row.Status,
+		CreatedAt: row.CreatedAt,
+		UpdatedAt: row.UpdatedAt,
+	}
+}
+
 func (r *OrganizationRepositoryImpl) List(
 	ctx context.Context,
 	queryArg collection.Query,
 ) (collection.Page[entity.Organization], error) {
+	return r.list(ctx, queryArg, nil)
+}
+
+func (r *OrganizationRepositoryImpl) ListByUserID(
+	ctx context.Context,
+	userID uint,
+	queryArg collection.Query,
+) (collection.Page[entity.Organization], error) {
+	return r.list(ctx, queryArg, &userID)
+}
+
+func (r *OrganizationRepositoryImpl) list(
+	ctx context.Context,
+	queryArg collection.Query,
+	memberUserID *uint,
+) (collection.Page[entity.Organization], error) {
+	table := "iam_organizations organization"
 	normalized, where, orderBy, err := buildIAMCollectionQuery(
 		queryArg,
 		organizationCollectionColumns,
-		[]string{"id", "slug", "name"},
-		"created_at",
+		[]string{"organization.id", "organization.slug", "organization.name"},
+		"organization.created_at",
 	)
 	if err != nil {
 		return collection.Page[entity.Organization]{}, err
 	}
-	countBuilder := sq.Select("COUNT(*)").From("iam_organizations")
+	if memberUserID != nil {
+		table += " JOIN iam_organization_memberships membership ON membership.org_id = organization.id"
+		where = append(
+			where,
+			sq.Eq{
+				"membership.user_id": *memberUserID,
+				"membership.status":  entity.MembershipStatusActive,
+			},
+		)
+	}
+	countBuilder := sq.Select("COUNT(*)").From(table)
 	for _, predicate := range where {
 		countBuilder = countBuilder.Where(predicate)
 	}
@@ -117,13 +271,19 @@ func (r *OrganizationRepositoryImpl) List(
 		return collection.Page[entity.Organization]{}, err
 	}
 
-	builder := sq.Select("id", "slug", "name", "root_user_id", "created_at", "updated_at").
-		From("iam_organizations")
+	builder := sq.Select(
+		"organization.id",
+		"organization.slug",
+		"organization.name",
+		"organization.root_user_id",
+		"organization.created_at",
+		"organization.updated_at",
+	).From(table)
 	for _, predicate := range where {
 		builder = builder.Where(predicate)
 	}
 	listSQL, listArgs, err := builder.
-		OrderBy(orderBy, "id ASC").
+		OrderBy(orderBy, "organization.id ASC").
 		Limit(uint64(normalized.PageSize)).
 		Offset(uint64(normalized.Offset())).
 		PlaceholderFormat(sq.Dollar).

@@ -33,7 +33,7 @@ func TestBuildIAMCollectionQuery(t *testing.T) {
 			columns:     organizationCollectionColumns,
 			search:      []string{"id", "slug", "name"},
 			defaultSort: "created_at",
-			wantOrder:   "name ASC",
+			wantOrder:   "organization.name ASC",
 			wantWhere:   1,
 		},
 		{

@@ -66,6 +66,23 @@ type iamUsecaseMockConfig struct {
 		ctx context.Context,
 		query collection.Query,
 	) (collection.Page[iamentity.Organization], error)
+	listOrganizationsForUserFunc func(
+		ctx context.Context,
+		userID uint,
+		query collection.Query,
+	) (collection.Page[iamentity.Organization], error)
+	isOrganizationRootFunc            func(ctx context.Context, orgID string, userID uint) (bool, error)
+	requireOrganizationPermissionFunc func(
+		ctx context.Context,
+		orgID string,
+		userID uint,
+		permission string,
+	) error
+	listOrganizationMembersFunc func(
+		ctx context.Context,
+		orgID string,
+		query collection.Query,
+	) (collection.Page[iamentity.OrganizationMembership], error)
 	ensureRootOrganizationFunc func(
 		ctx context.Context,
 		rootUserID uint,
@@ -149,6 +166,30 @@ func newIAMUsecaseMock(t *testing.T, cfg iamUsecaseMockConfig) iamUsecaseMocks {
 		queries.EXPECT().
 			ListOrganizations(mock.Anything, mock.Anything).
 			RunAndReturn(cfg.listOrganizationsFunc).
+			Maybe()
+	}
+	if cfg.listOrganizationsForUserFunc != nil {
+		queries.EXPECT().
+			ListOrganizationsForUser(mock.Anything, mock.Anything, mock.Anything).
+			RunAndReturn(cfg.listOrganizationsForUserFunc).
+			Maybe()
+	}
+	if cfg.isOrganizationRootFunc != nil {
+		queries.EXPECT().
+			IsOrganizationRoot(mock.Anything, mock.Anything, mock.Anything).
+			RunAndReturn(cfg.isOrganizationRootFunc).
+			Maybe()
+	}
+	if cfg.requireOrganizationPermissionFunc != nil {
+		queries.EXPECT().
+			RequireOrganizationPermission(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+			RunAndReturn(cfg.requireOrganizationPermissionFunc).
+			Maybe()
+	}
+	if cfg.listOrganizationMembersFunc != nil {
+		queries.EXPECT().
+			ListOrganizationMembers(mock.Anything, mock.Anything, mock.Anything).
+			RunAndReturn(cfg.listOrganizationMembersFunc).
 			Maybe()
 	}
 	if cfg.ensureRootOrganizationFunc != nil {

@@ -4,6 +4,8 @@ import (
 	"context"
 
 	iammapper "github.com/tuannm99/podzone/internal/iam/controller/mapper"
+	iamdomain "github.com/tuannm99/podzone/internal/iam/domain/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -183,10 +185,17 @@ func (s *IAMQueryServer) ListOrganizations(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+	canManagePlatform, err := s.queries.CheckPlatformPermission(ctx, actorUserID, "platform:manage_roles")
+	if err != nil {
 		return nil, iamStatusError(err)
 	}
-	page, err := s.queries.ListOrganizations(ctx, iammapper.ToCollectionQuery(req.Collection))
+	query := iammapper.ToCollectionQuery(req.Collection)
+	var page collection.Page[iamdomain.Organization]
+	if canManagePlatform {
+		page, err = s.queries.ListOrganizations(ctx, query)
+	} else {
+		page, err = s.queries.ListOrganizationsForUser(ctx, actorUserID, query)
+	}
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
@@ -196,8 +205,9 @@ func (s *IAMQueryServer) ListOrganizations(
 		out = append(out, iammapper.ToPBOrganization(&item))
 	}
 	return &pbiamv1.ListOrganizationsResponse{
-		Organizations: out,
-		PageInfo:      iammapper.ToPBPageInfo(page),
+		Organizations:     out,
+		PageInfo:          iammapper.ToPBPageInfo(page),
+		CanManagePlatform: canManagePlatform,
 	}, nil
 }
 
@@ -209,12 +219,122 @@ func (s *IAMQueryServer) ListServiceControlPolicies(
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
-	if err := s.queries.RequirePlatformPermission(ctx, actorUserID, "platform:manage_roles"); err != nil {
+	canManagePlatform, err := s.queries.CheckPlatformPermission(ctx, actorUserID, "platform:manage_roles")
+	if err != nil {
 		return nil, iamStatusError(err)
+	}
+	if !canManagePlatform {
+		if err := s.queries.RequireOrganizationPermission(
+			ctx,
+			req.OrgId,
+			actorUserID,
+			"organization:read",
+		); err != nil {
+			return nil, iamStatusError(err)
+		}
 	}
 	items, err := s.queries.ListServiceControlPolicies(ctx, req.OrgId)
 	if err != nil {
 		return nil, iamStatusError(err)
 	}
 	return &pbiamv1.ListServiceControlPoliciesResponse{Policies: iammapper.ToPBPolicies(items)}, nil
+}
+
+func (s *IAMCommandServer) AddOrganizationMember(
+	ctx context.Context,
+	req *pbiamv1.AddOrganizationMemberRequest,
+) (*pbiamv1.AddOrganizationMemberResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.queries.RequireOrganizationPermission(
+		ctx,
+		req.OrgId,
+		actorUserID,
+		"organization:manage_members",
+	); err != nil {
+		return nil, iamStatusError(err)
+	}
+	userID, err := toUint(req.UserId)
+	if err != nil {
+		return nil, err
+	}
+	if s.userDirectory == nil {
+		return nil, status.Error(codes.Internal, "user directory is not configured")
+	}
+	user, err := s.userDirectory.GetByID(ctx, userID)
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	if user == nil || user.ID == 0 {
+		return nil, iamStatusError(iamdomain.ErrUserNotFound)
+	}
+	if err := s.commands.AddOrganizationMember(ctx, req.OrgId, userID, req.RoleName); err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "organization.member.added", "organization_member", req.OrgId, "", map[string]any{
+		"user_id":   userID,
+		"role_name": req.RoleName,
+	})
+	return &pbiamv1.AddOrganizationMemberResponse{}, nil
+}
+
+func (s *IAMCommandServer) RemoveOrganizationMember(
+	ctx context.Context,
+	req *pbiamv1.RemoveOrganizationMemberRequest,
+) (*pbiamv1.RemoveOrganizationMemberResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.queries.RequireOrganizationPermission(
+		ctx,
+		req.OrgId,
+		actorUserID,
+		"organization:manage_members",
+	); err != nil {
+		return nil, iamStatusError(err)
+	}
+	userID, err := toUint(req.UserId)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.commands.RemoveOrganizationMember(ctx, req.OrgId, userID); err != nil {
+		return nil, iamStatusError(err)
+	}
+	s.recordAudit(ctx, actorUserID, "organization.member.removed", "organization_member", req.OrgId, "", map[string]any{
+		"user_id": userID,
+	})
+	return &pbiamv1.RemoveOrganizationMemberResponse{}, nil
+}
+
+func (s *IAMQueryServer) ListOrganizationMembers(
+	ctx context.Context,
+	req *pbiamv1.ListOrganizationMembersRequest,
+) (*pbiamv1.ListOrganizationMembersResponse, error) {
+	ctx, actorUserID, err := s.authorizedContext(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, err.Error())
+	}
+	if err := s.queries.RequireOrganizationPermission(
+		ctx,
+		req.OrgId,
+		actorUserID,
+		"organization:read",
+	); err != nil {
+		return nil, iamStatusError(err)
+	}
+	page, err := s.queries.ListOrganizationMembers(ctx, req.OrgId, iammapper.ToCollectionQuery(req.Collection))
+	if err != nil {
+		return nil, iamStatusError(err)
+	}
+	items := make([]*pbiamv1.OrganizationMembership, 0, len(page.Items))
+	for i := range page.Items {
+		items = append(items, iammapper.ToPBOrganizationMembership(&page.Items[i]))
+	}
+	return &pbiamv1.ListOrganizationMembersResponse{
+		Memberships: items,
+		PageInfo:    iammapper.ToPBPageInfo(page),
+	}, nil
 }

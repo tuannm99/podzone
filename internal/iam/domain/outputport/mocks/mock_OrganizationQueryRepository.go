@@ -175,6 +175,80 @@ func (_c *MockOrganizationQueryRepository_GetByRootUserID_Call) RunAndReturn(run
 	return _c
 }
 
+// GetMembership provides a mock function for the type MockOrganizationQueryRepository
+func (_mock *MockOrganizationQueryRepository) GetMembership(ctx context.Context, orgID string, userID uint) (*entity.OrganizationMembership, error) {
+	ret := _mock.Called(ctx, orgID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMembership")
+	}
+
+	var r0 *entity.OrganizationMembership
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) (*entity.OrganizationMembership, error)); ok {
+		return returnFunc(ctx, orgID, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) *entity.OrganizationMembership); ok {
+		r0 = returnFunc(ctx, orgID, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.OrganizationMembership)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint) error); ok {
+		r1 = returnFunc(ctx, orgID, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockOrganizationQueryRepository_GetMembership_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetMembership'
+type MockOrganizationQueryRepository_GetMembership_Call struct {
+	*mock.Call
+}
+
+// GetMembership is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orgID string
+//   - userID uint
+func (_e *MockOrganizationQueryRepository_Expecter) GetMembership(ctx interface{}, orgID interface{}, userID interface{}) *MockOrganizationQueryRepository_GetMembership_Call {
+	return &MockOrganizationQueryRepository_GetMembership_Call{Call: _e.mock.On("GetMembership", ctx, orgID, userID)}
+}
+
+func (_c *MockOrganizationQueryRepository_GetMembership_Call) Run(run func(ctx context.Context, orgID string, userID uint)) *MockOrganizationQueryRepository_GetMembership_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockOrganizationQueryRepository_GetMembership_Call) Return(organizationMembership *entity.OrganizationMembership, err error) *MockOrganizationQueryRepository_GetMembership_Call {
+	_c.Call.Return(organizationMembership, err)
+	return _c
+}
+
+func (_c *MockOrganizationQueryRepository_GetMembership_Call) RunAndReturn(run func(ctx context.Context, orgID string, userID uint) (*entity.OrganizationMembership, error)) *MockOrganizationQueryRepository_GetMembership_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // IsRoot provides a mock function for the type MockOrganizationQueryRepository
 func (_mock *MockOrganizationQueryRepository) IsRoot(ctx context.Context, orgID string, userID uint) (bool, error) {
 	ret := _mock.Called(ctx, orgID, userID)
@@ -309,6 +383,150 @@ func (_c *MockOrganizationQueryRepository_List_Call) Return(page collection.Page
 }
 
 func (_c *MockOrganizationQueryRepository_List_Call) RunAndReturn(run func(ctx context.Context, query collection.Query) (collection.Page[entity.Organization], error)) *MockOrganizationQueryRepository_List_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListByUserID provides a mock function for the type MockOrganizationQueryRepository
+func (_mock *MockOrganizationQueryRepository) ListByUserID(ctx context.Context, userID uint, query collection.Query) (collection.Page[entity.Organization], error) {
+	ret := _mock.Called(ctx, userID, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListByUserID")
+	}
+
+	var r0 collection.Page[entity.Organization]
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, collection.Query) (collection.Page[entity.Organization], error)); ok {
+		return returnFunc(ctx, userID, query)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, collection.Query) collection.Page[entity.Organization]); ok {
+		r0 = returnFunc(ctx, userID, query)
+	} else {
+		r0 = ret.Get(0).(collection.Page[entity.Organization])
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint, collection.Query) error); ok {
+		r1 = returnFunc(ctx, userID, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockOrganizationQueryRepository_ListByUserID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListByUserID'
+type MockOrganizationQueryRepository_ListByUserID_Call struct {
+	*mock.Call
+}
+
+// ListByUserID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uint
+//   - query collection.Query
+func (_e *MockOrganizationQueryRepository_Expecter) ListByUserID(ctx interface{}, userID interface{}, query interface{}) *MockOrganizationQueryRepository_ListByUserID_Call {
+	return &MockOrganizationQueryRepository_ListByUserID_Call{Call: _e.mock.On("ListByUserID", ctx, userID, query)}
+}
+
+func (_c *MockOrganizationQueryRepository_ListByUserID_Call) Run(run func(ctx context.Context, userID uint, query collection.Query)) *MockOrganizationQueryRepository_ListByUserID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockOrganizationQueryRepository_ListByUserID_Call) Return(page collection.Page[entity.Organization], err error) *MockOrganizationQueryRepository_ListByUserID_Call {
+	_c.Call.Return(page, err)
+	return _c
+}
+
+func (_c *MockOrganizationQueryRepository_ListByUserID_Call) RunAndReturn(run func(ctx context.Context, userID uint, query collection.Query) (collection.Page[entity.Organization], error)) *MockOrganizationQueryRepository_ListByUserID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListMemberships provides a mock function for the type MockOrganizationQueryRepository
+func (_mock *MockOrganizationQueryRepository) ListMemberships(ctx context.Context, orgID string, query collection.Query) (collection.Page[entity.OrganizationMembership], error) {
+	ret := _mock.Called(ctx, orgID, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListMemberships")
+	}
+
+	var r0 collection.Page[entity.OrganizationMembership]
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) (collection.Page[entity.OrganizationMembership], error)); ok {
+		return returnFunc(ctx, orgID, query)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) collection.Page[entity.OrganizationMembership]); ok {
+		r0 = returnFunc(ctx, orgID, query)
+	} else {
+		r0 = ret.Get(0).(collection.Page[entity.OrganizationMembership])
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, collection.Query) error); ok {
+		r1 = returnFunc(ctx, orgID, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockOrganizationQueryRepository_ListMemberships_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListMemberships'
+type MockOrganizationQueryRepository_ListMemberships_Call struct {
+	*mock.Call
+}
+
+// ListMemberships is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orgID string
+//   - query collection.Query
+func (_e *MockOrganizationQueryRepository_Expecter) ListMemberships(ctx interface{}, orgID interface{}, query interface{}) *MockOrganizationQueryRepository_ListMemberships_Call {
+	return &MockOrganizationQueryRepository_ListMemberships_Call{Call: _e.mock.On("ListMemberships", ctx, orgID, query)}
+}
+
+func (_c *MockOrganizationQueryRepository_ListMemberships_Call) Run(run func(ctx context.Context, orgID string, query collection.Query)) *MockOrganizationQueryRepository_ListMemberships_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockOrganizationQueryRepository_ListMemberships_Call) Return(page collection.Page[entity.OrganizationMembership], err error) *MockOrganizationQueryRepository_ListMemberships_Call {
+	_c.Call.Return(page, err)
+	return _c
+}
+
+func (_c *MockOrganizationQueryRepository_ListMemberships_Call) RunAndReturn(run func(ctx context.Context, orgID string, query collection.Query) (collection.Page[entity.OrganizationMembership], error)) *MockOrganizationQueryRepository_ListMemberships_Call {
 	_c.Call.Return(run)
 	return _c
 }

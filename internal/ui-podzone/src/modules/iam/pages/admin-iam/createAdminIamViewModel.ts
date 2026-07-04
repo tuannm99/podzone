@@ -23,7 +23,12 @@ export function createAdminIamViewModel() {
 
   createEffect(() => {
     const firstPolicy = state.policies()[0]
-    if (state.allowed() && !state.selectedPolicyName() && firstPolicy) {
+    if (
+      state.allowed() &&
+      state.canManagePlatform() &&
+      !state.selectedPolicyName() &&
+      firstPolicy
+    ) {
       state.setSelectedPolicyName(firstPolicy.name)
     }
   })
@@ -37,7 +42,8 @@ export function createAdminIamViewModel() {
 
   createEffect(() => {
     void state.selectedPolicyName()
-    if (state.allowed()) void loaders.loadSelectedPolicy()
+    if (state.allowed() && state.canManagePlatform())
+      void loaders.loadSelectedPolicy()
   })
 
   createEffect(() => {
@@ -47,13 +53,15 @@ export function createAdminIamViewModel() {
 
   createEffect(() => {
     void state.selectedGroupId()
-    if (state.allowed()) void loaders.loadSelectedGroup()
+    if (state.allowed() && state.canManagePlatform())
+      void loaders.loadSelectedGroup()
   })
 
   createEffect(() => {
     void state.groupScope()
     void state.groupTenantId()
-    if (state.allowed()) void loaders.loadGroupsForScope()
+    if (state.allowed() && state.canManagePlatform())
+      void loaders.loadGroupsForScope()
   })
 
   onMount(() => {
@@ -284,6 +292,7 @@ export function createAdminIamViewModel() {
       message: state.pageMessage,
       loading: state.loading,
       allowed: state.allowed,
+      canManagePlatform: state.canManagePlatform,
     },
     sectionLinks,
     policies: policyContextValue,
@@ -315,6 +324,15 @@ export function createAdminIamViewModel() {
       orgPolicies: state.orgPolicies,
       handleDetachTenantFromOrg: actions.handleDetachTenantFromOrg,
       handleDetachScp: actions.handleDetachScp,
+      canManagePlatform: state.canManagePlatform,
+      organizationMembers: state.organizationMembers,
+      organizationMembersQuery: state.organizationMembersQuery,
+      organizationMembersPageInfo: state.organizationMembersPageInfo,
+      organizationMembersLoading: state.organizationMembersLoading,
+      organizationMembersError: state.organizationMembersError,
+      updateOrganizationMembersQuery: state.updateOrganizationMembersQuery,
+      handleAddOrganizationMember: actions.handleAddOrganizationMember,
+      handleRemoveOrganizationMember: actions.handleRemoveOrganizationMember,
     },
     assignments: {
       platformUserId: state.shortcutPlatformUserId,
@@ -332,6 +350,7 @@ export function createAdminIamViewModel() {
       setTenantRoleName: state.setShortcutTenantRoleName,
       tenantOptions: state.tenantOptions,
       tenantRoleOptions,
+      canManagePlatform: state.canManagePlatform,
       assignTenantRole: actions.handleAssignTenantRole,
       removeTenantMembership: actions.handleRemoveTenantMembershipShortcut,
     },

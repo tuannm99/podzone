@@ -13,6 +13,7 @@ import type {
   PolicyInfo,
   CreateOrganizationPayload,
   CreateOrganizationResult,
+  OrganizationMembership,
 } from './types'
 
 export async function createOrganization(
@@ -29,13 +30,18 @@ export async function createOrganization(
   }
 }
 
-export async function listOrganizations(
-  query: CollectionQuery
-): Promise<IamResult<CollectionPage<OrganizationInfo>>> {
+export async function listOrganizations(query: CollectionQuery): Promise<
+  IamResult<
+    CollectionPage<OrganizationInfo> & {
+      canManagePlatform: boolean
+    }
+  >
+> {
   try {
     const { data } = await http.get<{
       organizations?: OrganizationInfo[]
       pageInfo?: WirePageInfo
+      canManagePlatform?: boolean
     }>('/auth/v1/iam/organizations', {
       params: toCollectionParams(query),
     })
@@ -44,10 +50,63 @@ export async function listOrganizations(
       data: {
         items: data.organizations || [],
         pageInfo: normalizePageInfo(data.pageInfo, query),
+        canManagePlatform: data.canManagePlatform === true,
       },
     }
   } catch (error) {
     return toFailure(error as HttpError, 'Failed to load organizations')
+  }
+}
+
+export async function listOrganizationMembers(
+  orgId: string,
+  query: CollectionQuery
+): Promise<IamResult<CollectionPage<OrganizationMembership>>> {
+  try {
+    const { data } = await http.get<{
+      memberships?: OrganizationMembership[]
+      pageInfo?: WirePageInfo
+    }>(`/auth/v1/iam/organizations/${orgId}/members`, {
+      params: toCollectionParams(query),
+    })
+    return {
+      success: true,
+      data: {
+        items: data.memberships || [],
+        pageInfo: normalizePageInfo(data.pageInfo, query),
+      },
+    }
+  } catch (error) {
+    return toFailure(error as HttpError, 'Failed to load organization members')
+  }
+}
+
+export async function addOrganizationMember(
+  orgId: string,
+  userId: number,
+  roleName: string
+): Promise<IamResult<true>> {
+  try {
+    await http.post(`/auth/v1/iam/organizations/${orgId}/members`, {
+      orgId,
+      userId,
+      roleName,
+    })
+    return { success: true, data: true }
+  } catch (error) {
+    return toFailure(error as HttpError, 'Failed to add organization member')
+  }
+}
+
+export async function removeOrganizationMember(
+  orgId: string,
+  userId: string
+): Promise<IamResult<true>> {
+  try {
+    await http.delete(`/auth/v1/iam/organizations/${orgId}/members/${userId}`)
+    return { success: true, data: true }
+  } catch (error) {
+    return toFailure(error as HttpError, 'Failed to remove organization member')
   }
 }
 

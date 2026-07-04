@@ -97,10 +97,30 @@ type OrganizationCommandUsecase interface {
 	DetachTenantFromOrganization(ctx context.Context, tenantID string) error
 	AttachServiceControlPolicy(ctx context.Context, orgID string, policyName string) error
 	DetachServiceControlPolicy(ctx context.Context, orgID string, policyName string) error
+	AddOrganizationMember(ctx context.Context, orgID string, userID uint, roleName string) error
+	RemoveOrganizationMember(ctx context.Context, orgID string, userID uint) error
 }
 
 type OrganizationQueryUsecase interface {
 	ListOrganizations(ctx context.Context, query collection.Query) (collection.Page[entity.Organization], error)
+	ListOrganizationsForUser(
+		ctx context.Context,
+		userID uint,
+		query collection.Query,
+	) (collection.Page[entity.Organization], error)
+	IsOrganizationRoot(ctx context.Context, orgID string, userID uint) (bool, error)
+	CheckOrganizationPermission(
+		ctx context.Context,
+		orgID string,
+		userID uint,
+		permission string,
+	) (bool, error)
+	RequireOrganizationPermission(ctx context.Context, orgID string, userID uint, permission string) error
+	ListOrganizationMembers(
+		ctx context.Context,
+		orgID string,
+		query collection.Query,
+	) (collection.Page[entity.OrganizationMembership], error)
 	ListServiceControlPolicies(ctx context.Context, orgID string) ([]entity.Policy, error)
 }
 

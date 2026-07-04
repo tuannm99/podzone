@@ -23,6 +23,9 @@ const (
 	IAMService_CreateTenant_FullMethodName                         = "/iam.IAMService/CreateTenant"
 	IAMService_CreateOrganization_FullMethodName                   = "/iam.IAMService/CreateOrganization"
 	IAMService_ListOrganizations_FullMethodName                    = "/iam.IAMService/ListOrganizations"
+	IAMService_AddOrganizationMember_FullMethodName                = "/iam.IAMService/AddOrganizationMember"
+	IAMService_RemoveOrganizationMember_FullMethodName             = "/iam.IAMService/RemoveOrganizationMember"
+	IAMService_ListOrganizationMembers_FullMethodName              = "/iam.IAMService/ListOrganizationMembers"
 	IAMService_AttachTenantToOrganization_FullMethodName           = "/iam.IAMService/AttachTenantToOrganization"
 	IAMService_DetachTenantFromOrganization_FullMethodName         = "/iam.IAMService/DetachTenantFromOrganization"
 	IAMService_AttachServiceControlPolicy_FullMethodName           = "/iam.IAMService/AttachServiceControlPolicy"
@@ -105,6 +108,9 @@ type IAMServiceClient interface {
 	CreateTenant(ctx context.Context, in *CreateTenantRequest, opts ...grpc.CallOption) (*CreateTenantResponse, error)
 	CreateOrganization(ctx context.Context, in *CreateOrganizationRequest, opts ...grpc.CallOption) (*CreateOrganizationResponse, error)
 	ListOrganizations(ctx context.Context, in *ListOrganizationsRequest, opts ...grpc.CallOption) (*ListOrganizationsResponse, error)
+	AddOrganizationMember(ctx context.Context, in *AddOrganizationMemberRequest, opts ...grpc.CallOption) (*AddOrganizationMemberResponse, error)
+	RemoveOrganizationMember(ctx context.Context, in *RemoveOrganizationMemberRequest, opts ...grpc.CallOption) (*RemoveOrganizationMemberResponse, error)
+	ListOrganizationMembers(ctx context.Context, in *ListOrganizationMembersRequest, opts ...grpc.CallOption) (*ListOrganizationMembersResponse, error)
 	AttachTenantToOrganization(ctx context.Context, in *AttachTenantToOrganizationRequest, opts ...grpc.CallOption) (*AttachTenantToOrganizationResponse, error)
 	DetachTenantFromOrganization(ctx context.Context, in *DetachTenantFromOrganizationRequest, opts ...grpc.CallOption) (*DetachTenantFromOrganizationResponse, error)
 	AttachServiceControlPolicy(ctx context.Context, in *AttachServiceControlPolicyRequest, opts ...grpc.CallOption) (*AttachServiceControlPolicyResponse, error)
@@ -218,6 +224,36 @@ func (c *iAMServiceClient) ListOrganizations(ctx context.Context, in *ListOrgani
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListOrganizationsResponse)
 	err := c.cc.Invoke(ctx, IAMService_ListOrganizations_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) AddOrganizationMember(ctx context.Context, in *AddOrganizationMemberRequest, opts ...grpc.CallOption) (*AddOrganizationMemberResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AddOrganizationMemberResponse)
+	err := c.cc.Invoke(ctx, IAMService_AddOrganizationMember_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) RemoveOrganizationMember(ctx context.Context, in *RemoveOrganizationMemberRequest, opts ...grpc.CallOption) (*RemoveOrganizationMemberResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemoveOrganizationMemberResponse)
+	err := c.cc.Invoke(ctx, IAMService_RemoveOrganizationMember_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) ListOrganizationMembers(ctx context.Context, in *ListOrganizationMembersRequest, opts ...grpc.CallOption) (*ListOrganizationMembersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListOrganizationMembersResponse)
+	err := c.cc.Invoke(ctx, IAMService_ListOrganizationMembers_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -925,6 +961,9 @@ type IAMServiceServer interface {
 	CreateTenant(context.Context, *CreateTenantRequest) (*CreateTenantResponse, error)
 	CreateOrganization(context.Context, *CreateOrganizationRequest) (*CreateOrganizationResponse, error)
 	ListOrganizations(context.Context, *ListOrganizationsRequest) (*ListOrganizationsResponse, error)
+	AddOrganizationMember(context.Context, *AddOrganizationMemberRequest) (*AddOrganizationMemberResponse, error)
+	RemoveOrganizationMember(context.Context, *RemoveOrganizationMemberRequest) (*RemoveOrganizationMemberResponse, error)
+	ListOrganizationMembers(context.Context, *ListOrganizationMembersRequest) (*ListOrganizationMembersResponse, error)
 	AttachTenantToOrganization(context.Context, *AttachTenantToOrganizationRequest) (*AttachTenantToOrganizationResponse, error)
 	DetachTenantFromOrganization(context.Context, *DetachTenantFromOrganizationRequest) (*DetachTenantFromOrganizationResponse, error)
 	AttachServiceControlPolicy(context.Context, *AttachServiceControlPolicyRequest) (*AttachServiceControlPolicyResponse, error)
@@ -1015,6 +1054,15 @@ func (UnimplementedIAMServiceServer) CreateOrganization(context.Context, *Create
 }
 func (UnimplementedIAMServiceServer) ListOrganizations(context.Context, *ListOrganizationsRequest) (*ListOrganizationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizations not implemented")
+}
+func (UnimplementedIAMServiceServer) AddOrganizationMember(context.Context, *AddOrganizationMemberRequest) (*AddOrganizationMemberResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddOrganizationMember not implemented")
+}
+func (UnimplementedIAMServiceServer) RemoveOrganizationMember(context.Context, *RemoveOrganizationMemberRequest) (*RemoveOrganizationMemberResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveOrganizationMember not implemented")
+}
+func (UnimplementedIAMServiceServer) ListOrganizationMembers(context.Context, *ListOrganizationMembersRequest) (*ListOrganizationMembersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationMembers not implemented")
 }
 func (UnimplementedIAMServiceServer) AttachTenantToOrganization(context.Context, *AttachTenantToOrganizationRequest) (*AttachTenantToOrganizationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AttachTenantToOrganization not implemented")
@@ -1312,6 +1360,60 @@ func _IAMService_ListOrganizations_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(IAMServiceServer).ListOrganizations(ctx, req.(*ListOrganizationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_AddOrganizationMember_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddOrganizationMemberRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).AddOrganizationMember(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_AddOrganizationMember_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).AddOrganizationMember(ctx, req.(*AddOrganizationMemberRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_RemoveOrganizationMember_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveOrganizationMemberRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).RemoveOrganizationMember(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_RemoveOrganizationMember_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).RemoveOrganizationMember(ctx, req.(*RemoveOrganizationMemberRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_ListOrganizationMembers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOrganizationMembersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).ListOrganizationMembers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_ListOrganizationMembers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).ListOrganizationMembers(ctx, req.(*ListOrganizationMembersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2582,6 +2684,18 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _IAMService_ListOrganizations_Handler,
 		},
 		{
+			MethodName: "AddOrganizationMember",
+			Handler:    _IAMService_AddOrganizationMember_Handler,
+		},
+		{
+			MethodName: "RemoveOrganizationMember",
+			Handler:    _IAMService_RemoveOrganizationMember_Handler,
+		},
+		{
+			MethodName: "ListOrganizationMembers",
+			Handler:    _IAMService_ListOrganizationMembers_Handler,
+		},
+		{
 			MethodName: "AttachTenantToOrganization",
 			Handler:    _IAMService_AttachTenantToOrganization_Handler,
 		},
@@ -2867,6 +2981,8 @@ const (
 	IAMCommandService_CreateTenant_FullMethodName                         = "/iam.IAMCommandService/CreateTenant"
 	IAMCommandService_CreateOrganization_FullMethodName                   = "/iam.IAMCommandService/CreateOrganization"
 	IAMCommandService_EnsureRootOrganization_FullMethodName               = "/iam.IAMCommandService/EnsureRootOrganization"
+	IAMCommandService_AddOrganizationMember_FullMethodName                = "/iam.IAMCommandService/AddOrganizationMember"
+	IAMCommandService_RemoveOrganizationMember_FullMethodName             = "/iam.IAMCommandService/RemoveOrganizationMember"
 	IAMCommandService_AttachTenantToOrganization_FullMethodName           = "/iam.IAMCommandService/AttachTenantToOrganization"
 	IAMCommandService_DetachTenantFromOrganization_FullMethodName         = "/iam.IAMCommandService/DetachTenantFromOrganization"
 	IAMCommandService_AttachServiceControlPolicy_FullMethodName           = "/iam.IAMCommandService/AttachServiceControlPolicy"
@@ -2921,6 +3037,8 @@ type IAMCommandServiceClient interface {
 	CreateTenant(ctx context.Context, in *CreateTenantRequest, opts ...grpc.CallOption) (*CreateTenantResponse, error)
 	CreateOrganization(ctx context.Context, in *CreateOrganizationRequest, opts ...grpc.CallOption) (*CreateOrganizationResponse, error)
 	EnsureRootOrganization(ctx context.Context, in *EnsureRootOrganizationRequest, opts ...grpc.CallOption) (*EnsureRootOrganizationResponse, error)
+	AddOrganizationMember(ctx context.Context, in *AddOrganizationMemberRequest, opts ...grpc.CallOption) (*AddOrganizationMemberResponse, error)
+	RemoveOrganizationMember(ctx context.Context, in *RemoveOrganizationMemberRequest, opts ...grpc.CallOption) (*RemoveOrganizationMemberResponse, error)
 	AttachTenantToOrganization(ctx context.Context, in *AttachTenantToOrganizationRequest, opts ...grpc.CallOption) (*AttachTenantToOrganizationResponse, error)
 	DetachTenantFromOrganization(ctx context.Context, in *DetachTenantFromOrganizationRequest, opts ...grpc.CallOption) (*DetachTenantFromOrganizationResponse, error)
 	AttachServiceControlPolicy(ctx context.Context, in *AttachServiceControlPolicyRequest, opts ...grpc.CallOption) (*AttachServiceControlPolicyResponse, error)
@@ -3006,6 +3124,26 @@ func (c *iAMCommandServiceClient) EnsureRootOrganization(ctx context.Context, in
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(EnsureRootOrganizationResponse)
 	err := c.cc.Invoke(ctx, IAMCommandService_EnsureRootOrganization_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMCommandServiceClient) AddOrganizationMember(ctx context.Context, in *AddOrganizationMemberRequest, opts ...grpc.CallOption) (*AddOrganizationMemberResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AddOrganizationMemberResponse)
+	err := c.cc.Invoke(ctx, IAMCommandService_AddOrganizationMember_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMCommandServiceClient) RemoveOrganizationMember(ctx context.Context, in *RemoveOrganizationMemberRequest, opts ...grpc.CallOption) (*RemoveOrganizationMemberResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemoveOrganizationMemberResponse)
+	err := c.cc.Invoke(ctx, IAMCommandService_RemoveOrganizationMember_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3433,6 +3571,8 @@ type IAMCommandServiceServer interface {
 	CreateTenant(context.Context, *CreateTenantRequest) (*CreateTenantResponse, error)
 	CreateOrganization(context.Context, *CreateOrganizationRequest) (*CreateOrganizationResponse, error)
 	EnsureRootOrganization(context.Context, *EnsureRootOrganizationRequest) (*EnsureRootOrganizationResponse, error)
+	AddOrganizationMember(context.Context, *AddOrganizationMemberRequest) (*AddOrganizationMemberResponse, error)
+	RemoveOrganizationMember(context.Context, *RemoveOrganizationMemberRequest) (*RemoveOrganizationMemberResponse, error)
 	AttachTenantToOrganization(context.Context, *AttachTenantToOrganizationRequest) (*AttachTenantToOrganizationResponse, error)
 	DetachTenantFromOrganization(context.Context, *DetachTenantFromOrganizationRequest) (*DetachTenantFromOrganizationResponse, error)
 	AttachServiceControlPolicy(context.Context, *AttachServiceControlPolicyRequest) (*AttachServiceControlPolicyResponse, error)
@@ -3495,6 +3635,12 @@ func (UnimplementedIAMCommandServiceServer) CreateOrganization(context.Context, 
 }
 func (UnimplementedIAMCommandServiceServer) EnsureRootOrganization(context.Context, *EnsureRootOrganizationRequest) (*EnsureRootOrganizationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EnsureRootOrganization not implemented")
+}
+func (UnimplementedIAMCommandServiceServer) AddOrganizationMember(context.Context, *AddOrganizationMemberRequest) (*AddOrganizationMemberResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddOrganizationMember not implemented")
+}
+func (UnimplementedIAMCommandServiceServer) RemoveOrganizationMember(context.Context, *RemoveOrganizationMemberRequest) (*RemoveOrganizationMemberResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveOrganizationMember not implemented")
 }
 func (UnimplementedIAMCommandServiceServer) AttachTenantToOrganization(context.Context, *AttachTenantToOrganizationRequest) (*AttachTenantToOrganizationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AttachTenantToOrganization not implemented")
@@ -3708,6 +3854,42 @@ func _IAMCommandService_EnsureRootOrganization_Handler(srv interface{}, ctx cont
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(IAMCommandServiceServer).EnsureRootOrganization(ctx, req.(*EnsureRootOrganizationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMCommandService_AddOrganizationMember_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddOrganizationMemberRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMCommandServiceServer).AddOrganizationMember(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMCommandService_AddOrganizationMember_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMCommandServiceServer).AddOrganizationMember(ctx, req.(*AddOrganizationMemberRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMCommandService_RemoveOrganizationMember_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveOrganizationMemberRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMCommandServiceServer).RemoveOrganizationMember(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMCommandService_RemoveOrganizationMember_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMCommandServiceServer).RemoveOrganizationMember(ctx, req.(*RemoveOrganizationMemberRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -4474,6 +4656,14 @@ var IAMCommandService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _IAMCommandService_EnsureRootOrganization_Handler,
 		},
 		{
+			MethodName: "AddOrganizationMember",
+			Handler:    _IAMCommandService_AddOrganizationMember_Handler,
+		},
+		{
+			MethodName: "RemoveOrganizationMember",
+			Handler:    _IAMCommandService_RemoveOrganizationMember_Handler,
+		},
+		{
 			MethodName: "AttachTenantToOrganization",
 			Handler:    _IAMCommandService_AttachTenantToOrganization_Handler,
 		},
@@ -4644,6 +4834,7 @@ var IAMCommandService_ServiceDesc = grpc.ServiceDesc{
 
 const (
 	IAMQueryService_ListOrganizations_FullMethodName                 = "/iam.IAMQueryService/ListOrganizations"
+	IAMQueryService_ListOrganizationMembers_FullMethodName           = "/iam.IAMQueryService/ListOrganizationMembers"
 	IAMQueryService_ListServiceControlPolicies_FullMethodName        = "/iam.IAMQueryService/ListServiceControlPolicies"
 	IAMQueryService_ListTenantInvites_FullMethodName                 = "/iam.IAMQueryService/ListTenantInvites"
 	IAMQueryService_GetTenantMembership_FullMethodName               = "/iam.IAMQueryService/GetTenantMembership"
@@ -4682,6 +4873,7 @@ const (
 // It intentionally has no HTTP annotations; the legacy IAMService keeps REST compatibility.
 type IAMQueryServiceClient interface {
 	ListOrganizations(ctx context.Context, in *ListOrganizationsRequest, opts ...grpc.CallOption) (*ListOrganizationsResponse, error)
+	ListOrganizationMembers(ctx context.Context, in *ListOrganizationMembersRequest, opts ...grpc.CallOption) (*ListOrganizationMembersResponse, error)
 	ListServiceControlPolicies(ctx context.Context, in *ListServiceControlPoliciesRequest, opts ...grpc.CallOption) (*ListServiceControlPoliciesResponse, error)
 	ListTenantInvites(ctx context.Context, in *ListTenantInvitesRequest, opts ...grpc.CallOption) (*ListTenantInvitesResponse, error)
 	GetTenantMembership(ctx context.Context, in *GetTenantMembershipRequest, opts ...grpc.CallOption) (*GetTenantMembershipResponse, error)
@@ -4724,6 +4916,16 @@ func (c *iAMQueryServiceClient) ListOrganizations(ctx context.Context, in *ListO
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListOrganizationsResponse)
 	err := c.cc.Invoke(ctx, IAMQueryService_ListOrganizations_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMQueryServiceClient) ListOrganizationMembers(ctx context.Context, in *ListOrganizationMembersRequest, opts ...grpc.CallOption) (*ListOrganizationMembersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListOrganizationMembersResponse)
+	err := c.cc.Invoke(ctx, IAMQueryService_ListOrganizationMembers_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -5018,6 +5220,7 @@ func (c *iAMQueryServiceClient) SimulateAccess(ctx context.Context, in *Simulate
 // It intentionally has no HTTP annotations; the legacy IAMService keeps REST compatibility.
 type IAMQueryServiceServer interface {
 	ListOrganizations(context.Context, *ListOrganizationsRequest) (*ListOrganizationsResponse, error)
+	ListOrganizationMembers(context.Context, *ListOrganizationMembersRequest) (*ListOrganizationMembersResponse, error)
 	ListServiceControlPolicies(context.Context, *ListServiceControlPoliciesRequest) (*ListServiceControlPoliciesResponse, error)
 	ListTenantInvites(context.Context, *ListTenantInvitesRequest) (*ListTenantInvitesResponse, error)
 	GetTenantMembership(context.Context, *GetTenantMembershipRequest) (*GetTenantMembershipResponse, error)
@@ -5058,6 +5261,9 @@ type UnimplementedIAMQueryServiceServer struct{}
 
 func (UnimplementedIAMQueryServiceServer) ListOrganizations(context.Context, *ListOrganizationsRequest) (*ListOrganizationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizations not implemented")
+}
+func (UnimplementedIAMQueryServiceServer) ListOrganizationMembers(context.Context, *ListOrganizationMembersRequest) (*ListOrganizationMembersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationMembers not implemented")
 }
 func (UnimplementedIAMQueryServiceServer) ListServiceControlPolicies(context.Context, *ListServiceControlPoliciesRequest) (*ListServiceControlPoliciesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListServiceControlPolicies not implemented")
@@ -5178,6 +5384,24 @@ func _IAMQueryService_ListOrganizations_Handler(srv interface{}, ctx context.Con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(IAMQueryServiceServer).ListOrganizations(ctx, req.(*ListOrganizationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMQueryService_ListOrganizationMembers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOrganizationMembersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMQueryServiceServer).ListOrganizationMembers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMQueryService_ListOrganizationMembers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMQueryServiceServer).ListOrganizationMembers(ctx, req.(*ListOrganizationMembersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -5696,6 +5920,10 @@ var IAMQueryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListOrganizations",
 			Handler:    _IAMQueryService_ListOrganizations_Handler,
+		},
+		{
+			MethodName: "ListOrganizationMembers",
+			Handler:    _IAMQueryService_ListOrganizationMembers_Handler,
 		},
 		{
 			MethodName: "ListServiceControlPolicies",

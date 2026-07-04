@@ -157,6 +157,16 @@ func newIAMTestUsecase(t *testing.T) (inputport.IAMUsecase, *iamTestState) {
 		}).
 		Maybe()
 	orgRepo.EXPECT().
+		ListByUserID(mock.Anything, mock.Anything, mock.Anything).
+		RunAndReturn(func(
+			ctx context.Context,
+			userID uint,
+			query collection.Query,
+		) (collection.Page[entity.Organization], error) {
+			return collection.NewPage([]entity.Organization{}, 0, query), nil
+		}).
+		Maybe()
+	orgRepo.EXPECT().
 		GetByID(mock.Anything, mock.Anything).
 		RunAndReturn(func(ctx context.Context, orgID string) (*entity.Organization, error) {
 			if orgID == "" {

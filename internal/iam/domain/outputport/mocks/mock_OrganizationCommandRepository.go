@@ -169,6 +169,69 @@ func (_c *MockOrganizationCommandRepository_Create_Call) RunAndReturn(run func(c
 	return _c
 }
 
+// DeleteMembership provides a mock function for the type MockOrganizationCommandRepository
+func (_mock *MockOrganizationCommandRepository) DeleteMembership(ctx context.Context, orgID string, userID uint) error {
+	ret := _mock.Called(ctx, orgID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteMembership")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) error); ok {
+		r0 = returnFunc(ctx, orgID, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockOrganizationCommandRepository_DeleteMembership_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteMembership'
+type MockOrganizationCommandRepository_DeleteMembership_Call struct {
+	*mock.Call
+}
+
+// DeleteMembership is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orgID string
+//   - userID uint
+func (_e *MockOrganizationCommandRepository_Expecter) DeleteMembership(ctx interface{}, orgID interface{}, userID interface{}) *MockOrganizationCommandRepository_DeleteMembership_Call {
+	return &MockOrganizationCommandRepository_DeleteMembership_Call{Call: _e.mock.On("DeleteMembership", ctx, orgID, userID)}
+}
+
+func (_c *MockOrganizationCommandRepository_DeleteMembership_Call) Run(run func(ctx context.Context, orgID string, userID uint)) *MockOrganizationCommandRepository_DeleteMembership_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockOrganizationCommandRepository_DeleteMembership_Call) Return(err error) *MockOrganizationCommandRepository_DeleteMembership_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockOrganizationCommandRepository_DeleteMembership_Call) RunAndReturn(run func(ctx context.Context, orgID string, userID uint) error) *MockOrganizationCommandRepository_DeleteMembership_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DetachServiceControlPolicy provides a mock function for the type MockOrganizationCommandRepository
 func (_mock *MockOrganizationCommandRepository) DetachServiceControlPolicy(ctx context.Context, orgID string, policyID uint64) error {
 	ret := _mock.Called(ctx, orgID, policyID)
@@ -296,6 +359,63 @@ func (_c *MockOrganizationCommandRepository_EnsureRoot_Call) Return(organization
 }
 
 func (_c *MockOrganizationCommandRepository_EnsureRoot_Call) RunAndReturn(run func(ctx context.Context, org entity.Organization) (*entity.Organization, error)) *MockOrganizationCommandRepository_EnsureRoot_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpsertMembership provides a mock function for the type MockOrganizationCommandRepository
+func (_mock *MockOrganizationCommandRepository) UpsertMembership(ctx context.Context, membership entity.OrganizationMembership) error {
+	ret := _mock.Called(ctx, membership)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertMembership")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.OrganizationMembership) error); ok {
+		r0 = returnFunc(ctx, membership)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockOrganizationCommandRepository_UpsertMembership_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpsertMembership'
+type MockOrganizationCommandRepository_UpsertMembership_Call struct {
+	*mock.Call
+}
+
+// UpsertMembership is a helper method to define mock.On call
+//   - ctx context.Context
+//   - membership entity.OrganizationMembership
+func (_e *MockOrganizationCommandRepository_Expecter) UpsertMembership(ctx interface{}, membership interface{}) *MockOrganizationCommandRepository_UpsertMembership_Call {
+	return &MockOrganizationCommandRepository_UpsertMembership_Call{Call: _e.mock.On("UpsertMembership", ctx, membership)}
+}
+
+func (_c *MockOrganizationCommandRepository_UpsertMembership_Call) Run(run func(ctx context.Context, membership entity.OrganizationMembership)) *MockOrganizationCommandRepository_UpsertMembership_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 entity.OrganizationMembership
+		if args[1] != nil {
+			arg1 = args[1].(entity.OrganizationMembership)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockOrganizationCommandRepository_UpsertMembership_Call) Return(err error) *MockOrganizationCommandRepository_UpsertMembership_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockOrganizationCommandRepository_UpsertMembership_Call) RunAndReturn(run func(ctx context.Context, membership entity.OrganizationMembership) error) *MockOrganizationCommandRepository_UpsertMembership_Call {
 	_c.Call.Return(run)
 	return _c
 }

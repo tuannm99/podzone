@@ -37,6 +37,23 @@ func ToPBOrganization(org *iamdomain.Organization) *pbiamv1.Organization {
 	}
 }
 
+func ToPBOrganizationMembership(
+	membership *iamdomain.OrganizationMembership,
+) *pbiamv1.OrganizationMembership {
+	if membership == nil {
+		return nil
+	}
+	return &pbiamv1.OrganizationMembership{
+		OrgId:     membership.OrgID,
+		UserId:    uint64(membership.UserID),
+		RoleId:    membership.RoleID,
+		RoleName:  membership.RoleName,
+		Status:    membership.Status,
+		CreatedAt: membership.CreatedAt.Format(time.RFC3339),
+		UpdatedAt: membership.UpdatedAt.Format(time.RFC3339),
+	}
+}
+
 func ToPBMembership(m *iamdomain.Membership) *pbiamv1.TenantMembership {
 	if m == nil {
 		return nil

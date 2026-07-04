@@ -37,6 +37,17 @@ export type OrganizationInfo = {
   id: string
   slug: string
   name: string
+  rootUserId?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+export type OrganizationMembership = {
+  orgId: string
+  userId: string
+  roleId: string
+  roleName: string
+  status: string
   createdAt?: string
   updatedAt?: string
 }

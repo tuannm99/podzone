@@ -18,6 +18,9 @@ export {
   attachServiceControlPolicy,
   detachServiceControlPolicy,
   listServiceControlPolicies,
+  listOrganizationMembers,
+  addOrganizationMember,
+  removeOrganizationMember,
 } from './iam/organizations'
 export {
   createPolicy,
@@ -82,6 +85,7 @@ export type {
   UpsertTenantMemberIdentityPayload,
   TenantInfo,
   OrganizationInfo,
+  OrganizationMembership,
   PolicyCondition,
   PolicyStatement,
   PolicyInfo,

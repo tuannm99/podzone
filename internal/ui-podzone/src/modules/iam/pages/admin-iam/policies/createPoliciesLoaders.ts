@@ -5,6 +5,7 @@ export function createPoliciesLoaders(state: AdminIamState) {
   let requestID = 0
 
   const loadSelectedPolicy = async () => {
+    if (!state.canManagePlatform()) return
     const currentRequest = ++requestID
     const name = state.selectedPolicyName().trim()
     if (!name) {

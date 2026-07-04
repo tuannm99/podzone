@@ -1,4 +1,4 @@
-import { Show, createSignal, onMount } from 'solid-js'
+import { Show, createEffect, createSignal, onMount } from 'solid-js'
 import type { AdminIamViewModel } from './createAdminIamViewModel'
 import {
   EmptyBlock,
@@ -24,9 +24,15 @@ import { TrustSimulationPanel } from './trust-simulation/TrustSimulationPanel'
 
 // The controller page assembles the model; this view only owns composition.
 export function AdminIamView(props: { model: AdminIamViewModel }) {
-  const sections = props.model.sectionLinks as IamSection[]
+  const sections = () => {
+    const allSections = props.model.sectionLinks as IamSection[]
+    if (props.model.feedback.canManagePlatform()) return allSections
+    return allSections.filter(
+      (section) => section.id === 'iam-orgs' || section.id === 'iam-assignments'
+    )
+  }
   const [activeSection, setActiveSection] =
-    createSignal<IamSectionID>('iam-policies')
+    createSignal<IamSectionID>('iam-orgs')
 
   const selectSection = (section: IamSectionID) => {
     setActiveSection(section)
@@ -35,8 +41,14 @@ export function AdminIamView(props: { model: AdminIamViewModel }) {
 
   onMount(() => {
     const hash = window.location.hash.slice(1)
-    const selected = sections.find((section) => section.id === hash)
+    const selected = sections().find((section) => section.id === hash)
     if (selected) setActiveSection(selected.id)
+  })
+
+  createEffect(() => {
+    if (!sections().some((section) => section.id === activeSection())) {
+      setActiveSection('iam-orgs')
+    }
   })
 
   return (
@@ -79,7 +91,7 @@ export function AdminIamView(props: { model: AdminIamViewModel }) {
 
       <Show when={props.model.feedback.allowed()}>
         <IamWorkspaceNav
-          sections={sections}
+          sections={sections()}
           activeSection={activeSection()}
           onSelect={selectSection}
         />
@@ -119,6 +131,31 @@ export function AdminIamView(props: { model: AdminIamViewModel }) {
                 props.model.organizations.handleDetachTenantFromOrg
               }
               handleDetachScp={props.model.organizations.handleDetachScp}
+              canManagePlatform={props.model.organizations.canManagePlatform}
+              organizationMembers={
+                props.model.organizations.organizationMembers
+              }
+              organizationMembersQuery={
+                props.model.organizations.organizationMembersQuery
+              }
+              organizationMembersPageInfo={
+                props.model.organizations.organizationMembersPageInfo
+              }
+              organizationMembersLoading={
+                props.model.organizations.organizationMembersLoading
+              }
+              organizationMembersError={
+                props.model.organizations.organizationMembersError
+              }
+              updateOrganizationMembersQuery={
+                props.model.organizations.updateOrganizationMembersQuery
+              }
+              handleAddOrganizationMember={
+                props.model.organizations.handleAddOrganizationMember
+              }
+              handleRemoveOrganizationMember={
+                props.model.organizations.handleRemoveOrganizationMember
+              }
             />
           </Show>
 
@@ -167,6 +204,7 @@ export function AdminIamView(props: { model: AdminIamViewModel }) {
               handleRemoveTenantMembershipShortcut={
                 props.model.assignments.removeTenantMembership
               }
+              canManagePlatform={props.model.assignments.canManagePlatform}
             />
           </Show>
 

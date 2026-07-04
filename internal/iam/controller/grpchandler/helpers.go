@@ -108,6 +108,7 @@ func iamStatusError(err error) error {
 		return status.Error(codes.InvalidArgument, err.Error())
 	case errors.Is(err, iamdomain.ErrTenantNotFound),
 		errors.Is(err, iamdomain.ErrOrganizationNotFound),
+		errors.Is(err, iamdomain.ErrOrganizationMembershipNotFound),
 		errors.Is(err, iamdomain.ErrMembershipNotFound),
 		errors.Is(err, iamdomain.ErrRoleNotFound),
 		errors.Is(err, iamdomain.ErrPolicyNotFound),
@@ -123,6 +124,7 @@ func iamStatusError(err error) error {
 		return status.Error(codes.FailedPrecondition, err.Error())
 	case errors.Is(err, iamdomain.ErrImmutablePolicy),
 		errors.Is(err, iamdomain.ErrImmutableGroup),
+		errors.Is(err, iamdomain.ErrImmutableOrganizationRoot),
 		errors.Is(err, iamdomain.ErrPolicyInUse),
 		errors.Is(err, iamdomain.ErrDefaultPolicyVersion):
 		return status.Error(codes.FailedPrecondition, err.Error())

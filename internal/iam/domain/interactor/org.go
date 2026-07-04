@@ -2,6 +2,7 @@ package interactor
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"time"
 
@@ -62,6 +63,145 @@ func (s *interactor) ListOrganizations(
 	query collection.Query,
 ) (collection.Page[entity.Organization], error) {
 	return s.orgQueries.List(ctx, query.Normalize())
+}
+
+func (s *interactor) ListOrganizationsForUser(
+	ctx context.Context,
+	userID uint,
+	query collection.Query,
+) (collection.Page[entity.Organization], error) {
+	if userID == 0 {
+		return collection.Page[entity.Organization]{}, entity.ErrInvalidUserID
+	}
+	return s.orgQueries.ListByUserID(ctx, userID, query.Normalize())
+}
+
+func (s *interactor) IsOrganizationRoot(ctx context.Context, orgID string, userID uint) (bool, error) {
+	if userID == 0 {
+		return false, entity.ErrInvalidUserID
+	}
+	orgID = strings.TrimSpace(orgID)
+	if orgID == "" {
+		return false, entity.ErrOrganizationNotFound
+	}
+	return s.orgQueries.IsRoot(ctx, orgID, userID)
+}
+
+func (s *interactor) AddOrganizationMember(
+	ctx context.Context,
+	orgID string,
+	userID uint,
+	roleName string,
+) error {
+	if userID == 0 {
+		return entity.ErrInvalidUserID
+	}
+	orgID = strings.TrimSpace(orgID)
+	if orgID == "" {
+		return entity.ErrOrganizationNotFound
+	}
+	roleName = strings.TrimSpace(roleName)
+	if roleName == "" {
+		return entity.ErrInvalidRoleName
+	}
+	if roleName == entity.RoleOrganizationRoot {
+		return entity.ErrImmutableOrganizationRoot
+	}
+	if _, err := s.orgQueries.GetByID(ctx, orgID); err != nil {
+		return err
+	}
+	role, err := s.roleQueries.GetByName(ctx, roleName)
+	if err != nil {
+		return err
+	}
+	if role.Scope != entity.PolicyScopeOrganization {
+		return entity.ErrInvalidRoleName
+	}
+	now := time.Now().UTC()
+	return s.orgCommands.UpsertMembership(ctx, entity.OrganizationMembership{
+		OrgID:     orgID,
+		UserID:    userID,
+		RoleID:    role.ID,
+		RoleName:  role.Name,
+		Status:    entity.MembershipStatusActive,
+		CreatedAt: now,
+		UpdatedAt: now,
+	})
+}
+
+func (s *interactor) RemoveOrganizationMember(ctx context.Context, orgID string, userID uint) error {
+	if userID == 0 {
+		return entity.ErrInvalidUserID
+	}
+	org, err := s.orgQueries.GetByID(ctx, strings.TrimSpace(orgID))
+	if err != nil {
+		return err
+	}
+	if org.RootUserID == userID {
+		return entity.ErrImmutableOrganizationRoot
+	}
+	return s.orgCommands.DeleteMembership(ctx, org.ID, userID)
+}
+
+func (s *interactor) CheckOrganizationPermission(
+	ctx context.Context,
+	orgID string,
+	userID uint,
+	permission string,
+) (bool, error) {
+	if userID == 0 {
+		return false, entity.ErrInvalidUserID
+	}
+	orgID = strings.TrimSpace(orgID)
+	if orgID == "" {
+		return false, entity.ErrOrganizationNotFound
+	}
+	isRoot, err := s.orgQueries.IsRoot(ctx, orgID, userID)
+	if err != nil {
+		return false, err
+	}
+	if isRoot {
+		return true, nil
+	}
+	membership, err := s.orgQueries.GetMembership(ctx, orgID, userID)
+	if err != nil {
+		if errors.Is(err, entity.ErrOrganizationMembershipNotFound) {
+			return false, nil
+		}
+		return false, err
+	}
+	if membership.Status != entity.MembershipStatusActive {
+		return false, entity.ErrInactiveMembership
+	}
+	return s.roleQueries.RoleHasPermission(ctx, membership.RoleID, strings.TrimSpace(permission))
+}
+
+func (s *interactor) RequireOrganizationPermission(
+	ctx context.Context,
+	orgID string,
+	userID uint,
+	permission string,
+) error {
+	allowed, err := s.CheckOrganizationPermission(ctx, orgID, userID, permission)
+	if err != nil {
+		return err
+	}
+	if !allowed {
+		return entity.NewPermissionDeniedError(permission, "podzone:organization/"+orgID)
+	}
+	return nil
+}
+
+func (s *interactor) ListOrganizationMembers(
+	ctx context.Context,
+	orgID string,
+	query collection.Query,
+) (collection.Page[entity.OrganizationMembership], error) {
+	orgID = strings.TrimSpace(orgID)
+	if orgID == "" {
+		return collection.Page[entity.OrganizationMembership]{}, entity.ErrOrganizationNotFound
+	}
+	return s.orgQueries.ListMemberships(ctx, orgID, query.Normalize())
 }
 
 func (s *interactor) AttachTenantToOrganization(ctx context.Context, tenantID string, orgID string) error {

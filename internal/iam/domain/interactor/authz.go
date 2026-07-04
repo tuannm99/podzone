@@ -145,11 +145,16 @@ func (s *interactor) membershipForAuthorization(
 	if !errors.Is(err, entity.ErrMembershipNotFound) || tenant.OrgID == "" {
 		return nil, err
 	}
-	isRoot, rootErr := s.orgQueries.IsRoot(ctx, tenant.OrgID, userID)
-	if rootErr != nil {
-		return nil, rootErr
+	canManageOrganization, organizationErr := s.CheckOrganizationPermission(
+		ctx,
+		tenant.OrgID,
+		userID,
+		"organization:manage_iam",
+	)
+	if organizationErr != nil {
+		return nil, organizationErr
 	}
-	if !isRoot {
+	if !canManageOrganization {
 		return nil, err
 	}
 	role, roleErr := s.roleQueries.GetByName(ctx, entity.RoleTenantOwner)

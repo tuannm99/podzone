@@ -193,6 +193,9 @@ func TestListIAMCollections_MapCollectionQueryAndPageInfo(t *testing.T) {
 		assert.Equal(t, collection.SortAscending, query.SortDirection)
 	}
 	srv := newIAMServerForTest(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPlatformPermissionFunc: func(context.Context, uint, string) (bool, error) {
+			return true, nil
+		},
 		requirePlatformPermissionFunc: func(context.Context, uint, string) error {
 			return nil
 		},
@@ -268,6 +271,80 @@ func TestListIAMCollections_MapCollectionQueryAndPageInfo(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, groups.Groups, 1)
 	assert.True(t, groups.PageInfo.HasNext)
+}
+
+func TestListOrganizationsFiltersForOrganizationRoot(t *testing.T) {
+	t.Parallel()
+
+	srv := newIAMServerForTest(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		checkPlatformPermissionFunc: func(context.Context, uint, string) (bool, error) {
+			return false, nil
+		},
+		listOrganizationsForUserFunc: func(
+			_ context.Context,
+			userID uint,
+			query collection.Query,
+		) (collection.Page[iamentity.Organization], error) {
+			assert.Equal(t, uint(7), userID)
+			return collection.NewPage([]iamentity.Organization{{
+				ID:         "org-1",
+				Name:       "Root org",
+				RootUserID: userID,
+			}}, 1, query), nil
+		},
+	}))
+
+	response, err := srv.ListOrganizations(
+		authContextForIAMUser(t, 7),
+		&pbiamv1.ListOrganizationsRequest{},
+	)
+
+	require.NoError(t, err)
+	require.Len(t, response.Organizations, 1)
+	assert.False(t, response.CanManagePlatform)
+	assert.Equal(t, uint64(7), response.Organizations[0].RootUserId)
+}
+
+func TestListOrganizationMembersRequiresOrganizationReadPermission(t *testing.T) {
+	t.Parallel()
+
+	srv := newIAMServerForTest(t, newIAMUsecaseMock(t, iamUsecaseMockConfig{
+		requireOrganizationPermissionFunc: func(
+			_ context.Context,
+			orgID string,
+			userID uint,
+			permission string,
+		) error {
+			assert.Equal(t, "org-1", orgID)
+			assert.Equal(t, uint(7), userID)
+			assert.Equal(t, "organization:read", permission)
+			return nil
+		},
+		listOrganizationMembersFunc: func(
+			_ context.Context,
+			orgID string,
+			query collection.Query,
+		) (collection.Page[iamentity.OrganizationMembership], error) {
+			assert.Equal(t, "org-1", orgID)
+			return collection.NewPage([]iamentity.OrganizationMembership{{
+				OrgID:    orgID,
+				UserID:   7,
+				RoleID:   11,
+				RoleName: iamentity.RoleOrganizationRoot,
+				Status:   iamentity.MembershipStatusActive,
+			}}, 1, query), nil
+		},
+	}))
+
+	response, err := srv.ListOrganizationMembers(
+		authContextForIAMUser(t, 7),
+		&pbiamv1.ListOrganizationMembersRequest{OrgId: "org-1"},
+	)
+
+	require.NoError(t, err)
+	require.Len(t, response.Memberships, 1)
+	assert.Equal(t, uint64(7), response.Memberships[0].UserId)
+	assert.Equal(t, iamentity.RoleOrganizationRoot, response.Memberships[0].RoleName)
 }
 
 func TestGetTenantMembership_OK(t *testing.T) {

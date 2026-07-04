@@ -1,4 +1,4 @@
-import type { Accessor, Setter } from 'solid-js'
+import { Show, type Accessor, type Setter } from 'solid-js'
 import {
   Button,
   InputField,
@@ -8,6 +8,7 @@ import {
 import { SectionTitle } from '@/solid/components/common/SectionTitle'
 
 type RoleAssignmentsPanelProps = {
+  canManagePlatform: Accessor<boolean>
   shortcutPlatformUserId: Accessor<string>
   setShortcutPlatformUserId: Setter<string>
   shortcutPlatformRoleName: Accessor<string>
@@ -34,42 +35,47 @@ export function RoleAssignmentsPanel(props: RoleAssignmentsPanelProps) {
         title="Role assignments"
         subtitle="Platform roles and workspace memberships."
       />
-      <div class="grid gap-6 lg:grid-cols-2">
-        <section class="space-y-3 border-b border-gray-200 pb-6 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-6">
-          <p class="text-sm font-semibold text-gray-900">Platform role</p>
-          <InputField
-            label="Target user id"
-            value={props.shortcutPlatformUserId()}
-            onInput={(event) =>
-              props.setShortcutPlatformUserId(event.currentTarget.value)
-            }
-          />
-          <SelectField
-            label="Platform role"
-            value={props.shortcutPlatformRoleName()}
-            options={props.platformRoleOptions}
-            onChange={(event) =>
-              props.setShortcutPlatformRoleName(event.currentTarget.value)
-            }
-          />
-          <div class="flex flex-wrap gap-3">
-            <Button
-              size="sm"
-              onClick={props.handleAssignPlatformRole}
-              disabled={!props.shortcutPlatformUserId().trim()}
-            >
-              Assign role
-            </Button>
-            <Button
-              size="sm"
-              color="red"
-              onClick={props.handleRemovePlatformRoleShortcut}
-              disabled={!props.shortcutPlatformUserId().trim()}
-            >
-              Remove role
-            </Button>
-          </div>
-        </section>
+      <div
+        class="grid gap-6"
+        classList={{ 'lg:grid-cols-2': props.canManagePlatform() }}
+      >
+        <Show when={props.canManagePlatform()}>
+          <section class="space-y-3 border-b border-gray-200 pb-6 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-6">
+            <p class="text-sm font-semibold text-gray-900">Platform role</p>
+            <InputField
+              label="Target user id"
+              value={props.shortcutPlatformUserId()}
+              onInput={(event) =>
+                props.setShortcutPlatformUserId(event.currentTarget.value)
+              }
+            />
+            <SelectField
+              label="Platform role"
+              value={props.shortcutPlatformRoleName()}
+              options={props.platformRoleOptions}
+              onChange={(event) =>
+                props.setShortcutPlatformRoleName(event.currentTarget.value)
+              }
+            />
+            <div class="flex flex-wrap gap-3">
+              <Button
+                size="sm"
+                onClick={props.handleAssignPlatformRole}
+                disabled={!props.shortcutPlatformUserId().trim()}
+              >
+                Assign role
+              </Button>
+              <Button
+                size="sm"
+                color="red"
+                onClick={props.handleRemovePlatformRoleShortcut}
+                disabled={!props.shortcutPlatformUserId().trim()}
+              >
+                Remove role
+              </Button>
+            </div>
+          </section>
+        </Show>
 
         <section class="space-y-3">
           <p class="text-sm font-semibold text-gray-900">

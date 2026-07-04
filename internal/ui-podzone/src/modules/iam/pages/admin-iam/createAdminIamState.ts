@@ -8,13 +8,14 @@ import { createTrustSimulationState } from './trust-simulation/createTrustSimula
 
 export function createAdminIamState(userID: number) {
   const shell = createShellState()
+  const platformEnabled = () => shell.allowed() && shell.canManagePlatform()
   return {
     ...shell,
-    ...createOrganizationsState(shell.allowed),
-    ...createPoliciesState(shell.allowed),
-    ...createGroupsState(shell.allowed),
+    ...createOrganizationsState(shell.allowed, shell.setCanManagePlatform),
+    ...createPoliciesState(platformEnabled),
+    ...createGroupsState(platformEnabled),
     ...createAssignmentsState(userID),
-    ...createPrincipalsState(userID, shell.allowed),
+    ...createPrincipalsState(userID, platformEnabled),
     ...createTrustSimulationState(userID),
   }
 }

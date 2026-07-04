@@ -20,6 +20,7 @@ import { Pagination } from '@/solid/components/common/Pagination'
 import { Badge, Button } from '@/solid/components/common/Primitives'
 
 export type OrganizationsCollectionProps = {
+  canManagePlatform: Accessor<boolean>
   organizations: Accessor<OrganizationInfo[]>
   query: CollectionQuery
   pageInfo: Accessor<PageInfo>
@@ -105,7 +106,9 @@ export function OrganizationsCollection(props: OrganizationsCollectionProps) {
               <TableHeaderCell>Organization</TableHeaderCell>
               <TableHeaderCell>Slug</TableHeaderCell>
               <TableHeaderCell>Status</TableHeaderCell>
-              <TableHeaderCell class="text-right">Actions</TableHeaderCell>
+              <Show when={props.canManagePlatform()}>
+                <TableHeaderCell class="text-right">Actions</TableHeaderCell>
+              </Show>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -132,45 +135,47 @@ export function OrganizationsCollection(props: OrganizationsCollectionProps) {
                       }
                     />
                   </TableCell>
-                  <TableCell>
-                    <div class="flex flex-wrap justify-end gap-2">
-                      <Show
-                        when={
-                          organization.id === props.selectedOrgId() &&
-                          props.orgTenantId().trim()
-                        }
-                      >
-                        <Button
-                          size="xs"
-                          color="light"
-                          onClick={() =>
-                            props.handleDetachTenantFromOrg(
-                              props.orgTenantId().trim()
-                            )
+                  <Show when={props.canManagePlatform()}>
+                    <TableCell>
+                      <div class="flex flex-wrap justify-end gap-2">
+                        <Show
+                          when={
+                            organization.id === props.selectedOrgId() &&
+                            props.orgTenantId().trim()
                           }
                         >
-                          Detach selected workspace
-                        </Button>
-                      </Show>
-                      <For
-                        each={
-                          organization.id === props.selectedOrgId()
-                            ? props.orgPolicies()
-                            : []
-                        }
-                      >
-                        {(policy) => (
                           <Button
                             size="xs"
-                            color="alternative"
-                            onClick={() => props.handleDetachScp(policy.name)}
+                            color="light"
+                            onClick={() =>
+                              props.handleDetachTenantFromOrg(
+                                props.orgTenantId().trim()
+                              )
+                            }
                           >
-                            Detach SCP {policy.name}
+                            Detach selected workspace
                           </Button>
-                        )}
-                      </For>
-                    </div>
-                  </TableCell>
+                        </Show>
+                        <For
+                          each={
+                            organization.id === props.selectedOrgId()
+                              ? props.orgPolicies()
+                              : []
+                          }
+                        >
+                          {(policy) => (
+                            <Button
+                              size="xs"
+                              color="alternative"
+                              onClick={() => props.handleDetachScp(policy.name)}
+                            >
+                              Detach SCP {policy.name}
+                            </Button>
+                          )}
+                        </For>
+                      </div>
+                    </TableCell>
+                  </Show>
                 </TableRow>
               )}
             </For>

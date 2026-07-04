@@ -39,6 +39,84 @@ func (_m *MockIAMQueryUsecase) EXPECT() *MockIAMQueryUsecase_Expecter {
 	return &MockIAMQueryUsecase_Expecter{mock: &_m.Mock}
 }
 
+// CheckOrganizationPermission provides a mock function for the type MockIAMQueryUsecase
+func (_mock *MockIAMQueryUsecase) CheckOrganizationPermission(ctx context.Context, orgID string, userID uint, permission string) (bool, error) {
+	ret := _mock.Called(ctx, orgID, userID, permission)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CheckOrganizationPermission")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint, string) (bool, error)); ok {
+		return returnFunc(ctx, orgID, userID, permission)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint, string) bool); ok {
+		r0 = returnFunc(ctx, orgID, userID, permission)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint, string) error); ok {
+		r1 = returnFunc(ctx, orgID, userID, permission)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMQueryUsecase_CheckOrganizationPermission_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CheckOrganizationPermission'
+type MockIAMQueryUsecase_CheckOrganizationPermission_Call struct {
+	*mock.Call
+}
+
+// CheckOrganizationPermission is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orgID string
+//   - userID uint
+//   - permission string
+func (_e *MockIAMQueryUsecase_Expecter) CheckOrganizationPermission(ctx interface{}, orgID interface{}, userID interface{}, permission interface{}) *MockIAMQueryUsecase_CheckOrganizationPermission_Call {
+	return &MockIAMQueryUsecase_CheckOrganizationPermission_Call{Call: _e.mock.On("CheckOrganizationPermission", ctx, orgID, userID, permission)}
+}
+
+func (_c *MockIAMQueryUsecase_CheckOrganizationPermission_Call) Run(run func(ctx context.Context, orgID string, userID uint, permission string)) *MockIAMQueryUsecase_CheckOrganizationPermission_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMQueryUsecase_CheckOrganizationPermission_Call) Return(b bool, err error) *MockIAMQueryUsecase_CheckOrganizationPermission_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *MockIAMQueryUsecase_CheckOrganizationPermission_Call) RunAndReturn(run func(ctx context.Context, orgID string, userID uint, permission string) (bool, error)) *MockIAMQueryUsecase_CheckOrganizationPermission_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CheckPermission provides a mock function for the type MockIAMQueryUsecase
 func (_mock *MockIAMQueryUsecase) CheckPermission(ctx context.Context, tenantID string, userID uint, permission string) (bool, error) {
 	ret := _mock.Called(ctx, tenantID, userID, permission)
@@ -997,6 +1075,78 @@ func (_c *MockIAMQueryUsecase_GetTenantUserPermissionBoundary_Call) RunAndReturn
 	return _c
 }
 
+// IsOrganizationRoot provides a mock function for the type MockIAMQueryUsecase
+func (_mock *MockIAMQueryUsecase) IsOrganizationRoot(ctx context.Context, orgID string, userID uint) (bool, error) {
+	ret := _mock.Called(ctx, orgID, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsOrganizationRoot")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) (bool, error)); ok {
+		return returnFunc(ctx, orgID, userID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint) bool); ok {
+		r0 = returnFunc(ctx, orgID, userID)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint) error); ok {
+		r1 = returnFunc(ctx, orgID, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMQueryUsecase_IsOrganizationRoot_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsOrganizationRoot'
+type MockIAMQueryUsecase_IsOrganizationRoot_Call struct {
+	*mock.Call
+}
+
+// IsOrganizationRoot is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orgID string
+//   - userID uint
+func (_e *MockIAMQueryUsecase_Expecter) IsOrganizationRoot(ctx interface{}, orgID interface{}, userID interface{}) *MockIAMQueryUsecase_IsOrganizationRoot_Call {
+	return &MockIAMQueryUsecase_IsOrganizationRoot_Call{Call: _e.mock.On("IsOrganizationRoot", ctx, orgID, userID)}
+}
+
+func (_c *MockIAMQueryUsecase_IsOrganizationRoot_Call) Run(run func(ctx context.Context, orgID string, userID uint)) *MockIAMQueryUsecase_IsOrganizationRoot_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMQueryUsecase_IsOrganizationRoot_Call) Return(b bool, err error) *MockIAMQueryUsecase_IsOrganizationRoot_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *MockIAMQueryUsecase_IsOrganizationRoot_Call) RunAndReturn(run func(ctx context.Context, orgID string, userID uint) (bool, error)) *MockIAMQueryUsecase_IsOrganizationRoot_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListGroupInlinePolicies provides a mock function for the type MockIAMQueryUsecase
 func (_mock *MockIAMQueryUsecase) ListGroupInlinePolicies(ctx context.Context, groupID uint64, query collection.Query) (collection.Page[entity.GroupInlinePolicy], error) {
 	ret := _mock.Called(ctx, groupID, query)
@@ -1291,6 +1441,78 @@ func (_c *MockIAMQueryUsecase_ListGroups_Call) RunAndReturn(run func(ctx context
 	return _c
 }
 
+// ListOrganizationMembers provides a mock function for the type MockIAMQueryUsecase
+func (_mock *MockIAMQueryUsecase) ListOrganizationMembers(ctx context.Context, orgID string, query collection.Query) (collection.Page[entity.OrganizationMembership], error) {
+	ret := _mock.Called(ctx, orgID, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListOrganizationMembers")
+	}
+
+	var r0 collection.Page[entity.OrganizationMembership]
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) (collection.Page[entity.OrganizationMembership], error)); ok {
+		return returnFunc(ctx, orgID, query)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) collection.Page[entity.OrganizationMembership]); ok {
+		r0 = returnFunc(ctx, orgID, query)
+	} else {
+		r0 = ret.Get(0).(collection.Page[entity.OrganizationMembership])
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, collection.Query) error); ok {
+		r1 = returnFunc(ctx, orgID, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMQueryUsecase_ListOrganizationMembers_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListOrganizationMembers'
+type MockIAMQueryUsecase_ListOrganizationMembers_Call struct {
+	*mock.Call
+}
+
+// ListOrganizationMembers is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orgID string
+//   - query collection.Query
+func (_e *MockIAMQueryUsecase_Expecter) ListOrganizationMembers(ctx interface{}, orgID interface{}, query interface{}) *MockIAMQueryUsecase_ListOrganizationMembers_Call {
+	return &MockIAMQueryUsecase_ListOrganizationMembers_Call{Call: _e.mock.On("ListOrganizationMembers", ctx, orgID, query)}
+}
+
+func (_c *MockIAMQueryUsecase_ListOrganizationMembers_Call) Run(run func(ctx context.Context, orgID string, query collection.Query)) *MockIAMQueryUsecase_ListOrganizationMembers_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMQueryUsecase_ListOrganizationMembers_Call) Return(page collection.Page[entity.OrganizationMembership], err error) *MockIAMQueryUsecase_ListOrganizationMembers_Call {
+	_c.Call.Return(page, err)
+	return _c
+}
+
+func (_c *MockIAMQueryUsecase_ListOrganizationMembers_Call) RunAndReturn(run func(ctx context.Context, orgID string, query collection.Query) (collection.Page[entity.OrganizationMembership], error)) *MockIAMQueryUsecase_ListOrganizationMembers_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListOrganizations provides a mock function for the type MockIAMQueryUsecase
 func (_mock *MockIAMQueryUsecase) ListOrganizations(ctx context.Context, query collection.Query) (collection.Page[entity.Organization], error) {
 	ret := _mock.Called(ctx, query)
@@ -1353,6 +1575,78 @@ func (_c *MockIAMQueryUsecase_ListOrganizations_Call) Return(page collection.Pag
 }
 
 func (_c *MockIAMQueryUsecase_ListOrganizations_Call) RunAndReturn(run func(ctx context.Context, query collection.Query) (collection.Page[entity.Organization], error)) *MockIAMQueryUsecase_ListOrganizations_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListOrganizationsForUser provides a mock function for the type MockIAMQueryUsecase
+func (_mock *MockIAMQueryUsecase) ListOrganizationsForUser(ctx context.Context, userID uint, query collection.Query) (collection.Page[entity.Organization], error) {
+	ret := _mock.Called(ctx, userID, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListOrganizationsForUser")
+	}
+
+	var r0 collection.Page[entity.Organization]
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, collection.Query) (collection.Page[entity.Organization], error)); ok {
+		return returnFunc(ctx, userID, query)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint, collection.Query) collection.Page[entity.Organization]); ok {
+		r0 = returnFunc(ctx, userID, query)
+	} else {
+		r0 = ret.Get(0).(collection.Page[entity.Organization])
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint, collection.Query) error); ok {
+		r1 = returnFunc(ctx, userID, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIAMQueryUsecase_ListOrganizationsForUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListOrganizationsForUser'
+type MockIAMQueryUsecase_ListOrganizationsForUser_Call struct {
+	*mock.Call
+}
+
+// ListOrganizationsForUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID uint
+//   - query collection.Query
+func (_e *MockIAMQueryUsecase_Expecter) ListOrganizationsForUser(ctx interface{}, userID interface{}, query interface{}) *MockIAMQueryUsecase_ListOrganizationsForUser_Call {
+	return &MockIAMQueryUsecase_ListOrganizationsForUser_Call{Call: _e.mock.On("ListOrganizationsForUser", ctx, userID, query)}
+}
+
+func (_c *MockIAMQueryUsecase_ListOrganizationsForUser_Call) Run(run func(ctx context.Context, userID uint, query collection.Query)) *MockIAMQueryUsecase_ListOrganizationsForUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMQueryUsecase_ListOrganizationsForUser_Call) Return(page collection.Page[entity.Organization], err error) *MockIAMQueryUsecase_ListOrganizationsForUser_Call {
+	_c.Call.Return(page, err)
+	return _c
+}
+
+func (_c *MockIAMQueryUsecase_ListOrganizationsForUser_Call) RunAndReturn(run func(ctx context.Context, userID uint, query collection.Query) (collection.Page[entity.Organization], error)) *MockIAMQueryUsecase_ListOrganizationsForUser_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2221,6 +2515,75 @@ func (_c *MockIAMQueryUsecase_ListUserTenants_Call) Return(memberships []entity.
 }
 
 func (_c *MockIAMQueryUsecase_ListUserTenants_Call) RunAndReturn(run func(ctx context.Context, userID uint) ([]entity.Membership, error)) *MockIAMQueryUsecase_ListUserTenants_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// RequireOrganizationPermission provides a mock function for the type MockIAMQueryUsecase
+func (_mock *MockIAMQueryUsecase) RequireOrganizationPermission(ctx context.Context, orgID string, userID uint, permission string) error {
+	ret := _mock.Called(ctx, orgID, userID, permission)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RequireOrganizationPermission")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint, string) error); ok {
+		r0 = returnFunc(ctx, orgID, userID, permission)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIAMQueryUsecase_RequireOrganizationPermission_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RequireOrganizationPermission'
+type MockIAMQueryUsecase_RequireOrganizationPermission_Call struct {
+	*mock.Call
+}
+
+// RequireOrganizationPermission is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orgID string
+//   - userID uint
+//   - permission string
+func (_e *MockIAMQueryUsecase_Expecter) RequireOrganizationPermission(ctx interface{}, orgID interface{}, userID interface{}, permission interface{}) *MockIAMQueryUsecase_RequireOrganizationPermission_Call {
+	return &MockIAMQueryUsecase_RequireOrganizationPermission_Call{Call: _e.mock.On("RequireOrganizationPermission", ctx, orgID, userID, permission)}
+}
+
+func (_c *MockIAMQueryUsecase_RequireOrganizationPermission_Call) Run(run func(ctx context.Context, orgID string, userID uint, permission string)) *MockIAMQueryUsecase_RequireOrganizationPermission_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIAMQueryUsecase_RequireOrganizationPermission_Call) Return(err error) *MockIAMQueryUsecase_RequireOrganizationPermission_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIAMQueryUsecase_RequireOrganizationPermission_Call) RunAndReturn(run func(ctx context.Context, orgID string, userID uint, permission string) error) *MockIAMQueryUsecase_RequireOrganizationPermission_Call {
 	_c.Call.Return(run)
 	return _c
 }

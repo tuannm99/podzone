@@ -17,8 +17,13 @@ const (
 	RoleTenantEditor = "tenant_editor"
 	RoleTenantViewer = "tenant_viewer"
 
-	PolicyScopePlatform = "platform"
-	PolicyScopeTenant   = "tenant"
+	RoleOrganizationRoot   = "organization_root"
+	RoleOrganizationAdmin  = "organization_admin"
+	RoleOrganizationViewer = "organization_viewer"
+
+	PolicyScopePlatform     = "platform"
+	PolicyScopeOrganization = "organization"
+	PolicyScopeTenant       = "tenant"
 
 	PolicyEffectAllow = "allow"
 	PolicyEffectDeny  = "deny"

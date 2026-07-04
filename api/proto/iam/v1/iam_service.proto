@@ -39,6 +39,25 @@ service IAMService {
     };
   }
 
+  rpc AddOrganizationMember(AddOrganizationMemberRequest) returns (AddOrganizationMemberResponse) {
+    option (google.api.http) = {
+      post: "/auth/v1/iam/organizations/{org_id}/members"
+      body: "*"
+    };
+  }
+
+  rpc RemoveOrganizationMember(RemoveOrganizationMemberRequest) returns (RemoveOrganizationMemberResponse) {
+    option (google.api.http) = {
+      delete: "/auth/v1/iam/organizations/{org_id}/members/{user_id}"
+    };
+  }
+
+  rpc ListOrganizationMembers(ListOrganizationMembersRequest) returns (ListOrganizationMembersResponse) {
+    option (google.api.http) = {
+      get: "/auth/v1/iam/organizations/{org_id}/members"
+    };
+  }
+
   rpc AttachTenantToOrganization(AttachTenantToOrganizationRequest) returns (AttachTenantToOrganizationResponse) {
     option (google.api.http) = {
       post: "/auth/v1/iam/organizations/{org_id}/tenants/{tenant_id}"
@@ -486,6 +505,8 @@ service IAMCommandService {
   rpc CreateTenant(CreateTenantRequest) returns (CreateTenantResponse);
   rpc CreateOrganization(CreateOrganizationRequest) returns (CreateOrganizationResponse);
   rpc EnsureRootOrganization(EnsureRootOrganizationRequest) returns (EnsureRootOrganizationResponse);
+  rpc AddOrganizationMember(AddOrganizationMemberRequest) returns (AddOrganizationMemberResponse);
+  rpc RemoveOrganizationMember(RemoveOrganizationMemberRequest) returns (RemoveOrganizationMemberResponse);
   rpc AttachTenantToOrganization(AttachTenantToOrganizationRequest) returns (AttachTenantToOrganizationResponse);
   rpc DetachTenantFromOrganization(DetachTenantFromOrganizationRequest) returns (DetachTenantFromOrganizationResponse);
   rpc AttachServiceControlPolicy(AttachServiceControlPolicyRequest) returns (AttachServiceControlPolicyResponse);
@@ -533,6 +554,7 @@ service IAMCommandService {
 // It intentionally has no HTTP annotations; the legacy IAMService keeps REST compatibility.
 service IAMQueryService {
   rpc ListOrganizations(ListOrganizationsRequest) returns (ListOrganizationsResponse);
+  rpc ListOrganizationMembers(ListOrganizationMembersRequest) returns (ListOrganizationMembersResponse);
   rpc ListServiceControlPolicies(ListServiceControlPoliciesRequest) returns (ListServiceControlPoliciesResponse);
   rpc ListTenantInvites(ListTenantInvitesRequest) returns (ListTenantInvitesResponse);
   rpc GetTenantMembership(GetTenantMembershipRequest) returns (GetTenantMembershipResponse);

@@ -24,6 +24,16 @@ message Organization {
   uint64 root_user_id = 6;
 }
 
+message OrganizationMembership {
+  string org_id = 1;
+  uint64 user_id = 2;
+  uint64 role_id = 3;
+  string role_name = 4;
+  string status = 5;
+  string created_at = 6;
+  string updated_at = 7;
+}
+
 message TenantMembership {
   string tenant_id = 1;
   uint64 user_id = 2;
@@ -85,6 +95,32 @@ message ListOrganizationsRequest {
 
 message ListOrganizationsResponse {
   repeated Organization organizations = 1;
+  common.PageInfo page_info = 2;
+  bool can_manage_platform = 3;
+}
+
+message AddOrganizationMemberRequest {
+  string org_id = 1;
+  uint64 user_id = 2;
+  string role_name = 3;
+}
+
+message AddOrganizationMemberResponse {}
+
+message RemoveOrganizationMemberRequest {
+  string org_id = 1;
+  uint64 user_id = 2;
+}
+
+message RemoveOrganizationMemberResponse {}
+
+message ListOrganizationMembersRequest {
+  string org_id = 1;
+  common.CollectionRequest collection = 2;
+}
+
+message ListOrganizationMembersResponse {
+  repeated OrganizationMembership memberships = 1;
   common.PageInfo page_info = 2;
 }
 

@@ -24,6 +24,16 @@ type organizationModel struct {
 	UpdatedAt  time.Time `db:"updated_at"`
 }
 
+type organizationMembershipModel struct {
+	OrgID     string    `db:"org_id"`
+	UserID    uint      `db:"user_id"`
+	RoleID    uint64    `db:"role_id"`
+	RoleName  string    `db:"role_name"`
+	Status    string    `db:"status"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
 type roleModel struct {
 	ID          uint64    `db:"id"`
 	Scope       string    `db:"scope"`

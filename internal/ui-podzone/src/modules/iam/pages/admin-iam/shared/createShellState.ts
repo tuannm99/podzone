@@ -6,6 +6,7 @@ export function createShellState() {
   const [message, setMessage] = createSignal('')
   const [loading, setLoading] = createSignal(false)
   const [allowed, setAllowed] = createSignal(false)
+  const [canManagePlatform, setCanManagePlatform] = createSignal(false)
   const [memberships, setMemberships] = createSignal<TenantMembership[]>([])
   const tenantOptions = () =>
     memberships().map((membership) => ({
@@ -22,6 +23,8 @@ export function createShellState() {
     setLoading,
     allowed,
     setAllowed,
+    canManagePlatform,
+    setCanManagePlatform,
     memberships,
     setMemberships,
     tenantOptions,

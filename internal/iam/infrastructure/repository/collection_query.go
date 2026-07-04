@@ -16,11 +16,11 @@ type collectionColumn struct {
 }
 
 var organizationCollectionColumns = map[string]collectionColumn{
-	"id":        {sql: "id", text: true},
-	"slug":      {sql: "slug", text: true},
-	"name":      {sql: "name", text: true},
-	"createdAt": {sql: "created_at"},
-	"updatedAt": {sql: "updated_at"},
+	"id":        {sql: "organization.id", text: true},
+	"slug":      {sql: "organization.slug", text: true},
+	"name":      {sql: "organization.name", text: true},
+	"createdAt": {sql: "organization.created_at"},
+	"updatedAt": {sql: "organization.updated_at"},
 }
 
 var policyCollectionColumns = map[string]collectionColumn{
@@ -95,6 +95,16 @@ var tenantMembershipCollectionColumns = map[string]collectionColumn{
 	"status":    {sql: "tm.status", text: true},
 	"createdAt": {sql: "tm.created_at"},
 	"updatedAt": {sql: "tm.updated_at"},
+}
+
+var organizationMembershipCollectionColumns = map[string]collectionColumn{
+	"organizationId": {sql: "om.org_id", text: true},
+	"userId":         {sql: "om.user_id"},
+	"roleId":         {sql: "om.role_id"},
+	"roleName":       {sql: "r.name", text: true},
+	"status":         {sql: "om.status", text: true},
+	"createdAt":      {sql: "om.created_at"},
+	"updatedAt":      {sql: "om.updated_at"},
 }
 
 var tenantInviteCollectionColumns = map[string]collectionColumn{

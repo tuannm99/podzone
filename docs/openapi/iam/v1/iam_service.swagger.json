@@ -846,6 +846,147 @@
         ]
       }
     },
+    "/auth/v1/iam/organizations/{orgId}/members": {
+      "get": {
+        "operationId": "IAMService_ListOrganizationMembers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/iamListOrganizationMembersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "collection.page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "collection.search",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "collection.sortDirection",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_DIRECTION_UNSPECIFIED",
+              "SORT_DIRECTION_ASC",
+              "SORT_DIRECTION_DESC"
+            ],
+            "default": "SORT_DIRECTION_UNSPECIFIED"
+          }
+        ],
+        "tags": [
+          "IAMService"
+        ]
+      },
+      "post": {
+        "operationId": "IAMService_AddOrganizationMember",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/iamAddOrganizationMemberResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/iamIAMServiceAddOrganizationMemberBody"
+            }
+          }
+        ],
+        "tags": [
+          "IAMService"
+        ]
+      }
+    },
+    "/auth/v1/iam/organizations/{orgId}/members/{userId}": {
+      "delete": {
+        "operationId": "IAMService_RemoveOrganizationMember",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/iamRemoveOrganizationMemberResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "IAMService"
+        ]
+      }
+    },
     "/auth/v1/iam/organizations/{orgId}/service-control-policies": {
       "get": {
         "operationId": "IAMService_ListServiceControlPolicies",
@@ -3375,6 +3516,9 @@
     "iamAddGroupMemberResponse": {
       "type": "object"
     },
+    "iamAddOrganizationMemberResponse": {
+      "type": "object"
+    },
     "iamAddPlatformRoleResponse": {
       "type": "object"
     },
@@ -3626,6 +3770,14 @@
     "iamDetachTenantUserPolicyResponse": {
       "type": "object"
     },
+    "iamEnsureRootOrganizationResponse": {
+      "type": "object",
+      "properties": {
+        "organization": {
+          "$ref": "#/definitions/iamOrganization"
+        }
+      }
+    },
     "iamGetGroupInlinePolicyResponse": {
       "type": "object",
       "properties": {
@@ -3853,6 +4005,18 @@
         "userId": {
           "type": "string",
           "format": "uint64"
+        }
+      }
+    },
+    "iamIAMServiceAddOrganizationMemberBody": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "roleName": {
+          "type": "string"
         }
       }
     },
@@ -4096,6 +4260,21 @@
         }
       }
     },
+    "iamListOrganizationMembersResponse": {
+      "type": "object",
+      "properties": {
+        "memberships": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/iamOrganizationMembership"
+          }
+        },
+        "pageInfo": {
+          "$ref": "#/definitions/commonPageInfo"
+        }
+      }
+    },
     "iamListOrganizationsResponse": {
       "type": "object",
       "properties": {
@@ -4108,6 +4287,9 @@
         },
         "pageInfo": {
           "$ref": "#/definitions/commonPageInfo"
+        },
+        "canManagePlatform": {
+          "type": "boolean"
         }
       }
     },
@@ -4302,6 +4484,38 @@
         },
         "updatedAt": {
           "type": "string"
+        },
+        "rootUserId": {
+          "type": "string",
+          "format": "uint64"
+        }
+      }
+    },
+    "iamOrganizationMembership": {
+      "type": "object",
+      "properties": {
+        "orgId": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "roleId": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "roleName": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
         }
       }
     },
@@ -4467,6 +4681,9 @@
       "type": "object"
     },
     "iamRemoveGroupMemberResponse": {
+      "type": "object"
+    },
+    "iamRemoveOrganizationMemberResponse": {
       "type": "object"
     },
     "iamRemovePlatformRoleResponse": {
