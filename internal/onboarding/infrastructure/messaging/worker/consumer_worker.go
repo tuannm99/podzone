@@ -68,7 +68,7 @@ func NewConsumerGroupRunner(
 	factory pdkafka.ConsumerGroupFactory,
 	cfg *pdkafka.Config,
 ) (pdkafka.ConsumerGroupRunner, error) {
-	groupID := cfg.ConsumerGroupPrefix + ".consul-bridge"
+	groupID := cfg.ConsumerGroupPrefix + ".kv-store-bridge"
 	group, err := factory.New(groupID)
 	if err != nil {
 		return nil, fmt.Errorf("create onboarding consumer group: %w", err)

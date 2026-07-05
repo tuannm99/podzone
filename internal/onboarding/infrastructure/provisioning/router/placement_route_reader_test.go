@@ -48,7 +48,7 @@ func TestPlacementRouteReader_IsPlacementRouteReadyWrapsBackendError(t *testing.
 
 	kv := kvsmocks.NewMockKVStore(t)
 	reader := NewPlacementRouteReader(PlacementRouteReaderParams{KV: kv})
-	backendErr := errors.New("consul down")
+	backendErr := errors.New("kv store down")
 
 	kv.EXPECT().
 		Get("podzone/tenants/tenant-1/placement").

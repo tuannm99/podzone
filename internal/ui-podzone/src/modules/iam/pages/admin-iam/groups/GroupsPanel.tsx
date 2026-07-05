@@ -53,7 +53,7 @@ export function GroupsPanel() {
     {
       initialValues: { policyName: group.groupPolicyName() },
       validators: {
-        policyName: [required('Enter a policy name.')],
+        policyName: [required('Choose a managed policy.')],
       },
     }
   )
@@ -180,10 +180,11 @@ export function GroupsPanel() {
           onChange={(value) => memberForm.setValue('userId', value)}
           placeholder="Search name, username, or email"
         />
-        <FormInputField
+        <FormSelectField
           form={policyAttachmentForm}
           name="policyName"
-          label="Attach policy name"
+          label="Managed policy"
+          options={group.managedPolicyOptions()}
         />
       </div>
 

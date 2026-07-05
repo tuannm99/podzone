@@ -76,7 +76,7 @@ The resource model must distinguish:
 - resource quota
 - placement policy
 
-Consul or any other routing KV store is not the resource inventory.
+The Mongo-backed routing KV store is not the resource inventory.
 
 The source of truth for resource inventory and placement allocation belongs to the onboarding/platform resource manager.
 Routing KV entries are projections that can be rebuilt.
@@ -263,7 +263,7 @@ Onboarding must support reconciliation between source-of-truth placement allocat
 
 Reconciliation must detect:
 
-- missing Consul or router KV entry
+- missing runtime KV entry
 - stale router version
 - missing DB schema or database
 - missing Kubernetes namespace
@@ -283,7 +283,7 @@ store-scoped workspace mode.
 
 Placement allocation must have one source of truth.
 
-Consul and similar KV systems are projections only.
+Runtime KV systems are projections only.
 
 ### NFR-ONB-002 Capacity safety
 
@@ -384,7 +384,7 @@ The user must never be left with an unlabelled failure state.
 5. If approved, onboarding builds a placement allocation from the infrastructure manager.
 6. Onboarding provisions the required runtime through the selected provider and persists the allocation.
 7. A background worker or queue consumer performs the long-running provisioning work.
-8. Onboarding publishes the router projection, for example Consul metadata consumed by `pdtenantdb`.
+8. Onboarding publishes the Mongo runtime KV projection consumed by `pdtenantdb`.
 9. Backoffice can open the store only after placement is resolvable and the store is ready.
 
 ### Approval paths
@@ -428,7 +428,7 @@ The product should not assume a store can be provisioned synchronously from the 
 A store becomes operational only when the tenant has a resolvable placement.
 
 The placement source of truth is the onboarding/platform infrastructure manager allocation.
-Consul is only a router projection for runtime lookup and can be rebuilt from that allocation.
+Mongo `runtime_kv` is only a router projection for runtime lookup and can be rebuilt from that allocation.
 
 Requirements:
 

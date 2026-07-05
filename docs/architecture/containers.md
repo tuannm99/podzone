@@ -32,7 +32,7 @@ flowchart TB
         ONBOARDINGDB["Mongo: onboarding"]
         REDIS["Redis"]
         KAFKA["Kafka"]
-        CONSUL["Consul"]
+        RUNTIME_KV["Mongo runtime_kv"]
     end
 
     UI --> APISIX
@@ -69,8 +69,8 @@ flowchart TB
     PROVWORKER --> PROVIDER
     PROVIDER --> BACKOFFICEDB
     PROVWORKER --> ONBOARDINGDB
-    PROVWORKER --> CONSUL
-    BACKOFFICE --> CONSUL
+    PROVWORKER --> RUNTIME_KV
+    BACKOFFICE --> RUNTIME_KV
 ```
 
 ## Boundaries
@@ -82,5 +82,5 @@ flowchart TB
 - `grpcgateway` remains the HTTP translation layer for gRPC services.
 - `backoffice` is GraphQL-first and talks to service APIs plus its own database.
 - `onboarding` owns store provisioning requests and the placement allocation source of truth.
-- `consul` is a runtime router projection consumed by `pdtenantdb`, not the source of truth for placement.
+- `runtime_kv` is a Mongo-backed router projection consumed by `pdtenantdb`, not the source of truth for placement.
 - placement providers create or bind the tenant storage target for Docker, Kubernetes, or future Terraform/cloud runtimes.

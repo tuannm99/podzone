@@ -31,7 +31,7 @@
 //	Input(tenant/service/infraType/config/meta)
 //	  -> state repository persists ConnectionInfo{...}
 //	    -> event repository appends Event{action=create, ...}
-//	      -> transactional event path enqueues Envelope{type=consul.publish, ...}
+//	      -> transactional event path enqueues Envelope{type=kv_store.publish, ...}
 //	        -> return response
 //
 // DestroyInfra:
@@ -43,7 +43,7 @@
 //
 // # Notes
 //
-//   - Connection state can be backed by MongoDB or Consul KV, while history is queryable storage.
+//   - Runtime connection projections are stored through KVStore, backed by MongoDB.
 //   - Placement/connection publishes are commit-coupled integration events. They can be drained by CDC
 //     when available; bounded polling is a fallback relay, not the target scale design.
 //   - Best-effort operational jobs should publish directly through a service output port instead of adding

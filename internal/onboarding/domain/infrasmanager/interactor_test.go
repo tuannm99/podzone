@@ -118,10 +118,10 @@ func TestManualUpsertConnection_PostgresEnqueuesPlacementPublish(t *testing.T) {
 	require.NotNil(t, resp)
 	require.Len(t, state.outbox, 2)
 
-	require.Equal(t, "consul.publish", state.outbox[0].Topic)
+	require.Equal(t, "kv_store.publish", state.outbox[0].Topic)
 	require.Equal(t, "podzone/tenants/tenant-1/connections/postgres/default", state.outbox[0].Payload["key"])
 
-	require.Equal(t, "consul.publish", state.outbox[1].Topic)
+	require.Equal(t, "kv_store.publish", state.outbox[1].Topic)
 	require.Equal(t, "podzone/tenants/tenant-1/placement", state.outbox[1].Payload["key"])
 }
 
@@ -141,10 +141,10 @@ func TestDeleteConnection_PostgresEnqueuesPlacementDelete(t *testing.T) {
 	require.Equal(t, 1, state.softDeleteCalls)
 	require.Len(t, state.outbox, 2)
 
-	require.Equal(t, "consul.delete", state.outbox[0].Topic)
+	require.Equal(t, "kv_store.delete", state.outbox[0].Topic)
 	require.Equal(t, "podzone/tenants/tenant-1/placement", state.outbox[0].Payload["key"])
 
-	require.Equal(t, "consul.delete", state.outbox[1].Topic)
+	require.Equal(t, "kv_store.delete", state.outbox[1].Topic)
 	require.Equal(t, "podzone/tenants/tenant-1/connections/postgres/default", state.outbox[1].Payload["key"])
 }
 

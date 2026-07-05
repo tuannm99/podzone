@@ -11,7 +11,7 @@ import (
 func TestOutboxMessageToRecord_SeparatesKafkaTopicFromMessageType(t *testing.T) {
 	record, err := outboxMessageToRecord(entity.OutboxMessage{
 		EventID:   "event-1",
-		Topic:     "consul.publish",
+		Topic:     "kv_store.publish",
 		TenantID:  "tenant-1",
 		InfraType: entity.InfraPostgres,
 		Name:      "primary",
@@ -23,6 +23,6 @@ func TestOutboxMessageToRecord_SeparatesKafkaTopicFromMessageType(t *testing.T) 
 
 	require.NoError(t, err)
 	require.Equal(t, "podzone.onboarding.events", record.Topic)
-	require.Equal(t, "consul.publish", record.Envelope.Type)
+	require.Equal(t, "kv_store.publish", record.Envelope.Type)
 	require.Equal(t, "tenant-1:postgres:primary", record.MessageKey)
 }

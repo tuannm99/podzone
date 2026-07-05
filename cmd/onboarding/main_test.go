@@ -23,8 +23,8 @@ func TestAppContainerGraph(t *testing.T) {
 		pdlog.Module,
 		pdglobalmiddleware.CommonGinMiddlewareModule,
 		pdhttp.Module,
-		kvstores.Module,
 		pdmongo.ModuleFor("onboarding"),
+		kvstores.ModuleFor("onboarding"),
 		pdkafka.ModuleFor("onboarding"),
 		onboarding.Module,
 	)

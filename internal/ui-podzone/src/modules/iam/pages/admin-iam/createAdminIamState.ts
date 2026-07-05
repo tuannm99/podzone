@@ -15,21 +15,33 @@ export function createAdminIamState(userID: number) {
     shell.setCanManagePlatform
   )
   const assignments = createAssignmentsState(userID)
+  const policies = createPoliciesState(
+    shell.allowed,
+    organizations.selectedOrgId
+  )
+  const groups = createGroupsState(shell.allowed, organizations.selectedOrgId)
+  const principals = createPrincipalsState(userID, platformEnabled)
+  const trustSimulation = createTrustSimulationState(userID)
   const directory = createDirectoryViewModel({
     allowed: shell.allowed,
     canManagePlatform: shell.canManagePlatform,
     selectedOrgId: organizations.selectedOrgId,
     selectedTenantId: assignments.shortcutTenantId,
+    visibleUserIds: () => [
+      ...organizations.organizationMembers().map((member) => member.userId),
+      ...groups.groupMembers(),
+      ...policies.policyAttachments().map((attachment) => attachment.userId),
+    ],
   })
   return {
     ...shell,
     ...organizations,
-    ...createPoliciesState(shell.allowed, organizations.selectedOrgId),
-    ...createGroupsState(shell.allowed, organizations.selectedOrgId),
+    ...policies,
+    ...groups,
     ...assignments,
     ...directory,
-    ...createPrincipalsState(userID, platformEnabled),
-    ...createTrustSimulationState(userID),
+    ...principals,
+    ...trustSimulation,
   }
 }
 

@@ -18,17 +18,11 @@ PG_PORT="${PG_PORT:-6432}"
 PG_USER="${PG_USER:-postgres}"
 PG_PASSWORD="${PG_PASSWORD:-postgres}"
 PG_SSL_MODE="${PG_SSL_MODE:-disable}"
-CONSUL_URL="${CONSUL_URL:-http://consul:8500}"
 ONBOARDING_URL="${ONBOARDING_URL:-http://onboarding-service:8800}"
 JWT_SECRET="${JWT_SECRET:-dev-secret}"
 JWT_KEY="${JWT_KEY:-}"
 AUTH_BOOTSTRAP_OUTPUT="${AUTH_BOOTSTRAP_OUTPUT:-/workspace/internal/ui-podzone/public/dev-auth-bootstrap.json}"
 UI_AUTH_BOOTSTRAP_TARGET="${UI_AUTH_BOOTSTRAP_TARGET:-/workspace/internal/ui-podzone/public/dev-auth-bootstrap.json}"
-
-echo "Waiting for consul..."
-until curl -fsS "${CONSUL_URL}/v1/status/leader" >/dev/null 2>&1; do
-  sleep 1
-done
 
 if curl -sS "${ONBOARDING_URL}" >/dev/null 2>&1; then
   create_store="true"
@@ -50,8 +44,6 @@ sh /workspace/scripts/dev/seed_backoffice_tenant.sh \
   "${TENANT_ID}" \
   "${STORE_NAME}" \
   "${STORE_SUBDOMAIN}" \
-  "${CLUSTER_NAME}" \
-  "${CONSUL_URL}" \
   "${ONBOARDING_URL}"
 
 TENANT_ID="${TENANT_ID}" \

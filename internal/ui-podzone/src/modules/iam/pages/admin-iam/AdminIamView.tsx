@@ -116,6 +116,8 @@ export function AdminIamView(props: { model: AdminIamViewModel }) {
               organizationOptions={
                 props.model.organizations.organizationOptions
               }
+              identityForUser={props.model.organizations.identityForUser}
+              policyOptions={props.model.organizations.policyOptions}
               userOptions={props.model.organizations.userOptions}
               usersLoading={props.model.organizations.usersLoading}
               usersError={props.model.organizations.usersError}

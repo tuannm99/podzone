@@ -163,7 +163,7 @@ sequenceDiagram
     EventRelay->>IAMDB: mark published when using fallback relay
 ```
 
-## 8. Onboarding Placement Publish to Consul
+## 8. Onboarding Placement Publish to Runtime KV
 
 ```mermaid
 sequenceDiagram
@@ -171,7 +171,7 @@ sequenceDiagram
     participant Onboarding as Onboarding Service
     participant Mongo as Mongo Onboarding Store
     participant EventRelay as Onboarding CDC / Fallback Relay
-    participant Consul as Consul
+    participant RuntimeKV as Mongo runtime_kv
 
     Client->>Onboarding: save placement allocation and router publish record
     Onboarding->>Mongo: persist allocation as source of truth
@@ -179,7 +179,7 @@ sequenceDiagram
     Onboarding-->>Client: accepted
 
     Mongo->>EventRelay: stream publish record or bounded fallback read
-    EventRelay->>Consul: publish placement projection for pdtenantdb
+    EventRelay->>RuntimeKV: upsert placement projection for pdtenantdb
     EventRelay->>Mongo: mark published when using fallback relay
 ```
 
@@ -194,7 +194,7 @@ sequenceDiagram
     participant Worker as Provisioning Worker
     participant Provider as Placement Provider
     participant Mongo as Mongo Onboarding Store
-    participant Consul as Consul
+    participant RuntimeKV as Mongo runtime_kv
     participant BO as Backoffice Runtime
     participant DB as Tenant DB / Schema
     participant PDT as pdtenantdb
@@ -220,11 +220,11 @@ sequenceDiagram
     Provider-->>Worker: endpoint, secret ref, allocation metadata
     Worker->>Mongo: persist placement allocation as source of truth
     Worker->>Mongo: append router publish record
-    Mongo->>Consul: publish tenant placement projection via CDC/fallback relay
+    Mongo->>RuntimeKV: publish tenant placement projection
     Worker->>Onboarding: mark request ready
 
     BO->>PDT: resolve placement for tenant/store scope
-    PDT->>Consul: get tenant placement
-    Consul-->>PDT: cluster/db/schema placement
+    PDT->>RuntimeKV: get tenant placement
+    RuntimeKV-->>PDT: cluster/db/schema placement
     BO->>DB: execute store-scoped operations only after placement resolves
 ```

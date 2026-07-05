@@ -20,7 +20,7 @@ type ClusterConfig struct {
 }
 
 type ClusterRegistry interface {
-	// GetCluster loads cluster config by cluster name (from Consul, cached).
+	// GetCluster loads cluster config by cluster name from the configured KV store.
 	GetCluster(ctx context.Context, clusterName string) (ClusterConfig, error)
 }
 
@@ -29,7 +29,7 @@ type cachedCluster struct {
 	loaded time.Time
 }
 
-type ConsulClusterRegistry struct {
+type KVClusterRegistry struct {
 	kv     kvstores.KVStore
 	prefix string
 	ttl    time.Duration
@@ -39,11 +39,11 @@ type ConsulClusterRegistry struct {
 	sf    singleflight.Group
 }
 
-func NewDefaultConsulClusterRegistry(kv kvstores.KVStore) ClusterRegistry {
-	return NewConsulClusterRegistry(kv, "podzone/postgres/clusters", 2*time.Minute)
+func NewDefaultKVClusterRegistry(kv kvstores.KVStore) ClusterRegistry {
+	return NewKVClusterRegistry(kv, "podzone/postgres/clusters", 2*time.Minute)
 }
 
-func NewConsulClusterRegistry(kv kvstores.KVStore, prefix string, ttl time.Duration) *ConsulClusterRegistry {
+func NewKVClusterRegistry(kv kvstores.KVStore, prefix string, ttl time.Duration) *KVClusterRegistry {
 	if prefix == "" {
 		prefix = "podzone/postgres/clusters"
 	}
@@ -51,7 +51,7 @@ func NewConsulClusterRegistry(kv kvstores.KVStore, prefix string, ttl time.Durat
 		ttl = 2 * time.Minute
 	}
 
-	return &ConsulClusterRegistry{
+	return &KVClusterRegistry{
 		kv:     kv,
 		prefix: prefix,
 		ttl:    ttl,
@@ -59,7 +59,7 @@ func NewConsulClusterRegistry(kv kvstores.KVStore, prefix string, ttl time.Durat
 	}
 }
 
-func (r *ConsulClusterRegistry) GetCluster(ctx context.Context, clusterName string) (ClusterConfig, error) {
+func (r *KVClusterRegistry) GetCluster(ctx context.Context, clusterName string) (ClusterConfig, error) {
 	// Fast path from cache
 	r.mu.RLock()
 	if it, ok := r.cache[clusterName]; ok && time.Since(it.loaded) < r.ttl {

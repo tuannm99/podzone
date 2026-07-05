@@ -12,9 +12,9 @@ import (
 	kvsmocks "github.com/tuannm99/podzone/pkg/toolkit/kvstores/mocks"
 )
 
-func TestConsulPlacementResolver_CacheHit(t *testing.T) {
+func TestKVPlacementResolver_CacheHit(t *testing.T) {
 	kv := kvsmocks.NewMockKVStore(t)
-	r := pdtenantdb.NewConsulPlacementResolver(kv)
+	r := pdtenantdb.NewKVPlacementResolver(kv)
 
 	key := "podzone/tenants/tenant-abc/placement"
 	val := []byte(`{"cluster_name":"pg-01","mode":"schema","db_name":"backoffice","schema_name":"t_tenant_abc"}`)
@@ -36,9 +36,9 @@ func TestConsulPlacementResolver_CacheHit(t *testing.T) {
 	require.Equal(t, pl1, pl2)
 }
 
-func TestConsulPlacementResolver_DatabaseMode(t *testing.T) {
+func TestKVPlacementResolver_DatabaseMode(t *testing.T) {
 	kv := kvsmocks.NewMockKVStore(t)
-	r := pdtenantdb.NewConsulPlacementResolver(kv)
+	r := pdtenantdb.NewKVPlacementResolver(kv)
 
 	key := "podzone/tenants/big-tenant/placement"
 	val := []byte(`{"cluster_name":"pg-02","mode":"database","db_name":"bo_big_tenant"}`)
@@ -52,9 +52,9 @@ func TestConsulPlacementResolver_DatabaseMode(t *testing.T) {
 	require.Empty(t, pl.SchemaName)
 }
 
-func TestConsulPlacementResolver_NotFound(t *testing.T) {
+func TestKVPlacementResolver_NotFound(t *testing.T) {
 	kv := kvsmocks.NewMockKVStore(t)
-	r := pdtenantdb.NewConsulPlacementResolver(kv)
+	r := pdtenantdb.NewKVPlacementResolver(kv)
 
 	key := "podzone/tenants/unknown/placement"
 	kv.EXPECT().Get(key).Return(nil, kvstores.ErrKeyNotFound).Once()
@@ -64,9 +64,9 @@ func TestConsulPlacementResolver_NotFound(t *testing.T) {
 	require.ErrorIs(t, err, pdtenantdb.ErrPlacementNotFound)
 }
 
-func TestConsulPlacementResolver_BackendError(t *testing.T) {
+func TestKVPlacementResolver_BackendError(t *testing.T) {
 	kv := kvsmocks.NewMockKVStore(t)
-	r := pdtenantdb.NewConsulPlacementResolver(kv)
+	r := pdtenantdb.NewKVPlacementResolver(kv)
 
 	key := "podzone/tenants/down/placement"
 	kv.EXPECT().Get(key).Return(nil, context.DeadlineExceeded).Once()
@@ -76,9 +76,9 @@ func TestConsulPlacementResolver_BackendError(t *testing.T) {
 	require.ErrorIs(t, err, pdtenantdb.ErrPlacementBackend)
 }
 
-func TestConsulPlacementResolver_InvalidJSON(t *testing.T) {
+func TestKVPlacementResolver_InvalidJSON(t *testing.T) {
 	kv := kvsmocks.NewMockKVStore(t)
-	r := pdtenantdb.NewConsulPlacementResolver(kv)
+	r := pdtenantdb.NewKVPlacementResolver(kv)
 
 	key := "podzone/tenants/bad/placement"
 	kv.EXPECT().Get(key).Return([]byte(`{invalid`), nil).Once()
@@ -88,9 +88,9 @@ func TestConsulPlacementResolver_InvalidJSON(t *testing.T) {
 	require.Contains(t, err.Error(), "invalid placement json")
 }
 
-func TestConsulPlacementResolver_MissingFields(t *testing.T) {
+func TestKVPlacementResolver_MissingFields(t *testing.T) {
 	kv := kvsmocks.NewMockKVStore(t)
-	r := pdtenantdb.NewConsulPlacementResolver(kv)
+	r := pdtenantdb.NewKVPlacementResolver(kv)
 
 	key := "podzone/tenants/partial/placement"
 	kv.EXPECT().Get(key).Return([]byte(`{"mode":"schema"}`), nil).Once()
@@ -100,9 +100,9 @@ func TestConsulPlacementResolver_MissingFields(t *testing.T) {
 	require.Contains(t, err.Error(), "incomplete placement")
 }
 
-func TestConsulPlacementResolver_SchemaModeMissingSchemaName(t *testing.T) {
+func TestKVPlacementResolver_SchemaModeMissingSchemaName(t *testing.T) {
 	kv := kvsmocks.NewMockKVStore(t)
-	r := pdtenantdb.NewConsulPlacementResolver(kv)
+	r := pdtenantdb.NewKVPlacementResolver(kv)
 
 	key := "podzone/tenants/no-schema/placement"
 	kv.EXPECT().Get(key).Return([]byte(`{"cluster_name":"pg-01","mode":"schema","db_name":"backoffice"}`), nil).Once()
@@ -112,9 +112,9 @@ func TestConsulPlacementResolver_SchemaModeMissingSchemaName(t *testing.T) {
 	require.Contains(t, err.Error(), "missing schema_name")
 }
 
-func TestConsulPlacementResolver_SingleflightConcurrent(t *testing.T) {
+func TestKVPlacementResolver_SingleflightConcurrent(t *testing.T) {
 	kv := kvsmocks.NewMockKVStore(t)
-	r := pdtenantdb.NewConsulPlacementResolver(kv)
+	r := pdtenantdb.NewKVPlacementResolver(kv)
 
 	key := "podzone/tenants/concurrent/placement"
 	val := []byte(`{"cluster_name":"pg-01","mode":"schema","db_name":"backoffice","schema_name":"t_concurrent"}`)
@@ -142,11 +142,11 @@ func TestConsulPlacementResolver_SingleflightConcurrent(t *testing.T) {
 	}
 }
 
-func TestConsulPlacementResolver_TTLExpiry(t *testing.T) {
+func TestKVPlacementResolver_TTLExpiry(t *testing.T) {
 	kv := kvsmocks.NewMockKVStore(t)
 
 	// Use a very short TTL so we can test expiry without sleeping long.
-	r := pdtenantdb.NewConsulPlacementResolverWithTTL(kv, "podzone/tenants", 50*time.Millisecond)
+	r := pdtenantdb.NewKVPlacementResolverWithTTL(kv, "podzone/tenants", 50*time.Millisecond)
 
 	key := "podzone/tenants/ttl-tenant/placement"
 	val := []byte(`{"cluster_name":"pg-01","mode":"schema","db_name":"backoffice","schema_name":"t_ttl"}`)

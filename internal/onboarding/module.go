@@ -8,7 +8,7 @@ import (
 	"go.uber.org/fx"
 
 	onboardingconfig "github.com/tuannm99/podzone/internal/onboarding/config"
-	consulbridge "github.com/tuannm99/podzone/internal/onboarding/controller/eventhandler/consulbridge"
+	kvstorebridge "github.com/tuannm99/podzone/internal/onboarding/controller/eventhandler/kvstorebridge"
 	"github.com/tuannm99/podzone/internal/onboarding/controller/httphandler"
 	infrascontroller "github.com/tuannm99/podzone/internal/onboarding/controller/httphandler/infrasmanager"
 	storecontroller "github.com/tuannm99/podzone/internal/onboarding/controller/httphandler/store"
@@ -35,8 +35,8 @@ import (
 )
 
 const (
-	onboardingConsumerRuntimePath = "messaging.onboarding.consumers.consul_bridge"
-	onboardingConsumerName        = "onboarding.consul-bridge"
+	onboardingConsumerRuntimePath = "messaging.onboarding.consumers.kv_store_bridge"
+	onboardingConsumerName        = "onboarding.kv-store-bridge"
 )
 
 var Module = fx.Options(
@@ -96,7 +96,7 @@ var Module = fx.Options(
 var (
 	InfrasCtrlProvider = fx.Provide(
 		// --- Infrastructure layer ---
-		publisher.NewConsulPublisher,
+		publisher.NewKVStorePublisher,
 		fx.Annotate(
 			func(producer pdkafka.Producer) messaging.Publisher {
 				return messagingkafka.NewPublisher(producer)
@@ -105,16 +105,16 @@ var (
 		),
 		fx.Annotate(
 			NewRuntimeConfig,
-			fx.ResultTags(`name:"onboarding-consul-bridge-runtime"`),
+			fx.ResultTags(`name:"onboarding-kv-store-bridge-runtime"`),
 		),
 		fx.Annotate(
 			func(log pdlog.Logger, cfg messaging.ConsumerRuntimeConfig) messaging.Observer {
 				return messaging.NewLoggingObserver(log, onboardingConsumerName, cfg)
 			},
-			fx.ParamTags(``, `name:"onboarding-consul-bridge-runtime"`),
+			fx.ParamTags(``, `name:"onboarding-kv-store-bridge-runtime"`),
 		),
 		fx.Annotate(
-			consulbridge.NewRegistry,
+			kvstorebridge.NewRegistry,
 			fx.As(new(messaging.Handler)),
 		),
 		fx.Annotate(
@@ -158,7 +158,7 @@ var (
 		worker.NewOutboxWorker,
 		fx.Annotate(
 			worker.NewConsumerWorker,
-			fx.ParamTags(``, ``, ``, `name:"onboarding-consul-bridge-runtime"`, ``, ``),
+			fx.ParamTags(``, ``, ``, `name:"onboarding-kv-store-bridge-runtime"`, ``, ``),
 		),
 
 		// --- Domain layer ---

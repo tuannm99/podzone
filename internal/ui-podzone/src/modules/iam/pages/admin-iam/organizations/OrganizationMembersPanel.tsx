@@ -31,6 +31,10 @@ type MemberForm = {
 }
 
 type OrganizationMembersPanelProps = {
+  identityForUser: (userID: number | string) => {
+    label: string
+    description: string
+  }
   organizationId: Accessor<string>
   members: Accessor<OrganizationMembership[]>
   query: CollectionQuery
@@ -174,30 +178,38 @@ export function OrganizationMembersPanel(props: OrganizationMembersPanelProps) {
           </TableHead>
           <TableBody>
             <For each={props.members()}>
-              {(member) => (
-                <TableRow>
-                  <TableCell class="font-semibold text-gray-900">
-                    {member.userId}
-                  </TableCell>
-                  <TableCell>{member.roleName}</TableCell>
-                  <TableCell>
-                    <Badge
-                      content={member.status}
-                      color={member.status === 'active' ? 'green' : 'dark'}
-                    />
-                  </TableCell>
-                  <TableCell class="text-right">
-                    <Button
-                      size="xs"
-                      color="red"
-                      disabled={member.roleName === 'organization_root'}
-                      onClick={() => props.removeMember(member.userId)}
-                    >
-                      Remove
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              )}
+              {(member) => {
+                const identity = () => props.identityForUser(member.userId)
+                return (
+                  <TableRow>
+                    <TableCell>
+                      <span class="block font-semibold text-gray-900">
+                        {identity().label}
+                      </span>
+                      <span class="block text-xs text-gray-500">
+                        {identity().description}
+                      </span>
+                    </TableCell>
+                    <TableCell>{member.roleName}</TableCell>
+                    <TableCell>
+                      <Badge
+                        content={member.status}
+                        color={member.status === 'active' ? 'green' : 'dark'}
+                      />
+                    </TableCell>
+                    <TableCell class="text-right">
+                      <Button
+                        size="xs"
+                        color="red"
+                        disabled={member.roleName === 'organization_root'}
+                        onClick={() => props.removeMember(member.userId)}
+                      >
+                        Remove
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                )
+              }}
             </For>
           </TableBody>
         </DataTable>

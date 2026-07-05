@@ -4,11 +4,17 @@ logger:
   level: 'debug'
   env: 'dev'
 
-consul_kv:
-  address: 'http://localhost:8500'
-  token: ''
-  tls:
-    insecure_skip_verify: true
+kv_store:
+  provider: mongo
+  database: onboarding
+  collection: runtime_kv
+
+mongo:
+  onboarding:
+    uri: mongodb://localhost:27017/onboarding
+    database: onboarding
+    ping_timeout: 3s
+    connect_timeout: 5s
 
 http:
   address: ':8000'

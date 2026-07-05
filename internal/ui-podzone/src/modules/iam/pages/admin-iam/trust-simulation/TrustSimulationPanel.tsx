@@ -14,6 +14,7 @@ import { SectionTitle } from '@/solid/components/common/SectionTitle'
 import { SearchSelectField } from '@/solid/components/common/SearchSelectField'
 import {
   FormInputField,
+  FormSelectField,
   createFormStore,
   jsonArray,
   required,
@@ -53,7 +54,7 @@ export function TrustSimulationPanel() {
       policyName: trust.trustBoundaryPolicyName(),
     },
     validators: {
-      policyName: [required('Enter a role boundary policy name.')],
+      policyName: [required('Choose a role boundary policy.')],
     },
   })
 
@@ -110,10 +111,11 @@ export function TrustSimulationPanel() {
         </Button>
       </div>
       <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-end">
-        <FormInputField
+        <FormSelectField
           form={roleBoundaryForm}
           name="policyName"
           label="Role boundary policy"
+          options={trust.boundaryPolicyOptions()}
         />
         <Button
           size="sm"

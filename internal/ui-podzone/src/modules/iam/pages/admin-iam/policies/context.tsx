@@ -24,6 +24,10 @@ export type PolicyOption = {
 
 export type AdminIamPolicyContextValue = {
   permissionOptions: Accessor<SelectOption[]>
+  identityForUser: (userID: number | string) => {
+    label: string
+    description: string
+  }
   policyScopeOptions: Accessor<PolicyScopeOption[]>
   policyScope: Accessor<string>
   setPolicyScope: Setter<string>

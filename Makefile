@@ -1,6 +1,6 @@
 .PHONY: all proto swagger build test coverage lint fmt dev down clean help
 .PHONY: docker-dev docker-dev-infra docker-dev-down mocks mocks-gen
-.PHONY: dev-backoffice-seed dev-backoffice-sample dev-consul-refresh dev-auth-bootstrap
+.PHONY: dev-backoffice-seed dev-backoffice-sample dev-kv-store-refresh dev-auth-bootstrap
 .PHONY: dev-ui-auth-sync dev-pod-sample dev-pod-up
 
 GO := go
@@ -82,17 +82,16 @@ dev-backoffice-seed:
 	PG_PASSWORD=$(PG_PASSWORD) \
 	PG_SSL_MODE=$(PG_SSL_MODE) \
 	CREATE_STORE=$(CREATE_STORE) \
-	sh scripts/dev/seed_backoffice_tenant.sh "$(TENANT_ID)" "$(STORE_NAME)" "$(STORE_SUBDOMAIN)" "$(CLUSTER_NAME)" "$(CONSUL_URL)" "$(ONBOARDING_URL)"
+	sh scripts/dev/seed_backoffice_tenant.sh "$(TENANT_ID)" "$(STORE_NAME)" "$(STORE_SUBDOMAIN)" "$(ONBOARDING_URL)"
 
-dev-consul-refresh:
+dev-kv-store-refresh:
 	@MONGO_URI=$(MONGO_URI) \
-	CONSUL_URL=$(CONSUL_URL) \
 	PG_HOST=$(PG_HOST) \
 	PG_PORT=$(PG_PORT) \
 	PG_USER=$(PG_USER) \
 	PG_PASSWORD=$(PG_PASSWORD) \
 	PG_SSL_MODE=$(PG_SSL_MODE) \
-	sh scripts/dev/refresh_consul_from_onboarding.sh
+	sh scripts/dev/refresh_kv_store_from_onboarding.sh
 
 dev-backoffice-sample:
 	@DB_NAME=$(DB_NAME) \
@@ -103,7 +102,7 @@ dev-backoffice-sample:
 	PG_PASSWORD=$(PG_PASSWORD) \
 	PG_SSL_MODE=$(PG_SSL_MODE) \
 	CREATE_STORE=$(CREATE_STORE) \
-	sh scripts/dev/seed_backoffice_tenant.sh "$(TENANT_ID)" "$(STORE_NAME)" "$(STORE_SUBDOMAIN)" "$(CLUSTER_NAME)" "$(CONSUL_URL)" "$(ONBOARDING_URL)"
+	sh scripts/dev/seed_backoffice_tenant.sh "$(TENANT_ID)" "$(STORE_NAME)" "$(STORE_SUBDOMAIN)" "$(ONBOARDING_URL)"
 	@TENANT_ID=$(TENANT_ID) \
 	STORE_NAME=$(STORE_NAME) \
 	STORE_SUBDOMAIN=$(STORE_SUBDOMAIN) \
@@ -155,7 +154,6 @@ dev-pod-sample:
 		PG_USER=$(PG_USER) \
 		PG_PASSWORD=$(PG_PASSWORD) \
 		PG_SSL_MODE=$(PG_SSL_MODE) \
-		CONSUL_URL=$(CONSUL_URL) \
 		ONBOARDING_URL=$(ONBOARDING_URL) \
 		CREATE_STORE=$(CREATE_STORE)
 	@$(MAKE) dev-auth-bootstrap \
@@ -265,7 +263,6 @@ portfw:
 		kubectl port-forward svc/mongodb-internal 27017:27017 -n default & pids+=($$!); \
 		kubectl port-forward svc/kafka 29092:29092 -n default & pids+=($$!); \
 		kubectl port-forward svc/elasticsearch 9200:9200 -n default & pids+=($$!); \
-		kubectl port-forward svc/consul 8500:8500 -n default & pids+=($$!); \
 		# kubectl port-forward svc/redisinsight-service 8888:80 -n default & pids+=($$!); \
 		# kubectl port-forward svc/kibana 5601:5601 -n default & pids+=($$!); \
 		# kubectl port-forward svc/sonarqube 9000:9000 -n devops --address=0.0.0.0 & pids+=($$!); \
@@ -289,8 +286,8 @@ help:
 	@echo "  make docker-dev-infra                 - Run only dockerized dev infrastructure"
 	@echo "  make docker-dev-down                  - Stop dockerized dev infra + services"
 	@echo "  make dev-pod-up TENANT_ID=t1          - Start local docker stack and auto-bootstrap tenant/sample/auth"
-	@echo "  make dev-backoffice-seed TENANT_ID=t1 - Seed Consul placement + onboarding connection for one tenant"
-	@echo "  make dev-consul-refresh TENANT_ID=t1  - Republish Consul placement + connection without creating a store"
+	@echo "  make dev-backoffice-seed TENANT_ID=t1 - Create and provision one onboarding store"
+	@echo "  make dev-kv-store-refresh             - Rebuild Mongo runtime KV from onboarding allocations"
 	@echo "  make dev-backoffice-sample TENANT_ID=t1 - Seed placement plus sample POD partners/products/orders"
 	@echo "  make dev-auth-bootstrap TENANT_ID=t1 - Seed user, tenant membership, session, and token bundle"
 	@echo "  make dev-ui-auth-sync                - Copy the dev auth bundle into the UI public assets"

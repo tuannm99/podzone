@@ -28,7 +28,7 @@ IAM core must:
 - keep product-specific route, GraphQL field, resource, and error mappings in
   application adapters or SDK integration code;
 - provide a standalone installation that does not require Podzone Auth,
-  Backoffice, Onboarding, Kafka, Consul, or Kubernetes.
+  Backoffice, Onboarding, Kafka, Mongo runtime KV, or Kubernetes.
 
 IAM core must never contain:
 

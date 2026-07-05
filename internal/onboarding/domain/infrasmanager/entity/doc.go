@@ -9,7 +9,7 @@
 //
 // # Main components
 //
-// - BuildConsulKey: pure helper for connection snapshot keys.
+// - BuildKVStoreKey: pure helper for connection snapshot keys.
 //
 // # Responsibilities
 //

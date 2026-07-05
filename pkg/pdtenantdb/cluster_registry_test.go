@@ -11,9 +11,9 @@ import (
 	kvsmocks "github.com/tuannm99/podzone/pkg/toolkit/kvstores/mocks"
 )
 
-func TestConsulClusterRegistry_CacheHit(t *testing.T) {
+func TestKVClusterRegistry_CacheHit(t *testing.T) {
 	kv := kvsmocks.NewMockKVStore(t)
-	reg := pdtenantdb.NewConsulClusterRegistry(kv, "podzone/postgres/clusters", 2*time.Minute)
+	reg := pdtenantdb.NewKVClusterRegistry(kv, "podzone/postgres/clusters", 2*time.Minute)
 
 	key := "podzone/postgres/clusters/pg-01"
 	val := []byte(`{"host":"pgbouncer.svc","port":6432,"user":"u","password":"p","ssl_mode":"disable"}`)
@@ -33,9 +33,9 @@ func TestConsulClusterRegistry_CacheHit(t *testing.T) {
 	require.Equal(t, cfg1, cfg2)
 }
 
-func TestConsulClusterRegistry_InvalidJSON(t *testing.T) {
+func TestKVClusterRegistry_InvalidJSON(t *testing.T) {
 	kv := kvsmocks.NewMockKVStore(t)
-	reg := pdtenantdb.NewConsulClusterRegistry(kv, "podzone/postgres/clusters", 2*time.Minute)
+	reg := pdtenantdb.NewKVClusterRegistry(kv, "podzone/postgres/clusters", 2*time.Minute)
 
 	key := "podzone/postgres/clusters/pg-01"
 	kv.EXPECT().Get(key).Return([]byte(`{invalid`), nil).Once()
@@ -45,9 +45,9 @@ func TestConsulClusterRegistry_InvalidJSON(t *testing.T) {
 	require.Contains(t, err.Error(), "invalid cluster config json")
 }
 
-func TestConsulClusterRegistry_MissingHostPort(t *testing.T) {
+func TestKVClusterRegistry_MissingHostPort(t *testing.T) {
 	kv := kvsmocks.NewMockKVStore(t)
-	reg := pdtenantdb.NewConsulClusterRegistry(kv, "podzone/postgres/clusters", 2*time.Minute)
+	reg := pdtenantdb.NewKVClusterRegistry(kv, "podzone/postgres/clusters", 2*time.Minute)
 
 	key := "podzone/postgres/clusters/pg-01"
 	kv.EXPECT().Get(key).Return([]byte(`{"host":"","port":0}`), nil).Once()
@@ -57,9 +57,9 @@ func TestConsulClusterRegistry_MissingHostPort(t *testing.T) {
 	require.Contains(t, err.Error(), "missing host/port")
 }
 
-func TestConsulClusterRegistry_SingleflightConcurrent(t *testing.T) {
+func TestKVClusterRegistry_SingleflightConcurrent(t *testing.T) {
 	kv := kvsmocks.NewMockKVStore(t)
-	reg := pdtenantdb.NewConsulClusterRegistry(kv, "podzone/postgres/clusters", 2*time.Minute)
+	reg := pdtenantdb.NewKVClusterRegistry(kv, "podzone/postgres/clusters", 2*time.Minute)
 
 	key := "podzone/postgres/clusters/pg-01"
 	val := []byte(`{"host":"pgbouncer.svc","port":6432,"user":"u","password":"p","ssl_mode":"disable"}`)

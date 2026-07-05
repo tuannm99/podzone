@@ -15,8 +15,8 @@ import (
 )
 
 var connOpts = fx.Options(
-	kvstores.Module,
 	pdmongo.ModuleFor("onboarding"),
+	kvstores.ModuleFor("onboarding"),
 	pdkafka.ModuleFor("onboarding"),
 	onboarding.Module,
 )

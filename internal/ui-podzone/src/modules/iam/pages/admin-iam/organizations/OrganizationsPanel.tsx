@@ -16,6 +16,11 @@ import {
 import { OrganizationMembersPanel } from './OrganizationMembersPanel'
 
 type OrganizationsPanelProps = OrganizationsCollectionProps & {
+  identityForUser: (userID: number | string) => {
+    label: string
+    description: string
+  }
+  policyOptions: Accessor<SelectOption[]>
   canManagePlatform: Accessor<boolean>
   organizationOptions: Accessor<SelectOption[]>
   selectedOrgId: Accessor<string>
@@ -100,10 +105,11 @@ export function OrganizationsPanel(props: OrganizationsPanelProps) {
               props.setOrgTenantId(event.currentTarget.value)
             }
           />
-          <InputField
-            label="SCP policy name"
+          <SelectField
+            label="Service control policy"
             value={props.orgPolicyName()}
-            onInput={(event) =>
+            options={props.policyOptions()}
+            onChange={(event) =>
               props.setOrgPolicyName(event.currentTarget.value)
             }
           />
@@ -155,6 +161,7 @@ export function OrganizationsPanel(props: OrganizationsPanelProps) {
         usersLoading={props.usersLoading}
         usersError={props.usersError}
         searchUsers={props.searchUsers}
+        identityForUser={props.identityForUser}
       />
     </div>
   )

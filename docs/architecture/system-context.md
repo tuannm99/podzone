@@ -16,7 +16,7 @@ flowchart LR
     Kafka["Kafka"]
     Postgres["Postgres (service-owned DBs)"]
     Redis["Redis"]
-    Consul["Consul"]
+    RuntimeKV["Mongo runtime_kv"]
 
     Admin --> SellerPortal
     Merchant --> SellerPortal
@@ -43,7 +43,7 @@ flowchart LR
 
     CatalogSvc --> Postgres
     PartnerSvc --> Postgres
-    OnboardingSvc --> Consul
+    OnboardingSvc --> RuntimeKV
     OnboardingSvc --> Postgres
 
     Kafka --> AuthSvc

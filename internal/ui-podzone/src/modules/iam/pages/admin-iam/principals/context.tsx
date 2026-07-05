@@ -23,6 +23,7 @@ export type PrincipalMode = 'platform' | 'tenant'
 
 export type AdminIamPrincipalContextValue = {
   permissionOptions: Accessor<SelectOption[]>
+  managedPolicyOptions: Accessor<SelectOption[]>
   platformUserOptions: Accessor<SearchSelectOption[]>
   platformUsersLoading: Accessor<boolean>
   platformUsersError: Accessor<string>

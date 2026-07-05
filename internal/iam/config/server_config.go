@@ -55,7 +55,7 @@ func NewServerConfig(k *koanf.Koanf) ServerConfig {
 		cfg.Auth.GRPCHost = toolkit.GetEnv("AUTH_GRPC_HOST", "localhost")
 	}
 	if cfg.Auth.GRPCPort == "" {
-		cfg.Auth.GRPCPort = toolkit.GetEnv("AUTH_GRPC_PORT", "50052")
+		cfg.Auth.GRPCPort = toolkit.GetEnv("AUTH_GRPC_PORT", "50051")
 	}
 	return cfg
 }

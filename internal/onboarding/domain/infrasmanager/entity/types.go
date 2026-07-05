@@ -60,7 +60,7 @@ type ConnectionEvent struct {
 	Name      string
 	InfraType InfraType
 
-	Action string // create|destroy|manual_upsert|publish_consul|delete_consul...
+	Action string // create|destroy|manual_upsert|publish_kv_store|delete_kv_store...
 	Status string // started|succeeded|failed
 
 	Request map[string]interface{}
@@ -79,7 +79,7 @@ type OutboxMessage struct {
 	// CorrelationID links outbox execution back to operation.
 	CorrelationID string
 
-	Topic   string // consul.publish / consul.delete
+	Topic   string // kv_store.publish / kv_store.delete
 	Payload map[string]interface{}
 
 	// Useful metadata for logging/history writing in worker.

@@ -17,7 +17,7 @@ flowchart TB
     PartnerDB["partner DB"]
     CatalogDB["catalog DB"]
     Mongo["Mongo"]
-    Consul["Consul"]
+    RuntimeKV["Mongo runtime_kv"]
     Redis["Redis"]
 
     Auth --> AuthDB
@@ -27,7 +27,7 @@ flowchart TB
     Partner --> PartnerDB
     Catalog --> CatalogDB
     Onboarding --> Mongo
-    Onboarding --> Consul
+    Onboarding --> RuntimeKV
 ```
 
 ## Auth Data Ownership

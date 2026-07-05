@@ -19,6 +19,7 @@ export type TenantOption = {
 
 export type AdminIamTrustSimContextValue = {
   permissionOptions: Accessor<SelectOption[]>
+  boundaryPolicyOptions: Accessor<SelectOption[]>
   platformUserOptions: Accessor<SearchSelectOption[]>
   platformUsersLoading: Accessor<boolean>
   platformUsersError: Accessor<string>

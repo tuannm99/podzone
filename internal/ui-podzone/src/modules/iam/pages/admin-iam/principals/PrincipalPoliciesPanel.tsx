@@ -9,6 +9,7 @@ import { SearchSelectField } from '@/solid/components/common/SearchSelectField'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'
 import {
   FormInputField,
+  FormSelectField,
   createFormStore,
   jsonArray,
   required,
@@ -31,7 +32,7 @@ export function PrincipalPoliciesPanel() {
       policyName: principal.principalManagedPolicyName(),
     },
     validators: {
-      policyName: [required('Enter a managed policy name.')],
+      policyName: [required('Choose a managed policy.')],
     },
   })
   const boundaryForm = createFormStore<PrincipalBoundaryFormValues>({
@@ -39,7 +40,7 @@ export function PrincipalPoliciesPanel() {
       policyName: principal.principalBoundaryPolicyName(),
     },
     validators: {
-      policyName: [required('Enter a boundary policy name.')],
+      policyName: [required('Choose a boundary policy.')],
     },
   })
   const inlinePolicyForm = createFormStore<PrincipalInlinePolicyFormValues>({
@@ -155,10 +156,11 @@ export function PrincipalPoliciesPanel() {
       </Button>
 
       <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
-        <FormInputField
+        <FormSelectField
           form={managedPolicyForm}
           name="policyName"
-          label="Managed policy name"
+          label="Managed policy"
+          options={principal.managedPolicyOptions()}
         />
         <Button
           size="sm"
@@ -186,10 +188,11 @@ export function PrincipalPoliciesPanel() {
             exercise, even when identity policies allow more.
           </p>
           <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-end">
-            <FormInputField
+            <FormSelectField
               form={boundaryForm}
               name="policyName"
               label="Boundary policy"
+              options={principal.managedPolicyOptions()}
             />
             <Button
               size="sm"

@@ -9,9 +9,9 @@ import (
 var Module = fx.Module(
 	"pdtenantdb",
 	fx.Provide(
-		NewDefaultConsulClusterRegistry,
+		NewDefaultKVClusterRegistry,
 		NewManager,
-		NewConsulPlacementResolver,
+		NewKVPlacementResolver,
 	),
 	fx.Invoke(func(lc fx.Lifecycle, m Manager) {
 		lc.Append(fx.Hook{

@@ -154,10 +154,10 @@ flowchart LR
     MongoStore["infrastructure/repository/infrasmanager"]
     StoreRepo["infrastructure/repository/store"]
     Provider["infrastructure/provisioning/provider"]
-    ConsulBridge["controller/eventhandler/consulbridge"]
+    KVStoreBridge["controller/eventhandler/kvstorebridge"]
     Messaging["infrastructure/messaging"]
     Mongo["Mongo onboarding DB"]
-    Consul["Consul router projection"]
+    RuntimeKV["Mongo runtime_kv projection"]
 
     HTTP --> InfraInteractor
     HTTP --> StoreInteractor
@@ -170,8 +170,8 @@ flowchart LR
     MongoStore --> Mongo
     StoreRepo --> Mongo
     MongoStore -->|"placement/outbox records"| Messaging
-    Messaging --> ConsulBridge
-    ConsulBridge --> Consul
+    Messaging --> KVStoreBridge
+    KVStoreBridge --> RuntimeKV
 ```
 
 ### Main modules
@@ -180,7 +180,7 @@ flowchart LR
 - `domain/store`: store request lifecycle, approval state, and provisioning orchestration
 - `infrastructure/repository`: Mongo-backed repositories for store requests, connection events, and placement allocations
 - `infrastructure/provisioning/provider`: runtime-specific placement provider for local Docker, Kubernetes, and future Terraform/cloud
-- `controller/eventhandler/consulbridge`: router projection publisher; Consul is rebuilt from onboarding allocation state
+- `controller/eventhandler/kvstorebridge`: runtime KV projection publisher backed by MongoDB
 - `infrastructure/messaging`: CDC/fallback publisher and background worker wiring
 - `internal/onboarding/README.md`: implementation guide for the resource inventory, capacity, and placement planner backbone
 

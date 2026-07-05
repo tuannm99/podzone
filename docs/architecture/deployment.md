@@ -28,7 +28,7 @@ flowchart TB
         PG["Postgres / PgBouncer :5432/:6432"]
         REDIS["Redis :6379"]
         MONGO["Mongo :27017"]
-        CONSUL["Consul :8500"]
+        RUNTIME_KV["Mongo runtime_kv"]
         KAFKA["Kafka KRaft :9092"]
         ETCD["etcd :2379"]
     end
@@ -60,7 +60,8 @@ flowchart TB
     PARTNER --> PG
     PARTNER --> KAFKA
     ONB --> MONGO
-    ONB --> CONSUL
+    ONB --> RUNTIME_KV
+    BO --> RUNTIME_KV
 
     APISIX --> ETCD
 ```
@@ -86,7 +87,7 @@ flowchart LR
     Kafka["Kafka Cluster"]
     Redis["Redis"]
     SQL["Service-owned Postgres DBs"]
-    Consul["Consul"]
+    RuntimeKV["Mongo runtime_kv"]
     Mongo["Mongo"]
 
     UI --> Ingress
@@ -121,7 +122,7 @@ flowchart LR
     Backoffice --> SQL
     Backoffice --> Kafka
     Onboarding --> Mongo
-    Onboarding --> Consul
+    Onboarding --> RuntimeKV
 ```
 
 ## Backoffice Tenant Routing Model

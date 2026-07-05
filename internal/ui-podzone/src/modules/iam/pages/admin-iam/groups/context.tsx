@@ -28,6 +28,11 @@ export type GroupOption = {
 
 export type AdminIamGroupContextValue = {
   permissionOptions: Accessor<SelectOption[]>
+  managedPolicyOptions: Accessor<SelectOption[]>
+  identityForUser: (userID: number | string) => {
+    label: string
+    description: string
+  }
   memberUserOptions: Accessor<SearchSelectOption[]>
   memberUsersLoading: Accessor<boolean>
   memberUsersError: Accessor<string>

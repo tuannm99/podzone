@@ -50,28 +50,36 @@ export function GroupAccessTables() {
           <DataTable>
             <TableHead>
               <TableRow>
-                <TableHeaderCell>User ID</TableHeaderCell>
+                <TableHeaderCell>User</TableHeaderCell>
                 <TableHeaderCell class="text-right">Action</TableHeaderCell>
               </TableRow>
             </TableHead>
             <TableBody>
               <For each={group.groupMembers()}>
-                {(userID) => (
-                  <TableRow>
-                    <TableCell class="font-medium text-gray-900">
-                      {userID}
-                    </TableCell>
-                    <TableCell class="text-right">
-                      <Button
-                        size="xs"
-                        color="red"
-                        onClick={() => group.handleRemoveGroupMember(userID)}
-                      >
-                        Remove
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                )}
+                {(userID) => {
+                  const identity = () => group.identityForUser(userID)
+                  return (
+                    <TableRow>
+                      <TableCell>
+                        <span class="block font-medium text-gray-900">
+                          {identity().label}
+                        </span>
+                        <span class="block text-xs text-gray-500">
+                          {identity().description}
+                        </span>
+                      </TableCell>
+                      <TableCell class="text-right">
+                        <Button
+                          size="xs"
+                          color="red"
+                          onClick={() => group.handleRemoveGroupMember(userID)}
+                        >
+                          Remove
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )
+                }}
               </For>
             </TableBody>
           </DataTable>

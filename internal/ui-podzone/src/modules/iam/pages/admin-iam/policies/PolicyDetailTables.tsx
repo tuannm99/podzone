@@ -178,12 +178,21 @@ export function PolicyDetailTables() {
                         )}
                       />
                     </TableCell>
-                    <TableCell class="text-gray-700">
-                      {attachment.roleName ||
-                        attachment.groupName ||
-                        (attachment.userId
-                          ? `User ${attachment.userId}`
-                          : 'Organization')}
+                    <TableCell>
+                      <span class="block text-gray-700">
+                        {attachment.roleName ||
+                          attachment.groupName ||
+                          (attachment.userId
+                            ? policy.identityForUser(attachment.userId).label
+                            : 'Organization')}
+                      </span>
+                      <Show when={attachment.userId}>
+                        {(userID) => (
+                          <span class="block text-xs text-gray-500">
+                            {policy.identityForUser(userID()).description}
+                          </span>
+                        )}
+                      </Show>
                     </TableCell>
                     <TableCell class="text-gray-600">
                       {attachment.tenantId || attachment.scope || 'platform'}

@@ -2,7 +2,7 @@ package entity
 
 import "fmt"
 
-func BuildConsulKey(tenantID string, infraType InfraType, name string) string {
+func BuildKVStoreKey(tenantID string, infraType InfraType, name string) string {
 	if name == "" {
 		name = "default"
 	}

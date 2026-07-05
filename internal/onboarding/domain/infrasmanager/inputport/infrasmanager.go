@@ -27,7 +27,7 @@ type UpsertConnectionResponse struct {
 	CorrelationID string     `json:"correlation_id"`
 	Connection    Connection `json:"connection"`
 	Queued        bool       `json:"queued"`
-	ConsulKey     string     `json:"consul_key"`
+	KVStoreKey    string     `json:"kv_store_key"`
 }
 
 type ProvisionStorePlacementRequest struct {

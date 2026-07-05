@@ -21,7 +21,7 @@ Build the placement backbone before expanding UI or secret-routing work:
 7. route projection publication
 8. readiness verification
 
-Consul is only a router projection. It is not the placement source of truth.
+Mongo `runtime_kv` is only a router projection. It is not the placement source of truth.
 
 Resource inventory must be declared before provisioning. The planner must select from persisted inventory, not invent a
 DB cluster, namespace, or runtime pool from request data.
@@ -208,7 +208,7 @@ Persist these as source-of-truth onboarding state:
 - readiness result
 - outbox or CDC-backed projection event
 
-Projection stores such as Consul can be rebuilt from placement allocation state.
+The Mongo runtime KV projection can be rebuilt from placement allocation state.
 
 ## Secrets and routes
 

@@ -4,11 +4,10 @@ logger:
   env: dev
   app_name: podzone_onboarding
 
-consul_kv:
-  address: "http://localhost:8500"
-  token: ""
-  tls:
-    insecure_skip_verify: true
+kv_store:
+  provider: mongo
+  database: onboarding
+  collection: runtime_kv
 
 redis:
   auth:
@@ -55,7 +54,7 @@ onboarding:
 messaging:
   onboarding:
     consumers:
-      consul_bridge:
+      kv_store_bridge:
         enabled: true
         max_attempts: 5
         base_delay: 1s
@@ -67,7 +66,7 @@ messaging:
           log_drops: true
         idempotency:
           enabled: false
-          consumer_name: onboarding.consul-bridge
+          consumer_name: onboarding.kv-store-bridge
           table_name: message_inbox
   kafka:
     onboarding:

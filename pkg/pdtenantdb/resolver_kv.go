@@ -24,10 +24,10 @@ type cachedPlacement struct {
 	loaded time.Time
 }
 
-// ConsulPlacementResolver resolves tenant placement from Consul KV.
+// KVPlacementResolver resolves tenant placement from the configured KV store.
 // Onboarding writes podzone/tenants/{tenantID}/placement when a postgres
 // connection is registered. This resolver reads that key with a TTL cache.
-type ConsulPlacementResolver struct {
+type KVPlacementResolver struct {
 	kv     kvstores.KVStore
 	prefix string
 	ttl    time.Duration
@@ -37,12 +37,12 @@ type ConsulPlacementResolver struct {
 	sf    singleflight.Group
 }
 
-func NewConsulPlacementResolver(kv kvstores.KVStore) PlacementResolver {
-	return NewConsulPlacementResolverWithTTL(kv, "podzone/tenants", 2*time.Minute)
+func NewKVPlacementResolver(kv kvstores.KVStore) PlacementResolver {
+	return NewKVPlacementResolverWithTTL(kv, "podzone/tenants", 2*time.Minute)
 }
 
-func NewConsulPlacementResolverWithTTL(kv kvstores.KVStore, prefix string, ttl time.Duration) PlacementResolver {
-	return &ConsulPlacementResolver{
+func NewKVPlacementResolverWithTTL(kv kvstores.KVStore, prefix string, ttl time.Duration) PlacementResolver {
+	return &KVPlacementResolver{
 		kv:     kv,
 		prefix: prefix,
 		ttl:    ttl,
@@ -50,7 +50,7 @@ func NewConsulPlacementResolverWithTTL(kv kvstores.KVStore, prefix string, ttl t
 	}
 }
 
-func (r *ConsulPlacementResolver) Resolve(ctx context.Context, tenantID string) (Placement, error) {
+func (r *KVPlacementResolver) Resolve(ctx context.Context, tenantID string) (Placement, error) {
 	r.mu.RLock()
 	if it, ok := r.cache[tenantID]; ok && time.Since(it.loaded) < r.ttl {
 		r.mu.RUnlock()
@@ -71,9 +71,9 @@ func (r *ConsulPlacementResolver) Resolve(ctx context.Context, tenantID string) 
 		raw, err := r.kv.Get(key)
 		if err != nil {
 			if errors.Is(err, kvstores.ErrKeyNotFound) {
-				return Placement{}, fmt.Errorf("%w: consul get %s: %v", ErrPlacementNotFound, key, err)
+				return Placement{}, fmt.Errorf("%w: kv store get %s: %v", ErrPlacementNotFound, key, err)
 			}
-			return Placement{}, fmt.Errorf("%w: consul get %s: %v", ErrPlacementBackend, key, err)
+			return Placement{}, fmt.Errorf("%w: kv store get %s: %v", ErrPlacementBackend, key, err)
 		}
 
 		var p placementJSON

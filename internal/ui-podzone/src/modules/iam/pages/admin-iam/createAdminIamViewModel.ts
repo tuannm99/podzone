@@ -86,6 +86,7 @@ export function createAdminIamViewModel() {
 
   const policyContextValue = {
     permissionOptions: state.permissionOptions,
+    identityForUser: state.identityForUser,
     policyScopeOptions: () =>
       state.canManagePlatform()
         ? policyScopeOptions
@@ -136,6 +137,8 @@ export function createAdminIamViewModel() {
 
   const groupContextValue = {
     permissionOptions: state.permissionOptions,
+    managedPolicyOptions: () => state.managedPolicyOptions(state.groupScope()),
+    identityForUser: state.identityForUser,
     memberUserOptions: () => {
       if (state.groupScope() === 'platform') return state.platformUserOptions()
       if (state.groupScope() === 'tenant') return state.tenantUserOptions()
@@ -224,6 +227,8 @@ export function createAdminIamViewModel() {
 
   const principalContextValue = {
     permissionOptions: state.permissionOptions,
+    managedPolicyOptions: () =>
+      state.managedPolicyOptions(state.principalMode()),
     platformUserOptions: state.platformUserOptions,
     platformUsersLoading: state.platformUsersLoading,
     platformUsersError: state.platformUsersError,
@@ -288,6 +293,10 @@ export function createAdminIamViewModel() {
 
   const trustSimContextValue = {
     permissionOptions: state.permissionOptions,
+    boundaryPolicyOptions: () =>
+      state.managedPolicyOptions(
+        state.trustRoleName().startsWith('tenant_') ? 'tenant' : 'platform'
+      ),
     platformUserOptions: state.platformUserOptions,
     platformUsersLoading: state.platformUsersLoading,
     platformUsersError: state.platformUsersError,
@@ -368,6 +377,8 @@ export function createAdminIamViewModel() {
     principals: principalContextValue,
     trustSimulation: trustSimContextValue,
     organizations: {
+      identityForUser: state.identityForUser,
+      policyOptions: () => state.managedPolicyOptions('platform'),
       userOptions: state.organizationUserOptions,
       usersLoading: state.organizationUsersLoading,
       usersError: state.organizationUsersError,

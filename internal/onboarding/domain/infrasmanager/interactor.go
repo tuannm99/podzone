@@ -188,7 +188,7 @@ func (s *Interactor) EnsurePlacementRoute(ctx context.Context, tenantID string, 
 	return true, nil
 }
 
-// ManualUpsertConnection stores connection and enqueues publish snapshot to Consul.
+// ManualUpsertConnection stores a connection and enqueues its runtime KV projection.
 func (s *Interactor) ManualUpsertConnection(
 	ctx context.Context,
 	tenantID string,
@@ -254,7 +254,7 @@ func (s *Interactor) ManualUpsertConnection(
 		return nil, err
 	}
 
-	consulKey := entity.BuildConsulKey(tenantID, req.InfraType, name)
+	kvStoreKey := entity.BuildKVStoreKey(tenantID, req.InfraType, name)
 
 	snap := map[string]interface{}{
 		"tenantID":  tenantID,
@@ -277,7 +277,7 @@ func (s *Interactor) ManualUpsertConnection(
 			Name:          name,
 			Action:        "manual_upsert",
 			Status:        "failed",
-			Error:         "marshal consul snapshot failed: " + err.Error(),
+			Error:         "marshal kv store snapshot failed: " + err.Error(),
 			Actor:         actor,
 			CreatedAt:     time.Now(),
 		})
@@ -287,8 +287,8 @@ func (s *Interactor) ManualUpsertConnection(
 	if err := s.st.EnqueueOutbox(ctx, entity.OutboxMessage{
 		EventID:       uuid.NewString(),
 		CorrelationID: corrID,
-		Topic:         "consul.publish",
-		Payload:       map[string]interface{}{"key": consulKey, "value": string(valBytes)},
+		Topic:         "kv_store.publish",
+		Payload:       map[string]interface{}{"key": kvStoreKey, "value": string(valBytes)},
 		TenantID:      tenantID,
 		InfraType:     req.InfraType,
 		Name:          name,
@@ -314,7 +314,7 @@ func (s *Interactor) ManualUpsertConnection(
 	}
 
 	// For postgres connections, also write placement routing data so that
-	// pdtenantdb's ConsulPlacementResolver can route tenant queries.
+	// pdtenantdb's KVPlacementResolver can route tenant queries.
 	if req.InfraType == entity.InfraPostgres && req.ClusterName != "" {
 		placementKey := "podzone/tenants/" + tenantID + "/placement"
 		placementSnap := map[string]interface{}{
@@ -327,7 +327,7 @@ func (s *Interactor) ManualUpsertConnection(
 			_ = s.st.EnqueueOutbox(ctx, entity.OutboxMessage{
 				EventID:       uuid.NewString(),
 				CorrelationID: corrID,
-				Topic:         "consul.publish",
+				Topic:         "kv_store.publish",
 				Payload:       map[string]interface{}{"key": placementKey, "value": string(placementBytes)},
 				TenantID:      tenantID,
 				InfraType:     req.InfraType,
@@ -350,8 +350,8 @@ func (s *Interactor) ManualUpsertConnection(
 		Action:        "manual_upsert",
 		Status:        "succeeded",
 		Result: map[string]interface{}{
-			"consul_key": consulKey,
-			"queued":     true,
+			"kv_store_key": kvStoreKey,
+			"queued":       true,
 		},
 		Actor:     actor,
 		CreatedAt: time.Now(),
@@ -367,7 +367,7 @@ func (s *Interactor) ManualUpsertConnection(
 		CorrelationID: corrID,
 		Connection:    toDTO(*latest),
 		Queued:        true,
-		ConsulKey:     consulKey,
+		KVStoreKey:    kvStoreKey,
 	}, nil
 }
 
@@ -417,7 +417,7 @@ func (s *Interactor) DeleteConnection(
 		if err := s.st.EnqueueOutbox(ctx, entity.OutboxMessage{
 			EventID:       uuid.NewString(),
 			CorrelationID: corrID,
-			Topic:         "consul.delete",
+			Topic:         "kv_store.delete",
 			Payload:       map[string]interface{}{"key": placementKey},
 			TenantID:      tenantID,
 			InfraType:     infraType,
@@ -443,12 +443,12 @@ func (s *Interactor) DeleteConnection(
 		}
 	}
 
-	consulKey := entity.BuildConsulKey(tenantID, infraType, name)
+	kvStoreKey := entity.BuildKVStoreKey(tenantID, infraType, name)
 	if err := s.st.EnqueueOutbox(ctx, entity.OutboxMessage{
 		EventID:       uuid.NewString(),
 		CorrelationID: corrID,
-		Topic:         "consul.delete",
-		Payload:       map[string]interface{}{"key": consulKey},
+		Topic:         "kv_store.delete",
+		Payload:       map[string]interface{}{"key": kvStoreKey},
 		TenantID:      tenantID,
 		InfraType:     infraType,
 		Name:          name,
@@ -480,7 +480,7 @@ func (s *Interactor) DeleteConnection(
 		Name:          name,
 		Action:        "manual_delete",
 		Status:        "succeeded",
-		Result:        map[string]interface{}{"consul_key": consulKey, "queued": true},
+		Result:        map[string]interface{}{"kv_store_key": kvStoreKey, "queued": true},
 		Actor:         actor,
 		CreatedAt:     time.Now(),
 	})

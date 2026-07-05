@@ -4,75 +4,18 @@ set -eu
 TENANT_ID="${1:-${TENANT_ID:-tenant-dev}}"
 STORE_NAME="${2:-${STORE_NAME:-Demo Store}}"
 STORE_SUBDOMAIN="${3:-${STORE_SUBDOMAIN:-demo-store}}"
-CLUSTER_NAME="${4:-${CLUSTER_NAME:-pg-default}}"
-CONSUL_URL="${5:-${CONSUL_URL:-http://localhost:8500}}"
-ONBOARDING_URL="${6:-${ONBOARDING_URL:-http://localhost:8800}}"
-DB_NAME="${DB_NAME:-podzone_tenants}"
-SCHEMA_NAME="${SCHEMA_NAME:-$(printf '%s' "t_${TENANT_ID}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/_/g; s/^_*//; s/_*$//')}"
-PG_HOST="${PG_HOST:-pgbouncer}"
-PG_PORT="${PG_PORT:-6432}"
-PG_USER="${PG_USER:-postgres}"
-PG_PASSWORD="${PG_PASSWORD:-postgres}"
-PG_SSL_MODE="${PG_SSL_MODE:-disable}"
-WAIT_SECONDS="${WAIT_SECONDS:-15}"
+ONBOARDING_URL="${4:-${ONBOARDING_URL:-http://localhost:8800}}"
+WAIT_SECONDS="${WAIT_SECONDS:-90}"
 CREATE_STORE="${CREATE_STORE:-true}"
 ONBOARDING_SERVICE_TOKEN="${ONBOARDING_SERVICE_TOKEN:-dev-bootstrap-token}"
 
-echo "Seeding postgres cluster config into Consul for ${CLUSTER_NAME}..."
-curl -fsS -X PUT \
-  "${CONSUL_URL}/v1/kv/podzone/postgres/clusters/${CLUSTER_NAME}" \
-  --data "{\"host\":\"${PG_HOST}\",\"port\":${PG_PORT},\"user\":\"${PG_USER}\",\"password\":\"${PG_PASSWORD}\",\"ssl_mode\":\"${PG_SSL_MODE}\"}" >/dev/null
-
-echo "Publishing tenant connection snapshot directly into Consul..."
-curl -fsS -X PUT \
-  "${CONSUL_URL}/v1/kv/podzone/tenants/${TENANT_ID}/connections/postgres/default" \
-  --data "{
-    \"tenantID\":\"${TENANT_ID}\",
-    \"infraType\":\"postgres\",
-    \"name\":\"default\",
-    \"endpoint\":\"postgres://${PG_USER}:***@${PG_HOST}:${PG_PORT}/${DB_NAME}\",
-    \"status\":\"active\",
-    \"updatedAt\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
-    \"meta\":{
-      \"purpose\":\"backoffice\",
-      \"cluster\":\"${CLUSTER_NAME}\"
-    },
-    \"config\":{
-      \"driver\":\"postgres\",
-      \"pool\":\"pgbouncer\"
-    }
-  }" >/dev/null
-
-echo "Publishing tenant placement directly into Consul..."
-curl -fsS -X PUT \
-  "${CONSUL_URL}/v1/kv/podzone/tenants/${TENANT_ID}/placement" \
-  --data "{
-    \"cluster_name\":\"${CLUSTER_NAME}\",
-    \"mode\":\"schema\",
-    \"db_name\":\"${DB_NAME}\",
-    \"schema_name\":\"${SCHEMA_NAME}\"
-  }" >/dev/null
-
-echo "Waiting for placement to appear in Consul..."
-i=0
-while [ "$i" -lt "$WAIT_SECONDS" ]; do
-  if curl -fsS "${CONSUL_URL}/v1/kv/podzone/tenants/${TENANT_ID}/placement?raw" >/tmp/podzone-placement.json 2>/dev/null; then
-    echo "Placement ready for ${TENANT_ID}:"
-    cat /tmp/podzone-placement.json
-    echo
-    break
-  fi
-  i=$((i + 1))
+echo "Waiting for onboarding..."
+until curl -fsS "${ONBOARDING_URL}" >/dev/null 2>&1; do
   sleep 1
 done
 
-if [ "$i" -ge "$WAIT_SECONDS" ]; then
-  echo "Timed out waiting for placement key podzone/tenants/${TENANT_ID}/placement" >&2
-  exit 1
-fi
-
-if [ "${CREATE_STORE}" = "true" ] && [ -n "${ONBOARDING_URL}" ]; then
-  echo "Creating onboarding store record..."
+if [ "${CREATE_STORE}" = "true" ]; then
+  echo "Creating onboarding store request..."
   store_status="$(
     curl -sS -o /tmp/podzone-onboarding-store.json -w "%{http_code}" \
       -X POST \
@@ -89,9 +32,34 @@ if [ "${CREATE_STORE}" = "true" ] && [ -n "${ONBOARDING_URL}" ]; then
   cat /tmp/podzone-onboarding-store.json
   echo
   if [ "${store_status}" != "201" ] && [ "${store_status}" != "409" ]; then
-    echo "Failed to create onboarding store, status=${store_status}" >&2
+    echo "Failed to create onboarding store request, status=${store_status}" >&2
     exit 1
   fi
 fi
 
-echo "Backoffice tenant seed completed."
+echo "Waiting for onboarding provisioning and Mongo KV publication..."
+i=0
+while [ "$i" -lt "$WAIT_SECONDS" ]; do
+  curl -fsS \
+    "${ONBOARDING_URL}/onboarding/v1/requests?collection.page=1&collection.pageSize=100" \
+    -H "X-Onboarding-Service-Token: ${ONBOARDING_SERVICE_TOKEN}" \
+    -H "X-Tenant-ID: ${TENANT_ID}" \
+    -H "X-User-ID: dev-bootstrap" \
+    >/tmp/podzone-onboarding-requests.json
+
+  if grep -q '"status":"ready"' /tmp/podzone-onboarding-requests.json; then
+    echo "Placement route ready for ${TENANT_ID}."
+    exit 0
+  fi
+  if grep -q '"status":"failed"' /tmp/podzone-onboarding-requests.json; then
+    cat /tmp/podzone-onboarding-requests.json
+    echo "Onboarding provisioning failed for ${TENANT_ID}." >&2
+    exit 1
+  fi
+  i=$((i + 1))
+  sleep 1
+done
+
+cat /tmp/podzone-onboarding-requests.json
+echo "Timed out waiting for onboarding provisioning for ${TENANT_ID}." >&2
+exit 1
