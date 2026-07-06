@@ -27,6 +27,11 @@ type StoreRepository interface {
 		workspaceID string,
 		query collection.Query,
 	) (collection.Page[storeentity.StoreRequest], error)
+	ListTransitions(
+		ctx context.Context,
+		requestID string,
+		query collection.Query,
+	) (collection.Page[storeentity.StoreRequestTransition], error)
 	ClaimNextQueued(ctx context.Context) (*storeentity.StoreRequest, error)
 	FindNextProvisioning(ctx context.Context) (*storeentity.StoreRequest, error)
 	UpdateStatus(ctx context.Context, id string, status storeentity.RequestStatus) error

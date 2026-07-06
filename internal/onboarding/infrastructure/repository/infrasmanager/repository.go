@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/tuannm99/podzone/pkg/collection"
 	"github.com/tuannm99/podzone/pkg/messaging"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/fx"
@@ -111,19 +113,7 @@ func (s *MongoStore) EnsureIndexes(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	_, err = s.placeCol.Indexes().CreateMany(ctx, []mongo.IndexModel{
-		{
-			Keys: bson.D{{Key: "tenant_id", Value: 1}, {Key: "store_id", Value: 1}},
-			Options: options.Index().
-				SetUnique(true).
-				SetName("uniq_placement_allocation_tenant_store"),
-		},
-		{
-			Keys:    bson.D{{Key: "status", Value: 1}, {Key: "updated_at", Value: -1}},
-			Options: options.Index().SetName("placement_allocation_status_updated"),
-		},
-	})
-	if err != nil {
+	if err := s.ensurePlacementIndexes(ctx); err != nil {
 		return err
 	}
 	if _, err := s.planCol.Indexes().CreateMany(ctx, []mongo.IndexModel{
@@ -177,6 +167,90 @@ func (s *MongoStore) EnsureIndexes(ctx context.Context) error {
 		},
 	})
 	return err
+}
+
+func (s *MongoStore) ensurePlacementIndexes(ctx context.Context) error {
+	if err := s.dropLegacyPlacementIndex(ctx); err != nil {
+		return err
+	}
+	if err := s.supersedeDuplicateReadyPlacements(ctx); err != nil {
+		return err
+	}
+	_, err := s.placeCol.Indexes().CreateMany(ctx, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "tenant_id", Value: 1}},
+			Options: options.Index().
+				SetUnique(true).
+				SetPartialFilterExpression(bson.M{"status": "ready"}).
+				SetName("uniq_ready_placement_allocation_tenant"),
+		},
+		{
+			Keys:    bson.D{{Key: "status", Value: 1}, {Key: "updated_at", Value: -1}},
+			Options: options.Index().SetName("placement_allocation_status_updated"),
+		},
+	})
+	return err
+}
+
+func (s *MongoStore) dropLegacyPlacementIndex(ctx context.Context) error {
+	_, err := s.placeCol.Indexes().DropOne(ctx, "uniq_placement_allocation_tenant_store")
+	if err == nil {
+		return nil
+	}
+	var commandErr mongo.CommandError
+	if errors.As(err, &commandErr) && (commandErr.Code == 26 || commandErr.Code == 27) {
+		return nil
+	}
+	return fmt.Errorf("drop legacy placement allocation index: %w", err)
+}
+
+type duplicateReadyPlacementGroup struct {
+	TenantID string               `bson:"_id"`
+	IDs      []primitive.ObjectID `bson:"ids"`
+}
+
+func (s *MongoStore) supersedeDuplicateReadyPlacements(ctx context.Context) error {
+	cursor, err := s.placeCol.Aggregate(ctx, mongo.Pipeline{
+		{{Key: "$match", Value: bson.M{"status": "ready"}}},
+		{{Key: "$sort", Value: bson.D{{Key: "updated_at", Value: -1}, {Key: "_id", Value: -1}}}},
+		{{Key: "$group", Value: bson.M{
+			"_id":   "$tenant_id",
+			"ids":   bson.M{"$push": "$_id"},
+			"count": bson.M{"$sum": 1},
+		}}},
+		{{Key: "$match", Value: bson.M{"count": bson.M{"$gt": 1}}}},
+	})
+	if err != nil {
+		return fmt.Errorf("find duplicate ready placement allocations: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	now := time.Now().UTC()
+	for cursor.Next(ctx) {
+		var group duplicateReadyPlacementGroup
+		if err := cursor.Decode(&group); err != nil {
+			return fmt.Errorf("decode duplicate ready placement allocations: %w", err)
+		}
+		if len(group.IDs) < 2 {
+			continue
+		}
+		if _, err := s.placeCol.UpdateMany(
+			ctx,
+			bson.M{"_id": bson.M{"$in": group.IDs[1:]}},
+			bson.M{"$set": bson.M{
+				"status":        "superseded",
+				"superseded_at": now,
+				"superseded_by": group.IDs[0],
+				"updated_at":    now,
+			}},
+		); err != nil {
+			return fmt.Errorf("supersede duplicate placement allocations for tenant %q: %w", group.TenantID, err)
+		}
+	}
+	if err := cursor.Err(); err != nil {
+		return fmt.Errorf("iterate duplicate ready placement allocations: %w", err)
+	}
+	return nil
 }
 
 func (s *MongoStore) Upsert(ctx context.Context, info entity.ConnectionInfo) error {
@@ -635,16 +709,19 @@ func (s *MongoStore) MarkOutboxFailed(ctx context.Context, eventID string, nextR
 	return err
 }
 
-func (s *MongoStore) GetPlacementAllocation(
+func (s *MongoStore) GetTenantPlacementAllocation(
 	ctx context.Context,
 	tenantID string,
-	storeID string,
 ) (*entity.PlacementAllocation, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	var doc placementAllocationDoc
-	err := s.placeCol.FindOne(ctx, bson.M{"tenant_id": tenantID, "store_id": storeID}).Decode(&doc)
+	err := s.placeCol.FindOne(
+		ctx,
+		bson.M{"tenant_id": tenantID, "status": "ready"},
+		options.FindOne().SetSort(bson.D{{Key: "updated_at", Value: -1}}),
+	).Decode(&doc)
 	if err == mongo.ErrNoDocuments {
 		return nil, nil
 	}
@@ -665,7 +742,7 @@ func (s *MongoStore) SavePlacementAllocation(
 	doc := placementAllocationFromEntity(allocation)
 	_, err := s.placeCol.UpdateOne(
 		ctx,
-		bson.M{"tenant_id": allocation.TenantID, "store_id": allocation.StoreID},
+		bson.M{"tenant_id": allocation.TenantID, "status": "ready"},
 		bson.M{
 			"$set": doc,
 			// "$setOnInsert": bson.M{

@@ -16,7 +16,8 @@ import (
 func NewMockPlacementRepository(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockPlacementRepository {
+},
+) *MockPlacementRepository {
 	mock := &MockPlacementRepository{}
 	mock.Mock.Test(t)
 
@@ -38,48 +39,47 @@ func (_m *MockPlacementRepository) EXPECT() *MockPlacementRepository_Expecter {
 	return &MockPlacementRepository_Expecter{mock: &_m.Mock}
 }
 
-// GetPlacementAllocation provides a mock function for the type MockPlacementRepository
-func (_mock *MockPlacementRepository) GetPlacementAllocation(ctx context.Context, tenantID string, storeID string) (*entity.PlacementAllocation, error) {
-	ret := _mock.Called(ctx, tenantID, storeID)
+// GetTenantPlacementAllocation provides a mock function for the type MockPlacementRepository
+func (_mock *MockPlacementRepository) GetTenantPlacementAllocation(ctx context.Context, tenantID string) (*entity.PlacementAllocation, error) {
+	ret := _mock.Called(ctx, tenantID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetPlacementAllocation")
+		panic("no return value specified for GetTenantPlacementAllocation")
 	}
 
 	var r0 *entity.PlacementAllocation
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (*entity.PlacementAllocation, error)); ok {
-		return returnFunc(ctx, tenantID, storeID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*entity.PlacementAllocation, error)); ok {
+		return returnFunc(ctx, tenantID)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) *entity.PlacementAllocation); ok {
-		r0 = returnFunc(ctx, tenantID, storeID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *entity.PlacementAllocation); ok {
+		r0 = returnFunc(ctx, tenantID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*entity.PlacementAllocation)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = returnFunc(ctx, tenantID, storeID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, tenantID)
 	} else {
 		r1 = ret.Error(1)
 	}
 	return r0, r1
 }
 
-// MockPlacementRepository_GetPlacementAllocation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPlacementAllocation'
-type MockPlacementRepository_GetPlacementAllocation_Call struct {
+// MockPlacementRepository_GetTenantPlacementAllocation_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTenantPlacementAllocation'
+type MockPlacementRepository_GetTenantPlacementAllocation_Call struct {
 	*mock.Call
 }
 
-// GetPlacementAllocation is a helper method to define mock.On call
+// GetTenantPlacementAllocation is a helper method to define mock.On call
 //   - ctx context.Context
 //   - tenantID string
-//   - storeID string
-func (_e *MockPlacementRepository_Expecter) GetPlacementAllocation(ctx interface{}, tenantID interface{}, storeID interface{}) *MockPlacementRepository_GetPlacementAllocation_Call {
-	return &MockPlacementRepository_GetPlacementAllocation_Call{Call: _e.mock.On("GetPlacementAllocation", ctx, tenantID, storeID)}
+func (_e *MockPlacementRepository_Expecter) GetTenantPlacementAllocation(ctx interface{}, tenantID interface{}) *MockPlacementRepository_GetTenantPlacementAllocation_Call {
+	return &MockPlacementRepository_GetTenantPlacementAllocation_Call{Call: _e.mock.On("GetTenantPlacementAllocation", ctx, tenantID)}
 }
 
-func (_c *MockPlacementRepository_GetPlacementAllocation_Call) Run(run func(ctx context.Context, tenantID string, storeID string)) *MockPlacementRepository_GetPlacementAllocation_Call {
+func (_c *MockPlacementRepository_GetTenantPlacementAllocation_Call) Run(run func(ctx context.Context, tenantID string)) *MockPlacementRepository_GetTenantPlacementAllocation_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -89,25 +89,20 @@ func (_c *MockPlacementRepository_GetPlacementAllocation_Call) Run(run func(ctx 
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
-		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockPlacementRepository_GetPlacementAllocation_Call) Return(placementAllocation *entity.PlacementAllocation, err error) *MockPlacementRepository_GetPlacementAllocation_Call {
+func (_c *MockPlacementRepository_GetTenantPlacementAllocation_Call) Return(placementAllocation *entity.PlacementAllocation, err error) *MockPlacementRepository_GetTenantPlacementAllocation_Call {
 	_c.Call.Return(placementAllocation, err)
 	return _c
 }
 
-func (_c *MockPlacementRepository_GetPlacementAllocation_Call) RunAndReturn(run func(ctx context.Context, tenantID string, storeID string) (*entity.PlacementAllocation, error)) *MockPlacementRepository_GetPlacementAllocation_Call {
+func (_c *MockPlacementRepository_GetTenantPlacementAllocation_Call) RunAndReturn(run func(ctx context.Context, tenantID string) (*entity.PlacementAllocation, error)) *MockPlacementRepository_GetTenantPlacementAllocation_Call {
 	_c.Call.Return(run)
 	return _c
 }

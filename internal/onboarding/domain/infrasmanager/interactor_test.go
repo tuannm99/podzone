@@ -101,6 +101,50 @@ func TestManualUpsertConnection_RejectsSchemaModeMissingSchemaName(t *testing.T)
 	require.Empty(t, state.outbox)
 }
 
+func TestUpsertDatabaseCluster_ValidatesAndPersistsInventory(t *testing.T) {
+	inventory := coremocks.NewMockResourceInventoryRepository(t)
+	svc := &Interactor{inventory: inventory}
+	inventory.EXPECT().
+		UpsertDatabaseCluster(mock.Anything, entity.DatabaseCluster{
+			Name:           "pg-primary",
+			Engine:         "postgres",
+			Region:         "local",
+			PlacementDB:    "podzone_tenants",
+			MaxTenants:     100,
+			MaxSchemas:     100,
+			MaxConnections: 500,
+			Status:         "active",
+			Healthy:        true,
+		}).
+		Return(nil).
+		Once()
+
+	err := svc.UpsertDatabaseCluster(context.Background(), inputport.DatabaseClusterResource{
+		Name:           " pg-primary ",
+		Engine:         "postgres",
+		Region:         "local",
+		PlacementDB:    "podzone_tenants",
+		MaxTenants:     100,
+		MaxSchemas:     100,
+		MaxConnections: 500,
+		Healthy:        true,
+	})
+
+	require.NoError(t, err)
+}
+
+func TestUpsertRuntimePool_RejectsNegativeCapacity(t *testing.T) {
+	svc := &Interactor{}
+
+	err := svc.UpsertRuntimePool(context.Background(), inputport.RuntimePoolResource{
+		Name:       "docker-local",
+		Kind:       "docker",
+		MaxTenants: -1,
+	})
+
+	require.ErrorIs(t, err, entity.ErrInvalidInput)
+}
+
 func TestManualUpsertConnection_PostgresEnqueuesPlacementPublish(t *testing.T) {
 	state := &connectionStoreState{}
 	svc := NewInteractor(newConnectionStoreMock(t, state))
@@ -166,12 +210,55 @@ func TestEnsurePlacementRoute_RepairsMissingRouteFromAllocation(t *testing.T) {
 		Status:      "ready",
 	}
 
-	placements.EXPECT().GetPlacementAllocation(mock.Anything, "tenant-1", "store-1").Return(&allocation, nil)
+	placements.EXPECT().GetTenantPlacementAllocation(mock.Anything, "tenant-1").Return(&allocation, nil)
 	writer.EXPECT().PublishPlacementRoute(mock.Anything, "tenant-1", allocation).Return(nil)
 
-	ready, err := svc.EnsurePlacementRoute(context.Background(), "tenant-1", "store-1")
+	ready, err := svc.EnsurePlacementRoute(context.Background(), "tenant-1")
 	require.NoError(t, err)
 	require.True(t, ready)
+}
+
+func TestProvisionStorePlacement_ReusesTenantAllocationAcrossStores(t *testing.T) {
+	placements := coremocks.NewMockPlacementRepository(t)
+	plans := coremocks.NewMockPlacementPlanRepository(t)
+	planner := coremocks.NewMockPlacementPlanner(t)
+	provisioner := coremocks.NewMockStorageProvisioner(t)
+	svc := &Interactor{
+		placements:  placements,
+		plans:       plans,
+		planner:     planner,
+		provisioner: provisioner,
+	}
+	allocation := entity.PlacementAllocation{
+		ID:          "allocation-1",
+		RequestID:   "request-1",
+		TenantID:    "tenant-1",
+		StoreID:     "store-1",
+		ClusterName: "pg-default",
+		Mode:        "schema",
+		DBName:      "podzone_tenants",
+		SchemaName:  "t_tenant_1",
+		Status:      "ready",
+	}
+	placements.EXPECT().
+		GetTenantPlacementAllocation(mock.Anything, "tenant-1").
+		Return(&allocation, nil)
+
+	response, err := svc.ProvisionStorePlacement(
+		context.Background(),
+		inputport.ProvisionStorePlacementRequest{
+			RequestID: "request-2",
+			TenantID:  "tenant-1",
+			StoreID:   "store-2",
+		},
+		nil,
+	)
+
+	require.NoError(t, err)
+	require.Equal(t, "allocation-1", response.AllocationID)
+	plans.AssertNotCalled(t, "GetPlacementPlanByRequestID", mock.Anything, mock.Anything)
+	planner.AssertNotCalled(t, "PlanStorePlacement", mock.Anything, mock.Anything)
+	provisioner.AssertNotCalled(t, "ProvisionStorePlacement", mock.Anything, mock.Anything, mock.Anything)
 }
 
 func TestProvisionStorePlacement_SavesPlanBeforeProvisioning(t *testing.T) {
@@ -227,7 +314,7 @@ func TestProvisionStorePlacement_SavesPlanBeforeProvisioning(t *testing.T) {
 		Status:      "ready",
 	}
 
-	placements.EXPECT().GetPlacementAllocation(mock.Anything, req.TenantID, req.StoreID).Return(nil, nil)
+	placements.EXPECT().GetTenantPlacementAllocation(mock.Anything, req.TenantID).Return(nil, nil)
 	plans.EXPECT().GetPlacementPlanByRequestID(mock.Anything, req.RequestID).Return(nil, nil)
 	planner.EXPECT().PlanStorePlacement(mock.Anything, placementReq).Return(plan, nil)
 	plans.EXPECT().SavePlacementPlan(mock.Anything, plan).Return(nil)
@@ -295,7 +382,7 @@ func TestProvisionStorePlacement_ReusesPersistedPlanOnRetry(t *testing.T) {
 		Status:      "ready",
 	}
 
-	placements.EXPECT().GetPlacementAllocation(mock.Anything, req.TenantID, req.StoreID).Return(nil, nil)
+	placements.EXPECT().GetTenantPlacementAllocation(mock.Anything, req.TenantID).Return(nil, nil)
 	plans.EXPECT().GetPlacementPlanByRequestID(mock.Anything, req.RequestID).Return(&plan, nil)
 	provisioner.EXPECT().ProvisionStorePlacement(mock.Anything, placementReq, plan).Return(allocation, nil)
 	placements.EXPECT().SavePlacementAllocation(mock.Anything, mock.Anything).Return(nil)

@@ -7,14 +7,14 @@ import { createTrustSimulationLoaders } from './trust-simulation/createTrustSimu
 import type { AdminIamState } from './createAdminIamState'
 
 export function createAdminIamLoaders(state: AdminIamState, userID: number) {
-  return {
-    loadBootstrap: createBootstrapLoader(state, userID),
-    ...createOrganizationsLoaders(state),
-    ...createPoliciesLoaders(state),
-    ...createGroupsLoaders(state),
-    ...createPrincipalsLoaders(state),
-    ...createTrustSimulationLoaders(state),
-  }
+    return {
+        loadBootstrap: createBootstrapLoader(state, userID),
+        ...createOrganizationsLoaders(state),
+        ...createPoliciesLoaders(state),
+        ...createGroupsLoaders(state),
+        ...createPrincipalsLoaders(state),
+        ...createTrustSimulationLoaders(state),
+    }
 }
 
 export type AdminIamLoaders = ReturnType<typeof createAdminIamLoaders>

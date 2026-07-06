@@ -125,9 +125,180 @@ func (_c *MockUsecase_DeleteConnection_Call) RunAndReturn(run func(ctx context.C
 	return _c
 }
 
+// DeleteDatabaseCluster provides a mock function for the type MockUsecase
+func (_mock *MockUsecase) DeleteDatabaseCluster(ctx context.Context, name string) error {
+	ret := _mock.Called(ctx, name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteDatabaseCluster")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, name)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockUsecase_DeleteDatabaseCluster_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteDatabaseCluster'
+type MockUsecase_DeleteDatabaseCluster_Call struct {
+	*mock.Call
+}
+
+// DeleteDatabaseCluster is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+func (_e *MockUsecase_Expecter) DeleteDatabaseCluster(ctx interface{}, name interface{}) *MockUsecase_DeleteDatabaseCluster_Call {
+	return &MockUsecase_DeleteDatabaseCluster_Call{Call: _e.mock.On("DeleteDatabaseCluster", ctx, name)}
+}
+
+func (_c *MockUsecase_DeleteDatabaseCluster_Call) Run(run func(ctx context.Context, name string)) *MockUsecase_DeleteDatabaseCluster_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUsecase_DeleteDatabaseCluster_Call) Return(err error) *MockUsecase_DeleteDatabaseCluster_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockUsecase_DeleteDatabaseCluster_Call) RunAndReturn(run func(ctx context.Context, name string) error) *MockUsecase_DeleteDatabaseCluster_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteKubernetesCluster provides a mock function for the type MockUsecase
+func (_mock *MockUsecase) DeleteKubernetesCluster(ctx context.Context, name string) error {
+	ret := _mock.Called(ctx, name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteKubernetesCluster")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, name)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockUsecase_DeleteKubernetesCluster_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteKubernetesCluster'
+type MockUsecase_DeleteKubernetesCluster_Call struct {
+	*mock.Call
+}
+
+// DeleteKubernetesCluster is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+func (_e *MockUsecase_Expecter) DeleteKubernetesCluster(ctx interface{}, name interface{}) *MockUsecase_DeleteKubernetesCluster_Call {
+	return &MockUsecase_DeleteKubernetesCluster_Call{Call: _e.mock.On("DeleteKubernetesCluster", ctx, name)}
+}
+
+func (_c *MockUsecase_DeleteKubernetesCluster_Call) Run(run func(ctx context.Context, name string)) *MockUsecase_DeleteKubernetesCluster_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUsecase_DeleteKubernetesCluster_Call) Return(err error) *MockUsecase_DeleteKubernetesCluster_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockUsecase_DeleteKubernetesCluster_Call) RunAndReturn(run func(ctx context.Context, name string) error) *MockUsecase_DeleteKubernetesCluster_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteRuntimePool provides a mock function for the type MockUsecase
+func (_mock *MockUsecase) DeleteRuntimePool(ctx context.Context, name string) error {
+	ret := _mock.Called(ctx, name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteRuntimePool")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, name)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockUsecase_DeleteRuntimePool_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteRuntimePool'
+type MockUsecase_DeleteRuntimePool_Call struct {
+	*mock.Call
+}
+
+// DeleteRuntimePool is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+func (_e *MockUsecase_Expecter) DeleteRuntimePool(ctx interface{}, name interface{}) *MockUsecase_DeleteRuntimePool_Call {
+	return &MockUsecase_DeleteRuntimePool_Call{Call: _e.mock.On("DeleteRuntimePool", ctx, name)}
+}
+
+func (_c *MockUsecase_DeleteRuntimePool_Call) Run(run func(ctx context.Context, name string)) *MockUsecase_DeleteRuntimePool_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUsecase_DeleteRuntimePool_Call) Return(err error) *MockUsecase_DeleteRuntimePool_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockUsecase_DeleteRuntimePool_Call) RunAndReturn(run func(ctx context.Context, name string) error) *MockUsecase_DeleteRuntimePool_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // EnsurePlacementRoute provides a mock function for the type MockUsecase
-func (_mock *MockUsecase) EnsurePlacementRoute(ctx context.Context, tenantID string, storeID string) (bool, error) {
-	ret := _mock.Called(ctx, tenantID, storeID)
+func (_mock *MockUsecase) EnsurePlacementRoute(ctx context.Context, tenantID string) (bool, error) {
+	ret := _mock.Called(ctx, tenantID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for EnsurePlacementRoute")
@@ -135,16 +306,16 @@ func (_mock *MockUsecase) EnsurePlacementRoute(ctx context.Context, tenantID str
 
 	var r0 bool
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (bool, error)); ok {
-		return returnFunc(ctx, tenantID, storeID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
+		return returnFunc(ctx, tenantID)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) bool); ok {
-		r0 = returnFunc(ctx, tenantID, storeID)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) bool); ok {
+		r0 = returnFunc(ctx, tenantID)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = returnFunc(ctx, tenantID, storeID)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, tenantID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -159,12 +330,11 @@ type MockUsecase_EnsurePlacementRoute_Call struct {
 // EnsurePlacementRoute is a helper method to define mock.On call
 //   - ctx context.Context
 //   - tenantID string
-//   - storeID string
-func (_e *MockUsecase_Expecter) EnsurePlacementRoute(ctx interface{}, tenantID interface{}, storeID interface{}) *MockUsecase_EnsurePlacementRoute_Call {
-	return &MockUsecase_EnsurePlacementRoute_Call{Call: _e.mock.On("EnsurePlacementRoute", ctx, tenantID, storeID)}
+func (_e *MockUsecase_Expecter) EnsurePlacementRoute(ctx interface{}, tenantID interface{}) *MockUsecase_EnsurePlacementRoute_Call {
+	return &MockUsecase_EnsurePlacementRoute_Call{Call: _e.mock.On("EnsurePlacementRoute", ctx, tenantID)}
 }
 
-func (_c *MockUsecase_EnsurePlacementRoute_Call) Run(run func(ctx context.Context, tenantID string, storeID string)) *MockUsecase_EnsurePlacementRoute_Call {
+func (_c *MockUsecase_EnsurePlacementRoute_Call) Run(run func(ctx context.Context, tenantID string)) *MockUsecase_EnsurePlacementRoute_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -174,14 +344,9 @@ func (_c *MockUsecase_EnsurePlacementRoute_Call) Run(run func(ctx context.Contex
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
-		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -192,7 +357,7 @@ func (_c *MockUsecase_EnsurePlacementRoute_Call) Return(b bool, err error) *Mock
 	return _c
 }
 
-func (_c *MockUsecase_EnsurePlacementRoute_Call) RunAndReturn(run func(ctx context.Context, tenantID string, storeID string) (bool, error)) *MockUsecase_EnsurePlacementRoute_Call {
+func (_c *MockUsecase_EnsurePlacementRoute_Call) RunAndReturn(run func(ctx context.Context, tenantID string) (bool, error)) *MockUsecase_EnsurePlacementRoute_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -421,6 +586,72 @@ func (_c *MockUsecase_ListConnections_Call) RunAndReturn(run func(ctx context.Co
 	return _c
 }
 
+// ListDatabaseClusters provides a mock function for the type MockUsecase
+func (_mock *MockUsecase) ListDatabaseClusters(ctx context.Context, query collection.Query) (collection.Page[inputport.DatabaseClusterResource], error) {
+	ret := _mock.Called(ctx, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListDatabaseClusters")
+	}
+
+	var r0 collection.Page[inputport.DatabaseClusterResource]
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) (collection.Page[inputport.DatabaseClusterResource], error)); ok {
+		return returnFunc(ctx, query)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) collection.Page[inputport.DatabaseClusterResource]); ok {
+		r0 = returnFunc(ctx, query)
+	} else {
+		r0 = ret.Get(0).(collection.Page[inputport.DatabaseClusterResource])
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, collection.Query) error); ok {
+		r1 = returnFunc(ctx, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockUsecase_ListDatabaseClusters_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListDatabaseClusters'
+type MockUsecase_ListDatabaseClusters_Call struct {
+	*mock.Call
+}
+
+// ListDatabaseClusters is a helper method to define mock.On call
+//   - ctx context.Context
+//   - query collection.Query
+func (_e *MockUsecase_Expecter) ListDatabaseClusters(ctx interface{}, query interface{}) *MockUsecase_ListDatabaseClusters_Call {
+	return &MockUsecase_ListDatabaseClusters_Call{Call: _e.mock.On("ListDatabaseClusters", ctx, query)}
+}
+
+func (_c *MockUsecase_ListDatabaseClusters_Call) Run(run func(ctx context.Context, query collection.Query)) *MockUsecase_ListDatabaseClusters_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 collection.Query
+		if args[1] != nil {
+			arg1 = args[1].(collection.Query)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUsecase_ListDatabaseClusters_Call) Return(page collection.Page[inputport.DatabaseClusterResource], err error) *MockUsecase_ListDatabaseClusters_Call {
+	_c.Call.Return(page, err)
+	return _c
+}
+
+func (_c *MockUsecase_ListDatabaseClusters_Call) RunAndReturn(run func(ctx context.Context, query collection.Query) (collection.Page[inputport.DatabaseClusterResource], error)) *MockUsecase_ListDatabaseClusters_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListEvents provides a mock function for the type MockUsecase
 func (_mock *MockUsecase) ListEvents(ctx context.Context, tenantID string, query collection.Query) (collection.Page[inputport.ConnectionEvent], error) {
 	ret := _mock.Called(ctx, tenantID, query)
@@ -489,6 +720,138 @@ func (_c *MockUsecase_ListEvents_Call) Return(page collection.Page[inputport.Con
 }
 
 func (_c *MockUsecase_ListEvents_Call) RunAndReturn(run func(ctx context.Context, tenantID string, query collection.Query) (collection.Page[inputport.ConnectionEvent], error)) *MockUsecase_ListEvents_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListKubernetesClusters provides a mock function for the type MockUsecase
+func (_mock *MockUsecase) ListKubernetesClusters(ctx context.Context, query collection.Query) (collection.Page[inputport.KubernetesClusterResource], error) {
+	ret := _mock.Called(ctx, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListKubernetesClusters")
+	}
+
+	var r0 collection.Page[inputport.KubernetesClusterResource]
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) (collection.Page[inputport.KubernetesClusterResource], error)); ok {
+		return returnFunc(ctx, query)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) collection.Page[inputport.KubernetesClusterResource]); ok {
+		r0 = returnFunc(ctx, query)
+	} else {
+		r0 = ret.Get(0).(collection.Page[inputport.KubernetesClusterResource])
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, collection.Query) error); ok {
+		r1 = returnFunc(ctx, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockUsecase_ListKubernetesClusters_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListKubernetesClusters'
+type MockUsecase_ListKubernetesClusters_Call struct {
+	*mock.Call
+}
+
+// ListKubernetesClusters is a helper method to define mock.On call
+//   - ctx context.Context
+//   - query collection.Query
+func (_e *MockUsecase_Expecter) ListKubernetesClusters(ctx interface{}, query interface{}) *MockUsecase_ListKubernetesClusters_Call {
+	return &MockUsecase_ListKubernetesClusters_Call{Call: _e.mock.On("ListKubernetesClusters", ctx, query)}
+}
+
+func (_c *MockUsecase_ListKubernetesClusters_Call) Run(run func(ctx context.Context, query collection.Query)) *MockUsecase_ListKubernetesClusters_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 collection.Query
+		if args[1] != nil {
+			arg1 = args[1].(collection.Query)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUsecase_ListKubernetesClusters_Call) Return(page collection.Page[inputport.KubernetesClusterResource], err error) *MockUsecase_ListKubernetesClusters_Call {
+	_c.Call.Return(page, err)
+	return _c
+}
+
+func (_c *MockUsecase_ListKubernetesClusters_Call) RunAndReturn(run func(ctx context.Context, query collection.Query) (collection.Page[inputport.KubernetesClusterResource], error)) *MockUsecase_ListKubernetesClusters_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListRuntimePools provides a mock function for the type MockUsecase
+func (_mock *MockUsecase) ListRuntimePools(ctx context.Context, query collection.Query) (collection.Page[inputport.RuntimePoolResource], error) {
+	ret := _mock.Called(ctx, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListRuntimePools")
+	}
+
+	var r0 collection.Page[inputport.RuntimePoolResource]
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) (collection.Page[inputport.RuntimePoolResource], error)); ok {
+		return returnFunc(ctx, query)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) collection.Page[inputport.RuntimePoolResource]); ok {
+		r0 = returnFunc(ctx, query)
+	} else {
+		r0 = ret.Get(0).(collection.Page[inputport.RuntimePoolResource])
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, collection.Query) error); ok {
+		r1 = returnFunc(ctx, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockUsecase_ListRuntimePools_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListRuntimePools'
+type MockUsecase_ListRuntimePools_Call struct {
+	*mock.Call
+}
+
+// ListRuntimePools is a helper method to define mock.On call
+//   - ctx context.Context
+//   - query collection.Query
+func (_e *MockUsecase_Expecter) ListRuntimePools(ctx interface{}, query interface{}) *MockUsecase_ListRuntimePools_Call {
+	return &MockUsecase_ListRuntimePools_Call{Call: _e.mock.On("ListRuntimePools", ctx, query)}
+}
+
+func (_c *MockUsecase_ListRuntimePools_Call) Run(run func(ctx context.Context, query collection.Query)) *MockUsecase_ListRuntimePools_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 collection.Query
+		if args[1] != nil {
+			arg1 = args[1].(collection.Query)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUsecase_ListRuntimePools_Call) Return(page collection.Page[inputport.RuntimePoolResource], err error) *MockUsecase_ListRuntimePools_Call {
+	_c.Call.Return(page, err)
+	return _c
+}
+
+func (_c *MockUsecase_ListRuntimePools_Call) RunAndReturn(run func(ctx context.Context, query collection.Query) (collection.Page[inputport.RuntimePoolResource], error)) *MockUsecase_ListRuntimePools_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -643,6 +1006,177 @@ func (_c *MockUsecase_ProvisionStorePlacement_Call) Return(provisionStorePlaceme
 }
 
 func (_c *MockUsecase_ProvisionStorePlacement_Call) RunAndReturn(run func(ctx context.Context, req inputport.ProvisionStorePlacementRequest, actor map[string]string) (*inputport.ProvisionStorePlacementResponse, error)) *MockUsecase_ProvisionStorePlacement_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpsertDatabaseCluster provides a mock function for the type MockUsecase
+func (_mock *MockUsecase) UpsertDatabaseCluster(ctx context.Context, resource inputport.DatabaseClusterResource) error {
+	ret := _mock.Called(ctx, resource)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertDatabaseCluster")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.DatabaseClusterResource) error); ok {
+		r0 = returnFunc(ctx, resource)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockUsecase_UpsertDatabaseCluster_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpsertDatabaseCluster'
+type MockUsecase_UpsertDatabaseCluster_Call struct {
+	*mock.Call
+}
+
+// UpsertDatabaseCluster is a helper method to define mock.On call
+//   - ctx context.Context
+//   - resource inputport.DatabaseClusterResource
+func (_e *MockUsecase_Expecter) UpsertDatabaseCluster(ctx interface{}, resource interface{}) *MockUsecase_UpsertDatabaseCluster_Call {
+	return &MockUsecase_UpsertDatabaseCluster_Call{Call: _e.mock.On("UpsertDatabaseCluster", ctx, resource)}
+}
+
+func (_c *MockUsecase_UpsertDatabaseCluster_Call) Run(run func(ctx context.Context, resource inputport.DatabaseClusterResource)) *MockUsecase_UpsertDatabaseCluster_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 inputport.DatabaseClusterResource
+		if args[1] != nil {
+			arg1 = args[1].(inputport.DatabaseClusterResource)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUsecase_UpsertDatabaseCluster_Call) Return(err error) *MockUsecase_UpsertDatabaseCluster_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockUsecase_UpsertDatabaseCluster_Call) RunAndReturn(run func(ctx context.Context, resource inputport.DatabaseClusterResource) error) *MockUsecase_UpsertDatabaseCluster_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpsertKubernetesCluster provides a mock function for the type MockUsecase
+func (_mock *MockUsecase) UpsertKubernetesCluster(ctx context.Context, resource inputport.KubernetesClusterResource) error {
+	ret := _mock.Called(ctx, resource)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertKubernetesCluster")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.KubernetesClusterResource) error); ok {
+		r0 = returnFunc(ctx, resource)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockUsecase_UpsertKubernetesCluster_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpsertKubernetesCluster'
+type MockUsecase_UpsertKubernetesCluster_Call struct {
+	*mock.Call
+}
+
+// UpsertKubernetesCluster is a helper method to define mock.On call
+//   - ctx context.Context
+//   - resource inputport.KubernetesClusterResource
+func (_e *MockUsecase_Expecter) UpsertKubernetesCluster(ctx interface{}, resource interface{}) *MockUsecase_UpsertKubernetesCluster_Call {
+	return &MockUsecase_UpsertKubernetesCluster_Call{Call: _e.mock.On("UpsertKubernetesCluster", ctx, resource)}
+}
+
+func (_c *MockUsecase_UpsertKubernetesCluster_Call) Run(run func(ctx context.Context, resource inputport.KubernetesClusterResource)) *MockUsecase_UpsertKubernetesCluster_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 inputport.KubernetesClusterResource
+		if args[1] != nil {
+			arg1 = args[1].(inputport.KubernetesClusterResource)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUsecase_UpsertKubernetesCluster_Call) Return(err error) *MockUsecase_UpsertKubernetesCluster_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockUsecase_UpsertKubernetesCluster_Call) RunAndReturn(run func(ctx context.Context, resource inputport.KubernetesClusterResource) error) *MockUsecase_UpsertKubernetesCluster_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpsertRuntimePool provides a mock function for the type MockUsecase
+func (_mock *MockUsecase) UpsertRuntimePool(ctx context.Context, resource inputport.RuntimePoolResource) error {
+	ret := _mock.Called(ctx, resource)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertRuntimePool")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, inputport.RuntimePoolResource) error); ok {
+		r0 = returnFunc(ctx, resource)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockUsecase_UpsertRuntimePool_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpsertRuntimePool'
+type MockUsecase_UpsertRuntimePool_Call struct {
+	*mock.Call
+}
+
+// UpsertRuntimePool is a helper method to define mock.On call
+//   - ctx context.Context
+//   - resource inputport.RuntimePoolResource
+func (_e *MockUsecase_Expecter) UpsertRuntimePool(ctx interface{}, resource interface{}) *MockUsecase_UpsertRuntimePool_Call {
+	return &MockUsecase_UpsertRuntimePool_Call{Call: _e.mock.On("UpsertRuntimePool", ctx, resource)}
+}
+
+func (_c *MockUsecase_UpsertRuntimePool_Call) Run(run func(ctx context.Context, resource inputport.RuntimePoolResource)) *MockUsecase_UpsertRuntimePool_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 inputport.RuntimePoolResource
+		if args[1] != nil {
+			arg1 = args[1].(inputport.RuntimePoolResource)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUsecase_UpsertRuntimePool_Call) Return(err error) *MockUsecase_UpsertRuntimePool_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockUsecase_UpsertRuntimePool_Call) RunAndReturn(run func(ctx context.Context, resource inputport.RuntimePoolResource) error) *MockUsecase_UpsertRuntimePool_Call {
 	_c.Call.Return(run)
 	return _c
 }

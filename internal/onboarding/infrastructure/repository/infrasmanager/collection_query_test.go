@@ -65,3 +65,17 @@ func TestBuildConnectionCollectionParsesNumericFilter(t *testing.T) {
 	require.Contains(t, clauses, bson.M{"version": bson.M{"$gt": int64(3)}})
 	require.NotContains(t, clauses, bson.M{"deleted_at": nil})
 }
+
+func TestBuildRuntimePoolCollectionParsesHealthFilter(t *testing.T) {
+	_, filter, _, err := buildRuntimePoolCollection(collection.Query{
+		Filters: []collection.Filter{{
+			Field:    "healthy",
+			Operator: collection.FilterEqual,
+			Values:   []string{"true"},
+		}},
+	})
+
+	require.NoError(t, err)
+	clauses := filter["$and"].(bson.A)
+	require.Contains(t, clauses, bson.M{"healthy": true})
+}

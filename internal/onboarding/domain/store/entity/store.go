@@ -48,6 +48,7 @@ type StoreRequestTransition struct {
 	From      RequestStatus      `bson:"from"           json:"from"`
 	To        RequestStatus      `bson:"to"             json:"to"`
 	Actor     map[string]string  `bson:"actor"          json:"actor"`
+	Step      string             `bson:"step"           json:"step"`
 	Reason    string             `bson:"reason"         json:"reason"`
 	ErrorCode string             `bson:"error_code"     json:"error_code"`
 	CreatedAt time.Time          `bson:"created_at"     json:"created_at"`

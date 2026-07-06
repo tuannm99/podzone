@@ -1,5 +1,7 @@
 package entity
 
+import "time"
+
 type ResourceInventory struct {
 	Environment  string
 	DBClusters   []DatabaseCluster
@@ -18,14 +20,20 @@ type DatabaseCluster struct {
 	CurrentSchemas     int
 	MaxConnections     int
 	CurrentConnections int
+	Status             string
 	Healthy            bool
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
 }
 
 type KubernetesCluster struct {
 	Name       string
 	Region     string
 	Namespaces []KubernetesNamespace
+	Status     string
 	Healthy    bool
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
 
 type KubernetesNamespace struct {
@@ -34,6 +42,7 @@ type KubernetesNamespace struct {
 	CurrentTenants int
 	CPUMilli       int
 	MemoryMi       int
+	Status         string
 	Healthy        bool
 }
 
@@ -42,7 +51,10 @@ type RuntimePool struct {
 	Kind           string
 	MaxTenants     int
 	CurrentTenants int
+	Status         string
 	Healthy        bool
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
 type CapacitySnapshot struct {

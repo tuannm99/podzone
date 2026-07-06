@@ -1,8 +1,8 @@
 export type CreateWorkspaceFormValues = {
-  name: string
-  slug: string
+    name: string
+    slug: string
 }
 
 export type CreateStoreFormValues = {
-  name: string
+    name: string
 }

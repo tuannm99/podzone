@@ -3,321 +3,286 @@ import { http, type HttpError } from './http'
 import { tenantStorage } from './tenantStorage'
 import { tokenStorage, type StoredUser } from './tokenStorage'
 import {
-  emptyPageInfo,
-  normalizePageInfo,
-  toCollectionParams,
-  type CollectionPage,
-  type CollectionQuery,
-  type WirePageInfo,
+    emptyPageInfo,
+    normalizePageInfo,
+    toCollectionParams,
+    type CollectionPage,
+    type CollectionQuery,
+    type WirePageInfo,
 } from './collection'
 
 export type AuthPayload = {
-  username: string
-  password: string
+    username: string
+    password: string
 }
 
 export type RegisterPayload = {
-  username: string
-  email: string
-  password: string
+    username: string
+    email: string
+    password: string
 }
 
 export type AuthResponseData = {
-  jwtToken?: string
-  refreshToken?: string
-  userInfo?: StoredUser
-  message?: string
-  [key: string]: unknown
+    jwtToken?: string
+    refreshToken?: string
+    userInfo?: StoredUser
+    message?: string
+    [key: string]: unknown
 }
 
 export type SessionInfo = {
-  id: string
-  userId?: number
-  activeTenantId?: string
-  status?: string
-  createdAt?: string
-  updatedAt?: string
-  expiresAt?: string
-  revokedAt?: string
+    id: string
+    userId?: number
+    activeTenantId?: string
+    status?: string
+    createdAt?: string
+    updatedAt?: string
+    expiresAt?: string
+    revokedAt?: string
 }
 
 export type AuditLogInfo = {
-  id: string
-  actorUserId?: number
-  action?: string
-  resourceType?: string
-  resourceId?: string
-  tenantId?: string
-  status?: string
-  payloadJson?: string
-  createdAt?: string
+    id: string
+    actorUserId?: number
+    action?: string
+    resourceType?: string
+    resourceId?: string
+    tenantId?: string
+    status?: string
+    payloadJson?: string
+    createdAt?: string
 }
 
-export type AuthResult =
-  | { success: true; data: AuthResponseData }
-  | { success: false; data: { message: string } }
+export type AuthResult = { success: true; data: AuthResponseData } | { success: false; data: { message: string } }
 
 type SwitchTenantPayload = {
-  userId: number
-  tenantId: string
-  accessToken: string
+    userId: number
+    tenantId: string
+    accessToken: string
 }
 
 function persistAuth(data: AuthResponseData) {
-  if (data.jwtToken) tokenStorage.setToken(data.jwtToken)
-  if (data.refreshToken) tokenStorage.setRefreshToken(data.refreshToken)
-  if (data.userInfo) {
-    const existing = tokenStorage.getUserID()
-    tokenStorage.setUser({
-      ...data.userInfo,
-      id: data.userInfo.id ?? (existing != null ? String(existing) : undefined),
-    })
-  }
-  const activeTenantID = tokenStorage.getActiveTenantID()
-  if (activeTenantID) tenantStorage.setTenantID(activeTenantID)
+    if (data.jwtToken) tokenStorage.setToken(data.jwtToken)
+    if (data.refreshToken) tokenStorage.setRefreshToken(data.refreshToken)
+    if (data.userInfo) {
+        const existing = tokenStorage.getUserID()
+        tokenStorage.setUser({
+            ...data.userInfo,
+            id: data.userInfo.id ?? (existing != null ? String(existing) : undefined),
+        })
+    }
+    const activeTenantID = tokenStorage.getActiveTenantID()
+    if (activeTenantID) tenantStorage.setTenantID(activeTenantID)
 }
 
 function toFailure(error: unknown, fallback: string): AuthResult {
-  const message =
-    typeof error === 'object' &&
-    error &&
-    'message' in error &&
-    typeof error.message === 'string'
-      ? error.message
-      : fallback
+    const message =
+        typeof error === 'object' && error && 'message' in error && typeof error.message === 'string'
+            ? error.message
+            : fallback
 
-  return { success: false, data: { message } }
+    return { success: false, data: { message } }
 }
 
 export function loginGG(): string {
-  return `${GW_API_URL}/auth/v1/google/login`
+    return `${GW_API_URL}/auth/v1/google/login`
 }
 
-export async function exchangeGoogleLogin(
-  exchangeCode: string
-): Promise<AuthResult> {
-  try {
-    const { data } = await http.post<AuthResponseData>(
-      '/auth/v1/google/exchange',
-      {
-        exchangeCode,
-      }
-    )
-    persistAuth(data)
-    return { success: true, data }
-  } catch (error) {
-    return toFailure(error as HttpError, 'Google login exchange failed')
-  }
+export async function exchangeGoogleLogin(exchangeCode: string): Promise<AuthResult> {
+    try {
+        const { data } = await http.post<AuthResponseData>('/auth/v1/google/exchange', {
+            exchangeCode,
+        })
+        persistAuth(data)
+        return { success: true, data }
+    } catch (error) {
+        return toFailure(error as HttpError, 'Google login exchange failed')
+    }
 }
 
 export async function login(payload: AuthPayload): Promise<AuthResult> {
-  try {
-    const { data } = await http.post<AuthResponseData>(
-      '/auth/v1/login',
-      payload
-    )
-    persistAuth(data)
-    return { success: true, data }
-  } catch (error) {
-    return toFailure(error as HttpError, 'Login failed')
-  }
+    try {
+        const { data } = await http.post<AuthResponseData>('/auth/v1/login', payload)
+        persistAuth(data)
+        return { success: true, data }
+    } catch (error) {
+        return toFailure(error as HttpError, 'Login failed')
+    }
 }
 
 export async function register(payload: RegisterPayload): Promise<AuthResult> {
-  try {
-    const { data } = await http.post<AuthResponseData>(
-      '/auth/v1/register',
-      payload
-    )
-    persistAuth(data)
-    return { success: true, data }
-  } catch (error) {
-    return toFailure(error as HttpError, 'Register failed')
-  }
+    try {
+        const { data } = await http.post<AuthResponseData>('/auth/v1/register', payload)
+        persistAuth(data)
+        return { success: true, data }
+    } catch (error) {
+        return toFailure(error as HttpError, 'Register failed')
+    }
 }
 
 function parseStoredUserID(user: StoredUser | null): number | null {
-  if (user?.id != null) {
-    if (typeof user.id === 'number' && Number.isFinite(user.id)) return user.id
-    if (typeof user.id === 'string') {
-      const parsed = Number.parseInt(user.id, 10)
-      if (Number.isFinite(parsed)) return parsed
+    if (user?.id != null) {
+        if (typeof user.id === 'number' && Number.isFinite(user.id)) return user.id
+        if (typeof user.id === 'string') {
+            const parsed = Number.parseInt(user.id, 10)
+            if (Number.isFinite(parsed)) return parsed
+        }
     }
-  }
-  return tokenStorage.getUserID()
+    return tokenStorage.getUserID()
 }
 
-async function switchTenantRequest(
-  payload: SwitchTenantPayload
-): Promise<AuthResult> {
-  try {
-    const { data } = await http.post<AuthResponseData>(
-      '/auth/v1/iam/tenants:switch',
-      payload
-    )
-    persistAuth(data)
-    tenantStorage.setTenantID(payload.tenantId)
-    return { success: true, data }
-  } catch (error) {
-    return toFailure(error as HttpError, 'Switch tenant failed')
-  }
+async function switchTenantRequest(payload: SwitchTenantPayload): Promise<AuthResult> {
+    try {
+        const { data } = await http.post<AuthResponseData>('/auth/v1/iam/tenants:switch', payload)
+        persistAuth(data)
+        tenantStorage.setTenantID(payload.tenantId)
+        return { success: true, data }
+    } catch (error) {
+        return toFailure(error as HttpError, 'Switch tenant failed')
+    }
 }
 
-export async function switchActiveTenant(
-  tenantId: string
-): Promise<AuthResult> {
-  const normalizedTenantID = tenantId.trim()
-  if (!normalizedTenantID) {
-    return { success: false, data: { message: 'Tenant id is required' } }
-  }
-
-  const userId = parseStoredUserID(tokenStorage.getUser())
-  if (!userId) {
-    return { success: false, data: { message: 'No authenticated user found' } }
-  }
-  const accessToken = tokenStorage.getToken()
-  if (!accessToken) {
-    return {
-      success: false,
-      data: { message: 'No active session token found' },
+export async function switchActiveTenant(tenantId: string): Promise<AuthResult> {
+    const normalizedTenantID = tenantId.trim()
+    if (!normalizedTenantID) {
+        return { success: false, data: { message: 'Tenant id is required' } }
     }
-  }
 
-  return switchTenantRequest({
-    userId,
-    tenantId: normalizedTenantID,
-    accessToken,
-  })
+    const userId = parseStoredUserID(tokenStorage.getUser())
+    if (!userId) {
+        return { success: false, data: { message: 'No authenticated user found' } }
+    }
+    const accessToken = tokenStorage.getToken()
+    if (!accessToken) {
+        return {
+            success: false,
+            data: { message: 'No active session token found' },
+        }
+    }
+
+    return switchTenantRequest({
+        userId,
+        tenantId: normalizedTenantID,
+        accessToken,
+    })
 }
 
-export async function ensureActiveTenant(
-  tenantId: string
-): Promise<AuthResult> {
-  const normalizedTenantID = tenantId.trim()
-  if (!normalizedTenantID) {
-    return { success: false, data: { message: 'Tenant id is required' } }
-  }
-
-  if (tokenStorage.getActiveTenantID() === normalizedTenantID) {
-    tenantStorage.setTenantID(normalizedTenantID)
-    return {
-      success: true,
-      data: {
-        jwtToken: tokenStorage.getToken(),
-        userInfo: tokenStorage.getUser() || undefined,
-      },
+export async function ensureActiveTenant(tenantId: string): Promise<AuthResult> {
+    const normalizedTenantID = tenantId.trim()
+    if (!normalizedTenantID) {
+        return { success: false, data: { message: 'Tenant id is required' } }
     }
-  }
 
-  return switchActiveTenant(normalizedTenantID)
+    if (tokenStorage.getActiveTenantID() === normalizedTenantID) {
+        tenantStorage.setTenantID(normalizedTenantID)
+        return {
+            success: true,
+            data: {
+                jwtToken: tokenStorage.getToken(),
+                userInfo: tokenStorage.getUser() || undefined,
+            },
+        }
+    }
+
+    return switchActiveTenant(normalizedTenantID)
 }
 
 export async function refreshSession(): Promise<AuthResult> {
-  const refreshToken = tokenStorage.getRefreshToken()
-  if (!refreshToken) {
-    return { success: false, data: { message: 'No refresh token found' } }
-  }
+    const refreshToken = tokenStorage.getRefreshToken()
+    if (!refreshToken) {
+        return { success: false, data: { message: 'No refresh token found' } }
+    }
 
-  try {
-    const { data } = await http.post<AuthResponseData>('/auth/v1/refresh', {
-      refreshToken,
-    })
-    persistAuth(data)
-    return { success: true, data }
-  } catch (error) {
-    return toFailure(error as HttpError, 'Refresh failed')
-  }
+    try {
+        const { data } = await http.post<AuthResponseData>('/auth/v1/refresh', {
+            refreshToken,
+        })
+        persistAuth(data)
+        return { success: true, data }
+    } catch (error) {
+        return toFailure(error as HttpError, 'Refresh failed')
+    }
 }
 
 export async function logout(): Promise<void> {
-  const token = tokenStorage.getToken()
-  try {
-    if (token) {
-      await http.post('/auth/v1/logout', { token })
+    const token = tokenStorage.getToken()
+    try {
+        if (token) {
+            await http.post('/auth/v1/logout', { token })
+        }
+    } catch {
+        // Revoke on server is best-effort here; local credentials are cleared regardless.
+    } finally {
+        tokenStorage.clearAll()
+        tenantStorage.clearTenantID()
+        window.location.href = '/auth/login'
     }
-  } catch {
-    // Revoke on server is best-effort here; local credentials are cleared regardless.
-  } finally {
-    tokenStorage.clearAll()
-    tenantStorage.clearTenantID()
-    window.location.href = '/auth/login'
-  }
 }
 
 export async function listSessions(
-  query: CollectionQuery
-): Promise<
-  | { success: true; data: CollectionPage<SessionInfo> }
-  | { success: false; data: { message: string } }
-> {
-  try {
-    const { data } = await http.get<{
-      sessions?: SessionInfo[]
-      pageInfo?: WirePageInfo
-    }>('/auth/v1/sessions', {
-      params: toCollectionParams(query),
-    })
-    return {
-      success: true,
-      data: {
-        items: data.sessions || [],
-        pageInfo: data.pageInfo
-          ? normalizePageInfo(data.pageInfo, query)
-          : emptyPageInfo(query),
-      },
+    query: CollectionQuery
+): Promise<{ success: true; data: CollectionPage<SessionInfo> } | { success: false; data: { message: string } }> {
+    try {
+        const { data } = await http.get<{
+            sessions?: SessionInfo[]
+            pageInfo?: WirePageInfo
+        }>('/auth/v1/sessions', {
+            params: toCollectionParams(query),
+        })
+        return {
+            success: true,
+            data: {
+                items: data.sessions || [],
+                pageInfo: data.pageInfo ? normalizePageInfo(data.pageInfo, query) : emptyPageInfo(query),
+            },
+        }
+    } catch (error) {
+        return {
+            success: false,
+            data: {
+                message: (error as HttpError).message || 'Failed to load sessions',
+            },
+        }
     }
-  } catch (error) {
-    return {
-      success: false,
-      data: {
-        message: (error as HttpError).message || 'Failed to load sessions',
-      },
-    }
-  }
 }
 
 export async function revokeSession(sessionId: string): Promise<AuthResult> {
-  try {
-    await http.delete(`/auth/v1/sessions/${sessionId}`)
-    if (tokenStorage.getSessionID() === sessionId) {
-      tokenStorage.clearAll()
-      tenantStorage.clearTenantID()
-      window.location.href = '/auth/login'
+    try {
+        await http.delete(`/auth/v1/sessions/${sessionId}`)
+        if (tokenStorage.getSessionID() === sessionId) {
+            tokenStorage.clearAll()
+            tenantStorage.clearTenantID()
+            window.location.href = '/auth/login'
+        }
+        return { success: true, data: {} }
+    } catch (error) {
+        return toFailure(error as HttpError, 'Failed to revoke session')
     }
-    return { success: true, data: {} }
-  } catch (error) {
-    return toFailure(error as HttpError, 'Failed to revoke session')
-  }
 }
 
 export async function listAuditLogs(
-  query: CollectionQuery
-): Promise<
-  | { success: true; data: CollectionPage<AuditLogInfo> }
-  | { success: false; data: { message: string } }
-> {
-  try {
-    const { data } = await http.get<{
-      logs?: AuditLogInfo[]
-      pageInfo?: WirePageInfo
-    }>('/auth/v1/audit-logs', {
-      params: toCollectionParams(query),
-    })
-    return {
-      success: true,
-      data: {
-        items: data.logs || [],
-        pageInfo: data.pageInfo
-          ? normalizePageInfo(data.pageInfo, query)
-          : emptyPageInfo(query),
-      },
+    query: CollectionQuery
+): Promise<{ success: true; data: CollectionPage<AuditLogInfo> } | { success: false; data: { message: string } }> {
+    try {
+        const { data } = await http.get<{
+            logs?: AuditLogInfo[]
+            pageInfo?: WirePageInfo
+        }>('/auth/v1/audit-logs', {
+            params: toCollectionParams(query),
+        })
+        return {
+            success: true,
+            data: {
+                items: data.logs || [],
+                pageInfo: data.pageInfo ? normalizePageInfo(data.pageInfo, query) : emptyPageInfo(query),
+            },
+        }
+    } catch (error) {
+        return {
+            success: false,
+            data: {
+                message: (error as HttpError).message || 'Failed to load audit logs',
+            },
+        }
     }
-  } catch (error) {
-    return {
-      success: false,
-      data: {
-        message: (error as HttpError).message || 'Failed to load audit logs',
-      },
-    }
-  }
 }

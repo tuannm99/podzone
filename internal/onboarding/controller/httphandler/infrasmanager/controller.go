@@ -52,6 +52,19 @@ func (c *Controller) RegisterRoutes(r *gin.RouterGroup) {
 
 		// Events (history)
 		infras.GET("/events", c.requireInfrastructureRead, c.ListEvents)
+
+		resources := infras.Group("/resources")
+		{
+			resources.GET("/database-clusters", c.requireInfrastructureRead, c.ListDatabaseClusters)
+			resources.PUT("/database-clusters/:name", c.requireInfrastructureManage, c.UpsertDatabaseCluster)
+			resources.DELETE("/database-clusters/:name", c.requireInfrastructureManage, c.DeleteDatabaseCluster)
+			resources.GET("/kubernetes-clusters", c.requireInfrastructureRead, c.ListKubernetesClusters)
+			resources.PUT("/kubernetes-clusters/:name", c.requireInfrastructureManage, c.UpsertKubernetesCluster)
+			resources.DELETE("/kubernetes-clusters/:name", c.requireInfrastructureManage, c.DeleteKubernetesCluster)
+			resources.GET("/runtime-pools", c.requireInfrastructureRead, c.ListRuntimePools)
+			resources.PUT("/runtime-pools/:name", c.requireInfrastructureManage, c.UpsertRuntimePool)
+			resources.DELETE("/runtime-pools/:name", c.requireInfrastructureManage, c.DeleteRuntimePool)
+		}
 	}
 }
 

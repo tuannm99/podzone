@@ -100,7 +100,7 @@ type Usecase interface {
 		actor map[string]string,
 	) (*ProvisionStorePlacementResponse, error)
 	IsPlacementRouteReady(ctx context.Context, tenantID string) (bool, error)
-	EnsurePlacementRoute(ctx context.Context, tenantID string, storeID string) (bool, error)
+	EnsurePlacementRoute(ctx context.Context, tenantID string) (bool, error)
 	ManualUpsertConnection(
 		ctx context.Context,
 		tenantID string,
@@ -131,4 +131,22 @@ type Usecase interface {
 		tenantID string,
 		query collection.Query,
 	) (collection.Page[ConnectionEvent], error)
+	ListDatabaseClusters(
+		ctx context.Context,
+		query collection.Query,
+	) (collection.Page[DatabaseClusterResource], error)
+	UpsertDatabaseCluster(ctx context.Context, resource DatabaseClusterResource) error
+	DeleteDatabaseCluster(ctx context.Context, name string) error
+	ListKubernetesClusters(
+		ctx context.Context,
+		query collection.Query,
+	) (collection.Page[KubernetesClusterResource], error)
+	UpsertKubernetesCluster(ctx context.Context, resource KubernetesClusterResource) error
+	DeleteKubernetesCluster(ctx context.Context, name string) error
+	ListRuntimePools(
+		ctx context.Context,
+		query collection.Query,
+	) (collection.Page[RuntimePoolResource], error)
+	UpsertRuntimePool(ctx context.Context, resource RuntimePoolResource) error
+	DeleteRuntimePool(ctx context.Context, name string) error
 }

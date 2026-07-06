@@ -9,6 +9,7 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 )
 
 // NewMockResourceInventoryRepository creates a new instance of MockResourceInventoryRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -16,7 +17,8 @@ import (
 func NewMockResourceInventoryRepository(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockResourceInventoryRepository {
+},
+) *MockResourceInventoryRepository {
 	mock := &MockResourceInventoryRepository{}
 	mock.Mock.Test(t)
 
@@ -36,6 +38,375 @@ type MockResourceInventoryRepository_Expecter struct {
 
 func (_m *MockResourceInventoryRepository) EXPECT() *MockResourceInventoryRepository_Expecter {
 	return &MockResourceInventoryRepository_Expecter{mock: &_m.Mock}
+}
+
+// DeleteDatabaseCluster provides a mock function for the type MockResourceInventoryRepository
+func (_mock *MockResourceInventoryRepository) DeleteDatabaseCluster(ctx context.Context, name string) error {
+	ret := _mock.Called(ctx, name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteDatabaseCluster")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, name)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockResourceInventoryRepository_DeleteDatabaseCluster_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteDatabaseCluster'
+type MockResourceInventoryRepository_DeleteDatabaseCluster_Call struct {
+	*mock.Call
+}
+
+// DeleteDatabaseCluster is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+func (_e *MockResourceInventoryRepository_Expecter) DeleteDatabaseCluster(ctx interface{}, name interface{}) *MockResourceInventoryRepository_DeleteDatabaseCluster_Call {
+	return &MockResourceInventoryRepository_DeleteDatabaseCluster_Call{Call: _e.mock.On("DeleteDatabaseCluster", ctx, name)}
+}
+
+func (_c *MockResourceInventoryRepository_DeleteDatabaseCluster_Call) Run(run func(ctx context.Context, name string)) *MockResourceInventoryRepository_DeleteDatabaseCluster_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockResourceInventoryRepository_DeleteDatabaseCluster_Call) Return(err error) *MockResourceInventoryRepository_DeleteDatabaseCluster_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockResourceInventoryRepository_DeleteDatabaseCluster_Call) RunAndReturn(run func(ctx context.Context, name string) error) *MockResourceInventoryRepository_DeleteDatabaseCluster_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteKubernetesCluster provides a mock function for the type MockResourceInventoryRepository
+func (_mock *MockResourceInventoryRepository) DeleteKubernetesCluster(ctx context.Context, name string) error {
+	ret := _mock.Called(ctx, name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteKubernetesCluster")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, name)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockResourceInventoryRepository_DeleteKubernetesCluster_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteKubernetesCluster'
+type MockResourceInventoryRepository_DeleteKubernetesCluster_Call struct {
+	*mock.Call
+}
+
+// DeleteKubernetesCluster is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+func (_e *MockResourceInventoryRepository_Expecter) DeleteKubernetesCluster(ctx interface{}, name interface{}) *MockResourceInventoryRepository_DeleteKubernetesCluster_Call {
+	return &MockResourceInventoryRepository_DeleteKubernetesCluster_Call{Call: _e.mock.On("DeleteKubernetesCluster", ctx, name)}
+}
+
+func (_c *MockResourceInventoryRepository_DeleteKubernetesCluster_Call) Run(run func(ctx context.Context, name string)) *MockResourceInventoryRepository_DeleteKubernetesCluster_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockResourceInventoryRepository_DeleteKubernetesCluster_Call) Return(err error) *MockResourceInventoryRepository_DeleteKubernetesCluster_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockResourceInventoryRepository_DeleteKubernetesCluster_Call) RunAndReturn(run func(ctx context.Context, name string) error) *MockResourceInventoryRepository_DeleteKubernetesCluster_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteRuntimePool provides a mock function for the type MockResourceInventoryRepository
+func (_mock *MockResourceInventoryRepository) DeleteRuntimePool(ctx context.Context, name string) error {
+	ret := _mock.Called(ctx, name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteRuntimePool")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, name)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockResourceInventoryRepository_DeleteRuntimePool_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteRuntimePool'
+type MockResourceInventoryRepository_DeleteRuntimePool_Call struct {
+	*mock.Call
+}
+
+// DeleteRuntimePool is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+func (_e *MockResourceInventoryRepository_Expecter) DeleteRuntimePool(ctx interface{}, name interface{}) *MockResourceInventoryRepository_DeleteRuntimePool_Call {
+	return &MockResourceInventoryRepository_DeleteRuntimePool_Call{Call: _e.mock.On("DeleteRuntimePool", ctx, name)}
+}
+
+func (_c *MockResourceInventoryRepository_DeleteRuntimePool_Call) Run(run func(ctx context.Context, name string)) *MockResourceInventoryRepository_DeleteRuntimePool_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockResourceInventoryRepository_DeleteRuntimePool_Call) Return(err error) *MockResourceInventoryRepository_DeleteRuntimePool_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockResourceInventoryRepository_DeleteRuntimePool_Call) RunAndReturn(run func(ctx context.Context, name string) error) *MockResourceInventoryRepository_DeleteRuntimePool_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListDatabaseClusters provides a mock function for the type MockResourceInventoryRepository
+func (_mock *MockResourceInventoryRepository) ListDatabaseClusters(ctx context.Context, query collection.Query) (collection.Page[entity.DatabaseCluster], error) {
+	ret := _mock.Called(ctx, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListDatabaseClusters")
+	}
+
+	var r0 collection.Page[entity.DatabaseCluster]
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) (collection.Page[entity.DatabaseCluster], error)); ok {
+		return returnFunc(ctx, query)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) collection.Page[entity.DatabaseCluster]); ok {
+		r0 = returnFunc(ctx, query)
+	} else {
+		r0 = ret.Get(0).(collection.Page[entity.DatabaseCluster])
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, collection.Query) error); ok {
+		r1 = returnFunc(ctx, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockResourceInventoryRepository_ListDatabaseClusters_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListDatabaseClusters'
+type MockResourceInventoryRepository_ListDatabaseClusters_Call struct {
+	*mock.Call
+}
+
+// ListDatabaseClusters is a helper method to define mock.On call
+//   - ctx context.Context
+//   - query collection.Query
+func (_e *MockResourceInventoryRepository_Expecter) ListDatabaseClusters(ctx interface{}, query interface{}) *MockResourceInventoryRepository_ListDatabaseClusters_Call {
+	return &MockResourceInventoryRepository_ListDatabaseClusters_Call{Call: _e.mock.On("ListDatabaseClusters", ctx, query)}
+}
+
+func (_c *MockResourceInventoryRepository_ListDatabaseClusters_Call) Run(run func(ctx context.Context, query collection.Query)) *MockResourceInventoryRepository_ListDatabaseClusters_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 collection.Query
+		if args[1] != nil {
+			arg1 = args[1].(collection.Query)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockResourceInventoryRepository_ListDatabaseClusters_Call) Return(page collection.Page[entity.DatabaseCluster], err error) *MockResourceInventoryRepository_ListDatabaseClusters_Call {
+	_c.Call.Return(page, err)
+	return _c
+}
+
+func (_c *MockResourceInventoryRepository_ListDatabaseClusters_Call) RunAndReturn(run func(ctx context.Context, query collection.Query) (collection.Page[entity.DatabaseCluster], error)) *MockResourceInventoryRepository_ListDatabaseClusters_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListKubernetesClusters provides a mock function for the type MockResourceInventoryRepository
+func (_mock *MockResourceInventoryRepository) ListKubernetesClusters(ctx context.Context, query collection.Query) (collection.Page[entity.KubernetesCluster], error) {
+	ret := _mock.Called(ctx, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListKubernetesClusters")
+	}
+
+	var r0 collection.Page[entity.KubernetesCluster]
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) (collection.Page[entity.KubernetesCluster], error)); ok {
+		return returnFunc(ctx, query)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) collection.Page[entity.KubernetesCluster]); ok {
+		r0 = returnFunc(ctx, query)
+	} else {
+		r0 = ret.Get(0).(collection.Page[entity.KubernetesCluster])
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, collection.Query) error); ok {
+		r1 = returnFunc(ctx, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockResourceInventoryRepository_ListKubernetesClusters_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListKubernetesClusters'
+type MockResourceInventoryRepository_ListKubernetesClusters_Call struct {
+	*mock.Call
+}
+
+// ListKubernetesClusters is a helper method to define mock.On call
+//   - ctx context.Context
+//   - query collection.Query
+func (_e *MockResourceInventoryRepository_Expecter) ListKubernetesClusters(ctx interface{}, query interface{}) *MockResourceInventoryRepository_ListKubernetesClusters_Call {
+	return &MockResourceInventoryRepository_ListKubernetesClusters_Call{Call: _e.mock.On("ListKubernetesClusters", ctx, query)}
+}
+
+func (_c *MockResourceInventoryRepository_ListKubernetesClusters_Call) Run(run func(ctx context.Context, query collection.Query)) *MockResourceInventoryRepository_ListKubernetesClusters_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 collection.Query
+		if args[1] != nil {
+			arg1 = args[1].(collection.Query)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockResourceInventoryRepository_ListKubernetesClusters_Call) Return(page collection.Page[entity.KubernetesCluster], err error) *MockResourceInventoryRepository_ListKubernetesClusters_Call {
+	_c.Call.Return(page, err)
+	return _c
+}
+
+func (_c *MockResourceInventoryRepository_ListKubernetesClusters_Call) RunAndReturn(run func(ctx context.Context, query collection.Query) (collection.Page[entity.KubernetesCluster], error)) *MockResourceInventoryRepository_ListKubernetesClusters_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListRuntimePools provides a mock function for the type MockResourceInventoryRepository
+func (_mock *MockResourceInventoryRepository) ListRuntimePools(ctx context.Context, query collection.Query) (collection.Page[entity.RuntimePool], error) {
+	ret := _mock.Called(ctx, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListRuntimePools")
+	}
+
+	var r0 collection.Page[entity.RuntimePool]
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) (collection.Page[entity.RuntimePool], error)); ok {
+		return returnFunc(ctx, query)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) collection.Page[entity.RuntimePool]); ok {
+		r0 = returnFunc(ctx, query)
+	} else {
+		r0 = ret.Get(0).(collection.Page[entity.RuntimePool])
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, collection.Query) error); ok {
+		r1 = returnFunc(ctx, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockResourceInventoryRepository_ListRuntimePools_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListRuntimePools'
+type MockResourceInventoryRepository_ListRuntimePools_Call struct {
+	*mock.Call
+}
+
+// ListRuntimePools is a helper method to define mock.On call
+//   - ctx context.Context
+//   - query collection.Query
+func (_e *MockResourceInventoryRepository_Expecter) ListRuntimePools(ctx interface{}, query interface{}) *MockResourceInventoryRepository_ListRuntimePools_Call {
+	return &MockResourceInventoryRepository_ListRuntimePools_Call{Call: _e.mock.On("ListRuntimePools", ctx, query)}
+}
+
+func (_c *MockResourceInventoryRepository_ListRuntimePools_Call) Run(run func(ctx context.Context, query collection.Query)) *MockResourceInventoryRepository_ListRuntimePools_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 collection.Query
+		if args[1] != nil {
+			arg1 = args[1].(collection.Query)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockResourceInventoryRepository_ListRuntimePools_Call) Return(page collection.Page[entity.RuntimePool], err error) *MockResourceInventoryRepository_ListRuntimePools_Call {
+	_c.Call.Return(page, err)
+	return _c
+}
+
+func (_c *MockResourceInventoryRepository_ListRuntimePools_Call) RunAndReturn(run func(ctx context.Context, query collection.Query) (collection.Page[entity.RuntimePool], error)) *MockResourceInventoryRepository_ListRuntimePools_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // LoadResourceInventory provides a mock function for the type MockResourceInventoryRepository
@@ -100,6 +471,177 @@ func (_c *MockResourceInventoryRepository_LoadResourceInventory_Call) Return(res
 }
 
 func (_c *MockResourceInventoryRepository_LoadResourceInventory_Call) RunAndReturn(run func(ctx context.Context, request entity.StorePlacementRequest) (entity.ResourceInventory, error)) *MockResourceInventoryRepository_LoadResourceInventory_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpsertDatabaseCluster provides a mock function for the type MockResourceInventoryRepository
+func (_mock *MockResourceInventoryRepository) UpsertDatabaseCluster(ctx context.Context, cluster entity.DatabaseCluster) error {
+	ret := _mock.Called(ctx, cluster)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertDatabaseCluster")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.DatabaseCluster) error); ok {
+		r0 = returnFunc(ctx, cluster)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockResourceInventoryRepository_UpsertDatabaseCluster_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpsertDatabaseCluster'
+type MockResourceInventoryRepository_UpsertDatabaseCluster_Call struct {
+	*mock.Call
+}
+
+// UpsertDatabaseCluster is a helper method to define mock.On call
+//   - ctx context.Context
+//   - cluster entity.DatabaseCluster
+func (_e *MockResourceInventoryRepository_Expecter) UpsertDatabaseCluster(ctx interface{}, cluster interface{}) *MockResourceInventoryRepository_UpsertDatabaseCluster_Call {
+	return &MockResourceInventoryRepository_UpsertDatabaseCluster_Call{Call: _e.mock.On("UpsertDatabaseCluster", ctx, cluster)}
+}
+
+func (_c *MockResourceInventoryRepository_UpsertDatabaseCluster_Call) Run(run func(ctx context.Context, cluster entity.DatabaseCluster)) *MockResourceInventoryRepository_UpsertDatabaseCluster_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 entity.DatabaseCluster
+		if args[1] != nil {
+			arg1 = args[1].(entity.DatabaseCluster)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockResourceInventoryRepository_UpsertDatabaseCluster_Call) Return(err error) *MockResourceInventoryRepository_UpsertDatabaseCluster_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockResourceInventoryRepository_UpsertDatabaseCluster_Call) RunAndReturn(run func(ctx context.Context, cluster entity.DatabaseCluster) error) *MockResourceInventoryRepository_UpsertDatabaseCluster_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpsertKubernetesCluster provides a mock function for the type MockResourceInventoryRepository
+func (_mock *MockResourceInventoryRepository) UpsertKubernetesCluster(ctx context.Context, cluster entity.KubernetesCluster) error {
+	ret := _mock.Called(ctx, cluster)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertKubernetesCluster")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.KubernetesCluster) error); ok {
+		r0 = returnFunc(ctx, cluster)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockResourceInventoryRepository_UpsertKubernetesCluster_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpsertKubernetesCluster'
+type MockResourceInventoryRepository_UpsertKubernetesCluster_Call struct {
+	*mock.Call
+}
+
+// UpsertKubernetesCluster is a helper method to define mock.On call
+//   - ctx context.Context
+//   - cluster entity.KubernetesCluster
+func (_e *MockResourceInventoryRepository_Expecter) UpsertKubernetesCluster(ctx interface{}, cluster interface{}) *MockResourceInventoryRepository_UpsertKubernetesCluster_Call {
+	return &MockResourceInventoryRepository_UpsertKubernetesCluster_Call{Call: _e.mock.On("UpsertKubernetesCluster", ctx, cluster)}
+}
+
+func (_c *MockResourceInventoryRepository_UpsertKubernetesCluster_Call) Run(run func(ctx context.Context, cluster entity.KubernetesCluster)) *MockResourceInventoryRepository_UpsertKubernetesCluster_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 entity.KubernetesCluster
+		if args[1] != nil {
+			arg1 = args[1].(entity.KubernetesCluster)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockResourceInventoryRepository_UpsertKubernetesCluster_Call) Return(err error) *MockResourceInventoryRepository_UpsertKubernetesCluster_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockResourceInventoryRepository_UpsertKubernetesCluster_Call) RunAndReturn(run func(ctx context.Context, cluster entity.KubernetesCluster) error) *MockResourceInventoryRepository_UpsertKubernetesCluster_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpsertRuntimePool provides a mock function for the type MockResourceInventoryRepository
+func (_mock *MockResourceInventoryRepository) UpsertRuntimePool(ctx context.Context, pool entity.RuntimePool) error {
+	ret := _mock.Called(ctx, pool)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertRuntimePool")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, entity.RuntimePool) error); ok {
+		r0 = returnFunc(ctx, pool)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockResourceInventoryRepository_UpsertRuntimePool_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpsertRuntimePool'
+type MockResourceInventoryRepository_UpsertRuntimePool_Call struct {
+	*mock.Call
+}
+
+// UpsertRuntimePool is a helper method to define mock.On call
+//   - ctx context.Context
+//   - pool entity.RuntimePool
+func (_e *MockResourceInventoryRepository_Expecter) UpsertRuntimePool(ctx interface{}, pool interface{}) *MockResourceInventoryRepository_UpsertRuntimePool_Call {
+	return &MockResourceInventoryRepository_UpsertRuntimePool_Call{Call: _e.mock.On("UpsertRuntimePool", ctx, pool)}
+}
+
+func (_c *MockResourceInventoryRepository_UpsertRuntimePool_Call) Run(run func(ctx context.Context, pool entity.RuntimePool)) *MockResourceInventoryRepository_UpsertRuntimePool_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 entity.RuntimePool
+		if args[1] != nil {
+			arg1 = args[1].(entity.RuntimePool)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockResourceInventoryRepository_UpsertRuntimePool_Call) Return(err error) *MockResourceInventoryRepository_UpsertRuntimePool_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockResourceInventoryRepository_UpsertRuntimePool_Call) RunAndReturn(run func(ctx context.Context, pool entity.RuntimePool) error) *MockResourceInventoryRepository_UpsertRuntimePool_Call {
 	_c.Call.Return(run)
 	return _c
 }

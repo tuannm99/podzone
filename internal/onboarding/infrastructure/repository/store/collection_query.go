@@ -37,6 +37,17 @@ var requestCollectionFields = map[string]requestField{
 	"updatedAt":   {path: "updated_at", kind: requestFieldTime},
 }
 
+var transitionCollectionFields = map[string]requestField{
+	"id":        {path: "_id", kind: requestFieldObjectID},
+	"requestId": {path: "request_id", kind: requestFieldString},
+	"from":      {path: "from", kind: requestFieldString},
+	"to":        {path: "to", kind: requestFieldString},
+	"step":      {path: "step", kind: requestFieldString},
+	"reason":    {path: "reason", kind: requestFieldString},
+	"errorCode": {path: "error_code", kind: requestFieldString},
+	"createdAt": {path: "created_at", kind: requestFieldTime},
+}
+
 func buildStoreRequestCollection(
 	workspaceID string,
 	query collection.Query,
@@ -86,6 +97,51 @@ func buildStoreRequestCollection(
 	}, nil
 }
 
+func buildStoreTransitionCollection(
+	requestID string,
+	query collection.Query,
+) (collection.Query, bson.M, bson.D, error) {
+	normalized := query.Normalize()
+	clauses := bson.A{bson.M{"request_id": requestID}}
+	if search := strings.TrimSpace(normalized.Search); search != "" {
+		pattern := primitive.Regex{Pattern: regexp.QuoteMeta(search), Options: "i"}
+		clauses = append(clauses, bson.M{"$or": bson.A{
+			bson.M{"from": pattern},
+			bson.M{"to": pattern},
+			bson.M{"step": pattern},
+			bson.M{"reason": pattern},
+			bson.M{"error_code": pattern},
+		}})
+	}
+	for _, filter := range normalized.Filters {
+		clause, err := storeTransitionFilter(filter)
+		if err != nil {
+			return collection.Query{}, nil, nil, err
+		}
+		clauses = append(clauses, clause)
+	}
+	sortField := transitionCollectionFields["createdAt"]
+	if normalized.SortBy != "" {
+		var ok bool
+		sortField, ok = transitionCollectionFields[normalized.SortBy]
+		if !ok {
+			return collection.Query{}, nil, nil, fmt.Errorf(
+				"%w: unsupported store transition sort field %q",
+				collection.ErrInvalidQuery,
+				normalized.SortBy,
+			)
+		}
+	}
+	direction := -1
+	if normalized.SortDirection == collection.SortAscending {
+		direction = 1
+	}
+	return normalized, bson.M{"$and": clauses}, bson.D{
+		{Key: sortField.path, Value: direction},
+		{Key: "_id", Value: 1},
+	}, nil
+}
+
 func storeRequestFilter(filter collection.Filter) (bson.M, error) {
 	field, ok := requestCollectionFields[filter.Field]
 	if !ok {
@@ -95,6 +151,22 @@ func storeRequestFilter(filter collection.Filter) (bson.M, error) {
 			filter.Field,
 		)
 	}
+	return storeCollectionFilter(field, filter)
+}
+
+func storeTransitionFilter(filter collection.Filter) (bson.M, error) {
+	field, ok := transitionCollectionFields[filter.Field]
+	if !ok {
+		return nil, fmt.Errorf(
+			"%w: unsupported store transition filter field %q",
+			collection.ErrInvalidQuery,
+			filter.Field,
+		)
+	}
+	return storeCollectionFilter(field, filter)
+}
+
+func storeCollectionFilter(field requestField, filter collection.Filter) (bson.M, error) {
 	if len(filter.Values) == 0 {
 		return nil, fmt.Errorf("%w: filter %q requires a value", collection.ErrInvalidQuery, filter.Field)
 	}

@@ -18,6 +18,7 @@ type collectionFieldKind uint8
 const (
 	collectionFieldString collectionFieldKind = iota
 	collectionFieldInt
+	collectionFieldBool
 	collectionFieldTime
 )
 
@@ -51,6 +52,43 @@ var eventCollectionFields = map[string]collectionField{
 	"createdAt":     {path: "created_at", kind: collectionFieldTime},
 }
 
+var databaseClusterCollectionFields = map[string]collectionField{
+	"name":               {path: "name", kind: collectionFieldString},
+	"engine":             {path: "engine", kind: collectionFieldString},
+	"region":             {path: "region", kind: collectionFieldString},
+	"placementDb":        {path: "placement_db", kind: collectionFieldString},
+	"maxTenants":         {path: "max_tenants", kind: collectionFieldInt},
+	"currentTenants":     {path: "current_tenants", kind: collectionFieldInt},
+	"maxSchemas":         {path: "max_schemas", kind: collectionFieldInt},
+	"currentSchemas":     {path: "current_schemas", kind: collectionFieldInt},
+	"maxConnections":     {path: "max_connections", kind: collectionFieldInt},
+	"currentConnections": {path: "current_connections", kind: collectionFieldInt},
+	"status":             {path: "status", kind: collectionFieldString},
+	"healthy":            {path: "healthy", kind: collectionFieldBool},
+	"createdAt":          {path: "created_at", kind: collectionFieldTime},
+	"updatedAt":          {path: "updated_at", kind: collectionFieldTime},
+}
+
+var kubernetesClusterCollectionFields = map[string]collectionField{
+	"name":      {path: "name", kind: collectionFieldString},
+	"region":    {path: "region", kind: collectionFieldString},
+	"status":    {path: "status", kind: collectionFieldString},
+	"healthy":   {path: "healthy", kind: collectionFieldBool},
+	"createdAt": {path: "created_at", kind: collectionFieldTime},
+	"updatedAt": {path: "updated_at", kind: collectionFieldTime},
+}
+
+var runtimePoolCollectionFields = map[string]collectionField{
+	"name":           {path: "name", kind: collectionFieldString},
+	"kind":           {path: "kind", kind: collectionFieldString},
+	"maxTenants":     {path: "max_tenants", kind: collectionFieldInt},
+	"currentTenants": {path: "current_tenants", kind: collectionFieldInt},
+	"status":         {path: "status", kind: collectionFieldString},
+	"healthy":        {path: "healthy", kind: collectionFieldBool},
+	"createdAt":      {path: "created_at", kind: collectionFieldTime},
+	"updatedAt":      {path: "updated_at", kind: collectionFieldTime},
+}
+
 func buildConnectionCollection(
 	tenantID string,
 	includeDeleted bool,
@@ -81,6 +119,45 @@ func buildEventCollection(
 		[]string{"id", "correlationId", "infraType", "name", "action", "status", "error"},
 		"createdAt",
 		"id",
+	)
+}
+
+func buildDatabaseClusterCollection(
+	query collection.Query,
+) (collection.Query, bson.M, bson.D, error) {
+	return buildInfrastructureCollection(
+		query,
+		bson.A{bson.M{}},
+		databaseClusterCollectionFields,
+		[]string{"name", "engine", "region", "placementDb", "status"},
+		"updatedAt",
+		"name",
+	)
+}
+
+func buildKubernetesClusterCollection(
+	query collection.Query,
+) (collection.Query, bson.M, bson.D, error) {
+	return buildInfrastructureCollection(
+		query,
+		bson.A{bson.M{}},
+		kubernetesClusterCollectionFields,
+		[]string{"name", "region", "status"},
+		"updatedAt",
+		"name",
+	)
+}
+
+func buildRuntimePoolCollection(
+	query collection.Query,
+) (collection.Query, bson.M, bson.D, error) {
+	return buildInfrastructureCollection(
+		query,
+		bson.A{bson.M{}},
+		runtimePoolCollectionFields,
+		[]string{"name", "kind", "status"},
+		"updatedAt",
+		"name",
 	)
 }
 
@@ -199,6 +276,12 @@ func convertInfrastructureValues(field collectionField, values []string) (bson.A
 				return nil, err
 			}
 			out = append(out, number)
+		case collectionFieldBool:
+			boolean, err := strconv.ParseBool(value)
+			if err != nil {
+				return nil, err
+			}
+			out = append(out, boolean)
 		case collectionFieldTime:
 			timestamp, err := time.Parse(time.RFC3339, value)
 			if err != nil {

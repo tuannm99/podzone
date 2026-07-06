@@ -38,6 +38,7 @@ func (c *Controller) RegisterRoutes(r *gin.RouterGroup) {
 		requests.POST("", c.CreateStoreRequest)
 		requests.GET("", c.ListStoreRequests)
 		requests.GET("/:id", c.GetStoreRequest)
+		requests.GET("/:id/transitions", c.ListStoreRequestTransitions)
 		requests.POST("/:id/retry", c.RetryStoreRequest)
 		requests.POST("/:id/approve", c.ApproveStoreRequest)
 		requests.POST("/:id/reject", c.RejectStoreRequest)
@@ -48,6 +49,7 @@ func (c *Controller) RegisterRoutes(r *gin.RouterGroup) {
 		legacy.POST("", c.CreateStoreRequest)
 		legacy.GET("", c.ListStoreRequests)
 		legacy.GET("/:id", c.GetStoreRequest)
+		legacy.GET("/:id/transitions", c.ListStoreRequestTransitions)
 		legacy.POST("/:id/retry", c.RetryStoreRequest)
 		legacy.POST("/:id/approve", c.ApproveStoreRequest)
 		legacy.POST("/:id/reject", c.RejectStoreRequest)
@@ -63,6 +65,11 @@ type CreateStoreRequest struct {
 type listStoreRequestsResponse struct {
 	Items    []*storeinputport.Request `json:"items"`
 	PageInfo collection.PageInfo       `json:"pageInfo"`
+}
+
+type listStoreRequestTransitionsResponse struct {
+	Items    []storeinputport.RequestTransition `json:"items"`
+	PageInfo collection.PageInfo                `json:"pageInfo"`
 }
 
 func (c *Controller) CreateStoreRequest(ctx *gin.Context) {
@@ -131,6 +138,23 @@ func (c *Controller) GetStoreRequest(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, request)
+}
+
+func (c *Controller) ListStoreRequestTransitions(ctx *gin.Context) {
+	query, err := collection.ParseURLValues(ctx.Request.URL.Query(), "collection.")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	page, err := c.service.ListStoreRequestTransitions(ctx.Request.Context(), ctx.Param("id"), query)
+	if err != nil {
+		writeStoreError(ctx, err, "Failed to list store request transitions")
+		return
+	}
+	ctx.JSON(http.StatusOK, listStoreRequestTransitionsResponse{
+		Items:    page.Items,
+		PageInfo: page.Info(),
+	})
 }
 
 func (c *Controller) RetryStoreRequest(ctx *gin.Context) {

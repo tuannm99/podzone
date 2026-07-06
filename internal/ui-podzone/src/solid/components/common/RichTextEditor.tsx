@@ -5,114 +5,112 @@ import { createEffect, onCleanup, onMount } from 'solid-js'
 import { classes } from '../../shared/utils'
 
 type RichTextEditorProps = {
-  label?: string
-  value: string
-  class?: string
-  hint?: string
-  height?: string
-  minHeight?: string
-  placeholder?: string
-  onInput: (value: string) => void
+    label?: string
+    value: string
+    class?: string
+    hint?: string
+    height?: string
+    minHeight?: string
+    placeholder?: string
+    onInput: (value: string) => void
 }
 
 const TOOLBAR_ITEMS = [
-  ['heading', 'bold', 'italic', 'strike'],
-  ['hr', 'quote'],
-  ['ul', 'ol', 'task'],
-  ['table', 'link'],
-  ['code', 'codeblock'],
+    ['heading', 'bold', 'italic', 'strike'],
+    ['hr', 'quote'],
+    ['ul', 'ol', 'task'],
+    ['table', 'link'],
+    ['code', 'codeblock'],
 ]
 
 function resolvePreviewStyle(): PreviewStyle {
-  if (typeof window === 'undefined') return 'tab'
-  return window.innerWidth >= 1280 ? 'vertical' : 'tab'
+    if (typeof window === 'undefined') return 'tab'
+    return window.innerWidth >= 1280 ? 'vertical' : 'tab'
 }
 
 export function RichTextEditor(props: RichTextEditorProps) {
-  let containerRef: HTMLDivElement | undefined
-  let editor: ToastEditor | undefined
-  let syncingExternalValue = false
+    let containerRef: HTMLDivElement | undefined
+    let editor: ToastEditor | undefined
+    let syncingExternalValue = false
 
-  const syncPreviewStyle = () => {
-    const currentEditor = editor
-    if (!currentEditor) return
+    const syncPreviewStyle = () => {
+        const currentEditor = editor
+        if (!currentEditor) return
 
-    const nextStyle = resolvePreviewStyle()
-    if (currentEditor.getCurrentPreviewStyle() !== nextStyle) {
-      currentEditor.changePreviewStyle(nextStyle)
+        const nextStyle = resolvePreviewStyle()
+        if (currentEditor.getCurrentPreviewStyle() !== nextStyle) {
+            currentEditor.changePreviewStyle(nextStyle)
+        }
     }
-  }
 
-  onMount(() => {
-    if (!containerRef) return
+    onMount(() => {
+        if (!containerRef) return
 
-    editor = new Editor({
-      el: containerRef,
-      height: props.height ?? '620px',
-      minHeight: props.minHeight ?? '460px',
-      initialValue: props.value,
-      initialEditType: 'wysiwyg',
-      previewStyle: resolvePreviewStyle(),
-      placeholder: props.placeholder,
-      hideModeSwitch: false,
-      usageStatistics: false,
-      linkAttributes: {
-        target: '_blank',
-        rel: 'noreferrer noopener',
-      },
-      toolbarItems: TOOLBAR_ITEMS,
-      events: {
-        change: () => {
-          const currentEditor = editor
-          if (!currentEditor || syncingExternalValue) return
-          props.onInput(currentEditor.getMarkdown())
-        },
-      },
+        editor = new Editor({
+            el: containerRef,
+            height: props.height ?? '620px',
+            minHeight: props.minHeight ?? '460px',
+            initialValue: props.value,
+            initialEditType: 'wysiwyg',
+            previewStyle: resolvePreviewStyle(),
+            placeholder: props.placeholder,
+            hideModeSwitch: false,
+            usageStatistics: false,
+            linkAttributes: {
+                target: '_blank',
+                rel: 'noreferrer noopener',
+            },
+            toolbarItems: TOOLBAR_ITEMS,
+            events: {
+                change: () => {
+                    const currentEditor = editor
+                    if (!currentEditor || syncingExternalValue) return
+                    props.onInput(currentEditor.getMarkdown())
+                },
+            },
+        })
+
+        syncPreviewStyle()
+        window.addEventListener('resize', syncPreviewStyle)
+
+        onCleanup(() => {
+            window.removeEventListener('resize', syncPreviewStyle)
+            editor?.destroy()
+            editor = undefined
+        })
     })
 
-    syncPreviewStyle()
-    window.addEventListener('resize', syncPreviewStyle)
+    createEffect(() => {
+        const nextValue = props.value
+        const currentEditor = editor
+        if (!currentEditor) return
 
-    onCleanup(() => {
-      window.removeEventListener('resize', syncPreviewStyle)
-      editor?.destroy()
-      editor = undefined
+        if (currentEditor.getMarkdown() === nextValue) return
+
+        syncingExternalValue = true
+        currentEditor.setMarkdown(nextValue, false)
+        syncingExternalValue = false
     })
-  })
 
-  createEffect(() => {
-    const nextValue = props.value
-    const currentEditor = editor
-    if (!currentEditor) return
+    return (
+        <div class={classes('space-y-3', props.class)}>
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="space-y-1">
+                    <div class="text-sm font-medium text-gray-800">{props.label ?? 'Statement editor'}</div>
+                    <div class="text-xs text-gray-500">
+                        {props.hint ??
+                            'Write in WYSIWYG or Markdown. The saved source remains Markdown for portability.'}
+                    </div>
+                </div>
 
-    if (currentEditor.getMarkdown() === nextValue) return
+                <div class="rounded-md bg-gray-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-gray-700">
+                    TOAST UI Editor
+                </div>
+            </div>
 
-    syncingExternalValue = true
-    currentEditor.setMarkdown(nextValue, false)
-    syncingExternalValue = false
-  })
-
-  return (
-    <div class={classes('space-y-3', props.class)}>
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="space-y-1">
-          <div class="text-sm font-medium text-gray-800">
-            {props.label ?? 'Statement editor'}
-          </div>
-          <div class="text-xs text-gray-500">
-            {props.hint ??
-              'Write in WYSIWYG or Markdown. The saved source remains Markdown for portability.'}
-          </div>
+            <div class="problem-statement-editor problem-statement-surface">
+                <div ref={(element) => (containerRef = element)} />
+            </div>
         </div>
-
-        <div class="rounded-md bg-gray-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-gray-700">
-          TOAST UI Editor
-        </div>
-      </div>
-
-      <div class="problem-statement-editor problem-statement-surface">
-        <div ref={(element) => (containerRef = element)} />
-      </div>
-    </div>
-  )
+    )
 }

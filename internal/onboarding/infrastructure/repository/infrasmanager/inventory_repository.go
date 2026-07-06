@@ -7,8 +7,10 @@ import (
 
 	onboardingconfig "github.com/tuannm99/podzone/internal/onboarding/config"
 	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/entity"
+	"github.com/tuannm99/podzone/pkg/collection"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -140,6 +142,221 @@ func (s *MongoStore) hasResourceInventory(ctx context.Context) (bool, error) {
 	return dbCount > 0 || k8sCount > 0 || poolCount > 0, nil
 }
 
+func (s *MongoStore) ListDatabaseClusters(
+	ctx context.Context,
+	query collection.Query,
+) (collection.Page[entity.DatabaseCluster], error) {
+	normalized, filter, sort, err := buildDatabaseClusterCollection(query)
+	if err != nil {
+		return collection.Page[entity.DatabaseCluster]{}, err
+	}
+	total, err := s.dbCol.CountDocuments(ctx, filter)
+	if err != nil {
+		return collection.Page[entity.DatabaseCluster]{}, err
+	}
+	cursor, err := s.dbCol.Find(
+		ctx,
+		filter,
+		options.Find().
+			SetSort(sort).
+			SetSkip(int64(normalized.Offset())).
+			SetLimit(int64(normalized.PageSize)),
+	)
+	if err != nil {
+		return collection.Page[entity.DatabaseCluster]{}, err
+	}
+	defer cursor.Close(ctx)
+
+	var docs []databaseClusterDoc
+	if err := cursor.All(ctx, &docs); err != nil {
+		return collection.Page[entity.DatabaseCluster]{}, err
+	}
+	items := make([]entity.DatabaseCluster, 0, len(docs))
+	for _, doc := range docs {
+		items = append(items, doc.toEntity())
+	}
+	return collection.NewPage(items, total, normalized), nil
+}
+
+func (s *MongoStore) UpsertDatabaseCluster(ctx context.Context, cluster entity.DatabaseCluster) error {
+	now := time.Now().UTC()
+	_, err := s.dbCol.UpdateOne(
+		ctx,
+		bson.M{"name": cluster.Name},
+		bson.M{
+			"$set": bson.M{
+				"engine":              cluster.Engine,
+				"region":              cluster.Region,
+				"placement_db":        cluster.PlacementDB,
+				"max_tenants":         cluster.MaxTenants,
+				"current_tenants":     cluster.CurrentTenants,
+				"max_schemas":         cluster.MaxSchemas,
+				"current_schemas":     cluster.CurrentSchemas,
+				"max_connections":     cluster.MaxConnections,
+				"current_connections": cluster.CurrentConnections,
+				"status":              cluster.Status,
+				"healthy":             cluster.Healthy,
+				"updated_at":          now,
+			},
+			"$setOnInsert": bson.M{"name": cluster.Name, "created_at": now},
+		},
+		options.Update().SetUpsert(true),
+	)
+	return err
+}
+
+func (s *MongoStore) DeleteDatabaseCluster(ctx context.Context, name string) error {
+	return archiveResource(ctx, s.dbCol, name)
+}
+
+func (s *MongoStore) ListKubernetesClusters(
+	ctx context.Context,
+	query collection.Query,
+) (collection.Page[entity.KubernetesCluster], error) {
+	normalized, filter, sort, err := buildKubernetesClusterCollection(query)
+	if err != nil {
+		return collection.Page[entity.KubernetesCluster]{}, err
+	}
+	total, err := s.k8sCol.CountDocuments(ctx, filter)
+	if err != nil {
+		return collection.Page[entity.KubernetesCluster]{}, err
+	}
+	cursor, err := s.k8sCol.Find(
+		ctx,
+		filter,
+		options.Find().
+			SetSort(sort).
+			SetSkip(int64(normalized.Offset())).
+			SetLimit(int64(normalized.PageSize)),
+	)
+	if err != nil {
+		return collection.Page[entity.KubernetesCluster]{}, err
+	}
+	defer cursor.Close(ctx)
+
+	var docs []kubernetesClusterDoc
+	if err := cursor.All(ctx, &docs); err != nil {
+		return collection.Page[entity.KubernetesCluster]{}, err
+	}
+	items := make([]entity.KubernetesCluster, 0, len(docs))
+	for _, doc := range docs {
+		items = append(items, doc.toEntity())
+	}
+	return collection.NewPage(items, total, normalized), nil
+}
+
+func (s *MongoStore) UpsertKubernetesCluster(ctx context.Context, cluster entity.KubernetesCluster) error {
+	now := time.Now().UTC()
+	namespaces := make([]kubernetesNamespaceDoc, 0, len(cluster.Namespaces))
+	for _, namespace := range cluster.Namespaces {
+		namespaces = append(namespaces, kubernetesNamespaceDoc{
+			Name:           namespace.Name,
+			MaxTenants:     namespace.MaxTenants,
+			CurrentTenants: namespace.CurrentTenants,
+			CPUMilli:       namespace.CPUMilli,
+			MemoryMi:       namespace.MemoryMi,
+			Status:         namespace.Status,
+			Healthy:        namespace.Healthy,
+		})
+	}
+	_, err := s.k8sCol.UpdateOne(
+		ctx,
+		bson.M{"name": cluster.Name},
+		bson.M{
+			"$set": bson.M{
+				"region":     cluster.Region,
+				"namespaces": namespaces,
+				"status":     cluster.Status,
+				"healthy":    cluster.Healthy,
+				"updated_at": now,
+			},
+			"$setOnInsert": bson.M{"name": cluster.Name, "created_at": now},
+		},
+		options.Update().SetUpsert(true),
+	)
+	return err
+}
+
+func (s *MongoStore) DeleteKubernetesCluster(ctx context.Context, name string) error {
+	return archiveResource(ctx, s.k8sCol, name)
+}
+
+func (s *MongoStore) ListRuntimePools(
+	ctx context.Context,
+	query collection.Query,
+) (collection.Page[entity.RuntimePool], error) {
+	normalized, filter, sort, err := buildRuntimePoolCollection(query)
+	if err != nil {
+		return collection.Page[entity.RuntimePool]{}, err
+	}
+	total, err := s.poolCol.CountDocuments(ctx, filter)
+	if err != nil {
+		return collection.Page[entity.RuntimePool]{}, err
+	}
+	cursor, err := s.poolCol.Find(
+		ctx,
+		filter,
+		options.Find().
+			SetSort(sort).
+			SetSkip(int64(normalized.Offset())).
+			SetLimit(int64(normalized.PageSize)),
+	)
+	if err != nil {
+		return collection.Page[entity.RuntimePool]{}, err
+	}
+	defer cursor.Close(ctx)
+
+	var docs []runtimePoolDoc
+	if err := cursor.All(ctx, &docs); err != nil {
+		return collection.Page[entity.RuntimePool]{}, err
+	}
+	items := make([]entity.RuntimePool, 0, len(docs))
+	for _, doc := range docs {
+		items = append(items, doc.toEntity())
+	}
+	return collection.NewPage(items, total, normalized), nil
+}
+
+func (s *MongoStore) UpsertRuntimePool(ctx context.Context, pool entity.RuntimePool) error {
+	now := time.Now().UTC()
+	_, err := s.poolCol.UpdateOne(
+		ctx,
+		bson.M{"name": pool.Name},
+		bson.M{
+			"$set": bson.M{
+				"kind":            pool.Kind,
+				"max_tenants":     pool.MaxTenants,
+				"current_tenants": pool.CurrentTenants,
+				"status":          pool.Status,
+				"healthy":         pool.Healthy,
+				"updated_at":      now,
+			},
+			"$setOnInsert": bson.M{"name": pool.Name, "created_at": now},
+		},
+		options.Update().SetUpsert(true),
+	)
+	return err
+}
+
+func (s *MongoStore) DeleteRuntimePool(ctx context.Context, name string) error {
+	return archiveResource(ctx, s.poolCol, name)
+}
+
+func archiveResource(ctx context.Context, resourceCollection *mongo.Collection, name string) error {
+	result, err := resourceCollection.UpdateOne(
+		ctx,
+		bson.M{"name": name, "status": bson.M{"$ne": "archived"}},
+		bson.M{"$set": bson.M{"status": "archived", "healthy": false, "updated_at": time.Now().UTC()}},
+	)
+	if err != nil {
+		return err
+	}
+	if result.MatchedCount == 0 {
+		return entity.ErrResourceNotFound
+	}
+	return nil
+}
+
 func (s *MongoStore) listDatabaseClusters(ctx context.Context) ([]entity.DatabaseCluster, error) {
 	cur, err := s.dbCol.Find(ctx, bson.M{"status": "active"})
 	if err != nil {
@@ -223,7 +440,10 @@ func (d databaseClusterDoc) toEntity() entity.DatabaseCluster {
 		CurrentSchemas:     d.CurrentSchemas,
 		MaxConnections:     d.MaxConnections,
 		CurrentConnections: d.CurrentConnections,
+		Status:             d.Status,
 		Healthy:            d.Healthy,
+		CreatedAt:          d.CreatedAt,
+		UpdatedAt:          d.UpdatedAt,
 	}
 }
 
@@ -249,7 +469,10 @@ func (d kubernetesClusterDoc) toEntity() entity.KubernetesCluster {
 		Name:       d.Name,
 		Region:     d.Region,
 		Namespaces: namespaces,
+		Status:     d.Status,
 		Healthy:    d.Healthy,
+		CreatedAt:  d.CreatedAt,
+		UpdatedAt:  d.UpdatedAt,
 	}
 }
 
@@ -270,6 +493,7 @@ func (d kubernetesNamespaceDoc) toEntity() entity.KubernetesNamespace {
 		CurrentTenants: d.CurrentTenants,
 		CPUMilli:       d.CPUMilli,
 		MemoryMi:       d.MemoryMi,
+		Status:         d.Status,
 		Healthy:        d.Healthy,
 	}
 }
@@ -291,7 +515,10 @@ func (d runtimePoolDoc) toEntity() entity.RuntimePool {
 		Kind:           d.Kind,
 		MaxTenants:     d.MaxTenants,
 		CurrentTenants: d.CurrentTenants,
+		Status:         d.Status,
 		Healthy:        d.Healthy,
+		CreatedAt:      d.CreatedAt,
+		UpdatedAt:      d.UpdatedAt,
 	}
 }
 

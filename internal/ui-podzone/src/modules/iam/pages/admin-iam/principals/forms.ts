@@ -1,13 +1,13 @@
 export type PrincipalManagedPolicyFormValues = {
-  policyName: string
+    policyName: string
 }
 
 export type PrincipalBoundaryFormValues = {
-  policyName: string
+    policyName: string
 }
 
 export type PrincipalInlinePolicyFormValues = {
-  name: string
-  description: string
-  statementsJson: string
+    name: string
+    description: string
+    statementsJson: string
 }

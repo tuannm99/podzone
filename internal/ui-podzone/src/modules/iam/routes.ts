@@ -1,3 +1,3 @@
 export const iamRouteComponents = {
-  adminIam: () => import('./pages/AdminIamPage'),
+    adminIam: () => import('./pages/AdminIamPage'),
 }

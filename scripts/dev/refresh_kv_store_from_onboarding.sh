@@ -20,7 +20,12 @@ const pgPassword = process.env.PG_PASSWORD || "postgres";
 const pgSSLMode = process.env.PG_SSL_MODE || "disable";
 const runtimeKV = db.getCollection("runtime_kv");
 const clusters = new Set();
-const allocations = db.placement_allocations.find({status: "ready"}).toArray();
+const allocations = db.placement_allocations.aggregate([
+  {$match: {status: "ready"}},
+  {$sort: {updated_at: -1, _id: -1}},
+  {$group: {_id: "$tenant_id", allocation: {$first: "$$ROOT"}}},
+  {$replaceRoot: {newRoot: "$allocation"}},
+]).toArray();
 
 function put(key, value) {
   runtimeKV.updateOne(

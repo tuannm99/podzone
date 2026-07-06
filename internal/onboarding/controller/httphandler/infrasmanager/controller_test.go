@@ -1,6 +1,7 @@
 package infrasmanager
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -83,6 +84,77 @@ func TestListConnectionsRejectsMissingInfrastructurePermission(t *testing.T) {
 
 	require.Equal(t, http.StatusForbidden, response.Code)
 	require.JSONEq(t, `{"error":"infrasmanager: access denied"}`, response.Body.String())
+}
+
+func TestListDatabaseClustersAuthorizesAndForwardsCollectionQuery(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	usecase := inputmocks.NewMockUsecase(t)
+	authorizer := outputmocks.NewMockAccessAuthorizer(t)
+	authorizer.EXPECT().
+		AuthorizeInfrastructureRead(mock.Anything, "7").
+		Return(nil).
+		Once()
+	usecase.EXPECT().
+		ListDatabaseClusters(
+			mock.Anything,
+			mock.MatchedBy(func(query collection.Query) bool {
+				return query.Page == 2 &&
+					query.PageSize == 5 &&
+					query.Search == "postgres"
+			}),
+		).
+		Return(collection.NewPage([]inputport.DatabaseClusterResource{{
+			Name:        "pg-primary",
+			Engine:      "postgres",
+			PlacementDB: "podzone_tenants",
+			Status:      "active",
+			Healthy:     true,
+		}}, 6, collection.Query{Page: 2, PageSize: 5}), nil).
+		Once()
+
+	router := newInfrastructureTestRouter(usecase, authorizer)
+	request := httptest.NewRequest(
+		http.MethodGet,
+		"/onboarding/v1/infras/resources/database-clusters?collection.page=2"+
+			"&collection.pageSize=5&collection.search=postgres",
+		nil,
+	)
+	response := httptest.NewRecorder()
+	router.ServeHTTP(response, request)
+
+	require.Equal(t, http.StatusOK, response.Code, response.Body.String())
+	require.Contains(t, response.Body.String(), `"name":"pg-primary"`)
+	require.Contains(t, response.Body.String(), `"total":6`)
+}
+
+func TestUpsertDatabaseClusterRejectsPathNameMismatch(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	usecase := inputmocks.NewMockUsecase(t)
+	authorizer := outputmocks.NewMockAccessAuthorizer(t)
+	authorizer.EXPECT().
+		AuthorizeInfrastructureManage(mock.Anything, "7").
+		Return(nil).
+		Once()
+
+	router := newInfrastructureTestRouter(usecase, authorizer)
+	request := httptest.NewRequest(
+		http.MethodPut,
+		"/onboarding/v1/infras/resources/database-clusters/pg-primary",
+		bytes.NewBufferString(`{
+			"name":"pg-secondary",
+			"engine":"postgres",
+			"placement_db":"podzone_tenants"
+		}`),
+	)
+	request.Header.Set("Content-Type", "application/json")
+	response := httptest.NewRecorder()
+	router.ServeHTTP(response, request)
+
+	require.Equal(t, http.StatusBadRequest, response.Code)
+	require.JSONEq(t, `{
+		"error":"resource_name_mismatch",
+		"message":"resource name must match the URL path"
+	}`, response.Body.String())
 }
 
 func newInfrastructureTestRouter(

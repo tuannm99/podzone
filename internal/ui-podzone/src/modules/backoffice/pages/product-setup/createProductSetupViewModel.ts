@@ -1,157 +1,148 @@
 import { createEffect, createSignal, type Accessor } from 'solid-js'
 import {
-  createProductSetupDraft,
-  getProductSetupSnapshot,
-  promoteProductSetupCandidate,
-  updateProductSetupCandidateStatus,
-  type CatalogCandidate,
-  type SetupDraft,
+    createProductSetupDraft,
+    getProductSetupSnapshot,
+    promoteProductSetupCandidate,
+    updateProductSetupCandidateStatus,
+    type CatalogCandidate,
+    type SetupDraft,
 } from '@/services/productSetup'
 import { tenantStorage } from '@/services/tenantStorage'
 import { createFormStore, required } from '@/solid/forms'
 import { moneyValue, productSetupInitialValues } from './forms'
 
 interface ProductSetupViewModelOptions {
-  tenantID: Accessor<string>
-  workspaceReady: Accessor<boolean>
+    tenantID: Accessor<string>
+    workspaceReady: Accessor<boolean>
 }
 
-export function createProductSetupViewModel(
-  options: ProductSetupViewModelOptions
-) {
-  const form = createFormStore({
-    initialValues: productSetupInitialValues,
-    validators: {
-      name: [required('Enter a product name.')],
-      baseCost: [moneyValue('Use a valid amount, for example $8.20.')],
-      retailPrice: [moneyValue('Use a valid amount, for example $24.00.')],
-      variantColor: [required('Enter a primary color.')],
-      variantSize: [required('Enter a primary size.')],
-    },
-  })
-  const [message, setMessage] = createSignal('')
-  const [error, setError] = createSignal('')
-  const [loading, setLoading] = createSignal(false)
-  const [promotingDraftID, setPromotingDraftID] = createSignal('')
-  const [updatingCandidateID, setUpdatingCandidateID] = createSignal('')
-  const [drafts, setDrafts] = createSignal<SetupDraft[]>([])
-  const [candidates, setCandidates] = createSignal<CatalogCandidate[]>([])
-
-  const reload = async () => {
-    setLoading(true)
-    setError('')
-    try {
-      const result = await getProductSetupSnapshot()
-      if (!result.success) {
-        setError(result.message)
-        setDrafts([])
-        setCandidates([])
-        return
-      }
-      setDrafts(result.data.drafts)
-      setCandidates(result.data.candidates)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const addDraft = async (event: SubmitEvent) => {
-    event.preventDefault()
-    if (!form.validate()) return
-    form.setSubmitting(true)
-    setError('')
-    setMessage('')
-    try {
-      const result = await createProductSetupDraft({
-        name: form.values.name.trim(),
-        partner: form.values.partner.trim(),
-        baseCost: form.values.baseCost.trim(),
-        retailPrice: form.values.retailPrice.trim(),
-        status: form.values.status,
-        notes: form.values.notes.trim(),
-      })
-      if (!result.success) {
-        setError(result.message)
-        return
-      }
-      setMessage(`Saved backend product setup draft for ${result.data.name}.`)
-      form.reset()
-      await reload()
-    } finally {
-      form.setSubmitting(false)
-    }
-  }
-
-  const promoteToCandidate = async (draft: SetupDraft) => {
-    setPromotingDraftID(draft.id)
-    setError('')
-    setMessage('')
-    try {
-      const result = await promoteProductSetupCandidate({
-        draftId: draft.id,
-        channel: form.values.channel,
-        variantColor: form.values.variantColor.trim(),
-        variantSize: form.values.variantSize.trim(),
-        artworkChecklist: {
-          frontArtwork: form.values.hasFrontArtwork,
-          backArtwork: form.values.hasBackArtwork,
-          mockupReady: form.values.mockupReady,
-          printSpecChecked: form.values.printSpecChecked,
+export function createProductSetupViewModel(options: ProductSetupViewModelOptions) {
+    const form = createFormStore({
+        initialValues: productSetupInitialValues,
+        validators: {
+            name: [required('Enter a product name.')],
+            baseCost: [moneyValue('Use a valid amount, for example $8.20.')],
+            retailPrice: [moneyValue('Use a valid amount, for example $24.00.')],
+            variantColor: [required('Enter a primary color.')],
+            variantSize: [required('Enter a primary size.')],
         },
-        merchandisingNotes: form.values.notes.trim(),
-      })
-      if (!result.success) {
-        setError(result.message)
-        return
-      }
-      setMessage(`Promoted ${draft.name} into a backend catalog candidate.`)
-      await reload()
-    } finally {
-      setPromotingDraftID('')
+    })
+    const [message, setMessage] = createSignal('')
+    const [error, setError] = createSignal('')
+    const [loading, setLoading] = createSignal(false)
+    const [promotingDraftID, setPromotingDraftID] = createSignal('')
+    const [updatingCandidateID, setUpdatingCandidateID] = createSignal('')
+    const [drafts, setDrafts] = createSignal<SetupDraft[]>([])
+    const [candidates, setCandidates] = createSignal<CatalogCandidate[]>([])
+
+    const reload = async () => {
+        setLoading(true)
+        setError('')
+        try {
+            const result = await getProductSetupSnapshot()
+            if (!result.success) {
+                setError(result.message)
+                setDrafts([])
+                setCandidates([])
+                return
+            }
+            setDrafts(result.data.drafts)
+            setCandidates(result.data.candidates)
+        } finally {
+            setLoading(false)
+        }
     }
-  }
 
-  const updateCandidateStatus = async (
-    candidateID: string,
-    nextStatus: string,
-    successMessage: string
-  ) => {
-    setUpdatingCandidateID(candidateID)
-    setError('')
-    setMessage('')
-    try {
-      const result = await updateProductSetupCandidateStatus(
-        candidateID,
-        nextStatus
-      )
-      if (!result.success) {
-        setError(result.message)
-        return
-      }
-      setMessage(successMessage)
-      await reload()
-    } finally {
-      setUpdatingCandidateID('')
+    const addDraft = async (event: SubmitEvent) => {
+        event.preventDefault()
+        if (!form.validate()) return
+        form.setSubmitting(true)
+        setError('')
+        setMessage('')
+        try {
+            const result = await createProductSetupDraft({
+                name: form.values.name.trim(),
+                partner: form.values.partner.trim(),
+                baseCost: form.values.baseCost.trim(),
+                retailPrice: form.values.retailPrice.trim(),
+                status: form.values.status,
+                notes: form.values.notes.trim(),
+            })
+            if (!result.success) {
+                setError(result.message)
+                return
+            }
+            setMessage(`Saved backend product setup draft for ${result.data.name}.`)
+            form.reset()
+            await reload()
+        } finally {
+            form.setSubmitting(false)
+        }
     }
-  }
 
-  createEffect(() => {
-    tenantStorage.setTenantID(options.tenantID())
-    if (options.workspaceReady()) void reload()
-  })
+    const promoteToCandidate = async (draft: SetupDraft) => {
+        setPromotingDraftID(draft.id)
+        setError('')
+        setMessage('')
+        try {
+            const result = await promoteProductSetupCandidate({
+                draftId: draft.id,
+                channel: form.values.channel,
+                variantColor: form.values.variantColor.trim(),
+                variantSize: form.values.variantSize.trim(),
+                artworkChecklist: {
+                    frontArtwork: form.values.hasFrontArtwork,
+                    backArtwork: form.values.hasBackArtwork,
+                    mockupReady: form.values.mockupReady,
+                    printSpecChecked: form.values.printSpecChecked,
+                },
+                merchandisingNotes: form.values.notes.trim(),
+            })
+            if (!result.success) {
+                setError(result.message)
+                return
+            }
+            setMessage(`Promoted ${draft.name} into a backend catalog candidate.`)
+            await reload()
+        } finally {
+            setPromotingDraftID('')
+        }
+    }
 
-  return {
-    form,
-    message,
-    error,
-    loading,
-    promotingDraftID,
-    updatingCandidateID,
-    drafts,
-    candidates,
-    addDraft,
-    promoteToCandidate,
-    updateCandidateStatus,
-    reload,
-  }
+    const updateCandidateStatus = async (candidateID: string, nextStatus: string, successMessage: string) => {
+        setUpdatingCandidateID(candidateID)
+        setError('')
+        setMessage('')
+        try {
+            const result = await updateProductSetupCandidateStatus(candidateID, nextStatus)
+            if (!result.success) {
+                setError(result.message)
+                return
+            }
+            setMessage(successMessage)
+            await reload()
+        } finally {
+            setUpdatingCandidateID('')
+        }
+    }
+
+    createEffect(() => {
+        tenantStorage.setTenantID(options.tenantID())
+        if (options.workspaceReady()) void reload()
+    })
+
+    return {
+        form,
+        message,
+        error,
+        loading,
+        promotingDraftID,
+        updatingCandidateID,
+        drafts,
+        candidates,
+        addDraft,
+        promoteToCandidate,
+        updateCandidateStatus,
+        reload,
+    }
 }

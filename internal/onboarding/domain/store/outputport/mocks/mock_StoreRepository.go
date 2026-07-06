@@ -491,6 +491,78 @@ func (_c *MockStoreRepository_ListPage_Call) RunAndReturn(run func(ctx context.C
 	return _c
 }
 
+// ListTransitions provides a mock function for the type MockStoreRepository
+func (_mock *MockStoreRepository) ListTransitions(ctx context.Context, requestID string, query collection.Query) (collection.Page[entity.StoreRequestTransition], error) {
+	ret := _mock.Called(ctx, requestID, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListTransitions")
+	}
+
+	var r0 collection.Page[entity.StoreRequestTransition]
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) (collection.Page[entity.StoreRequestTransition], error)); ok {
+		return returnFunc(ctx, requestID, query)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) collection.Page[entity.StoreRequestTransition]); ok {
+		r0 = returnFunc(ctx, requestID, query)
+	} else {
+		r0 = ret.Get(0).(collection.Page[entity.StoreRequestTransition])
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, collection.Query) error); ok {
+		r1 = returnFunc(ctx, requestID, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStoreRepository_ListTransitions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListTransitions'
+type MockStoreRepository_ListTransitions_Call struct {
+	*mock.Call
+}
+
+// ListTransitions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - requestID string
+//   - query collection.Query
+func (_e *MockStoreRepository_Expecter) ListTransitions(ctx interface{}, requestID interface{}, query interface{}) *MockStoreRepository_ListTransitions_Call {
+	return &MockStoreRepository_ListTransitions_Call{Call: _e.mock.On("ListTransitions", ctx, requestID, query)}
+}
+
+func (_c *MockStoreRepository_ListTransitions_Call) Run(run func(ctx context.Context, requestID string, query collection.Query)) *MockStoreRepository_ListTransitions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStoreRepository_ListTransitions_Call) Return(page collection.Page[entity.StoreRequestTransition], err error) *MockStoreRepository_ListTransitions_Call {
+	_c.Call.Return(page, err)
+	return _c
+}
+
+func (_c *MockStoreRepository_ListTransitions_Call) RunAndReturn(run func(ctx context.Context, requestID string, query collection.Query) (collection.Page[entity.StoreRequestTransition], error)) *MockStoreRepository_ListTransitions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // MarkBlocked provides a mock function for the type MockStoreRepository
 func (_mock *MockStoreRepository) MarkBlocked(ctx context.Context, id string, status entity.RequestStatus, reason string) error {
 	ret := _mock.Called(ctx, id, status, reason)

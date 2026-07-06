@@ -1,50 +1,50 @@
 {
-  "name": "ui-podzone",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "packageManager": "npm@11.18.0",
-  "engines": {
-    "node": "^24.0.0"
-  },
-  "scripts": {
-    "dev": "vite",
-    "format": "prettier --write src eslint.config.js index.html package.json package-lock.json tsconfig.app.json tsconfig.json tsconfig.node.json vite.config.ts",
-    "format:check": "prettier --check src eslint.config.js index.html package.json package-lock.json tsconfig.app.json tsconfig.json tsconfig.node.json vite.config.ts",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@codemirror/lang-go": "^6.0.1",
-    "@codemirror/lang-javascript": "^6.2.5",
-    "@codemirror/lang-python": "^6.2.1",
-    "@codemirror/lang-rust": "^6.0.2",
-    "@codemirror/language": "^6.12.4",
-    "@codemirror/state": "^6.7.1",
-    "@replit/codemirror-vim": "^6.3.0",
-    "@tanstack/solid-router": "^1.170.17",
-    "@toast-ui/editor": "^3.2.2",
-    "axios": "^1.18.1",
-    "codemirror": "^6.0.2",
-    "flowbite": "^4.0.2",
-    "qrcode": "^1.5.4",
-    "solid-js": "^1.9.14"
-  },
-  "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@tailwindcss/vite": "^4.3.2",
-    "@types/node": "^24.13.2",
-    "eslint": "^10.6.0",
-    "globals": "^17.7.0",
-    "prettier": "^3.9.4",
-    "tailwindcss": "^4.3.2",
-    "typescript": "^6.0.3",
-    "typescript-eslint": "^8.62.1",
-    "vite": "^8.1.3",
-    "vite-plugin-solid": "^2.11.12"
-  },
-  "overrides": {
-    "dompurify": "^3.4.11"
-  }
+    "name": "ui-podzone",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "packageManager": "npm@11.18.0",
+    "engines": {
+        "node": "^24.0.0"
+    },
+    "scripts": {
+        "dev": "vite",
+        "format": "prettier --write src eslint.config.js index.html package.json package-lock.json tsconfig.app.json tsconfig.json tsconfig.node.json vite.config.ts",
+        "format:check": "prettier --check src eslint.config.js index.html package.json package-lock.json tsconfig.app.json tsconfig.json tsconfig.node.json vite.config.ts",
+        "build": "tsc -b && vite build",
+        "lint": "eslint .",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "@codemirror/lang-go": "^6.0.1",
+        "@codemirror/lang-javascript": "^6.2.5",
+        "@codemirror/lang-python": "^6.2.1",
+        "@codemirror/lang-rust": "^6.0.2",
+        "@codemirror/language": "^6.12.4",
+        "@codemirror/state": "^6.7.1",
+        "@replit/codemirror-vim": "^6.3.0",
+        "@tanstack/solid-router": "^1.170.17",
+        "@toast-ui/editor": "^3.2.2",
+        "axios": "^1.18.1",
+        "codemirror": "^6.0.2",
+        "flowbite": "^4.0.2",
+        "qrcode": "^1.5.4",
+        "solid-js": "^1.9.14"
+    },
+    "devDependencies": {
+        "@eslint/js": "^10.0.1",
+        "@tailwindcss/vite": "^4.3.2",
+        "@types/node": "^24.13.2",
+        "eslint": "^10.6.0",
+        "globals": "^17.7.0",
+        "prettier": "^3.9.4",
+        "tailwindcss": "^4.3.2",
+        "typescript": "^6.0.3",
+        "typescript-eslint": "^8.62.1",
+        "vite": "^8.1.3",
+        "vite-plugin-solid": "^2.11.12"
+    },
+    "overrides": {
+        "dompurify": "^3.4.11"
+    }
 }

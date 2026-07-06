@@ -124,6 +124,7 @@ func (s *StoreInteractor) CreateStoreRequest(
 		"",
 		request.Status,
 		map[string]string{"user": requestedBy},
+		"request.created",
 		"store request created",
 		"",
 	)
@@ -143,6 +144,54 @@ func (s *StoreInteractor) GetStoreRequest(ctx context.Context, id string) (*stor
 		return nil, ErrStoreNotFound
 	}
 	return toInputPortRequest(request), nil
+}
+
+func (s *StoreInteractor) ListStoreRequestTransitions(
+	ctx context.Context,
+	id string,
+	query collection.Query,
+) (collection.Page[storeinputport.RequestTransition], error) {
+	if err := s.authorizeRead(ctx); err != nil {
+		return collection.Page[storeinputport.RequestTransition]{}, err
+	}
+	workspaceID, err := toolkit.GetTenantID(ctx)
+	if err != nil {
+		return collection.Page[storeinputport.RequestTransition]{}, ErrWorkspaceIDRequired
+	}
+	request, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return collection.Page[storeinputport.RequestTransition]{}, err
+	}
+	if request == nil || request.WorkspaceID != workspaceID {
+		return collection.Page[storeinputport.RequestTransition]{}, ErrStoreNotFound
+	}
+	page, err := s.repo.ListTransitions(ctx, id, query)
+	if err != nil {
+		return collection.Page[storeinputport.RequestTransition]{}, err
+	}
+	items := make([]storeinputport.RequestTransition, 0, len(page.Items))
+	for _, transition := range page.Items {
+		items = append(items, storeinputport.RequestTransition{
+			ID:        transition.ID.Hex(),
+			RequestID: transition.RequestID,
+			From:      storeinputport.RequestStatus(transition.From),
+			To:        storeinputport.RequestStatus(transition.To),
+			Actor:     transition.Actor,
+			Step:      transition.Step,
+			Reason:    transition.Reason,
+			ErrorCode: transition.ErrorCode,
+			CreatedAt: transition.CreatedAt,
+		})
+	}
+	return collection.Page[storeinputport.RequestTransition]{
+		Items:       items,
+		Total:       page.Total,
+		Page:        page.Page,
+		PageSize:    page.PageSize,
+		TotalPages:  page.TotalPages,
+		HasNext:     page.HasNext,
+		HasPrevious: page.HasPrevious,
+	}, nil
 }
 
 func (s *StoreInteractor) ApproveStoreRequest(ctx context.Context, id string) error {
@@ -195,6 +244,7 @@ func (s *StoreInteractor) RetryStoreRequest(ctx context.Context, id string) erro
 		request.Status,
 		storeentity.RequestStatusQueued,
 		map[string]string{"user": requestedBy},
+		"request.retried",
 		"retry requested",
 		"",
 	)
@@ -255,6 +305,7 @@ func (s *StoreInteractor) UpdateStoreRequestStatus(
 		current.Status,
 		next,
 		map[string]string{"system": "onboarding"},
+		statusTransitionStep(next),
 		"status updated",
 		"",
 	)
@@ -329,6 +380,7 @@ func (s *StoreInteractor) ProcessNextStoreRequest(ctx context.Context) (*storein
 		storeentity.RequestStatusQueued,
 		storeentity.RequestStatusPlanning,
 		map[string]string{"service": "onboarding", "worker": "store-provisioner"},
+		"planning.started",
 		"worker claimed queued request",
 		"",
 	)
@@ -357,6 +409,7 @@ func (s *StoreInteractor) ProcessNextStoreRequest(ctx context.Context) (*storein
 			storeentity.RequestStatusPlanning,
 			status,
 			map[string]string{"service": "onboarding", "worker": "store-provisioner"},
+			"provisioning.failed",
 			err.Error(),
 			errorCode,
 		)
@@ -372,6 +425,7 @@ func (s *StoreInteractor) ProcessNextStoreRequest(ctx context.Context) (*storein
 		storeentity.RequestStatusPlanning,
 		storeentity.RequestStatusPlanned,
 		map[string]string{"service": "onboarding", "worker": "store-provisioner"},
+		"planning.completed",
 		"placement plan persisted and provisioning completed",
 		"",
 	)
@@ -384,6 +438,7 @@ func (s *StoreInteractor) ProcessNextStoreRequest(ctx context.Context) (*storein
 		storeentity.RequestStatusPlanned,
 		storeentity.RequestStatusProvisioning,
 		map[string]string{"service": "onboarding", "worker": "store-provisioner"},
+		"provisioning.started",
 		"waiting for route readiness and store finalization",
 		"",
 	)
@@ -400,21 +455,51 @@ func (s *StoreInteractor) FinalizeNextStoreRequest(ctx context.Context) (*storei
 		return nil, err
 	}
 	if s.infra != nil {
-		ready, err := s.infra.EnsurePlacementRoute(ctx, request.WorkspaceID, request.ID.Hex())
+		ready, err := s.infra.EnsurePlacementRoute(ctx, request.WorkspaceID)
 		if err != nil {
 			return nil, err
 		}
 		if !ready {
 			return nil, nil
 		}
+		s.recordTransition(
+			ctx,
+			request.ID.Hex(),
+			storeentity.RequestStatusProvisioning,
+			storeentity.RequestStatusProvisioning,
+			map[string]string{"service": "onboarding", "worker": "store-provisioner"},
+			"route.ready",
+			"tenant placement route is ready",
+			"",
+		)
 	}
 	if err := s.finalizer.FinalizeStore(ctx, *request); err != nil {
 		return nil, err
 	}
+	s.recordTransition(
+		ctx,
+		request.ID.Hex(),
+		storeentity.RequestStatusProvisioning,
+		storeentity.RequestStatusProvisioning,
+		map[string]string{"service": "onboarding", "worker": "store-provisioner"},
+		"store.finalized",
+		"operational store finalized",
+		"",
+	)
 	storeID := request.ID.Hex()
 	if err := s.repo.MarkReady(ctx, request.ID.Hex(), storeID); err != nil {
 		return nil, err
 	}
+	s.recordTransition(
+		ctx,
+		request.ID.Hex(),
+		storeentity.RequestStatusProvisioning,
+		storeentity.RequestStatusReady,
+		map[string]string{"service": "onboarding", "worker": "store-provisioner"},
+		"request.ready",
+		"store provisioning completed",
+		"",
+	)
 	request.Status = storeentity.RequestStatusReady
 	request.StoreID = &request.ID
 	return toInputPortRequest(request), nil
@@ -479,6 +564,7 @@ func (s *StoreInteractor) recordTransition(
 	from storeentity.RequestStatus,
 	to storeentity.RequestStatus,
 	actor map[string]string,
+	step string,
 	reason string,
 	errorCode string,
 ) {
@@ -490,8 +576,20 @@ func (s *StoreInteractor) recordTransition(
 		From:      from,
 		To:        to,
 		Actor:     actor,
+		Step:      step,
 		Reason:    reason,
 		ErrorCode: errorCode,
 		CreatedAt: time.Now().UTC(),
 	})
+}
+
+func statusTransitionStep(status storeentity.RequestStatus) string {
+	switch status {
+	case storeentity.RequestStatusQueued:
+		return "approval.queued"
+	case storeentity.RequestStatusRejected:
+		return "approval.rejected"
+	default:
+		return "status.updated"
+	}
 }

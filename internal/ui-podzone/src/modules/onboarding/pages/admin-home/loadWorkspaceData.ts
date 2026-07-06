@@ -5,101 +5,85 @@ import { listAllStores } from '@/services/store'
 import { storeStorage } from '@/services/storeStorage'
 import { tenantStorage } from '@/services/tenantStorage'
 import { tokenStorage } from '@/services/tokenStorage'
-import {
-  isOverdue,
-  type StoreAttention,
-  type WorkspaceSummary,
-} from './presentation'
+import { isOverdue, type StoreAttention, type WorkspaceSummary } from './presentation'
 
-export async function collectWorkspaceData(
-  memberships: TenantMembership[]
-): Promise<{
-  summaries: WorkspaceSummary[]
-  attention: StoreAttention[]
+export async function collectWorkspaceData(memberships: TenantMembership[]): Promise<{
+    summaries: WorkspaceSummary[]
+    attention: StoreAttention[]
 }> {
-  const activeWorkspaces = memberships.filter(
-    (membership) => membership.status === 'active'
-  )
-  if (activeWorkspaces.length === 0) {
-    return { summaries: [], attention: [] }
-  }
+    const activeWorkspaces = memberships.filter((membership) => membership.status === 'active')
+    if (activeWorkspaces.length === 0) {
+        return { summaries: [], attention: [] }
+    }
 
-  const originalTenantID = tokenStorage.getActiveTenantID()
-  const originalStoreID = originalTenantID
-    ? storeStorage.getStoreID(originalTenantID)
-    : ''
-  const previousStoreByTenant = new Map<string, string>()
-  const summaries: WorkspaceSummary[] = []
-  const attention: StoreAttention[] = []
+    const originalTenantID = tokenStorage.getActiveTenantID()
+    const originalStoreID = originalTenantID ? storeStorage.getStoreID(originalTenantID) : ''
+    const previousStoreByTenant = new Map<string, string>()
+    const summaries: WorkspaceSummary[] = []
+    const attention: StoreAttention[] = []
 
-  try {
-    for (const membership of activeWorkspaces) {
-      const switched = await ensureActiveTenant(membership.tenantId)
-      if (!switched.success) continue
+    try {
+        for (const membership of activeWorkspaces) {
+            const switched = await ensureActiveTenant(membership.tenantId)
+            if (!switched.success) continue
 
-      const storesResult = await listAllStores()
-      const stores = storesResult.success ? storesResult.data : []
-      summaries.push({
-        tenantId: membership.tenantId,
-        roleName: membership.roleName,
-        status: membership.status,
-        userId: membership.userId,
-        storeCount: stores.length,
-        activeStoreCount: stores.filter((store) => store.isActive).length,
-      })
+            const storesResult = await listAllStores()
+            const stores = storesResult.success ? storesResult.data : []
+            summaries.push({
+                tenantId: membership.tenantId,
+                roleName: membership.roleName,
+                status: membership.status,
+                userId: membership.userId,
+                storeCount: stores.length,
+                activeStoreCount: stores.filter((store) => store.isActive).length,
+            })
 
-      for (const store of stores) {
-        if (!previousStoreByTenant.has(membership.tenantId)) {
-          previousStoreByTenant.set(
-            membership.tenantId,
-            storeStorage.getStoreID(membership.tenantId)
-          )
+            for (const store of stores) {
+                if (!previousStoreByTenant.has(membership.tenantId)) {
+                    previousStoreByTenant.set(membership.tenantId, storeStorage.getStoreID(membership.tenantId))
+                }
+                storeStorage.setStoreID(membership.tenantId, store.id)
+                const ordersResult = await getRoutedOrders()
+                if (!ordersResult.success) continue
+
+                const orders = ordersResult.data.orders
+                attention.push({
+                    tenantId: membership.tenantId,
+                    storeId: store.id,
+                    storeName: store.name,
+                    overdueCount: orders.filter(
+                        (order) =>
+                            (!!order.shipmentSlaDueAt &&
+                                isOverdue(order.shipmentSlaDueAt) &&
+                                order.shipmentStatus !== 'delivered') ||
+                            (!!order.issueSlaDueAt &&
+                                isOverdue(order.issueSlaDueAt) &&
+                                (order.exceptionStatus === 'open' ||
+                                    order.exceptionStatus === 'escalated' ||
+                                    order.shipmentStatus === 'delivery_issue'))
+                    ).length,
+                    disputedCount: orders.filter((order) => order.settlementStatus === 'disputed').length,
+                    unassignedCount: orders.filter(
+                        (order) => !order.operatorAssignee || order.operatorAssignee === 'unassigned'
+                    ).length,
+                })
+            }
         }
-        storeStorage.setStoreID(membership.tenantId, store.id)
-        const ordersResult = await getRoutedOrders()
-        if (!ordersResult.success) continue
-
-        const orders = ordersResult.data.orders
-        attention.push({
-          tenantId: membership.tenantId,
-          storeId: store.id,
-          storeName: store.name,
-          overdueCount: orders.filter(
-            (order) =>
-              (!!order.shipmentSlaDueAt &&
-                isOverdue(order.shipmentSlaDueAt) &&
-                order.shipmentStatus !== 'delivered') ||
-              (!!order.issueSlaDueAt &&
-                isOverdue(order.issueSlaDueAt) &&
-                (order.exceptionStatus === 'open' ||
-                  order.exceptionStatus === 'escalated' ||
-                  order.shipmentStatus === 'delivery_issue'))
-          ).length,
-          disputedCount: orders.filter(
-            (order) => order.settlementStatus === 'disputed'
-          ).length,
-          unassignedCount: orders.filter(
-            (order) =>
-              !order.operatorAssignee || order.operatorAssignee === 'unassigned'
-          ).length,
+    } finally {
+        previousStoreByTenant.forEach((storeID, tenantID) => {
+            if (storeID) storeStorage.setStoreID(tenantID, storeID)
+            else storeStorage.clearStoreID(tenantID)
         })
-      }
+        if (originalTenantID) {
+            await ensureActiveTenant(originalTenantID)
+            tenantStorage.setTenantID(originalTenantID)
+            if (originalStoreID) {
+                storeStorage.setStoreID(originalTenantID, originalStoreID)
+            } else {
+                storeStorage.clearStoreID(originalTenantID)
+            }
+        }
     }
-  } finally {
-    previousStoreByTenant.forEach((storeID, tenantID) => {
-      if (storeID) storeStorage.setStoreID(tenantID, storeID)
-      else storeStorage.clearStoreID(tenantID)
-    })
-    if (originalTenantID) {
-      await ensureActiveTenant(originalTenantID)
-      tenantStorage.setTenantID(originalTenantID)
-      if (originalStoreID) {
-        storeStorage.setStoreID(originalTenantID, originalStoreID)
-      } else {
-        storeStorage.clearStoreID(originalTenantID)
-      }
-    }
-  }
 
-  return { summaries, attention }
+    return { summaries, attention }
 }

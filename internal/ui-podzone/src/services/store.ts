@@ -1,36 +1,33 @@
 import { postBackofficeGraphQL } from './backofficeGraphql'
 import {
-  normalizePageInfo,
-  toGraphQLCollectionInput,
-  type CollectionPage,
-  type CollectionQuery,
-  type WirePageInfo,
+    normalizePageInfo,
+    toGraphQLCollectionInput,
+    type CollectionPage,
+    type CollectionQuery,
+    type WirePageInfo,
 } from './collection'
 
 export type StoreInfo = {
-  id: string
-  name: string
-  ownerId: string
-  isActive: boolean
-  description: string
-  status: string
-  createdAt?: string
-  updatedAt?: string
+    id: string
+    name: string
+    ownerId: string
+    isActive: boolean
+    description: string
+    status: string
+    createdAt?: string
+    updatedAt?: string
 }
 
-type StoreResult<T> =
-  { success: true; data: T } | { success: false; message: string }
+type StoreResult<T> = { success: true; data: T } | { success: false; message: string }
 
-export async function listStores(
-  query: CollectionQuery
-): Promise<StoreResult<CollectionPage<StoreInfo>>> {
-  const result = await postBackofficeGraphQL<{
-    stores: {
-      items?: StoreInfo[]
-      pageInfo?: WirePageInfo
-    }
-  }>(
-    `
+export async function listStores(query: CollectionQuery): Promise<StoreResult<CollectionPage<StoreInfo>>> {
+    const result = await postBackofficeGraphQL<{
+        stores: {
+            items?: StoreInfo[]
+            pageInfo?: WirePageInfo
+        }
+    }>(
+        `
     query Stores($collection: CollectionInput) {
       stores(collection: $collection) {
         items {
@@ -54,40 +51,40 @@ export async function listStores(
       }
     }
   `,
-    { collection: toGraphQLCollectionInput(query) },
-    { includeStoreHeader: false }
-  )
-  if (!result.success) {
-    return { success: false, message: result.message }
-  }
-  return {
-    success: true,
-    data: {
-      items: result.data.stores?.items || [],
-      pageInfo: normalizePageInfo(result.data.stores?.pageInfo, query),
-    },
-  }
+        { collection: toGraphQLCollectionInput(query) },
+        { includeStoreHeader: false }
+    )
+    if (!result.success) {
+        return { success: false, message: result.message }
+    }
+    return {
+        success: true,
+        data: {
+            items: result.data.stores?.items || [],
+            pageInfo: normalizePageInfo(result.data.stores?.pageInfo, query),
+        },
+    }
 }
 
 export async function listAllStores(): Promise<StoreResult<StoreInfo[]>> {
-  const stores: StoreInfo[] = []
-  for (let page = 1; ; page += 1) {
-    const result = await listStores({
-      page,
-      pageSize: 100,
-      sortBy: 'createdAt',
-      sortDirection: 'SORT_DIRECTION_DESC',
-    })
-    if (!result.success) return result
-    stores.push(...result.data.items)
-    if (!result.data.pageInfo.hasNext) break
-  }
-  return { success: true, data: stores }
+    const stores: StoreInfo[] = []
+    for (let page = 1; ; page += 1) {
+        const result = await listStores({
+            page,
+            pageSize: 100,
+            sortBy: 'createdAt',
+            sortDirection: 'SORT_DIRECTION_DESC',
+        })
+        if (!result.success) return result
+        stores.push(...result.data.items)
+        if (!result.data.pageInfo.hasNext) break
+    }
+    return { success: true, data: stores }
 }
 
 export async function getStore(id: string): Promise<StoreResult<StoreInfo>> {
-  const result = await postBackofficeGraphQL<{ store?: StoreInfo }>(
-    `
+    const result = await postBackofficeGraphQL<{ store?: StoreInfo }>(
+        `
     query Store($id: ID!) {
       store(id: $id) {
         id
@@ -101,24 +98,21 @@ export async function getStore(id: string): Promise<StoreResult<StoreInfo>> {
       }
     }
   `,
-    { id },
-    { includeStoreHeader: false }
-  )
-  if (!result.success) {
-    return { success: false, message: result.message }
-  }
-  if (!result.data.store) {
-    return { success: false, message: 'Store not found' }
-  }
-  return { success: true, data: result.data.store }
+        { id },
+        { includeStoreHeader: false }
+    )
+    if (!result.success) {
+        return { success: false, message: result.message }
+    }
+    if (!result.data.store) {
+        return { success: false, message: 'Store not found' }
+    }
+    return { success: true, data: result.data.store }
 }
 
-export async function createStore(input: {
-  name: string
-  description?: string
-}): Promise<StoreResult<StoreInfo>> {
-  const result = await postBackofficeGraphQL<{ createStore: StoreInfo }>(
-    `
+export async function createStore(input: { name: string; description?: string }): Promise<StoreResult<StoreInfo>> {
+    const result = await postBackofficeGraphQL<{ createStore: StoreInfo }>(
+        `
     mutation CreateStore($input: CreateStoreInput!) {
       createStore(input: $input) {
         id
@@ -132,25 +126,23 @@ export async function createStore(input: {
       }
     }
   `,
-    {
-      input: {
-        name: input.name,
-        description: input.description || '',
-      },
-    },
-    { includeStoreHeader: false }
-  )
-  if (!result.success) {
-    return { success: false, message: result.message }
-  }
-  return { success: true, data: result.data.createStore }
+        {
+            input: {
+                name: input.name,
+                description: input.description || '',
+            },
+        },
+        { includeStoreHeader: false }
+    )
+    if (!result.success) {
+        return { success: false, message: result.message }
+    }
+    return { success: true, data: result.data.createStore }
 }
 
-export async function activateStore(
-  id: string
-): Promise<StoreResult<StoreInfo>> {
-  const result = await postBackofficeGraphQL<{ activateStore: StoreInfo }>(
-    `
+export async function activateStore(id: string): Promise<StoreResult<StoreInfo>> {
+    const result = await postBackofficeGraphQL<{ activateStore: StoreInfo }>(
+        `
     mutation ActivateStore($id: ID!) {
       activateStore(id: $id) {
         id
@@ -164,11 +156,11 @@ export async function activateStore(
       }
     }
   `,
-    { id },
-    { includeStoreHeader: false }
-  )
-  if (!result.success) {
-    return { success: false, message: result.message }
-  }
-  return { success: true, data: result.data.activateStore }
+        { id },
+        { includeStoreHeader: false }
+    )
+    if (!result.success) {
+        return { success: false, message: result.message }
+    }
+    return { success: true, data: result.data.activateStore }
 }

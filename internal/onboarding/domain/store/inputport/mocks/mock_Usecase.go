@@ -295,6 +295,78 @@ func (_c *MockUsecase_GetStoreRequest_Call) RunAndReturn(run func(ctx context.Co
 	return _c
 }
 
+// ListStoreRequestTransitions provides a mock function for the type MockUsecase
+func (_mock *MockUsecase) ListStoreRequestTransitions(ctx context.Context, id string, query collection.Query) (collection.Page[inputport.RequestTransition], error) {
+	ret := _mock.Called(ctx, id, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListStoreRequestTransitions")
+	}
+
+	var r0 collection.Page[inputport.RequestTransition]
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) (collection.Page[inputport.RequestTransition], error)); ok {
+		return returnFunc(ctx, id, query)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, collection.Query) collection.Page[inputport.RequestTransition]); ok {
+		r0 = returnFunc(ctx, id, query)
+	} else {
+		r0 = ret.Get(0).(collection.Page[inputport.RequestTransition])
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, collection.Query) error); ok {
+		r1 = returnFunc(ctx, id, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockUsecase_ListStoreRequestTransitions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListStoreRequestTransitions'
+type MockUsecase_ListStoreRequestTransitions_Call struct {
+	*mock.Call
+}
+
+// ListStoreRequestTransitions is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+//   - query collection.Query
+func (_e *MockUsecase_Expecter) ListStoreRequestTransitions(ctx interface{}, id interface{}, query interface{}) *MockUsecase_ListStoreRequestTransitions_Call {
+	return &MockUsecase_ListStoreRequestTransitions_Call{Call: _e.mock.On("ListStoreRequestTransitions", ctx, id, query)}
+}
+
+func (_c *MockUsecase_ListStoreRequestTransitions_Call) Run(run func(ctx context.Context, id string, query collection.Query)) *MockUsecase_ListStoreRequestTransitions_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 collection.Query
+		if args[2] != nil {
+			arg2 = args[2].(collection.Query)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUsecase_ListStoreRequestTransitions_Call) Return(page collection.Page[inputport.RequestTransition], err error) *MockUsecase_ListStoreRequestTransitions_Call {
+	_c.Call.Return(page, err)
+	return _c
+}
+
+func (_c *MockUsecase_ListStoreRequestTransitions_Call) RunAndReturn(run func(ctx context.Context, id string, query collection.Query) (collection.Page[inputport.RequestTransition], error)) *MockUsecase_ListStoreRequestTransitions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListStoreRequests provides a mock function for the type MockUsecase
 func (_mock *MockUsecase) ListStoreRequests(ctx context.Context, workspaceID string, query collection.Query) (collection.Page[*inputport.Request], error) {
 	ret := _mock.Called(ctx, workspaceID, query)

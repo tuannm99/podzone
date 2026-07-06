@@ -26,6 +26,7 @@ type Interactor struct {
 	provisioner storeoutputport.StorageProvisioner
 	routeReader storeoutputport.PlacementRouteReader
 	routeWriter storeoutputport.PlacementRouteWriter
+	inventory   storeoutputport.ResourceInventoryRepository
 }
 
 func NewInteractor(st storeoutputport.ConnectionStore) *Interactor {
@@ -42,6 +43,7 @@ type InteractorParams struct {
 	Provisioner storeoutputport.StorageProvisioner
 	RouteReader storeoutputport.PlacementRouteReader
 	RouteWriter storeoutputport.PlacementRouteWriter
+	Inventory   storeoutputport.ResourceInventoryRepository
 }
 
 func NewInteractorWithParams(p InteractorParams) *Interactor {
@@ -53,6 +55,7 @@ func NewInteractorWithParams(p InteractorParams) *Interactor {
 		provisioner: p.Provisioner,
 		routeReader: p.RouteReader,
 		routeWriter: p.RouteWriter,
+		inventory:   p.Inventory,
 	}
 }
 
@@ -75,7 +78,7 @@ func (s *Interactor) ProvisionStorePlacement(
 		Subdomain:   req.Subdomain,
 		RequestedBy: req.RequestedBy,
 	}
-	existing, err := s.placements.GetPlacementAllocation(ctx, req.TenantID, req.StoreID)
+	existing, err := s.placements.GetTenantPlacementAllocation(ctx, req.TenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -173,12 +176,12 @@ func (s *Interactor) IsPlacementRouteReady(ctx context.Context, tenantID string)
 	return s.routeReader.IsPlacementRouteReady(ctx, tenantID)
 }
 
-func (s *Interactor) EnsurePlacementRoute(ctx context.Context, tenantID string, storeID string) (bool, error) {
+func (s *Interactor) EnsurePlacementRoute(ctx context.Context, tenantID string) (bool, error) {
 	if s.placements == nil || s.routeWriter == nil {
 		return s.IsPlacementRouteReady(ctx, tenantID)
 	}
 
-	allocation, err := s.placements.GetPlacementAllocation(ctx, tenantID, storeID)
+	allocation, err := s.placements.GetTenantPlacementAllocation(ctx, tenantID)
 	if err != nil || allocation == nil {
 		return false, err
 	}

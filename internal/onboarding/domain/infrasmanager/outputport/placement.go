@@ -22,10 +22,9 @@ type StorageProvisioner interface {
 }
 
 type PlacementRepository interface {
-	GetPlacementAllocation(
+	GetTenantPlacementAllocation(
 		ctx context.Context,
 		tenantID string,
-		storeID string,
 	) (*entity.PlacementAllocation, error)
 	SavePlacementAllocation(ctx context.Context, allocation entity.PlacementAllocation) error
 }

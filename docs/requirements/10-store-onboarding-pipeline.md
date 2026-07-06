@@ -444,6 +444,8 @@ Mongo `runtime_kv` is only a router projection for runtime lookup and can be reb
 Requirements:
 
 - placement allocation must be persisted before publishing router metadata
+- each tenant has at most one canonical ready placement allocation; additional stores reuse that allocation
+- store and request IDs on an allocation are provisioning provenance, not placement identity
 - placement provider must be explicit: local Docker, Kubernetes, Terraform/cloud, or another runtime
 - connection endpoint and secret reference must be produced by the selected provider after provisioning
 - service config may seed runtime policy or local defaults, but it must not be treated as the source of truth for connection routing
@@ -476,6 +478,20 @@ The exact technical status names can differ, but the product must preserve the l
 - Backoffice should only open stores that are ready and resolvable.
 - Admin surfaces must expose the reason a store is blocked, failed, or waiting.
 - A store request may be visible even if the store itself is not yet selectable.
+
+## Provisioning administration
+
+The onboarding administration surface must expose the same operational facts used by the planner and workers:
+
+- a paginated, searchable pipeline view backed by persisted request transitions
+- explicit stages for request, approval, planning, provisioning, route publication, store finalization, and readiness
+- CRUD for global database clusters, Kubernetes clusters/namespaces, and runtime pools
+- tenant-scoped CRUD for connection routes and secret references
+- resource configuration editing with validation; plaintext credentials must never be returned to or stored by the UI
+- IAM guards on every read and mutation API; hiding a frontend control is not authorization
+
+Resource deletion archives capacity so historical provisioning facts remain explainable. Archived or unhealthy resources
+must not be selected for new placement.
 
 ## Responsibilities by service
 

@@ -6,31 +6,28 @@ import type { FormStore } from '@/solid/forms'
 import type { RoutedOrderFormValues } from './forms'
 
 export type TenantOrdersComposerContextValue = {
-  availableCandidates: Accessor<CatalogCandidate[]>
-  form: FormStore<RoutedOrderFormValues>
-  routingRecommendation: Accessor<RoutedOrderRecommendation | null>
-  applyPreferredPartnerOverride: (partnerName: string) => void
-  resetPreferredPartnerOverride: () => void
-  createMockOrder: (event: SubmitEvent) => Promise<void>
+    availableCandidates: Accessor<CatalogCandidate[]>
+    form: FormStore<RoutedOrderFormValues>
+    routingRecommendation: Accessor<RoutedOrderRecommendation | null>
+    applyPreferredPartnerOverride: (partnerName: string) => void
+    resetPreferredPartnerOverride: () => void
+    createMockOrder: (event: SubmitEvent) => Promise<void>
 }
 
-const TenantOrdersComposerContext =
-  createContext<TenantOrdersComposerContextValue>()
+const TenantOrdersComposerContext = createContext<TenantOrdersComposerContextValue>()
 
-export function TenantOrdersComposerProvider(
-  props: ParentProps<{ value: TenantOrdersComposerContextValue }>
-) {
-  return (
-    <TenantOrdersComposerContext.Provider value={props.value}>
-      {props.children}
-    </TenantOrdersComposerContext.Provider>
-  )
+export function TenantOrdersComposerProvider(props: ParentProps<{ value: TenantOrdersComposerContextValue }>) {
+    return (
+        <TenantOrdersComposerContext.Provider value={props.value}>
+            {props.children}
+        </TenantOrdersComposerContext.Provider>
+    )
 }
 
 export function useTenantOrdersComposer() {
-  const ctx = useContext(TenantOrdersComposerContext)
-  if (!ctx) {
-    throw new Error('TenantOrdersComposerContext is missing')
-  }
-  return ctx
+    const ctx = useContext(TenantOrdersComposerContext)
+    if (!ctx) {
+        throw new Error('TenantOrdersComposerContext is missing')
+    }
+    return ctx
 }

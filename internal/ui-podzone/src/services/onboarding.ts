@@ -1,109 +1,104 @@
 import { ONBOARDING_API_URL } from './baseurl'
 import {
-  normalizePageInfo,
-  toCollectionParams,
-  type CollectionPage,
-  type CollectionQuery,
-  type WirePageInfo,
+    normalizePageInfo,
+    toCollectionParams,
+    type CollectionPage,
+    type CollectionQuery,
+    type WirePageInfo,
 } from './collection'
 import { http, type HttpError } from './http'
 
 export type StoreRequestStatus =
-  | 'requested'
-  | 'planning'
-  | 'planned'
-  | 'pending_approval'
-  | 'queued'
-  | 'provisioning'
-  | 'ready'
-  | 'failed'
-  | 'failed_retryable'
-  | 'failed_non_retryable'
-  | 'pending_platform_setup'
-  | 'rejected'
-  | 'suspended'
-  | 'archived'
-  | 'cancelled'
+    | 'requested'
+    | 'planning'
+    | 'planned'
+    | 'pending_approval'
+    | 'queued'
+    | 'provisioning'
+    | 'ready'
+    | 'failed'
+    | 'failed_retryable'
+    | 'failed_non_retryable'
+    | 'pending_platform_setup'
+    | 'rejected'
+    | 'suspended'
+    | 'archived'
+    | 'cancelled'
 
 export type StoreRequest = {
-  id: string
-  workspace_id: string
-  name: string
-  subdomain: string
-  requested_by: string
-  status: StoreRequestStatus
-  store_id?: string
-  last_error?: string
-  created_at: string
-  updated_at: string
+    id: string
+    workspace_id: string
+    name: string
+    subdomain: string
+    requested_by: string
+    owner_id: string
+    status: StoreRequestStatus
+    store_id?: string
+    last_error?: string
+    created_at: string
+    updated_at: string
 }
 
-type Result<T> =
-  { success: true; data: T } | { success: false; message: string }
+type Result<T> = { success: true; data: T } | { success: false; message: string }
 
 function errorMessage(error: unknown): string {
-  const requestError = error as HttpError
-  return requestError?.message || 'Onboarding request failed'
+    const requestError = error as HttpError
+    return requestError?.message || 'Onboarding request failed'
 }
 
 function tenantHeaders(tenantId: string) {
-  return { 'X-Tenant-ID': tenantId.trim() }
+    return { 'X-Tenant-ID': tenantId.trim() }
 }
 
 export async function listStoreRequests(
-  tenantId: string,
-  query: CollectionQuery
+    tenantId: string,
+    query: CollectionQuery
 ): Promise<Result<CollectionPage<StoreRequest>>> {
-  try {
-    const response = await http.get<{
-      items?: StoreRequest[]
-      pageInfo?: WirePageInfo
-    }>(`${ONBOARDING_API_URL}/onboarding/v1/requests`, {
-      headers: tenantHeaders(tenantId),
-      params: toCollectionParams(query),
-    })
-    return {
-      success: true,
-      data: {
-        items: response.data.items || [],
-        pageInfo: normalizePageInfo(response.data.pageInfo, query),
-      },
+    try {
+        const response = await http.get<{
+            items?: StoreRequest[]
+            pageInfo?: WirePageInfo
+        }>(`${ONBOARDING_API_URL}/onboarding/v1/requests`, {
+            headers: tenantHeaders(tenantId),
+            params: toCollectionParams(query),
+        })
+        return {
+            success: true,
+            data: {
+                items: response.data.items || [],
+                pageInfo: normalizePageInfo(response.data.pageInfo, query),
+            },
+        }
+    } catch (error) {
+        return { success: false, message: errorMessage(error) }
     }
-  } catch (error) {
-    return { success: false, message: errorMessage(error) }
-  }
 }
 
 export async function createStoreRequest(input: {
-  tenantId: string
-  name: string
-  subdomain: string
+    tenantId: string
+    name: string
+    subdomain: string
 }): Promise<Result<StoreRequest>> {
-  try {
-    const { tenantId, ...payload } = input
-    const response = await http.post<StoreRequest>(
-      `${ONBOARDING_API_URL}/onboarding/v1/requests`,
-      payload,
-      { headers: tenantHeaders(tenantId) }
-    )
-    return { success: true, data: response.data }
-  } catch (error) {
-    return { success: false, message: errorMessage(error) }
-  }
+    try {
+        const { tenantId, ...payload } = input
+        const response = await http.post<StoreRequest>(`${ONBOARDING_API_URL}/onboarding/v1/requests`, payload, {
+            headers: tenantHeaders(tenantId),
+        })
+        return { success: true, data: response.data }
+    } catch (error) {
+        return { success: false, message: errorMessage(error) }
+    }
 }
 
-export async function retryStoreRequest(input: {
-  tenantId: string
-  requestId: string
-}): Promise<Result<void>> {
-  try {
-    await http.post(
-      `${ONBOARDING_API_URL}/onboarding/v1/requests/${encodeURIComponent(input.requestId)}/retry`,
-      undefined,
-      { headers: tenantHeaders(input.tenantId) }
-    )
-    return { success: true, data: undefined }
-  } catch (error) {
-    return { success: false, message: errorMessage(error) }
-  }
+export async function retryStoreRequest(input: { tenantId: string; requestId: string }): Promise<Result<void>> {
+    try {
+        await http.post(
+            `${ONBOARDING_API_URL}/onboarding/v1/requests/${encodeURIComponent(input.requestId)}/retry`,
+            undefined,
+            { headers: tenantHeaders(input.tenantId) }
+        )
+        return { success: true, data: undefined }
+    } catch (error) {
+        return { success: false, message: errorMessage(error) }
+    }
 }

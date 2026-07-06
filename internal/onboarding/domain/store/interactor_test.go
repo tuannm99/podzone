@@ -382,7 +382,14 @@ func TestProcessNextStoreRequest_MarksPlatformSetupWhenProviderUnavailable(t *te
 
 func TestFinalizeNextStoreRequest_BootstrapsOperationalStoreBeforeReady(t *testing.T) {
 	repo := storemocks.NewMockStoreRepository(t)
-	allowTransitionLog(repo)
+	transitions := make([]storeentity.StoreRequestTransition, 0, 3)
+	repo.EXPECT().
+		RecordTransition(mock.Anything, mock.Anything).
+		RunAndReturn(func(_ context.Context, transition storeentity.StoreRequestTransition) error {
+			transitions = append(transitions, transition)
+			return nil
+		}).
+		Times(3)
 	infra := infrasmocks.NewMockUsecase(t)
 	finalizer := storemocks.NewMockOperationalStoreFinalizer(t)
 	svc := &StoreInteractor{
@@ -401,7 +408,7 @@ func TestFinalizeNextStoreRequest_BootstrapsOperationalStoreBeforeReady(t *testi
 		Status:      storeentity.RequestStatusProvisioning,
 	}
 	repo.EXPECT().FindNextProvisioning(mock.Anything).Return(request, nil)
-	infra.EXPECT().EnsurePlacementRoute(mock.Anything, "workspace-1", id.Hex()).Return(true, nil)
+	infra.EXPECT().EnsurePlacementRoute(mock.Anything, "workspace-1").Return(true, nil)
 	finalizer.EXPECT().FinalizeStore(mock.Anything, *request).Return(nil)
 	repo.EXPECT().MarkReady(mock.Anything, id.Hex(), id.Hex()).Return(nil)
 
@@ -410,6 +417,11 @@ func TestFinalizeNextStoreRequest_BootstrapsOperationalStoreBeforeReady(t *testi
 	require.NotNil(t, finalized)
 	require.Equal(t, storeinputport.RequestStatusReady, finalized.Status)
 	require.Equal(t, id.Hex(), finalized.StoreID)
+	require.Equal(t, []string{"route.ready", "store.finalized", "request.ready"}, []string{
+		transitions[0].Step,
+		transitions[1].Step,
+		transitions[2].Step,
+	})
 }
 
 func TestFinalizeNextStoreRequest_WaitsForPlacementRoute(t *testing.T) {
@@ -432,7 +444,7 @@ func TestFinalizeNextStoreRequest_WaitsForPlacementRoute(t *testing.T) {
 		Status:      storeentity.RequestStatusProvisioning,
 	}
 	repo.EXPECT().FindNextProvisioning(mock.Anything).Return(request, nil)
-	infra.EXPECT().EnsurePlacementRoute(mock.Anything, "workspace-1", request.ID.Hex()).Return(false, nil)
+	infra.EXPECT().EnsurePlacementRoute(mock.Anything, "workspace-1").Return(false, nil)
 
 	finalized, err := svc.FinalizeNextStoreRequest(context.Background())
 	require.NoError(t, err)
