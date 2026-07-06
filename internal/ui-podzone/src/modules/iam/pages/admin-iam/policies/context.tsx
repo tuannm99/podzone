@@ -6,7 +6,7 @@ import type {
   PolicyVersionInfo,
 } from '@/services/iam'
 import type { CollectionQuery, PageInfo } from '@/services/collection'
-import type { SelectOption } from '@/solid/components/common/Primitives'
+import type { IamPermissionOption } from '../shared/IamPermissionMatrix'
 import type {
   CreatePolicyFormValues,
   CreatePolicyVersionFormValues,
@@ -23,7 +23,7 @@ export type PolicyOption = {
 }
 
 export type AdminIamPolicyContextValue = {
-  permissionOptions: Accessor<SelectOption[]>
+  permissionOptions: Accessor<IamPermissionOption[]>
   identityForUser: (userID: number | string) => {
     label: string
     description: string

@@ -60,8 +60,7 @@ export type RoutedOrderActivityFeedPage = {
 }
 
 export type OrdersResult<T> =
-  | { success: true; data: T }
-  | { success: false; message: string }
+  { success: true; data: T } | { success: false; message: string }
 
 export type CreateRoutedOrderPayload = {
   candidateId: string

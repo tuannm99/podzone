@@ -6,6 +6,7 @@ import type {
 } from '@/services/iam'
 import type { SelectOption } from '@/solid/components/common/Primitives'
 import type { SearchSelectOption } from '@/solid/components/common/SearchSelectField'
+import type { IamPermissionOption } from '../shared/IamPermissionMatrix'
 
 export type ScopeOption = {
   name: string
@@ -18,7 +19,7 @@ export type TenantOption = {
 }
 
 export type AdminIamTrustSimContextValue = {
-  permissionOptions: Accessor<SelectOption[]>
+  permissionOptions: Accessor<IamPermissionOption[]>
   boundaryPolicyOptions: Accessor<SelectOption[]>
   platformUserOptions: Accessor<SearchSelectOption[]>
   platformUsersLoading: Accessor<boolean>

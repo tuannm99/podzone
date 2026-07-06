@@ -23,13 +23,28 @@ JWT_SECRET="${JWT_SECRET:-dev-secret}"
 JWT_KEY="${JWT_KEY:-}"
 AUTH_BOOTSTRAP_OUTPUT="${AUTH_BOOTSTRAP_OUTPUT:-/workspace/internal/ui-podzone/public/dev-auth-bootstrap.json}"
 UI_AUTH_BOOTSTRAP_TARGET="${UI_AUTH_BOOTSTRAP_TARGET:-/workspace/internal/ui-podzone/public/dev-auth-bootstrap.json}"
+DEV_OWNER_ID_OUTPUT="${DEV_OWNER_ID_OUTPUT:-/tmp/podzone-dev-owner-id}"
+create_store="true"
 
-if curl -sS "${ONBOARDING_URL}" >/dev/null 2>&1; then
-  create_store="true"
-else
-  echo "Onboarding service not reachable, skipping onboarding store record."
-  create_store="false"
-fi
+TENANT_ID="${TENANT_ID}" \
+TENANT_NAME="${TENANT_NAME}" \
+TENANT_SLUG="${TENANT_SLUG}" \
+DEV_USERNAME="${DEV_USERNAME}" \
+DEV_EMAIL="${DEV_EMAIL}" \
+DEV_PASSWORD="${DEV_PASSWORD}" \
+DEV_FULL_NAME="${DEV_FULL_NAME}" \
+PG_HOST="postgres" \
+PG_PORT="5432" \
+PG_USER="${PG_USER}" \
+PG_PASSWORD="${PG_PASSWORD}" \
+PG_SSL_MODE="${PG_SSL_MODE}" \
+JWT_SECRET="${JWT_SECRET}" \
+JWT_KEY="${JWT_KEY}" \
+AUTH_BOOTSTRAP_OUTPUT="${AUTH_BOOTSTRAP_OUTPUT}" \
+DEV_OWNER_ID_OUTPUT="${DEV_OWNER_ID_OUTPUT}" \
+go run /workspace/scripts/dev/seed_auth_bootstrap.go
+
+store_owner_id="$(cat "${DEV_OWNER_ID_OUTPUT}")"
 
 TENANT_ID="${TENANT_ID}" \
 DB_NAME="${DB_NAME}" \
@@ -40,6 +55,7 @@ PG_USER="${PG_USER}" \
 PG_PASSWORD="${PG_PASSWORD}" \
 PG_SSL_MODE="${PG_SSL_MODE}" \
 CREATE_STORE="${create_store}" \
+STORE_OWNER_ID="${store_owner_id}" \
 sh /workspace/scripts/dev/seed_backoffice_tenant.sh \
   "${TENANT_ID}" \
   "${STORE_NAME}" \
@@ -57,24 +73,8 @@ PG_USER="${PG_USER}" \
 PG_PASSWORD="${PG_PASSWORD}" \
 PG_SSL_MODE="${PG_SSL_MODE}" \
 ONBOARDING_URL="${ONBOARDING_URL}" \
+ONBOARDING_SERVICE_TOKEN="${ONBOARDING_SERVICE_TOKEN:-dev-bootstrap-token}" \
 go run /workspace/scripts/dev/seed_backoffice_sample.go
-
-TENANT_ID="${TENANT_ID}" \
-TENANT_NAME="${TENANT_NAME}" \
-TENANT_SLUG="${TENANT_SLUG}" \
-DEV_USERNAME="${DEV_USERNAME}" \
-DEV_EMAIL="${DEV_EMAIL}" \
-DEV_PASSWORD="${DEV_PASSWORD}" \
-DEV_FULL_NAME="${DEV_FULL_NAME}" \
-PG_HOST="postgres" \
-PG_PORT="5432" \
-PG_USER="${PG_USER}" \
-PG_PASSWORD="${PG_PASSWORD}" \
-PG_SSL_MODE="${PG_SSL_MODE}" \
-JWT_SECRET="${JWT_SECRET}" \
-JWT_KEY="${JWT_KEY}" \
-AUTH_BOOTSTRAP_OUTPUT="${AUTH_BOOTSTRAP_OUTPUT}" \
-go run /workspace/scripts/dev/seed_auth_bootstrap.go
 
 AUTH_BOOTSTRAP_OUTPUT="${AUTH_BOOTSTRAP_OUTPUT}" \
 UI_AUTH_BOOTSTRAP_TARGET="${UI_AUTH_BOOTSTRAP_TARGET}" \

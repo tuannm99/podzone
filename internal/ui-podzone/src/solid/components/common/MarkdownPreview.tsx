@@ -63,7 +63,7 @@ export function MarkdownPreview(props: {
           props.class
         )}
       >
-        <div ref={containerRef} />
+        <div ref={(element) => (containerRef = element)} />
       </div>
     </Show>
   )

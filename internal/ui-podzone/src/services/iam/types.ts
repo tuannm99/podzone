@@ -9,8 +9,7 @@ export type TenantMembership = {
 }
 
 export type IamResult<T> =
-  | { success: true; data: T }
-  | { success: false; message: string }
+  { success: true; data: T } | { success: false; message: string }
 
 export type UpsertTenantMemberPayload = {
   tenantId: string

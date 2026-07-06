@@ -19,8 +19,7 @@ export type StoreInfo = {
 }
 
 type StoreResult<T> =
-  | { success: true; data: T }
-  | { success: false; message: string }
+  { success: true; data: T } | { success: false; message: string }
 
 export async function listStores(
   query: CollectionQuery

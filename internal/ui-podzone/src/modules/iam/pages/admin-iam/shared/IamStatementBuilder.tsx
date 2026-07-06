@@ -1,5 +1,4 @@
 import { For, Show, createEffect, createMemo, createSignal } from 'solid-js'
-import { Tabs } from './Tabs'
 import {
   Badge,
   Button,
@@ -7,8 +6,13 @@ import {
   InputField,
   SelectField,
   TextareaField,
-  type SelectOption,
-} from './Primitives'
+} from '@/solid/components/common/Primitives'
+import { Tabs } from '@/solid/components/common/Tabs'
+import {
+  IamPermissionMatrix,
+  type IamPermissionOption,
+  type IamPermissionSelection,
+} from './IamPermissionMatrix'
 
 type Condition = {
   operator: string
@@ -43,35 +47,42 @@ const conditionOperatorOptions = [
   { name: 'Null', value: 'Null' },
 ]
 
-function normalizeStatements(raw: string): Statement[] {
-  try {
-    const parsed = JSON.parse(raw || '[]')
-    if (!Array.isArray(parsed)) return []
-    return parsed.map((item) => ({
-      effect: typeof item?.effect === 'string' ? item.effect : 'allow',
+function parseStatements(raw: string): Statement[] {
+  const parsed: unknown = JSON.parse(raw || '[]')
+  if (!Array.isArray(parsed)) {
+    throw new Error('Statements JSON must be an array')
+  }
+
+  return parsed.map((item) => {
+    const current = item as Partial<Statement> | null
+    if (!current || typeof current !== 'object') {
+      throw new Error('Each statement must be an object')
+    }
+    return {
+      effect: typeof current.effect === 'string' ? current.effect : 'allow',
       actionPattern:
-        typeof item?.actionPattern === 'string' ? item.actionPattern : '',
+        typeof current.actionPattern === 'string' ? current.actionPattern : '',
       resourcePattern:
-        typeof item?.resourcePattern === 'string' ? item.resourcePattern : '*',
-      conditions: Array.isArray(item?.conditions)
-        ? item.conditions
+        typeof current.resourcePattern === 'string'
+          ? current.resourcePattern
+          : '*',
+      conditions: Array.isArray(current.conditions)
+        ? current.conditions
             .map((condition: unknown) => {
-              const current = condition as Partial<Condition> | null
+              const value = condition as Partial<Condition> | null
               return {
                 operator:
-                  typeof current?.operator === 'string'
-                    ? current.operator
+                  typeof value?.operator === 'string'
+                    ? value.operator
                     : 'StringEquals',
-                key: typeof current?.key === 'string' ? current.key : '',
-                value: typeof current?.value === 'string' ? current.value : '',
+                key: typeof value?.key === 'string' ? value.key : '',
+                value: typeof value?.value === 'string' ? value.value : '',
               }
             })
             .filter((condition: Condition) => condition.key.trim() !== '')
         : [],
-    }))
-  } catch {
-    return []
-  }
+    }
+  })
 }
 
 function serializeStatements(items: Statement[]) {
@@ -82,22 +93,33 @@ export function IamStatementBuilder(props: {
   label: string
   value: string
   onChange: (value: string) => void
-  actionOptions?: SelectOption[]
+  actionOptions?: IamPermissionOption[]
   builderCopy?: string
 }) {
-  const [mode, setMode] = createSignal<'builder' | 'json'>('builder')
-  const [statements, setStatements] = createSignal<Statement[]>(
-    normalizeStatements(props.value)
+  type Mode = 'matrix' | 'builder' | 'json'
+  const initialStatements = () => {
+    try {
+      return parseStatements(props.value)
+    } catch {
+      return []
+    }
+  }
+  const [mode, setMode] = createSignal<Mode>(
+    props.actionOptions?.length ? 'matrix' : 'builder'
   )
+  const [statements, setStatements] =
+    createSignal<Statement[]>(initialStatements())
   const [parseError, setParseError] = createSignal('')
 
   createEffect(() => {
     try {
-      const next = normalizeStatements(props.value)
+      const next = parseStatements(props.value)
       setStatements(next)
       setParseError('')
-    } catch {
-      setParseError('Invalid JSON')
+    } catch (error) {
+      setParseError(
+        error instanceof Error ? error.message : 'Statements JSON is invalid'
+      )
     }
   })
 
@@ -112,6 +134,22 @@ export function IamStatementBuilder(props: {
     return props.actionOptions?.some((option) => option.value === value)
       ? value
       : '__custom__'
+  }
+  const permissionSelection = (
+    permission: IamPermissionOption
+  ): IamPermissionSelection => {
+    const matches = statements().filter(
+      (statement) => statement.actionPattern === permission.value
+    )
+    return {
+      selected: matches.length > 0,
+      scoped: matches.some(
+        (statement) =>
+          statement.effect !== 'allow' ||
+          statement.resourcePattern !== '*' ||
+          (statement.conditions || []).length > 0
+      ),
+    }
   }
 
   const commit = (next: Statement[]) => {
@@ -140,6 +178,35 @@ export function IamStatementBuilder(props: {
         conditions: [],
       },
     ])
+  }
+
+  const togglePermissions = (
+    permissions: IamPermissionOption[],
+    selected: boolean
+  ) => {
+    const permissionNames = new Set(
+      permissions.map((permission) => permission.value)
+    )
+    const retained = statements().filter(
+      (statement) => !permissionNames.has(statement.actionPattern)
+    )
+    if (!selected) {
+      commit(retained)
+      return
+    }
+
+    const existingNames = new Set(
+      statements().map((statement) => statement.actionPattern)
+    )
+    const additions = permissions
+      .filter((permission) => !existingNames.has(permission.value))
+      .map((permission) => ({
+        effect: 'allow',
+        actionPattern: permission.value,
+        resourcePattern: '*',
+        conditions: [],
+      }))
+    commit([...statements(), ...additions])
   }
 
   const addCondition = (index: number) => {
@@ -177,11 +244,13 @@ export function IamStatementBuilder(props: {
   const handleJsonInput = (value: string) => {
     props.onChange(value)
     try {
-      const next = normalizeStatements(value)
+      const next = parseStatements(value)
       setStatements(next)
       setParseError('')
-    } catch {
-      setParseError('Invalid JSON')
+    } catch (error) {
+      setParseError(
+        error instanceof Error ? error.message : 'Statements JSON is invalid'
+      )
     }
   }
 
@@ -200,12 +269,39 @@ export function IamStatementBuilder(props: {
 
       <Tabs
         value={mode()}
-        items={[
-          { value: 'builder', label: 'Builder' },
-          { value: 'json', label: 'JSON' },
-        ]}
-        onChange={(value) => setMode(value as 'builder' | 'json')}
+        items={
+          props.actionOptions?.length
+            ? [
+                { value: 'matrix', label: 'Permission matrix' },
+                { value: 'builder', label: 'Builder' },
+                { value: 'json', label: 'JSON' },
+              ]
+            : [
+                { value: 'builder', label: 'Builder' },
+                { value: 'json', label: 'JSON' },
+              ]
+        }
+        onChange={setMode}
       />
+
+      <Show when={mode() === 'matrix' && props.actionOptions?.length}>
+        <div class="space-y-3">
+          <p class="text-xs text-gray-500">
+            The matrix manages exact permissions. Use Builder for deny rules,
+            resource scopes, conditions, and wildcard patterns.
+          </p>
+          <IamPermissionMatrix
+            permissions={props.actionOptions || []}
+            selection={permissionSelection}
+            onToggle={(permission, selected) =>
+              togglePermissions([permission], selected)
+            }
+            onToggleResource={(_, permissions, selected) =>
+              togglePermissions(permissions, selected)
+            }
+          />
+        </div>
+      </Show>
 
       <Show when={mode() === 'builder'}>
         <div class="space-y-3">

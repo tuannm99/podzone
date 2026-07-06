@@ -1,6 +1,5 @@
 export type CollectionSortDirection =
-  | 'SORT_DIRECTION_ASC'
-  | 'SORT_DIRECTION_DESC'
+  'SORT_DIRECTION_ASC' | 'SORT_DIRECTION_DESC'
 
 export type CollectionFilterOperator =
   | 'FILTER_OPERATOR_EQ'

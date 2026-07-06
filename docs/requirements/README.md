@@ -38,6 +38,8 @@ The goal is not to restate implementation details. The goal is to clarify:
   Event-storming table and DDD migration guide for Backoffice business workflows.
 - [12-backoffice-ddd-discovery.md](./12-backoffice-ddd-discovery.md)
   Business decision log and migration gates for applying DDD to Backoffice safely.
+- [13-iam-permission-authoring.md](./13-iam-permission-authoring.md)
+  Requirements and delivery plan for permission catalogs, policy authoring, and role-permission matrices.
 
 ## How to read these docs
 

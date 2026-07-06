@@ -33,6 +33,7 @@ type Request struct {
 	Name        string        `json:"name"`
 	Subdomain   string        `json:"subdomain"`
 	RequestedBy string        `json:"requested_by"`
+	OwnerID     string        `json:"owner_id"`
 	Status      RequestStatus `json:"status"`
 	StoreID     string        `json:"store_id,omitempty"`
 	LastError   string        `json:"last_error,omitempty"`
@@ -45,6 +46,7 @@ type Request struct {
 type CreateStoreRequestCommand struct {
 	Name      string
 	Subdomain string
+	OwnerID   string
 }
 
 type Usecase interface {

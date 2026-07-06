@@ -65,6 +65,7 @@ func TestCreateStoreRequest_Success(t *testing.T) {
 				request.Subdomain == "new" &&
 				request.WorkspaceID == "workspace-1" &&
 				request.RequestedBy == "1" &&
+				request.OwnerID == "1" &&
 				request.Status == storeentity.RequestStatusRequested
 		})).
 		RunAndReturn(func(_ context.Context, request storeentity.StoreRequest) (*storeentity.StoreRequest, error) {
@@ -80,6 +81,57 @@ func TestCreateStoreRequest_Success(t *testing.T) {
 	require.NotNil(t, request)
 	require.NotEmpty(t, request.ID)
 	require.Equal(t, storeinputport.RequestStatusRequested, request.Status)
+}
+
+func TestCreateStoreRequest_AuthorizesOwnerOverride(t *testing.T) {
+	repo := storemocks.NewMockStoreRepository(t)
+	allowTransitionLog(repo)
+	authorizer := storemocks.NewMockAccessAuthorizer(t)
+	svc := &StoreInteractor{repo: repo, authorizer: authorizer}
+	ctx := authenticatedContext("workspace-1", "platform-admin")
+
+	authorizer.EXPECT().
+		AuthorizeStoreRequest(mock.Anything, "workspace-1", "platform-admin").
+		Return(nil)
+	authorizer.EXPECT().
+		AuthorizeStoreApproval(mock.Anything, "platform-admin").
+		Return(nil)
+	repo.EXPECT().FindBySubdomain(mock.Anything, "new").Return(nil, nil)
+	repo.EXPECT().
+		Create(mock.Anything, mock.MatchedBy(func(request storeentity.StoreRequest) bool {
+			return request.RequestedBy == "platform-admin" && request.OwnerID == "tenant-root"
+		})).
+		RunAndReturn(func(_ context.Context, request storeentity.StoreRequest) (*storeentity.StoreRequest, error) {
+			request.ID = primitive.NewObjectID()
+			return &request, nil
+		})
+
+	request, err := svc.CreateStoreRequest(
+		ctx,
+		storeinputport.CreateStoreRequestCommand{
+			Name:      "New",
+			Subdomain: "new",
+			OwnerID:   "tenant-root",
+		},
+	)
+
+	require.NoError(t, err)
+	require.Equal(t, "tenant-root", request.OwnerID)
+}
+
+func TestCreateStoreRequest_RejectsOwnerOverrideWithoutAuthorizer(t *testing.T) {
+	svc, _ := setupStoreInteractor(t)
+
+	_, err := svc.CreateStoreRequest(
+		authenticatedContext("workspace-1", "user-1"),
+		storeinputport.CreateStoreRequestCommand{
+			Name:      "New",
+			Subdomain: "new",
+			OwnerID:   "another-user",
+		},
+	)
+
+	require.ErrorIs(t, err, ErrAccessDenied)
 }
 
 func TestCreateStoreRequest_AuthorizesAuthenticatedWorkspace(t *testing.T) {

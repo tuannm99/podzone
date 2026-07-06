@@ -4,6 +4,7 @@ import type { GroupInfo, GroupInlinePolicy, PolicyInfo } from '@/services/iam'
 import type { CollectionQuery, PageInfo } from '@/services/collection'
 import type { SelectOption } from '@/solid/components/common/Primitives'
 import type { SearchSelectOption } from '@/solid/components/common/SearchSelectField'
+import type { IamPermissionOption } from '../shared/IamPermissionMatrix'
 import type {
   CreateGroupFormValues,
   GroupInlinePolicyFormValues,
@@ -27,7 +28,7 @@ export type GroupOption = {
 }
 
 export type AdminIamGroupContextValue = {
-  permissionOptions: Accessor<SelectOption[]>
+  permissionOptions: Accessor<IamPermissionOption[]>
   managedPolicyOptions: Accessor<SelectOption[]>
   identityForUser: (userID: number | string) => {
     label: string

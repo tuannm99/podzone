@@ -8,6 +8,7 @@ import type {
 import type { CollectionQuery, PageInfo } from '@/services/collection'
 import type { SelectOption } from '@/solid/components/common/Primitives'
 import type { SearchSelectOption } from '@/solid/components/common/SearchSelectField'
+import type { IamPermissionOption } from '../shared/IamPermissionMatrix'
 import type {
   PrincipalBoundaryFormValues,
   PrincipalInlinePolicyFormValues,
@@ -22,7 +23,7 @@ export type TenantOption = {
 export type PrincipalMode = 'platform' | 'tenant'
 
 export type AdminIamPrincipalContextValue = {
-  permissionOptions: Accessor<SelectOption[]>
+  permissionOptions: Accessor<IamPermissionOption[]>
   managedPolicyOptions: Accessor<SelectOption[]>
   platformUserOptions: Accessor<SearchSelectOption[]>
   platformUsersLoading: Accessor<boolean>

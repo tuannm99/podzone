@@ -78,7 +78,11 @@ export {
   removePlatformRole,
 } from './iam/roles'
 export { simulateAccess } from './iam/permissions'
-export { listDirectoryUsers, listPermissions } from './iam/directory'
+export {
+  listDirectoryUsers,
+  listPermissions,
+  listAllPermissions,
+} from './iam/directory'
 export type {
   TenantMembership,
   IamResult,

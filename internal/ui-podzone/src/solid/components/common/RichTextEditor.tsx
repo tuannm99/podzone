@@ -111,7 +111,7 @@ export function RichTextEditor(props: RichTextEditorProps) {
       </div>
 
       <div class="problem-statement-editor problem-statement-surface">
-        <div ref={containerRef} />
+        <div ref={(element) => (containerRef = element)} />
       </div>
     </div>
   )

@@ -6,7 +6,7 @@ import {
 } from 'solid-js'
 import {
   listDirectoryUsers,
-  listPermissions,
+  listAllPermissions,
   listPolicies,
 } from '@/services/iam'
 import { createPaginatedResource } from '@/solid/pagination'
@@ -44,9 +44,19 @@ export function createDirectoryViewModel(params: {
       sortDirection: 'SORT_DIRECTION_ASC',
     },
     async (query) => {
-      const result = await listPermissions(query, permissionScope())
+      const result = await listAllPermissions(permissionScope())
       if (!result.success) throw new Error(result.message)
-      return result.data
+      return {
+        items: result.data,
+        pageInfo: {
+          total: result.data.length,
+          page: query.page,
+          pageSize: result.data.length || query.pageSize,
+          totalPages: result.data.length > 0 ? 1 : 0,
+          hasNext: false,
+          hasPrevious: false,
+        },
+      }
     },
     {
       enabled: () =>
@@ -227,6 +237,8 @@ export function createDirectoryViewModel(params: {
       permissions.items().map((permission) => ({
         name: `${permission.name} — ${permission.resource}:${permission.action}`,
         value: permission.name,
+        resource: permission.resource,
+        action: permission.action,
       })),
     permissionsLoading: permissions.loading,
     permissionsError: permissions.error,

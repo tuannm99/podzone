@@ -32,6 +32,7 @@ type StoreRequest struct {
 	Name        string              `bson:"name"                   json:"name"`
 	Subdomain   string              `bson:"subdomain"              json:"subdomain"`
 	RequestedBy string              `bson:"requested_by"           json:"requested_by"`
+	OwnerID     string              `bson:"owner_id,omitempty"     json:"owner_id,omitempty"`
 	Status      RequestStatus       `bson:"status"                 json:"status"`
 	StoreID     *primitive.ObjectID `bson:"store_id,omitempty"     json:"store_id,omitempty"`
 	LastError   string              `bson:"last_error,omitempty"   json:"last_error,omitempty"`

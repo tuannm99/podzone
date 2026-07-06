@@ -50,15 +50,33 @@ func (s *MongoStore) SavePlacementPlan(ctx context.Context, plan entity.Placemen
 	_, err := s.planCol.UpdateOne(
 		ctx,
 		bson.M{"request_id": plan.RequestID},
-		bson.M{
-			"$set": doc,
-			"$setOnInsert": bson.M{
-				"created_at": plan.CreatedAt,
-			},
-		},
+		placementPlanUpdate(doc),
 		options.Update().SetUpsert(true),
 	)
 	return err
+}
+
+func placementPlanUpdate(doc placementPlanDoc) bson.M {
+	return bson.M{
+		"$set": bson.M{
+			"request_id":         doc.RequestID,
+			"tenant_id":          doc.TenantID,
+			"store_id":           doc.StoreID,
+			"runtime":            doc.Runtime,
+			"cluster_name":       doc.ClusterName,
+			"mode":               doc.Mode,
+			"db_name":            doc.DBName,
+			"schema_name":        doc.SchemaName,
+			"provider_meta":      doc.ProviderMeta,
+			"inventory_snapshot": doc.InventorySnapshot,
+			"capacity_snapshot":  doc.CapacitySnapshot,
+			"policy_decision":    doc.PolicyDecision,
+			"updated_at":         doc.UpdatedAt,
+		},
+		"$setOnInsert": bson.M{
+			"created_at": doc.CreatedAt,
+		},
+	}
 }
 
 type placementPlanDoc struct {

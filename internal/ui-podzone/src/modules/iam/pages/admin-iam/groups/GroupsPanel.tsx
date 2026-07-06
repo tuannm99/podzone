@@ -1,5 +1,5 @@
 import { Show } from 'solid-js'
-import { IamStatementBuilder } from '@/solid/components/common/IamStatementBuilder'
+import { IamStatementBuilder } from '../shared/IamStatementBuilder'
 import { Button, SelectField } from '@/solid/components/common/Primitives'
 import { SearchSelectField } from '@/solid/components/common/SearchSelectField'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'

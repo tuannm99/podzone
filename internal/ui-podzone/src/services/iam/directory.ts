@@ -73,3 +73,29 @@ export async function listPermissions(
     return toFailure(error as HttpError, 'Failed to load permissions')
   }
 }
+
+export async function listAllPermissions(
+  scope: DirectoryScope
+): Promise<IamResult<PermissionInfo[]>> {
+  const permissions: PermissionInfo[] = []
+  let page = 1
+
+  while (true) {
+    const result = await listPermissions(
+      {
+        page,
+        pageSize: 100,
+        sortBy: 'name',
+        sortDirection: 'SORT_DIRECTION_ASC',
+      },
+      scope
+    )
+    if (!result.success) return result
+
+    permissions.push(...result.data.items)
+    if (!result.data.pageInfo.hasNext) {
+      return { success: true, data: permissions }
+    }
+    page += 1
+  }
+}

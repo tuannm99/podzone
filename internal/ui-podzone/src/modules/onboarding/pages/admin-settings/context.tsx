@@ -28,12 +28,7 @@ export type AdminSettingsViewModel = {
 }
 
 export type AdminSettingsTab =
-  | 'overview'
-  | 'sessions'
-  | 'team'
-  | 'invites'
-  | 'audit'
-  | 'platform'
+  'overview' | 'sessions' | 'team' | 'invites' | 'audit' | 'platform'
 
 export const AdminSettingsContext = createContext<AdminSettingsViewModel>()
 

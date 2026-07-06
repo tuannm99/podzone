@@ -24,21 +24,22 @@ import (
 )
 
 type cfg struct {
-	TenantID   string
-	TenantName string
-	TenantSlug string
-	Username   string
-	Email      string
-	Password   string
-	FullName   string
-	PGHost     string
-	PGPort     string
-	PGUser     string
-	PGPassword string
-	PGSSLMode  string
-	JWTSecret  string
-	JWTKey     string
-	OutputPath string
+	TenantID    string
+	TenantName  string
+	TenantSlug  string
+	Username    string
+	Email       string
+	Password    string
+	FullName    string
+	PGHost      string
+	PGPort      string
+	PGUser      string
+	PGPassword  string
+	PGSSLMode   string
+	JWTSecret   string
+	JWTKey      string
+	OutputPath  string
+	OwnerIDPath string
 }
 
 type seedOutput struct {
@@ -59,13 +60,19 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
-	db, err := openDB(cfg)
+	authDB, err := openDB(cfg, "auth")
 	if err != nil {
 		fail("open auth db", err)
 	}
-	defer db.Close()
+	defer authDB.Close()
 
-	out, err := seedAuth(ctx, db, cfg)
+	iamDB, err := openDB(cfg, "iam")
+	if err != nil {
+		fail("open iam db", err)
+	}
+	defer iamDB.Close()
+
+	out, err := seedAuth(ctx, authDB, iamDB, cfg)
 	if err != nil {
 		fail("seed auth bootstrap", err)
 	}
@@ -77,6 +84,11 @@ func main() {
 	if cfg.OutputPath != "" {
 		if err := os.WriteFile(cfg.OutputPath, payload, 0o600); err != nil {
 			fail("write auth bootstrap output", err)
+		}
+	}
+	if cfg.OwnerIDPath != "" {
+		if err := os.WriteFile(cfg.OwnerIDPath, []byte(fmt.Sprint(out.UserID)), 0o600); err != nil {
+			fail("write auth owner ID output", err)
 		}
 	}
 
@@ -94,54 +106,67 @@ func loadCfg() cfg {
 	tenantID := envOr("TENANT_ID", "tenant-dev")
 	username := envOr("DEV_USERNAME", "devowner")
 	return cfg{
-		TenantID:   tenantID,
-		TenantName: envOr("TENANT_NAME", "Demo POD Tenant"),
-		TenantSlug: envOr("TENANT_SLUG", sanitizeSlug(tenantID)),
-		Username:   username,
-		Email:      envOr("DEV_EMAIL", username+"@podzone.dev"),
-		Password:   envOr("DEV_PASSWORD", "DevPass123!"),
-		FullName:   envOr("DEV_FULL_NAME", "Dev Owner"),
-		PGHost:     envOr("PG_HOST", "localhost"),
-		PGPort:     envOr("PG_PORT", "5432"),
-		PGUser:     envOr("PG_USER", "postgres"),
-		PGPassword: envOr("PG_PASSWORD", "postgres"),
-		PGSSLMode:  envOr("PG_SSL_MODE", "disable"),
-		JWTSecret:  envOr("JWT_SECRET", "dev-secret"),
-		JWTKey:     envOr("JWT_KEY", ""),
-		OutputPath: envOr("AUTH_BOOTSTRAP_OUTPUT", "/tmp/podzone-dev-auth.json"),
+		TenantID:    tenantID,
+		TenantName:  envOr("TENANT_NAME", "Demo POD Tenant"),
+		TenantSlug:  envOr("TENANT_SLUG", sanitizeSlug(tenantID)),
+		Username:    username,
+		Email:       envOr("DEV_EMAIL", username+"@podzone.dev"),
+		Password:    envOr("DEV_PASSWORD", "DevPass123!"),
+		FullName:    envOr("DEV_FULL_NAME", "Dev Owner"),
+		PGHost:      envOr("PG_HOST", "localhost"),
+		PGPort:      envOr("PG_PORT", "5432"),
+		PGUser:      envOr("PG_USER", "postgres"),
+		PGPassword:  envOr("PG_PASSWORD", "postgres"),
+		PGSSLMode:   envOr("PG_SSL_MODE", "disable"),
+		JWTSecret:   envOr("JWT_SECRET", "dev-secret"),
+		JWTKey:      envOr("JWT_KEY", ""),
+		OutputPath:  envOr("AUTH_BOOTSTRAP_OUTPUT", "/tmp/podzone-dev-auth.json"),
+		OwnerIDPath: strings.TrimSpace(os.Getenv("DEV_OWNER_ID_OUTPUT")),
 	}
 }
 
-func seedAuth(ctx context.Context, db *sqlx.DB, cfg cfg) (*seedOutput, error) {
-	tx, err := db.BeginTxx(ctx, nil)
+func seedAuth(ctx context.Context, authDB *sqlx.DB, iamDB *sqlx.DB, cfg cfg) (*seedOutput, error) {
+	authTx, err := authDB.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = tx.Rollback() }()
+	defer func() { _ = authTx.Rollback() }()
 
 	now := time.Now().UTC()
-	userID, err := upsertUser(ctx, tx, cfg, now)
+	userID, err := upsertUser(ctx, authTx, cfg, now)
 	if err != nil {
 		return nil, err
 	}
-
-	if err := upsertTenant(ctx, tx, cfg, now); err != nil {
+	if err := authTx.Commit(); err != nil {
 		return nil, err
 	}
 
-	roleID, err := getRoleID(ctx, tx, iamdomain.RoleTenantOwner)
+	iamTx, err := iamDB.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
-	if err := upsertTenantMembership(ctx, tx, cfg.TenantID, userID, roleID, now); err != nil {
+	defer func() { _ = iamTx.Rollback() }()
+
+	if err := upsertTenant(ctx, iamTx, cfg, now); err != nil {
 		return nil, err
 	}
 
-	platformRoleID, err := getRoleID(ctx, tx, iamdomain.RolePlatformOwner)
+	roleID, err := getRoleID(ctx, iamTx, iamdomain.RoleTenantOwner)
+	if err != nil {
+		return nil, err
+	}
+	if err := upsertTenantMembership(ctx, iamTx, cfg.TenantID, userID, roleID, now); err != nil {
+		return nil, err
+	}
+
+	platformRoleID, err := getRoleID(ctx, iamTx, iamdomain.RolePlatformOwner)
 	if err != nil {
 		return nil, fmt.Errorf("load platform owner role: %w", err)
 	}
-	if err := upsertPlatformRole(ctx, tx, userID, platformRoleID, now); err != nil {
+	if err := upsertPlatformRole(ctx, iamTx, userID, platformRoleID, now); err != nil {
+		return nil, err
+	}
+	if err := iamTx.Commit(); err != nil {
 		return nil, err
 	}
 
@@ -150,13 +175,19 @@ func seedAuth(ctx context.Context, db *sqlx.DB, cfg cfg) (*seedOutput, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := revokeExistingSessions(ctx, tx, userID, now); err != nil {
+
+	sessionTx, err := authDB.BeginTxx(ctx, nil)
+	if err != nil {
 		return nil, err
 	}
-	if err := insertSession(ctx, tx, sessionID, userID, cfg.TenantID, now); err != nil {
+	defer func() { _ = sessionTx.Rollback() }()
+	if err := revokeExistingSessions(ctx, sessionTx, userID, now); err != nil {
 		return nil, err
 	}
-	if err := insertRefreshToken(ctx, tx, sessionID, refreshTokenHash, now); err != nil {
+	if err := insertSession(ctx, sessionTx, sessionID, userID, cfg.TenantID, now); err != nil {
+		return nil, err
+	}
+	if err := insertRefreshToken(ctx, sessionTx, sessionID, refreshTokenHash, now); err != nil {
 		return nil, err
 	}
 
@@ -175,7 +206,7 @@ func seedAuth(ctx context.Context, db *sqlx.DB, cfg cfg) (*seedOutput, error) {
 		return nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := sessionTx.Commit(); err != nil {
 		return nil, err
 	}
 
@@ -193,12 +224,12 @@ func seedAuth(ctx context.Context, db *sqlx.DB, cfg cfg) (*seedOutput, error) {
 	}, nil
 }
 
-func openDB(cfg cfg) (*sqlx.DB, error) {
+func openDB(cfg cfg, dbName string) (*sqlx.DB, error) {
 	dsn := (&url.URL{
 		Scheme: "postgres",
 		User:   url.UserPassword(cfg.PGUser, cfg.PGPassword),
 		Host:   fmt.Sprintf("%s:%s", cfg.PGHost, cfg.PGPort),
-		Path:   "/auth",
+		Path:   "/" + dbName,
 		RawQuery: url.Values{
 			"sslmode": []string{cfg.PGSSLMode},
 		}.Encode(),

@@ -90,7 +90,7 @@ export function SearchSelectField(props: {
   }
 
   return (
-    <div ref={container} class="relative">
+    <div ref={(element) => (container = element)} class="relative">
       <FieldLabel label={props.label}>
         <div class="relative">
           <input

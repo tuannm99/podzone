@@ -91,13 +91,18 @@ The request must capture:
 
 - workspace ID
 - requested store name and slug
-- requester identity
+- requester identity (`requested_by`), representing the actor that submits the request
+- store owner identity (`owner_id`), representing the principal that owns the resulting store
 - requested environment
 - requested isolation level, if provided
 - requested runtime preferences, if provided
 - requested data placement preferences, if provided
 
 The request must be persisted before any long-running provisioning work starts.
+
+For a normal tenant-owner request, `owner_id` defaults to `requested_by`. Setting a different owner is an
+administrative operation and requires explicit authorization. Provisioning workers and migration service accounts must
+remain the requester and must never become the store owner implicitly.
 
 ### FR-ONB-002 Request lifecycle tracking
 
@@ -269,6 +274,11 @@ Reconciliation must detect:
 - missing Kubernetes namespace
 - quota drift
 - placement marked ready while runtime checks fail
+- IAM tenants that have no onboarding request or ready placement allocation
+
+Legacy tenants must be enrolled through the normal onboarding command path with an explicit owner. Reconciliation must
+not create placement projections directly because a routing entry without a request, allocation, and provisioned
+resource is not a valid placement.
 
 ### FR-ONB-012 Store selection integration
 
@@ -385,7 +395,8 @@ The user must never be left with an unlabelled failure state.
 6. Onboarding provisions the required runtime through the selected provider and persists the allocation.
 7. A background worker or queue consumer performs the long-running provisioning work.
 8. Onboarding publishes the Mongo runtime KV projection consumed by `pdtenantdb`.
-9. Backoffice can open the store only after placement is resolvable and the store is ready.
+9. Onboarding finalizes the Backoffice store with the request's explicit `owner_id`.
+10. Backoffice can open the store only after placement is resolvable and the store is ready.
 
 ### Approval paths
 

@@ -31,8 +31,7 @@ export type PartnerInfo = {
 }
 
 export type PartnerResult<T> =
-  | { success: true; data: T }
-  | { success: false; message: string }
+  { success: true; data: T } | { success: false; message: string }
 
 export type CreatePartnerPayload = {
   tenantId: string

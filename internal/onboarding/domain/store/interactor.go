@@ -71,8 +71,20 @@ func (s *StoreInteractor) CreateStoreRequest(
 	if requestedBy == "" {
 		return nil, ErrRequestedByRequired
 	}
+	ownerID := strings.TrimSpace(cmd.OwnerID)
+	if ownerID == "" {
+		ownerID = requestedBy
+	}
 	if s.authorizer != nil {
 		if err := s.authorizer.AuthorizeStoreRequest(ctx, workspaceID, requestedBy); err != nil {
+			return nil, err
+		}
+	}
+	if ownerID != requestedBy {
+		if s.authorizer == nil {
+			return nil, ErrAccessDenied
+		}
+		if err := s.authorizer.AuthorizeStoreApproval(ctx, requestedBy); err != nil {
 			return nil, err
 		}
 	}
@@ -95,6 +107,7 @@ func (s *StoreInteractor) CreateStoreRequest(
 		Name:        name,
 		Subdomain:   subdomain,
 		RequestedBy: requestedBy,
+		OwnerID:     ownerID,
 		Status:      status,
 		CreatedAt:   now,
 		UpdatedAt:   now,

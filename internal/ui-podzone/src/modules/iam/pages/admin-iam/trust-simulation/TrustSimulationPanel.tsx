@@ -1,7 +1,7 @@
 import { For, Show } from 'solid-js'
 import { EmptyBlock, InfoAlert } from '@/solid/components/common/Feedback'
 import { IamKeyValueBuilder } from '@/solid/components/common/IamKeyValueBuilder'
-import { IamStatementBuilder } from '@/solid/components/common/IamStatementBuilder'
+import { IamStatementBuilder } from '../shared/IamStatementBuilder'
 import { IamTrustPolicyBuilder } from '@/solid/components/common/IamTrustPolicyBuilder'
 import {
   Badge,

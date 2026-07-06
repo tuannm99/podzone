@@ -39,8 +39,7 @@ export type StoreRequest = {
 }
 
 type Result<T> =
-  | { success: true; data: T }
-  | { success: false; message: string }
+  { success: true; data: T } | { success: false; message: string }
 
 function errorMessage(error: unknown): string {
   const requestError = error as HttpError

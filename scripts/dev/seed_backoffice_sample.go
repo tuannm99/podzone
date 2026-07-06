@@ -3,11 +3,9 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"net/url"
 	"os"
 	"strings"
@@ -31,7 +29,6 @@ type cfg struct {
 	PGUser         string
 	PGPassword     string
 	PGSSLMode      string
-	OnboardingURL  string
 }
 
 type activityDetail struct {
@@ -51,10 +48,6 @@ func main() {
 	cfg := loadCfg()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-
-	if err := createOnboardingStore(ctx, cfg); err != nil {
-		fmt.Fprintf(os.Stderr, "onboarding store seed failed: %v\n", err)
-	}
 
 	backofficeDB, err := openPostgres(cfg, cfg.BackofficeDB)
 	if err != nil {
@@ -92,7 +85,6 @@ func loadCfg() cfg {
 		PGUser:         envOr("PG_USER", "postgres"),
 		PGPassword:     envOr("PG_PASSWORD", "postgres"),
 		PGSSLMode:      envOr("PG_SSL_MODE", "disable"),
-		OnboardingURL:  strings.TrimRight(envOr("ONBOARDING_URL", "http://localhost:8800"), "/"),
 	}
 }
 
@@ -769,40 +761,6 @@ func seedPartners(ctx context.Context, db *sqlx.DB, cfg cfg) error {
 		}
 	}
 	return nil
-}
-
-func createOnboardingStore(ctx context.Context, cfg cfg) error {
-	payload := map[string]string{
-		"workspace_id": cfg.TenantID,
-		"requested_by": "dev-bootstrap",
-		"name":         cfg.StoreName,
-		"subdomain":    cfg.StoreSubdomain,
-	}
-	body, err := json.Marshal(payload)
-	if err != nil {
-		return err
-	}
-	req, err := http.NewRequestWithContext(
-		ctx,
-		http.MethodPost,
-		cfg.OnboardingURL+"/onboarding/v1/stores",
-		bytes.NewReader(body),
-	)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusCreated || resp.StatusCode == http.StatusConflict {
-		return nil
-	}
-	return fmt.Errorf("unexpected onboarding store status: %s", resp.Status)
 }
 
 func quoteIdent(s string) string {

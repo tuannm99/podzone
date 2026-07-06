@@ -12,7 +12,9 @@ if [ ! -f "$SOURCE_FILE" ]; then
 fi
 
 mkdir -p "$(dirname "$TARGET_FILE")"
-cp "$SOURCE_FILE" "$TARGET_FILE"
+if [ "$SOURCE_FILE" != "$TARGET_FILE" ]; then
+  cp "$SOURCE_FILE" "$TARGET_FILE"
+fi
 chmod 600 "$TARGET_FILE"
 
 echo "Synced UI dev auth bundle:"

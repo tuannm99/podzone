@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -17,6 +18,50 @@ import (
 	"github.com/tuannm99/podzone/pkg/collection"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
+
+func TestController_CreateStoreRequestMapsOwnerID(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	usecase := storemocks.NewMockUsecase(t)
+	controller := &Controller{service: usecase}
+	router := gin.New()
+	controller.RegisterRoutes(router.Group("/onboarding/v1"))
+
+	usecase.EXPECT().
+		CreateStoreRequest(
+			mock.Anything,
+			storeinputport.CreateStoreRequestCommand{
+				Name:      "Urban Finds",
+				Subdomain: "urban-finds",
+				OwnerID:   "tenant-root",
+			},
+		).
+		Return(&storeinputport.Request{
+			ID:          "request-1",
+			WorkspaceID: "tenant-1",
+			Name:        "Urban Finds",
+			Subdomain:   "urban-finds",
+			RequestedBy: "platform-admin",
+			OwnerID:     "tenant-root",
+			Status:      storeinputport.RequestStatusQueued,
+		}, nil)
+
+	request := httptest.NewRequest(
+		http.MethodPost,
+		"/onboarding/v1/requests",
+		strings.NewReader(`{"name":"Urban Finds","subdomain":"urban-finds","owner_id":"tenant-root"}`),
+	)
+	request.Header.Set("Content-Type", "application/json")
+	request = request.WithContext(toolkit.WithUserID(
+		toolkit.WithTenantID(request.Context(), "tenant-1"),
+		"platform-admin",
+	))
+	response := httptest.NewRecorder()
+
+	router.ServeHTTP(response, request)
+
+	require.Equal(t, http.StatusCreated, response.Code)
+	require.Contains(t, response.Body.String(), `"owner_id":"tenant-root"`)
+}
 
 func TestController_ListStoreRequestsUsesRequestContext(t *testing.T) {
 	gin.SetMode(gin.TestMode)

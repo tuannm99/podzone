@@ -11,13 +11,7 @@ export type ActivityFilter =
 export type QueueSort = 'priority' | 'newest'
 
 export type BadgeColor =
-  | 'blue'
-  | 'indigo'
-  | 'green'
-  | 'yellow'
-  | 'pink'
-  | 'dark'
-  | 'red'
+  'blue' | 'indigo' | 'green' | 'yellow' | 'pink' | 'dark' | 'red'
 
 export type ShipmentDraft = {
   shipmentStatus: string

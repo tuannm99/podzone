@@ -53,7 +53,7 @@ export function DropdownMenu(props: {
   return (
     <div
       class={classes('relative inline-block text-left', props.class)}
-      ref={container}
+      ref={(element) => (container = element)}
     >
       <button
         type="button"

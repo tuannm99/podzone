@@ -39,7 +39,7 @@ func (f *StoreFinalizer) FinalizeStore(ctx context.Context, request storeentity.
 		"workspace_id": request.WorkspaceID,
 		"store_id":     request.ID.Hex(),
 		"name":         request.Name,
-		"owner_id":     request.RequestedBy,
+		"owner_id":     storeOwnerID(request),
 	})
 	if err != nil {
 		return fmt.Errorf("encode backoffice bootstrap request: %w", err)
@@ -71,4 +71,11 @@ func (f *StoreFinalizer) FinalizeStore(ctx context.Context, request storeentity.
 		response.Status,
 		strings.TrimSpace(string(body)),
 	)
+}
+
+func storeOwnerID(request storeentity.StoreRequest) string {
+	if ownerID := strings.TrimSpace(request.OwnerID); ownerID != "" {
+		return ownerID
+	}
+	return strings.TrimSpace(request.RequestedBy)
 }

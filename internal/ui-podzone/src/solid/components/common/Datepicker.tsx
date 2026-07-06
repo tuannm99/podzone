@@ -244,7 +244,10 @@ export function DatepickerField(props: {
 
   return (
     <FieldLabel label={props.label}>
-      <div class={classes('relative', props.class)} ref={container}>
+      <div
+        class={classes('relative', props.class)}
+        ref={(element) => (container = element)}
+      >
         <button
           type="button"
           class="flex w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2.5 text-left text-sm text-gray-900 shadow-sm outline-none transition hover:border-gray-950 focus:border-gray-950 focus:ring-2 focus:ring-gray-100"

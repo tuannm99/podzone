@@ -71,8 +71,7 @@ export function CollectionToolbar(props: CollectionToolbarProps) {
           onChange={(event) =>
             props.onSortDirectionChange(
               event.currentTarget.value as
-                | 'SORT_DIRECTION_ASC'
-                | 'SORT_DIRECTION_DESC'
+                'SORT_DIRECTION_ASC' | 'SORT_DIRECTION_DESC'
             )
           }
         >

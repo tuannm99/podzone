@@ -1,5 +1,5 @@
 import { Show } from 'solid-js'
-import { IamStatementBuilder } from '@/solid/components/common/IamStatementBuilder'
+import { IamStatementBuilder } from '../shared/IamStatementBuilder'
 import {
   Badge,
   Button,

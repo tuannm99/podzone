@@ -1,12 +1,14 @@
 .PHONY: all proto swagger build test coverage lint fmt dev down clean help
 .PHONY: docker-dev docker-dev-infra docker-dev-down mocks mocks-gen
-.PHONY: dev-backoffice-seed dev-backoffice-sample dev-kv-store-refresh dev-auth-bootstrap
+.PHONY: dev-backoffice-seed dev-backoffice-sample dev-kv-store-refresh dev-onboarding-reconcile-tenant
+.PHONY: dev-auth-bootstrap
 .PHONY: dev-ui-auth-sync dev-pod-sample dev-pod-up
 
 GO := go
 GO_CACHE ?= /tmp/podzone-gocache
 BUF_CACHE_DIR ?= /tmp/podzone-buf-cache
 COVERAGE_MIN ?= 90
+DEV_OWNER_ID_OUTPUT ?= /tmp/podzone-dev-owner-id
 
 LINT_PKGS = $(shell GOCACHE=$(GO_CACHE) $(GO) list -f '{{.Dir}}' ./... | \
 	sed '\#/generated$$#d; \#/mocks$$#d; \#/node_modules/#d; s#$(CURDIR)#.#')
@@ -82,6 +84,7 @@ dev-backoffice-seed:
 	PG_PASSWORD=$(PG_PASSWORD) \
 	PG_SSL_MODE=$(PG_SSL_MODE) \
 	CREATE_STORE=$(CREATE_STORE) \
+	STORE_OWNER_ID=$(STORE_OWNER_ID) \
 	sh scripts/dev/seed_backoffice_tenant.sh "$(TENANT_ID)" "$(STORE_NAME)" "$(STORE_SUBDOMAIN)" "$(ONBOARDING_URL)"
 
 dev-kv-store-refresh:
@@ -93,6 +96,16 @@ dev-kv-store-refresh:
 	PG_SSL_MODE=$(PG_SSL_MODE) \
 	sh scripts/dev/refresh_kv_store_from_onboarding.sh
 
+dev-onboarding-reconcile-tenant:
+	@TENANT_ID=$(TENANT_ID) \
+	OWNER_ID=$(OWNER_ID) \
+	STORE_NAME="$(STORE_NAME)" \
+	STORE_SUBDOMAIN=$(STORE_SUBDOMAIN) \
+	ONBOARDING_URL=$(ONBOARDING_URL) \
+	ONBOARDING_SERVICE_TOKEN=$(ONBOARDING_SERVICE_TOKEN) \
+	GOCACHE=$(GO_CACHE) \
+	$(GO) run scripts/dev/reconcile_legacy_tenant.go
+
 dev-backoffice-sample:
 	@DB_NAME=$(DB_NAME) \
 	SCHEMA_NAME=$(SCHEMA_NAME) \
@@ -102,6 +115,7 @@ dev-backoffice-sample:
 	PG_PASSWORD=$(PG_PASSWORD) \
 	PG_SSL_MODE=$(PG_SSL_MODE) \
 	CREATE_STORE=$(CREATE_STORE) \
+	STORE_OWNER_ID=$(STORE_OWNER_ID) \
 	sh scripts/dev/seed_backoffice_tenant.sh "$(TENANT_ID)" "$(STORE_NAME)" "$(STORE_SUBDOMAIN)" "$(ONBOARDING_URL)"
 	@TENANT_ID=$(TENANT_ID) \
 	STORE_NAME=$(STORE_NAME) \
@@ -132,6 +146,7 @@ dev-auth-bootstrap:
 	JWT_SECRET=$(JWT_SECRET) \
 	JWT_KEY=$(JWT_KEY) \
 	AUTH_BOOTSTRAP_OUTPUT=$(AUTH_BOOTSTRAP_OUTPUT) \
+	DEV_OWNER_ID_OUTPUT=$(DEV_OWNER_ID_OUTPUT) \
 	$(GO) run ./scripts/dev/seed_auth_bootstrap.go
 
 dev-ui-auth-sync:
@@ -140,41 +155,44 @@ dev-ui-auth-sync:
 	sh scripts/dev/sync_ui_auth_bootstrap.sh
 
 dev-pod-sample:
-	@$(MAKE) dev-backoffice-sample \
-		TENANT_ID=$(TENANT_ID) \
-		STORE_NAME=$(STORE_NAME) \
-		STORE_SUBDOMAIN=$(STORE_SUBDOMAIN) \
-		TENANT_NAME=$(TENANT_NAME) \
-		TENANT_SLUG=$(TENANT_SLUG) \
-		CLUSTER_NAME=$(CLUSTER_NAME) \
-		DB_NAME=$(DB_NAME) \
-		SCHEMA_NAME=$(SCHEMA_NAME) \
-		PG_HOST=$(PG_HOST) \
-		PG_PORT=$(PG_PORT) \
-		PG_USER=$(PG_USER) \
-		PG_PASSWORD=$(PG_PASSWORD) \
-		PG_SSL_MODE=$(PG_SSL_MODE) \
-		ONBOARDING_URL=$(ONBOARDING_URL) \
-		CREATE_STORE=$(CREATE_STORE)
 	@$(MAKE) dev-auth-bootstrap \
-		TENANT_ID=$(TENANT_ID) \
-		TENANT_NAME=$(TENANT_NAME) \
-		TENANT_SLUG=$(TENANT_SLUG) \
-		DEV_USERNAME=$(DEV_USERNAME) \
-		DEV_EMAIL=$(DEV_EMAIL) \
-		DEV_PASSWORD=$(DEV_PASSWORD) \
-		DEV_FULL_NAME=$(DEV_FULL_NAME) \
-		PG_HOST=$(PG_HOST) \
-		PG_PORT=$(PG_PORT) \
-		PG_USER=$(PG_USER) \
-		PG_PASSWORD=$(PG_PASSWORD) \
-		PG_SSL_MODE=$(PG_SSL_MODE) \
-		JWT_SECRET=$(JWT_SECRET) \
-		JWT_KEY=$(JWT_KEY) \
-		AUTH_BOOTSTRAP_OUTPUT=$(AUTH_BOOTSTRAP_OUTPUT)
+		"TENANT_ID=$(TENANT_ID)" \
+		"TENANT_NAME=$(TENANT_NAME)" \
+		"TENANT_SLUG=$(TENANT_SLUG)" \
+		"DEV_USERNAME=$(DEV_USERNAME)" \
+		"DEV_EMAIL=$(DEV_EMAIL)" \
+		"DEV_PASSWORD=$(DEV_PASSWORD)" \
+		"DEV_FULL_NAME=$(DEV_FULL_NAME)" \
+		"PG_HOST=$(PG_HOST)" \
+		"PG_PORT=$(PG_PORT)" \
+		"PG_USER=$(PG_USER)" \
+		"PG_PASSWORD=$(PG_PASSWORD)" \
+		"PG_SSL_MODE=$(PG_SSL_MODE)" \
+		"JWT_SECRET=$(JWT_SECRET)" \
+		"JWT_KEY=$(JWT_KEY)" \
+		"AUTH_BOOTSTRAP_OUTPUT=$(AUTH_BOOTSTRAP_OUTPUT)" \
+		"DEV_OWNER_ID_OUTPUT=$(DEV_OWNER_ID_OUTPUT)"
+	@store_owner_id=$$(cat "$(DEV_OWNER_ID_OUTPUT)"); \
+	$(MAKE) dev-backoffice-sample \
+		"TENANT_ID=$(TENANT_ID)" \
+		"STORE_NAME=$(STORE_NAME)" \
+		"STORE_SUBDOMAIN=$(STORE_SUBDOMAIN)" \
+		"TENANT_NAME=$(TENANT_NAME)" \
+		"TENANT_SLUG=$(TENANT_SLUG)" \
+		"CLUSTER_NAME=$(CLUSTER_NAME)" \
+		"DB_NAME=$(DB_NAME)" \
+		"SCHEMA_NAME=$(SCHEMA_NAME)" \
+		"PG_HOST=$(PG_HOST)" \
+		"PG_PORT=$(PG_PORT)" \
+		"PG_USER=$(PG_USER)" \
+		"PG_PASSWORD=$(PG_PASSWORD)" \
+		"PG_SSL_MODE=$(PG_SSL_MODE)" \
+		"ONBOARDING_URL=$(ONBOARDING_URL)" \
+		"CREATE_STORE=$(CREATE_STORE)" \
+		"STORE_OWNER_ID=$$store_owner_id"
 	@$(MAKE) dev-ui-auth-sync \
-		AUTH_BOOTSTRAP_OUTPUT=$(AUTH_BOOTSTRAP_OUTPUT) \
-		UI_AUTH_BOOTSTRAP_TARGET=$(UI_AUTH_BOOTSTRAP_TARGET)
+		"AUTH_BOOTSTRAP_OUTPUT=$(AUTH_BOOTSTRAP_OUTPUT)" \
+		"UI_AUTH_BOOTSTRAP_TARGET=$(UI_AUTH_BOOTSTRAP_TARGET)"
 
 gql-backoffice:
 	$(GO) tool gqlgen generate
@@ -288,6 +306,7 @@ help:
 	@echo "  make dev-pod-up TENANT_ID=t1          - Start local docker stack and auto-bootstrap tenant/sample/auth"
 	@echo "  make dev-backoffice-seed TENANT_ID=t1 - Create and provision one onboarding store"
 	@echo "  make dev-kv-store-refresh             - Rebuild Mongo runtime KV from onboarding allocations"
+	@echo "  make dev-onboarding-reconcile-tenant  - Enroll one legacy IAM tenant through onboarding"
 	@echo "  make dev-backoffice-sample TENANT_ID=t1 - Seed placement plus sample POD partners/products/orders"
 	@echo "  make dev-auth-bootstrap TENANT_ID=t1 - Seed user, tenant membership, session, and token bundle"
 	@echo "  make dev-ui-auth-sync                - Copy the dev auth bundle into the UI public assets"

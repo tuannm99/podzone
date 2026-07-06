@@ -257,7 +257,7 @@ export function CodeEditor(props: CodeEditorProps) {
           <span>CodeMirror 6 + Vim</span>
         </div>
 
-        <div ref={containerRef} />
+        <div ref={(element) => (containerRef = element)} />
       </div>
 
       <Show when={mode() === 'normal'}>

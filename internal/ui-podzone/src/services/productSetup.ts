@@ -50,8 +50,7 @@ export type ProductSetupSnapshot = {
 }
 
 type ProductSetupResult<T> =
-  | { success: true; data: T }
-  | { success: false; message: string }
+  { success: true; data: T } | { success: false; message: string }
 
 type CreateDraftPayload = {
   name: string

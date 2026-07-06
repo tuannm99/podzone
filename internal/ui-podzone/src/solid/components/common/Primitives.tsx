@@ -4,13 +4,7 @@ import { classes } from '../../shared/utils'
 type ButtonColor = 'blue' | 'alternative' | 'light' | 'dark' | 'green' | 'red'
 type ButtonSize = 'xs' | 'sm' | 'md'
 type BadgeColor =
-  | 'blue'
-  | 'indigo'
-  | 'green'
-  | 'yellow'
-  | 'pink'
-  | 'dark'
-  | 'red'
+  'blue' | 'indigo' | 'green' | 'yellow' | 'pink' | 'dark' | 'red'
 
 const buttonColorClasses: Record<ButtonColor, string> = {
   blue: 'bg-gray-950 text-white hover:bg-gray-800 focus:ring-gray-300',

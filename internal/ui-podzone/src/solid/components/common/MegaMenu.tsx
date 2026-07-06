@@ -58,7 +58,7 @@ export function MegaMenu(props: {
         'relative rounded-lg border border-gray-200 bg-white px-5 py-4 shadow-sm',
         props.class
       )}
-      ref={container}
+      ref={(element) => (container = element)}
     >
       <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div class="flex items-center justify-between gap-4">

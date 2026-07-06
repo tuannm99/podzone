@@ -13,13 +13,7 @@ import { Pagination } from '@/solid/components/common/Pagination'
 import { Badge, Button } from '@/solid/components/common/Primitives'
 
 type BadgeColor =
-  | 'blue'
-  | 'indigo'
-  | 'green'
-  | 'yellow'
-  | 'pink'
-  | 'dark'
-  | 'red'
+  'blue' | 'indigo' | 'green' | 'yellow' | 'pink' | 'dark' | 'red'
 
 type OrdersQueueTableProps = {
   orders: Accessor<RoutedOrder[]>

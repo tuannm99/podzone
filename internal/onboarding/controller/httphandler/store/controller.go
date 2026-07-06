@@ -57,6 +57,7 @@ func (c *Controller) RegisterRoutes(r *gin.RouterGroup) {
 type CreateStoreRequest struct {
 	Name      string `json:"name"      binding:"required"`
 	Subdomain string `json:"subdomain" binding:"required"`
+	OwnerID   string `json:"owner_id"`
 }
 
 type listStoreRequestsResponse struct {
@@ -75,6 +76,7 @@ func (c *Controller) CreateStoreRequest(ctx *gin.Context) {
 	request, err := c.service.CreateStoreRequest(requestCtx, storeinputport.CreateStoreRequestCommand{
 		Name:      req.Name,
 		Subdomain: req.Subdomain,
+		OwnerID:   req.OwnerID,
 	})
 	if err != nil {
 		writeStoreError(ctx, err, "Failed to create store")
