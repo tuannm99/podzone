@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  unit-test:
+    name: Unit test + coverage
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.26.x'
+          cache: true
+
+      - name: Run unit tests with coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p coverage
+
+          for mod in $(find . -name go.mod -not -path "./vendor/*" -exec dirname {} \; | sort); do
+            echo "::group::Testing $mod"
+
+            safe_name=$(echo "$mod" | sed 's#^\./##; s#[/.]#_#g')
+            [ "$safe_name" = "" ] && safe_name="root"
+
+            (
+              cd "$mod"
+              go test ./... \
+                -race \
+                -covermode=atomic \
+                -coverprofile="../coverage/${safe_name}.out"
+            )
+
+            echo "::endgroup::"
+          done
+
+      - name: Show coverage summary
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for f in coverage/*.out; do
+            echo "===== $f ====="
+            go tool cover -func="$f" | tail -n 1 || true
+          done
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: go-coverage
+          path: coverage/*.out
+
+  govulncheck:
+    name: Go vulnerability scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.26.x'
+          cache: true
+
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: Run govulncheck for all modules
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for mod in $(find . -name go.mod -not -path "./vendor/*" -exec dirname {} \; | sort); do
+            echo "::group::govulncheck $mod"
+            (cd "$mod" && govulncheck ./...)
+            echo "::endgroup::"
+          done
