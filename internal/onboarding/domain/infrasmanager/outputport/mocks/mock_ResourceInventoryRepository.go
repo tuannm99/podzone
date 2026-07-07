@@ -211,6 +211,74 @@ func (_c *MockResourceInventoryRepository_DeleteRuntimePool_Call) RunAndReturn(r
 	return _c
 }
 
+// GetDatabaseCluster provides a mock function for the type MockResourceInventoryRepository
+func (_mock *MockResourceInventoryRepository) GetDatabaseCluster(ctx context.Context, name string) (*entity.DatabaseCluster, error) {
+	ret := _mock.Called(ctx, name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDatabaseCluster")
+	}
+
+	var r0 *entity.DatabaseCluster
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*entity.DatabaseCluster, error)); ok {
+		return returnFunc(ctx, name)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *entity.DatabaseCluster); ok {
+		r0 = returnFunc(ctx, name)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.DatabaseCluster)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, name)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockResourceInventoryRepository_GetDatabaseCluster_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDatabaseCluster'
+type MockResourceInventoryRepository_GetDatabaseCluster_Call struct {
+	*mock.Call
+}
+
+// GetDatabaseCluster is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+func (_e *MockResourceInventoryRepository_Expecter) GetDatabaseCluster(ctx interface{}, name interface{}) *MockResourceInventoryRepository_GetDatabaseCluster_Call {
+	return &MockResourceInventoryRepository_GetDatabaseCluster_Call{Call: _e.mock.On("GetDatabaseCluster", ctx, name)}
+}
+
+func (_c *MockResourceInventoryRepository_GetDatabaseCluster_Call) Run(run func(ctx context.Context, name string)) *MockResourceInventoryRepository_GetDatabaseCluster_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockResourceInventoryRepository_GetDatabaseCluster_Call) Return(databaseCluster *entity.DatabaseCluster, err error) *MockResourceInventoryRepository_GetDatabaseCluster_Call {
+	_c.Call.Return(databaseCluster, err)
+	return _c
+}
+
+func (_c *MockResourceInventoryRepository_GetDatabaseCluster_Call) RunAndReturn(run func(ctx context.Context, name string) (*entity.DatabaseCluster, error)) *MockResourceInventoryRepository_GetDatabaseCluster_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListDatabaseClusters provides a mock function for the type MockResourceInventoryRepository
 func (_mock *MockResourceInventoryRepository) ListDatabaseClusters(ctx context.Context, query collection.Query) (collection.Page[entity.DatabaseCluster], error) {
 	ret := _mock.Called(ctx, query)
@@ -471,6 +539,69 @@ func (_c *MockResourceInventoryRepository_LoadResourceInventory_Call) Return(res
 }
 
 func (_c *MockResourceInventoryRepository_LoadResourceInventory_Call) RunAndReturn(run func(ctx context.Context, request entity.StorePlacementRequest) (entity.ResourceInventory, error)) *MockResourceInventoryRepository_LoadResourceInventory_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// UpdateDatabaseClusterHealth provides a mock function for the type MockResourceInventoryRepository
+func (_mock *MockResourceInventoryRepository) UpdateDatabaseClusterHealth(ctx context.Context, name string, health entity.DatabaseClusterHealth) error {
+	ret := _mock.Called(ctx, name, health)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateDatabaseClusterHealth")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, entity.DatabaseClusterHealth) error); ok {
+		r0 = returnFunc(ctx, name, health)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockResourceInventoryRepository_UpdateDatabaseClusterHealth_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateDatabaseClusterHealth'
+type MockResourceInventoryRepository_UpdateDatabaseClusterHealth_Call struct {
+	*mock.Call
+}
+
+// UpdateDatabaseClusterHealth is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+//   - health entity.DatabaseClusterHealth
+func (_e *MockResourceInventoryRepository_Expecter) UpdateDatabaseClusterHealth(ctx interface{}, name interface{}, health interface{}) *MockResourceInventoryRepository_UpdateDatabaseClusterHealth_Call {
+	return &MockResourceInventoryRepository_UpdateDatabaseClusterHealth_Call{Call: _e.mock.On("UpdateDatabaseClusterHealth", ctx, name, health)}
+}
+
+func (_c *MockResourceInventoryRepository_UpdateDatabaseClusterHealth_Call) Run(run func(ctx context.Context, name string, health entity.DatabaseClusterHealth)) *MockResourceInventoryRepository_UpdateDatabaseClusterHealth_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 entity.DatabaseClusterHealth
+		if args[2] != nil {
+			arg2 = args[2].(entity.DatabaseClusterHealth)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockResourceInventoryRepository_UpdateDatabaseClusterHealth_Call) Return(err error) *MockResourceInventoryRepository_UpdateDatabaseClusterHealth_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockResourceInventoryRepository_UpdateDatabaseClusterHealth_Call) RunAndReturn(run func(ctx context.Context, name string, health entity.DatabaseClusterHealth) error) *MockResourceInventoryRepository_UpdateDatabaseClusterHealth_Call {
 	_c.Call.Return(run)
 	return _c
 }

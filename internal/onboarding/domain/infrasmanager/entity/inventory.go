@@ -57,6 +57,15 @@ type RuntimePool struct {
 	UpdatedAt      time.Time
 }
 
+type DatabaseClusterHealth struct {
+	Healthy            bool
+	CurrentTenants     int
+	CurrentSchemas     int
+	CurrentConnections int
+	Message            string
+	CheckedAt          time.Time
+}
+
 type CapacitySnapshot struct {
 	DBClusterName string
 	DatabaseName  string

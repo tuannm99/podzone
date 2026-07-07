@@ -16,7 +16,13 @@ type ResourceInventoryRepository interface {
 		ctx context.Context,
 		query collection.Query,
 	) (collection.Page[entity.DatabaseCluster], error)
+	GetDatabaseCluster(ctx context.Context, name string) (*entity.DatabaseCluster, error)
 	UpsertDatabaseCluster(ctx context.Context, cluster entity.DatabaseCluster) error
+	UpdateDatabaseClusterHealth(
+		ctx context.Context,
+		name string,
+		health entity.DatabaseClusterHealth,
+	) error
 	DeleteDatabaseCluster(ctx context.Context, name string) error
 	ListKubernetesClusters(
 		ctx context.Context,
@@ -38,6 +44,13 @@ type CapacityChecker interface {
 		request entity.StorePlacementRequest,
 		inventory entity.ResourceInventory,
 	) (entity.CapacitySnapshot, error)
+}
+
+type ResourceHealthChecker interface {
+	CheckDatabaseClusterHealth(
+		ctx context.Context,
+		cluster entity.DatabaseCluster,
+	) (entity.DatabaseClusterHealth, error)
 }
 
 type PlacementPolicyEvaluator interface {

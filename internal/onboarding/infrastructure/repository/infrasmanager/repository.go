@@ -732,6 +732,17 @@ func (s *MongoStore) GetTenantPlacementAllocation(
 	return &out, nil
 }
 
+func (s *MongoStore) CountReadyPlacementAllocationsByCluster(ctx context.Context, clusterName string) (int, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	count, err := s.placeCol.CountDocuments(ctx, bson.M{"cluster_name": clusterName, "status": "ready"})
+	if err != nil {
+		return 0, err
+	}
+	return int(count), nil
+}
+
 func (s *MongoStore) SavePlacementAllocation(
 	ctx context.Context,
 	allocation entity.PlacementAllocation,

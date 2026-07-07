@@ -150,6 +150,9 @@ var (
 		func(provider *placementprovider.Provider) infrasoutputport.StorageProvisioner {
 			return provider
 		},
+		func(provider *placementprovider.Provider) infrasoutputport.ResourceHealthChecker {
+			return provider
+		},
 		fx.Annotate(
 			placementrouter.NewPlacementRouteReader,
 			fx.As(new(infrasoutputport.PlacementRouteReader)),

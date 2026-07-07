@@ -1,5 +1,6 @@
 import { createSignal } from 'solid-js'
 import {
+    checkDatabaseClusterHealth,
     deleteResource,
     listDatabaseClusters,
     listKubernetesClusters,
@@ -22,6 +23,7 @@ export function createResourcesViewModel() {
     const [editor, setEditor] = createSignal<ResourceEditor>()
     const [saving, setSaving] = createSignal(false)
     const [deletingName, setDeletingName] = createSignal('')
+    const [checkingName, setCheckingName] = createSignal('')
     const [mutationError, setMutationError] = createSignal('')
     const query = {
         page: 1,
@@ -113,6 +115,20 @@ export function createResourcesViewModel() {
             setDeletingName('')
         }
     }
+    const checkDatabaseHealth = async (name: string) => {
+        setCheckingName(name)
+        setMutationError('')
+        try {
+            const result = await checkDatabaseClusterHealth(name)
+            if (!result.success) {
+                setMutationError(result.message)
+                return
+            }
+            await databaseClusters.reload()
+        } finally {
+            setCheckingName('')
+        }
+    }
 
     return {
         databaseClusters,
@@ -122,10 +138,12 @@ export function createResourcesViewModel() {
         setEditor,
         saving,
         deletingName,
+        checkingName,
         saveDatabaseCluster,
         saveKubernetesCluster,
         saveRuntimePool,
         remove,
+        checkDatabaseHealth,
         error: () => mutationError() || databaseClusters.error() || kubernetesClusters.error() || runtimePools.error(),
     }
 }

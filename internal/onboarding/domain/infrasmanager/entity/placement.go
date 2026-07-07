@@ -54,3 +54,10 @@ type PlacementAllocation struct {
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
+
+type PlacementRoute struct {
+	ClusterName string
+	Mode        string
+	DBName      string
+	SchemaName  string
+}

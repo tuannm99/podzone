@@ -27,6 +27,7 @@ type Interactor struct {
 	routeReader storeoutputport.PlacementRouteReader
 	routeWriter storeoutputport.PlacementRouteWriter
 	inventory   storeoutputport.ResourceInventoryRepository
+	health      storeoutputport.ResourceHealthChecker
 }
 
 func NewInteractor(st storeoutputport.ConnectionStore) *Interactor {
@@ -44,6 +45,7 @@ type InteractorParams struct {
 	RouteReader storeoutputport.PlacementRouteReader
 	RouteWriter storeoutputport.PlacementRouteWriter
 	Inventory   storeoutputport.ResourceInventoryRepository
+	Health      storeoutputport.ResourceHealthChecker
 }
 
 func NewInteractorWithParams(p InteractorParams) *Interactor {
@@ -56,6 +58,7 @@ func NewInteractorWithParams(p InteractorParams) *Interactor {
 		routeReader: p.RouteReader,
 		routeWriter: p.RouteWriter,
 		inventory:   p.Inventory,
+		health:      p.Health,
 	}
 }
 

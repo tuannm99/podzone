@@ -53,6 +53,33 @@ type ProvisionStorePlacementResponse struct {
 	Queued        bool              `json:"queued"`
 }
 
+type PlacementRoute struct {
+	ClusterName string `json:"cluster_name"`
+	Mode        string `json:"mode"`
+	DBName      string `json:"db_name"`
+	SchemaName  string `json:"schema_name"`
+}
+
+type PlacementStatus struct {
+	TenantID        string          `json:"tenant_id"`
+	AllocationID    string          `json:"allocation_id,omitempty"`
+	AllocationReady bool            `json:"allocation_ready"`
+	RouteReady      bool            `json:"route_ready"`
+	InSync          bool            `json:"in_sync"`
+	NeedsRepair     bool            `json:"needs_repair"`
+	Reason          string          `json:"reason,omitempty"`
+	Allocation      *PlacementRoute `json:"allocation,omitempty"`
+	Route           *PlacementRoute `json:"route,omitempty"`
+	UpdatedAt       time.Time       `json:"updated_at,omitempty"`
+}
+
+type PlacementReconcileResponse struct {
+	Status      PlacementStatus `json:"status"`
+	Repaired    bool            `json:"repaired"`
+	KVStoreKey  string          `json:"kv_store_key"`
+	PublishedAt *time.Time      `json:"published_at,omitempty"`
+}
+
 type Connection struct {
 	TenantID  string                 `json:"tenant_id"`
 	InfraType entity.InfraType       `json:"infra_type"`
@@ -99,6 +126,12 @@ type Usecase interface {
 		req ProvisionStorePlacementRequest,
 		actor map[string]string,
 	) (*ProvisionStorePlacementResponse, error)
+	GetTenantPlacementStatus(ctx context.Context, tenantID string) (*PlacementStatus, error)
+	ReconcileTenantPlacement(
+		ctx context.Context,
+		tenantID string,
+		actor map[string]string,
+	) (*PlacementReconcileResponse, error)
 	IsPlacementRouteReady(ctx context.Context, tenantID string) (bool, error)
 	EnsurePlacementRoute(ctx context.Context, tenantID string) (bool, error)
 	ManualUpsertConnection(
@@ -136,6 +169,7 @@ type Usecase interface {
 		query collection.Query,
 	) (collection.Page[DatabaseClusterResource], error)
 	UpsertDatabaseCluster(ctx context.Context, resource DatabaseClusterResource) error
+	CheckDatabaseClusterHealth(ctx context.Context, name string) (*DatabaseClusterHealthCheckResponse, error)
 	DeleteDatabaseCluster(ctx context.Context, name string) error
 	ListKubernetesClusters(
 		ctx context.Context,

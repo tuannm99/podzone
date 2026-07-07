@@ -41,6 +41,74 @@ func (_m *MockUsecase) EXPECT() *MockUsecase_Expecter {
 	return &MockUsecase_Expecter{mock: &_m.Mock}
 }
 
+// CheckDatabaseClusterHealth provides a mock function for the type MockUsecase
+func (_mock *MockUsecase) CheckDatabaseClusterHealth(ctx context.Context, name string) (*inputport.DatabaseClusterHealthCheckResponse, error) {
+	ret := _mock.Called(ctx, name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CheckDatabaseClusterHealth")
+	}
+
+	var r0 *inputport.DatabaseClusterHealthCheckResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*inputport.DatabaseClusterHealthCheckResponse, error)); ok {
+		return returnFunc(ctx, name)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *inputport.DatabaseClusterHealthCheckResponse); ok {
+		r0 = returnFunc(ctx, name)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*inputport.DatabaseClusterHealthCheckResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, name)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockUsecase_CheckDatabaseClusterHealth_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CheckDatabaseClusterHealth'
+type MockUsecase_CheckDatabaseClusterHealth_Call struct {
+	*mock.Call
+}
+
+// CheckDatabaseClusterHealth is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+func (_e *MockUsecase_Expecter) CheckDatabaseClusterHealth(ctx interface{}, name interface{}) *MockUsecase_CheckDatabaseClusterHealth_Call {
+	return &MockUsecase_CheckDatabaseClusterHealth_Call{Call: _e.mock.On("CheckDatabaseClusterHealth", ctx, name)}
+}
+
+func (_c *MockUsecase_CheckDatabaseClusterHealth_Call) Run(run func(ctx context.Context, name string)) *MockUsecase_CheckDatabaseClusterHealth_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUsecase_CheckDatabaseClusterHealth_Call) Return(databaseClusterHealthCheckResponse *inputport.DatabaseClusterHealthCheckResponse, err error) *MockUsecase_CheckDatabaseClusterHealth_Call {
+	_c.Call.Return(databaseClusterHealthCheckResponse, err)
+	return _c
+}
+
+func (_c *MockUsecase_CheckDatabaseClusterHealth_Call) RunAndReturn(run func(ctx context.Context, name string) (*inputport.DatabaseClusterHealthCheckResponse, error)) *MockUsecase_CheckDatabaseClusterHealth_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DeleteConnection provides a mock function for the type MockUsecase
 func (_mock *MockUsecase) DeleteConnection(ctx context.Context, tenantID string, infraType entity.InfraType, name string, actor map[string]string) (string, error) {
 	ret := _mock.Called(ctx, tenantID, infraType, name, actor)
@@ -438,6 +506,74 @@ func (_c *MockUsecase_GetConnection_Call) Return(connection *inputport.Connectio
 }
 
 func (_c *MockUsecase_GetConnection_Call) RunAndReturn(run func(ctx context.Context, tenantID string, infraType entity.InfraType, name string) (*inputport.Connection, error)) *MockUsecase_GetConnection_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetTenantPlacementStatus provides a mock function for the type MockUsecase
+func (_mock *MockUsecase) GetTenantPlacementStatus(ctx context.Context, tenantID string) (*inputport.PlacementStatus, error) {
+	ret := _mock.Called(ctx, tenantID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTenantPlacementStatus")
+	}
+
+	var r0 *inputport.PlacementStatus
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*inputport.PlacementStatus, error)); ok {
+		return returnFunc(ctx, tenantID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *inputport.PlacementStatus); ok {
+		r0 = returnFunc(ctx, tenantID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*inputport.PlacementStatus)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, tenantID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockUsecase_GetTenantPlacementStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetTenantPlacementStatus'
+type MockUsecase_GetTenantPlacementStatus_Call struct {
+	*mock.Call
+}
+
+// GetTenantPlacementStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+func (_e *MockUsecase_Expecter) GetTenantPlacementStatus(ctx interface{}, tenantID interface{}) *MockUsecase_GetTenantPlacementStatus_Call {
+	return &MockUsecase_GetTenantPlacementStatus_Call{Call: _e.mock.On("GetTenantPlacementStatus", ctx, tenantID)}
+}
+
+func (_c *MockUsecase_GetTenantPlacementStatus_Call) Run(run func(ctx context.Context, tenantID string)) *MockUsecase_GetTenantPlacementStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUsecase_GetTenantPlacementStatus_Call) Return(placementStatus *inputport.PlacementStatus, err error) *MockUsecase_GetTenantPlacementStatus_Call {
+	_c.Call.Return(placementStatus, err)
+	return _c
+}
+
+func (_c *MockUsecase_GetTenantPlacementStatus_Call) RunAndReturn(run func(ctx context.Context, tenantID string) (*inputport.PlacementStatus, error)) *MockUsecase_GetTenantPlacementStatus_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1006,6 +1142,80 @@ func (_c *MockUsecase_ProvisionStorePlacement_Call) Return(provisionStorePlaceme
 }
 
 func (_c *MockUsecase_ProvisionStorePlacement_Call) RunAndReturn(run func(ctx context.Context, req inputport.ProvisionStorePlacementRequest, actor map[string]string) (*inputport.ProvisionStorePlacementResponse, error)) *MockUsecase_ProvisionStorePlacement_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ReconcileTenantPlacement provides a mock function for the type MockUsecase
+func (_mock *MockUsecase) ReconcileTenantPlacement(ctx context.Context, tenantID string, actor map[string]string) (*inputport.PlacementReconcileResponse, error) {
+	ret := _mock.Called(ctx, tenantID, actor)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReconcileTenantPlacement")
+	}
+
+	var r0 *inputport.PlacementReconcileResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, map[string]string) (*inputport.PlacementReconcileResponse, error)); ok {
+		return returnFunc(ctx, tenantID, actor)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, map[string]string) *inputport.PlacementReconcileResponse); ok {
+		r0 = returnFunc(ctx, tenantID, actor)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*inputport.PlacementReconcileResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, map[string]string) error); ok {
+		r1 = returnFunc(ctx, tenantID, actor)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockUsecase_ReconcileTenantPlacement_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ReconcileTenantPlacement'
+type MockUsecase_ReconcileTenantPlacement_Call struct {
+	*mock.Call
+}
+
+// ReconcileTenantPlacement is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+//   - actor map[string]string
+func (_e *MockUsecase_Expecter) ReconcileTenantPlacement(ctx interface{}, tenantID interface{}, actor interface{}) *MockUsecase_ReconcileTenantPlacement_Call {
+	return &MockUsecase_ReconcileTenantPlacement_Call{Call: _e.mock.On("ReconcileTenantPlacement", ctx, tenantID, actor)}
+}
+
+func (_c *MockUsecase_ReconcileTenantPlacement_Call) Run(run func(ctx context.Context, tenantID string, actor map[string]string)) *MockUsecase_ReconcileTenantPlacement_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 map[string]string
+		if args[2] != nil {
+			arg2 = args[2].(map[string]string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUsecase_ReconcileTenantPlacement_Call) Return(placementReconcileResponse *inputport.PlacementReconcileResponse, err error) *MockUsecase_ReconcileTenantPlacement_Call {
+	_c.Call.Return(placementReconcileResponse, err)
+	return _c
+}
+
+func (_c *MockUsecase_ReconcileTenantPlacement_Call) RunAndReturn(run func(ctx context.Context, tenantID string, actor map[string]string) (*inputport.PlacementReconcileResponse, error)) *MockUsecase_ReconcileTenantPlacement_Call {
 	_c.Call.Return(run)
 	return _c
 }

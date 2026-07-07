@@ -50,6 +50,36 @@ func (r *PlacementRouteReader) IsPlacementRouteReady(ctx context.Context, tenant
 	return false, fmt.Errorf("read placement route %q: %w", key, err)
 }
 
+func (r *PlacementRouteReader) GetPlacementRoute(
+	ctx context.Context,
+	tenantID string,
+) (*entity.PlacementRoute, error) {
+	key := "podzone/tenants/" + tenantID + "/placement"
+	raw, err := r.kv.Get(key)
+	if err != nil {
+		if errors.Is(err, kvstores.ErrKeyNotFound) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("read placement route %q: %w", key, err)
+	}
+
+	var payload struct {
+		ClusterName string `json:"cluster_name"`
+		Mode        string `json:"mode"`
+		DBName      string `json:"db_name"`
+		SchemaName  string `json:"schema_name"`
+	}
+	if err := json.Unmarshal(raw, &payload); err != nil {
+		return nil, fmt.Errorf("decode placement route %q: %w", key, err)
+	}
+	return &entity.PlacementRoute{
+		ClusterName: payload.ClusterName,
+		Mode:        payload.Mode,
+		DBName:      payload.DBName,
+		SchemaName:  payload.SchemaName,
+	}, nil
+}
+
 func (r *PlacementRouteReader) PublishPlacementRoute(
 	ctx context.Context,
 	tenantID string,

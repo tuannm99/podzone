@@ -59,6 +59,42 @@ func TestPlacementRouteReader_IsPlacementRouteReadyWrapsBackendError(t *testing.
 	require.False(t, ready)
 }
 
+func TestPlacementRouteReader_GetPlacementRoute(t *testing.T) {
+	t.Parallel()
+
+	kv := kvsmocks.NewMockKVStore(t)
+	reader := NewPlacementRouteReader(PlacementRouteReaderParams{KV: kv})
+
+	kv.EXPECT().
+		Get("podzone/tenants/tenant-1/placement").
+		Return(
+			[]byte(`{"cluster_name":"pg-default","mode":"schema","db_name":"podzone_tenants","schema_name":"t_tenant_1"}`),
+			nil,
+		)
+
+	route, err := reader.GetPlacementRoute(context.Background(), "tenant-1")
+	require.NoError(t, err)
+	require.Equal(t, "pg-default", route.ClusterName)
+	require.Equal(t, "schema", route.Mode)
+	require.Equal(t, "podzone_tenants", route.DBName)
+	require.Equal(t, "t_tenant_1", route.SchemaName)
+}
+
+func TestPlacementRouteReader_GetPlacementRouteReturnsNilWhenMissing(t *testing.T) {
+	t.Parallel()
+
+	kv := kvsmocks.NewMockKVStore(t)
+	reader := NewPlacementRouteReader(PlacementRouteReaderParams{KV: kv})
+
+	kv.EXPECT().
+		Get("podzone/tenants/tenant-1/placement").
+		Return(nil, kvstores.ErrKeyNotFound)
+
+	route, err := reader.GetPlacementRoute(context.Background(), "tenant-1")
+	require.NoError(t, err)
+	require.Nil(t, route)
+}
+
 func TestPlacementRouteReader_PublishPlacementRoute(t *testing.T) {
 	t.Parallel()
 

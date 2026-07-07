@@ -32,6 +32,47 @@ func (s *Interactor) UpsertDatabaseCluster(
 	return s.inventory.UpsertDatabaseCluster(ctx, cluster)
 }
 
+func (s *Interactor) CheckDatabaseClusterHealth(
+	ctx context.Context,
+	name string,
+) (*inputport.DatabaseClusterHealthCheckResponse, error) {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return nil, fmt.Errorf("%w: database cluster name is required", entity.ErrInvalidInput)
+	}
+	if s.inventory == nil || s.health == nil || s.placements == nil {
+		return nil, fmt.Errorf("database cluster health runtime is not configured")
+	}
+	cluster, err := s.inventory.GetDatabaseCluster(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	if cluster == nil {
+		return nil, entity.ErrResourceNotFound
+	}
+	health, err := s.health.CheckDatabaseClusterHealth(ctx, *cluster)
+	if err != nil {
+		return nil, err
+	}
+	tenants, err := s.placements.CountReadyPlacementAllocationsByCluster(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	health.CurrentTenants = tenants
+	if err := s.inventory.UpdateDatabaseClusterHealth(ctx, name, health); err != nil {
+		return nil, err
+	}
+	return &inputport.DatabaseClusterHealthCheckResponse{
+		Name:               name,
+		Healthy:            health.Healthy,
+		CurrentTenants:     health.CurrentTenants,
+		CurrentSchemas:     health.CurrentSchemas,
+		CurrentConnections: health.CurrentConnections,
+		Message:            health.Message,
+		CheckedAt:          health.CheckedAt,
+	}, nil
+}
+
 func (s *Interactor) DeleteDatabaseCluster(ctx context.Context, name string) error {
 	if strings.TrimSpace(name) == "" {
 		return fmt.Errorf("%w: database cluster name is required", entity.ErrInvalidInput)

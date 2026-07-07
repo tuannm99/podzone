@@ -50,6 +50,15 @@ func (c *Controller) UpsertDatabaseCluster(ctx *gin.Context) {
 	ctx.Status(http.StatusNoContent)
 }
 
+func (c *Controller) CheckDatabaseClusterHealth(ctx *gin.Context) {
+	resp, err := c.service.CheckDatabaseClusterHealth(ctx, ctx.Param("name"))
+	if err != nil {
+		writeResourceError(ctx, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, resp)
+}
+
 func (c *Controller) DeleteDatabaseCluster(ctx *gin.Context) {
 	if err := c.service.DeleteDatabaseCluster(ctx, ctx.Param("name")); err != nil {
 		writeResourceError(ctx, err)

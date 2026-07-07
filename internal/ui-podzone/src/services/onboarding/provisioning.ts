@@ -71,6 +71,16 @@ export type RuntimePoolResource = {
     updated_at: string
 }
 
+export type DatabaseClusterHealthCheck = {
+    name: string
+    healthy: boolean
+    current_tenants: number
+    current_schemas: number
+    current_connections: number
+    message?: string
+    checked_at: string
+}
+
 export type InfrastructureConnection = {
     tenant_id: string
     infra_type: string
@@ -98,6 +108,33 @@ export type UpsertInfrastructureConnection = {
     schema_name: string
     meta: Record<string, string>
     config: Record<string, unknown>
+}
+
+export type PlacementRoute = {
+    cluster_name: string
+    mode: string
+    db_name: string
+    schema_name: string
+}
+
+export type PlacementStatus = {
+    tenant_id: string
+    allocation_id?: string
+    allocation_ready: boolean
+    route_ready: boolean
+    in_sync: boolean
+    needs_repair: boolean
+    reason?: string
+    allocation?: PlacementRoute
+    route?: PlacementRoute
+    updated_at?: string
+}
+
+export type PlacementReconcileResponse = {
+    status: PlacementStatus
+    repaired: boolean
+    kv_store_key: string
+    published_at?: string
 }
 
 type ResourceKind = 'database-clusters' | 'kubernetes-clusters' | 'runtime-pools'
@@ -172,6 +209,19 @@ export function upsertDatabaseCluster(resource: DatabaseClusterResource) {
     return upsertResource('database-clusters', resource.name, resource)
 }
 
+export async function checkDatabaseClusterHealth(
+    name: string
+): Promise<ProvisioningResult<DatabaseClusterHealthCheck>> {
+    try {
+        const response = await http.post<DatabaseClusterHealthCheck>(
+            `${ONBOARDING_API_URL}/onboarding/v1/infras/resources/database-clusters/${encodeURIComponent(name)}/health-check`
+        )
+        return { success: true, data: response.data }
+    } catch (error) {
+        return { success: false, message: errorMessage(error) }
+    }
+}
+
 export function upsertKubernetesCluster(resource: KubernetesClusterResource) {
     return upsertResource('kubernetes-clusters', resource.name, resource)
 }
@@ -218,6 +268,28 @@ export async function deleteInfrastructureConnection(
             { headers: tenantHeaders(tenantId) }
         )
         return { success: true, data: undefined }
+    } catch (error) {
+        return { success: false, message: errorMessage(error) }
+    }
+}
+
+export async function getPlacementStatus(tenantId: string): Promise<ProvisioningResult<PlacementStatus>> {
+    try {
+        const response = await http.get<PlacementStatus>(
+            `${ONBOARDING_API_URL}/onboarding/v1/infras/placements/${encodeURIComponent(tenantId)}/status`
+        )
+        return { success: true, data: response.data }
+    } catch (error) {
+        return { success: false, message: errorMessage(error) }
+    }
+}
+
+export async function reconcilePlacement(tenantId: string): Promise<ProvisioningResult<PlacementReconcileResponse>> {
+    try {
+        const response = await http.post<PlacementReconcileResponse>(
+            `${ONBOARDING_API_URL}/onboarding/v1/infras/placements/${encodeURIComponent(tenantId)}/reconcile`
+        )
+        return { success: true, data: response.data }
     } catch (error) {
         return { success: false, message: errorMessage(error) }
     }

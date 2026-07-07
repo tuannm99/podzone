@@ -49,3 +49,13 @@ type RuntimePoolResource struct {
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
 }
+
+type DatabaseClusterHealthCheckResponse struct {
+	Name               string    `json:"name"`
+	Healthy            bool      `json:"healthy"`
+	CurrentTenants     int       `json:"current_tenants"`
+	CurrentSchemas     int       `json:"current_schemas"`
+	CurrentConnections int       `json:"current_connections"`
+	Message            string    `json:"message,omitempty"`
+	CheckedAt          time.Time `json:"checked_at"`
+}

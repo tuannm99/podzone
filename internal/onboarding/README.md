@@ -106,6 +106,11 @@ Initial collections:
 
 Provisioning must read these collections before creating any tenant placement.
 
+Resource health is operator-maintained runtime state attached to the inventory row. For Postgres database clusters,
+health checks must connect to the declared placement database, count tenant schemas and active database connections, then
+persist the latest health snapshot back to `resource_db_clusters`. Placement tenant counts come from ready placement
+allocations, not from routing KV projections.
+
 Config can seed a local/dev inventory record when the collections are empty, but config is not the runtime source of
 truth once inventory exists in DB.
 

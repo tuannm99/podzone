@@ -8,6 +8,7 @@ import (
 	"context"
 
 	mock "github.com/stretchr/testify/mock"
+	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/entity"
 )
 
 // NewMockPlacementRouteReader creates a new instance of MockPlacementRouteReader. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -15,7 +16,8 @@ import (
 func NewMockPlacementRouteReader(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockPlacementRouteReader {
+},
+) *MockPlacementRouteReader {
 	mock := &MockPlacementRouteReader{}
 	mock.Mock.Test(t)
 
@@ -35,6 +37,74 @@ type MockPlacementRouteReader_Expecter struct {
 
 func (_m *MockPlacementRouteReader) EXPECT() *MockPlacementRouteReader_Expecter {
 	return &MockPlacementRouteReader_Expecter{mock: &_m.Mock}
+}
+
+// GetPlacementRoute provides a mock function for the type MockPlacementRouteReader
+func (_mock *MockPlacementRouteReader) GetPlacementRoute(ctx context.Context, tenantID string) (*entity.PlacementRoute, error) {
+	ret := _mock.Called(ctx, tenantID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPlacementRoute")
+	}
+
+	var r0 *entity.PlacementRoute
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*entity.PlacementRoute, error)); ok {
+		return returnFunc(ctx, tenantID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *entity.PlacementRoute); ok {
+		r0 = returnFunc(ctx, tenantID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.PlacementRoute)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, tenantID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockPlacementRouteReader_GetPlacementRoute_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetPlacementRoute'
+type MockPlacementRouteReader_GetPlacementRoute_Call struct {
+	*mock.Call
+}
+
+// GetPlacementRoute is a helper method to define mock.On call
+//   - ctx context.Context
+//   - tenantID string
+func (_e *MockPlacementRouteReader_Expecter) GetPlacementRoute(ctx interface{}, tenantID interface{}) *MockPlacementRouteReader_GetPlacementRoute_Call {
+	return &MockPlacementRouteReader_GetPlacementRoute_Call{Call: _e.mock.On("GetPlacementRoute", ctx, tenantID)}
+}
+
+func (_c *MockPlacementRouteReader_GetPlacementRoute_Call) Run(run func(ctx context.Context, tenantID string)) *MockPlacementRouteReader_GetPlacementRoute_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPlacementRouteReader_GetPlacementRoute_Call) Return(placementRoute *entity.PlacementRoute, err error) *MockPlacementRouteReader_GetPlacementRoute_Call {
+	_c.Call.Return(placementRoute, err)
+	return _c
+}
+
+func (_c *MockPlacementRouteReader_GetPlacementRoute_Call) RunAndReturn(run func(ctx context.Context, tenantID string) (*entity.PlacementRoute, error)) *MockPlacementRouteReader_GetPlacementRoute_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // IsPlacementRouteReady provides a mock function for the type MockPlacementRouteReader

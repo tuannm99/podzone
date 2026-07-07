@@ -147,6 +147,27 @@ func TestProvider_ProvisionRequiresAdminDSN(t *testing.T) {
 	require.ErrorContains(t, err, "admin_dsn is required")
 }
 
+func TestProvider_CheckDatabaseClusterHealthRequiresAdminDSN(t *testing.T) {
+	cfg := testProvisioningConfig(onboardingconfig.StoreProvisioningConfig{
+		Runtime:      "local_docker",
+		ClusterName:  "pg-default",
+		Mode:         "schema",
+		DBName:       "podzone_tenants",
+		SchemaPrefix: "t_",
+	})
+	p := NewProvider(ProviderParams{Config: cfg})
+
+	health, err := p.CheckDatabaseClusterHealth(context.Background(), entity.DatabaseCluster{
+		Name:        "pg-default",
+		PlacementDB: "podzone_tenants",
+	})
+
+	require.NoError(t, err)
+	require.False(t, health.Healthy)
+	require.Contains(t, health.Message, "admin_dsn is required")
+	require.False(t, health.CheckedAt.IsZero())
+}
+
 func TestProvider_TerraformRuntimeRequiresFutureAdapter(t *testing.T) {
 	request := entity.StorePlacementRequest{
 		RequestID: "request-1",

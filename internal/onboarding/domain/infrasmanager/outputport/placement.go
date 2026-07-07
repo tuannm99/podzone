@@ -26,6 +26,7 @@ type PlacementRepository interface {
 		ctx context.Context,
 		tenantID string,
 	) (*entity.PlacementAllocation, error)
+	CountReadyPlacementAllocationsByCluster(ctx context.Context, clusterName string) (int, error)
 	SavePlacementAllocation(ctx context.Context, allocation entity.PlacementAllocation) error
 }
 
@@ -36,6 +37,7 @@ type PlacementPlanRepository interface {
 
 type PlacementRouteReader interface {
 	IsPlacementRouteReady(ctx context.Context, tenantID string) (bool, error)
+	GetPlacementRoute(ctx context.Context, tenantID string) (*entity.PlacementRoute, error)
 }
 
 type PlacementRouteWriter interface {

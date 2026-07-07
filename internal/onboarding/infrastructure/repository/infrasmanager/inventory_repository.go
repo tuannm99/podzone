@@ -205,6 +205,49 @@ func (s *MongoStore) UpsertDatabaseCluster(ctx context.Context, cluster entity.D
 	return err
 }
 
+func (s *MongoStore) GetDatabaseCluster(ctx context.Context, name string) (*entity.DatabaseCluster, error) {
+	var doc databaseClusterDoc
+	err := s.dbCol.FindOne(ctx, bson.M{"name": name, "status": bson.M{"$ne": "archived"}}).Decode(&doc)
+	if err == mongo.ErrNoDocuments {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	cluster := doc.toEntity()
+	return &cluster, nil
+}
+
+func (s *MongoStore) UpdateDatabaseClusterHealth(
+	ctx context.Context,
+	name string,
+	health entity.DatabaseClusterHealth,
+) error {
+	if health.CheckedAt.IsZero() {
+		health.CheckedAt = time.Now().UTC()
+	}
+	result, err := s.dbCol.UpdateOne(
+		ctx,
+		bson.M{"name": name, "status": bson.M{"$ne": "archived"}},
+		bson.M{"$set": bson.M{
+			"healthy":             health.Healthy,
+			"current_tenants":     health.CurrentTenants,
+			"current_schemas":     health.CurrentSchemas,
+			"current_connections": health.CurrentConnections,
+			"health_message":      health.Message,
+			"health_checked_at":   health.CheckedAt,
+			"updated_at":          health.CheckedAt,
+		}},
+	)
+	if err != nil {
+		return err
+	}
+	if result.MatchedCount == 0 {
+		return entity.ErrResourceNotFound
+	}
+	return nil
+}
+
 func (s *MongoStore) DeleteDatabaseCluster(ctx context.Context, name string) error {
 	return archiveResource(ctx, s.dbCol, name)
 }

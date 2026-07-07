@@ -157,6 +157,102 @@ func TestUpsertDatabaseClusterRejectsPathNameMismatch(t *testing.T) {
 	}`, response.Body.String())
 }
 
+func TestCheckDatabaseClusterHealthAuthorizesAndForwardsName(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	usecase := inputmocks.NewMockUsecase(t)
+	authorizer := outputmocks.NewMockAccessAuthorizer(t)
+	authorizer.EXPECT().
+		AuthorizeInfrastructureManage(mock.Anything, "7").
+		Return(nil).
+		Once()
+	usecase.EXPECT().
+		CheckDatabaseClusterHealth(mock.Anything, "pg-default").
+		Return(&inputport.DatabaseClusterHealthCheckResponse{
+			Name:               "pg-default",
+			Healthy:            true,
+			CurrentTenants:     2,
+			CurrentSchemas:     3,
+			CurrentConnections: 4,
+			Message:            "ok",
+		}, nil).
+		Once()
+
+	router := newInfrastructureTestRouter(usecase, authorizer)
+	request := httptest.NewRequest(
+		http.MethodPost,
+		"/onboarding/v1/infras/resources/database-clusters/pg-default/health-check",
+		nil,
+	)
+	response := httptest.NewRecorder()
+	router.ServeHTTP(response, request)
+
+	require.Equal(t, http.StatusOK, response.Code, response.Body.String())
+	require.Contains(t, response.Body.String(), `"name":"pg-default"`)
+	require.Contains(t, response.Body.String(), `"current_schemas":3`)
+}
+
+func TestGetTenantPlacementStatusAuthorizesAndForwardsTenant(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	usecase := inputmocks.NewMockUsecase(t)
+	authorizer := outputmocks.NewMockAccessAuthorizer(t)
+	authorizer.EXPECT().
+		AuthorizeInfrastructureRead(mock.Anything, "7").
+		Return(nil).
+		Once()
+	usecase.EXPECT().
+		GetTenantPlacementStatus(mock.Anything, "workspace-2").
+		Return(&inputport.PlacementStatus{
+			TenantID:        "workspace-2",
+			AllocationReady: true,
+			RouteReady:      false,
+			NeedsRepair:     true,
+			Reason:          "placement route is missing",
+		}, nil).
+		Once()
+
+	router := newInfrastructureTestRouter(usecase, authorizer)
+	request := httptest.NewRequest(
+		http.MethodGet,
+		"/onboarding/v1/infras/placements/workspace-2/status",
+		nil,
+	)
+	response := httptest.NewRecorder()
+	router.ServeHTTP(response, request)
+
+	require.Equal(t, http.StatusOK, response.Code, response.Body.String())
+	require.Contains(t, response.Body.String(), `"tenant_id":"workspace-2"`)
+	require.Contains(t, response.Body.String(), `"needs_repair":true`)
+}
+
+func TestReconcileTenantPlacementReturnsNotFound(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	usecase := inputmocks.NewMockUsecase(t)
+	authorizer := outputmocks.NewMockAccessAuthorizer(t)
+	authorizer.EXPECT().
+		AuthorizeInfrastructureManage(mock.Anything, "7").
+		Return(nil).
+		Once()
+	usecase.EXPECT().
+		ReconcileTenantPlacement(mock.Anything, "workspace-2", mock.Anything).
+		Return(nil, entity.ErrPlacementNotFound).
+		Once()
+
+	router := newInfrastructureTestRouter(usecase, authorizer)
+	request := httptest.NewRequest(
+		http.MethodPost,
+		"/onboarding/v1/infras/placements/workspace-2/reconcile",
+		nil,
+	)
+	response := httptest.NewRecorder()
+	router.ServeHTTP(response, request)
+
+	require.Equal(t, http.StatusNotFound, response.Code, response.Body.String())
+	require.JSONEq(t, `{
+		"error":"placement_not_found",
+		"message":"infrasmanager: placement not found"
+	}`, response.Body.String())
+}
+
 func newInfrastructureTestRouter(
 	usecase inputport.Usecase,
 	authorizer *outputmocks.MockAccessAuthorizer,

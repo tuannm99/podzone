@@ -39,6 +39,72 @@ func (_m *MockPlacementRepository) EXPECT() *MockPlacementRepository_Expecter {
 	return &MockPlacementRepository_Expecter{mock: &_m.Mock}
 }
 
+// CountReadyPlacementAllocationsByCluster provides a mock function for the type MockPlacementRepository
+func (_mock *MockPlacementRepository) CountReadyPlacementAllocationsByCluster(ctx context.Context, clusterName string) (int, error) {
+	ret := _mock.Called(ctx, clusterName)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountReadyPlacementAllocationsByCluster")
+	}
+
+	var r0 int
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (int, error)); ok {
+		return returnFunc(ctx, clusterName)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) int); ok {
+		r0 = returnFunc(ctx, clusterName)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, clusterName)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockPlacementRepository_CountReadyPlacementAllocationsByCluster_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CountReadyPlacementAllocationsByCluster'
+type MockPlacementRepository_CountReadyPlacementAllocationsByCluster_Call struct {
+	*mock.Call
+}
+
+// CountReadyPlacementAllocationsByCluster is a helper method to define mock.On call
+//   - ctx context.Context
+//   - clusterName string
+func (_e *MockPlacementRepository_Expecter) CountReadyPlacementAllocationsByCluster(ctx interface{}, clusterName interface{}) *MockPlacementRepository_CountReadyPlacementAllocationsByCluster_Call {
+	return &MockPlacementRepository_CountReadyPlacementAllocationsByCluster_Call{Call: _e.mock.On("CountReadyPlacementAllocationsByCluster", ctx, clusterName)}
+}
+
+func (_c *MockPlacementRepository_CountReadyPlacementAllocationsByCluster_Call) Run(run func(ctx context.Context, clusterName string)) *MockPlacementRepository_CountReadyPlacementAllocationsByCluster_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPlacementRepository_CountReadyPlacementAllocationsByCluster_Call) Return(n int, err error) *MockPlacementRepository_CountReadyPlacementAllocationsByCluster_Call {
+	_c.Call.Return(n, err)
+	return _c
+}
+
+func (_c *MockPlacementRepository_CountReadyPlacementAllocationsByCluster_Call) RunAndReturn(run func(ctx context.Context, clusterName string) (int, error)) *MockPlacementRepository_CountReadyPlacementAllocationsByCluster_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetTenantPlacementAllocation provides a mock function for the type MockPlacementRepository
 func (_mock *MockPlacementRepository) GetTenantPlacementAllocation(ctx context.Context, tenantID string) (*entity.PlacementAllocation, error) {
 	ret := _mock.Called(ctx, tenantID)

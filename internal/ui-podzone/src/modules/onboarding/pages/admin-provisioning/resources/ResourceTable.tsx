@@ -116,6 +116,16 @@ export function ResourceTable(props: { kind: ResourceEditor['kind']; page: PageM
                                     </TableCell>
                                     <TableCell class="text-right">
                                         <div class="flex justify-end gap-2">
+                                            <Show when={props.kind === 'database-clusters'}>
+                                                <Button
+                                                    size="xs"
+                                                    color="alternative"
+                                                    loading={props.vm.checkingName() === resource.name}
+                                                    onClick={() => void props.vm.checkDatabaseHealth(resource.name)}
+                                                >
+                                                    Check health
+                                                </Button>
+                                            </Show>
                                             <Button
                                                 size="xs"
                                                 color="alternative"

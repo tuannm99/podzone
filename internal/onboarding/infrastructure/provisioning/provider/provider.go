@@ -20,6 +20,7 @@ var (
 	_ infrasoutputport.CapacityChecker          = (*Provider)(nil)
 	_ infrasoutputport.PlacementPolicyEvaluator = (*Provider)(nil)
 	_ infrasoutputport.PlacementPlanner         = (*Provider)(nil)
+	_ infrasoutputport.ResourceHealthChecker    = (*Provider)(nil)
 	_ infrasoutputport.StorageProvisioner       = (*Provider)(nil)
 )
 

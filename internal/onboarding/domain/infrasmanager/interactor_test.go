@@ -3,6 +3,7 @@ package infrasmanager
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -218,6 +219,78 @@ func TestEnsurePlacementRoute_RepairsMissingRouteFromAllocation(t *testing.T) {
 	require.True(t, ready)
 }
 
+func TestGetTenantPlacementStatusDetectsMissingRoute(t *testing.T) {
+	placements := coremocks.NewMockPlacementRepository(t)
+	reader := coremocks.NewMockPlacementRouteReader(t)
+	svc := &Interactor{
+		placements:  placements,
+		routeReader: reader,
+	}
+	allocation := entity.PlacementAllocation{
+		ID:          "allocation-1",
+		TenantID:    "tenant-1",
+		ClusterName: "pg-default",
+		Mode:        "schema",
+		DBName:      "podzone_tenants",
+		SchemaName:  "t_tenant_1",
+		Status:      "ready",
+	}
+
+	placements.EXPECT().GetTenantPlacementAllocation(mock.Anything, "tenant-1").Return(&allocation, nil)
+	reader.EXPECT().GetPlacementRoute(mock.Anything, "tenant-1").Return(nil, nil)
+
+	status, err := svc.GetTenantPlacementStatus(context.Background(), "tenant-1")
+	require.NoError(t, err)
+	require.True(t, status.AllocationReady)
+	require.False(t, status.RouteReady)
+	require.False(t, status.InSync)
+	require.True(t, status.NeedsRepair)
+	require.Equal(t, "placement route is missing", status.Reason)
+}
+
+func TestReconcileTenantPlacementRepublishesDriftedRoute(t *testing.T) {
+	placements := coremocks.NewMockPlacementRepository(t)
+	reader := coremocks.NewMockPlacementRouteReader(t)
+	writer := coremocks.NewMockPlacementRouteWriter(t)
+	svc := &Interactor{
+		placements:  placements,
+		routeReader: reader,
+		routeWriter: writer,
+	}
+	allocation := entity.PlacementAllocation{
+		ID:          "allocation-1",
+		TenantID:    "tenant-1",
+		ClusterName: "pg-default",
+		Mode:        "schema",
+		DBName:      "podzone_tenants",
+		SchemaName:  "t_tenant_1",
+		Status:      "ready",
+	}
+	driftedRoute := &entity.PlacementRoute{
+		ClusterName: "pg-old",
+		Mode:        "schema",
+		DBName:      "podzone_tenants",
+		SchemaName:  "t_tenant_1",
+	}
+
+	placements.EXPECT().GetTenantPlacementAllocation(mock.Anything, "tenant-1").Return(&allocation, nil).Twice()
+	reader.EXPECT().GetPlacementRoute(mock.Anything, "tenant-1").Return(driftedRoute, nil)
+	writer.EXPECT().PublishPlacementRoute(mock.Anything, "tenant-1", allocation).Return(nil)
+
+	resp, err := svc.ReconcileTenantPlacement(
+		context.Background(),
+		"tenant-1",
+		map[string]string{"user": "7"},
+	)
+	require.NoError(t, err)
+	require.True(t, resp.Repaired)
+	require.True(t, resp.Status.RouteReady)
+	require.True(t, resp.Status.InSync)
+	require.False(t, resp.Status.NeedsRepair)
+	require.Equal(t, "podzone/tenants/tenant-1/placement", resp.KVStoreKey)
+	require.NotNil(t, resp.PublishedAt)
+}
+
 func TestProvisionStorePlacement_ReusesTenantAllocationAcrossStores(t *testing.T) {
 	placements := coremocks.NewMockPlacementRepository(t)
 	plans := coremocks.NewMockPlacementPlanRepository(t)
@@ -327,6 +400,55 @@ func TestProvisionStorePlacement_SavesPlanBeforeProvisioning(t *testing.T) {
 	require.NotNil(t, resp)
 	require.Equal(t, "allocation-1", resp.AllocationID)
 	require.Len(t, state.outbox, 2)
+}
+
+func TestCheckDatabaseClusterHealthUpdatesInventory(t *testing.T) {
+	inventory := coremocks.NewMockResourceInventoryRepository(t)
+	placements := coremocks.NewMockPlacementRepository(t)
+	checker := coremocks.NewMockResourceHealthChecker(t)
+	svc := &Interactor{
+		inventory:  inventory,
+		placements: placements,
+		health:     checker,
+	}
+	cluster := &entity.DatabaseCluster{
+		Name:        "pg-default",
+		Engine:      "postgres",
+		PlacementDB: "podzone_tenants",
+	}
+	checkedAt := time.Now().UTC()
+	health := entity.DatabaseClusterHealth{
+		Healthy:            true,
+		CurrentSchemas:     3,
+		CurrentConnections: 4,
+		Message:            "ok",
+		CheckedAt:          checkedAt,
+	}
+
+	inventory.EXPECT().GetDatabaseCluster(mock.Anything, "pg-default").Return(cluster, nil)
+	checker.EXPECT().CheckDatabaseClusterHealth(mock.Anything, *cluster).Return(health, nil)
+	placements.EXPECT().CountReadyPlacementAllocationsByCluster(mock.Anything, "pg-default").Return(2, nil)
+	inventory.EXPECT().
+		UpdateDatabaseClusterHealth(
+			mock.Anything,
+			"pg-default",
+			mock.MatchedBy(func(next entity.DatabaseClusterHealth) bool {
+				return next.Healthy &&
+					next.CurrentTenants == 2 &&
+					next.CurrentSchemas == 3 &&
+					next.CurrentConnections == 4
+			}),
+		).
+		Return(nil)
+
+	resp, err := svc.CheckDatabaseClusterHealth(context.Background(), "pg-default")
+	require.NoError(t, err)
+	require.Equal(t, "pg-default", resp.Name)
+	require.True(t, resp.Healthy)
+	require.Equal(t, 2, resp.CurrentTenants)
+	require.Equal(t, 3, resp.CurrentSchemas)
+	require.Equal(t, 4, resp.CurrentConnections)
+	require.Equal(t, checkedAt, resp.CheckedAt)
 }
 
 func TestProvisionStorePlacement_ReusesPersistedPlanOnRetry(t *testing.T) {
