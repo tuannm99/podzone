@@ -58,6 +58,16 @@ func (r *MongoRepository) EnsureIndexes(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	_, err = r.collection.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "status", Value: 1},
+			{Key: "lease_until", Value: 1},
+			{Key: "updated_at", Value: 1},
+		},
+	})
+	if err != nil {
+		return err
+	}
 	_, err = r.transitionCol.Indexes().CreateOne(ctx, mongo.IndexModel{
 		Keys: bson.D{{Key: "request_id", Value: 1}, {Key: "created_at", Value: -1}},
 	})
@@ -175,18 +185,66 @@ func (r *MongoRepository) ListTransitions(
 	return collection.NewPage(transitions, total, normalized), nil
 }
 
-func (r *MongoRepository) ClaimNextQueued(ctx context.Context) (*storeentity.StoreRequest, error) {
+func (r *MongoRepository) ClaimNextQueued(
+	ctx context.Context,
+	leaseOwner string,
+	leaseTTL time.Duration,
+) (*storeentity.StoreRequest, error) {
+	return r.claimNext(
+		ctx,
+		[]storeentity.RequestStatus{
+			storeentity.RequestStatusQueued,
+			storeentity.RequestStatusPlanning,
+		},
+		storeentity.RequestStatusPlanning,
+		leaseOwner,
+		leaseTTL,
+	)
+}
+
+func (r *MongoRepository) ClaimNextProvisioning(
+	ctx context.Context,
+	leaseOwner string,
+	leaseTTL time.Duration,
+) (*storeentity.StoreRequest, error) {
+	return r.claimNext(
+		ctx,
+		[]storeentity.RequestStatus{storeentity.RequestStatusProvisioning},
+		storeentity.RequestStatusProvisioning,
+		leaseOwner,
+		leaseTTL,
+	)
+}
+
+func (r *MongoRepository) claimNext(
+	ctx context.Context,
+	current []storeentity.RequestStatus,
+	next storeentity.RequestStatus,
+	leaseOwner string,
+	leaseTTL time.Duration,
+) (*storeentity.StoreRequest, error) {
 	now := time.Now().UTC()
+	leaseUntil := now.Add(leaseTTL)
 	var request storeentity.StoreRequest
 	err := r.collection.FindOneAndUpdate(
 		ctx,
-		bson.M{"status": storeentity.RequestStatusQueued},
+		bson.M{
+			"status": bson.M{"$in": current},
+			"$or": bson.A{
+				bson.M{"lease_until": bson.M{"$exists": false}},
+				bson.M{"lease_until": nil},
+				bson.M{"lease_until": bson.M{"$lte": now}},
+			},
+		},
 		bson.M{
 			"$set": bson.M{
-				"status":     storeentity.RequestStatusPlanning,
-				"last_error": "",
-				"updated_at": now,
+				"status":      next,
+				"last_error":  "",
+				"lease_owner": leaseOwner,
+				"lease_until": leaseUntil,
+				"updated_at":  now,
 			},
+			"$inc": bson.M{"attempt": 1},
 		},
 		options.FindOneAndUpdate().
 			SetSort(bson.D{{Key: "updated_at", Value: 1}}).
@@ -201,20 +259,17 @@ func (r *MongoRepository) ClaimNextQueued(ctx context.Context) (*storeentity.Sto
 	return &request, nil
 }
 
-func (r *MongoRepository) FindNextProvisioning(ctx context.Context) (*storeentity.StoreRequest, error) {
-	var request storeentity.StoreRequest
-	err := r.collection.FindOne(
-		ctx,
-		bson.M{"status": storeentity.RequestStatusProvisioning},
-		options.FindOne().SetSort(bson.D{{Key: "updated_at", Value: 1}}),
-	).Decode(&request)
-	if err == mongo.ErrNoDocuments {
-		return nil, nil
-	}
+func (r *MongoRepository) ReleaseLease(ctx context.Context, id string, leaseOwner string) error {
+	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &request, nil
+	_, err = r.collection.UpdateOne(
+		ctx,
+		bson.M{"_id": objectID, "lease_owner": leaseOwner},
+		bson.M{"$unset": bson.M{"lease_owner": "", "lease_until": ""}},
+	)
+	return err
 }
 
 func (r *MongoRepository) UpdateStatus(ctx context.Context, id string, status storeentity.RequestStatus) error {
@@ -228,6 +283,10 @@ func (r *MongoRepository) UpdateStatus(ctx context.Context, id string, status st
 		"$set": bson.M{
 			"status":     status,
 			"updated_at": now,
+		},
+		"$unset": bson.M{
+			"lease_owner": "",
+			"lease_until": "",
 		},
 	}
 	if status == storeentity.RequestStatusQueued {
@@ -263,6 +322,7 @@ func (r *MongoRepository) MarkReady(ctx context.Context, id string, storeID stri
 				"updated_at":   now,
 				"completed_at": now,
 			},
+			"$unset": bson.M{"lease_owner": "", "lease_until": ""},
 		},
 	)
 	return err
@@ -289,6 +349,10 @@ func (r *MongoRepository) MarkBlocked(
 			"status":     status,
 			"last_error": reason,
 			"updated_at": now,
+		},
+		"$unset": bson.M{
+			"lease_owner": "",
+			"lease_until": "",
 		},
 	}
 	if isTerminalStatus(status) {

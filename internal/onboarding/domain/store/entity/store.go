@@ -36,10 +36,13 @@ type StoreRequest struct {
 	Status      RequestStatus       `bson:"status"                 json:"status"`
 	StoreID     *primitive.ObjectID `bson:"store_id,omitempty"     json:"store_id,omitempty"`
 	LastError   string              `bson:"last_error,omitempty"   json:"last_error,omitempty"`
+	LeaseOwner  string              `bson:"lease_owner,omitempty"  json:"lease_owner,omitempty"`
 	CreatedAt   time.Time           `bson:"created_at"             json:"created_at"`
 	UpdatedAt   time.Time           `bson:"updated_at"             json:"updated_at"`
 	ApprovedAt  *time.Time          `bson:"approved_at,omitempty"  json:"approved_at,omitempty"`
 	CompletedAt *time.Time          `bson:"completed_at,omitempty" json:"completed_at,omitempty"`
+	LeaseUntil  *time.Time          `bson:"lease_until,omitempty"  json:"lease_until,omitempty"`
+	Attempt     int                 `bson:"attempt,omitempty"      json:"attempt,omitempty"`
 }
 
 type StoreRequestTransition struct {
@@ -61,4 +64,5 @@ type ProvisioningConfig struct {
 	Mode         string
 	DBName       string
 	SchemaPrefix string
+	LeaseTTL     time.Duration
 }

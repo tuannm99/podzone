@@ -166,8 +166,8 @@ func (_c *MockUsecase_CreateStoreRequest_Call) RunAndReturn(run func(ctx context
 }
 
 // FinalizeNextStoreRequest provides a mock function for the type MockUsecase
-func (_mock *MockUsecase) FinalizeNextStoreRequest(ctx context.Context) (*inputport.Request, error) {
-	ret := _mock.Called(ctx)
+func (_mock *MockUsecase) FinalizeNextStoreRequest(ctx context.Context, workerID string) (*inputport.Request, error) {
+	ret := _mock.Called(ctx, workerID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FinalizeNextStoreRequest")
@@ -175,18 +175,18 @@ func (_mock *MockUsecase) FinalizeNextStoreRequest(ctx context.Context) (*inputp
 
 	var r0 *inputport.Request
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context) (*inputport.Request, error)); ok {
-		return returnFunc(ctx)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*inputport.Request, error)); ok {
+		return returnFunc(ctx, workerID)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context) *inputport.Request); ok {
-		r0 = returnFunc(ctx)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *inputport.Request); ok {
+		r0 = returnFunc(ctx, workerID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*inputport.Request)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = returnFunc(ctx)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, workerID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -200,18 +200,24 @@ type MockUsecase_FinalizeNextStoreRequest_Call struct {
 
 // FinalizeNextStoreRequest is a helper method to define mock.On call
 //   - ctx context.Context
-func (_e *MockUsecase_Expecter) FinalizeNextStoreRequest(ctx interface{}) *MockUsecase_FinalizeNextStoreRequest_Call {
-	return &MockUsecase_FinalizeNextStoreRequest_Call{Call: _e.mock.On("FinalizeNextStoreRequest", ctx)}
+//   - workerID string
+func (_e *MockUsecase_Expecter) FinalizeNextStoreRequest(ctx interface{}, workerID interface{}) *MockUsecase_FinalizeNextStoreRequest_Call {
+	return &MockUsecase_FinalizeNextStoreRequest_Call{Call: _e.mock.On("FinalizeNextStoreRequest", ctx, workerID)}
 }
 
-func (_c *MockUsecase_FinalizeNextStoreRequest_Call) Run(run func(ctx context.Context)) *MockUsecase_FinalizeNextStoreRequest_Call {
+func (_c *MockUsecase_FinalizeNextStoreRequest_Call) Run(run func(ctx context.Context, workerID string)) *MockUsecase_FinalizeNextStoreRequest_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
@@ -222,7 +228,7 @@ func (_c *MockUsecase_FinalizeNextStoreRequest_Call) Return(request *inputport.R
 	return _c
 }
 
-func (_c *MockUsecase_FinalizeNextStoreRequest_Call) RunAndReturn(run func(ctx context.Context) (*inputport.Request, error)) *MockUsecase_FinalizeNextStoreRequest_Call {
+func (_c *MockUsecase_FinalizeNextStoreRequest_Call) RunAndReturn(run func(ctx context.Context, workerID string) (*inputport.Request, error)) *MockUsecase_FinalizeNextStoreRequest_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -440,8 +446,8 @@ func (_c *MockUsecase_ListStoreRequests_Call) RunAndReturn(run func(ctx context.
 }
 
 // ProcessNextStoreRequest provides a mock function for the type MockUsecase
-func (_mock *MockUsecase) ProcessNextStoreRequest(ctx context.Context) (*inputport.Request, error) {
-	ret := _mock.Called(ctx)
+func (_mock *MockUsecase) ProcessNextStoreRequest(ctx context.Context, workerID string) (*inputport.Request, error) {
+	ret := _mock.Called(ctx, workerID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ProcessNextStoreRequest")
@@ -449,18 +455,18 @@ func (_mock *MockUsecase) ProcessNextStoreRequest(ctx context.Context) (*inputpo
 
 	var r0 *inputport.Request
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context) (*inputport.Request, error)); ok {
-		return returnFunc(ctx)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*inputport.Request, error)); ok {
+		return returnFunc(ctx, workerID)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context) *inputport.Request); ok {
-		r0 = returnFunc(ctx)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *inputport.Request); ok {
+		r0 = returnFunc(ctx, workerID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*inputport.Request)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = returnFunc(ctx)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, workerID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -474,18 +480,24 @@ type MockUsecase_ProcessNextStoreRequest_Call struct {
 
 // ProcessNextStoreRequest is a helper method to define mock.On call
 //   - ctx context.Context
-func (_e *MockUsecase_Expecter) ProcessNextStoreRequest(ctx interface{}) *MockUsecase_ProcessNextStoreRequest_Call {
-	return &MockUsecase_ProcessNextStoreRequest_Call{Call: _e.mock.On("ProcessNextStoreRequest", ctx)}
+//   - workerID string
+func (_e *MockUsecase_Expecter) ProcessNextStoreRequest(ctx interface{}, workerID interface{}) *MockUsecase_ProcessNextStoreRequest_Call {
+	return &MockUsecase_ProcessNextStoreRequest_Call{Call: _e.mock.On("ProcessNextStoreRequest", ctx, workerID)}
 }
 
-func (_c *MockUsecase_ProcessNextStoreRequest_Call) Run(run func(ctx context.Context)) *MockUsecase_ProcessNextStoreRequest_Call {
+func (_c *MockUsecase_ProcessNextStoreRequest_Call) Run(run func(ctx context.Context, workerID string)) *MockUsecase_ProcessNextStoreRequest_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
@@ -496,7 +508,7 @@ func (_c *MockUsecase_ProcessNextStoreRequest_Call) Return(request *inputport.Re
 	return _c
 }
 
-func (_c *MockUsecase_ProcessNextStoreRequest_Call) RunAndReturn(run func(ctx context.Context) (*inputport.Request, error)) *MockUsecase_ProcessNextStoreRequest_Call {
+func (_c *MockUsecase_ProcessNextStoreRequest_Call) RunAndReturn(run func(ctx context.Context, workerID string) (*inputport.Request, error)) *MockUsecase_ProcessNextStoreRequest_Call {
 	_c.Call.Return(run)
 	return _c
 }

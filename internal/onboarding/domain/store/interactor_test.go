@@ -308,7 +308,9 @@ func TestProcessNextStoreRequest_ProvisionsQueuedRequest(t *testing.T) {
 		RequestedBy: "user-1",
 		Status:      storeentity.RequestStatusPlanning,
 	}
-	repo.EXPECT().ClaimNextQueued(mock.Anything).Return(request, nil)
+	repo.EXPECT().
+		ClaimNextQueued(mock.Anything, "worker-1", 2*time.Minute).
+		Return(request, nil)
 	infra.EXPECT().
 		ProvisionStorePlacement(
 			mock.Anything,
@@ -331,7 +333,7 @@ func TestProcessNextStoreRequest_ProvisionsQueuedRequest(t *testing.T) {
 		}, nil)
 	repo.EXPECT().UpdateStatus(mock.Anything, id.Hex(), storeentity.RequestStatusPlanned).Return(nil)
 	repo.EXPECT().UpdateStatus(mock.Anything, id.Hex(), storeentity.RequestStatusProvisioning).Return(nil)
-	processed, err := svc.ProcessNextStoreRequest(context.Background())
+	processed, err := svc.ProcessNextStoreRequest(context.Background(), "worker-1")
 	require.NoError(t, err)
 	require.NotNil(t, processed)
 	require.Equal(t, storeinputport.RequestStatusProvisioning, processed.Status)
@@ -361,7 +363,9 @@ func TestProcessNextStoreRequest_MarksPlatformSetupWhenProviderUnavailable(t *te
 	}
 	providerErr := errors.New("kubernetes placement provider is declared but not implemented")
 
-	repo.EXPECT().ClaimNextQueued(mock.Anything).Return(request, nil)
+	repo.EXPECT().
+		ClaimNextQueued(mock.Anything, "worker-1", 2*time.Minute).
+		Return(request, nil)
 	infra.EXPECT().
 		ProvisionStorePlacement(mock.Anything, mock.Anything, mock.Anything).
 		Return(nil, providerErr)
@@ -374,7 +378,7 @@ func TestProcessNextStoreRequest_MarksPlatformSetupWhenProviderUnavailable(t *te
 		).
 		Return(nil)
 
-	processed, err := svc.ProcessNextStoreRequest(context.Background())
+	processed, err := svc.ProcessNextStoreRequest(context.Background(), "worker-1")
 
 	require.ErrorIs(t, err, providerErr)
 	require.Nil(t, processed)
@@ -407,12 +411,14 @@ func TestFinalizeNextStoreRequest_BootstrapsOperationalStoreBeforeReady(t *testi
 		RequestedBy: "user-1",
 		Status:      storeentity.RequestStatusProvisioning,
 	}
-	repo.EXPECT().FindNextProvisioning(mock.Anything).Return(request, nil)
+	repo.EXPECT().
+		ClaimNextProvisioning(mock.Anything, "worker-1", 2*time.Minute).
+		Return(request, nil)
 	infra.EXPECT().EnsurePlacementRoute(mock.Anything, "workspace-1").Return(true, nil)
 	finalizer.EXPECT().FinalizeStore(mock.Anything, *request).Return(nil)
 	repo.EXPECT().MarkReady(mock.Anything, id.Hex(), id.Hex()).Return(nil)
 
-	finalized, err := svc.FinalizeNextStoreRequest(context.Background())
+	finalized, err := svc.FinalizeNextStoreRequest(context.Background(), "worker-1")
 	require.NoError(t, err)
 	require.NotNil(t, finalized)
 	require.Equal(t, storeinputport.RequestStatusReady, finalized.Status)
@@ -443,10 +449,13 @@ func TestFinalizeNextStoreRequest_WaitsForPlacementRoute(t *testing.T) {
 		RequestedBy: "user-1",
 		Status:      storeentity.RequestStatusProvisioning,
 	}
-	repo.EXPECT().FindNextProvisioning(mock.Anything).Return(request, nil)
+	repo.EXPECT().
+		ClaimNextProvisioning(mock.Anything, "worker-1", 2*time.Minute).
+		Return(request, nil)
 	infra.EXPECT().EnsurePlacementRoute(mock.Anything, "workspace-1").Return(false, nil)
+	repo.EXPECT().ReleaseLease(mock.Anything, request.ID.Hex(), "worker-1").Return(nil)
 
-	finalized, err := svc.FinalizeNextStoreRequest(context.Background())
+	finalized, err := svc.FinalizeNextStoreRequest(context.Background(), "worker-1")
 	require.NoError(t, err)
 	require.Nil(t, finalized)
 }

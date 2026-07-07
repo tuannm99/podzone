@@ -2,6 +2,7 @@ package outputport
 
 import (
 	"context"
+	"time"
 
 	storeentity "github.com/tuannm99/podzone/internal/onboarding/domain/store/entity"
 	"github.com/tuannm99/podzone/pkg/collection"
@@ -32,8 +33,13 @@ type StoreRepository interface {
 		requestID string,
 		query collection.Query,
 	) (collection.Page[storeentity.StoreRequestTransition], error)
-	ClaimNextQueued(ctx context.Context) (*storeentity.StoreRequest, error)
-	FindNextProvisioning(ctx context.Context) (*storeentity.StoreRequest, error)
+	ClaimNextQueued(ctx context.Context, leaseOwner string, leaseTTL time.Duration) (*storeentity.StoreRequest, error)
+	ClaimNextProvisioning(
+		ctx context.Context,
+		leaseOwner string,
+		leaseTTL time.Duration,
+	) (*storeentity.StoreRequest, error)
+	ReleaseLease(ctx context.Context, id string, leaseOwner string) error
 	UpdateStatus(ctx context.Context, id string, status storeentity.RequestStatus) error
 	MarkReady(ctx context.Context, id string, storeID string) error
 	MarkFailed(ctx context.Context, id string, reason string) error

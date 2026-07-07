@@ -2,6 +2,7 @@ package config
 
 import (
 	"testing"
+	"time"
 
 	"github.com/knadh/koanf/v2"
 	"github.com/stretchr/testify/require"
@@ -30,6 +31,8 @@ func TestNewStoreProvisioningConfig_DefaultsTenantPlacementDatabase(t *testing.T
 func TestNewStoreProvisioningConfig_DefaultsPlacementCapacityPolicy(t *testing.T) {
 	cfg := NewStoreProvisioningConfig(koanf.New("."))
 
+	require.Equal(t, 5, cfg.BatchSize)
+	require.Equal(t, 2*time.Minute, cfg.LeaseTTL)
 	require.Equal(t, 100, cfg.MaxTenantsPerDBCluster)
 	require.Equal(t, 500, cfg.MaxSchemasPerDatabase)
 	require.Equal(t, 1000, cfg.MaxConnectionsPerDBCluster)

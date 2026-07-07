@@ -3,6 +3,8 @@ package worker
 import (
 	"context"
 	"errors"
+	"os"
+	"strconv"
 	"time"
 
 	onboardingconfig "github.com/tuannm99/podzone/internal/onboarding/config"
@@ -15,6 +17,8 @@ type StoreProvisioningWorker struct {
 	store    storeinputport.Usecase
 	enabled  bool
 	interval time.Duration
+	batch    int
+	workerID string
 }
 
 func NewStoreProvisioningWorker(
@@ -27,6 +31,8 @@ func NewStoreProvisioningWorker(
 		store:    store,
 		enabled:  cfg.Enabled,
 		interval: cfg.Interval,
+		batch:    cfg.BatchSize,
+		workerID: newStoreProvisioningWorkerID(),
 	}
 }
 
@@ -38,10 +44,14 @@ func (w *StoreProvisioningWorker) Run(ctx context.Context) {
 	if w.interval <= 0 {
 		w.interval = 5 * time.Second
 	}
+	if w.batch <= 0 {
+		w.batch = 5
+	}
 
 	ticker := time.NewTicker(w.interval)
 	defer ticker.Stop()
 
+	w.tick(ctx)
 	for {
 		select {
 		case <-ctx.Done():
@@ -53,15 +63,18 @@ func (w *StoreProvisioningWorker) Run(ctx context.Context) {
 }
 
 func (w *StoreProvisioningWorker) tick(ctx context.Context) {
-	request, err := w.store.ProcessNextStoreRequest(ctx)
-	if err != nil {
-		if errors.Is(err, context.Canceled) {
+	for i := 0; i < w.batch; i++ {
+		request, err := w.store.ProcessNextStoreRequest(ctx, w.workerID)
+		if err != nil {
+			if errors.Is(err, context.Canceled) {
+				return
+			}
+			w.log.Error("onboarding store provisioning tick failed", "error", err)
 			return
 		}
-		w.log.Error("onboarding store provisioning tick failed", "error", err)
-		return
-	}
-	if request != nil {
+		if request == nil {
+			break
+		}
 		w.log.Info(
 			"onboarding store placement requested",
 			"request_id", request.ID,
@@ -69,15 +82,18 @@ func (w *StoreProvisioningWorker) tick(ctx context.Context) {
 		)
 	}
 
-	request, err = w.store.FinalizeNextStoreRequest(ctx)
-	if err != nil {
-		if errors.Is(err, context.Canceled) {
+	for i := 0; i < w.batch; i++ {
+		request, err := w.store.FinalizeNextStoreRequest(ctx, w.workerID)
+		if err != nil {
+			if errors.Is(err, context.Canceled) {
+				return
+			}
+			w.log.Error("onboarding store finalization tick failed", "error", err)
 			return
 		}
-		w.log.Error("onboarding store finalization tick failed", "error", err)
-		return
-	}
-	if request != nil {
+		if request == nil {
+			break
+		}
 		w.log.Info(
 			"onboarding store request ready",
 			"request_id", request.ID,
@@ -85,4 +101,12 @@ func (w *StoreProvisioningWorker) tick(ctx context.Context) {
 			"store_id", request.StoreID,
 		)
 	}
+}
+
+func newStoreProvisioningWorkerID() string {
+	hostname, err := os.Hostname()
+	if err != nil || hostname == "" {
+		hostname = "unknown-host"
+	}
+	return "store-provisioner:" + hostname + ":" + strconv.Itoa(os.Getpid())
 }

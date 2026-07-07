@@ -14,6 +14,8 @@ type StoreProvisioningConfig struct {
 	Enabled      bool          `koanf:"enabled"       mapstructure:"enabled"`
 	AutoApprove  bool          `koanf:"auto_approve"  mapstructure:"auto_approve"`
 	Interval     time.Duration `koanf:"interval"      mapstructure:"interval"`
+	BatchSize    int           `koanf:"batch_size"    mapstructure:"batch_size"`
+	LeaseTTL     time.Duration `koanf:"lease_ttl"     mapstructure:"lease_ttl"`
 	Runtime      string        `koanf:"runtime"       mapstructure:"runtime"`
 	ClusterName  string        `koanf:"cluster_name"  mapstructure:"cluster_name"`
 	Mode         string        `koanf:"mode"          mapstructure:"mode"`
@@ -40,6 +42,8 @@ func DefaultStoreProvisioningConfig() StoreProvisioningConfig {
 		Enabled:      true,
 		AutoApprove:  true,
 		Interval:     5 * time.Second,
+		BatchSize:    5,
+		LeaseTTL:     2 * time.Minute,
 		Runtime:      "local_docker",
 		ClusterName:  "pg-default",
 		Mode:         "schema",
@@ -72,6 +76,12 @@ func NewStoreProvisioningConfig(k *koanf.Koanf) StoreProvisioningConfig {
 	}
 	if cfg.Interval <= 0 {
 		cfg.Interval = 5 * time.Second
+	}
+	if cfg.BatchSize <= 0 {
+		cfg.BatchSize = 5
+	}
+	if cfg.LeaseTTL <= 0 {
+		cfg.LeaseTTL = 2 * time.Minute
 	}
 	if cfg.Runtime == "" {
 		cfg.Runtime = "local_docker"
@@ -129,5 +139,6 @@ func NewStoreProvisioningDomainConfig(cfg StoreProvisioningConfig) storeentity.P
 		Mode:         cfg.Mode,
 		DBName:       cfg.DBName,
 		SchemaPrefix: cfg.SchemaPrefix,
+		LeaseTTL:     cfg.LeaseTTL,
 	}
 }

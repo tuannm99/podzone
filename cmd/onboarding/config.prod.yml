@@ -34,6 +34,8 @@ onboarding:
     enabled: true
     auto_approve: true
     interval: 5s
+    batch_size: 5
+    lease_ttl: 2m
     runtime: local_docker
     cluster_name: pg-default
     mode: schema

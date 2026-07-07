@@ -359,7 +359,10 @@ func isValidStatusTransition(current, next storeinputport.RequestStatus) bool {
 	}
 }
 
-func (s *StoreInteractor) ProcessNextStoreRequest(ctx context.Context) (*storeinputport.Request, error) {
+func (s *StoreInteractor) ProcessNextStoreRequest(
+	ctx context.Context,
+	workerID string,
+) (*storeinputport.Request, error) {
 	if !s.provisioner.Enabled {
 		return nil, ErrProvisionerDisabled
 	}
@@ -367,7 +370,8 @@ func (s *StoreInteractor) ProcessNextStoreRequest(ctx context.Context) (*storein
 		return nil, ErrProvisionerMissing
 	}
 
-	request, err := s.repo.ClaimNextQueued(ctx)
+	workerID = normalizeWorkerID(workerID)
+	request, err := s.repo.ClaimNextQueued(ctx, workerID, s.leaseTTL())
 	if err != nil {
 		return nil, err
 	}
@@ -446,11 +450,15 @@ func (s *StoreInteractor) ProcessNextStoreRequest(ctx context.Context) (*storein
 	return toInputPortRequest(request), nil
 }
 
-func (s *StoreInteractor) FinalizeNextStoreRequest(ctx context.Context) (*storeinputport.Request, error) {
+func (s *StoreInteractor) FinalizeNextStoreRequest(
+	ctx context.Context,
+	workerID string,
+) (*storeinputport.Request, error) {
 	if s.finalizer == nil {
 		return nil, ErrProvisionerMissing
 	}
-	request, err := s.repo.FindNextProvisioning(ctx)
+	workerID = normalizeWorkerID(workerID)
+	request, err := s.repo.ClaimNextProvisioning(ctx, workerID, s.leaseTTL())
 	if err != nil || request == nil {
 		return nil, err
 	}
@@ -460,6 +468,9 @@ func (s *StoreInteractor) FinalizeNextStoreRequest(ctx context.Context) (*storei
 			return nil, err
 		}
 		if !ready {
+			if err := s.repo.ReleaseLease(ctx, request.ID.Hex(), workerID); err != nil {
+				return nil, err
+			}
 			return nil, nil
 		}
 		s.recordTransition(
@@ -581,6 +592,20 @@ func (s *StoreInteractor) recordTransition(
 		ErrorCode: errorCode,
 		CreatedAt: time.Now().UTC(),
 	})
+}
+
+func normalizeWorkerID(workerID string) string {
+	if workerID == "" {
+		return "store-provisioner"
+	}
+	return workerID
+}
+
+func (s *StoreInteractor) leaseTTL() time.Duration {
+	if s.provisioner.LeaseTTL <= 0 {
+		return 2 * time.Minute
+	}
+	return s.provisioner.LeaseTTL
 }
 
 func statusTransitionStep(status storeentity.RequestStatus) string {

@@ -78,8 +78,8 @@ type Usecase interface {
 	ApproveStoreRequest(ctx context.Context, id string) error
 	RejectStoreRequest(ctx context.Context, id string) error
 	UpdateStoreRequestStatus(ctx context.Context, id string, status RequestStatus) error
-	ProcessNextStoreRequest(ctx context.Context) (*Request, error)
-	FinalizeNextStoreRequest(ctx context.Context) (*Request, error)
+	ProcessNextStoreRequest(ctx context.Context, workerID string) (*Request, error)
+	FinalizeNextStoreRequest(ctx context.Context, workerID string) (*Request, error)
 }
 
 type (
