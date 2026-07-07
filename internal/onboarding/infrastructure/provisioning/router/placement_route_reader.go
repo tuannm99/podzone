@@ -40,7 +40,7 @@ func NewPlacementRouteReader(params PlacementRouteReaderParams) *PlacementRouteR
 
 func (r *PlacementRouteReader) IsPlacementRouteReady(ctx context.Context, tenantID string) (bool, error) {
 	key := "podzone/tenants/" + tenantID + "/placement"
-	_, err := r.kv.Get(key)
+	_, err := r.kv.Get(ctx, key)
 	if err == nil {
 		return true, nil
 	}
@@ -55,7 +55,7 @@ func (r *PlacementRouteReader) GetPlacementRoute(
 	tenantID string,
 ) (*entity.PlacementRoute, error) {
 	key := "podzone/tenants/" + tenantID + "/placement"
-	raw, err := r.kv.Get(key)
+	raw, err := r.kv.Get(ctx, key)
 	if err != nil {
 		if errors.Is(err, kvstores.ErrKeyNotFound) {
 			return nil, nil
@@ -96,16 +96,16 @@ func (r *PlacementRouteReader) PublishPlacementRoute(
 		return fmt.Errorf("marshal placement route: %w", err)
 	}
 	key := "podzone/tenants/" + tenantID + "/placement"
-	if err := r.kv.Put(key, raw); err != nil {
+	if err := r.kv.Put(ctx, key, raw); err != nil {
 		return fmt.Errorf("publish placement route %q: %w", key, err)
 	}
-	if err := r.publishClusterRoute(allocation.ClusterName); err != nil {
+	if err := r.publishClusterRoute(ctx, allocation.ClusterName); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *PlacementRouteReader) publishClusterRoute(clusterName string) error {
+func (r *PlacementRouteReader) publishClusterRoute(ctx context.Context, clusterName string) error {
 	if strings.TrimSpace(clusterName) == "" || strings.TrimSpace(r.cfg.AdminDSN) == "" {
 		return nil
 	}
@@ -120,7 +120,7 @@ func (r *PlacementRouteReader) publishClusterRoute(clusterName string) error {
 	}
 
 	key := "podzone/postgres/clusters/" + clusterName
-	if err := r.kv.Put(key, raw); err != nil {
+	if err := r.kv.Put(ctx, key, raw); err != nil {
 		return fmt.Errorf("publish postgres cluster route %q: %w", key, err)
 	}
 	return nil

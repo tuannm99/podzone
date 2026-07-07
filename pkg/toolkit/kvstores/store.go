@@ -1,12 +1,15 @@
 package kvstores
 
-import "errors"
+import (
+	"context"
+	"errors"
+)
 
 var ErrKeyNotFound = errors.New("kv key not found")
 
 type KVStore interface {
-	Get(path string) ([]byte, error)
-	GetKVs(prefix string) (map[string][]byte, error)
-	Put(path string, value []byte) error
-	Del(path string) error
+	Get(ctx context.Context, path string) ([]byte, error)
+	GetKVs(ctx context.Context, prefix string) (map[string][]byte, error)
+	Put(ctx context.Context, path string, value []byte) error
+	Del(ctx context.Context, path string) error
 }

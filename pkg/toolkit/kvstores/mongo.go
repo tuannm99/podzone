@@ -50,8 +50,8 @@ func NewMongoStore(
 	}, nil
 }
 
-func (s *MongoStore) Get(path string) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), mongoOperationTimeout)
+func (s *MongoStore) Get(ctx context.Context, path string) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(ctx, mongoOperationTimeout)
 	defer cancel()
 
 	var entry mongoEntry
@@ -65,8 +65,8 @@ func (s *MongoStore) Get(path string) ([]byte, error) {
 	return append([]byte(nil), entry.Value...), nil
 }
 
-func (s *MongoStore) GetKVs(prefix string) (map[string][]byte, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), mongoOperationTimeout)
+func (s *MongoStore) GetKVs(ctx context.Context, prefix string) (map[string][]byte, error) {
+	ctx, cancel := context.WithTimeout(ctx, mongoOperationTimeout)
 	defer cancel()
 
 	cursor, err := s.collection.Find(
@@ -91,8 +91,8 @@ func (s *MongoStore) GetKVs(prefix string) (map[string][]byte, error) {
 	return result, nil
 }
 
-func (s *MongoStore) Put(path string, value []byte) error {
-	ctx, cancel := context.WithTimeout(context.Background(), mongoOperationTimeout)
+func (s *MongoStore) Put(ctx context.Context, path string, value []byte) error {
+	ctx, cancel := context.WithTimeout(ctx, mongoOperationTimeout)
 	defer cancel()
 
 	_, err := s.collection.UpdateOne(
@@ -111,8 +111,8 @@ func (s *MongoStore) Put(path string, value []byte) error {
 	return nil
 }
 
-func (s *MongoStore) Del(path string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), mongoOperationTimeout)
+func (s *MongoStore) Del(ctx context.Context, path string) error {
+	ctx, cancel := context.WithTimeout(ctx, mongoOperationTimeout)
 	defer cancel()
 
 	if _, err := s.collection.DeleteOne(ctx, bson.M{"_id": path}); err != nil {

@@ -33,8 +33,14 @@ func startHTTPGateway(p Params) {
 				return true
 			}
 
-			if strings.Contains(o, "tuannm") || strings.Contains(o, "podzone") {
-				return true
+			allowedSuffixes := []string{
+				".podzone.io", ".podzone.dev",
+				".podzone.local", ".tuannm.uk",
+			}
+			for _, suffix := range allowedSuffixes {
+				if strings.HasSuffix(o, suffix) {
+					return true
+				}
 			}
 
 			return false

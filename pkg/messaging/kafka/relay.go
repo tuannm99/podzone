@@ -37,14 +37,16 @@ func (r *Relay) RunOnce(ctx context.Context) error {
 	}
 
 	now := time.Now().UTC()
+	var published []string
 	for _, item := range items {
 		if err := r.publisher.Publish(ctx, item.Topic, item.MessageKey, item.Envelope); err != nil {
 			_ = r.store.MarkFailed(ctx, item.ID, err.Error(), now.Add(time.Minute))
 			continue
 		}
-		if err := r.store.MarkPublished(ctx, []string{item.ID}, now); err != nil {
-			return err
-		}
+		published = append(published, item.ID)
 	}
-	return nil
+	if len(published) == 0 {
+		return nil
+	}
+	return r.store.MarkPublished(ctx, published, now)
 }

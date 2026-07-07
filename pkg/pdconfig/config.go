@@ -25,7 +25,17 @@ func NewAppConfig() (*koanf.Koanf, error) {
 			return nil, fmt.Errorf("read config file %q failed: %w", path, err)
 		}
 
-		expanded := os.ExpandEnv(string(b)) // expand ${VAR} in YAML (optional)
+		// Expand ${VAR}/$VAR placeholders. Unknown variables are left as-is
+		// to avoid silently corrupting secrets that contain literal $ characters.
+		expanded := os.Expand(string(b), func(key string) string {
+			if key == "$" {
+				return "$"
+			}
+			if val, ok := os.LookupEnv(key); ok {
+				return val
+			}
+			return "${" + key + "}"
+		})
 		if err := k.Load(rawbytes.Provider([]byte(expanded)), yaml.Parser()); err != nil {
 			return nil, fmt.Errorf("parse yaml config %q failed: %w", path, err)
 		}

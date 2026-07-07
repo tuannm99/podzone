@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 	"github.com/tuannm99/podzone/pkg/toolkit/kvstores"
@@ -19,7 +20,7 @@ func TestKVPlacementResolver_CacheHit(t *testing.T) {
 	key := "podzone/tenants/tenant-abc/placement"
 	val := []byte(`{"cluster_name":"pg-01","mode":"schema","db_name":"backoffice","schema_name":"t_tenant_abc"}`)
 
-	kv.EXPECT().Get(key).Return(val, nil).Once()
+	kv.EXPECT().Get(mock.Anything, key).Return(val, nil).Once()
 
 	ctx := context.Background()
 
@@ -43,7 +44,7 @@ func TestKVPlacementResolver_DatabaseMode(t *testing.T) {
 	key := "podzone/tenants/big-tenant/placement"
 	val := []byte(`{"cluster_name":"pg-02","mode":"database","db_name":"bo_big_tenant"}`)
 
-	kv.EXPECT().Get(key).Return(val, nil).Once()
+	kv.EXPECT().Get(mock.Anything, key).Return(val, nil).Once()
 
 	pl, err := r.Resolve(context.Background(), "big-tenant")
 	require.NoError(t, err)
@@ -57,7 +58,7 @@ func TestKVPlacementResolver_NotFound(t *testing.T) {
 	r := pdtenantdb.NewKVPlacementResolver(kv)
 
 	key := "podzone/tenants/unknown/placement"
-	kv.EXPECT().Get(key).Return(nil, kvstores.ErrKeyNotFound).Once()
+	kv.EXPECT().Get(mock.Anything, key).Return(nil, kvstores.ErrKeyNotFound).Once()
 
 	_, err := r.Resolve(context.Background(), "unknown")
 	require.Error(t, err)
@@ -69,7 +70,7 @@ func TestKVPlacementResolver_BackendError(t *testing.T) {
 	r := pdtenantdb.NewKVPlacementResolver(kv)
 
 	key := "podzone/tenants/down/placement"
-	kv.EXPECT().Get(key).Return(nil, context.DeadlineExceeded).Once()
+	kv.EXPECT().Get(mock.Anything, key).Return(nil, context.DeadlineExceeded).Once()
 
 	_, err := r.Resolve(context.Background(), "down")
 	require.Error(t, err)
@@ -81,7 +82,7 @@ func TestKVPlacementResolver_InvalidJSON(t *testing.T) {
 	r := pdtenantdb.NewKVPlacementResolver(kv)
 
 	key := "podzone/tenants/bad/placement"
-	kv.EXPECT().Get(key).Return([]byte(`{invalid`), nil).Once()
+	kv.EXPECT().Get(mock.Anything, key).Return([]byte(`{invalid`), nil).Once()
 
 	_, err := r.Resolve(context.Background(), "bad")
 	require.Error(t, err)
@@ -93,7 +94,7 @@ func TestKVPlacementResolver_MissingFields(t *testing.T) {
 	r := pdtenantdb.NewKVPlacementResolver(kv)
 
 	key := "podzone/tenants/partial/placement"
-	kv.EXPECT().Get(key).Return([]byte(`{"mode":"schema"}`), nil).Once()
+	kv.EXPECT().Get(mock.Anything, key).Return([]byte(`{"mode":"schema"}`), nil).Once()
 
 	_, err := r.Resolve(context.Background(), "partial")
 	require.Error(t, err)
@@ -105,7 +106,7 @@ func TestKVPlacementResolver_SchemaModeMissingSchemaName(t *testing.T) {
 	r := pdtenantdb.NewKVPlacementResolver(kv)
 
 	key := "podzone/tenants/no-schema/placement"
-	kv.EXPECT().Get(key).Return([]byte(`{"cluster_name":"pg-01","mode":"schema","db_name":"backoffice"}`), nil).Once()
+	kv.EXPECT().Get(mock.Anything, key).Return([]byte(`{"cluster_name":"pg-01","mode":"schema","db_name":"backoffice"}`), nil).Once()
 
 	_, err := r.Resolve(context.Background(), "no-schema")
 	require.Error(t, err)
@@ -120,7 +121,7 @@ func TestKVPlacementResolver_SingleflightConcurrent(t *testing.T) {
 	val := []byte(`{"cluster_name":"pg-01","mode":"schema","db_name":"backoffice","schema_name":"t_concurrent"}`)
 
 	// Must be called only once despite concurrent resolves.
-	kv.EXPECT().Get(key).Return(val, nil).Once()
+	kv.EXPECT().Get(mock.Anything, key).Return(val, nil).Once()
 
 	ctx := context.Background()
 	var wg sync.WaitGroup
@@ -152,7 +153,7 @@ func TestKVPlacementResolver_TTLExpiry(t *testing.T) {
 	val := []byte(`{"cluster_name":"pg-01","mode":"schema","db_name":"backoffice","schema_name":"t_ttl"}`)
 
 	// Called twice: once on first resolve, once after TTL expires.
-	kv.EXPECT().Get(key).Return(val, nil).Twice()
+	kv.EXPECT().Get(mock.Anything, key).Return(val, nil).Twice()
 
 	ctx := context.Background()
 

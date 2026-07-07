@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	pdtenantdb "github.com/tuannm99/podzone/pkg/pdtenantdb"
 	kvsmocks "github.com/tuannm99/podzone/pkg/toolkit/kvstores/mocks"
@@ -18,7 +19,7 @@ func TestKVClusterRegistry_CacheHit(t *testing.T) {
 	key := "podzone/postgres/clusters/pg-01"
 	val := []byte(`{"host":"pgbouncer.svc","port":6432,"user":"u","password":"p","ssl_mode":"disable"}`)
 
-	kv.EXPECT().Get(key).Return(val, nil).Once()
+	kv.EXPECT().Get(mock.Anything, key).Return(val, nil).Once()
 
 	ctx := context.Background()
 
@@ -38,7 +39,7 @@ func TestKVClusterRegistry_InvalidJSON(t *testing.T) {
 	reg := pdtenantdb.NewKVClusterRegistry(kv, "podzone/postgres/clusters", 2*time.Minute)
 
 	key := "podzone/postgres/clusters/pg-01"
-	kv.EXPECT().Get(key).Return([]byte(`{invalid`), nil).Once()
+	kv.EXPECT().Get(mock.Anything, key).Return([]byte(`{invalid`), nil).Once()
 
 	_, err := reg.GetCluster(context.Background(), "pg-01")
 	require.Error(t, err)
@@ -50,7 +51,7 @@ func TestKVClusterRegistry_MissingHostPort(t *testing.T) {
 	reg := pdtenantdb.NewKVClusterRegistry(kv, "podzone/postgres/clusters", 2*time.Minute)
 
 	key := "podzone/postgres/clusters/pg-01"
-	kv.EXPECT().Get(key).Return([]byte(`{"host":"","port":0}`), nil).Once()
+	kv.EXPECT().Get(mock.Anything, key).Return([]byte(`{"host":"","port":0}`), nil).Once()
 
 	_, err := reg.GetCluster(context.Background(), "pg-01")
 	require.Error(t, err)
@@ -65,7 +66,7 @@ func TestKVClusterRegistry_SingleflightConcurrent(t *testing.T) {
 	val := []byte(`{"host":"pgbouncer.svc","port":6432,"user":"u","password":"p","ssl_mode":"disable"}`)
 
 	// Must be called once because of singleflight
-	kv.EXPECT().Get(key).Return(val, nil).Once()
+	kv.EXPECT().Get(mock.Anything, key).Return(val, nil).Once()
 
 	ctx := context.Background()
 	var wg sync.WaitGroup

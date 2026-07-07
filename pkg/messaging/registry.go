@@ -35,7 +35,7 @@ func (r *Registry) Handle(ctx context.Context, msg Envelope) error {
 	}
 	handler, ok := r.handlers[msg.Type]
 	if !ok {
-		return nil
+		return fmt.Errorf("messaging: no handler registered for type %q", msg.Type)
 	}
 	return handler.Handle(ctx, msg)
 }

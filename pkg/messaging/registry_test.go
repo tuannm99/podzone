@@ -43,12 +43,13 @@ func TestRegistryDispatchesRegisteredHandler(t *testing.T) {
 	assert.True(t, handler.called)
 }
 
-func TestRegistryIgnoresUnknownMessages(t *testing.T) {
+func TestRegistryRejectsUnknownMessages(t *testing.T) {
 	registry, err := NewRegistry()
 	require.NoError(t, err)
 
 	err = registry.Handle(context.Background(), Envelope{Type: "unknown.event"})
-	require.NoError(t, err)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "no handler registered")
 }
 
 func TestRegistryPropagatesHandlerError(t *testing.T) {

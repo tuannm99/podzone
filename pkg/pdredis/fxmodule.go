@@ -2,7 +2,6 @@ package pdredis
 
 import (
 	"context"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/tuannm99/podzone/pkg/pdlog"
@@ -75,9 +74,6 @@ func registerLifecycle(lc fx.Lifecycle, client RedisClient, log pdlog.Logger, cf
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			log.Info("Pinging Redis...", "uri", cfg.URI)
-
-			_ = time.Second
-
 			return client.Ping(ctx)
 		},
 		OnStop: func(ctx context.Context) error {

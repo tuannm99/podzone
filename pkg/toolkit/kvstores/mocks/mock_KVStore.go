@@ -5,6 +5,8 @@
 package mocks
 
 import (
+	"context"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -36,16 +38,16 @@ func (_m *MockKVStore) EXPECT() *MockKVStore_Expecter {
 }
 
 // Del provides a mock function for the type MockKVStore
-func (_mock *MockKVStore) Del(path string) error {
-	ret := _mock.Called(path)
+func (_mock *MockKVStore) Del(ctx context.Context, path string) error {
+	ret := _mock.Called(ctx, path)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Del")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(string) error); ok {
-		r0 = returnFunc(path)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, path)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -58,20 +60,23 @@ type MockKVStore_Del_Call struct {
 }
 
 // Del is a helper method to define mock.On call
+//   - ctx context.Context
 //   - path string
-func (_e *MockKVStore_Expecter) Del(path interface{}) *MockKVStore_Del_Call {
-	return &MockKVStore_Del_Call{Call: _e.mock.On("Del", path)}
+func (_e *MockKVStore_Expecter) Del(ctx interface{}, path interface{}) *MockKVStore_Del_Call {
+	return &MockKVStore_Del_Call{Call: _e.mock.On("Del", ctx, path)}
 }
 
-func (_c *MockKVStore_Del_Call) Run(run func(path string)) *MockKVStore_Del_Call {
+func (_c *MockKVStore_Del_Call) Run(run func(ctx context.Context, path string)) *MockKVStore_Del_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(string)
+			arg0 = args[0].(context.Context)
 		}
-		run(
-			arg0,
-		)
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(arg0, arg1)
 	})
 	return _c
 }
@@ -81,14 +86,14 @@ func (_c *MockKVStore_Del_Call) Return(err error) *MockKVStore_Del_Call {
 	return _c
 }
 
-func (_c *MockKVStore_Del_Call) RunAndReturn(run func(path string) error) *MockKVStore_Del_Call {
+func (_c *MockKVStore_Del_Call) RunAndReturn(run func(context.Context, string) error) *MockKVStore_Del_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Get provides a mock function for the type MockKVStore
-func (_mock *MockKVStore) Get(path string) ([]byte, error) {
-	ret := _mock.Called(path)
+func (_mock *MockKVStore) Get(ctx context.Context, path string) ([]byte, error) {
+	ret := _mock.Called(ctx, path)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
@@ -96,18 +101,18 @@ func (_mock *MockKVStore) Get(path string) ([]byte, error) {
 
 	var r0 []byte
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(string) ([]byte, error)); ok {
-		return returnFunc(path)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) ([]byte, error)); ok {
+		return returnFunc(ctx, path)
 	}
-	if returnFunc, ok := ret.Get(0).(func(string) []byte); ok {
-		r0 = returnFunc(path)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) []byte); ok {
+		r0 = returnFunc(ctx, path)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]byte)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(string) error); ok {
-		r1 = returnFunc(path)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, path)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -120,20 +125,23 @@ type MockKVStore_Get_Call struct {
 }
 
 // Get is a helper method to define mock.On call
+//   - ctx context.Context
 //   - path string
-func (_e *MockKVStore_Expecter) Get(path interface{}) *MockKVStore_Get_Call {
-	return &MockKVStore_Get_Call{Call: _e.mock.On("Get", path)}
+func (_e *MockKVStore_Expecter) Get(ctx interface{}, path interface{}) *MockKVStore_Get_Call {
+	return &MockKVStore_Get_Call{Call: _e.mock.On("Get", ctx, path)}
 }
 
-func (_c *MockKVStore_Get_Call) Run(run func(path string)) *MockKVStore_Get_Call {
+func (_c *MockKVStore_Get_Call) Run(run func(ctx context.Context, path string)) *MockKVStore_Get_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(string)
+			arg0 = args[0].(context.Context)
 		}
-		run(
-			arg0,
-		)
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(arg0, arg1)
 	})
 	return _c
 }
@@ -143,14 +151,14 @@ func (_c *MockKVStore_Get_Call) Return(bytes []byte, err error) *MockKVStore_Get
 	return _c
 }
 
-func (_c *MockKVStore_Get_Call) RunAndReturn(run func(path string) ([]byte, error)) *MockKVStore_Get_Call {
+func (_c *MockKVStore_Get_Call) RunAndReturn(run func(context.Context, string) ([]byte, error)) *MockKVStore_Get_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // GetKVs provides a mock function for the type MockKVStore
-func (_mock *MockKVStore) GetKVs(prefix string) (map[string][]byte, error) {
-	ret := _mock.Called(prefix)
+func (_mock *MockKVStore) GetKVs(ctx context.Context, prefix string) (map[string][]byte, error) {
+	ret := _mock.Called(ctx, prefix)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetKVs")
@@ -158,18 +166,18 @@ func (_mock *MockKVStore) GetKVs(prefix string) (map[string][]byte, error) {
 
 	var r0 map[string][]byte
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(string) (map[string][]byte, error)); ok {
-		return returnFunc(prefix)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (map[string][]byte, error)); ok {
+		return returnFunc(ctx, prefix)
 	}
-	if returnFunc, ok := ret.Get(0).(func(string) map[string][]byte); ok {
-		r0 = returnFunc(prefix)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) map[string][]byte); ok {
+		r0 = returnFunc(ctx, prefix)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string][]byte)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(string) error); ok {
-		r1 = returnFunc(prefix)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, prefix)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -182,20 +190,23 @@ type MockKVStore_GetKVs_Call struct {
 }
 
 // GetKVs is a helper method to define mock.On call
+//   - ctx context.Context
 //   - prefix string
-func (_e *MockKVStore_Expecter) GetKVs(prefix interface{}) *MockKVStore_GetKVs_Call {
-	return &MockKVStore_GetKVs_Call{Call: _e.mock.On("GetKVs", prefix)}
+func (_e *MockKVStore_Expecter) GetKVs(ctx interface{}, prefix interface{}) *MockKVStore_GetKVs_Call {
+	return &MockKVStore_GetKVs_Call{Call: _e.mock.On("GetKVs", ctx, prefix)}
 }
 
-func (_c *MockKVStore_GetKVs_Call) Run(run func(prefix string)) *MockKVStore_GetKVs_Call {
+func (_c *MockKVStore_GetKVs_Call) Run(run func(ctx context.Context, prefix string)) *MockKVStore_GetKVs_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(string)
+			arg0 = args[0].(context.Context)
 		}
-		run(
-			arg0,
-		)
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(arg0, arg1)
 	})
 	return _c
 }
@@ -205,22 +216,22 @@ func (_c *MockKVStore_GetKVs_Call) Return(stringToBytes map[string][]byte, err e
 	return _c
 }
 
-func (_c *MockKVStore_GetKVs_Call) RunAndReturn(run func(prefix string) (map[string][]byte, error)) *MockKVStore_GetKVs_Call {
+func (_c *MockKVStore_GetKVs_Call) RunAndReturn(run func(context.Context, string) (map[string][]byte, error)) *MockKVStore_GetKVs_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Put provides a mock function for the type MockKVStore
-func (_mock *MockKVStore) Put(path string, value []byte) error {
-	ret := _mock.Called(path, value)
+func (_mock *MockKVStore) Put(ctx context.Context, path string, value []byte) error {
+	ret := _mock.Called(ctx, path, value)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Put")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(string, []byte) error); ok {
-		r0 = returnFunc(path, value)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, []byte) error); ok {
+		r0 = returnFunc(ctx, path, value)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -233,26 +244,28 @@ type MockKVStore_Put_Call struct {
 }
 
 // Put is a helper method to define mock.On call
+//   - ctx context.Context
 //   - path string
 //   - value []byte
-func (_e *MockKVStore_Expecter) Put(path interface{}, value interface{}) *MockKVStore_Put_Call {
-	return &MockKVStore_Put_Call{Call: _e.mock.On("Put", path, value)}
+func (_e *MockKVStore_Expecter) Put(ctx interface{}, path interface{}, value interface{}) *MockKVStore_Put_Call {
+	return &MockKVStore_Put_Call{Call: _e.mock.On("Put", ctx, path, value)}
 }
 
-func (_c *MockKVStore_Put_Call) Run(run func(path string, value []byte)) *MockKVStore_Put_Call {
+func (_c *MockKVStore_Put_Call) Run(run func(ctx context.Context, path string, value []byte)) *MockKVStore_Put_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
+		var arg0 context.Context
 		if args[0] != nil {
-			arg0 = args[0].(string)
+			arg0 = args[0].(context.Context)
 		}
-		var arg1 []byte
+		var arg1 string
 		if args[1] != nil {
-			arg1 = args[1].([]byte)
+			arg1 = args[1].(string)
 		}
-		run(
-			arg0,
-			arg1,
-		)
+		var arg2 []byte
+		if args[2] != nil {
+			arg2 = args[2].([]byte)
+		}
+		run(arg0, arg1, arg2)
 	})
 	return _c
 }
@@ -262,7 +275,7 @@ func (_c *MockKVStore_Put_Call) Return(err error) *MockKVStore_Put_Call {
 	return _c
 }
 
-func (_c *MockKVStore_Put_Call) RunAndReturn(run func(path string, value []byte) error) *MockKVStore_Put_Call {
+func (_c *MockKVStore_Put_Call) RunAndReturn(run func(context.Context, string, []byte) error) *MockKVStore_Put_Call {
 	_c.Call.Return(run)
 	return _c
 }

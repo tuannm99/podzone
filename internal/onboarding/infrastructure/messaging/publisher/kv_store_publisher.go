@@ -18,14 +18,14 @@ func NewKVStorePublisher(kv kvstores.KVStore) *KVStorePublisher {
 }
 
 func (p *KVStorePublisher) Put(ctx context.Context, key string, value string) error {
-	if err := p.kv.Put(key, []byte(value)); err != nil {
+	if err := p.kv.Put(ctx, key, []byte(value)); err != nil {
 		return fmt.Errorf("kv store put: %w", err)
 	}
 	return nil
 }
 
 func (p *KVStorePublisher) Delete(ctx context.Context, key string) error {
-	if err := p.kv.Del(key); err != nil {
+	if err := p.kv.Del(ctx, key); err != nil {
 		return fmt.Errorf("kv store delete: %w", err)
 	}
 	return nil

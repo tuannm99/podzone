@@ -68,7 +68,7 @@ func (r *KVPlacementResolver) Resolve(ctx context.Context, tenantID string) (Pla
 		r.mu.RUnlock()
 
 		key := fmt.Sprintf("%s/%s/placement", r.prefix, tenantID)
-		raw, err := r.kv.Get(key)
+		raw, err := r.kv.Get(ctx, key)
 		if err != nil {
 			if errors.Is(err, kvstores.ErrKeyNotFound) {
 				return Placement{}, fmt.Errorf("%w: kv store get %s: %v", ErrPlacementNotFound, key, err)

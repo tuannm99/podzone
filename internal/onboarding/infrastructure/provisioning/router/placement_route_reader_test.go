@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	onboardingconfig "github.com/tuannm99/podzone/internal/onboarding/config"
@@ -20,7 +21,7 @@ func TestPlacementRouteReader_IsPlacementRouteReady(t *testing.T) {
 	reader := NewPlacementRouteReader(PlacementRouteReaderParams{KV: kv})
 
 	kv.EXPECT().
-		Get("podzone/tenants/tenant-1/placement").
+		Get(mock.Anything, "podzone/tenants/tenant-1/placement").
 		Return([]byte(`{"cluster_name":"pg-default"}`), nil)
 
 	ready, err := reader.IsPlacementRouteReady(context.Background(), "tenant-1")
@@ -35,7 +36,7 @@ func TestPlacementRouteReader_IsPlacementRouteReadyReturnsFalseWhenMissing(t *te
 	reader := NewPlacementRouteReader(PlacementRouteReaderParams{KV: kv})
 
 	kv.EXPECT().
-		Get("podzone/tenants/tenant-1/placement").
+		Get(mock.Anything, "podzone/tenants/tenant-1/placement").
 		Return(nil, kvstores.ErrKeyNotFound)
 
 	ready, err := reader.IsPlacementRouteReady(context.Background(), "tenant-1")
@@ -51,7 +52,7 @@ func TestPlacementRouteReader_IsPlacementRouteReadyWrapsBackendError(t *testing.
 	backendErr := errors.New("kv store down")
 
 	kv.EXPECT().
-		Get("podzone/tenants/tenant-1/placement").
+		Get(mock.Anything, "podzone/tenants/tenant-1/placement").
 		Return(nil, backendErr)
 
 	ready, err := reader.IsPlacementRouteReady(context.Background(), "tenant-1")
@@ -66,7 +67,7 @@ func TestPlacementRouteReader_GetPlacementRoute(t *testing.T) {
 	reader := NewPlacementRouteReader(PlacementRouteReaderParams{KV: kv})
 
 	kv.EXPECT().
-		Get("podzone/tenants/tenant-1/placement").
+		Get(mock.Anything, "podzone/tenants/tenant-1/placement").
 		Return(
 			[]byte(`{"cluster_name":"pg-default","mode":"schema","db_name":"podzone_tenants","schema_name":"t_tenant_1"}`),
 			nil,
@@ -87,7 +88,7 @@ func TestPlacementRouteReader_GetPlacementRouteReturnsNilWhenMissing(t *testing.
 	reader := NewPlacementRouteReader(PlacementRouteReaderParams{KV: kv})
 
 	kv.EXPECT().
-		Get("podzone/tenants/tenant-1/placement").
+		Get(mock.Anything, "podzone/tenants/tenant-1/placement").
 		Return(nil, kvstores.ErrKeyNotFound)
 
 	route, err := reader.GetPlacementRoute(context.Background(), "tenant-1")
@@ -103,6 +104,7 @@ func TestPlacementRouteReader_PublishPlacementRoute(t *testing.T) {
 
 	kv.EXPECT().
 		Put(
+			mock.Anything,
 			"podzone/tenants/tenant-1/placement",
 			[]byte(`{"cluster_name":"pg-default","db_name":"podzone_tenants","mode":"schema","schema_name":"t_tenant_1"}`),
 		).
@@ -130,12 +132,14 @@ func TestPlacementRouteReader_PublishPlacementRoutePublishesClusterRegistry(t *t
 
 	kv.EXPECT().
 		Put(
+			mock.Anything,
 			"podzone/tenants/tenant-1/placement",
 			[]byte(`{"cluster_name":"pg-default","db_name":"podzone_tenants","mode":"schema","schema_name":"t_tenant_1"}`),
 		).
 		Return(nil)
 	kv.EXPECT().
 		Put(
+			mock.Anything,
 			"podzone/postgres/clusters/pg-default",
 			[]byte(`{"host":"postgres","password":"secret","port":5432,"ssl_mode":"disable","user":"postgres"}`),
 		).

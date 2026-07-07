@@ -19,6 +19,9 @@ var SQLXOpen = sqlx.Open
 type Manager interface {
 	DBForTenant(ctx context.Context, tenantID string) (*sqlx.DB, Placement, error)
 	WithTenantTx(ctx context.Context, tenantID string, opts *sql.TxOptions, fn func(tx *sqlx.Tx) error) error
+	// CloseIdleDedicated closes dedicated pools that have been idle for longer than DedicatedIdleTTL.
+	// Call this periodically (e.g. every DedicatedIdleTTL/2) to prevent unbounded pool growth.
+	CloseIdleDedicated(now time.Time)
 	CloseAll() error
 }
 

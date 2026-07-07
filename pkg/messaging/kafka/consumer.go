@@ -12,6 +12,11 @@ import (
 	"github.com/tuannm99/podzone/pkg/pdkafka"
 )
 
+// maxBlockingDelay is the largest retry delay we will park the Sarama partition
+// goroutine for. Delays above this are handled by re-publishing the message to
+// the same retry topic so the partition goroutine remains unblocked.
+const maxBlockingDelay = 500 * time.Millisecond
+
 type ConsumerOptions struct {
 	Publisher        messaging.Publisher
 	RetryPolicy      messaging.RetryPolicy
@@ -103,10 +108,18 @@ func (h *consumerGroupHandler) consumeMessage(
 ) error {
 	env, err := h.decodeEnvelope(msg)
 	if err != nil {
+		// K4: Drop malformed envelopes instead of breaking the consumer session.
+		// Returning the error would end the session and replay the same message forever.
+		h.observe(session.Context(), msg, messaging.Envelope{}, messaging.FailureActionDrop, "decode_error", err)
+		session.MarkMessage(msg, "")
+		return nil
+	}
+	rescheduled, err := h.waitUntilReady(session, msg, env)
+	if err != nil {
 		return err
 	}
-	if err := h.waitUntilReady(session.Context(), env); err != nil {
-		return err
+	if rescheduled {
+		return nil
 	}
 	if h.handler == nil {
 		h.observe(session.Context(), msg, env, messaging.FailureActionDrop, "no_handler", nil)
@@ -121,23 +134,41 @@ func (h *consumerGroupHandler) consumeMessage(
 	return nil
 }
 
-func (h *consumerGroupHandler) waitUntilReady(ctx context.Context, env messaging.Envelope) error {
+// waitUntilReady ensures the message is not consumed before its scheduled retry time.
+// For small delays (≤ maxBlockingDelay) it parks the goroutine briefly.
+// For larger delays, it re-publishes the message to the same retry topic and marks
+// the offset so the Sarama partition goroutine remains unblocked.
+// Returns (rescheduled=true, nil) when the message was re-queued; caller must skip handling.
+func (h *consumerGroupHandler) waitUntilReady(
+	session sarama.ConsumerGroupSession,
+	msg *sarama.ConsumerMessage,
+	env messaging.Envelope,
+) (rescheduled bool, err error) {
 	metadata := messaging.ReadDeliveryMetadata(env)
 	if metadata.NextAttemptAt.IsZero() {
-		return nil
+		return false, nil
 	}
 	delay := time.Until(metadata.NextAttemptAt)
 	if delay <= 0 {
-		return nil
+		return false, nil
 	}
-	timer := time.NewTimer(delay)
-	defer timer.Stop()
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-timer.C:
-		return nil
+	if delay <= maxBlockingDelay || h.opts.Publisher == nil {
+		timer := time.NewTimer(delay)
+		defer timer.Stop()
+		select {
+		case <-session.Context().Done():
+			return false, session.Context().Err()
+		case <-timer.C:
+			return false, nil
+		}
 	}
+	// Large delay: re-publish to the same retry topic and commit the offset so
+	// subsequent messages in this partition are not blocked.
+	if err := h.opts.Publisher.Publish(session.Context(), msg.Topic, msgKey(msg), env); err != nil {
+		return false, fmt.Errorf("reschedule message: %w", err)
+	}
+	session.MarkMessage(msg, "")
+	return true, nil
 }
 
 func (h *consumerGroupHandler) decodeEnvelope(msg *sarama.ConsumerMessage) (messaging.Envelope, error) {

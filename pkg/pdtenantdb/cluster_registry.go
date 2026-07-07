@@ -79,7 +79,7 @@ func (r *KVClusterRegistry) GetCluster(ctx context.Context, clusterName string) 
 		r.mu.RUnlock()
 
 		key := fmt.Sprintf("%s/%s", r.prefix, clusterName)
-		raw, err := r.kv.Get(key)
+		raw, err := r.kv.Get(ctx, key)
 		if err != nil {
 			return ClusterConfig{}, err
 		}

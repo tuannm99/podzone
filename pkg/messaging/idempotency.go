@@ -3,6 +3,7 @@ package messaging
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 )
@@ -20,8 +21,11 @@ var ErrInboxConsumerNameRequired = errors.New("messaging: inbox consumer name is
 func IdempotentConsumer(store InboxStore, consumerName string, now func() time.Time) Middleware {
 	return func(next Handler) Handler {
 		return HandlerFunc(func(ctx context.Context, msg Envelope) error {
-			if store == nil || strings.TrimSpace(msg.ID) == "" {
+			if store == nil {
 				return next.Handle(ctx, msg)
+			}
+			if strings.TrimSpace(msg.ID) == "" {
+				return fmt.Errorf("messaging: idempotent consumer requires non-empty message ID")
 			}
 
 			name := strings.TrimSpace(consumerName)
