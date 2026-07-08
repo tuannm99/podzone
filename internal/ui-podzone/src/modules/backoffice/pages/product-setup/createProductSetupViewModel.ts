@@ -127,6 +127,10 @@ export function createProductSetupViewModel(options: ProductSetupViewModelOption
         tenantStorage.setTenantID(options.tenantID())
     })
 
+    createEffect(() => {
+        if (snapshot.latest?.success) setError('')
+    })
+
     return {
         form,
         message,

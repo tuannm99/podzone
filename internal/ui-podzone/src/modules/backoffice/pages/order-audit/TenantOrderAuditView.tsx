@@ -47,7 +47,7 @@ export function TenantOrderAuditView() {
         error,
         loading,
         loadingMore,
-        loadEntries,
+        applyFilters,
         auditFeed,
         copyFeed,
         loadMore,
@@ -151,7 +151,7 @@ export function TenantOrderAuditView() {
                         size="xs"
                         color="alternative"
                         loading={loading()}
-                        onClick={() => void loadEntries(undefined, false)}
+                        onClick={() => applyFilters()}
                     >
                         Apply filters
                     </Button>

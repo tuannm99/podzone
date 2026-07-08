@@ -141,22 +141,23 @@ export function createTenantOrdersViewModel() {
     const [queuePageResource, { refetch: reloadQueuePage }] = createResource(
         () =>
             workspaceReady()
-                ? {
-                      tenantId: params().tenantId,
-                      storeId: currentStoreId(),
-                      page: queuePage(),
-                      search: appliedQueueSearch(),
-                      filters: queueFilters(),
-                      sortBy: activeQueueSort() === 'priority' ? 'priority' : 'createdAt',
-                  }
+                ? [
+                      params().tenantId,
+                      currentStoreId(),
+                      queuePage(),
+                      appliedQueueSearch(),
+                      activeQueueView(),
+                      activeQueueSort(),
+                      operatorLens().trim(),
+                  ].join('|')
                 : undefined,
-        async (source) =>
+        async () =>
             getRoutedOrderPage({
-                page: source.page,
+                page: queuePage(),
                 pageSize: 10,
-                search: source.search,
-                filters: source.filters,
-                sortBy: source.sortBy,
+                search: appliedQueueSearch(),
+                filters: queueFilters(),
+                sortBy: activeQueueSort() === 'priority' ? 'priority' : 'createdAt',
                 sortDirection: 'SORT_DIRECTION_DESC',
             })
     )

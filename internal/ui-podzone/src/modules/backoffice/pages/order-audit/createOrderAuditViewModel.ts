@@ -21,6 +21,10 @@ export function createOrderAuditViewModel(options: OrderAuditViewModelOptions) {
     const [orderFilter, setOrderFilter] = createSignal('')
     const [partnerFilter, setPartnerFilter] = createSignal('')
     const [assigneeFilter, setAssigneeFilter] = createSignal('')
+    const [appliedActorFilter, setAppliedActorFilter] = createSignal('')
+    const [appliedOrderFilter, setAppliedOrderFilter] = createSignal('')
+    const [appliedPartnerFilter, setAppliedPartnerFilter] = createSignal('')
+    const [appliedAssigneeFilter, setAppliedAssigneeFilter] = createSignal('')
     const [message, setMessage] = createSignal('')
     const [error, setError] = createSignal('')
     const [loading, setLoading] = createSignal(false)
@@ -29,28 +33,28 @@ export function createOrderAuditViewModel(options: OrderAuditViewModelOptions) {
     const [feedResource] = createResource(
         () =>
             options.workspaceReady()
-                ? {
-                      tenantID: options.tenantID(),
-                      storeID: options.storeID(),
-                      activityType: activityFilter(),
-                      actorContains: actorFilter().trim(),
-                      orderId: orderFilter().trim(),
-                      partner: partnerFilter().trim(),
-                      assignee: assigneeFilter().trim(),
-                      since: resolveSinceIso(timeWindow()),
-                      includeSystem: activityFilter() === 'all' ? !hideSystemActivity() : activityFilter() === 'system',
-                  }
+                ? [
+                      options.tenantID(),
+                      options.storeID(),
+                      activityFilter(),
+                      resolveSinceIso(timeWindow()),
+                      String(activityFilter() === 'all' ? !hideSystemActivity() : activityFilter() === 'system'),
+                      appliedActorFilter(),
+                      appliedOrderFilter(),
+                      appliedPartnerFilter(),
+                      appliedAssigneeFilter(),
+                  ].join('|')
                 : undefined,
-        async (source) =>
+        async () =>
             getRoutedOrderActivities({
-                activityType: source.activityType,
-                actorContains: source.actorContains,
-                orderId: source.orderId,
-                partner: source.partner,
-                assignee: source.assignee,
-                since: source.since,
+                activityType: activityFilter(),
+                actorContains: appliedActorFilter(),
+                orderId: appliedOrderFilter(),
+                partner: appliedPartnerFilter(),
+                assignee: appliedAssigneeFilter(),
+                since: resolveSinceIso(timeWindow()),
                 limit: 50,
-                includeSystem: source.includeSystem,
+                includeSystem: activityFilter() === 'all' ? !hideSystemActivity() : activityFilter() === 'system',
             })
     )
 
@@ -66,10 +70,10 @@ export function createOrderAuditViewModel(options: OrderAuditViewModelOptions) {
         try {
             const result = await getRoutedOrderActivities({
                 activityType: activityFilter(),
-                actorContains: actorFilter().trim(),
-                orderId: orderFilter().trim(),
-                partner: partnerFilter().trim(),
-                assignee: assigneeFilter().trim(),
+                actorContains: appliedActorFilter(),
+                orderId: appliedOrderFilter(),
+                partner: appliedPartnerFilter(),
+                assignee: appliedAssigneeFilter(),
                 since: resolveSinceIso(timeWindow()),
                 limit: 50,
                 after,
@@ -104,6 +108,12 @@ export function createOrderAuditViewModel(options: OrderAuditViewModelOptions) {
             setError('Could not copy audit feed to clipboard.')
         }
     }
+    const applyFilters = () => {
+        setAppliedActorFilter(actorFilter().trim())
+        setAppliedOrderFilter(orderFilter().trim())
+        setAppliedPartnerFilter(partnerFilter().trim())
+        setAppliedAssigneeFilter(assigneeFilter().trim())
+    }
     const loadMore = async () => {
         if (nextCursor()) await loadEntries(nextCursor(), true)
     }
@@ -114,6 +124,7 @@ export function createOrderAuditViewModel(options: OrderAuditViewModelOptions) {
 
     createEffect(() => {
         setLoading(feedResource.loading)
+        if (feedResource.loading) return
         const result = feedResource.latest
         if (!result) return
         if (!result.success) {
@@ -151,7 +162,7 @@ export function createOrderAuditViewModel(options: OrderAuditViewModelOptions) {
         error,
         loading,
         loadingMore,
-        loadEntries,
+        applyFilters,
         auditFeed,
         copyFeed,
         loadMore,

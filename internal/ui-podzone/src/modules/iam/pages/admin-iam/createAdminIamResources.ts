@@ -1,8 +1,8 @@
-import { createEffect, createResource, on } from 'solid-js'
+import { createEffect, createResource, on, onMount } from 'solid-js'
 import type { AdminIamLoaders } from './createAdminIamLoaders'
 import type { AdminIamState } from './createAdminIamState'
 
-export function createAdminIamResources(state: AdminIamState, loaders: AdminIamLoaders, userID: number) {
+export function createAdminIamResources(state: AdminIamState, loaders: AdminIamLoaders) {
     createEffect(() => {
         const firstPolicy = state.policies()[0]
         if (state.allowed() && !state.selectedPolicyName() && firstPolicy) {
@@ -60,8 +60,7 @@ export function createAdminIamResources(state: AdminIamState, loaders: AdminIamL
         )
     )
 
-    createResource(
-        () => userID || undefined,
-        async () => loaders.loadBootstrap()
-    )
+    onMount(() => {
+        void loaders.loadBootstrap()
+    })
 }

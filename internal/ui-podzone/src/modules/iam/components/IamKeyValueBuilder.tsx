@@ -1,4 +1,4 @@
-import { For, Show, createMemo, createSignal } from 'solid-js'
+import { For, Show, createEffect, createMemo, createSignal, on } from 'solid-js'
 import { Badge, Button, Card, InputField, TextareaField } from '@/solid/components/common/Primitives'
 import { Tabs } from '@/solid/components/common/Tabs'
 
@@ -46,6 +46,8 @@ export function IamKeyValueBuilder(props: {
 }) {
     const [mode, setMode] = createSignal<'builder' | 'json'>('builder')
     const [entries, setEntries] = createSignal<KeyValueEntry[]>(normalizeEntries(props.value))
+
+    createEffect(on(() => props.value, (next) => setEntries(normalizeEntries(next)), { defer: true }))
 
     const count = createMemo(() => entries().filter((entry) => entry.key.trim()).length)
 

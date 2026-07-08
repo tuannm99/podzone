@@ -10,7 +10,7 @@ export function createAdminIamViewModel() {
     const state = createAdminIamState(userID)
     const loaders = createAdminIamLoaders(state, userID)
     const actions = createAdminIamActions(state, loaders)
-    createAdminIamResources(state, loaders, userID)
+    createAdminIamResources(state, loaders)
 
     return {
         feedback: {

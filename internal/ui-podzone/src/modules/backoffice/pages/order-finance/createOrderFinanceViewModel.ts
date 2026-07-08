@@ -75,6 +75,8 @@ export function createOrderFinanceViewModel(options: OrderFinanceViewModelOption
     const issueExposure = () =>
         formatMoney(orders().reduce((sum, order) => sum + (parseMoneyValue(order.issueCost) || 0), 0))
     const copySummary = async () => {
+        setError('')
+        setMessage('')
         const lines = [
             `Finance review for ${options.tenantID()}`,
             `Store: ${options.storeLabel()} (${options.storeID() || 'pending'})`,
