@@ -1,4 +1,4 @@
-import { createEffect, createSignal, on, type Accessor } from 'solid-js'
+import { createEffect, createSignal, type Accessor } from 'solid-js'
 import { createPartner, listPartners, updatePartner, updatePartnerStatus, type PartnerInfo } from '@/services/partner'
 import { tenantStorage } from '@/services/tenantStorage'
 import { createFormStore, email, required } from '@/solid/forms'
@@ -16,6 +16,7 @@ export function createPartnersViewModel(params: PartnersViewModelParams) {
     const [mutationError, setMutationError] = createSignal('')
     const [message, setMessage] = createSignal('')
     const [editingPartnerID, setEditingPartnerID] = createSignal('')
+    const [statusChangingPartnerID, setStatusChangingPartnerID] = createSignal('')
     const [filterPartnerType, setFilterPartnerType] = createSignal('')
     const [filterStatus, setFilterStatus] = createSignal('')
     const [search, setSearch] = createSignal('')
@@ -42,6 +43,10 @@ export function createPartnersViewModel(params: PartnersViewModelParams) {
             const result = await listPartners(params.tenantID(), query)
             if (!result.success) throw new Error(result.message)
             return result.data
+        },
+        {
+            enabled: params.workspaceReady,
+            dependency: () => `${params.tenantID()}|${params.storeID()}`,
         }
     )
     const partners = list.items
@@ -105,16 +110,22 @@ export function createPartnersViewModel(params: PartnersViewModelParams) {
     }
 
     const toggleStatus = async (partner: PartnerInfo) => {
+        if (statusChangingPartnerID()) return
+        setStatusChangingPartnerID(partner.id)
         setMutationError('')
         setMessage('')
-        const nextStatus = partner.status === 'active' ? 'inactive' : 'active'
-        const result = await updatePartnerStatus(partner.id, nextStatus)
-        if (!result.success) {
-            setMutationError(result.message)
-            return
+        try {
+            const nextStatus = partner.status === 'active' ? 'inactive' : 'active'
+            const result = await updatePartnerStatus(partner.id, nextStatus)
+            if (!result.success) {
+                setMutationError(result.message)
+                return
+            }
+            setMessage(`${result.data.name} is now ${result.data.status === 'active' ? 'active' : 'inactive'}.`)
+            await reload()
+        } finally {
+            setStatusChangingPartnerID('')
         }
-        setMessage(`${result.data.name} is now ${result.data.status === 'active' ? 'active' : 'inactive'}.`)
-        await reload()
     }
 
     const edit = (partner: PartnerInfo) => {
@@ -172,15 +183,9 @@ export function createPartnersViewModel(params: PartnersViewModelParams) {
 
     const applySearch = () => list.updateQuery({ search: search().trim() })
 
-    createEffect(
-        on(
-            () => [params.tenantID(), params.storeID(), params.workspaceReady()] as const,
-            ([tenantID, , ready]) => {
-                tenantStorage.setTenantID(tenantID)
-                if (ready) void reload()
-            }
-        )
-    )
+    createEffect(() => {
+        tenantStorage.setTenantID(params.tenantID())
+    })
 
     return {
         partners,
@@ -196,6 +201,7 @@ export function createPartnersViewModel(params: PartnersViewModelParams) {
         setFilterPartnerType,
         filterStatus,
         setFilterStatus,
+        statusChangingPartnerID,
         search,
         setSearch,
         applySearch,

@@ -30,6 +30,7 @@ export function AdminIamView(props: { model: AdminIamViewModel }) {
                 section.id === 'iam-assignments'
         )
     }
+    const sectionTabs = () => sections().map((section) => ({ value: section.id, label: section.label }))
     const navigate = useNavigate()
     const search = useSearch({ from: '/admin/iam' })
     const activeSection = (): IamSectionID => {
@@ -78,10 +79,7 @@ export function AdminIamView(props: { model: AdminIamViewModel }) {
             <Show when={props.model.feedback.allowed()}>
                 <Tabs
                     ariaLabel="IAM sections"
-                    items={sections().map((section) => ({
-                        value: section.id,
-                        label: section.label,
-                    }))}
+                    items={sectionTabs()}
                     value={activeSection()}
                     onChange={selectSection}
                     variant="underline"

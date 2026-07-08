@@ -106,6 +106,7 @@ export function TenantPartnersView() {
                         pageInfo={partners.pageInfo}
                         page={partners.page}
                         loading={partners.loading}
+                        statusChangingPartnerID={partners.statusChangingPartnerID}
                         onPageChange={partners.setPage}
                         onEdit={partners.edit}
                         onToggleStatus={(partner) => void partners.toggleStatus(partner)}

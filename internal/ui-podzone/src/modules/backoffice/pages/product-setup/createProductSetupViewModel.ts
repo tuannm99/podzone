@@ -1,4 +1,4 @@
-import { createEffect, createSignal, type Accessor } from 'solid-js'
+import { createEffect, createResource, createSignal, type Accessor } from 'solid-js'
 import {
     createProductSetupDraft,
     getProductSetupSnapshot,
@@ -29,28 +29,25 @@ export function createProductSetupViewModel(options: ProductSetupViewModelOption
     })
     const [message, setMessage] = createSignal('')
     const [error, setError] = createSignal('')
-    const [loading, setLoading] = createSignal(false)
     const [promotingDraftID, setPromotingDraftID] = createSignal('')
     const [updatingCandidateID, setUpdatingCandidateID] = createSignal('')
-    const [drafts, setDrafts] = createSignal<SetupDraft[]>([])
-    const [candidates, setCandidates] = createSignal<CatalogCandidate[]>([])
-
-    const reload = async () => {
-        setLoading(true)
-        setError('')
-        try {
-            const result = await getProductSetupSnapshot()
-            if (!result.success) {
-                setError(result.message)
-                setDrafts([])
-                setCandidates([])
-                return
-            }
-            setDrafts(result.data.drafts)
-            setCandidates(result.data.candidates)
-        } finally {
-            setLoading(false)
-        }
+    const [snapshot, { refetch: reload }] = createResource(
+        () => (options.workspaceReady() ? options.tenantID() : undefined),
+        async () => getProductSetupSnapshot()
+    )
+    const snapshotResult = () => snapshot.latest
+    const readError = () => {
+        const result = snapshotResult()
+        if (error()) return error()
+        return result && !result.success ? result.message : ''
+    }
+    const drafts = (): SetupDraft[] => {
+        const result = snapshotResult()
+        return result?.success ? result.data.drafts : []
+    }
+    const candidates = (): CatalogCandidate[] => {
+        const result = snapshotResult()
+        return result?.success ? result.data.candidates : []
     }
 
     const addDraft = async (event: SubmitEvent) => {
@@ -128,14 +125,13 @@ export function createProductSetupViewModel(options: ProductSetupViewModelOption
 
     createEffect(() => {
         tenantStorage.setTenantID(options.tenantID())
-        if (options.workspaceReady()) void reload()
     })
 
     return {
         form,
         message,
-        error,
-        loading,
+        error: readError,
+        loading: () => snapshot.loading,
         promotingDraftID,
         updatingCandidateID,
         drafts,

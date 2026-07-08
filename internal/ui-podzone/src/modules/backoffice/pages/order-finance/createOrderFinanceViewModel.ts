@@ -1,4 +1,4 @@
-import { createEffect, createSignal, type Accessor } from 'solid-js'
+import { createEffect, createResource, createSignal, type Accessor } from 'solid-js'
 import { getRoutedOrders, type RoutedOrder } from '@/services/orders'
 import { tenantStorage } from '@/services/tenantStorage'
 import {
@@ -17,20 +17,17 @@ interface OrderFinanceViewModelOptions {
 }
 
 export function createOrderFinanceViewModel(options: OrderFinanceViewModelOptions) {
-    const [orders, setOrders] = createSignal<RoutedOrder[]>([])
     const [message, setMessage] = createSignal('')
     const [error, setError] = createSignal('')
-
-    const reload = async () => {
-        const result = await getRoutedOrders()
-        if (!result.success) {
-            setError(result.message)
-            setOrders([])
-            return
-        }
-        setError('')
-        setOrders(result.data.orders)
+    const [ordersResource, { refetch: reload }] = createResource(
+        () => (options.workspaceReady() ? options.tenantID() : undefined),
+        async () => getRoutedOrders()
+    )
+    const orders = (): RoutedOrder[] => {
+        const result = ordersResource.latest
+        return result?.success ? result.data.orders : []
     }
+    const readError = () => error() || (!ordersResource.latest?.success ? ordersResource.latest?.message || '' : '')
     const financeOrders = () =>
         [...orders()].filter(hasFinanceAttention).sort((left, right) => {
             const disputedOrder =
@@ -110,13 +107,12 @@ export function createOrderFinanceViewModel(options: OrderFinanceViewModelOption
 
     createEffect(() => {
         tenantStorage.setTenantID(options.tenantID())
-        if (options.workspaceReady()) void reload()
     })
 
     return {
         orders,
         message,
-        error,
+        error: readError,
         financeOrders,
         partnerFinanceSummary,
         totalRealizedMargin,

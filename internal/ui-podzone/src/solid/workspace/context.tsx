@@ -1,3 +1,4 @@
+import { useNavigate, useSearch } from '@tanstack/solid-router'
 import {
     createContext,
     createEffect,
@@ -23,26 +24,20 @@ type WorkspaceContextValue = {
 
 const WorkspaceContext = createContext<WorkspaceContextValue>()
 
-function initialStoreID(tenantId: string) {
-    const requested = new URLSearchParams(window.location.search).get('storeId') || ''
+function initialStoreID(tenantId: string, requestedStoreId: string) {
+    const requested = requestedStoreId || ''
     return requested.trim() || storeStorage.getStoreID(tenantId)
 }
 
-function syncStoreIdToURL(storeId: string) {
-    const normalizedStoreId = storeId.trim()
-    if (!normalizedStoreId || !window.location.pathname.startsWith('/t/')) {
-        return
-    }
-    const params = new URLSearchParams(window.location.search)
-    params.set('storeId', normalizedStoreId)
-    const query = params.toString()
-    const nextURL = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`
-    window.history.replaceState(window.history.state, '', nextURL)
-}
-
 export function TenantWorkspaceProvider(props: ParentProps<{ tenantId: string }>) {
+    const navigate = useNavigate()
+    const search = useSearch({ strict: false }) as () => Record<string, unknown>
     const [currentStoreId, setCurrentStoreIdState] = createSignal('')
     const tenantId = createMemo(() => props.tenantId.trim())
+    const requestedStoreID = () => {
+        const raw = search().storeId
+        return typeof raw === 'string' ? raw.trim() : ''
+    }
     const [storeResource, { mutate: clearStore }] = createResource(
         () => {
             const currentTenantID = tenantId()
@@ -73,7 +68,10 @@ export function TenantWorkspaceProvider(props: ParentProps<{ tenantId: string }>
         if (!tenantId() || !normalizedStoreId) return
         setCurrentStoreIdState(normalizedStoreId)
         storeStorage.setStoreID(tenantId(), normalizedStoreId)
-        syncStoreIdToURL(normalizedStoreId)
+        void navigate({
+            search: (previous: Record<string, unknown>) => ({ ...previous, storeId: normalizedStoreId }),
+            replace: true,
+        } as unknown as Parameters<typeof navigate>[0])
     }
 
     let loadedTenantID = ''
@@ -86,7 +84,15 @@ export function TenantWorkspaceProvider(props: ParentProps<{ tenantId: string }>
             setCurrentStoreIdState('')
             return
         }
-        setCurrentStoreIdState(initialStoreID(nextTenantId))
+        setCurrentStoreIdState(initialStoreID(nextTenantId, requestedStoreID()))
+    })
+
+    createEffect(() => {
+        const requested = requestedStoreID()
+        const currentTenantID = tenantId()
+        if (!currentTenantID || !requested || requested === currentStoreId()) return
+        setCurrentStoreIdState(requested)
+        storeStorage.setStoreID(currentTenantID, requested)
     })
 
     createEffect(() => {

@@ -1,6 +1,7 @@
-import type { ParentProps, JSX } from 'solid-js'
+import { For, type ParentProps, type JSX } from 'solid-js'
 import { Dynamic } from 'solid-js/web'
 import { classes } from '../../shared/utils'
+import { Link } from './Link'
 
 type HeadingTag = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
 
@@ -53,7 +54,7 @@ export function TextLink(
     }>
 ) {
     return (
-        <a
+        <Link
             href={props.href}
             target={props.target}
             rel={props.target === '_blank' ? 'noreferrer' : undefined}
@@ -63,7 +64,7 @@ export function TextLink(
             )}
         >
             {props.children}
-        </a>
+        </Link>
     )
 }
 
@@ -114,9 +115,7 @@ export function ProseList(props: { items: Array<string | JSX.Element>; ordered?:
                 props.class
             )}
         >
-            {props.items.map((item) => (
-                <li>{item}</li>
-            ))}
+            <For each={props.items}>{(item) => <li>{item}</li>}</For>
         </Dynamic>
     )
 }

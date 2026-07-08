@@ -20,6 +20,7 @@ type PartnerTableProps = {
     pageInfo: Accessor<PageInfo>
     page: Accessor<number>
     loading: Accessor<boolean>
+    statusChangingPartnerID: Accessor<string>
     onPageChange: (page: number) => void
     onEdit: (partner: PartnerInfo) => void
     onToggleStatus: (partner: PartnerInfo) => void
@@ -90,6 +91,8 @@ export function PartnerTable(props: PartnerTableProps) {
                                             <Button
                                                 size="xs"
                                                 color={partner.status === 'active' ? 'alternative' : 'green'}
+                                                loading={props.statusChangingPartnerID() === partner.id}
+                                                disabled={Boolean(props.statusChangingPartnerID())}
                                                 onClick={() => props.onToggleStatus(partner)}
                                             >
                                                 {partner.status === 'active' ? 'Deactivate' : 'Activate'}

@@ -1,4 +1,4 @@
-import { createEffect, createSignal, on, type Accessor } from 'solid-js'
+import { createEffect, createResource, createSignal, type Accessor } from 'solid-js'
 import { getRoutedOrderActivities, type RoutedOrderActivityFeedEntry } from '@/services/orders'
 import { tenantStorage } from '@/services/tenantStorage'
 import { formatFeedSummary, resolveSinceIso, type ActivityFilter, type TimeWindow } from './presentation'
@@ -26,6 +26,33 @@ export function createOrderAuditViewModel(options: OrderAuditViewModelOptions) {
     const [loading, setLoading] = createSignal(false)
     const [loadingMore, setLoadingMore] = createSignal(false)
     let requestVersion = 0
+    const [feedResource] = createResource(
+        () =>
+            options.workspaceReady()
+                ? {
+                      tenantID: options.tenantID(),
+                      storeID: options.storeID(),
+                      activityType: activityFilter(),
+                      actorContains: actorFilter().trim(),
+                      orderId: orderFilter().trim(),
+                      partner: partnerFilter().trim(),
+                      assignee: assigneeFilter().trim(),
+                      since: resolveSinceIso(timeWindow()),
+                      includeSystem: activityFilter() === 'all' ? !hideSystemActivity() : activityFilter() === 'system',
+                  }
+                : undefined,
+        async (source) =>
+            getRoutedOrderActivities({
+                activityType: source.activityType,
+                actorContains: source.actorContains,
+                orderId: source.orderId,
+                partner: source.partner,
+                assignee: source.assignee,
+                since: source.since,
+                limit: 50,
+                includeSystem: source.includeSystem,
+            })
+    )
 
     const loadEntries = async (after?: string, append = false) => {
         const currentRequest = ++requestVersion
@@ -81,15 +108,26 @@ export function createOrderAuditViewModel(options: OrderAuditViewModelOptions) {
         if (nextCursor()) await loadEntries(nextCursor(), true)
     }
 
-    createEffect(
-        on(
-            () => [options.tenantID(), options.storeID(), options.workspaceReady()] as const,
-            ([tenantID, , ready]) => {
-                tenantStorage.setTenantID(tenantID)
-                if (ready) void loadEntries()
-            }
-        )
-    )
+    createEffect(() => {
+        tenantStorage.setTenantID(options.tenantID())
+    })
+
+    createEffect(() => {
+        setLoading(feedResource.loading)
+        const result = feedResource.latest
+        if (!result) return
+        if (!result.success) {
+            setError(result.message)
+            setEntries([])
+            setNextCursor(undefined)
+            setTotal(0)
+            return
+        }
+        setError('')
+        setEntries(result.data.entries)
+        setNextCursor(result.data.nextCursor)
+        setTotal(result.data.total)
+    })
 
     return {
         entries,

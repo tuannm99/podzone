@@ -1,4 +1,4 @@
-import { createEffect, createSignal, type Accessor } from 'solid-js'
+import { createResource, createSignal, type Accessor } from 'solid-js'
 import {
     deleteInfrastructureConnection,
     getPlacementStatus,
@@ -17,10 +17,20 @@ export function createConnectionsViewModel(tenantId: Accessor<string>, enabled: 
     const [saving, setSaving] = createSignal(false)
     const [deletingName, setDeletingName] = createSignal('')
     const [mutationError, setMutationError] = createSignal('')
-    const [placementStatus, setPlacementStatus] = createSignal<PlacementStatus>()
-    const [placementLoading, setPlacementLoading] = createSignal(false)
     const [placementRepairing, setPlacementRepairing] = createSignal(false)
     const [placementError, setPlacementError] = createSignal('')
+    const [placementResource, { refetch: loadPlacementStatus, mutate: setPlacementStatus }] = createResource(
+        () => (enabled() && tenantId() ? tenantId() : undefined),
+        async (currentTenantID): Promise<PlacementStatus | undefined> => {
+            setPlacementError('')
+            const result = await getPlacementStatus(currentTenantID)
+            if (!result.success) {
+                setPlacementError(result.message)
+                return undefined
+            }
+            return result.data
+        }
+    )
     const connections = createPaginatedResource(
         {
             page: 1,
@@ -35,35 +45,6 @@ export function createConnectionsViewModel(tenantId: Accessor<string>, enabled: 
         },
         { enabled, dependency: tenantId }
     )
-    const loadPlacementStatus = async () => {
-        if (!enabled() || !tenantId()) {
-            setPlacementStatus()
-            setPlacementError('')
-            return
-        }
-        setPlacementLoading(true)
-        setPlacementError('')
-        try {
-            const result = await getPlacementStatus(tenantId())
-            if (!result.success) {
-                setPlacementStatus()
-                setPlacementError(result.message)
-                return
-            }
-            setPlacementStatus(result.data)
-        } finally {
-            setPlacementLoading(false)
-        }
-    }
-    createEffect(() => {
-        const currentTenant = tenantId()
-        if (!enabled() || !currentTenant) {
-            setPlacementStatus()
-            setPlacementError('')
-            return
-        }
-        void loadPlacementStatus()
-    })
     const closeEditor = () => {
         setEditor()
         setCreating(false)
@@ -118,8 +99,8 @@ export function createConnectionsViewModel(tenantId: Accessor<string>, enabled: 
 
     return {
         connections,
-        placementStatus,
-        placementLoading,
+        placementStatus: () => placementResource.latest,
+        placementLoading: () => placementResource.loading,
         placementRepairing,
         placementError,
         loadPlacementStatus,

@@ -1,5 +1,6 @@
-import { Outlet, useRouterState } from '@tanstack/solid-router'
-import { Match, Switch, createEffect, createMemo, on } from 'solid-js'
+import { Outlet, useNavigate, useRouterState } from '@tanstack/solid-router'
+import { Match, Switch, createEffect, createMemo, on, onCleanup } from 'solid-js'
+import { AUTH_LOGIN_REQUIRED_EVENT } from '@/services/authNavigation'
 import { AppShell, Container } from './components/common/AppShell'
 import { ScrollToTopButton } from './components/common/ScrollToTop'
 import { PodzoneNavbar } from './layout/PodzoneNavbar'
@@ -11,6 +12,7 @@ function parseTenantId(pathname: string) {
 }
 
 export default function Root() {
+    const navigate = useNavigate()
     const pathname = useRouterState({
         select: (state) => state.location.pathname,
     })
@@ -32,6 +34,16 @@ export default function Root() {
             { defer: true }
         )
     )
+
+    createEffect(() => {
+        const handleLoginRequired = () => {
+            if (pathname() === '/auth/login') return
+            void navigate({ to: '/auth/login' })
+        }
+
+        window.addEventListener(AUTH_LOGIN_REQUIRED_EVENT, handleLoginRequired)
+        onCleanup(() => window.removeEventListener(AUTH_LOGIN_REQUIRED_EVENT, handleLoginRequired))
+    })
 
     return (
         <AppShell class="bg-gray-50">

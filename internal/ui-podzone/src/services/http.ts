@@ -1,5 +1,6 @@
 import axios, { AxiosError, type AxiosRequestConfig, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
 import { GW_API_URL } from './baseurl'
+import { requestLoginNavigation } from './authNavigation'
 import { tokenStorage } from './tokenStorage'
 
 export type HttpError = {
@@ -71,9 +72,7 @@ async function performRefresh(): Promise<string | null> {
 
 function redirectToLogin() {
     tokenStorage.clearAll()
-    if (window.location.pathname !== '/auth/login') {
-        window.location.href = '/auth/login'
-    }
+    requestLoginNavigation()
 }
 
 async function refreshAccessToken(): Promise<string | null> {

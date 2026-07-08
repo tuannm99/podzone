@@ -1,5 +1,6 @@
 import { GW_API_URL } from './baseurl'
 import { http, type HttpError } from './http'
+import { requestLoginNavigation } from './authNavigation'
 import { tenantStorage } from './tenantStorage'
 import { tokenStorage, type StoredUser } from './tokenStorage'
 import {
@@ -215,7 +216,7 @@ export async function logout(): Promise<void> {
     } finally {
         tokenStorage.clearAll()
         tenantStorage.clearTenantID()
-        window.location.href = '/auth/login'
+        requestLoginNavigation()
     }
 }
 
@@ -252,7 +253,7 @@ export async function revokeSession(sessionId: string): Promise<AuthResult> {
         if (tokenStorage.getSessionID() === sessionId) {
             tokenStorage.clearAll()
             tenantStorage.clearTenantID()
-            window.location.href = '/auth/login'
+            requestLoginNavigation()
         }
         return { success: true, data: {} }
     } catch (error) {

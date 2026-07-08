@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/solid-router'
-import { createEffect, createResource, createSignal, on, onCleanup, onMount } from 'solid-js'
+import { createEffect, createResource, createSignal, on, onCleanup } from 'solid-js'
 import { ensureActiveTenant } from '@/services/auth'
 import { createTenant, listUserTenants, type TenantMembership } from '@/services/iam'
 import { createStoreRequest, retryStoreRequest } from '@/services/onboarding'
@@ -298,7 +298,7 @@ export function createAdminHomeViewModel() {
         })
     }
 
-    onMount(() => {
+    createEffect(() => {
         const refreshTimer = window.setInterval(() => {
             const hasActiveProvisioning = storeRequests
                 .items()

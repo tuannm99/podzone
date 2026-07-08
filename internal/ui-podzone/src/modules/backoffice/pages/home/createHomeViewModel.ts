@@ -1,4 +1,4 @@
-import { createEffect, createSignal, type Accessor } from 'solid-js'
+import { createEffect, createResource, createSignal, type Accessor } from 'solid-js'
 import { getRoutedOrders } from '@/services/orders'
 import { getProductSetupSnapshot } from '@/services/productSetup'
 import { tenantStorage } from '@/services/tenantStorage'
@@ -26,6 +26,10 @@ export function createHomeViewModel(options: HomeViewModelOptions) {
     const [topPartnerLoad, setTopPartnerLoad] = createSignal('No partner load yet')
     const [issueRate, setIssueRate] = createSignal('0%')
     const [error, setError] = createSignal('')
+    const [snapshot] = createResource(
+        () => (options.workspaceReady() ? options.tenantID() : undefined),
+        async () => Promise.all([getProductSetupSnapshot(), getRoutedOrders()])
+    )
 
     const resetOrders = () => {
         setInProductionCount(0)
@@ -41,9 +45,11 @@ export function createHomeViewModel(options: HomeViewModelOptions) {
         setIssueRate('0%')
     }
 
-    const loadSnapshot = async () => {
+    const applySnapshot = () => {
         setError('')
-        const [productResult, orderResult] = await Promise.all([getProductSetupSnapshot(), getRoutedOrders()])
+        const result = snapshot.latest
+        if (!result) return
+        const [productResult, orderResult] = result
         if (productResult.success) {
             setDraftCount(productResult.data.drafts.length)
             setPublishedCandidateCount(
@@ -102,7 +108,10 @@ export function createHomeViewModel(options: HomeViewModelOptions) {
         const tenantID = options.tenantID()
         tenantStorage.setTenantID(tenantID)
         setTenantReady(tokenStorage.getActiveTenantID() === tenantID)
-        if (options.workspaceReady()) void loadSnapshot()
+    })
+
+    createEffect(() => {
+        applySnapshot()
     })
 
     return {
