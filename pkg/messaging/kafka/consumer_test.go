@@ -161,6 +161,24 @@ func TestConsumerGroupHandlerConsumeClaim_HandlerError(t *testing.T) {
 	assert.Equal(t, 0, session.marked)
 }
 
+func TestConsumerGroupHandlerConsumeClaim_NilHandlerReturnsError(t *testing.T) {
+	cgh := &consumerGroupHandler{}
+
+	payload, err := json.Marshal(validConsumerEnvelope())
+	require.NoError(t, err)
+
+	msgCh := make(chan *sarama.ConsumerMessage, 1)
+	msgCh <- &sarama.ConsumerMessage{Value: payload}
+	close(msgCh)
+
+	session := &fakeSession{ctx: context.Background()}
+	claim := &fakeClaim{messages: msgCh}
+
+	err = cgh.ConsumeClaim(session, claim)
+	require.ErrorIs(t, err, messaging.ErrNilHandler)
+	assert.Equal(t, 0, session.marked)
+}
+
 func TestConsumerGroupHandlerConsumeClaim_RetryablePublishesRetry(t *testing.T) {
 	handler := &fakeHandler{err: messaging.RetryableError(errors.New("transient"), "retry later")}
 	publisher := &fakeConsumerPublisher{}

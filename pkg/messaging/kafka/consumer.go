@@ -122,9 +122,8 @@ func (h *consumerGroupHandler) consumeMessage(
 		return nil
 	}
 	if h.handler == nil {
-		h.observe(session.Context(), msg, env, messaging.FailureActionDrop, "no_handler", nil)
-		session.MarkMessage(msg, "")
-		return nil
+		h.observe(session.Context(), msg, env, messaging.FailureActionReturn, "no_handler", messaging.ErrNilHandler)
+		return messaging.ErrNilHandler
 	}
 	if err := h.handler.Handle(session.Context(), env); err != nil {
 		return h.handleFailure(session, msg, env, err)

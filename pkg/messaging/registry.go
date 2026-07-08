@@ -31,11 +31,14 @@ func NewRegistry(handlers ...TypedHandler) (*Registry, error) {
 
 func (r *Registry) Handle(ctx context.Context, msg Envelope) error {
 	if r == nil {
-		return nil
+		return ErrNilRegistry
 	}
 	handler, ok := r.handlers[msg.Type]
 	if !ok {
 		return fmt.Errorf("messaging: no handler registered for type %q", msg.Type)
+	}
+	if handler == nil {
+		return ErrNilHandler
 	}
 	return handler.Handle(ctx, msg)
 }

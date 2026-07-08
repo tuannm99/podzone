@@ -52,6 +52,13 @@ func TestRegistryRejectsUnknownMessages(t *testing.T) {
 	require.Contains(t, err.Error(), "no handler registered")
 }
 
+func TestRegistryRejectsNilReceiver(t *testing.T) {
+	var registry *Registry
+
+	err := registry.Handle(context.Background(), Envelope{Type: "tenant.created"})
+	require.ErrorIs(t, err, ErrNilRegistry)
+}
+
 func TestRegistryPropagatesHandlerError(t *testing.T) {
 	expectedErr := errors.New("boom")
 	handler := &stubTypedHandler{messageType: "tenant.created", err: expectedErr}
