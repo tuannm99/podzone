@@ -2,74 +2,14 @@ import { For, Show, createEffect, createMemo, createSignal } from 'solid-js'
 import { Badge, Button, Card, InputField, SelectField, TextareaField } from '@/solid/components/common/Primitives'
 import { Tabs } from '@/solid/components/common/Tabs'
 import { IamPermissionMatrix, type IamPermissionOption, type IamPermissionSelection } from './IamPermissionMatrix'
-
-type Condition = {
-    operator: string
-    key: string
-    value: string
-}
-
-type Statement = {
-    effect: string
-    actionPattern: string
-    resourcePattern: string
-    conditions?: Condition[]
-}
-
-const effectOptions = [
-    { name: 'Allow', value: 'allow' },
-    { name: 'Deny', value: 'deny' },
-]
-
-const conditionOperatorOptions = [
-    { name: 'StringEquals', value: 'StringEquals' },
-    { name: 'StringLike', value: 'StringLike' },
-    { name: 'StringNotEquals', value: 'StringNotEquals' },
-    { name: 'StringNotLike', value: 'StringNotLike' },
-    { name: 'Bool', value: 'Bool' },
-    { name: 'NumericEquals', value: 'NumericEquals' },
-    { name: 'NumericGreaterThanEquals', value: 'NumericGreaterThanEquals' },
-    { name: 'NumericLessThanEquals', value: 'NumericLessThanEquals' },
-    { name: 'DateGreaterThan', value: 'DateGreaterThan' },
-    { name: 'DateLessThan', value: 'DateLessThan' },
-    { name: 'IpAddress', value: 'IpAddress' },
-    { name: 'Null', value: 'Null' },
-]
-
-function parseStatements(raw: string): Statement[] {
-    const parsed: unknown = JSON.parse(raw || '[]')
-    if (!Array.isArray(parsed)) {
-        throw new Error('Statements JSON must be an array')
-    }
-
-    return parsed.map((item) => {
-        const current = item as Partial<Statement> | null
-        if (!current || typeof current !== 'object') {
-            throw new Error('Each statement must be an object')
-        }
-        return {
-            effect: typeof current.effect === 'string' ? current.effect : 'allow',
-            actionPattern: typeof current.actionPattern === 'string' ? current.actionPattern : '',
-            resourcePattern: typeof current.resourcePattern === 'string' ? current.resourcePattern : '*',
-            conditions: Array.isArray(current.conditions)
-                ? current.conditions
-                      .map((condition: unknown) => {
-                          const value = condition as Partial<Condition> | null
-                          return {
-                              operator: typeof value?.operator === 'string' ? value.operator : 'StringEquals',
-                              key: typeof value?.key === 'string' ? value.key : '',
-                              value: typeof value?.value === 'string' ? value.value : '',
-                          }
-                      })
-                      .filter((condition: Condition) => condition.key.trim() !== '')
-                : [],
-        }
-    })
-}
-
-function serializeStatements(items: Statement[]) {
-    return JSON.stringify(items, null, 2)
-}
+import {
+    conditionOperatorOptions,
+    effectOptions,
+    parseStatements,
+    serializeStatements,
+    type IamCondition,
+    type IamStatement,
+} from './iam-statement-model'
 
 export function IamStatementBuilder(props: {
     label: string
@@ -87,7 +27,7 @@ export function IamStatementBuilder(props: {
         }
     }
     const [mode, setMode] = createSignal<Mode>(props.actionOptions?.length ? 'matrix' : 'builder')
-    const [statements, setStatements] = createSignal<Statement[]>(initialStatements())
+    const [statements, setStatements] = createSignal<IamStatement[]>(initialStatements())
     const [parseError, setParseError] = createSignal('')
 
     createEffect(() => {
@@ -123,12 +63,12 @@ export function IamStatementBuilder(props: {
         }
     }
 
-    const commit = (next: Statement[]) => {
+    const commit = (next: IamStatement[]) => {
         setStatements(next)
         props.onChange(serializeStatements(next))
     }
 
-    const updateStatement = (index: number, patch: Partial<Statement>) => {
+    const updateStatement = (index: number, patch: Partial<IamStatement>) => {
         const next = statements().map((item, currentIndex) => (currentIndex === index ? { ...item, ...patch } : item))
         commit(next)
     }
@@ -176,7 +116,7 @@ export function IamStatementBuilder(props: {
         })
     }
 
-    const updateCondition = (statementIndex: number, conditionIndex: number, patch: Partial<Condition>) => {
+    const updateCondition = (statementIndex: number, conditionIndex: number, patch: Partial<IamCondition>) => {
         const current = statements()[statementIndex]
         const nextConditions = (current.conditions || []).map((item, currentIndex) =>
             currentIndex === conditionIndex ? { ...item, ...patch } : item
