@@ -1,5 +1,6 @@
 import { For } from 'solid-js'
 import { classes } from '../../shared/utils'
+import { Link } from './Link'
 
 export type BreadcrumbItem = {
     label: string
@@ -19,12 +20,12 @@ export function Breadcrumbs(props: { items: BreadcrumbItem[]; class?: string }) 
                             <>
                                 <li class="flex items-center gap-2">
                                     {item.href && !current() ? (
-                                        <a
+                                        <Link
                                             href={item.href}
                                             class="font-medium text-gray-600 transition hover:text-gray-950"
                                         >
                                             {item.label}
-                                        </a>
+                                        </Link>
                                     ) : (
                                         <span
                                             class={classes(

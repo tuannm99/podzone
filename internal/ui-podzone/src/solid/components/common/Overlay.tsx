@@ -1,4 +1,5 @@
-import { For, Show, createEffect, createSignal, onCleanup, type JSX, type ParentProps } from 'solid-js'
+import { For, Show, createEffect, createSignal, createUniqueId, onCleanup, type JSX, type ParentProps } from 'solid-js'
+import { useFocusTrap } from '../../shared/useFocusTrap'
 import { classes } from '../../shared/utils'
 
 type OverlayPosition = 'top' | 'right' | 'bottom' | 'left'
@@ -165,6 +166,10 @@ export function Modal(
         onClose?: () => void
     }>
 ) {
+    const headingId = createUniqueId()
+    const [panelEl, setPanelEl] = createSignal<HTMLElement | undefined>()
+    useFocusTrap(panelEl)
+
     return (
         <Show when={props.open}>
             <div
@@ -176,15 +181,24 @@ export function Modal(
                 }}
             >
                 <div
+                    ref={setPanelEl}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby={props.title ? headingId : undefined}
                     class={classes(
                         'w-full rounded-lg border border-gray-200 bg-white p-5 shadow-xl',
                         modalSizeClasses[props.size ?? 'md'],
                         props.class
                     )}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Escape') props.onClose?.()
+                    }}
                 >
                     <div class="flex items-start justify-between gap-4">
                         <Show when={props.title}>
-                            <h2 class="text-xl font-semibold tracking-tight text-gray-900">{props.title}</h2>
+                            <h2 id={headingId} class="text-xl font-semibold tracking-tight text-gray-900">
+                                {props.title}
+                            </h2>
                         </Show>
                         <Show when={props.onClose}>
                             <button
@@ -223,6 +237,10 @@ export function Drawer(
         onClose?: () => void
     }>
 ) {
+    const headingId = createUniqueId()
+    const [panelEl, setPanelEl] = createSignal<HTMLElement | undefined>()
+    useFocusTrap(panelEl)
+
     return (
         <Show when={props.open}>
             <div
@@ -234,16 +252,25 @@ export function Drawer(
                 }}
             >
                 <aside
+                    ref={setPanelEl}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby={props.title ? headingId : undefined}
                     class={classes(
                         'absolute top-0 h-full w-full max-w-md overflow-y-auto border-gray-200 bg-white p-6 shadow-xl',
                         drawerSideClasses[props.side ?? 'right'],
                         props.side === 'left' ? 'border-r' : 'border-l',
                         props.class
                     )}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Escape') props.onClose?.()
+                    }}
                 >
                     <div class="flex items-start justify-between gap-4">
                         <Show when={props.title}>
-                            <h2 class="text-lg font-semibold text-gray-900">{props.title}</h2>
+                            <h2 id={headingId} class="text-lg font-semibold text-gray-900">
+                                {props.title}
+                            </h2>
                         </Show>
                         <Show when={props.onClose}>
                             <button

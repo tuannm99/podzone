@@ -1,7 +1,7 @@
-import { For, Show, createEffect, createMemo, createSignal } from 'solid-js'
-import type { RoleTrustStatement } from '../../../services/iam'
-import { Tabs } from './Tabs'
-import { Badge, Button, Card, InputField, SelectField, TextareaField } from './Primitives'
+import { For, Show, createMemo, createSignal } from 'solid-js'
+import type { RoleTrustStatement } from '@/services/iam'
+import { Badge, Button, Card, InputField, SelectField, TextareaField } from '@/solid/components/common/Primitives'
+import { Tabs } from '@/solid/components/common/Tabs'
 
 const effectOptions = [
     { name: 'Allow', value: 'allow' },
@@ -39,12 +39,6 @@ export function IamTrustPolicyBuilder(props: { label: string; value: string; onC
     const [mode, setMode] = createSignal<'builder' | 'json'>('builder')
     const [statements, setStatements] = createSignal<RoleTrustStatement[]>(normalizeTrustStatements(props.value))
     const [parseError, setParseError] = createSignal('')
-
-    createEffect(() => {
-        const next = normalizeTrustStatements(props.value)
-        setStatements(next)
-        setParseError('')
-    })
 
     const count = createMemo(() => statements().length)
 

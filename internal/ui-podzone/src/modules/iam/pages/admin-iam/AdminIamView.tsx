@@ -1,4 +1,5 @@
-import { Show, createEffect, createSignal, onMount } from 'solid-js'
+import { useNavigate, useSearch } from '@tanstack/solid-router'
+import { Show } from 'solid-js'
 import type { AdminIamViewModel } from './createAdminIamViewModel'
 import { EmptyBlock, ErrorAlert, InfoAlert, LoadingInline } from '@/solid/components/common/Feedback'
 import { PageShell } from '@/solid/components/common/PageShell'
@@ -29,24 +30,16 @@ export function AdminIamView(props: { model: AdminIamViewModel }) {
                 section.id === 'iam-assignments'
         )
     }
-    const [activeSection, setActiveSection] = createSignal<IamSectionID>('iam-orgs')
-
-    const selectSection = (section: IamSectionID) => {
-        setActiveSection(section)
-        window.history.replaceState(null, '', `#${section}`)
+    const navigate = useNavigate()
+    const search = useSearch({ from: '/admin/iam' })
+    const activeSection = (): IamSectionID => {
+        const s = search().section
+        return sections().some((sec) => sec.id === s) ? (s as IamSectionID) : 'iam-orgs'
     }
 
-    onMount(() => {
-        const hash = window.location.hash.slice(1)
-        const selected = sections().find((section) => section.id === hash)
-        if (selected) setActiveSection(selected.id)
-    })
-
-    createEffect(() => {
-        if (!sections().some((section) => section.id === activeSection())) {
-            setActiveSection('iam-orgs')
-        }
-    })
+    const selectSection = (section: IamSectionID) => {
+        void navigate({ to: '/admin/iam', search: (prev) => ({ ...prev, section }) })
+    }
 
     return (
         <PageShell>

@@ -1,5 +1,6 @@
 import { For, Show, createEffect, createSignal, onCleanup, type JSX } from 'solid-js'
 import { classes } from '../../shared/utils'
+import { Link } from './Link'
 
 export type MegaMenuLink = {
     label: string
@@ -80,8 +81,8 @@ export function MegaMenu(props: { brand?: JSX.Element; items: MegaMenuItem[]; ac
                                     </span>
                                 </button>
                             ) : (
-                                <a
-                                    href={item.href}
+                                <Link
+                                    href={item.href ?? ''}
                                     class={classes(
                                         'inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition',
                                         item.active
@@ -90,7 +91,7 @@ export function MegaMenu(props: { brand?: JSX.Element; items: MegaMenuItem[]; ac
                                     )}
                                 >
                                     {item.label}
-                                </a>
+                                </Link>
                             )
                         }
                     </For>
@@ -112,7 +113,7 @@ export function MegaMenu(props: { brand?: JSX.Element; items: MegaMenuItem[]; ac
                                 <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                                     <For each={section.links}>
                                         {(link) => (
-                                            <a
+                                            <Link
                                                 href={link.href}
                                                 class="rounded-lg border border-gray-200 px-4 py-3 transition hover:border-gray-300 hover:bg-gray-50"
                                                 onClick={() => setOpenIndex(null)}
@@ -130,7 +131,7 @@ export function MegaMenu(props: { brand?: JSX.Element; items: MegaMenuItem[]; ac
                                                         </Show>
                                                     </div>
                                                 </div>
-                                            </a>
+                                            </Link>
                                         )}
                                     </For>
                                 </div>

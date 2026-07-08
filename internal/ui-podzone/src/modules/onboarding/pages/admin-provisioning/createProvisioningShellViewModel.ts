@@ -1,3 +1,4 @@
+import { useNavigate, useSearch } from '@tanstack/solid-router'
 import { createEffect, createResource, createSignal } from 'solid-js'
 import { ensureActiveTenant } from '@/services/auth'
 import { listUserTenants, type TenantMembership } from '@/services/iam'
@@ -12,9 +13,13 @@ function currentUserID() {
 }
 
 export function createProvisioningShellViewModel() {
-    const hashTab = window.location.hash.slice(1) as ProvisioningTab
+    const navigate = useNavigate()
+    const search = useSearch({ from: '/admin/provisioning' })
     const validTabs = new Set<ProvisioningTab>(['pipeline', 'resources', 'connections'])
-    const [activeTab, setActiveTabSignal] = createSignal<ProvisioningTab>(validTabs.has(hashTab) ? hashTab : 'pipeline')
+    const activeTab = (): ProvisioningTab => {
+        const tab = search().tab
+        return validTabs.has(tab as ProvisioningTab) ? (tab as ProvisioningTab) : 'pipeline'
+    }
     const [selectedTenantId, setSelectedTenantId] = createSignal('')
     const [memberships] = createResource(
         () => currentUserID() || undefined,
@@ -45,8 +50,10 @@ export function createProvisioningShellViewModel() {
     })
 
     const setActiveTab = (tab: ProvisioningTab) => {
-        setActiveTabSignal(tab)
-        window.history.replaceState(null, '', `${window.location.pathname}#${tab}`)
+        const current = search()
+        void navigate({ to: '/admin/provisioning', search: { ...current, tab } } as unknown as Parameters<
+            typeof navigate
+        >[0])
     }
     const workspaceReady = () => Boolean(selectedTenantId()) && tenantSession.latest === selectedTenantId().trim()
     const error = () => {

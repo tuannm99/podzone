@@ -1,47 +1,11 @@
-import { Link, useNavigate } from '@tanstack/solid-router'
-import { createSignal } from 'solid-js'
-import { register } from '@/services/auth'
+import { Link } from '@tanstack/solid-router'
 import { Button, Card, InputField } from '@/solid/components/common/Primitives'
 import { ErrorAlert } from '@/solid/components/common/Feedback'
 import { SectionLead } from '@/solid/components/common/SectionLead'
+import { createRegisterViewModel } from './createRegisterViewModel'
 
 export default function RegisterPage() {
-    const navigate = useNavigate()
-    const [username, setUsername] = createSignal('')
-    const [email, setEmail] = createSignal('')
-    const [password, setPassword] = createSignal('')
-    const [confirmPassword, setConfirmPassword] = createSignal('')
-    const [error, setError] = createSignal('')
-    const [loading, setLoading] = createSignal(false)
-
-    const submit = async (event: SubmitEvent) => {
-        event.preventDefault()
-
-        if (password() !== confirmPassword()) {
-            setError('The passwords do not match.')
-            return
-        }
-
-        setLoading(true)
-        setError('')
-
-        try {
-            const { success, data } = await register({
-                username: username().trim(),
-                email: email().trim(),
-                password: password(),
-            })
-
-            if (!success) {
-                setError(data?.message || 'Account setup failed')
-                return
-            }
-
-            void navigate({ to: '/admin', replace: true })
-        } finally {
-            setLoading(false)
-        }
-    }
+    const vm = createRegisterViewModel()
 
     return (
         <div class="mx-auto flex min-h-[calc(100vh-3rem)] max-w-6xl items-center px-4 py-10 sm:px-6 lg:px-8">
@@ -63,41 +27,48 @@ export default function RegisterPage() {
                         <p class="text-sm text-gray-500">Set up your account to create stores and manage your team.</p>
                     </div>
 
-                    <form class="space-y-4" onSubmit={submit}>
+                    <form class="space-y-4" onSubmit={vm.submit}>
                         <InputField
                             label="Username"
-                            value={username()}
+                            value={vm.form.values.username}
                             placeholder="store_owner"
-                            onInput={(event) => setUsername(event.currentTarget.value)}
+                            onInput={(event) => vm.form.setValue('username', event.currentTarget.value)}
                         />
                         <InputField
                             label="Email"
                             type="email"
-                            value={email()}
+                            value={vm.form.values.email}
                             placeholder="owner@store.com"
-                            onInput={(event) => setEmail(event.currentTarget.value)}
+                            onInput={(event) => vm.form.setValue('email', event.currentTarget.value)}
                         />
                         <InputField
                             label="Password"
                             type="password"
-                            value={password()}
+                            value={vm.form.values.password}
                             placeholder="Create a password"
-                            onInput={(event) => setPassword(event.currentTarget.value)}
+                            onInput={(event) => vm.form.setValue('password', event.currentTarget.value)}
                         />
                         <InputField
                             label="Confirm password"
                             type="password"
-                            value={confirmPassword()}
+                            value={vm.form.values.confirmPassword}
                             placeholder="Repeat the password"
-                            onInput={(event) => setConfirmPassword(event.currentTarget.value)}
+                            error={vm.form.hasError('confirmPassword')}
+                            errorText={vm.form.error('confirmPassword')}
+                            onInput={(event) => vm.form.setValue('confirmPassword', event.currentTarget.value)}
                         />
 
-                        {error() ? <ErrorAlert>{error()}</ErrorAlert> : null}
+                        {vm.error() ? <ErrorAlert>{vm.error()}</ErrorAlert> : null}
 
                         <Button
                             type="submit"
-                            loading={loading()}
-                            disabled={!username().trim() || !email().trim() || !password() || !confirmPassword()}
+                            loading={vm.form.isSubmitting()}
+                            disabled={
+                                !vm.form.values.username.trim() ||
+                                !vm.form.values.email.trim() ||
+                                !vm.form.values.password ||
+                                !vm.form.values.confirmPassword
+                            }
                         >
                             Create account
                         </Button>

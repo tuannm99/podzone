@@ -1,5 +1,4 @@
 import { Show, createEffect, on } from 'solid-js'
-import { tokenStorage } from '@/services/tokenStorage'
 import { ErrorAlert, InfoAlert } from '@/solid/components/common/Feedback'
 import { Button, Card } from '@/solid/components/common/Primitives'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'
@@ -82,9 +81,9 @@ export function InvitesPanel() {
                     <Button
                         type="button"
                         color="light"
-                        disabled={!tokenStorage.getUser()?.email}
+                        disabled={!invites.currentUserEmail()}
                         onClick={() => {
-                            const emailAddress = tokenStorage.getUser()?.email || ''
+                            const emailAddress = invites.currentUserEmail()
                             inviteForm.setValue('email', emailAddress)
                             invites.setEmail(emailAddress)
                         }}

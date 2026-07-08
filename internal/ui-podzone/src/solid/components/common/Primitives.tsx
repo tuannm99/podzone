@@ -1,11 +1,13 @@
-import { For, Show, splitProps, type JSX, type ParentProps } from 'solid-js'
+import { For, Show, createUniqueId, splitProps, type JSX, type ParentProps } from 'solid-js'
 import { classes } from '../../shared/utils'
+import { Link } from './Link'
 
-type ButtonColor = 'blue' | 'alternative' | 'light' | 'dark' | 'green' | 'red'
+type ButtonColor = 'primary' | 'blue' | 'alternative' | 'light' | 'dark' | 'green' | 'red'
 type ButtonSize = 'xs' | 'sm' | 'md'
 type BadgeColor = 'blue' | 'indigo' | 'green' | 'yellow' | 'pink' | 'dark' | 'red'
 
 const buttonColorClasses: Record<ButtonColor, string> = {
+    primary: 'bg-gray-950 text-white hover:bg-gray-800 focus:ring-gray-300',
     blue: 'bg-gray-950 text-white hover:bg-gray-800 focus:ring-gray-300',
     alternative: 'border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 focus:ring-gray-200',
     light: 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 focus:ring-gray-200',
@@ -104,7 +106,7 @@ export function Button(props: ButtonProps) {
     const className = () =>
         classes(
             'inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium focus:outline-none focus:ring-2 disabled:pointer-events-none disabled:opacity-60',
-            buttonColorClasses[local.color ?? 'blue'],
+            buttonColorClasses[local.color ?? 'primary'],
             buttonSizeClasses[local.size ?? 'md'],
             local.pill ? 'rounded-full' : 'rounded-md',
             local.class
@@ -120,20 +122,19 @@ export function Button(props: ButtonProps) {
     )
 
     return local.href ? (
-        <a
+        <Link
             href={local.href}
             target={local.target}
             class={className()}
             aria-disabled={local.disabled || local.loading}
             onClick={
                 local.disabled || local.loading
-                    ? (event) => event.preventDefault()
+                    ? (event: MouseEvent) => event.preventDefault()
                     : (local.onClick as JSX.EventHandlerUnion<HTMLAnchorElement, MouseEvent>)
             }
-            {...rest}
         >
             {content}
-        </a>
+        </Link>
     ) : (
         <button
             type={local.type ?? 'button'}
@@ -147,18 +148,21 @@ export function Button(props: ButtonProps) {
     )
 }
 
-export function FieldLabel(props: ParentProps<{ label: string }>) {
+export function FieldLabel(props: ParentProps<{ label: string; for?: string; class?: string }>) {
     return (
-        <label class="space-y-2">
-            <span class="block text-xs font-semibold uppercase text-gray-500">{props.label}</span>
+        <div class={classes('space-y-1.5', props.class)}>
+            <label for={props.for} class="block text-xs font-semibold uppercase text-gray-500">
+                {props.label}
+            </label>
             {props.children}
-        </label>
+        </div>
     )
 }
 
 export type InputFieldProps = {
     label: string
     value: string
+    id?: string
     type?: string
     placeholder?: string
     disabled?: boolean
@@ -168,18 +172,25 @@ export type InputFieldProps = {
 }
 
 export function InputField(props: InputFieldProps) {
+    const uid = props.id ?? createUniqueId()
+    const errorId = () => (props.errorText ? `${uid}-error` : undefined)
     return (
-        <FieldLabel label={props.label}>
+        <FieldLabel label={props.label} for={uid}>
             <input
+                id={uid}
                 class={fieldBaseClasses(props.error)}
                 type={props.type ?? 'text'}
                 value={props.value}
                 placeholder={props.placeholder}
                 disabled={props.disabled}
+                aria-invalid={props.error || undefined}
+                aria-describedby={errorId()}
                 onInput={props.onInput}
             />
             <Show when={props.errorText}>
-                <span class="block text-xs font-medium text-red-600">{props.errorText}</span>
+                <span id={errorId()} class="block text-xs font-medium text-red-600">
+                    {props.errorText}
+                </span>
             </Show>
         </FieldLabel>
     )
@@ -193,22 +204,34 @@ export type SelectOption = {
 export type SelectFieldProps = {
     label: string
     value: string
+    id?: string
     options: SelectOption[]
+    disabled?: boolean
     error?: boolean
     errorText?: string
     onChange: JSX.EventHandlerUnion<HTMLSelectElement, Event>
 }
 
 export function SelectField(props: SelectFieldProps) {
+    const uid = props.id ?? createUniqueId()
+    const errorId = () => (props.errorText ? `${uid}-error` : undefined)
     return (
-        <FieldLabel label={props.label}>
-            <select class={fieldBaseClasses(props.error)} value={props.value} onChange={props.onChange}>
-                {props.options.map((option) => (
-                    <option value={option.value}>{option.name}</option>
-                ))}
+        <FieldLabel label={props.label} for={uid}>
+            <select
+                id={uid}
+                class={fieldBaseClasses(props.error)}
+                value={props.value}
+                disabled={props.disabled}
+                aria-invalid={props.error || undefined}
+                aria-describedby={errorId()}
+                onChange={props.onChange}
+            >
+                <For each={props.options}>{(option) => <option value={option.value}>{option.name}</option>}</For>
             </select>
             <Show when={props.errorText}>
-                <span class="block text-xs font-medium text-red-600">{props.errorText}</span>
+                <span id={errorId()} class="block text-xs font-medium text-red-600">
+                    {props.errorText}
+                </span>
             </Show>
         </FieldLabel>
     )
@@ -217,6 +240,7 @@ export function SelectField(props: SelectFieldProps) {
 export type TextareaFieldProps = {
     label: string
     value: string
+    id?: string
     rows?: number
     error?: boolean
     errorText?: string
@@ -224,16 +248,23 @@ export type TextareaFieldProps = {
 }
 
 export function TextareaField(props: TextareaFieldProps) {
+    const uid = props.id ?? createUniqueId()
+    const errorId = () => (props.errorText ? `${uid}-error` : undefined)
     return (
-        <FieldLabel label={props.label}>
+        <FieldLabel label={props.label} for={uid}>
             <textarea
+                id={uid}
                 class={classes(fieldBaseClasses(props.error), 'h-auto py-2.5')}
                 rows={props.rows ?? 6}
                 value={props.value}
+                aria-invalid={props.error || undefined}
+                aria-describedby={errorId()}
                 onInput={props.onInput}
             />
             <Show when={props.errorText}>
-                <span class="block text-xs font-medium text-red-600">{props.errorText}</span>
+                <span id={errorId()} class="block text-xs font-medium text-red-600">
+                    {props.errorText}
+                </span>
             </Show>
         </FieldLabel>
     )
@@ -319,7 +350,8 @@ export type RadioGroupFieldProps = {
 
 export function RadioGroupField(props: RadioGroupFieldProps) {
     return (
-        <FieldLabel label={props.label}>
+        <fieldset class="space-y-1.5">
+            <legend class="block text-xs font-semibold uppercase text-gray-500">{props.label}</legend>
             <div class="space-y-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
                 <For each={props.options}>
                     {(option) => (
@@ -342,7 +374,7 @@ export function RadioGroupField(props: RadioGroupFieldProps) {
                     )}
                 </For>
             </div>
-        </FieldLabel>
+        </fieldset>
     )
 }
 

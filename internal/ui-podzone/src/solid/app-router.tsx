@@ -85,6 +85,9 @@ const adminSettingsRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/admin/settings',
     beforeLoad: requireAuth,
+    validateSearch: (search: Record<string, unknown>) => ({
+        tab: search.tab as string | undefined,
+    }),
     component: lazyRouteComponent(onboardingRouteComponents.adminSettings),
 })
 
@@ -92,6 +95,9 @@ const adminProvisioningRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/admin/provisioning',
     beforeLoad: requireAuth,
+    validateSearch: (search: Record<string, unknown>) => ({
+        tab: search.tab as string | undefined,
+    }),
     component: lazyRouteComponent(onboardingRouteComponents.adminProvisioning),
 })
 
@@ -99,6 +105,9 @@ const adminIamRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/admin/iam',
     beforeLoad: requireAuth,
+    validateSearch: (search: Record<string, unknown>) => ({
+        section: search.section as string | undefined,
+    }),
     component: lazyRouteComponent(iamRouteComponents.adminIam),
 })
 

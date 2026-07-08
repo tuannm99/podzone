@@ -111,8 +111,11 @@ export function TenantOrdersPageView() {
         },
     })
 
+    let candidatesRequestVersion = 0
     const loadCandidates = async () => {
+        const currentRequest = ++candidatesRequestVersion
         const result = await getProductSetupSnapshot()
+        if (currentRequest !== candidatesRequestVersion) return
         if (!result.success) {
             setError(result.message)
             setAvailableCandidates([])
@@ -128,8 +131,11 @@ export function TenantOrdersPageView() {
         }
     }
 
+    let ordersRequestVersion = 0
     async function loadOrders() {
+        const currentRequest = ++ordersRequestVersion
         const result = await getRoutedOrders()
+        if (currentRequest !== ordersRequestVersion) return
         if (!result.success) {
             setError(result.message)
             setOrders([])
@@ -188,7 +194,9 @@ export function TenantOrdersPageView() {
         setQueuePageInfo(result.data.pageInfo)
     }
 
+    let recommendationRequestVersion = 0
     const loadRoutingRecommendation = async () => {
+        const currentRequest = ++recommendationRequestVersion
         const candidateID = orderForm.values.selectedCandidateId.trim()
         if (!candidateID) {
             setRoutingRecommendation(null)
@@ -200,6 +208,7 @@ export function TenantOrdersPageView() {
             shipRegion: orderForm.values.selectedShipRegion,
             preferredPartner: orderForm.values.preferredPartner.trim() || undefined,
         })
+        if (currentRequest !== recommendationRequestVersion) return
         if (!result.success) {
             setError(result.message)
             setRoutingRecommendation(null)

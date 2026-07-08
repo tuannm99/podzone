@@ -1,5 +1,6 @@
 import { For, Show, type JSX, type ParentProps } from 'solid-js'
 import { classes } from '../../shared/utils'
+import { Link } from './Link'
 
 export type NavItem = {
     label: string
@@ -29,9 +30,9 @@ function NavAction(props: { item: NavItem; class?: string; activeClass?: string 
     )
 
     return props.item.href ? (
-        <a href={props.item.href} class={className()}>
+        <Link href={props.item.href} class={className()}>
             {content}
-        </a>
+        </Link>
     ) : (
         <button type="button" class={className()} onClick={() => props.item.onClick?.()}>
             {content}
@@ -175,12 +176,12 @@ export function SpeedDial(props: { items: SpeedDialItem[]; class?: string }) {
             <For each={props.items}>
                 {(item) =>
                     item.href ? (
-                        <a
+                        <Link
                             href={item.href}
                             class="rounded-full bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-lg ring-1 ring-gray-200 transition hover:bg-gray-50"
                         >
                             {item.label}
-                        </a>
+                        </Link>
                     ) : (
                         <button
                             type="button"

@@ -1,38 +1,12 @@
-import { Link, useNavigate } from '@tanstack/solid-router'
-import { createSignal } from 'solid-js'
-import { login, loginGG } from '@/services/auth'
+import { Link } from '@tanstack/solid-router'
+import { loginGG } from '@/services/auth'
 import { Card, Button, InputField } from '@/solid/components/common/Primitives'
 import { ErrorAlert } from '@/solid/components/common/Feedback'
 import { SectionLead } from '@/solid/components/common/SectionLead'
+import { createLoginViewModel } from './createLoginViewModel'
 
 export default function LoginPage() {
-    const navigate = useNavigate()
-    const [username, setUsername] = createSignal('')
-    const [password, setPassword] = createSignal('')
-    const [error, setError] = createSignal('')
-    const [loading, setLoading] = createSignal(false)
-
-    const submit = async (event: SubmitEvent) => {
-        event.preventDefault()
-        setLoading(true)
-        setError('')
-
-        try {
-            const { success, data } = await login({
-                username: username().trim(),
-                password: password(),
-            })
-
-            if (!success) {
-                setError(data?.message || 'Sign-in failed')
-                return
-            }
-
-            void navigate({ to: '/admin', replace: true })
-        } finally {
-            setLoading(false)
-        }
-    }
+    const vm = createLoginViewModel()
 
     return (
         <div class="mx-auto flex min-h-[calc(100vh-2rem)] max-w-5xl items-center px-4 py-8 sm:px-5 lg:px-6">
@@ -72,25 +46,29 @@ export default function LoginPage() {
                         <p class="text-sm text-gray-500">Use your account to open the seller backoffice.</p>
                     </div>
 
-                    <form class="space-y-4" onSubmit={submit}>
+                    <form class="space-y-4" onSubmit={vm.submit}>
                         <InputField
                             label="Username or email"
-                            value={username()}
+                            value={vm.form.values.username}
                             placeholder="owner@store.com"
-                            onInput={(event) => setUsername(event.currentTarget.value)}
+                            onInput={(event) => vm.form.setValue('username', event.currentTarget.value)}
                         />
                         <InputField
                             label="Password"
                             type="password"
-                            value={password()}
+                            value={vm.form.values.password}
                             placeholder="Enter your password"
-                            onInput={(event) => setPassword(event.currentTarget.value)}
+                            onInput={(event) => vm.form.setValue('password', event.currentTarget.value)}
                         />
 
-                        {error() ? <ErrorAlert>{error()}</ErrorAlert> : null}
+                        {vm.error() ? <ErrorAlert>{vm.error()}</ErrorAlert> : null}
 
                         <div class="flex flex-col gap-3">
-                            <Button type="submit" loading={loading()} disabled={!username().trim() || !password()}>
+                            <Button
+                                type="submit"
+                                loading={vm.form.isSubmitting()}
+                                disabled={!vm.form.values.username.trim() || !vm.form.values.password}
+                            >
                                 Continue
                             </Button>
                             <Button href={loginGG()} color="alternative">

@@ -13,3 +13,7 @@ export function formatDate(value: string | undefined) {
     if (Number.isNaN(date.getTime())) return '—'
     return date.toLocaleDateString()
 }
+
+export function isExternalUrl(url: string): boolean {
+    return /^https?:\/\//i.test(url)
+}

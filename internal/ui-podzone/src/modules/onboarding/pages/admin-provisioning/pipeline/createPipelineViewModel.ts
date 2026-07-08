@@ -40,7 +40,9 @@ export function createPipelineViewModel(tenantId: Accessor<string>, enabled: Acc
     )
 
     createEffect(() => {
+        if (requests.loading()) return
         const items = requests.items()
+        if (items.length === 0) return
         if (items.some((request) => request.id === selectedRequestId())) return
         setSelectedRequestId(items[0]?.id || '')
     })

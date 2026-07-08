@@ -1,3 +1,4 @@
+import { useNavigate, useSearch } from '@tanstack/solid-router'
 import { createSignal } from 'solid-js'
 import { tenantStorage } from '@/services/tenantStorage'
 import { tokenStorage } from '@/services/tokenStorage'
@@ -12,18 +13,15 @@ import { createTeamAccessViewModel } from './admin-settings/team-access/createTe
 import { createWorkspaceAccessViewModel } from './admin-settings/team-access/createWorkspaceAccessViewModel'
 
 export function createAdminSettingsViewModel(): AdminSettingsViewModel {
+    const navigate = useNavigate()
+    const search = useSearch({ from: '/admin/settings' })
     const validTabs = new Set<AdminSettingsTab>(['overview', 'sessions', 'team', 'invites', 'audit', 'platform'])
-    const hashTab = window.location.hash.slice(1) as AdminSettingsTab
-    const [activeTab, setActiveTabSignal] = createSignal<AdminSettingsTab>(
-        validTabs.has(hashTab) ? hashTab : 'overview'
-    )
+    const activeTab = (): AdminSettingsTab => {
+        const tab = search().tab
+        return validTabs.has(tab as AdminSettingsTab) ? (tab as AdminSettingsTab) : 'overview'
+    }
     const setActiveTab = (tab: AdminSettingsTab) => {
-        setActiveTabSignal(tab)
-        window.history.replaceState(
-            window.history.state,
-            '',
-            `${window.location.pathname}${window.location.search}#${tab}`
-        )
+        void navigate({ to: '/admin/settings', search: (prev) => ({ ...prev, tab }) })
     }
     const userID = parseUserID(tokenStorage.getUser()?.id)
     const [routeTenantID, setRouteTenantID] = createSignal(tenantStorage.getTenantID())

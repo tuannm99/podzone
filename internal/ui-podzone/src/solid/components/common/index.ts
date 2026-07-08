@@ -1,4 +1,5 @@
 export * from './AppShell'
+export * from './Link'
 export * from './Breadcrumbs'
 export * from './Carousel'
 export * from './CodeBlock'

@@ -83,13 +83,18 @@ export function createTeamAccessViewModel(userID: number, access: WorkspaceAcces
         }
         setMutationError('')
         setMessage('')
-        const result = await removeTenantMember(tenantID, memberUserID)
-        if (!result.success) {
-            setMutationError(result.message)
-            return
+        setSaving(true)
+        try {
+            const result = await removeTenantMember(tenantID, memberUserID)
+            if (!result.success) {
+                setMutationError(result.message)
+                return
+            }
+            setMessage(`Removed user ${memberUserID} from workspace ${tenantID}.`)
+            await reload(tenantID)
+        } finally {
+            setSaving(false)
         }
-        setMessage(`Removed user ${memberUserID} from workspace ${tenantID}.`)
-        await reload(tenantID)
     }
 
     return {

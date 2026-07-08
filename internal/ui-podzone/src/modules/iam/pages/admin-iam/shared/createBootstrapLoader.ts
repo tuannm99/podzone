@@ -10,20 +10,28 @@ export function createBootstrapLoader(state: AdminIamState, userID: number) {
         state.setPageError('')
         state.setAllowed(true)
 
-        const tenantResult = await listUserTenants(userID)
-        if (currentRequest !== requestID) return
+        try {
+            const tenantResult = await listUserTenants(userID)
+            if (currentRequest !== requestID) return
 
-        if (!tenantResult.success) {
-            state.setPageError(tenantResult.message)
-        } else {
-            state.setMemberships(tenantResult.data)
-            const firstTenantID = tenantResult.data[0]?.tenantId
-            if (!state.orgTenantId() && firstTenantID) state.setOrgTenantId(firstTenantID)
-            if (!state.groupTenantId() && firstTenantID) state.setGroupTenantId(firstTenantID)
-            if (!state.simTenantId() && firstTenantID) state.setSimTenantId(firstTenantID)
-            if (!state.principalTenantId() && firstTenantID) state.setPrincipalTenantId(firstTenantID)
-            if (!state.shortcutTenantId() && firstTenantID) state.setShortcutTenantId(firstTenantID)
+            if (!tenantResult.success) {
+                state.setPageError(tenantResult.message)
+            } else {
+                state.setMemberships(tenantResult.data)
+                const firstTenantID = tenantResult.data[0]?.tenantId
+                if (!state.orgTenantId() && firstTenantID) state.setOrgTenantId(firstTenantID)
+                if (!state.groupTenantId() && firstTenantID) state.setGroupTenantId(firstTenantID)
+                if (!state.simTenantId() && firstTenantID) state.setSimTenantId(firstTenantID)
+                if (!state.principalTenantId() && firstTenantID) state.setPrincipalTenantId(firstTenantID)
+                if (!state.shortcutTenantId() && firstTenantID) state.setShortcutTenantId(firstTenantID)
+            }
+        } catch (error) {
+            if (currentRequest !== requestID) return
+            state.setPageError(error instanceof Error ? error.message : 'Failed to load')
+        } finally {
+            if (currentRequest === requestID) {
+                state.setLoading(false)
+            }
         }
-        state.setLoading(false)
     }
 }

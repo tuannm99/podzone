@@ -53,28 +53,31 @@ export function useOrderActions(params: OrderActionsParams) {
 
         params.setError('')
         params.orderForm.setSubmitting(true)
-        const result = await createRoutedOrder({
-            candidateId: candidate.id,
-            customerName: params.orderForm.values.customerName.trim(),
-            quantity: Number.parseInt(params.orderForm.values.quantity, 10),
-            productType: params.orderForm.values.selectedProductType,
-            shipRegion: params.orderForm.values.selectedShipRegion,
-            preferredPartner: params.effectivePreferredPartner() || undefined,
-        })
-        params.orderForm.setSubmitting(false)
-        if (!result.success) {
-            params.setError(result.message)
-            return
+        try {
+            const result = await createRoutedOrder({
+                candidateId: candidate.id,
+                customerName: params.orderForm.values.customerName.trim(),
+                quantity: Number.parseInt(params.orderForm.values.quantity, 10),
+                productType: params.orderForm.values.selectedProductType,
+                shipRegion: params.orderForm.values.selectedShipRegion,
+                preferredPartner: params.effectivePreferredPartner() || undefined,
+            })
+            if (!result.success) {
+                params.setError(result.message)
+                return
+            }
+            params.setOrders((current) => [result.data, ...current])
+            params.orderForm.reset({
+                selectedCandidateId: candidate.id,
+                selectedProductType: params.orderForm.values.selectedProductType,
+                selectedShipRegion: params.orderForm.values.selectedShipRegion,
+                selectedExceptionType: params.orderForm.values.selectedExceptionType,
+            })
+            params.setMessage(`Created routed order ${result.data.id}.`)
+            await params.onChanged()
+        } finally {
+            params.orderForm.setSubmitting(false)
         }
-        params.setOrders((current) => [result.data, ...current])
-        params.orderForm.reset({
-            selectedCandidateId: candidate.id,
-            selectedProductType: params.orderForm.values.selectedProductType,
-            selectedShipRegion: params.orderForm.values.selectedShipRegion,
-            selectedExceptionType: params.orderForm.values.selectedExceptionType,
-        })
-        params.setMessage(`Created routed order ${result.data.id}.`)
-        await params.onChanged()
     }
 
     const advanceOrder = async (orderId: string) => {

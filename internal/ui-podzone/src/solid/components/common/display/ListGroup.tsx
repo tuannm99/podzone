@@ -1,5 +1,6 @@
 import { For, Show, type JSX } from 'solid-js'
 import { classes } from '../../../shared/utils'
+import { Link } from '../Link'
 
 export type ListGroupItem = {
     label: string
@@ -41,9 +42,9 @@ export function ListGroup(props: { items: ListGroupItem[]; class?: string }) {
                     )
 
                     return item.href ? (
-                        <a href={item.href} class={itemClass}>
+                        <Link href={item.href} class={itemClass}>
                             {content}
-                        </a>
+                        </Link>
                     ) : item.onClick ? (
                         <button type="button" class={itemClass} onClick={item.onClick}>
                             {content}

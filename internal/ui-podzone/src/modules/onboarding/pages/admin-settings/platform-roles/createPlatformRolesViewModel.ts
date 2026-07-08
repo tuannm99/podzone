@@ -75,13 +75,18 @@ export function createPlatformRolesViewModel(userID: number, enabled: Accessor<b
     const remove = async (memberUserID: number, targetRoleName: string) => {
         setMutationError('')
         setMessage('')
-        const result = await removePlatformRole(memberUserID, targetRoleName)
-        if (!result.success) {
-            setMutationError(result.message)
-            return
+        setSaving(true)
+        try {
+            const result = await removePlatformRole(memberUserID, targetRoleName)
+            if (!result.success) {
+                setMutationError(result.message)
+                return
+            }
+            setMessage(`Removed platform admin role ${targetRoleName} from user ${memberUserID}.`)
+            await roles.reload()
+        } finally {
+            setSaving(false)
         }
-        setMessage(`Removed platform admin role ${targetRoleName} from user ${memberUserID}.`)
-        await roles.reload()
     }
 
     return {
