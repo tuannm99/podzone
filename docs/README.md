@@ -1,0 +1,72 @@
+# Podzone Documentation Index
+
+This folder is the canonical engineering documentation for Podzone. Do not use
+parallel draft folders as source of truth. Agents and humans should start here
+and follow the links below.
+
+## Canonical Flow
+
+```text
+00 Project vision
+  -> 01 SRS
+  -> 02 Architecture overall
+  -> 03 Architecture detail design
+  -> 04 Sprint slice
+  -> 05 Agent task/process
+  -> 06 Recovery evidence
+```
+
+Coding starts only after the target work links back to this chain.
+
+## Start Here
+
+0. [Project Vision](./00-project-vision/README.md)
+   Product vision, actors, business flows, domain map, and BA requirements.
+1. [SRS](./01-srs/README.md)
+   System requirements, MVP backbone, and traceability matrix.
+2. [Architecture Overall](./02-architecture-overall/README.md)
+   C4, system context, containers, data ownership, and runtime sequences.
+3. [Architecture Detail Design](./03-architecture-detail-design/README.md)
+   Module design, transport contracts, IAM, DDD, frontend, deployment, and OpenAPI.
+4. [Sprints](./04-sprints/README.md)
+   Small delivery slices that agents can implement.
+5. [Process](./05-process/README.md)
+   SDLC rules, spec-first vertical slices, task templates, and review checklist.
+6. [Recovery](./06-recovery/README.md)
+   Current stabilization plan for the unstable agent-expanded codebase.
+7. [Problems](./07-problems/)
+   Dated issue notes and recovery evidence.
+
+## Current Recovery Target
+
+The first flow to stabilize is:
+
+```text
+sign in
+  -> choose workspace
+  -> request or select store
+  -> onboarding placement resolves
+  -> open store-scoped Backoffice
+  -> call one protected business API
+```
+
+Primary docs:
+
+- [SRS baseline](./01-srs/podzone-srs.md)
+- [Traceability matrix](./01-srs/traceability-matrix.md)
+- [Recovery plan](./06-recovery/recovery-plan.md)
+- [Backbone flow refactor](./06-recovery/backbone-flow-refactor.md)
+- [C4 architecture](./02-architecture-overall/c4.md)
+- [Sprint 0](./04-sprints/sprint-00-foundation.md)
+
+## Agent Rule
+
+An agent task is not ready unless it names:
+
+- SRS requirement ID;
+- requirement or recovery doc;
+- architecture/C4 doc when relevant;
+- API/DB contract when relevant;
+- sprint slice or explicit task file;
+- allowed files or module boundaries;
+- acceptance criteria and verification command.

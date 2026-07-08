@@ -1,4 +1,6 @@
-# Podzone Requirements
+# 00 Project Vision And Requirements
+
+Parent index: [Podzone Documentation Index](../README.md).
 
 ## Purpose
 
@@ -45,6 +47,9 @@ The goal is not to restate implementation details. The goal is to clarify:
 
 These requirements are written from a Business Analyst perspective.
 
+For implementation planning, start from [SRS](../01-srs/podzone-srs.md), then use
+these files to understand actors, business rules, and product gaps.
+
 They intentionally distinguish between:
 
 - `Current system`
@@ -74,3 +79,10 @@ At a product level, Podzone should be framed as:
 `A multi-tenant commerce operations platform for store owners and their teams, with POD-first workflows across product setup, partner coordination, order handling, fulfillment visibility, and settlement readiness.`
 
 That framing is stronger than the current UI language, which still reads more like an internal IAM or infrastructure console.
+
+## Links Back To Delivery
+
+- [SRS baseline](../01-srs/podzone-srs.md)
+- [Traceability matrix](../01-srs/traceability-matrix.md)
+- [Recovery plan](../06-recovery/recovery-plan.md)
+- [Sprint 0](../04-sprints/sprint-00-foundation.md)

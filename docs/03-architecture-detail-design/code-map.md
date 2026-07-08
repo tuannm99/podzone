@@ -9,7 +9,7 @@ flowchart TB
     Pkg["pkg/*"]
     Proto["api/proto/*"]
     UI["internal/ui-podzone"]
-    Docs["docs/architecture"]
+    Docs["docs/02-architecture-overall"]
     Deploy["deployments/docker"]
 
     Cmd --> Internal
@@ -75,4 +75,4 @@ flowchart LR
 - `internal/*` contains service-owned code and adapters.
 - `pkg/*` contains reusable platform/runtime packages.
 - `api/proto/*` is the source of gRPC/gateway contracts.
-- `docs/architecture/*` is the current architecture description set.
+- `docs/02-architecture-overall` and `docs/03-architecture-detail-design` are the current architecture description set.
