@@ -1,4 +1,5 @@
-import { createRoute, lazyRouteComponent, type AnyRoute } from '@tanstack/solid-router'
+import { createRoute, type AnyRoute } from '@tanstack/solid-router'
+import { remotePage } from '@/solid/remotePage'
 
 type Guards = {
     requireAuth: () => void
@@ -12,9 +13,10 @@ export function createRouteTree<TParent extends AnyRoute>(parent: TParent, guard
         validateSearch: (search: Record<string, unknown>) => ({
             section: search.section as string | undefined,
         }),
-        component: lazyRouteComponent(
+        component: remotePage(
             // __MFE_IAM__ replaced at build time; dead branch is tree-shaken.
-            __MFE_IAM__ ? () => import('iam/AdminIamPage') : () => import('@iam/pages/AdminIamPage')
+            __MFE_IAM__ ? () => import('iam/AdminIamPage') : () => import('./pages/AdminIamPage'),
+            'iam',
         ),
     })
 
