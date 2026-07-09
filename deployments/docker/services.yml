@@ -12,10 +12,23 @@ x-go-dev-common: &go-dev-common
     GOMODCACHE: /go/pkg/mod
     GOCACHE: /root/.cache/go-build
 
+# Profiles
+# --------
+# backoffice  — auth + iam + partner + catalog + backoffice-service + backoffice-remote + shell
+# iam         — auth + iam + iam-remote + shell
+# onboarding  — auth + iam + onboarding-service + onboarding-remote + shell
+# full        — everything
+#
+# Usage:
+#   docker compose -f infras.yml -f services.yml --profile backoffice up
+#   docker compose -f infras.yml -f services.yml --profile iam up
+#   docker compose -f infras.yml -f services.yml --profile full up
+
 services:
   auth-service:
     <<: *go-dev-common
     container_name: podzone-auth-dev
+    profiles: [backoffice, iam, onboarding, full]
     command: ['sh', 'deployments/docker/run-go-service.sh']
     environment:
       GO_SERVICE: auth
@@ -38,6 +51,7 @@ services:
   auth-worker:
     <<: *go-dev-common
     container_name: podzone-auth-worker-dev
+    profiles: [backoffice, iam, onboarding, full]
     command: ['sh', 'deployments/docker/run-go-service.sh']
     environment:
       GO_SERVICE: auth-worker
@@ -55,6 +69,7 @@ services:
   iam-service:
     <<: *go-dev-common
     container_name: podzone-iam-dev
+    profiles: [backoffice, iam, onboarding, full]
     command: ['sh', 'deployments/docker/run-go-service.sh']
     environment:
       GO_SERVICE: iam
@@ -76,6 +91,7 @@ services:
   iam-worker:
     <<: *go-dev-common
     container_name: podzone-iam-worker-dev
+    profiles: [backoffice, iam, onboarding, full]
     command: ['sh', 'deployments/docker/run-go-service.sh']
     environment:
       GO_SERVICE: iam-worker
@@ -95,6 +111,7 @@ services:
   catalog-service:
     <<: *go-dev-common
     container_name: podzone-catalog-dev
+    profiles: [backoffice, full]
     command: ['sh', 'deployments/docker/run-go-service.sh']
     environment:
       GO_SERVICE: catalog
@@ -112,6 +129,7 @@ services:
   partner-service:
     <<: *go-dev-common
     container_name: podzone-partner-dev
+    profiles: [backoffice, full]
     command: ['sh', 'deployments/docker/run-go-service.sh']
     environment:
       GO_SERVICE: partner
@@ -135,6 +153,7 @@ services:
   onboarding-service:
     <<: *go-dev-common
     container_name: podzone-onboarding-dev
+    profiles: [onboarding, full]
     command: ['sh', 'deployments/docker/run-go-service.sh']
     environment:
       GO_SERVICE: onboarding
@@ -159,6 +178,7 @@ services:
   backoffice-service:
     <<: *go-dev-common
     container_name: podzone-backoffice-dev
+    profiles: [backoffice, full]
     command: ['sh', 'deployments/docker/run-go-service.sh']
     environment:
       GO_SERVICE: backoffice
@@ -195,6 +215,7 @@ services:
   dev-bootstrap:
     <<: *go-dev-common
     container_name: podzone-dev-bootstrap
+    profiles: [backoffice, iam, onboarding, full]
     command: ['sh', '/workspace/scripts/dev/bootstrap_dev_stack.sh']
     environment:
       TENANT_ID: ${TENANT_ID:-tenant-dev}
@@ -224,8 +245,6 @@ services:
         condition: service_healthy
       pgbouncer:
         condition: service_healthy
-      onboarding-service:
-        condition: service_started
       auth-service:
         condition: service_started
       auth-worker:
@@ -234,14 +253,20 @@ services:
         condition: service_started
       iam-worker:
         condition: service_started
+      onboarding-service:
+        condition: service_started
+        required: false
       partner-service:
         condition: service_started
+        required: false
       backoffice-service:
         condition: service_started
+        required: false
 
   grpc-gateway:
     <<: *go-dev-common
     container_name: podzone-grpcgateway-dev
+    profiles: [backoffice, iam, onboarding, full]
     command: ['sh', 'deployments/docker/run-go-service.sh']
     environment:
       GO_SERVICE: grpcgateway
@@ -263,8 +288,10 @@ services:
         condition: service_started
       catalog-service:
         condition: service_started
+        required: false
       partner-service:
         condition: service_started
+        required: false
       redis:
         condition: service_healthy
     ports:
@@ -275,6 +302,7 @@ services:
       context: ../..
       dockerfile: deployments/docker/Dockerfile.backoffice-dev
     container_name: podzone-backoffice-remote-dev
+    profiles: [backoffice, full]
     working_dir: /app
     command: ['npm', 'run', 'serve:backoffice']
     volumes:
@@ -288,6 +316,7 @@ services:
       context: ../..
       dockerfile: deployments/docker/Dockerfile.backoffice-dev
     container_name: podzone-iam-remote-dev
+    profiles: [iam, full]
     working_dir: /app
     command: ['npm', 'run', 'serve:iam']
     volumes:
@@ -301,6 +330,7 @@ services:
       context: ../..
       dockerfile: deployments/docker/Dockerfile.backoffice-dev
     container_name: podzone-onboarding-remote-dev
+    profiles: [onboarding, full]
     working_dir: /app
     command: ['npm', 'run', 'serve:onboarding']
     volumes:
@@ -314,6 +344,7 @@ services:
       context: ../..
       dockerfile: deployments/docker/Dockerfile.ui-dev
     container_name: podzone-ui-dev
+    profiles: [backoffice, iam, onboarding, full]
     working_dir: /app
     command: ['npm', 'run', 'dev', '--', '--host', '0.0.0.0', '--port', '3000']
     environment:
@@ -329,22 +360,27 @@ services:
     depends_on:
       grpc-gateway:
         condition: service_started
-      backoffice-service:
-        condition: service_started
-      backoffice-remote:
-        condition: service_started
-      iam-remote:
-        condition: service_started
-      onboarding-remote:
-        condition: service_started
       dev-bootstrap:
         condition: service_started
+      backoffice-service:
+        condition: service_started
+        required: false
+      backoffice-remote:
+        condition: service_started
+        required: false
+      iam-remote:
+        condition: service_started
+        required: false
+      onboarding-remote:
+        condition: service_started
+        required: false
     ports:
       - '3000:3000'
 
   apisix-init:
     image: curlimages/curl:8.12.1
     container_name: podzone-apisix-init
+    profiles: [backoffice, iam, onboarding, full]
     command: ['sh', '/seed/seed.sh']
     volumes:
       - ./apisix-init/seed.sh:/seed/seed.sh:ro
@@ -358,12 +394,16 @@ services:
         condition: service_started
       backoffice-service:
         condition: service_started
+        required: false
       backoffice-remote:
         condition: service_started
+        required: false
       iam-remote:
         condition: service_started
+        required: false
       onboarding-remote:
         condition: service_started
+        required: false
       frontend:
         condition: service_started
 
