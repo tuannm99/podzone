@@ -166,7 +166,7 @@ export function TenantOrderAuditView() {
                     <Button
                         type="button"
                         size="xs"
-                        color="blue"
+                        color="primary"
                         onClick={() => {
                             void copyFeed()
                         }}

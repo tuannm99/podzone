@@ -27,7 +27,6 @@ function normalizeTrustStatements(raw: string): RoleTrustStatement[] {
     }
 }
 
-
 function serializeTrustStatements(items: RoleTrustStatement[]) {
     return JSON.stringify(items, null, 2)
 }

@@ -96,7 +96,7 @@ export function OrdersQueueTable(props: OrdersQueueTableProps) {
                                 <TableCell class="text-right">
                                     <Button
                                         size="xs"
-                                        color={props.detailOrderID() === order.id ? 'blue' : 'alternative'}
+                                        color={props.detailOrderID() === order.id ? 'primary' : 'alternative'}
                                         onClick={() => props.setDetailOrderID(order.id)}
                                     >
                                         {props.detailOrderID() === order.id ? 'Open' : 'Inspect'}

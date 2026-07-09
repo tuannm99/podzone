@@ -101,7 +101,7 @@ export function TenantProductSetupView() {
                                                 <Button
                                                     type="button"
                                                     size="xs"
-                                                    color="blue"
+                                                    color="primary"
                                                     loading={setup.promotingDraftID() === draft.id}
                                                     onClick={() => {
                                                         void setup.promoteToCandidate(draft)

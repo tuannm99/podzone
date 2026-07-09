@@ -31,7 +31,7 @@ export function QueueToolbarPanel() {
                         <Button
                             type="button"
                             size="xs"
-                            color={board.activeQueueView() === 'all' ? 'blue' : 'alternative'}
+                            color={board.activeQueueView() === 'all' ? 'primary' : 'alternative'}
                             onClick={() => board.setActiveQueueView('all')}
                         >
                             All · {board.queueViewCount('all')}
@@ -39,7 +39,7 @@ export function QueueToolbarPanel() {
                         <Button
                             type="button"
                             size="xs"
-                            color={board.activeQueueView() === 'my_queue' ? 'blue' : 'alternative'}
+                            color={board.activeQueueView() === 'my_queue' ? 'primary' : 'alternative'}
                             onClick={() => board.setActiveQueueView('my_queue')}
                         >
                             My queue · {board.queueViewCount('my_queue')}

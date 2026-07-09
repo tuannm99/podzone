@@ -90,7 +90,7 @@ export function Header(props: HeaderProps) {
                     <Button
                         type="button"
                         size="xs"
-                        color="blue"
+                        color="primary"
                         onClick={() => props.actions.updateExceptionStatus(props.order.id, 'escalated')}
                     >
                         Escalate

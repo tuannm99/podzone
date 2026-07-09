@@ -107,7 +107,7 @@ export function TenantHomeSections(props: TenantHomeSectionsProps) {
                         title="Confirm who prints and fulfills"
                         copy="Keep partner records current before shaping products or routing test orders."
                         href={tenantHref('/partners')}
-                        color="blue"
+                        color="primary"
                         action="Review print partners"
                     />
                     <StartCard
@@ -166,7 +166,7 @@ export function TenantHomeSections(props: TenantHomeSectionsProps) {
                     >
                         Finance review
                     </Button>
-                    <Button href={ordersHref('all', 'priority')} color="blue">
+                    <Button href={ordersHref('all', 'priority')} color="primary">
                         Priority queue
                     </Button>
                 </div>
@@ -178,7 +178,7 @@ export function TenantHomeSections(props: TenantHomeSectionsProps) {
                     <Button href={tenantHref('/products/setup')} color="green">
                         Open product setup
                     </Button>
-                    <Button href={tenantHref('/partners')} color="blue">
+                    <Button href={tenantHref('/partners')} color="primary">
                         Open print partners
                     </Button>
                     <Button href={tenantHref('/orders')} color="alternative">
@@ -195,7 +195,7 @@ type StartCardProps = {
     title: string
     copy: string
     href: string
-    color: 'blue' | 'green' | 'alternative'
+    color: 'primary' | 'green' | 'alternative'
     action: string
 }
 
@@ -268,7 +268,7 @@ function ActionShortcuts(props: TenantHomeSectionsProps & { tenantHref: (path: s
                 <Button href={props.tenantHref('/products/setup')} color="green">
                     {props.publishedCandidateCount() > 0 ? 'Refine product candidates' : 'Publish first mock product'}
                 </Button>
-                <Button href={props.tenantHref('/orders')} color="blue">
+                <Button href={props.tenantHref('/orders')} color="primary">
                     {props.openExceptionCount() > 0 ? 'Review active issues' : 'Review routing board'}
                 </Button>
                 <Button href={props.tenantHref('/orders/finance')} color="alternative">

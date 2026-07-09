@@ -49,7 +49,7 @@ export function QueueOwnershipPanel(props: QueueOwnershipPanelProps) {
                 <Button
                     type="button"
                     size="xs"
-                    color="blue"
+                    color="primary"
                     onClick={() => props.actions.saveQueueControl(props.order)}
                 >
                     Save queue control

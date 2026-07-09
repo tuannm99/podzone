@@ -47,7 +47,13 @@ export function IamKeyValueBuilder(props: {
     const [mode, setMode] = createSignal<'builder' | 'json'>('builder')
     const [entries, setEntries] = createSignal<KeyValueEntry[]>(normalizeEntries(props.value))
 
-    createEffect(on(() => props.value, (next) => setEntries(normalizeEntries(next)), { defer: true }))
+    createEffect(
+        on(
+            () => props.value,
+            (next) => setEntries(normalizeEntries(next)),
+            { defer: true }
+        )
+    )
 
     const count = createMemo(() => entries().filter((entry) => entry.key.trim()).length)
 

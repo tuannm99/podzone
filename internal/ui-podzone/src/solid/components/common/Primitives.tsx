@@ -2,13 +2,12 @@ import { For, Show, createUniqueId, splitProps, type JSX, type ParentProps } fro
 import { classes } from '../../shared/utils'
 import { Link } from './Link'
 
-type ButtonColor = 'primary' | 'blue' | 'alternative' | 'light' | 'dark' | 'green' | 'red'
+type ButtonColor = 'primary' | 'alternative' | 'light' | 'dark' | 'green' | 'red'
 type ButtonSize = 'xs' | 'sm' | 'md'
 type BadgeColor = 'blue' | 'indigo' | 'green' | 'yellow' | 'pink' | 'dark' | 'red'
 
 const buttonColorClasses: Record<ButtonColor, string> = {
     primary: 'bg-gray-950 text-white hover:bg-gray-800 focus:ring-gray-300',
-    blue: 'bg-gray-950 text-white hover:bg-gray-800 focus:ring-gray-300',
     alternative: 'border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 focus:ring-gray-200',
     light: 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 focus:ring-gray-200',
     dark: 'bg-gray-950 text-white hover:bg-gray-800 focus:ring-gray-300',

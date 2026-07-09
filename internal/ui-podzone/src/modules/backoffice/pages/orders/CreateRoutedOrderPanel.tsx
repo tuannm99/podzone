@@ -320,7 +320,7 @@ export function CreateRoutedOrderPanel() {
                         label="Default exception scenario"
                         options={exceptionOptions}
                     />
-                    <Button type="submit" color="blue" loading={composer.form.isSubmitting()}>
+                    <Button type="submit" color="primary" loading={composer.form.isSubmitting()}>
                         {composer.form.values.manualPartnerOverride
                             ? 'Create routed order with override'
                             : 'Create routed order via auto-route'}

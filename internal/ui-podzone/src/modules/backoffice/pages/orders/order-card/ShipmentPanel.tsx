@@ -68,7 +68,7 @@ export function ShipmentPanel(props: ShipmentPanelProps) {
                 />
             </div>
             <div class="mt-3 flex flex-wrap items-center gap-2">
-                <Button type="button" size="xs" color="blue" onClick={() => props.actions.saveShipment(props.order)}>
+                <Button type="button" size="xs" color="primary" onClick={() => props.actions.saveShipment(props.order)}>
                     Save shipment state
                 </Button>
                 <Show when={props.order.shipmentCarrier || props.order.shipmentTrackingNumber}>
