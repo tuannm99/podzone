@@ -1,9 +1,19 @@
 # Sprint 1: Frontend Architecture — MFE Readiness
 
-**Status:** planned  
+**Status:** complete  
 **Duration:** 2–3 sprints (tracked as sprint 1a / 1b / 1c below)  
 **Goal:** Make `frontend/` structurally ready for Module Federation extraction
 without breaking the current monolith build or the recovery backbone flow.
+
+**Completed:** All slices shipped across 8 commits:
+- 1a/1b/1c (AuthContext, cross-module decoupling, monorepo scaffold) → `33c8ac`
+- Sprint 2 (Module Federation infrastructure) → `7cfbe40`
+- Sprint 3 (backoffice remote + Docker service) → `0885de4`
+- Sprint 4 (move backoffice pages, fix remote build) → `aa05a79`
+- Sprint 5 (IAM + onboarding remotes) → `e59f60a`
+- Error boundary per remote (`remotePage`) → `60516c3`
+- Docker Compose profiles per bounded context → `ff9c949`
+- `packages/shared` source migration → `bf98ac8`
 
 Each sprint 1x is independently shippable. Stop after 1a or 1b if backbone
 stabilization takes priority again.
