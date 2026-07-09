@@ -9,7 +9,7 @@ import {
     type RoutedOrderRecommendation,
 } from '@/services/orders'
 import { getProductSetupSnapshot, type CatalogCandidate } from '@/services/productSetup'
-import { tenantStorage } from '@/services/tenantStorage'
+import { useAuthContext } from '@/modules/shell/auth-context'
 import { createFormStore, required } from '@/solid/forms'
 import { useTenantWorkspace } from '@/modules/shell/workspace/context'
 import type { QueueSort, QueueView, TenantOrdersBoardContextValue } from './board-context'
@@ -24,6 +24,7 @@ import { useOrderInsights } from './hooks/useOrderInsights'
 import { useOrderStorage } from './hooks/useOrderStorage'
 
 export function createTenantOrdersViewModel() {
+    const auth = useAuthContext()
     const params = useParams({ from: '/t/$tenantId/orders' })
     const search = useSearch({ from: '/t/$tenantId/orders' })
     const navigate = useNavigate()
@@ -299,7 +300,7 @@ export function createTenantOrdersViewModel() {
     }
 
     createEffect(() => {
-        tenantStorage.setTenantID(params().tenantId)
+        auth.setActiveTenantId(params().tenantId)
         if (!workspaceReady()) {
             return
         }

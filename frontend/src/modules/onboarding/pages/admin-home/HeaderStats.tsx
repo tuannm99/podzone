@@ -1,6 +1,5 @@
 import { Show } from 'solid-js'
-import { storeStorage } from '@/services/storeStorage'
-import { tokenStorage } from '@/services/tokenStorage'
+import { useAuthContext } from '@/modules/shell/auth-context'
 import { ErrorAlert, InfoAlert } from '@/solid/components/common/Feedback'
 import { Button, Card } from '@/solid/components/common/Primitives'
 import { SectionLead } from '@/solid/components/common/SectionLead'
@@ -9,6 +8,7 @@ import { useAdminHome } from './context'
 
 export function HeaderStats() {
     const vm = useAdminHome()
+    const auth = useAuthContext()
 
     return (
         <>
@@ -34,14 +34,14 @@ export function HeaderStats() {
             </Show>
 
             <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                <StatCard label="Session" value={tokenStorage.getToken() ? 'Active' : 'Missing'} />
+                <StatCard label="Session" value={auth.isAuthenticated() ? 'Active' : 'Missing'} />
                 <StatCard label="User" value={vm.user?.username || vm.user?.email || 'Unknown'} />
                 <StatCard label="My workspaces" value={`${vm.activeMemberships().length}/${vm.memberships().length}`} />
                 <StatCard
                     label="Current store"
                     value={
-                        tokenStorage.getActiveTenantID()
-                            ? storeStorage.getStoreID(tokenStorage.getActiveTenantID()) || 'Not selected'
+                        auth.getActiveTenantId()
+                            ? auth.getStoreId(auth.getActiveTenantId()) || 'Not selected'
                             : 'Not selected'
                     }
                 />

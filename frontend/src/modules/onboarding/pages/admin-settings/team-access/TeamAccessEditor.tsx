@@ -1,5 +1,5 @@
 import { Show, createEffect, on } from 'solid-js'
-import { tokenStorage } from '@/services/tokenStorage'
+import { useAuthContext } from '@/modules/shell/auth-context'
 import { ErrorAlert, InfoAlert } from '@/solid/components/common/Feedback'
 import { Button, Card } from '@/solid/components/common/Primitives'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'
@@ -10,6 +10,7 @@ import { roleOptions } from '../presentation'
 import { TeamMembersList } from './TeamMembersList'
 
 export function TeamAccessEditor() {
+    const auth = useAuthContext()
     const { teamAccess } = useAdminSettings()
     const { access } = teamAccess
     const memberForm = createFormStore<TeamMemberFormValues>({
@@ -93,8 +94,8 @@ export function TeamAccessEditor() {
                     <Button
                         type="button"
                         color="light"
-                        disabled={!tokenStorage.getUser()?.email}
-                        onClick={() => memberForm.setValue('identity', tokenStorage.getUser()?.email || '')}
+                        disabled={!auth.getUserEmail()}
+                        onClick={() => memberForm.setValue('identity', auth.getUserEmail())}
                     >
                         Use my email
                     </Button>

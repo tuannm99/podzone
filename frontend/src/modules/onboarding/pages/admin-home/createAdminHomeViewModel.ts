@@ -3,9 +3,7 @@ import { createEffect, createResource, createSignal, on, onCleanup } from 'solid
 import { ensureActiveTenant } from '@/services/auth'
 import { createTenant, listUserTenants, type TenantMembership } from '@/services/iam'
 import { createStoreRequest, retryStoreRequest } from '@/services/onboarding'
-import { storeStorage } from '@/services/storeStorage'
-import { tenantStorage } from '@/services/tenantStorage'
-import { tokenStorage } from '@/services/tokenStorage'
+import { useAuthContext } from '@/modules/shell/auth-context'
 import {
     buildOrdersHref,
     membershipStatusColor,
@@ -20,9 +18,10 @@ import { createStoreCollectionsViewModel } from './createStoreCollectionsViewMod
 import type { CreateStoreFormValues, CreateWorkspaceFormValues } from './forms'
 
 export function createAdminHomeViewModel() {
+    const auth = useAuthContext()
     const navigate = useNavigate()
-    const user = tokenStorage.getUser()
-    const userID = parseUserID(user?.id)
+    const userID = parseUserID(auth.getUserId())
+    const user = { email: auth.getUserEmail(), username: '' }
 
     const [tenantName, setTenantName] = createSignal('')
     const [tenantSlug, setTenantSlug] = createSignal('')
@@ -46,7 +45,7 @@ export function createAdminHomeViewModel() {
         }> => {
             const result = await listUserTenants(currentUserID)
             if (!result.success) throw new Error(result.message)
-            const workspaceData = await collectWorkspaceData(result.data)
+            const workspaceData = await collectWorkspaceData(result.data, auth)
             return {
                 memberships: result.data,
                 ...workspaceData,
@@ -135,8 +134,8 @@ export function createAdminHomeViewModel() {
                 return
             }
 
-            tenantStorage.setTenantID(normalizedTenantID)
-            storeStorage.setStoreID(normalizedTenantID, normalizedStoreID)
+            auth.setActiveTenantId(normalizedTenantID)
+            auth.setStoreId(normalizedTenantID, normalizedStoreID)
             void navigate({
                 to: '/t/$tenantId',
                 params: { tenantId: normalizedTenantID },
@@ -159,7 +158,7 @@ export function createAdminHomeViewModel() {
                 setTenantError(data.message || 'Failed to load workspace')
                 return
             }
-            tenantStorage.setTenantID(nextTenantID)
+            auth.setActiveTenantId(nextTenantID)
             setTenantMessage(`Loaded workspace ${nextTenantID}. Choose a store below.`)
             await loadMemberships()
         } finally {

@@ -1,3 +1,4 @@
+import { useAuthContext } from '@/modules/shell/auth-context'
 import { createEffect, createResource, createSignal, type Accessor } from 'solid-js'
 import {
     createProductSetupDraft,
@@ -7,7 +8,7 @@ import {
     type CatalogCandidate,
     type SetupDraft,
 } from '@/services/productSetup'
-import { tenantStorage } from '@/services/tenantStorage'
+
 import { createFormStore, required } from '@/solid/forms'
 import { moneyValue, productSetupInitialValues } from './forms'
 
@@ -17,6 +18,7 @@ interface ProductSetupViewModelOptions {
 }
 
 export function createProductSetupViewModel(options: ProductSetupViewModelOptions) {
+    const auth = useAuthContext()
     const form = createFormStore({
         initialValues: productSetupInitialValues,
         validators: {
@@ -124,7 +126,7 @@ export function createProductSetupViewModel(options: ProductSetupViewModelOption
     }
 
     createEffect(() => {
-        tenantStorage.setTenantID(options.tenantID())
+        auth.setActiveTenantId(options.tenantID())
     })
 
     createEffect(() => {

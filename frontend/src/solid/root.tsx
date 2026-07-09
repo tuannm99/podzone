@@ -1,10 +1,11 @@
 import { Outlet, useNavigate, useRouterState } from '@tanstack/solid-router'
 import { Match, Switch, createEffect, createMemo, on, onCleanup } from 'solid-js'
 import { AUTH_LOGIN_REQUIRED_EVENT } from '@/services/authNavigation'
+import { AuthContextProvider } from '@/modules/shell/AuthContextProvider'
+import { TenantWorkspaceProvider } from '@/modules/shell/workspace/context'
 import { AppShell, Container } from './components/common/AppShell'
 import { ScrollToTopButton } from './components/common/ScrollToTop'
 import { PodzoneNavbar } from './layout/PodzoneNavbar'
-import { TenantWorkspaceProvider } from '@/modules/shell/workspace/context'
 
 function parseTenantId(pathname: string) {
     const match = pathname.match(/^\/t\/([^/]+)/)
@@ -46,13 +47,26 @@ export default function Root() {
     })
 
     return (
-        <AppShell class="bg-gray-50">
-            <Switch fallback={<Outlet />}>
-                <Match when={isAuthRoute()}>
-                    <Outlet />
-                </Match>
-                <Match when={tenantId()}>
-                    <TenantWorkspaceProvider tenantId={tenantId()}>
+        <AuthContextProvider>
+            <AppShell class="bg-gray-50">
+                <Switch fallback={<Outlet />}>
+                    <Match when={isAuthRoute()}>
+                        <Outlet />
+                    </Match>
+                    <Match when={tenantId()}>
+                        <TenantWorkspaceProvider tenantId={tenantId()}>
+                            <PodzoneNavbar />
+                            <main class="pb-8 lg:pl-64">
+                                <Container class="mt-5" width="2xl">
+                                    <div class="grid min-h-0 grid-cols-1 gap-0 xl:grid-cols-[minmax(0,1fr)]">
+                                        <Outlet />
+                                    </div>
+                                </Container>
+                            </main>
+                            <ScrollToTopButton />
+                        </TenantWorkspaceProvider>
+                    </Match>
+                    <Match when={true}>
                         <PodzoneNavbar />
                         <main class="pb-8 lg:pl-64">
                             <Container class="mt-5" width="2xl">
@@ -62,20 +76,9 @@ export default function Root() {
                             </Container>
                         </main>
                         <ScrollToTopButton />
-                    </TenantWorkspaceProvider>
-                </Match>
-                <Match when={true}>
-                    <PodzoneNavbar />
-                    <main class="pb-8 lg:pl-64">
-                        <Container class="mt-5" width="2xl">
-                            <div class="grid min-h-0 grid-cols-1 gap-0 xl:grid-cols-[minmax(0,1fr)]">
-                                <Outlet />
-                            </div>
-                        </Container>
-                    </main>
-                    <ScrollToTopButton />
-                </Match>
-            </Switch>
-        </AppShell>
+                    </Match>
+                </Switch>
+            </AppShell>
+        </AuthContextProvider>
     )
 }

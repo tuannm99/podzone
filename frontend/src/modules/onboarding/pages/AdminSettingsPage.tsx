@@ -1,7 +1,6 @@
 import { useNavigate, useSearch } from '@tanstack/solid-router'
 import { createSignal } from 'solid-js'
-import { tenantStorage } from '@/services/tenantStorage'
-import { tokenStorage } from '@/services/tokenStorage'
+import { useAuthContext } from '@/modules/shell/auth-context'
 import { AdminSettingsView } from './admin-settings/AdminSettingsView'
 import { createAuditViewModel } from './admin-settings/audit/createAuditViewModel'
 import { AdminSettingsContext, type AdminSettingsTab, type AdminSettingsViewModel } from './admin-settings/context'
@@ -13,6 +12,7 @@ import { createTeamAccessViewModel } from './admin-settings/team-access/createTe
 import { createWorkspaceAccessViewModel } from './admin-settings/team-access/createWorkspaceAccessViewModel'
 
 export function createAdminSettingsViewModel(): AdminSettingsViewModel {
+    const auth = useAuthContext()
     const navigate = useNavigate()
     const search = useSearch({ from: '/admin/settings' })
     const validTabs = new Set<AdminSettingsTab>(['overview', 'sessions', 'team', 'invites', 'audit', 'platform'])
@@ -23,13 +23,13 @@ export function createAdminSettingsViewModel(): AdminSettingsViewModel {
     const setActiveTab = (tab: AdminSettingsTab) => {
         void navigate({ to: '/admin/settings', search: (prev) => ({ ...prev, tab }) })
     }
-    const userID = parseUserID(tokenStorage.getUser()?.id)
-    const [routeTenantID, setRouteTenantID] = createSignal(tenantStorage.getTenantID())
+    const userID = parseUserID(auth.getUserId())
+    const [routeTenantID, setRouteTenantID] = createSignal(auth.getLastKnownTenantId())
     const user = {
         userID,
-        hasToken: () => Boolean(tokenStorage.getToken()),
-        activeTenantID: () => tokenStorage.getActiveTenantID(),
-        sessionID: () => tokenStorage.getSessionID(),
+        hasToken: () => auth.isAuthenticated(),
+        activeTenantID: () => auth.getActiveTenantId(),
+        sessionID: () => auth.getSessionId(),
         routeTenantID,
         setRouteTenantID,
     }

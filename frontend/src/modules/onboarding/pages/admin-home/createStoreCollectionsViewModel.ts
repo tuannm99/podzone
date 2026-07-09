@@ -2,13 +2,14 @@ import { createResource, type Accessor } from 'solid-js'
 import { ensureActiveTenant } from '@/services/auth'
 import { listStoreRequests } from '@/services/onboarding'
 import { listStores } from '@/services/store'
-import { tenantStorage } from '@/services/tenantStorage'
+import { useAuthContext } from '@/modules/shell/auth-context'
 import { createPaginatedResource } from '@/solid/pagination'
 
 export function createStoreCollectionsViewModel(
     selectedWorkspaceID: Accessor<string>,
     loadingWorkspaces: Accessor<boolean>
 ) {
+    const auth = useAuthContext()
     const [workspaceSession] = createResource(
         () => {
             const workspaceID = selectedWorkspaceID().trim()
@@ -19,7 +20,7 @@ export function createStoreCollectionsViewModel(
             if (!switched.success) {
                 throw new Error(switched.data.message || 'Failed to load workspace')
             }
-            tenantStorage.setTenantID(workspaceID)
+            auth.setActiveTenantId(workspaceID)
             return workspaceID
         }
     )

@@ -1,6 +1,7 @@
+import { useAuthContext } from '@/modules/shell/auth-context'
 import { createEffect, createResource, createSignal, on, type Accessor } from 'solid-js'
 import { getRoutedOrderActivities, type RoutedOrderActivityFeedEntry } from '@/services/orders'
-import { tenantStorage } from '@/services/tenantStorage'
+
 import { formatFeedSummary, resolveSinceIso, type ActivityFilter, type TimeWindow } from './presentation'
 
 interface OrderAuditViewModelOptions {
@@ -11,6 +12,7 @@ interface OrderAuditViewModelOptions {
 }
 
 export function createOrderAuditViewModel(options: OrderAuditViewModelOptions) {
+    const auth = useAuthContext()
     const [entries, setEntries] = createSignal<RoutedOrderActivityFeedEntry[]>([])
     const [nextCursor, setNextCursor] = createSignal<string>()
     const [total, setTotal] = createSignal(0)
@@ -123,7 +125,7 @@ export function createOrderAuditViewModel(options: OrderAuditViewModelOptions) {
     }
 
     createEffect(() => {
-        tenantStorage.setTenantID(options.tenantID())
+        auth.setActiveTenantId(options.tenantID())
     })
 
     createEffect(() => {

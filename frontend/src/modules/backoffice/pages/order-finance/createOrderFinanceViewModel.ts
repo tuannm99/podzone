@@ -1,6 +1,7 @@
+import { useAuthContext } from '@/modules/shell/auth-context'
 import { createEffect, createResource, createSignal, type Accessor } from 'solid-js'
 import { getRoutedOrders, type RoutedOrder } from '@/services/orders'
-import { tenantStorage } from '@/services/tenantStorage'
+
 import {
     anomalyFlagsFor,
     formatMoney,
@@ -17,6 +18,7 @@ interface OrderFinanceViewModelOptions {
 }
 
 export function createOrderFinanceViewModel(options: OrderFinanceViewModelOptions) {
+    const auth = useAuthContext()
     const [message, setMessage] = createSignal('')
     const [error, setError] = createSignal('')
     const [ordersResource, { refetch: reload }] = createResource(
@@ -108,7 +110,7 @@ export function createOrderFinanceViewModel(options: OrderFinanceViewModelOption
     }
 
     createEffect(() => {
-        tenantStorage.setTenantID(options.tenantID())
+        auth.setActiveTenantId(options.tenantID())
     })
 
     return {

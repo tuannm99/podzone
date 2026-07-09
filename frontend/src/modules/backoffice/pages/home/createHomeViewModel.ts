@@ -1,8 +1,7 @@
 import { createEffect, createResource, createSignal, type Accessor } from 'solid-js'
 import { getRoutedOrders } from '@/services/orders'
 import { getProductSetupSnapshot } from '@/services/productSetup'
-import { tenantStorage } from '@/services/tenantStorage'
-import { tokenStorage } from '@/services/tokenStorage'
+import { useAuthContext } from '@/modules/shell/auth-context'
 import { formatMoney, isOverdue, parseMoney } from './presentation'
 
 interface HomeViewModelOptions {
@@ -11,6 +10,7 @@ interface HomeViewModelOptions {
 }
 
 export function createHomeViewModel(options: HomeViewModelOptions) {
+    const auth = useAuthContext()
     const [tenantReady, setTenantReady] = createSignal(false)
     const [activeTenantId, setActiveTenantId] = createSignal('')
     const [draftCount, setDraftCount] = createSignal(0)
@@ -107,8 +107,8 @@ export function createHomeViewModel(options: HomeViewModelOptions) {
 
     createEffect(() => {
         const tenantID = options.tenantID()
-        tenantStorage.setTenantID(tenantID)
-        const activeId = tokenStorage.getActiveTenantID() || ''
+        auth.setActiveTenantId(tenantID)
+        const activeId = auth.getActiveTenantId() || ''
         setActiveTenantId(activeId)
         setTenantReady(activeId === tenantID)
     })

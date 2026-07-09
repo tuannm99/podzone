@@ -2,17 +2,17 @@ import { useNavigate, useSearch } from '@tanstack/solid-router'
 import { createEffect, createResource, createSignal } from 'solid-js'
 import { ensureActiveTenant } from '@/services/auth'
 import { listUserTenants, type TenantMembership } from '@/services/iam'
-import { tenantStorage } from '@/services/tenantStorage'
-import { tokenStorage } from '@/services/tokenStorage'
+
+import { useAuthContext } from '@/modules/shell/auth-context'
 
 export type ProvisioningTab = 'pipeline' | 'resources' | 'connections'
 
-function currentUserID() {
-    const value = Number(tokenStorage.getUser()?.id)
-    return Number.isSafeInteger(value) && value > 0 ? value : 0
+function resolvedUserID(id: number) {
+    return Number.isSafeInteger(id) && id > 0 ? id : 0
 }
 
 export function createProvisioningShellViewModel() {
+    const auth = useAuthContext()
     const navigate = useNavigate()
     const search = useSearch({ from: '/admin/provisioning' })
     const validTabs = new Set<ProvisioningTab>(['pipeline', 'resources', 'connections'])
@@ -22,7 +22,7 @@ export function createProvisioningShellViewModel() {
     }
     const [selectedTenantId, setSelectedTenantId] = createSignal('')
     const [memberships] = createResource(
-        () => currentUserID() || undefined,
+        () => resolvedUserID(auth.getUserId()) || undefined,
         async (userId): Promise<TenantMembership[]> => {
             const result = await listUserTenants(userId)
             if (!result.success) throw new Error(result.message)
@@ -36,7 +36,7 @@ export function createProvisioningShellViewModel() {
             if (!result.success) {
                 throw new Error(result.data.message || 'Failed to activate workspace')
             }
-            tenantStorage.setTenantID(tenantId)
+            auth.setActiveTenantId(tenantId)
             return tenantId
         }
     )
@@ -44,7 +44,7 @@ export function createProvisioningShellViewModel() {
     createEffect(() => {
         if (selectedTenantId()) return
         const preferred =
-            memberships()?.find((membership) => membership.tenantId === tokenStorage.getActiveTenantID()) ||
+            memberships()?.find((membership) => membership.tenantId === auth.getActiveTenantId()) ||
             memberships()?.[0]
         if (preferred) setSelectedTenantId(preferred.tenantId)
     })

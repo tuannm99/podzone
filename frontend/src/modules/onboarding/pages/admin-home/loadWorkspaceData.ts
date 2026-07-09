@@ -2,12 +2,13 @@ import { ensureActiveTenant } from '@/services/auth'
 import type { TenantMembership } from '@/services/iam'
 import { getRoutedOrders } from '@/services/orders'
 import { listAllStores } from '@/services/store'
-import { storeStorage } from '@/services/storeStorage'
-import { tenantStorage } from '@/services/tenantStorage'
-import { tokenStorage } from '@/services/tokenStorage'
+import type { AuthContext } from '@/modules/shell/auth-context'
 import { isOverdue, type StoreAttention, type WorkspaceSummary } from './presentation'
 
-export async function collectWorkspaceData(memberships: TenantMembership[]): Promise<{
+export async function collectWorkspaceData(
+    memberships: TenantMembership[],
+    auth: AuthContext
+): Promise<{
     summaries: WorkspaceSummary[]
     attention: StoreAttention[]
 }> {
@@ -16,8 +17,8 @@ export async function collectWorkspaceData(memberships: TenantMembership[]): Pro
         return { summaries: [], attention: [] }
     }
 
-    const originalTenantID = tokenStorage.getActiveTenantID()
-    const originalStoreID = originalTenantID ? storeStorage.getStoreID(originalTenantID) : ''
+    const originalTenantID = auth.getActiveTenantId()
+    const originalStoreID = originalTenantID ? auth.getStoreId(originalTenantID) : ''
     const previousStoreByTenant = new Map<string, string>()
     const summaries: WorkspaceSummary[] = []
     const attention: StoreAttention[] = []
@@ -40,9 +41,9 @@ export async function collectWorkspaceData(memberships: TenantMembership[]): Pro
 
             for (const store of stores) {
                 if (!previousStoreByTenant.has(membership.tenantId)) {
-                    previousStoreByTenant.set(membership.tenantId, storeStorage.getStoreID(membership.tenantId))
+                    previousStoreByTenant.set(membership.tenantId, auth.getStoreId(membership.tenantId))
                 }
-                storeStorage.setStoreID(membership.tenantId, store.id)
+                auth.setStoreId(membership.tenantId, store.id)
                 const ordersResult = await getRoutedOrders()
                 if (!ordersResult.success) continue
 
@@ -71,16 +72,16 @@ export async function collectWorkspaceData(memberships: TenantMembership[]): Pro
         }
     } finally {
         previousStoreByTenant.forEach((storeID, tenantID) => {
-            if (storeID) storeStorage.setStoreID(tenantID, storeID)
-            else storeStorage.clearStoreID(tenantID)
+            if (storeID) auth.setStoreId(tenantID, storeID)
+            else auth.clearStoreId(tenantID)
         })
         if (originalTenantID) {
             await ensureActiveTenant(originalTenantID)
-            tenantStorage.setTenantID(originalTenantID)
+            auth.setActiveTenantId(originalTenantID)
             if (originalStoreID) {
-                storeStorage.setStoreID(originalTenantID, originalStoreID)
+                auth.setStoreId(originalTenantID, originalStoreID)
             } else {
-                storeStorage.clearStoreID(originalTenantID)
+                auth.clearStoreId(originalTenantID)
             }
         }
     }

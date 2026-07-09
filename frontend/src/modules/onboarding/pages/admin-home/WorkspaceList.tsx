@@ -1,5 +1,5 @@
 import { For, Show } from 'solid-js'
-import { tokenStorage } from '@/services/tokenStorage'
+import { useAuthContext } from '@/modules/shell/auth-context'
 import { EmptyBlock, LoadingInline } from '@/solid/components/common/Feedback'
 import { Badge, Button, Card } from '@/solid/components/common/Primitives'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'
@@ -37,6 +37,7 @@ export function WorkspaceList() {
 
 function WorkspaceCard(props: { workspace: WorkspaceSummary }) {
     const vm = useAdminHome()
+    const auth = useAuthContext()
     const workspace = props.workspace
 
     return (
@@ -44,7 +45,7 @@ function WorkspaceCard(props: { workspace: WorkspaceSummary }) {
             <div class="flex flex-wrap items-center gap-2">
                 <Badge content={workspace.roleName} color="blue" />
                 <Badge content={workspace.status} color={vm.membershipStatusColor(workspace.status)} />
-                <Show when={workspace.tenantId === tokenStorage.getActiveTenantID()}>
+                <Show when={workspace.tenantId === auth.getActiveTenantId()}>
                     <Badge content="current" color="yellow" />
                 </Show>
             </div>

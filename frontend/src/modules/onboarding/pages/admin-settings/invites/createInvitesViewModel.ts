@@ -1,11 +1,12 @@
 import { createSignal } from 'solid-js'
 import { createTenantInvite, revokeTenantInvite } from '@/services/iam'
-import { tokenStorage } from '@/services/tokenStorage'
+import { useAuthContext } from '@/modules/shell/auth-context'
 import type { TenantInviteFormValues } from '../forms'
 import { roleOptions } from '../presentation'
 import type { WorkspaceAccessViewModel } from '../team-access/createWorkspaceAccessViewModel'
 
 export function createInvitesViewModel(access: WorkspaceAccessViewModel) {
+    const auth = useAuthContext()
     const [email, setEmail] = createSignal('')
     const [roleName, setRoleName] = createSignal(roleOptions[1].value)
     const [saving, setSaving] = createSignal(false)
@@ -74,7 +75,7 @@ export function createInvitesViewModel(access: WorkspaceAccessViewModel) {
         await reload(tenantID)
     }
 
-    const currentUserEmail = () => tokenStorage.getUser()?.email ?? ''
+    const currentUserEmail = () => auth.getUserEmail()
 
     return {
         email,

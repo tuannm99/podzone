@@ -1,6 +1,6 @@
 import { Show } from 'solid-js'
 import { GW_API_URL, TENANT_GQL_URL } from '@/services/baseurl'
-import { tenantStorage } from '@/services/tenantStorage'
+import { useAuthContext } from '@/modules/shell/auth-context'
 import { InfoAlert, LoadingInline } from '@/solid/components/common/Feedback'
 import { Badge, Button, Card } from '@/solid/components/common/Primitives'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'
@@ -65,6 +65,7 @@ function RuntimeEndpoints() {
 }
 
 function LocalSessionState() {
+    const auth = useAuthContext()
     const { user } = useAdminSettings()
 
     return (
@@ -99,7 +100,7 @@ function LocalSessionState() {
             <Button
                 color="alternative"
                 onClick={() => {
-                    tenantStorage.clearTenantID()
+                    auth.clearActiveTenantId()
                     user.setRouteTenantID('')
                     window.location.reload()
                 }}

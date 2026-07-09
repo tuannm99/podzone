@@ -1,4 +1,4 @@
-import { tokenStorage } from '@/services/tokenStorage'
+import { useAuthContext } from '@/modules/shell/auth-context'
 import { createAdminIamActions } from './createAdminIamActions'
 import { createAdminIamContexts } from './createAdminIamContexts'
 import { createAdminIamLoaders } from './createAdminIamLoaders'
@@ -6,7 +6,8 @@ import { createAdminIamResources } from './createAdminIamResources'
 import { createAdminIamState } from './createAdminIamState'
 
 export function createAdminIamViewModel() {
-    const userID = tokenStorage.getUserID() || 0
+    const auth = useAuthContext()
+    const userID = auth.getUserId() || 0
     const state = createAdminIamState(userID)
     const loaders = createAdminIamLoaders(state, userID)
     const actions = createAdminIamActions(state, loaders)

@@ -2,12 +2,13 @@ import { useNavigate, useSearch } from '@tanstack/solid-router'
 import { Show, createSignal } from 'solid-js'
 import { switchActiveTenant } from '@/services/auth'
 import { acceptTenantInvite } from '@/services/iam'
-import { tokenStorage } from '@/services/tokenStorage'
+import { useAuthContext } from '@/modules/shell/auth-context'
 import { ErrorAlert, InfoAlert } from '@/solid/components/common/Feedback'
 import { Button, Card } from '@/solid/components/common/Primitives'
 import { SectionLead } from '@/solid/components/common/SectionLead'
 
 export default function AcceptInvitePage() {
+    const auth = useAuthContext()
     const navigate = useNavigate()
     const search = useSearch({ strict: false }) as () => Record<string, unknown>
     const [loading, setLoading] = createSignal(false)
@@ -19,7 +20,7 @@ export default function AcceptInvitePage() {
         return typeof rawToken === 'string' ? rawToken.trim() : ''
     }
 
-    const isAuthenticated = () => Boolean(tokenStorage.getToken())
+    const isAuthenticated = () => auth.isAuthenticated()
 
     const acceptInvite = async () => {
         const token = inviteToken()
