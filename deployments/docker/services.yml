@@ -283,6 +283,32 @@ services:
     ports:
       - '3001:3001'
 
+  iam-remote:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile.backoffice-dev
+    container_name: podzone-iam-remote-dev
+    working_dir: /app
+    command: ['npm', 'run', 'serve:iam']
+    volumes:
+      - ../../frontend:/app
+      - podzone_ui_node_modules:/app/node_modules
+    ports:
+      - '3002:3002'
+
+  onboarding-remote:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile.backoffice-dev
+    container_name: podzone-onboarding-remote-dev
+    working_dir: /app
+    command: ['npm', 'run', 'serve:onboarding']
+    volumes:
+      - ../../frontend:/app
+      - podzone_ui_node_modules:/app/node_modules
+    ports:
+      - '3003:3003'
+
   frontend:
     build:
       context: ../..
@@ -295,6 +321,8 @@ services:
       VITE_PODZONE_GRAPHQL_API_URL: http://localhost:8000/query
       VITE_API_PROXY_TARGET: http://grpc-gateway:8080
       VITE_BACKOFFICE_REMOTE_URL: ${VITE_BACKOFFICE_REMOTE_URL:-http://localhost:9080/mfe/backoffice/assets/remoteEntry.js}
+      VITE_IAM_REMOTE_URL: ${VITE_IAM_REMOTE_URL:-http://localhost:9080/mfe/iam/assets/remoteEntry.js}
+      VITE_ONBOARDING_REMOTE_URL: ${VITE_ONBOARDING_REMOTE_URL:-http://localhost:9080/mfe/onboarding/assets/remoteEntry.js}
     volumes:
       - ../../frontend:/app
       - podzone_ui_node_modules:/app/node_modules
@@ -304,6 +332,10 @@ services:
       backoffice-service:
         condition: service_started
       backoffice-remote:
+        condition: service_started
+      iam-remote:
+        condition: service_started
+      onboarding-remote:
         condition: service_started
       dev-bootstrap:
         condition: service_started
@@ -327,6 +359,10 @@ services:
       backoffice-service:
         condition: service_started
       backoffice-remote:
+        condition: service_started
+      iam-remote:
+        condition: service_started
+      onboarding-remote:
         condition: service_started
       frontend:
         condition: service_started

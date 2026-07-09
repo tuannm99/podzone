@@ -62,7 +62,7 @@ export function TrustPolicySection(props: {
             <IamTrustPolicyBuilder
                 label="Trust policy"
                 value={props.trustPolicyForm.values.trustJson}
-                onChange={(value) => props.trustPolicyForm.setValue('trustJson', value)}
+                onChange={(value: string) => props.trustPolicyForm.setValue('trustJson', value)}
             />
             <Show when={props.trustPolicyForm.hasError('trustJson')}>
                 <p class="text-xs font-medium text-red-600">{props.trustPolicyForm.error('trustJson')}</p>

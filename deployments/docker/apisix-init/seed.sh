@@ -165,6 +165,26 @@ put_admin "services/130" '{
   }
 }'
 
+put_admin "services/140" '{
+  "name": "podzone-iam-remote",
+  "upstream": {
+    "type": "roundrobin",
+    "nodes": {
+      "iam-remote:3002": 1
+    }
+  }
+}'
+
+put_admin "services/150" '{
+  "name": "podzone-onboarding-remote",
+  "upstream": {
+    "type": "roundrobin",
+    "nodes": {
+      "onboarding-remote:3003": 1
+    }
+  }
+}'
+
 put_admin "consumers/podzone_dev_edge" '{
   "username": "podzone_dev_edge",
   "plugins": {
@@ -210,6 +230,30 @@ put_admin "routes/1025" '{
   "plugins": {
     "proxy-rewrite": {
       "regex_uri": ["^/mfe/backoffice/(.*)", "/$1"]
+    }
+  }
+}'
+
+put_admin "routes/1026" '{
+  "name": "podzone-iam-remote",
+  "uri": "/mfe/iam/*",
+  "service_id": "140",
+  "plugin_config_id": "9000",
+  "plugins": {
+    "proxy-rewrite": {
+      "regex_uri": ["^/mfe/iam/(.*)", "/$1"]
+    }
+  }
+}'
+
+put_admin "routes/1027" '{
+  "name": "podzone-onboarding-remote",
+  "uri": "/mfe/onboarding/*",
+  "service_id": "150",
+  "plugin_config_id": "9000",
+  "plugins": {
+    "proxy-rewrite": {
+      "regex_uri": ["^/mfe/onboarding/(.*)", "/$1"]
     }
   }
 }'

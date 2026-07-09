@@ -24,9 +24,12 @@
         "noFallthroughCasesInSwitch": true,
         "noUncheckedSideEffectImports": true,
         "paths": {
+            "@/modules/iam/*": ["./apps/iam/src/*"],
             "@/*": ["./src/*"],
-            "@backoffice/*": ["./apps/backoffice/src/*"]
+            "@backoffice/*": ["./apps/backoffice/src/*"],
+            "@iam/*": ["./apps/iam/src/*"],
+            "@onboarding/*": ["./apps/onboarding/src/*"]
         }
     },
-    "include": ["src", "apps/backoffice/src"]
+    "include": ["src", "apps/backoffice/src", "apps/iam/src", "apps/onboarding/src"]
 }

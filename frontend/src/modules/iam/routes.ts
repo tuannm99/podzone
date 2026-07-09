@@ -12,7 +12,10 @@ export function createRouteTree<TParent extends AnyRoute>(parent: TParent, guard
         validateSearch: (search: Record<string, unknown>) => ({
             section: search.section as string | undefined,
         }),
-        component: lazyRouteComponent(() => import('./pages/AdminIamPage')),
+        component: lazyRouteComponent(
+            // __MFE_IAM__ replaced at build time; dead branch is tree-shaken.
+            __MFE_IAM__ ? () => import('iam/AdminIamPage') : () => import('@iam/pages/AdminIamPage')
+        ),
     })
 
     return [adminIamRoute]
