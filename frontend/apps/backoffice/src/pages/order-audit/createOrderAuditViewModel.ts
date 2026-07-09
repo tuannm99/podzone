@@ -159,8 +159,8 @@ export function createOrderAuditViewModel(options: OrderAuditViewModelOptions) {
                 setAppliedPartnerFilter('')
                 setAppliedAssigneeFilter('')
             },
-            { defer: true },
-        ),
+            { defer: true }
+        )
     )
 
     return {

@@ -24,8 +24,9 @@
         "noFallthroughCasesInSwitch": true,
         "noUncheckedSideEffectImports": true,
         "paths": {
-            "@/*": ["./src/*"]
+            "@/*": ["./src/*"],
+            "@backoffice/*": ["./apps/backoffice/src/*"]
         }
     },
-    "include": ["src"]
+    "include": ["src", "apps/backoffice/src"]
 }

@@ -113,7 +113,7 @@ export function useOrderActions(params: OrderActionsParams) {
             }
             params.setOrders((current) => current.map((order) => (order.id === orderId ? result.data : order)))
             params.setMessage(
-                `Raised ${params.orderForm.values.selectedExceptionType.replaceAll('_', ' ')} on ${orderId}.`,
+                `Raised ${params.orderForm.values.selectedExceptionType.replaceAll('_', ' ')} on ${orderId}.`
             )
             await params.onChanged()
         } finally {

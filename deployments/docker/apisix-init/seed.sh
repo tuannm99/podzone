@@ -155,6 +155,16 @@ put_admin "services/120" '{
   }
 }'
 
+put_admin "services/130" '{
+  "name": "podzone-backoffice-remote",
+  "upstream": {
+    "type": "roundrobin",
+    "nodes": {
+      "backoffice-remote:3001": 1
+    }
+  }
+}'
+
 put_admin "consumers/podzone_dev_edge" '{
   "username": "podzone_dev_edge",
   "plugins": {
@@ -190,6 +200,18 @@ put_admin "routes/1020" '{
   "uri": "/*",
   "service_id": "120",
   "plugin_config_id": "9000"
+}'
+
+put_admin "routes/1025" '{
+  "name": "podzone-backoffice-remote",
+  "uri": "/mfe/backoffice/*",
+  "service_id": "130",
+  "plugin_config_id": "9000",
+  "plugins": {
+    "proxy-rewrite": {
+      "regex_uri": ["^/mfe/backoffice/(.*)", "/$1"]
+    }
+  }
 }'
 
 put_admin "routes/1030" '{

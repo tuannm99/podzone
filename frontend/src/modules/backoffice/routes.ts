@@ -10,8 +10,10 @@ export function createRouteTree<TParent extends AnyRoute>(parent: TParent, guard
         path: '/t/$tenantId',
         beforeLoad: async ({ params }) => guards.requireTenantAccess(params.tenantId),
         component: lazyRouteComponent(
-            // __MFE_BACKOFFICE__ is replaced at build time; the dead branch is tree-shaken.
-            __MFE_BACKOFFICE__ ? () => import('backoffice/TenantHomePage') : () => import('./pages/TenantHomePage')
+            // __MFE_BACKOFFICE__ replaced at build time; dead branch is tree-shaken.
+            __MFE_BACKOFFICE__
+                ? () => import('backoffice/TenantHomePage')
+                : () => import('@backoffice/pages/TenantHomePage')
         ),
     })
 
@@ -27,7 +29,9 @@ export function createRouteTree<TParent extends AnyRoute>(parent: TParent, guard
             appliedQueueSearch: typeof search.appliedQueueSearch === 'string' ? search.appliedQueueSearch : '',
         }),
         component: lazyRouteComponent(
-            __MFE_BACKOFFICE__ ? () => import('backoffice/TenantOrdersPage') : () => import('./pages/TenantOrdersPage')
+            __MFE_BACKOFFICE__
+                ? () => import('backoffice/TenantOrdersPage')
+                : () => import('@backoffice/pages/TenantOrdersPage')
         ),
     })
 
@@ -38,7 +42,7 @@ export function createRouteTree<TParent extends AnyRoute>(parent: TParent, guard
         component: lazyRouteComponent(
             __MFE_BACKOFFICE__
                 ? () => import('backoffice/TenantOrderAuditPage')
-                : () => import('./pages/TenantOrderAuditPage')
+                : () => import('@backoffice/pages/TenantOrderAuditPage')
         ),
     })
 
@@ -49,7 +53,7 @@ export function createRouteTree<TParent extends AnyRoute>(parent: TParent, guard
         component: lazyRouteComponent(
             __MFE_BACKOFFICE__
                 ? () => import('backoffice/TenantOrderFinancePage')
-                : () => import('./pages/TenantOrderFinancePage')
+                : () => import('@backoffice/pages/TenantOrderFinancePage')
         ),
     })
 
@@ -60,7 +64,7 @@ export function createRouteTree<TParent extends AnyRoute>(parent: TParent, guard
         component: lazyRouteComponent(
             __MFE_BACKOFFICE__
                 ? () => import('backoffice/TenantPartnersPage')
-                : () => import('./pages/TenantPartnersPage')
+                : () => import('@backoffice/pages/TenantPartnersPage')
         ),
     })
 
@@ -71,7 +75,7 @@ export function createRouteTree<TParent extends AnyRoute>(parent: TParent, guard
         component: lazyRouteComponent(
             __MFE_BACKOFFICE__
                 ? () => import('backoffice/TenantPartnerDetailPage')
-                : () => import('./pages/TenantPartnerDetailPage')
+                : () => import('@backoffice/pages/TenantPartnerDetailPage')
         ),
     })
 
@@ -82,7 +86,7 @@ export function createRouteTree<TParent extends AnyRoute>(parent: TParent, guard
         component: lazyRouteComponent(
             __MFE_BACKOFFICE__
                 ? () => import('backoffice/TenantProductSetupPage')
-                : () => import('./pages/TenantProductSetupPage')
+                : () => import('@backoffice/pages/TenantProductSetupPage')
         ),
     })
 

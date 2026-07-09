@@ -15,7 +15,10 @@ export default defineConfig({
             remotes: {
                 backoffice: BACKOFFICE_REMOTE,
             },
-            shared: ['solid-js', '@tanstack/solid-router'],
+            shared: {
+                'solid-js': { requiredVersion: '^1.0.0', singleton: true } as object,
+                '@tanstack/solid-router': { singleton: true } as object,
+            },
         }),
     ],
     define: {
@@ -24,6 +27,7 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),
+            '@backoffice': path.resolve(__dirname, './apps/backoffice/src'),
         },
     },
     server: {

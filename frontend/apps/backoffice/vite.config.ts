@@ -5,29 +5,32 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const srcRoot = path.resolve(__dirname, '../../src')
+const sharedRoot = path.resolve(__dirname, '../../src')
+const pagesRoot = path.resolve(__dirname, './src/pages')
 
 export default defineConfig({
+    root: __dirname,
     plugins: [
         solidPlugin(),
         federation({
             name: 'backoffice',
             filename: 'remoteEntry.js',
             exposes: {
-                './TenantHomePage': `${srcRoot}/modules/backoffice/pages/TenantHomePage`,
-                './TenantOrdersPage': `${srcRoot}/modules/backoffice/pages/TenantOrdersPage`,
-                './TenantOrderAuditPage': `${srcRoot}/modules/backoffice/pages/TenantOrderAuditPage`,
-                './TenantOrderFinancePage': `${srcRoot}/modules/backoffice/pages/TenantOrderFinancePage`,
-                './TenantPartnersPage': `${srcRoot}/modules/backoffice/pages/TenantPartnersPage`,
-                './TenantPartnerDetailPage': `${srcRoot}/modules/backoffice/pages/TenantPartnerDetailPage`,
-                './TenantProductSetupPage': `${srcRoot}/modules/backoffice/pages/TenantProductSetupPage`,
+                './TenantHomePage': `${pagesRoot}/TenantHomePage`,
+                './TenantOrdersPage': `${pagesRoot}/TenantOrdersPage`,
+                './TenantOrderAuditPage': `${pagesRoot}/TenantOrderAuditPage`,
+                './TenantOrderFinancePage': `${pagesRoot}/TenantOrderFinancePage`,
+                './TenantPartnersPage': `${pagesRoot}/TenantPartnersPage`,
+                './TenantPartnerDetailPage': `${pagesRoot}/TenantPartnerDetailPage`,
+                './TenantProductSetupPage': `${pagesRoot}/TenantProductSetupPage`,
             },
             shared: ['solid-js', '@tanstack/solid-router'],
         }),
     ],
     resolve: {
         alias: {
-            '@': srcRoot,
+            // Shared code (contexts, services, components) still lives in frontend/src/
+            '@': sharedRoot,
         },
     },
     build: {

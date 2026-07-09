@@ -44,8 +44,7 @@ export function createProvisioningShellViewModel() {
     createEffect(() => {
         if (selectedTenantId()) return
         const preferred =
-            memberships()?.find((membership) => membership.tenantId === auth.getActiveTenantId()) ||
-            memberships()?.[0]
+            memberships()?.find((membership) => membership.tenantId === auth.getActiveTenantId()) || memberships()?.[0]
         if (preferred) setSelectedTenantId(preferred.tenantId)
     })
 
