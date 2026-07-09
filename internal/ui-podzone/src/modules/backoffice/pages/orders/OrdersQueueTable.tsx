@@ -90,7 +90,7 @@ export function OrdersQueueTable(props: OrdersQueueTableProps) {
                                 <TableCell>
                                     <Badge
                                         content={order.settlementStatus?.replaceAll('_', ' ') || 'pending'}
-                                        color={props.settlementColor(order.settlementStatus)}
+                                        color={props.settlementColor(order.settlementStatus ?? '')}
                                     />
                                 </TableCell>
                                 <TableCell class="text-right">
