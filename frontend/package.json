@@ -12,6 +12,9 @@
         "format": "prettier --write src eslint.config.js index.html package.json package-lock.json tsconfig.app.json tsconfig.json tsconfig.node.json vite.config.ts",
         "format:check": "prettier --check src eslint.config.js index.html package.json package-lock.json tsconfig.app.json tsconfig.json tsconfig.node.json vite.config.ts",
         "build": "tsc -b && vite build",
+        "build:backoffice": "vite build --config apps/backoffice/vite.config.ts",
+        "build:all": "npm run build:backoffice && npm run build",
+        "preview:backoffice": "vite preview --config apps/backoffice/vite.config.ts --port 3001",
         "lint": "eslint .",
         "preview": "vite preview"
     },
@@ -33,6 +36,7 @@
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
+        "@originjs/vite-plugin-federation": "^1.4.1",
         "@tailwindcss/vite": "^4.3.2",
         "@types/node": "^24.13.2",
         "eslint": "^10.6.0",

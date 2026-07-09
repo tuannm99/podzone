@@ -1,10 +1,23 @@
 import { defineConfig } from 'vite'
 import solidPlugin from 'vite-plugin-solid'
 import tailwindcss from '@tailwindcss/vite'
+import federation from '@originjs/vite-plugin-federation'
 import path from 'path'
 
+const BACKOFFICE_REMOTE = process.env.VITE_BACKOFFICE_REMOTE_URL ?? 'http://localhost:3001/assets/remoteEntry.js'
+
 export default defineConfig({
-    plugins: [tailwindcss(), solidPlugin()],
+    plugins: [
+        tailwindcss(),
+        solidPlugin(),
+        federation({
+            name: 'shell',
+            remotes: {
+                backoffice: BACKOFFICE_REMOTE,
+            },
+            shared: ['solid-js', '@tanstack/solid-router'],
+        }),
+    ],
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),
@@ -18,5 +31,8 @@ export default defineConfig({
                 changeOrigin: true,
             },
         },
+    },
+    build: {
+        target: 'esnext',
     },
 })

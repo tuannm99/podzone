@@ -2,5 +2,15 @@
   "name": "@podzone/backoffice",
   "version": "0.0.0",
   "private": true,
-  "description": "Backoffice micro-frontend (stub — not extracted yet)"
+  "description": "Backoffice micro-frontend remote — exposes page components via Module Federation",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "preview": "vite preview --port 3001"
+  },
+  "devDependencies": {
+    "@originjs/vite-plugin-federation": "*",
+    "vite": "*",
+    "vite-plugin-solid": "*"
+  }
 }
