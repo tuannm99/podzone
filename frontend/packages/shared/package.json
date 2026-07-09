@@ -1,0 +1,10 @@
+{
+  "name": "@podzone/shared",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./auth": "./auth/index.ts",
+    "./services": "./services/index.ts",
+    "./ui": "./ui/index.ts"
+  }
+}
