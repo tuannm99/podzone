@@ -1,11 +1,11 @@
 import { createRootRoute, createRoute, createRouter, lazyRouteComponent, redirect } from '@tanstack/solid-router'
-import { backofficeRouteComponents } from '../modules/backoffice/routes'
-import { iamRouteComponents } from '../modules/iam/routes'
-import { onboardingRouteComponents } from '../modules/onboarding/routes'
-import { shellRouteComponents } from '../modules/shell/routes'
-import { ensureActiveTenant } from '../services/auth'
-import Root from './root'
-import { tokenStorage } from '../services/tokenStorage'
+import { backofficeRouteComponents } from './modules/backoffice/routes'
+import { iamRouteComponents } from './modules/iam/routes'
+import { onboardingRouteComponents } from './modules/onboarding/routes'
+import { shellRouteComponents } from './modules/shell/routes'
+import { ensureActiveTenant } from './services/auth'
+import Root from './solid/root'
+import { tokenStorage } from './services/tokenStorage'
 
 function requireAuth() {
     if (!tokenStorage.getToken()) {
@@ -30,7 +30,7 @@ async function requireTenantAccess(tenantId: string) {
 
 const rootRoute = createRootRoute({
     component: Root,
-    notFoundComponent: lazyRouteComponent(() => import('./routes/NotFoundRoute')),
+    notFoundComponent: lazyRouteComponent(() => import('./solid/routes/NotFoundRoute')),
 })
 
 const indexRoute = createRoute({

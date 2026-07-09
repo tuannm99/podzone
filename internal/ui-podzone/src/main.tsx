@@ -1,6 +1,6 @@
 import { RouterProvider } from '@tanstack/solid-router'
 import { render } from 'solid-js/web'
-import { router } from './solid/app-router'
+import { router } from './app-router'
 import './solid/global.css'
 
 const root = document.getElementById('root')
