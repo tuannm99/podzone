@@ -5,7 +5,7 @@ import { EmptyBlock, ErrorAlert } from '@/solid/components/common/Feedback'
 import { Card } from '@/solid/components/common/Primitives'
 import { SectionLead } from '@/solid/components/common/SectionLead'
 import { StatCard } from '@/solid/components/dashboard/StatCard'
-import { useTenantWorkspace } from '@/solid/workspace/context'
+import { useTenantWorkspace } from '@/modules/shell/workspace/context'
 import { createHomeViewModel } from './createHomeViewModel'
 import { TenantHomeSections } from './TenantHomeSections'
 

@@ -8,9 +8,9 @@ import {
     type ParentProps,
     useContext,
 } from 'solid-js'
-import { tenantStorage } from '../../services/tenantStorage'
-import { getStore, listStores, type StoreInfo } from '../../services/store'
-import { storeStorage } from '../../services/storeStorage'
+import { tenantStorage } from '@/services/tenantStorage'
+import { getStore, listStores, type StoreInfo } from '@/services/store'
+import { storeStorage } from '@/services/storeStorage'
 
 type WorkspaceContextValue = {
     tenantId: () => string

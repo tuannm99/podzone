@@ -4,7 +4,7 @@ import { AUTH_LOGIN_REQUIRED_EVENT } from '@/services/authNavigation'
 import { AppShell, Container } from './components/common/AppShell'
 import { ScrollToTopButton } from './components/common/ScrollToTop'
 import { PodzoneNavbar } from './layout/PodzoneNavbar'
-import { TenantWorkspaceProvider } from './workspace/context'
+import { TenantWorkspaceProvider } from '@/modules/shell/workspace/context'
 
 function parseTenantId(pathname: string) {
     const match = pathname.match(/^\/t\/([^/]+)/)

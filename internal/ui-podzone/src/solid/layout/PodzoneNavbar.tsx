@@ -2,7 +2,7 @@ import { Link, useRouterState } from '@tanstack/solid-router'
 import { For, Show } from 'solid-js'
 import { logout } from '../../services/auth'
 import { tokenStorage } from '../../services/tokenStorage'
-import { useTenantWorkspace } from '../workspace/context'
+import { useTenantWorkspace } from '@/modules/shell/workspace/context'
 import { Button } from '../components/common/Primitives'
 import { classes } from '../shared/utils'
 

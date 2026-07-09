@@ -11,7 +11,7 @@ import {
 import { getProductSetupSnapshot, type CatalogCandidate } from '@/services/productSetup'
 import { tenantStorage } from '@/services/tenantStorage'
 import { createFormStore, required } from '@/solid/forms'
-import { useTenantWorkspace } from '@/solid/workspace/context'
+import { useTenantWorkspace } from '@/modules/shell/workspace/context'
 import type { QueueSort, QueueView, TenantOrdersBoardContextValue } from './board-context'
 import type { TenantOrdersComposerContextValue } from './composer-context'
 import type { TenantOrdersInsightsContextValue } from './insights-context'

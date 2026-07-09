@@ -5,7 +5,7 @@ import { PageShell } from '@/solid/components/common/PageShell'
 import { Badge, Button, Card, InputField, SelectField } from '@/solid/components/common/Primitives'
 import { SectionLead } from '@/solid/components/common/SectionLead'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'
-import { useTenantWorkspace } from '@/solid/workspace/context'
+import { useTenantWorkspace } from '@/modules/shell/workspace/context'
 import { createOrderAuditViewModel } from './createOrderAuditViewModel'
 import {
     activityColor,
