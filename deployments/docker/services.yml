@@ -217,8 +217,8 @@ services:
       ONBOARDING_SERVICE_TOKEN: ${ONBOARDING_SERVICE_TOKEN:-dev-bootstrap-token}
       JWT_SECRET: ${JWT_SECRET:-dev-secret}
       JWT_KEY: ${JWT_KEY:-}
-      AUTH_BOOTSTRAP_OUTPUT: /workspace/internal/ui-podzone/public/dev-auth-bootstrap.json
-      UI_AUTH_BOOTSTRAP_TARGET: /workspace/internal/ui-podzone/public/dev-auth-bootstrap.json
+      AUTH_BOOTSTRAP_OUTPUT: /workspace/frontend/public/dev-auth-bootstrap.json
+      UI_AUTH_BOOTSTRAP_TARGET: /workspace/frontend/public/dev-auth-bootstrap.json
     depends_on:
       postgres:
         condition: service_healthy
@@ -270,7 +270,7 @@ services:
     ports:
       - '8080:8080'
 
-  ui-podzone:
+  frontend:
     build:
       context: ../..
       dockerfile: deployments/docker/Dockerfile.ui-dev
@@ -282,7 +282,7 @@ services:
       VITE_PODZONE_GRAPHQL_API_URL: http://localhost:8000/query
       VITE_API_PROXY_TARGET: http://grpc-gateway:8080
     volumes:
-      - ../../internal/ui-podzone:/app
+      - ../../frontend:/app
       - podzone_ui_node_modules:/app/node_modules
     depends_on:
       grpc-gateway:
@@ -310,7 +310,7 @@ services:
         condition: service_started
       backoffice-service:
         condition: service_started
-      ui-podzone:
+      frontend:
         condition: service_started
 
 volumes:

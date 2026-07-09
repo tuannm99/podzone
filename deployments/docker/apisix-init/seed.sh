@@ -107,7 +107,7 @@ wait_for "http://grpc-gateway:8080/healthz" "gRPC gateway" 120
 # This check only verifies that the GraphQL HTTP endpoint is reachable.
 wait_for_graphql "http://backoffice-service:8000/query" "backoffice graphql" 120 || true
 
-# wait_for "http://ui-podzone:3000" "ui podzone" 120
+# wait_for "http://frontend:3000" "ui podzone" 120
 
 put_admin "plugin_configs/9000" '{
   "desc": "Podzone shared edge defaults",
@@ -150,7 +150,7 @@ put_admin "services/120" '{
   "upstream": {
     "type": "roundrobin",
     "nodes": {
-      "ui-podzone:3000": 1
+      "frontend:3000": 1
     }
   }
 }'

@@ -84,12 +84,12 @@ Use tools pinned in `go.mod` through `go tool`.
 
 ## Frontend Commands
 
-For `internal/ui-podzone`, read `agent/SOLID_STYLE_GUIDE.md` first.
+For `frontend/`, read `agent/SOLID_STYLE_GUIDE.md` first.
 
 Run all four before finishing frontend work:
 
 ```bash
-cd internal/ui-podzone
+cd frontend
 npm run format
 npm run lint
 npm run build

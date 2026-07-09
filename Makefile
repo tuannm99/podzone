@@ -250,17 +250,14 @@ k8s:
 	done
 
 k8s-ui:
-	@echo "📦 Building and deploying ui services..."
-	set -a; source .env; set +a;
-	for svc in $(SVC); do \ echo "🚀 Building $$svc..."; \
-		docker build -t tuannm99/podzone-$$svc:$(ENV) \
-			--build-arg SERVICE_NAME=$$svc \
-			--build-arg VITE_ADMIN_API_URL=$$VITE_ADMIN_API_URL \
-			-f Dockerfile-ui .; \
-		docker push tuannm99/podzone-$$svc:$(ENV); \
-		kubectl delete -f deployments/kubernetes/$(ENV)/services/$$svc.yml --ignore-not-found; \
-		kubectl apply -f deployments/kubernetes/$(ENV)/services/$$svc.yml; \
-	done
+	@echo "📦 Building and deploying frontend..."
+	set -a; source .env; set +a; \
+	docker build -t tuannm99/podzone-frontend:$(ENV) \
+		--build-arg VITE_ADMIN_API_URL=$$VITE_ADMIN_API_URL \
+		-f Dockerfile-ui .; \
+	docker push tuannm99/podzone-frontend:$(ENV); \
+	kubectl delete -f deployments/kubernetes/$(ENV)/services/frontend.yml --ignore-not-found; \
+	kubectl apply -f deployments/kubernetes/$(ENV)/services/frontend.yml
 
 portfw:
 	@bash -c '\
@@ -313,4 +310,4 @@ help:
 	@echo "  make dev-pod-sample TENANT_ID=t1 - Seed infra, sample business data, and auth bootstrap together"
 	@echo "  make gql-backoffice                   - Generate backoffice graphql"
 	@echo "  make k8s ENV=${env} SVC=${service}    - Deploy service to k8s dev EG: make k8s ENV="staging" SVC="grpcgateway catalog auth storefront backoffice""
-	@echo "  make k8s-ui ENV=${env} SVC=${service} - Deploy service to k8s dev EG: make k8s-ui ENV="staging" SVC="ui-podzone""
+	@echo "  make k8s-ui ENV=${env}                - Deploy frontend to k8s EG: make k8s-ui ENV=staging"

@@ -2,5 +2,5 @@ FROM node:24-alpine
 
 WORKDIR /app
 
-COPY internal/ui-podzone/package*.json ./
+COPY frontend/package*.json ./
 RUN npm install
