@@ -4,7 +4,7 @@ import type { RoutedOrder } from '@/services/orders'
 import type { PartnerFinanceSummaryItem, StoreActivityFeedEntry } from './utils'
 
 export type TenantOrdersInsightsContextValue = {
-    tenantId: string
+    tenantId: Accessor<string>
     storeId: Accessor<string>
     storeLabel: Accessor<string>
     blockedOrders: Accessor<RoutedOrder[]>

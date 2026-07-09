@@ -88,6 +88,13 @@ export function createTenantOrdersViewModel() {
             params: { tenantId: params().tenantId },
             search: { ...search(), operatorLens: lens },
         })
+    const [localOperatorLens, setLocalOperatorLens] = createSignal(search().operatorLens ?? '')
+    const applyOperatorLens = () =>
+        void navigate({
+            to: '/t/$tenantId/orders',
+            params: { tenantId: params().tenantId },
+            search: { ...search(), operatorLens: localOperatorLens().trim() },
+        })
 
     const currentStoreId = () => workspace?.currentStoreId() || ''
     const currentStore = () => workspace?.currentStore()
@@ -122,11 +129,20 @@ export function createTenantOrdersViewModel() {
         tenantId: () => params().tenantId,
         storeId: currentStoreId,
         activeQueueView,
-        setActiveQueueView,
         activeQueueSort,
-        setActiveQueueSort,
         operatorLens,
-        setOperatorLens,
+        applyQueuePreset: (preset) => {
+            void navigate({
+                to: '/t/$tenantId/orders',
+                params: { tenantId: params().tenantId },
+                search: {
+                    ...search(),
+                    queueView: preset.queueView,
+                    queueSort: preset.queueSort,
+                    operatorLens: preset.operatorLens ?? '',
+                },
+            })
+        },
         setMessage,
     })
     const actions = useOrderActions({
@@ -178,7 +194,7 @@ export function createTenantOrdersViewModel() {
     const [queuePageResource, { refetch: reloadQueuePage }] = createResource(
         () =>
             workspaceReady()
-                ? [
+                ? JSON.stringify([
                       params().tenantId,
                       currentStoreId(),
                       queuePage(),
@@ -186,7 +202,7 @@ export function createTenantOrdersViewModel() {
                       activeQueueView(),
                       activeQueueSort(),
                       operatorLens().trim(),
-                  ].join('|')
+                  ])
                 : undefined,
         async () =>
             getRoutedOrderPage({
@@ -203,12 +219,12 @@ export function createTenantOrdersViewModel() {
             if (!workspaceReady()) return undefined
             const candidateID = orderForm.values.selectedCandidateId.trim()
             if (!candidateID) return undefined
-            return [
+            return JSON.stringify([
                 candidateID,
                 orderForm.values.selectedProductType,
                 orderForm.values.selectedShipRegion,
                 orderForm.values.preferredPartner.trim(),
-            ].join('|')
+            ])
         },
         async () =>
             getRoutedOrderRecommendation({
@@ -235,6 +251,9 @@ export function createTenantOrdersViewModel() {
         setActiveQueueSort,
         operatorLens,
         setOperatorLens,
+        localOperatorLens,
+        setLocalOperatorLens,
+        applyOperatorLens,
         queueSearch,
         setQueueSearch,
         applyQueueSearch: () => {
@@ -267,7 +286,7 @@ export function createTenantOrdersViewModel() {
     }
 
     const insightsContextValue: TenantOrdersInsightsContextValue = {
-        tenantId: params().tenantId,
+        tenantId: () => params().tenantId,
         storeId: currentStoreId,
         storeLabel,
         blockedOrders: insights.blockedOrders,
@@ -339,7 +358,13 @@ export function createTenantOrdersViewModel() {
                 (order) => order.operatorAssignee && order.operatorAssignee !== 'unassigned'
             )
             if (firstAssigned) {
-                setOperatorLens(firstAssigned.operatorAssignee)
+                void navigate({
+                    to: '/t/$tenantId/orders',
+                    params: { tenantId: params().tenantId },
+                    replace: true,
+                    search: { ...search(), operatorLens: firstAssigned.operatorAssignee },
+                })
+                setLocalOperatorLens(firstAssigned.operatorAssignee)
             }
         }
     })

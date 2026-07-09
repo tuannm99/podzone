@@ -8,12 +8,17 @@ export function QueueToolbarPanel() {
     return (
         <>
             <div class="grid gap-4 md:grid-cols-[0.7fr_0.8fr_1.3fr]">
-                <InputField
-                    label="Operator lens"
-                    value={board.operatorLens()}
-                    placeholder="linh.nguyen"
-                    onInput={(event) => board.setOperatorLens(event.currentTarget.value)}
-                />
+                <div class="flex items-end gap-2">
+                    <InputField
+                        label="Operator lens"
+                        value={board.localOperatorLens()}
+                        placeholder="linh.nguyen"
+                        onInput={(event) => board.setLocalOperatorLens(event.currentTarget.value)}
+                    />
+                    <Button type="button" size="sm" color="alternative" onClick={board.applyOperatorLens}>
+                        Apply
+                    </Button>
+                </div>
                 <div class="flex items-end gap-2">
                     <InputField
                         label="Search queue"

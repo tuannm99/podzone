@@ -23,7 +23,7 @@ export function StoreActivityFeedPanel() {
         const storeId = insights.storeId().trim()
         if (storeId) params.set('storeId', storeId)
         const query = params.toString()
-        return `/t/${insights.tenantId}${path}${query ? `?${query}` : ''}`
+        return `/t/${insights.tenantId()}${path}${query ? `?${query}` : ''}`
     }
 
     return (

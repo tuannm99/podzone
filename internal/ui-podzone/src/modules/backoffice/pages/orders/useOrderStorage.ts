@@ -6,11 +6,10 @@ type OrderStorageParams = {
     tenantId: () => string
     storeId: () => string
     activeQueueView: () => SavedQueuePreset['queueView']
-    setActiveQueueView: (value: SavedQueuePreset['queueView']) => void
     activeQueueSort: () => SavedQueuePreset['queueSort']
-    setActiveQueueSort: (value: SavedQueuePreset['queueSort']) => void
     operatorLens: () => string
-    setOperatorLens: (value: string) => void
+    /** Apply all preset fields atomically via a single navigate call (provided by the ViewModel). */
+    applyQueuePreset: (preset: SavedQueuePreset) => void
     setMessage: (value: string) => void
 }
 
@@ -84,9 +83,7 @@ export function useOrderStorage(params: OrderStorageParams) {
     }
 
     const applyQueuePreset = (preset: SavedQueuePreset) => {
-        params.setActiveQueueView(preset.queueView)
-        params.setActiveQueueSort(preset.queueSort)
-        params.setOperatorLens(preset.operatorLens)
+        params.applyQueuePreset(preset)
         params.setMessage(`Applied queue preset ${preset.name}.`)
     }
 
