@@ -317,9 +317,11 @@ export type FileInputFieldProps = {
 }
 
 export function FileInputField(props: FileInputFieldProps) {
+    const uid = createUniqueId()
     return (
-        <FieldLabel label={props.label}>
+        <FieldLabel label={props.label} for={uid}>
             <input
+                id={uid}
                 class={classes(
                     fieldBaseClasses(),
                     'cursor-pointer file:mr-4 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-gray-800 hover:file:bg-gray-200'
@@ -406,9 +408,11 @@ export type RangeFieldProps = {
 }
 
 export function RangeField(props: RangeFieldProps) {
+    const uid = createUniqueId()
     return (
-        <FieldLabel label={props.label}>
+        <FieldLabel label={props.label} for={uid}>
             <input
+                id={uid}
                 type="range"
                 min={props.min}
                 max={props.max}
