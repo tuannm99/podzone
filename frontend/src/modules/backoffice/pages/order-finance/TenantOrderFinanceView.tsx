@@ -6,7 +6,7 @@ import { Badge, Button, Card } from '@/solid/components/common/Primitives'
 import { SectionLead } from '@/solid/components/common/SectionLead'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'
 import { StatCard } from '@/solid/components/dashboard/StatCard'
-import { useTenantWorkspace } from '@/modules/shell/workspace/context'
+import { useTenantWorkspace } from '@/solid/context/workspace-context'
 import { createOrderFinanceViewModel } from './createOrderFinanceViewModel'
 import {
     anomalyFlagsFor,

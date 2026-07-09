@@ -1,6 +1,6 @@
 import { Show } from 'solid-js'
 import { GW_API_URL, TENANT_GQL_URL } from '@/services/baseurl'
-import { useAuthContext } from '@/modules/shell/auth-context'
+import { useAuthContext } from '@/solid/context/auth-context'
 import { InfoAlert, LoadingInline } from '@/solid/components/common/Feedback'
 import { Badge, Button, Card } from '@/solid/components/common/Primitives'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'

@@ -1,4 +1,4 @@
-import { useAuthContext } from '@/modules/shell/auth-context'
+import { useAuthContext } from '@/solid/context/auth-context'
 import { createEffect, createResource, createSignal, on, type Accessor } from 'solid-js'
 import { getRoutedOrderActivities, type RoutedOrderActivityFeedEntry } from '@/services/orders'
 

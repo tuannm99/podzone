@@ -1,28 +1,9 @@
 import { useNavigate, useSearch } from '@tanstack/solid-router'
-import {
-    createContext,
-    createEffect,
-    createMemo,
-    createResource,
-    createSignal,
-    type ParentProps,
-    useContext,
-} from 'solid-js'
+import { createEffect, createMemo, createResource, createSignal, type ParentProps } from 'solid-js'
 import { tenantStorage } from '@/services/tenantStorage'
-import { getStore, listStores, type StoreInfo } from '@/services/store'
+import { getStore, listStores } from '@/services/store'
 import { storeStorage } from '@/services/storeStorage'
-
-type WorkspaceContextValue = {
-    tenantId: () => string
-    stores: () => StoreInfo[]
-    currentStoreId: () => string
-    currentStore: () => StoreInfo | undefined
-    loading: () => boolean
-    error: () => string
-    setCurrentStoreId: (storeId: string) => void
-}
-
-const WorkspaceContext = createContext<WorkspaceContextValue>()
+import { WorkspaceContext } from '@/solid/context/workspace-context'
 
 function initialStoreID(tenantId: string, requestedStoreId: string) {
     const requested = requestedStoreId || ''
@@ -123,6 +104,4 @@ export function TenantWorkspaceProvider(props: ParentProps<{ tenantId: string }>
     )
 }
 
-export function useTenantWorkspace() {
-    return useContext(WorkspaceContext) || null
-}
+export { useTenantWorkspace } from '@/solid/context/workspace-context'

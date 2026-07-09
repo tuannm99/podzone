@@ -1,7 +1,7 @@
 import { useParams } from '@tanstack/solid-router'
 import { Show, createEffect, createResource } from 'solid-js'
 import { getPartner, type PartnerInfo } from '@/services/partner'
-import { useAuthContext } from '@/modules/shell/auth-context'
+import { useAuthContext } from '@/solid/context/auth-context'
 import { EmptyBlock, ErrorAlert, InfoAlert, LoadingInline } from '@/solid/components/common/Feedback'
 import { PageShell } from '@/solid/components/common/PageShell'
 import { Badge, Button, Card } from '@/solid/components/common/Primitives'

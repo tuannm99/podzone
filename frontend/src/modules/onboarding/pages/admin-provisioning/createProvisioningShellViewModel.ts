@@ -3,7 +3,7 @@ import { createEffect, createResource, createSignal } from 'solid-js'
 import { ensureActiveTenant } from '@/services/auth'
 import { listUserTenants, type TenantMembership } from '@/services/iam'
 
-import { useAuthContext } from '@/modules/shell/auth-context'
+import { useAuthContext } from '@/solid/context/auth-context'
 
 export type ProvisioningTab = 'pipeline' | 'resources' | 'connections'
 

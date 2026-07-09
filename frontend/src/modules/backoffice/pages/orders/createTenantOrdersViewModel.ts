@@ -9,9 +9,9 @@ import {
     type RoutedOrderRecommendation,
 } from '@/services/orders'
 import { getProductSetupSnapshot, type CatalogCandidate } from '@/services/productSetup'
-import { useAuthContext } from '@/modules/shell/auth-context'
+import { useAuthContext } from '@/solid/context/auth-context'
 import { createFormStore, required } from '@/solid/forms'
-import { useTenantWorkspace } from '@/modules/shell/workspace/context'
+import { useTenantWorkspace } from '@/solid/context/workspace-context'
 import type { QueueSort, QueueView, TenantOrdersBoardContextValue } from './board-context'
 import type { TenantOrdersComposerContextValue } from './composer-context'
 import type { TenantOrdersInsightsContextValue } from './insights-context'

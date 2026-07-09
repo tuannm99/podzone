@@ -3,7 +3,7 @@ import { createEffect, createResource, createSignal, on, onCleanup } from 'solid
 import { ensureActiveTenant } from '@/services/auth'
 import { createTenant, listUserTenants, type TenantMembership } from '@/services/iam'
 import { createStoreRequest, retryStoreRequest } from '@/services/onboarding'
-import { useAuthContext } from '@/modules/shell/auth-context'
+import { useAuthContext } from '@/solid/context/auth-context'
 import {
     buildOrdersHref,
     membershipStatusColor,

@@ -1,5 +1,5 @@
 import { Show, createEffect, on } from 'solid-js'
-import { useAuthContext } from '@/modules/shell/auth-context'
+import { useAuthContext } from '@/solid/context/auth-context'
 import { ErrorAlert, InfoAlert } from '@/solid/components/common/Feedback'
 import { Button, Card } from '@/solid/components/common/Primitives'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'

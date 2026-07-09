@@ -2,7 +2,7 @@ import { createResource, type Accessor } from 'solid-js'
 import { ensureActiveTenant } from '@/services/auth'
 import { listStoreRequests } from '@/services/onboarding'
 import { listStores } from '@/services/store'
-import { useAuthContext } from '@/modules/shell/auth-context'
+import { useAuthContext } from '@/solid/context/auth-context'
 import { createPaginatedResource } from '@/solid/pagination'
 
 export function createStoreCollectionsViewModel(

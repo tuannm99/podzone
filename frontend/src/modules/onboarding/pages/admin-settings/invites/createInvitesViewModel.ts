@@ -1,6 +1,6 @@
 import { createSignal } from 'solid-js'
 import { createTenantInvite, revokeTenantInvite } from '@/services/iam'
-import { useAuthContext } from '@/modules/shell/auth-context'
+import { useAuthContext } from '@/solid/context/auth-context'
 import type { TenantInviteFormValues } from '../forms'
 import { roleOptions } from '../presentation'
 import type { WorkspaceAccessViewModel } from '../team-access/createWorkspaceAccessViewModel'

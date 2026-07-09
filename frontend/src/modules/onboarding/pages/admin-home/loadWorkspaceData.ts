@@ -2,7 +2,7 @@ import { ensureActiveTenant } from '@/services/auth'
 import type { TenantMembership } from '@/services/iam'
 import { getRoutedOrders } from '@/services/orders'
 import { listAllStores } from '@/services/store'
-import type { AuthContext } from '@/modules/shell/auth-context'
+import type { AuthContext } from '@/solid/context/auth-context'
 import { isOverdue, type StoreAttention, type WorkspaceSummary } from './presentation'
 
 export async function collectWorkspaceData(

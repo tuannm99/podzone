@@ -1,4 +1,4 @@
-import { useAuthContext } from '@/modules/shell/auth-context'
+import { useAuthContext } from '@/solid/context/auth-context'
 import { createEffect, createSignal, type Accessor } from 'solid-js'
 import { createPartner, listPartners, updatePartner, updatePartnerStatus, type PartnerInfo } from '@/services/partner'
 
