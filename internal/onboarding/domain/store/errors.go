@@ -15,4 +15,5 @@ var (
 	ErrAccessDenied        = errors.New("store access denied")
 	ErrProvisionerDisabled = errors.New("store provisioning worker is disabled")
 	ErrProvisionerMissing  = errors.New("store provisioning dependency is missing")
+	ErrRouteNotReady       = errors.New("tenant placement route is not yet ready")
 )

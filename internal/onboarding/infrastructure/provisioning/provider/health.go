@@ -67,8 +67,8 @@ func countTenantSchemas(ctx context.Context, db *sql.DB, schemaPrefix string) (i
 	var count int
 	err := db.QueryRowContext(
 		ctx,
-		`SELECT count(*) FROM information_schema.schemata WHERE schema_name LIKE $1`,
-		schemaPrefix+"%",
+		`SELECT count(*) FROM information_schema.schemata WHERE starts_with(schema_name, $1)`,
+		schemaPrefix,
 	).Scan(&count)
 	if err != nil {
 		return 0, fmt.Errorf("count tenant schemas: %w", err)
@@ -80,7 +80,7 @@ func countDatabaseConnections(ctx context.Context, db *sql.DB, dbName string) (i
 	var count int
 	err := db.QueryRowContext(
 		ctx,
-		`SELECT count(*) FROM pg_stat_activity WHERE datname = $1`,
+		`SELECT count(*) FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()`,
 		dbName,
 	).Scan(&count)
 	if err != nil {

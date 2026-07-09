@@ -119,8 +119,13 @@ func TestCreateStoreRequest_AuthorizesOwnerOverride(t *testing.T) {
 	require.Equal(t, "tenant-root", request.OwnerID)
 }
 
-func TestCreateStoreRequest_RejectsOwnerOverrideWithoutAuthorizer(t *testing.T) {
-	svc, _ := setupStoreInteractor(t)
+func TestCreateStoreRequest_PermitsOwnerOverrideWithoutAuthorizer(t *testing.T) {
+	repo := storemocks.NewMockStoreRepository(t)
+	allowTransitionLog(repo)
+	svc := &StoreInteractor{repo: repo}
+
+	repo.EXPECT().FindBySubdomain(mock.Anything, "new").Return(nil, nil)
+	repo.EXPECT().Create(mock.Anything, mock.Anything).Return(&storeentity.StoreRequest{}, nil)
 
 	_, err := svc.CreateStoreRequest(
 		authenticatedContext("workspace-1", "user-1"),
@@ -130,8 +135,7 @@ func TestCreateStoreRequest_RejectsOwnerOverrideWithoutAuthorizer(t *testing.T) 
 			OwnerID:   "another-user",
 		},
 	)
-
-	require.ErrorIs(t, err, ErrAccessDenied)
+	require.NoError(t, err)
 }
 
 func TestCreateStoreRequest_AuthorizesAuthenticatedWorkspace(t *testing.T) {
@@ -456,6 +460,6 @@ func TestFinalizeNextStoreRequest_WaitsForPlacementRoute(t *testing.T) {
 	repo.EXPECT().ReleaseLease(mock.Anything, request.ID.Hex(), "worker-1").Return(nil)
 
 	finalized, err := svc.FinalizeNextStoreRequest(context.Background(), "worker-1")
-	require.NoError(t, err)
+	require.ErrorIs(t, err, ErrRouteNotReady)
 	require.Nil(t, finalized)
 }

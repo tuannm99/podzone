@@ -8,6 +8,7 @@ import (
 	"time"
 
 	onboardingconfig "github.com/tuannm99/podzone/internal/onboarding/config"
+	storedomain "github.com/tuannm99/podzone/internal/onboarding/domain/store"
 	storeinputport "github.com/tuannm99/podzone/internal/onboarding/domain/store/inputport"
 	"github.com/tuannm99/podzone/pkg/pdlog"
 )
@@ -87,6 +88,9 @@ func (w *StoreProvisioningWorker) tick(ctx context.Context) {
 		if err != nil {
 			if errors.Is(err, context.Canceled) {
 				return
+			}
+			if errors.Is(err, storedomain.ErrRouteNotReady) {
+				continue
 			}
 			w.log.Error("onboarding store finalization tick failed", "error", err)
 			return

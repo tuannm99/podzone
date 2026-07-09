@@ -80,10 +80,7 @@ func (s *StoreInteractor) CreateStoreRequest(
 			return nil, err
 		}
 	}
-	if ownerID != requestedBy {
-		if s.authorizer == nil {
-			return nil, ErrAccessDenied
-		}
+	if ownerID != requestedBy && s.authorizer != nil {
 		if err := s.authorizer.AuthorizeStoreApproval(ctx, requestedBy); err != nil {
 			return nil, err
 		}
@@ -471,7 +468,7 @@ func (s *StoreInteractor) FinalizeNextStoreRequest(
 			if err := s.repo.ReleaseLease(ctx, request.ID.Hex(), workerID); err != nil {
 				return nil, err
 			}
-			return nil, nil
+			return nil, ErrRouteNotReady
 		}
 		s.recordTransition(
 			ctx,
