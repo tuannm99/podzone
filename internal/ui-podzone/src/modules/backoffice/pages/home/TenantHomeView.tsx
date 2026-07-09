@@ -63,6 +63,7 @@ export function TenantHomeView() {
 
             <TenantHomeSections
                 tenantId={params().tenantId}
+                activeTenantId={home.activeTenantId}
                 currentStoreId={currentStoreId}
                 tenantReady={home.tenantReady}
                 publishedCandidateCount={home.publishedCandidateCount}

@@ -12,6 +12,7 @@ interface HomeViewModelOptions {
 
 export function createHomeViewModel(options: HomeViewModelOptions) {
     const [tenantReady, setTenantReady] = createSignal(false)
+    const [activeTenantId, setActiveTenantId] = createSignal('')
     const [draftCount, setDraftCount] = createSignal(0)
     const [publishedCandidateCount, setPublishedCandidateCount] = createSignal(0)
     const [inProductionCount, setInProductionCount] = createSignal(0)
@@ -107,7 +108,9 @@ export function createHomeViewModel(options: HomeViewModelOptions) {
     createEffect(() => {
         const tenantID = options.tenantID()
         tenantStorage.setTenantID(tenantID)
-        setTenantReady(tokenStorage.getActiveTenantID() === tenantID)
+        const activeId = tokenStorage.getActiveTenantID() || ''
+        setActiveTenantId(activeId)
+        setTenantReady(activeId === tenantID)
     })
 
     createEffect(() => {
@@ -116,6 +119,7 @@ export function createHomeViewModel(options: HomeViewModelOptions) {
 
     return {
         tenantReady,
+        activeTenantId,
         draftCount,
         publishedCandidateCount,
         inProductionCount,

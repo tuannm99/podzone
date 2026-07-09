@@ -1,4 +1,3 @@
-import { tokenStorage } from '@/services/tokenStorage'
 import { EmptyBlock } from '@/solid/components/common/Feedback'
 import { Badge, Button, Card } from '@/solid/components/common/Primitives'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'
@@ -6,6 +5,7 @@ import { buildOrdersHref, buildTenantHref } from './presentation'
 
 type TenantHomeSectionsProps = {
     tenantId: string
+    activeTenantId: () => string
     currentStoreId: () => string
     tenantReady: () => boolean
     publishedCandidateCount: () => number
@@ -36,7 +36,7 @@ export function TenantHomeSections(props: TenantHomeSectionsProps) {
                 />
                 <div class="flex flex-wrap gap-2">
                     <Badge
-                        content={`tenant ${tokenStorage.getActiveTenantID() || 'missing'}`}
+                        content={`tenant ${props.activeTenantId() || 'missing'}`}
                         color={props.tenantReady() ? 'green' : 'yellow'}
                     />
                     <Badge content={`selected store: ${props.currentStoreId() || 'missing'}`} color="indigo" />
