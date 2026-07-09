@@ -1,4 +1,4 @@
-import { useParams, useSearch } from '@tanstack/solid-router'
+import { useNavigate, useParams, useSearch } from '@tanstack/solid-router'
 import { createEffect, createResource, createSignal } from 'solid-js'
 import { emptyPageInfo } from '@/services/collection'
 import {
@@ -25,16 +25,26 @@ import { useOrderStorage } from './useOrderStorage'
 
 export function createTenantOrdersViewModel() {
     const params = useParams({ from: '/t/$tenantId/orders' })
-    const search = useSearch({ strict: false }) as () => Record<string, unknown>
+    const search = useSearch({ from: '/t/$tenantId/orders' })
+    const navigate = useNavigate()
     const workspace = useTenantWorkspace()
 
     const [availableCandidates, setAvailableCandidates] = createSignal<CatalogCandidate[]>([])
     const [orders, setOrders] = createSignal<RoutedOrder[]>([])
     const [queueOrders, setQueueOrders] = createSignal<RoutedOrder[]>([])
-    const [queuePage, setQueuePage] = createSignal(1)
     const [queuePageInfo, setQueuePageInfo] = createSignal(emptyPageInfo({ page: 1, pageSize: 10 }))
     const [queueSearch, setQueueSearch] = createSignal('')
-    const [appliedQueueSearch, setAppliedQueueSearch] = createSignal('')
+
+    const queuePage = () => search().queuePage
+    const setQueuePage = (page: number) =>
+        void navigate({
+            to: '/t/$tenantId/orders',
+            params: { tenantId: params().tenantId },
+            search: { ...search(), queuePage: page },
+        })
+
+    const appliedQueueSearch = () => search().appliedQueueSearch
+
     const orderForm = createFormStore({
         initialValues: routedOrderInitialValues,
         validators: {
@@ -44,13 +54,40 @@ export function createTenantOrdersViewModel() {
         },
     })
     const [routingRecommendation, setRoutingRecommendation] = createSignal<RoutedOrderRecommendation | null>(null)
-    const [activeQueueView, setActiveQueueView] = createSignal<QueueView>('all')
-    const [activeQueueSort, setActiveQueueSort] = createSignal<QueueSort>('priority')
     const [activityFilter, setActivityFilter] = createSignal<ActivityFilter>('notes')
     const [hideSystemActivity, setHideSystemActivity] = createSignal(true)
-    const [operatorLens, setOperatorLens] = createSignal('')
     const [message, setMessage] = createSignal('')
     const [error, setError] = createSignal('')
+
+    const activeQueueView = (): QueueView => {
+        const v = search().queueView
+        return isQueueView(v) ? v : 'all'
+    }
+    const setActiveQueueView = (v: QueueView) =>
+        void navigate({
+            to: '/t/$tenantId/orders',
+            params: { tenantId: params().tenantId },
+            search: { ...search(), queueView: v },
+        })
+
+    const activeQueueSort = (): QueueSort => {
+        const s = search().queueSort
+        return isQueueSort(s) ? s : 'priority'
+    }
+    const setActiveQueueSort = (s: QueueSort) =>
+        void navigate({
+            to: '/t/$tenantId/orders',
+            params: { tenantId: params().tenantId },
+            search: { ...search(), queueSort: s },
+        })
+
+    const operatorLens = () => search().operatorLens
+    const setOperatorLens = (lens: string) =>
+        void navigate({
+            to: '/t/$tenantId/orders',
+            params: { tenantId: params().tenantId },
+            search: { ...search(), operatorLens: lens },
+        })
 
     const currentStoreId = () => workspace?.currentStoreId() || ''
     const currentStore = () => workspace?.currentStore()
@@ -166,14 +203,20 @@ export function createTenantOrdersViewModel() {
             if (!workspaceReady()) return undefined
             const candidateID = orderForm.values.selectedCandidateId.trim()
             if (!candidateID) return undefined
-            return {
-                candidateId: candidateID,
+            return [
+                candidateID,
+                orderForm.values.selectedProductType,
+                orderForm.values.selectedShipRegion,
+                orderForm.values.preferredPartner.trim(),
+            ].join('|')
+        },
+        async () =>
+            getRoutedOrderRecommendation({
+                candidateId: orderForm.values.selectedCandidateId.trim(),
                 productType: orderForm.values.selectedProductType,
                 shipRegion: orderForm.values.selectedShipRegion,
                 preferredPartner: orderForm.values.preferredPartner.trim() || undefined,
-            }
-        },
-        async (source) => getRoutedOrderRecommendation(source)
+            })
     )
 
     const composerContextValue: TenantOrdersComposerContextValue = {
@@ -195,8 +238,11 @@ export function createTenantOrdersViewModel() {
         queueSearch,
         setQueueSearch,
         applyQueueSearch: () => {
-            setQueuePage(1)
-            setAppliedQueueSearch(queueSearch().trim())
+            void navigate({
+                to: '/t/$tenantId/orders',
+                params: { tenantId: params().tenantId },
+                search: { ...search(), appliedQueueSearch: queueSearch().trim(), queuePage: 1 },
+            })
         },
         queueViewCount: insights.queueViewCount,
         savedPresets: storage.savedPresets,
@@ -309,23 +355,6 @@ export function createTenantOrdersViewModel() {
         }
         setQueueOrders(result.data.items)
         setQueuePageInfo(result.data.pageInfo)
-    })
-
-    createEffect(() => {
-        const current = search()
-        const queueView = String(current.queueView || '')
-        const queueSort = String(current.queueSort || '')
-        const lens = String(current.operatorLens || '')
-
-        if (isQueueView(queueView)) {
-            setActiveQueueView(queueView)
-        }
-        if (isQueueSort(queueSort)) {
-            setActiveQueueSort(queueSort)
-        }
-        if (lens) {
-            setOperatorLens(lens)
-        }
     })
 
     createEffect(() => {

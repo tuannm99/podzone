@@ -122,6 +122,13 @@ const tenantOrdersRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/t/$tenantId/orders',
     beforeLoad: async ({ params }) => requireTenantAccess(params.tenantId),
+    validateSearch: (search: Record<string, unknown>) => ({
+        queueView: typeof search.queueView === 'string' ? search.queueView : 'all',
+        queueSort: typeof search.queueSort === 'string' ? search.queueSort : 'priority',
+        operatorLens: typeof search.operatorLens === 'string' ? search.operatorLens : '',
+        queuePage: typeof search.queuePage === 'number' ? search.queuePage : 1,
+        appliedQueueSearch: typeof search.appliedQueueSearch === 'string' ? search.appliedQueueSearch : '',
+    }),
     component: lazyRouteComponent(backofficeRouteComponents.tenantOrders),
 })
 

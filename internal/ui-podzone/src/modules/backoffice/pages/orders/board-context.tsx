@@ -29,11 +29,11 @@ export type BulkDraft = {
 
 export type TenantOrdersBoardContextValue = {
     activeQueueView: Accessor<QueueView>
-    setActiveQueueView: Setter<QueueView>
+    setActiveQueueView: (v: QueueView) => void
     activeQueueSort: Accessor<QueueSort>
-    setActiveQueueSort: Setter<QueueSort>
+    setActiveQueueSort: (s: QueueSort) => void
     operatorLens: Accessor<string>
-    setOperatorLens: Setter<string>
+    setOperatorLens: (lens: string) => void
     queueSearch: Accessor<string>
     setQueueSearch: Setter<string>
     applyQueueSearch: () => void
