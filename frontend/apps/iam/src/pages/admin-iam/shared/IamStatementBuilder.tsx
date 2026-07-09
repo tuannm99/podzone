@@ -1,6 +1,6 @@
 import { For, Show, createEffect, createMemo, createSignal } from 'solid-js'
-import { Badge, Button, Card, InputField, SelectField, TextareaField } from '@/solid/components/common/Primitives'
-import { Tabs } from '@/solid/components/common/Tabs'
+import { Badge, Button, Card, InputField, SelectField, TextareaField } from '@podzone/shared/ui/components/common/Primitives'
+import { Tabs } from '@podzone/shared/ui/components/common/Tabs'
 import { IamPermissionMatrix, type IamPermissionOption, type IamPermissionSelection } from './IamPermissionMatrix'
 import {
     conditionOperatorOptions,

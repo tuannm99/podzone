@@ -1,4 +1,4 @@
-import type { Validator } from '@/solid/forms'
+import type { Validator } from '@podzone/shared/ui/forms'
 
 export type RoutedOrderFormValues = {
     selectedCandidateId: string

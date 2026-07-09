@@ -3,8 +3,8 @@ import { createRouteTree as createBackofficeRouteTree } from '@backoffice/routes
 import { createRouteTree as createIamRouteTree } from '@iam/routes'
 import { createRouteTree as createOnboardingRouteTree } from '@onboarding/routes'
 import { createRouteTree as createShellRouteTree } from './modules/shell/routes'
-import { ensureActiveTenant } from './services/auth'
-import { tokenStorage } from './services/tokenStorage'
+import { ensureActiveTenant } from '@podzone/shared/services/auth'
+import { tokenStorage } from '@podzone/shared/services/tokenStorage'
 import Root from './solid/root'
 
 function requireAuth() {

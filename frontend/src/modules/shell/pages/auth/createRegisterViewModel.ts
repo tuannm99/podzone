@@ -1,7 +1,7 @@
 import { createSignal } from 'solid-js'
 import { useNavigate } from '@tanstack/solid-router'
-import { register } from '@/services/auth'
-import { createFormStore } from '@/solid/forms'
+import { register } from '@podzone/shared/services/auth'
+import { createFormStore } from '@podzone/shared/ui/forms'
 
 type RegisterFormValues = {
     username: string

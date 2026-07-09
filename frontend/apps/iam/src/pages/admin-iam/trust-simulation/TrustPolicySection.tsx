@@ -1,8 +1,8 @@
 import { Show } from 'solid-js'
-import { InfoAlert } from '@/solid/components/common/Feedback'
+import { InfoAlert } from '@podzone/shared/ui/components/common/Feedback'
 import { IamTrustPolicyBuilder } from '@/modules/iam/components'
-import { Badge, Button } from '@/solid/components/common/Primitives'
-import { FormInputField, FormSelectField, type FormStore } from '@/solid/forms'
+import { Badge, Button } from '@podzone/shared/ui/components/common/Primitives'
+import { FormInputField, FormSelectField, type FormStore } from '@podzone/shared/ui/forms'
 import type { RoleBoundaryFormValues, TrustPolicyFormValues } from './forms'
 import { useAdminIamTrustSim } from './context'
 

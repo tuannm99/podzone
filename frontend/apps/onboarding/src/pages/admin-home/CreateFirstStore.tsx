@@ -1,5 +1,5 @@
-import { Button } from '@/solid/components/common/Primitives'
-import { FormInputField, createFormStore, required } from '@/solid/forms'
+import { Button } from '@podzone/shared/ui/components/common/Primitives'
+import { FormInputField, createFormStore, required } from '@podzone/shared/ui/forms'
 import { useAdminHome } from './context'
 import type { CreateStoreFormValues } from './forms'
 

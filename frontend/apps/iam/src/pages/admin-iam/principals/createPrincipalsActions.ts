@@ -12,7 +12,7 @@ import {
     putTenantUserInlinePolicy,
     putTenantUserPermissionBoundary,
     type PolicyStatement,
-} from '@/services/iam'
+} from '@podzone/shared/services/iam'
 import type { AdminIamLoaders } from '../createAdminIamLoaders'
 import type { AdminIamState } from '../createAdminIamState'
 import { parseJSONArray } from '../presentation'

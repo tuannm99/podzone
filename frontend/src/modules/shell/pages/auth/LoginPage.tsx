@@ -1,8 +1,8 @@
 import { Link } from '@tanstack/solid-router'
-import { loginGG } from '@/services/auth'
-import { Card, Button, InputField } from '@/solid/components/common/Primitives'
-import { ErrorAlert } from '@/solid/components/common/Feedback'
-import { SectionLead } from '@/solid/components/common/SectionLead'
+import { loginGG } from '@podzone/shared/services/auth'
+import { Card, Button, InputField } from '@podzone/shared/ui/components/common/Primitives'
+import { ErrorAlert } from '@podzone/shared/ui/components/common/Feedback'
+import { SectionLead } from '@podzone/shared/ui/components/common/SectionLead'
 import { createLoginViewModel } from './createLoginViewModel'
 
 export default function LoginPage() {

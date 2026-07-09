@@ -1,13 +1,13 @@
 import { createEffect } from 'solid-js'
-import { ErrorAlert } from '@/solid/components/common/Feedback'
-import { Drawer } from '@/solid/components/common/Overlay'
-import { Button } from '@/solid/components/common/Primitives'
-import { createFormStore, FormInputField, FormTextareaField, jsonObject, required } from '@/solid/forms'
+import { ErrorAlert } from '@podzone/shared/ui/components/common/Feedback'
+import { Drawer } from '@podzone/shared/ui/components/common/Overlay'
+import { Button } from '@podzone/shared/ui/components/common/Primitives'
+import { createFormStore, FormInputField, FormTextareaField, jsonObject, required } from '@podzone/shared/ui/forms'
 import type {
     DatabaseClusterResource,
     KubernetesClusterResource,
     RuntimePoolResource,
-} from '@/services/onboarding/provisioning'
+} from '@podzone/shared/services/onboarding/provisioning'
 import type { ResourceEditor as EditorState, ResourcesViewModel } from './createResourcesViewModel'
 
 type ResourceDocument = DatabaseClusterResource | KubernetesClusterResource | RuntimePoolResource

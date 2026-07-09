@@ -1,5 +1,5 @@
 import { For, Show } from 'solid-js'
-import { Button, InputField } from '@/solid/components/common/Primitives'
+import { Button, InputField } from '@podzone/shared/ui/components/common/Primitives'
 import { useTenantOrdersBoard } from '../board-context'
 
 export function QueueToolbarPanel() {

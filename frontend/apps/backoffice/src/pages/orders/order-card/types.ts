@@ -1,4 +1,4 @@
-import type { RoutedOrder } from '@/services/orders'
+import type { RoutedOrder } from '@podzone/shared/services/orders'
 
 export type ActivityFilter = 'all' | 'notes' | 'system' | 'shipment_note' | 'settlement_note' | 'issue_note'
 

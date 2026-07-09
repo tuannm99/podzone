@@ -1,4 +1,4 @@
-import { getRolePermissionBoundary, getRoleTrustPolicy } from '@/services/iam'
+import { getRolePermissionBoundary, getRoleTrustPolicy } from '@podzone/shared/services/iam'
 import type { AdminIamState } from '../createAdminIamState'
 import { prettyJSON } from '../presentation'
 

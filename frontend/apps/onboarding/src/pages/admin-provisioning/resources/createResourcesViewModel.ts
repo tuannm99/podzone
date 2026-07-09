@@ -11,8 +11,8 @@ import {
     type DatabaseClusterResource,
     type KubernetesClusterResource,
     type RuntimePoolResource,
-} from '@/services/onboarding/provisioning'
-import { createPaginatedResource } from '@/solid/pagination'
+} from '@podzone/shared/services/onboarding/provisioning'
+import { createPaginatedResource } from '@podzone/shared/ui/pagination'
 
 export type ResourceEditor =
     | { kind: 'database-clusters'; value?: DatabaseClusterResource }

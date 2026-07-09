@@ -1,4 +1,4 @@
-import type { RoutedOrderActivityFeedEntry } from '@/services/orders'
+import type { RoutedOrderActivityFeedEntry } from '@podzone/shared/services/orders'
 
 export const activityFilterOptions = [
     { name: 'All', value: 'all' },

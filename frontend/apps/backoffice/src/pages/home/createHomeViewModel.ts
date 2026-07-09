@@ -1,7 +1,7 @@
 import { createEffect, createResource, createSignal, type Accessor } from 'solid-js'
-import { getRoutedOrders } from '@/services/orders'
-import { getProductSetupSnapshot } from '@/services/productSetup'
-import { useAuthContext } from '@/solid/context/auth-context'
+import { getRoutedOrders } from '@podzone/shared/services/orders'
+import { getProductSetupSnapshot } from '@podzone/shared/services/productSetup'
+import { useAuthContext } from '@podzone/shared/auth'
 import { formatMoney, isOverdue, parseMoney } from './presentation'
 
 interface HomeViewModelOptions {

@@ -1,4 +1,4 @@
-import { removePlatformRole, removeTenantMember, upsertPlatformRole, upsertTenantMember } from '@/services/iam'
+import { removePlatformRole, removeTenantMember, upsertPlatformRole, upsertTenantMember } from '@podzone/shared/services/iam'
 import type { AdminIamState } from '../createAdminIamState'
 import type { RunAction } from '../shared/actions'
 

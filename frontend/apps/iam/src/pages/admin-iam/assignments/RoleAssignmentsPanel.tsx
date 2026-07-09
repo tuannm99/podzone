@@ -1,7 +1,7 @@
 import { Show, type Accessor, type Setter } from 'solid-js'
-import { Button, SelectField, type SelectOption } from '@/solid/components/common/Primitives'
-import { SearchSelectField, type SearchSelectOption } from '@/solid/components/common/SearchSelectField'
-import { SectionTitle } from '@/solid/components/common/SectionTitle'
+import { Button, SelectField, type SelectOption } from '@podzone/shared/ui/components/common/Primitives'
+import { SearchSelectField, type SearchSelectOption } from '@podzone/shared/ui/components/common/SearchSelectField'
+import { SectionTitle } from '@podzone/shared/ui/components/common/SectionTitle'
 
 type RoleAssignmentsPanelProps = {
     canManagePlatform: Accessor<boolean>

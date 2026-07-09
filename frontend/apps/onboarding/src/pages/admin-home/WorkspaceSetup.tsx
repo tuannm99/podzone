@@ -1,6 +1,6 @@
-import { Badge, Button, Card } from '@/solid/components/common/Primitives'
-import { SectionTitle } from '@/solid/components/common/SectionTitle'
-import { FormInputField, createFormStore, required } from '@/solid/forms'
+import { Badge, Button, Card } from '@podzone/shared/ui/components/common/Primitives'
+import { SectionTitle } from '@podzone/shared/ui/components/common/SectionTitle'
+import { FormInputField, createFormStore, required } from '@podzone/shared/ui/forms'
 import type { CreateWorkspaceFormValues } from './forms'
 import { useAdminHome } from './context'
 

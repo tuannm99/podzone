@@ -12,9 +12,9 @@ import {
     updateRoutedOrderQueueControl,
     updateRoutedOrderSettlement,
     updateRoutedOrderShipment,
-} from '@/services/orders'
-import type { CatalogCandidate } from '@/services/productSetup'
-import type { FormStore } from '@/solid/forms'
+} from '@podzone/shared/services/orders'
+import type { CatalogCandidate } from '@podzone/shared/services/productSetup'
+import type { FormStore } from '@podzone/shared/ui/forms'
 import type { BulkDraft } from '../board-context'
 import type { RoutedOrderFormValues } from '../forms'
 import type { useOrderDrafts } from './useOrderDrafts'

@@ -1,11 +1,11 @@
 import { useNavigate, useSearch } from '@tanstack/solid-router'
 import { Show, createSignal } from 'solid-js'
-import { switchActiveTenant } from '@/services/auth'
-import { acceptTenantInvite } from '@/services/iam'
-import { useAuthContext } from '@/solid/context/auth-context'
-import { ErrorAlert, InfoAlert } from '@/solid/components/common/Feedback'
-import { Button, Card } from '@/solid/components/common/Primitives'
-import { SectionLead } from '@/solid/components/common/SectionLead'
+import { switchActiveTenant } from '@podzone/shared/services/auth'
+import { acceptTenantInvite } from '@podzone/shared/services/iam'
+import { useAuthContext } from '@podzone/shared/auth'
+import { ErrorAlert, InfoAlert } from '@podzone/shared/ui/components/common/Feedback'
+import { Button, Card } from '@podzone/shared/ui/components/common/Primitives'
+import { SectionLead } from '@podzone/shared/ui/components/common/SectionLead'
 
 export default function AcceptInvitePage() {
     const auth = useAuthContext()

@@ -1,11 +1,11 @@
 import { useParams } from '@tanstack/solid-router'
 import { For, Show } from 'solid-js'
-import { EmptyBlock, ErrorAlert, InfoAlert, LoadingInline } from '@/solid/components/common/Feedback'
-import { PageShell } from '@/solid/components/common/PageShell'
-import { Badge, Button, Card, InputField, SelectField } from '@/solid/components/common/Primitives'
-import { SectionLead } from '@/solid/components/common/SectionLead'
-import { SectionTitle } from '@/solid/components/common/SectionTitle'
-import { useTenantWorkspace } from '@/solid/context/workspace-context'
+import { EmptyBlock, ErrorAlert, InfoAlert, LoadingInline } from '@podzone/shared/ui/components/common/Feedback'
+import { PageShell } from '@podzone/shared/ui/components/common/PageShell'
+import { Badge, Button, Card, InputField, SelectField } from '@podzone/shared/ui/components/common/Primitives'
+import { SectionLead } from '@podzone/shared/ui/components/common/SectionLead'
+import { SectionTitle } from '@podzone/shared/ui/components/common/SectionTitle'
+import { useTenantWorkspace } from '@podzone/shared/auth'
 import { createOrderAuditViewModel } from './createOrderAuditViewModel'
 import {
     activityColor,

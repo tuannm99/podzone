@@ -8,8 +8,8 @@ import {
     type InfrastructureConnection,
     type PlacementStatus,
     type UpsertInfrastructureConnection,
-} from '@/services/onboarding/provisioning'
-import { createPaginatedResource } from '@/solid/pagination'
+} from '@podzone/shared/services/onboarding/provisioning'
+import { createPaginatedResource } from '@podzone/shared/ui/pagination'
 
 export function createConnectionsViewModel(tenantId: Accessor<string>, enabled: Accessor<boolean>) {
     const [editor, setEditor] = createSignal<InfrastructureConnection>()

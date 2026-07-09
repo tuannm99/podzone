@@ -6,7 +6,7 @@ import {
     detachServiceControlPolicy,
     detachTenantFromOrganization,
     removeOrganizationMember,
-} from '@/services/iam'
+} from '@podzone/shared/services/iam'
 import type { AdminIamLoaders } from '../createAdminIamLoaders'
 import type { AdminIamState } from '../createAdminIamState'
 import type { RunAction } from '../shared/actions'

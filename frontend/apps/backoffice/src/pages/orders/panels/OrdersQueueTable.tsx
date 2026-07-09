@@ -1,6 +1,6 @@
 import { For, type Accessor, type Setter } from 'solid-js'
-import type { PageInfo } from '@/services/collection'
-import type { RoutedOrder } from '@/services/orders'
+import type { PageInfo } from '@podzone/shared/services/collection'
+import type { RoutedOrder } from '@podzone/shared/services/orders'
 import {
     DataTable,
     TableBody,
@@ -8,9 +8,9 @@ import {
     TableHead,
     TableHeaderCell,
     TableRow,
-} from '@/solid/components/common/DataTable'
-import { Pagination } from '@/solid/components/common/Pagination'
-import { Badge, Button } from '@/solid/components/common/Primitives'
+} from '@podzone/shared/ui/components/common/DataTable'
+import { Pagination } from '@podzone/shared/ui/components/common/Pagination'
+import { Badge, Button } from '@podzone/shared/ui/components/common/Primitives'
 
 type BadgeColor = 'blue' | 'indigo' | 'green' | 'yellow' | 'pink' | 'dark' | 'red'
 

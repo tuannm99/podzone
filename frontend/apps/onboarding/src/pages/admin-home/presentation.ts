@@ -1,4 +1,4 @@
-import type { StoreRequestStatus } from '@/services/onboarding'
+import type { StoreRequestStatus } from '@podzone/shared/services/onboarding'
 
 export type StoreAttention = {
     tenantId: string

@@ -1,5 +1,5 @@
 import { For, Show } from 'solid-js'
-import { Badge, Button } from '@/solid/components/common/Primitives'
+import { Badge, Button } from '@podzone/shared/ui/components/common/Primitives'
 import { useTenantOrdersInsights } from '../insights-context'
 import { formatActivityActor, formatActivityTime } from '../shared/utils'
 

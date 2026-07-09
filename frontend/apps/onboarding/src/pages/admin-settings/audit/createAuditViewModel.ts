@@ -1,5 +1,5 @@
-import { listAuditLogs, type AuditLogInfo } from '@/services/auth'
-import { createPaginatedResource } from '@/solid/pagination'
+import { listAuditLogs, type AuditLogInfo } from '@podzone/shared/services/auth'
+import { createPaginatedResource } from '@podzone/shared/ui/pagination'
 import type { Accessor } from 'solid-js'
 
 export function createAuditViewModel(enabled: Accessor<boolean>) {

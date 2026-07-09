@@ -1,8 +1,8 @@
 import { For, Show } from 'solid-js'
-import { EmptyBlock } from '@/solid/components/common/Feedback'
-import { Badge } from '@/solid/components/common/Primitives'
-import { classes } from '@/solid/shared/utils'
-import type { SimulateMatchedStatement } from '@/services/iam'
+import { EmptyBlock } from '@podzone/shared/ui/components/common/Feedback'
+import { Badge } from '@podzone/shared/ui/components/common/Primitives'
+import { classes } from '@podzone/shared/ui/shared/utils'
+import type { SimulateMatchedStatement } from '@podzone/shared/services/iam'
 import { useAdminIamTrustSim } from './context'
 
 function formatConditions(conditions: Array<{ operator: string; key: string; value: string }>) {

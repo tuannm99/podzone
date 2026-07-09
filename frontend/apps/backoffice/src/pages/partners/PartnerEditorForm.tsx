@@ -1,8 +1,8 @@
 import { Show, type Accessor } from 'solid-js'
-import { InfoAlert } from '@/solid/components/common/Feedback'
-import { Button } from '@/solid/components/common/Primitives'
-import { SectionTitle } from '@/solid/components/common/SectionTitle'
-import { FormInputField, FormSelectField, FormTextareaField, type FormStore } from '@/solid/forms'
+import { InfoAlert } from '@podzone/shared/ui/components/common/Feedback'
+import { Button } from '@podzone/shared/ui/components/common/Primitives'
+import { SectionTitle } from '@podzone/shared/ui/components/common/SectionTitle'
+import { FormInputField, FormSelectField, FormTextareaField, type FormStore } from '@podzone/shared/ui/forms'
 import type { PartnerFormValues } from './forms'
 import { partnerTypeOptions } from './presentation'
 

@@ -1,9 +1,9 @@
 import { createResource, type Accessor } from 'solid-js'
-import { ensureActiveTenant } from '@/services/auth'
-import { listStoreRequests } from '@/services/onboarding'
-import { listStores } from '@/services/store'
-import { useAuthContext } from '@/solid/context/auth-context'
-import { createPaginatedResource } from '@/solid/pagination'
+import { ensureActiveTenant } from '@podzone/shared/services/auth'
+import { listStoreRequests } from '@podzone/shared/services/onboarding'
+import { listStores } from '@podzone/shared/services/store'
+import { useAuthContext } from '@podzone/shared/auth'
+import { createPaginatedResource } from '@podzone/shared/ui/pagination'
 
 export function createStoreCollectionsViewModel(
     selectedWorkspaceID: Accessor<string>,

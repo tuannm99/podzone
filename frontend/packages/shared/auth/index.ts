@@ -1,2 +1,4 @@
-export type { AuthContext } from '@/solid/context/auth-context'
-export { useAuthContext } from '@/solid/context/auth-context'
+export type { AuthContext } from './auth-context'
+export { AuthContextToken, useAuthContext } from './auth-context'
+export type { WorkspaceContextValue } from './workspace-context'
+export { WorkspaceContext, useTenantWorkspace } from './workspace-context'

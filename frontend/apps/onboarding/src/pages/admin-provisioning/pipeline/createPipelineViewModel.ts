@@ -1,7 +1,7 @@
 import { createEffect, createSignal, type Accessor } from 'solid-js'
-import { listStoreRequests, retryStoreRequest } from '@/services/onboarding'
-import { listStoreRequestTransitions } from '@/services/onboarding/provisioning'
-import { createPaginatedResource } from '@/solid/pagination'
+import { listStoreRequests, retryStoreRequest } from '@podzone/shared/services/onboarding'
+import { listStoreRequestTransitions } from '@podzone/shared/services/onboarding/provisioning'
+import { createPaginatedResource } from '@podzone/shared/ui/pagination'
 
 export function createPipelineViewModel(tenantId: Accessor<string>, enabled: Accessor<boolean>) {
     const [selectedRequestId, setSelectedRequestId] = createSignal('')

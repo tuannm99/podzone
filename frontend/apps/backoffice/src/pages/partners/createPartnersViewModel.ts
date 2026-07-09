@@ -1,9 +1,9 @@
-import { useAuthContext } from '@/solid/context/auth-context'
+import { useAuthContext } from '@podzone/shared/auth'
 import { createEffect, createSignal, type Accessor } from 'solid-js'
-import { createPartner, listPartners, updatePartner, updatePartnerStatus, type PartnerInfo } from '@/services/partner'
+import { createPartner, listPartners, updatePartner, updatePartnerStatus, type PartnerInfo } from '@podzone/shared/services/partner'
 
-import { createFormStore, email, required } from '@/solid/forms'
-import { createPaginatedResource } from '@/solid/pagination'
+import { createFormStore, email, required } from '@podzone/shared/ui/forms'
+import { createPaginatedResource } from '@podzone/shared/ui/pagination'
 import { nonNegativeInteger, partnerInitialValues, shippingRules } from './forms'
 import { joinCapabilityList, joinShippingCostRules, parseCapabilityList, parseShippingCostRules } from './presentation'
 

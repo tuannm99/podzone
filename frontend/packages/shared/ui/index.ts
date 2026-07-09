@@ -1,2 +1,4 @@
-export * from '@/solid/components/common'
-export * from '@/solid/components/dashboard'
+export * from './components/common'
+export * from './components/dashboard'
+export * from './forms'
+export * from './pagination'

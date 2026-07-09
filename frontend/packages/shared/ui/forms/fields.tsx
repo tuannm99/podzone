@@ -5,7 +5,7 @@ import {
     SelectField,
     TextareaField,
     type SelectOption,
-} from '@/solid/components/common/Primitives'
+} from '../components/common/Primitives'
 import type { FormStore } from './createFormStore'
 
 type StringKey<TValues> = Extract<keyof TValues, string>

@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'solid-js'
-import type { StoreInfo } from '@/services/store'
+import type { StoreInfo } from '../services/store'
 
 export type WorkspaceContextValue = {
     tenantId: () => string

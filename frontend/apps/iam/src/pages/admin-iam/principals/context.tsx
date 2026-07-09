@@ -1,9 +1,9 @@
 import { createContext, useContext } from 'solid-js'
 import type { Accessor, ParentProps, Setter } from 'solid-js'
-import type { PermissionBoundary, PolicyInfo, UserInlinePolicy } from '@/services/iam'
-import type { CollectionQuery, PageInfo } from '@/services/collection'
-import type { SelectOption } from '@/solid/components/common/Primitives'
-import type { SearchSelectOption } from '@/solid/components/common/SearchSelectField'
+import type { PermissionBoundary, PolicyInfo, UserInlinePolicy } from '@podzone/shared/services/iam'
+import type { CollectionQuery, PageInfo } from '@podzone/shared/services/collection'
+import type { SelectOption } from '@podzone/shared/ui/components/common/Primitives'
+import type { SearchSelectOption } from '@podzone/shared/ui/components/common/SearchSelectField'
 import type { IamPermissionOption } from '../shared/IamPermissionMatrix'
 import type {
     PrincipalBoundaryFormValues,

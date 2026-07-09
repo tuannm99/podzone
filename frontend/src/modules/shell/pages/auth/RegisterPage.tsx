@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/solid-router'
-import { Button, Card, InputField } from '@/solid/components/common/Primitives'
-import { ErrorAlert } from '@/solid/components/common/Feedback'
-import { SectionLead } from '@/solid/components/common/SectionLead'
+import { Button, Card, InputField } from '@podzone/shared/ui/components/common/Primitives'
+import { ErrorAlert } from '@podzone/shared/ui/components/common/Feedback'
+import { SectionLead } from '@podzone/shared/ui/components/common/SectionLead'
 import { createRegisterViewModel } from './createRegisterViewModel'
 
 export default function RegisterPage() {

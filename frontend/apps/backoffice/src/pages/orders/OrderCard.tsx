@@ -1,5 +1,5 @@
 import { For } from 'solid-js'
-import type { RoutedOrder } from '@/services/orders'
+import type { RoutedOrder } from '@podzone/shared/services/orders'
 import { ActivityLogPanel } from './order-card/ActivityLogPanel'
 import { Header } from './order-card/Header'
 import { IssueHandlingPanel } from './order-card/IssueHandlingPanel'

@@ -1,4 +1,4 @@
-import { listUserTenants } from '@/services/iam'
+import { listUserTenants } from '@podzone/shared/services/iam'
 import type { AdminIamState } from '../createAdminIamState'
 
 export function createBootstrapLoader(state: AdminIamState, userID: number) {

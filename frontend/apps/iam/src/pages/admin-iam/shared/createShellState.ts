@@ -1,5 +1,5 @@
 import { createSignal } from 'solid-js'
-import type { TenantMembership } from '@/services/iam'
+import type { TenantMembership } from '@podzone/shared/services/iam'
 
 export function createShellState() {
     const [error, setError] = createSignal('')

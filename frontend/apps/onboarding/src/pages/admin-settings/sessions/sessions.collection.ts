@@ -1,5 +1,5 @@
-import type { CollectionFilterField } from '@/solid/components/common/CollectionFilters'
-import type { CollectionSortOption } from '@/solid/components/common/CollectionToolbar'
+import type { CollectionFilterField } from '@podzone/shared/ui/components/common/CollectionFilters'
+import type { CollectionSortOption } from '@podzone/shared/ui/components/common/CollectionToolbar'
 
 export const sessionSortOptions: CollectionSortOption[] = [
     { label: 'Created time', value: 'created_at' },

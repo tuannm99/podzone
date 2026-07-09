@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'solid-js'
 import type { Accessor, ParentProps } from 'solid-js'
-import type { RoutedOrder } from '@/services/orders'
+import type { RoutedOrder } from '@podzone/shared/services/orders'
 import type { PartnerFinanceSummaryItem, StoreActivityFeedEntry } from './shared/utils'
 
 export type TenantOrdersInsightsContextValue = {

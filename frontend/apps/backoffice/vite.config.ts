@@ -24,12 +24,15 @@ export default defineConfig({
                 './TenantPartnerDetailPage': `${pagesRoot}/TenantPartnerDetailPage`,
                 './TenantProductSetupPage': `${pagesRoot}/TenantProductSetupPage`,
             },
-            shared: ['solid-js', '@tanstack/solid-router'],
+            shared: {
+                'solid-js': { singleton: true } as object,
+                '@tanstack/solid-router': { singleton: true } as object,
+            },
         }),
     ],
     resolve: {
         alias: {
-            // Shared code (contexts, services, components) still lives in frontend/src/
+            '@podzone/shared': path.resolve(__dirname, '../../packages/shared'),
             '@': sharedRoot,
         },
     },

@@ -1,4 +1,4 @@
-import { Button } from '@/solid/components/common/Primitives'
+import { Button } from '@podzone/shared/ui/components/common/Primitives'
 import { useAdminIamTrustSim } from './context'
 
 export function SimulationPresetButtons() {

@@ -1,8 +1,8 @@
 import { For, Show } from 'solid-js'
-import { EmptyBlock, ErrorAlert, InfoAlert } from '@/solid/components/common/Feedback'
-import { Badge, Button } from '@/solid/components/common/Primitives'
-import { SectionTitle } from '@/solid/components/common/SectionTitle'
-import { FormInputField, FormSelectField } from '@/solid/forms'
+import { EmptyBlock, ErrorAlert, InfoAlert } from '@podzone/shared/ui/components/common/Feedback'
+import { Badge, Button } from '@podzone/shared/ui/components/common/Primitives'
+import { SectionTitle } from '@podzone/shared/ui/components/common/SectionTitle'
+import { FormInputField, FormSelectField } from '@podzone/shared/ui/forms'
 import { useTenantOrdersComposer } from '../composer-context'
 
 const productTypeOptions = [

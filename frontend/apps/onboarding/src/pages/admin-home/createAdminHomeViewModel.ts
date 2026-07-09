@@ -1,9 +1,9 @@
 import { useNavigate } from '@tanstack/solid-router'
 import { createEffect, createResource, createSignal, on, onCleanup } from 'solid-js'
-import { ensureActiveTenant } from '@/services/auth'
-import { createTenant, listUserTenants, type TenantMembership } from '@/services/iam'
-import { createStoreRequest, retryStoreRequest } from '@/services/onboarding'
-import { useAuthContext } from '@/solid/context/auth-context'
+import { ensureActiveTenant } from '@podzone/shared/services/auth'
+import { createTenant, listUserTenants, type TenantMembership } from '@podzone/shared/services/iam'
+import { createStoreRequest, retryStoreRequest } from '@podzone/shared/services/onboarding'
+import { useAuthContext } from '@podzone/shared/auth'
 import {
     buildOrdersHref,
     membershipStatusColor,

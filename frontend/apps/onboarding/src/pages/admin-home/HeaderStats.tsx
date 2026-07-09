@@ -1,9 +1,9 @@
 import { Show } from 'solid-js'
-import { useAuthContext } from '@/solid/context/auth-context'
-import { ErrorAlert, InfoAlert } from '@/solid/components/common/Feedback'
-import { Button, Card } from '@/solid/components/common/Primitives'
-import { SectionLead } from '@/solid/components/common/SectionLead'
-import { StatCard } from '@/solid/components/dashboard/StatCard'
+import { useAuthContext } from '@podzone/shared/auth'
+import { ErrorAlert, InfoAlert } from '@podzone/shared/ui/components/common/Feedback'
+import { Button, Card } from '@podzone/shared/ui/components/common/Primitives'
+import { SectionLead } from '@podzone/shared/ui/components/common/SectionLead'
+import { StatCard } from '@podzone/shared/ui/components/dashboard/StatCard'
 import { useAdminHome } from './context'
 
 export function HeaderStats() {

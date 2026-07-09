@@ -1,10 +1,10 @@
 import { useNavigate } from '@tanstack/solid-router'
 import { onMount, createSignal, Show } from 'solid-js'
-import { Card, Button } from '@/solid/components/common/Primitives'
-import { SectionLead } from '@/solid/components/common/SectionLead'
-import { ErrorAlert } from '@/solid/components/common/Feedback'
-import { tokenStorage } from '@/services/tokenStorage'
-import { tenantStorage } from '@/services/tenantStorage'
+import { Card, Button } from '@podzone/shared/ui/components/common/Primitives'
+import { SectionLead } from '@podzone/shared/ui/components/common/SectionLead'
+import { ErrorAlert } from '@podzone/shared/ui/components/common/Feedback'
+import { tokenStorage } from '@podzone/shared/services/tokenStorage'
+import { tenantStorage } from '@podzone/shared/services/tenantStorage'
 
 type BootstrapBundle = {
     tenantId: string

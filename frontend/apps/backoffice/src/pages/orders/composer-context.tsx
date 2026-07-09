@@ -1,8 +1,8 @@
 import { createContext, useContext } from 'solid-js'
 import type { Accessor, ParentProps } from 'solid-js'
-import type { RoutedOrderRecommendation } from '@/services/orders'
-import type { CatalogCandidate } from '@/services/productSetup'
-import type { FormStore } from '@/solid/forms'
+import type { RoutedOrderRecommendation } from '@podzone/shared/services/orders'
+import type { CatalogCandidate } from '@podzone/shared/services/productSetup'
+import type { FormStore } from '@podzone/shared/ui/forms'
 import type { RoutedOrderFormValues } from './forms'
 
 export type TenantOrdersComposerContextValue = {

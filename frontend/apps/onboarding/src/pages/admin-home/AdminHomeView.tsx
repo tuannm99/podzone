@@ -1,4 +1,4 @@
-import { PageShell } from '@/solid/components/common/PageShell'
+import { PageShell } from '@podzone/shared/ui/components/common/PageShell'
 import { AttentionRuntime } from './AttentionRuntime'
 import { HeaderStats } from './HeaderStats'
 import { ProvisioningRequestsPanel } from './ProvisioningRequestsPanel'

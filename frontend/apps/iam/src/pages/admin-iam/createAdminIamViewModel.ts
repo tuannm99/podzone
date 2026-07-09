@@ -1,4 +1,4 @@
-import { useAuthContext } from '@/solid/context/auth-context'
+import { useAuthContext } from '@podzone/shared/auth'
 import { createAdminIamActions } from './createAdminIamActions'
 import { createAdminIamContexts } from './createAdminIamContexts'
 import { createAdminIamLoaders } from './createAdminIamLoaders'

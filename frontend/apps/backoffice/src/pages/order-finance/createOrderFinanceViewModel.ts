@@ -1,6 +1,6 @@
-import { useAuthContext } from '@/solid/context/auth-context'
+import { useAuthContext } from '@podzone/shared/auth'
 import { createEffect, createResource, createSignal, type Accessor } from 'solid-js'
-import { getRoutedOrders, type RoutedOrder } from '@/services/orders'
+import { getRoutedOrders, type RoutedOrder } from '@podzone/shared/services/orders'
 
 import {
     anomalyFlagsFor,

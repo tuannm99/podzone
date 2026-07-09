@@ -1,6 +1,6 @@
 import { For, Show } from 'solid-js'
-import type { RoutedOrder } from '@/services/orders'
-import { Badge, Button, SelectField } from '@/solid/components/common/Primitives'
+import type { RoutedOrder } from '@podzone/shared/services/orders'
+import { Badge, Button, SelectField } from '@podzone/shared/ui/components/common/Primitives'
 import { formatActivityActor, formatActivityTime } from '../shared/utils'
 import type { ActivityFilter, OrderCardActions, OrderCardHelpers, OrderCardUi } from './types'
 

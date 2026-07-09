@@ -1,11 +1,11 @@
 import { For, Show } from 'solid-js'
-import type { CollectionQuery } from '@/services/collection'
+import type { CollectionQuery } from '@podzone/shared/services/collection'
 import type {
     DatabaseClusterResource,
     KubernetesClusterResource,
     RuntimePoolResource,
-} from '@/services/onboarding/provisioning'
-import { CollectionControls } from '@/solid/components/common/CollectionControls'
+} from '@podzone/shared/services/onboarding/provisioning'
+import { CollectionControls } from '@podzone/shared/ui/components/common/CollectionControls'
 import {
     DataTable,
     TableBody,
@@ -13,11 +13,11 @@ import {
     TableHead,
     TableHeaderCell,
     TableRow,
-} from '@/solid/components/common/DataTable'
-import { EmptyBlock } from '@/solid/components/common/Feedback'
-import { Pagination } from '@/solid/components/common/Pagination'
-import { Badge, Button } from '@/solid/components/common/Primitives'
-import type { createPaginatedResource } from '@/solid/pagination'
+} from '@podzone/shared/ui/components/common/DataTable'
+import { EmptyBlock } from '@podzone/shared/ui/components/common/Feedback'
+import { Pagination } from '@podzone/shared/ui/components/common/Pagination'
+import { Badge, Button } from '@podzone/shared/ui/components/common/Primitives'
+import type { createPaginatedResource } from '@podzone/shared/ui/pagination'
 import type { ResourceEditor, ResourcesViewModel } from './createResourcesViewModel'
 
 type Resource = DatabaseClusterResource | KubernetesClusterResource | RuntimePoolResource

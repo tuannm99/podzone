@@ -1,9 +1,9 @@
 import { Show } from 'solid-js'
-import { InfoAlert } from '@/solid/components/common/Feedback'
+import { InfoAlert } from '@podzone/shared/ui/components/common/Feedback'
 import { IamKeyValueBuilder } from '@/modules/iam/components'
 import { IamStatementBuilder } from '../shared/IamStatementBuilder'
-import { Card, InputField, SelectField } from '@/solid/components/common/Primitives'
-import { SearchSelectField } from '@/solid/components/common/SearchSelectField'
+import { Card, InputField, SelectField } from '@podzone/shared/ui/components/common/Primitives'
+import { SearchSelectField } from '@podzone/shared/ui/components/common/SearchSelectField'
 import { useAdminIamTrustSim } from './context'
 import { SimulationPresetButtons } from './SimulationPresetButtons'
 

@@ -1,4 +1,4 @@
-import { getPlatformUserPermissionBoundary, getTenantUserPermissionBoundary } from '@/services/iam'
+import { getPlatformUserPermissionBoundary, getTenantUserPermissionBoundary } from '@podzone/shared/services/iam'
 import type { AdminIamState } from '../createAdminIamState'
 
 export function createPrincipalsLoaders(state: AdminIamState) {

@@ -1,7 +1,7 @@
 import type { Accessor } from 'solid-js'
-import { Button } from '@/solid/components/common/Primitives'
-import { SectionTitle } from '@/solid/components/common/SectionTitle'
-import { FormCheckboxField, FormInputField, FormSelectField, FormTextareaField, type FormStore } from '@/solid/forms'
+import { Button } from '@podzone/shared/ui/components/common/Primitives'
+import { SectionTitle } from '@podzone/shared/ui/components/common/SectionTitle'
+import { FormCheckboxField, FormInputField, FormSelectField, FormTextareaField, type FormStore } from '@podzone/shared/ui/forms'
 import type { ProductSetupFormValues } from './forms'
 import { channelOptions, statusOptions } from './presentation'
 

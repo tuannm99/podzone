@@ -1,5 +1,5 @@
-import type { RoutedOrder } from '@/services/orders'
-import { Badge, Button, InputField, SelectField, TextareaField } from '@/solid/components/common/Primitives'
+import type { RoutedOrder } from '@podzone/shared/services/orders'
+import { Badge, Button, InputField, SelectField, TextareaField } from '@podzone/shared/ui/components/common/Primitives'
 import type { OrderCardActions, OrderCardHelpers, OrderCardUi } from './types'
 
 type SettlementPanelProps = {

@@ -1,7 +1,7 @@
 import { For } from 'solid-js'
-import type { StoreRequest } from '@/services/onboarding'
-import type { StoreRequestTransition } from '@/services/onboarding/provisioning'
-import { classes } from '@/solid/shared/utils'
+import type { StoreRequest } from '@podzone/shared/services/onboarding'
+import type { StoreRequestTransition } from '@podzone/shared/services/onboarding/provisioning'
+import { classes } from '@podzone/shared/ui/shared/utils'
 
 type PipelineStage = {
     key: string

@@ -1,6 +1,6 @@
 import { ErrorBoundary } from 'solid-js'
 import { lazyRouteComponent } from '@tanstack/solid-router'
-import { ErrorAlert } from './components/common/Feedback'
+import { ErrorAlert } from '@podzone/shared/ui/components/common/Feedback'
 
 type ImportFn = Parameters<typeof lazyRouteComponent>[0]
 

@@ -2,9 +2,16 @@
   "name": "@podzone/shared",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "exports": {
-    "./auth": "./auth/index.ts",
+    "./ui": "./ui/index.ts",
+    "./ui/*": "./ui/*.ts",
     "./services": "./services/index.ts",
-    "./ui": "./ui/index.ts"
+    "./services/*": "./services/*.ts",
+    "./auth": "./auth/index.ts"
+  },
+  "peerDependencies": {
+    "solid-js": "^1.0.0",
+    "@tanstack/solid-router": "*"
   }
 }

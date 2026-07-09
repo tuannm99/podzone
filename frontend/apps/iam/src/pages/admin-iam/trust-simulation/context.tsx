@@ -1,8 +1,8 @@
 import { createContext, useContext } from 'solid-js'
 import type { Accessor, ParentProps, Setter } from 'solid-js'
-import type { RolePermissionBoundary, SimulateAccessResult } from '@/services/iam'
-import type { SelectOption } from '@/solid/components/common/Primitives'
-import type { SearchSelectOption } from '@/solid/components/common/SearchSelectField'
+import type { RolePermissionBoundary, SimulateAccessResult } from '@podzone/shared/services/iam'
+import type { SelectOption } from '@podzone/shared/ui/components/common/Primitives'
+import type { SearchSelectOption } from '@podzone/shared/ui/components/common/SearchSelectField'
 import type { IamPermissionOption } from '../shared/IamPermissionMatrix'
 
 export type ScopeOption = {

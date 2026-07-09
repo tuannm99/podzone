@@ -1,6 +1,6 @@
 import { useNavigate, useSearch } from '@tanstack/solid-router'
 import { createSignal } from 'solid-js'
-import { useAuthContext } from '@/solid/context/auth-context'
+import { useAuthContext } from '@podzone/shared/auth'
 import { AdminSettingsView } from './admin-settings/AdminSettingsView'
 import { createAuditViewModel } from './admin-settings/audit/createAuditViewModel'
 import { AdminSettingsContext, type AdminSettingsTab, type AdminSettingsViewModel } from './admin-settings/context'

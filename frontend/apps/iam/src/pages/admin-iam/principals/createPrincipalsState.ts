@@ -7,8 +7,8 @@ import {
     type PermissionBoundary,
     type PolicyInfo,
     type UserInlinePolicy,
-} from '@/services/iam'
-import { createPaginatedResource } from '@/solid/pagination'
+} from '@podzone/shared/services/iam'
+import { createPaginatedResource } from '@podzone/shared/ui/pagination'
 import { prettyJSON } from '../presentation'
 
 export function createPrincipalsState(userID: number, enabled: Accessor<boolean>) {

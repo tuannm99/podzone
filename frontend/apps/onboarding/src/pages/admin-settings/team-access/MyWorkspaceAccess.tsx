@@ -1,7 +1,7 @@
 import { For, Show } from 'solid-js'
-import { EmptyBlock, LoadingInline } from '@/solid/components/common/Feedback'
-import { Badge, Button, Card } from '@/solid/components/common/Primitives'
-import { SectionTitle } from '@/solid/components/common/SectionTitle'
+import { EmptyBlock, LoadingInline } from '@podzone/shared/ui/components/common/Feedback'
+import { Badge, Button, Card } from '@podzone/shared/ui/components/common/Primitives'
+import { SectionTitle } from '@podzone/shared/ui/components/common/SectionTitle'
 import { useAdminSettings } from '../context'
 
 export function MyWorkspaceAccess() {

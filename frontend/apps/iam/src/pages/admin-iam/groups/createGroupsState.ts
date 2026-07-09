@@ -7,8 +7,8 @@ import {
     type GroupInfo,
     type GroupInlinePolicy,
     type PolicyInfo,
-} from '@/services/iam'
-import { createPaginatedResource } from '@/solid/pagination'
+} from '@podzone/shared/services/iam'
+import { createPaginatedResource } from '@podzone/shared/ui/pagination'
 import { prettyJSON } from '../presentation'
 
 export function createGroupsState(enabled: Accessor<boolean>, selectedOrgId: Accessor<string>) {

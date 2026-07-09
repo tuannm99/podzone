@@ -1,9 +1,9 @@
 import { useNavigate, useSearch } from '@tanstack/solid-router'
 import { createEffect, createResource, createSignal } from 'solid-js'
-import { ensureActiveTenant } from '@/services/auth'
-import { listUserTenants, type TenantMembership } from '@/services/iam'
+import { ensureActiveTenant } from '@podzone/shared/services/auth'
+import { listUserTenants, type TenantMembership } from '@podzone/shared/services/iam'
 
-import { useAuthContext } from '@/solid/context/auth-context'
+import { useAuthContext } from '@podzone/shared/auth'
 
 export type ProvisioningTab = 'pipeline' | 'resources' | 'connections'
 

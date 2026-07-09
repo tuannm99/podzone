@@ -1,8 +1,8 @@
 import { type ParentProps } from 'solid-js'
-import { storeStorage } from '@/services/storeStorage'
-import { tenantStorage } from '@/services/tenantStorage'
-import { tokenStorage } from '@/services/tokenStorage'
-import { type AuthContext, AuthContextToken } from '@/solid/context/auth-context'
+import { storeStorage } from '@podzone/shared/services/storeStorage'
+import { tenantStorage } from '@podzone/shared/services/tenantStorage'
+import { tokenStorage } from '@podzone/shared/services/tokenStorage'
+import { type AuthContext, AuthContextToken } from '@podzone/shared/auth'
 
 export function AuthContextProvider(props: ParentProps) {
     const ctx: AuthContext = {

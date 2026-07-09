@@ -1,9 +1,9 @@
 import { Show } from 'solid-js'
-import { GW_API_URL, TENANT_GQL_URL } from '@/services/baseurl'
-import { useAuthContext } from '@/solid/context/auth-context'
-import { InfoAlert, LoadingInline } from '@/solid/components/common/Feedback'
-import { Badge, Button, Card } from '@/solid/components/common/Primitives'
-import { SectionTitle } from '@/solid/components/common/SectionTitle'
+import { GW_API_URL, TENANT_GQL_URL } from '@podzone/shared/services/baseurl'
+import { useAuthContext } from '@podzone/shared/auth'
+import { InfoAlert, LoadingInline } from '@podzone/shared/ui/components/common/Feedback'
+import { Badge, Button, Card } from '@podzone/shared/ui/components/common/Primitives'
+import { SectionTitle } from '@podzone/shared/ui/components/common/SectionTitle'
 import { useAdminSettings } from './context'
 
 export function HeaderRuntime() {

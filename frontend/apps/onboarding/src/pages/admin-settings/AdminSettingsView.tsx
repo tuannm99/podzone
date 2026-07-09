@@ -1,6 +1,6 @@
 import { Match, Switch } from 'solid-js'
-import { PageShell } from '@/solid/components/common/PageShell'
-import { Tabs, type TabItem } from '@/solid/components/common/Tabs'
+import { PageShell } from '@podzone/shared/ui/components/common/PageShell'
+import { Tabs, type TabItem } from '@podzone/shared/ui/components/common/Tabs'
 import { HeaderRuntime } from './HeaderRuntime'
 import { AuditPanel } from './audit/AuditPanel'
 import type { AdminSettingsTab } from './context'

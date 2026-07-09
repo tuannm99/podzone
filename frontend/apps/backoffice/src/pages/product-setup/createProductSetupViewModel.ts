@@ -1,4 +1,4 @@
-import { useAuthContext } from '@/solid/context/auth-context'
+import { useAuthContext } from '@podzone/shared/auth'
 import { createEffect, createResource, createSignal, type Accessor } from 'solid-js'
 import {
     createProductSetupDraft,
@@ -7,9 +7,9 @@ import {
     updateProductSetupCandidateStatus,
     type CatalogCandidate,
     type SetupDraft,
-} from '@/services/productSetup'
+} from '@podzone/shared/services/productSetup'
 
-import { createFormStore, required } from '@/solid/forms'
+import { createFormStore, required } from '@podzone/shared/ui/forms'
 import { moneyValue, productSetupInitialValues } from './forms'
 
 interface ProductSetupViewModelOptions {

@@ -1,6 +1,6 @@
 import { For, Show, type Accessor } from 'solid-js'
-import type { PageInfo } from '@/services/collection'
-import type { PartnerInfo } from '@/services/partner'
+import type { PageInfo } from '@podzone/shared/services/collection'
+import type { PartnerInfo } from '@podzone/shared/services/partner'
 import {
     DataTable,
     TableBody,
@@ -8,10 +8,10 @@ import {
     TableHead,
     TableHeaderCell,
     TableRow,
-} from '@/solid/components/common/DataTable'
-import { EmptyBlock, LoadingInline } from '@/solid/components/common/Feedback'
-import { Pagination } from '@/solid/components/common/Pagination'
-import { Badge, Button } from '@/solid/components/common/Primitives'
+} from '@podzone/shared/ui/components/common/DataTable'
+import { EmptyBlock, LoadingInline } from '@podzone/shared/ui/components/common/Feedback'
+import { Pagination } from '@podzone/shared/ui/components/common/Pagination'
+import { Badge, Button } from '@podzone/shared/ui/components/common/Primitives'
 import { badgeColorForStatus, joinCapabilityList, partnerTypeLabel } from './presentation'
 
 type PartnerTableProps = {

@@ -1,5 +1,5 @@
 import { For, Show, createMemo, createSignal } from 'solid-js'
-import { Badge, InputField } from '@/solid/components/common/Primitives'
+import { Badge, InputField } from '@podzone/shared/ui/components/common/Primitives'
 
 export type IamPermissionOption = {
     name: string

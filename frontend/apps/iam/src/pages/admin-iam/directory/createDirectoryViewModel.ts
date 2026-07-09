@@ -1,6 +1,6 @@
 import { createMemo, createResource, createSignal, type Accessor } from 'solid-js'
-import { listDirectoryUsers, listAllPermissions, listPolicies } from '@/services/iam'
-import { createPaginatedResource } from '@/solid/pagination'
+import { listDirectoryUsers, listAllPermissions, listPolicies } from '@podzone/shared/services/iam'
+import { createPaginatedResource } from '@podzone/shared/ui/pagination'
 
 export type DirectoryIdentity = {
     label: string

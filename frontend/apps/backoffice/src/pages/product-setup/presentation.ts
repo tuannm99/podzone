@@ -1,4 +1,4 @@
-import type { ArtworkChecklist } from '@/services/productSetup'
+import type { ArtworkChecklist } from '@podzone/shared/services/productSetup'
 
 export const statusOptions = [
     { name: 'Draft', value: 'draft' },

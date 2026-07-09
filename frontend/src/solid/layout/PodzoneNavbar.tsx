@@ -1,10 +1,10 @@
 import { Link, useRouterState } from '@tanstack/solid-router'
 import { For, Show } from 'solid-js'
-import { logout } from '../../services/auth'
-import { tokenStorage } from '../../services/tokenStorage'
-import { useTenantWorkspace } from '@/solid/context/workspace-context'
-import { Button } from '../components/common/Primitives'
-import { classes } from '../shared/utils'
+import { logout } from '@podzone/shared/services/auth'
+import { tokenStorage } from '@podzone/shared/services/tokenStorage'
+import { useTenantWorkspace } from '@podzone/shared/auth'
+import { Button } from '@podzone/shared/ui/components/common/Primitives'
+import { classes } from '@podzone/shared/ui/shared/utils'
 
 type NavItem = {
     href: string

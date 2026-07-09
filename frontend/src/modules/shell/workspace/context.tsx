@@ -1,9 +1,9 @@
 import { useNavigate, useSearch } from '@tanstack/solid-router'
 import { createEffect, createMemo, createResource, createSignal, type ParentProps } from 'solid-js'
-import { tenantStorage } from '@/services/tenantStorage'
-import { getStore, listStores } from '@/services/store'
-import { storeStorage } from '@/services/storeStorage'
-import { WorkspaceContext } from '@/solid/context/workspace-context'
+import { tenantStorage } from '@podzone/shared/services/tenantStorage'
+import { getStore, listStores } from '@podzone/shared/services/store'
+import { storeStorage } from '@podzone/shared/services/storeStorage'
+import { WorkspaceContext } from '@podzone/shared/auth'
 
 function initialStoreID(tenantId: string, requestedStoreId: string) {
     const requested = requestedStoreId || ''
@@ -104,4 +104,4 @@ export function TenantWorkspaceProvider(props: ParentProps<{ tenantId: string }>
     )
 }
 
-export { useTenantWorkspace } from '@/solid/context/workspace-context'
+export { useTenantWorkspace } from '@podzone/shared/auth'

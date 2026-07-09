@@ -1,4 +1,4 @@
-import { getPolicy } from '@/services/iam'
+import { getPolicy } from '@podzone/shared/services/iam'
 import type { AdminIamState } from '../createAdminIamState'
 
 export function createPoliciesLoaders(state: AdminIamState) {

@@ -1,17 +1,17 @@
 import { useNavigate, useParams, useSearch } from '@tanstack/solid-router'
 import { createEffect, createResource, createSignal } from 'solid-js'
-import { emptyPageInfo } from '@/services/collection'
+import { emptyPageInfo } from '@podzone/shared/services/collection'
 import {
     getRoutedOrderPage,
     getRoutedOrderRecommendation,
     getRoutedOrders,
     type RoutedOrder,
     type RoutedOrderRecommendation,
-} from '@/services/orders'
-import { getProductSetupSnapshot, type CatalogCandidate } from '@/services/productSetup'
-import { useAuthContext } from '@/solid/context/auth-context'
-import { createFormStore, required } from '@/solid/forms'
-import { useTenantWorkspace } from '@/solid/context/workspace-context'
+} from '@podzone/shared/services/orders'
+import { getProductSetupSnapshot, type CatalogCandidate } from '@podzone/shared/services/productSetup'
+import { useAuthContext } from '@podzone/shared/auth'
+import { createFormStore, required } from '@podzone/shared/ui/forms'
+import { useTenantWorkspace } from '@podzone/shared/auth'
 import type { QueueSort, QueueView, TenantOrdersBoardContextValue } from './board-context'
 import type { TenantOrdersComposerContextValue } from './composer-context'
 import type { TenantOrdersInsightsContextValue } from './insights-context'

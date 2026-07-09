@@ -6,8 +6,8 @@ import {
     type PolicyAttachmentInfo,
     type PolicyInfo,
     type PolicyVersionInfo,
-} from '@/services/iam'
-import { createPaginatedResource } from '@/solid/pagination'
+} from '@podzone/shared/services/iam'
+import { createPaginatedResource } from '@podzone/shared/ui/pagination'
 import { prettyJSON } from '../presentation'
 
 export function createPoliciesState(enabled: Accessor<boolean>, selectedOrgId: Accessor<string>) {

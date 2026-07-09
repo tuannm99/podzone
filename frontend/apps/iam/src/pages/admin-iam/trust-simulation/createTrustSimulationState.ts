@@ -1,5 +1,5 @@
 import { createSignal } from 'solid-js'
-import type { RolePermissionBoundary, SimulateAccessResult } from '@/services/iam'
+import type { RolePermissionBoundary, SimulateAccessResult } from '@podzone/shared/services/iam'
 import { prettyJSON } from '../presentation'
 
 export function createTrustSimulationState(userID: number) {

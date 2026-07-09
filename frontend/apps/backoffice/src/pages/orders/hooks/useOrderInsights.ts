@@ -1,5 +1,5 @@
 import type { Accessor } from 'solid-js'
-import type { RoutedOrder } from '@/services/orders'
+import type { RoutedOrder } from '@podzone/shared/services/orders'
 import type { QueueSort, QueueView } from '../board-context'
 import type { ActivityFilter } from '../order-card/types'
 import {

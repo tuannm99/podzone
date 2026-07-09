@@ -1,2 +1,2 @@
-export type { AuthContext } from '@/solid/context/auth-context'
-export { useAuthContext, AuthContextToken } from '@/solid/context/auth-context'
+export type { AuthContext } from '@podzone/shared/auth'
+export { useAuthContext, AuthContextToken } from '@podzone/shared/auth'

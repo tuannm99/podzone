@@ -6,11 +6,11 @@ import {
     TableHead,
     TableHeaderCell,
     TableRow,
-} from '@/solid/components/common/DataTable'
-import { EmptyBlock } from '@/solid/components/common/Feedback'
-import { Pagination } from '@/solid/components/common/Pagination'
-import { Badge, Button } from '@/solid/components/common/Primitives'
-import { CollectionControls } from '@/solid/components/common/CollectionControls'
+} from '@podzone/shared/ui/components/common/DataTable'
+import { EmptyBlock } from '@podzone/shared/ui/components/common/Feedback'
+import { Pagination } from '@podzone/shared/ui/components/common/Pagination'
+import { Badge, Button } from '@podzone/shared/ui/components/common/Primitives'
+import { CollectionControls } from '@podzone/shared/ui/components/common/CollectionControls'
 import { useAdminIamPrincipal } from './context'
 
 export function PrincipalManagedPoliciesTable() {

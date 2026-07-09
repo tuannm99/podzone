@@ -1,6 +1,6 @@
 import { createSignal, type Accessor } from 'solid-js'
-import { listPlatformRoles, removePlatformRole, upsertPlatformRole } from '@/services/iam'
-import { createPaginatedResource } from '@/solid/pagination'
+import { listPlatformRoles, removePlatformRole, upsertPlatformRole } from '@podzone/shared/services/iam'
+import { createPaginatedResource } from '@podzone/shared/ui/pagination'
 import type { PlatformRoleFormValues } from '../forms'
 import { platformRoleOptions } from '../presentation'
 

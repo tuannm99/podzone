@@ -20,11 +20,15 @@ export default defineConfig({
                 './AdminSettingsPage': `${pagesRoot}/AdminSettingsPage`,
                 './AdminProvisioningPage': `${pagesRoot}/AdminProvisioningPage`,
             },
-            shared: ['solid-js', '@tanstack/solid-router'],
+            shared: {
+                'solid-js': { singleton: true } as object,
+                '@tanstack/solid-router': { singleton: true } as object,
+            },
         }),
     ],
     resolve: {
         alias: {
+            '@podzone/shared': path.resolve(__dirname, '../../packages/shared'),
             '@': sharedRoot,
         },
     },

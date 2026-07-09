@@ -1,6 +1,6 @@
-import { EmptyBlock } from '@/solid/components/common/Feedback'
-import { Badge, Button, Card } from '@/solid/components/common/Primitives'
-import { SectionTitle } from '@/solid/components/common/SectionTitle'
+import { EmptyBlock } from '@podzone/shared/ui/components/common/Feedback'
+import { Badge, Button, Card } from '@podzone/shared/ui/components/common/Primitives'
+import { SectionTitle } from '@podzone/shared/ui/components/common/SectionTitle'
 import { buildOrdersHref, buildTenantHref } from './presentation'
 
 type TenantHomeSectionsProps = {

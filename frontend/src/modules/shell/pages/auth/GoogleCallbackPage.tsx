@@ -1,9 +1,9 @@
 import { useNavigate, useSearch } from '@tanstack/solid-router'
 import { createResource, createSignal } from 'solid-js'
-import { exchangeGoogleLogin } from '@/services/auth'
-import { ErrorAlert, LoadingBlock } from '@/solid/components/common/Feedback'
-import { Card } from '@/solid/components/common/Primitives'
-import { SectionLead } from '@/solid/components/common/SectionLead'
+import { exchangeGoogleLogin } from '@podzone/shared/services/auth'
+import { ErrorAlert, LoadingBlock } from '@podzone/shared/ui/components/common/Feedback'
+import { Card } from '@podzone/shared/ui/components/common/Primitives'
+import { SectionLead } from '@podzone/shared/ui/components/common/SectionLead'
 
 export default function GoogleCallbackPage() {
     const navigate = useNavigate()

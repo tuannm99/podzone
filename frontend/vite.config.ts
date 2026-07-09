@@ -34,6 +34,7 @@ export default defineConfig({
         alias: {
             // IAM-local components moved alongside pages into apps/iam/src/
             '@/modules/iam': path.resolve(__dirname, './apps/iam/src'),
+            '@podzone/shared': path.resolve(__dirname, './packages/shared'),
             '@': path.resolve(__dirname, './src'),
             '@backoffice': path.resolve(__dirname, './apps/backoffice/src'),
             '@iam': path.resolve(__dirname, './apps/iam/src'),

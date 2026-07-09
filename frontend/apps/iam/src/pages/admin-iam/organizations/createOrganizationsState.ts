@@ -5,8 +5,8 @@ import {
     type OrganizationInfo,
     type OrganizationMembership,
     type PolicyInfo,
-} from '@/services/iam'
-import { createPaginatedResource } from '@/solid/pagination'
+} from '@podzone/shared/services/iam'
+import { createPaginatedResource } from '@podzone/shared/ui/pagination'
 
 export function createOrganizationsState(enabled: Accessor<boolean>, setCanManagePlatform: Setter<boolean>) {
     const [selectedOrgId, setSelectedOrgId] = createSignal('')

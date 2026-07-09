@@ -1,5 +1,5 @@
 import { createSignal } from 'solid-js'
-import type { RoutedOrder } from '@/services/orders'
+import type { RoutedOrder } from '@podzone/shared/services/orders'
 import { toLocalDateTimeValue } from '../shared/presentation'
 import type { IssueDraft, QueueDraft, RerouteDraft, SettlementDraft, ShipmentDraft } from '../order-card/types'
 

@@ -1,6 +1,6 @@
 import { createSignal, Match, Show, Switch } from 'solid-js'
-import { ErrorAlert } from '@/solid/components/common/Feedback'
-import { Tabs, type TabItem } from '@/solid/components/common/Tabs'
+import { ErrorAlert } from '@podzone/shared/ui/components/common/Feedback'
+import { Tabs, type TabItem } from '@podzone/shared/ui/components/common/Tabs'
 import { useAdminProvisioning } from '../context'
 import type { ResourceEditor } from './createResourcesViewModel'
 import { ResourceEditor as ResourceEditorDrawer } from './ResourceEditor'

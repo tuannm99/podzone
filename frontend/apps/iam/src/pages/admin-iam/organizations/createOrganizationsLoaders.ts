@@ -1,4 +1,4 @@
-import { listServiceControlPolicies } from '@/services/iam'
+import { listServiceControlPolicies } from '@podzone/shared/services/iam'
 import type { AdminIamState } from '../createAdminIamState'
 
 export function createOrganizationsLoaders(state: AdminIamState) {

@@ -1,8 +1,8 @@
-import { ensureActiveTenant } from '@/services/auth'
-import type { TenantMembership } from '@/services/iam'
-import { getRoutedOrders } from '@/services/orders'
-import { listAllStores } from '@/services/store'
-import type { AuthContext } from '@/solid/context/auth-context'
+import { ensureActiveTenant } from '@podzone/shared/services/auth'
+import type { TenantMembership } from '@podzone/shared/services/iam'
+import { getRoutedOrders } from '@podzone/shared/services/orders'
+import { listAllStores } from '@podzone/shared/services/store'
+import type { AuthContext } from '@podzone/shared/auth'
 import { isOverdue, type StoreAttention, type WorkspaceSummary } from './presentation'
 
 export async function collectWorkspaceData(

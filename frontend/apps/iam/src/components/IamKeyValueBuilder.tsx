@@ -1,6 +1,6 @@
 import { For, Show, createEffect, createMemo, createSignal, on } from 'solid-js'
-import { Badge, Button, Card, InputField, TextareaField } from '@/solid/components/common/Primitives'
-import { Tabs } from '@/solid/components/common/Tabs'
+import { Badge, Button, Card, InputField, TextareaField } from '@podzone/shared/ui/components/common/Primitives'
+import { Tabs } from '@podzone/shared/ui/components/common/Tabs'
 
 type KeyValueEntry = {
     key: string

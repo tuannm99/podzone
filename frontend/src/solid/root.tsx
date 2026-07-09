@@ -1,10 +1,10 @@
 import { Outlet, useNavigate, useRouterState } from '@tanstack/solid-router'
 import { Match, Switch, createEffect, createMemo, on, onCleanup } from 'solid-js'
-import { AUTH_LOGIN_REQUIRED_EVENT } from '@/services/authNavigation'
+import { AUTH_LOGIN_REQUIRED_EVENT } from '@podzone/shared/services/authNavigation'
 import { AuthContextProvider } from '@/modules/shell/AuthContextProvider'
 import { TenantWorkspaceProvider } from '@/modules/shell/workspace/context'
-import { AppShell, Container } from './components/common/AppShell'
-import { ScrollToTopButton } from './components/common/ScrollToTop'
+import { AppShell, Container } from '@podzone/shared/ui/components/common/AppShell'
+import { ScrollToTopButton } from '@podzone/shared/ui/components/common/ScrollToTop'
 import { PodzoneNavbar } from './layout/PodzoneNavbar'
 
 function parseTenantId(pathname: string) {

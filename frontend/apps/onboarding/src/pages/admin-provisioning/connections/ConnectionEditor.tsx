@@ -1,6 +1,6 @@
 import { createEffect } from 'solid-js'
-import { Drawer } from '@/solid/components/common/Overlay'
-import { Button } from '@/solid/components/common/Primitives'
+import { Drawer } from '@podzone/shared/ui/components/common/Overlay'
+import { Button } from '@podzone/shared/ui/components/common/Primitives'
 import {
     createFormStore,
     FormInputField,
@@ -8,8 +8,8 @@ import {
     FormTextareaField,
     jsonObject,
     required,
-} from '@/solid/forms'
-import type { InfrastructureConnection, UpsertInfrastructureConnection } from '@/services/onboarding/provisioning'
+} from '@podzone/shared/ui/forms'
+import type { InfrastructureConnection, UpsertInfrastructureConnection } from '@podzone/shared/services/onboarding/provisioning'
 import type { ConnectionsViewModel } from './createConnectionsViewModel'
 
 type ConnectionForm = {

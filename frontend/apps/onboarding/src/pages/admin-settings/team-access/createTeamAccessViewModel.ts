@@ -1,5 +1,5 @@
 import { createSignal } from 'solid-js'
-import { removeTenantMember, upsertTenantMember, upsertTenantMemberByIdentity } from '@/services/iam'
+import { removeTenantMember, upsertTenantMember, upsertTenantMemberByIdentity } from '@podzone/shared/services/iam'
 import type { TeamMemberFormValues } from '../forms'
 import { roleOptions } from '../presentation'
 import type { WorkspaceAccessViewModel } from './createWorkspaceAccessViewModel'

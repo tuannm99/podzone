@@ -1,6 +1,6 @@
 import { createSignal } from 'solid-js'
-import { createTenantInvite, revokeTenantInvite } from '@/services/iam'
-import { useAuthContext } from '@/solid/context/auth-context'
+import { createTenantInvite, revokeTenantInvite } from '@podzone/shared/services/iam'
+import { useAuthContext } from '@podzone/shared/auth'
 import type { TenantInviteFormValues } from '../forms'
 import { roleOptions } from '../presentation'
 import type { WorkspaceAccessViewModel } from '../team-access/createWorkspaceAccessViewModel'

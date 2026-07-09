@@ -1,6 +1,6 @@
 import { Show } from 'solid-js'
-import type { RoutedOrder } from '@/services/orders'
-import { Button, InputField } from '@/solid/components/common/Primitives'
+import type { RoutedOrder } from '@podzone/shared/services/orders'
+import { Button, InputField } from '@podzone/shared/ui/components/common/Primitives'
 import type { OrderCardActions } from './types'
 
 type ReroutePanelProps = {

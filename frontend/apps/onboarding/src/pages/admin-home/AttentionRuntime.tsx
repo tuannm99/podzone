@@ -1,8 +1,8 @@
 import { For, Show } from 'solid-js'
-import { GW_API_URL, TENANT_GQL_URL } from '@/services/baseurl'
-import { EmptyBlock, LoadingInline } from '@/solid/components/common/Feedback'
-import { Badge, Button, Card } from '@/solid/components/common/Primitives'
-import { SectionTitle } from '@/solid/components/common/SectionTitle'
+import { GW_API_URL, TENANT_GQL_URL } from '@podzone/shared/services/baseurl'
+import { EmptyBlock, LoadingInline } from '@podzone/shared/ui/components/common/Feedback'
+import { Badge, Button, Card } from '@podzone/shared/ui/components/common/Primitives'
+import { SectionTitle } from '@podzone/shared/ui/components/common/SectionTitle'
 import { useAdminHome } from './context'
 
 export function AttentionRuntime() {

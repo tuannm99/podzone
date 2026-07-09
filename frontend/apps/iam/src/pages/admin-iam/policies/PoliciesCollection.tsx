@@ -1,6 +1,6 @@
 import { For, Show } from 'solid-js'
-import { CollectionFilters } from '@/solid/components/common/CollectionFilters'
-import { CollectionToolbar } from '@/solid/components/common/CollectionToolbar'
+import { CollectionFilters } from '@podzone/shared/ui/components/common/CollectionFilters'
+import { CollectionToolbar } from '@podzone/shared/ui/components/common/CollectionToolbar'
 import {
     DataTable,
     TableBody,
@@ -8,10 +8,10 @@ import {
     TableHead,
     TableHeaderCell,
     TableRow,
-} from '@/solid/components/common/DataTable'
-import { EmptyBlock, ErrorAlert, LoadingInline } from '@/solid/components/common/Feedback'
-import { Pagination } from '@/solid/components/common/Pagination'
-import { Badge, Button } from '@/solid/components/common/Primitives'
+} from '@podzone/shared/ui/components/common/DataTable'
+import { EmptyBlock, ErrorAlert, LoadingInline } from '@podzone/shared/ui/components/common/Feedback'
+import { Pagination } from '@podzone/shared/ui/components/common/Pagination'
+import { Badge, Button } from '@podzone/shared/ui/components/common/Primitives'
 import { useAdminIamPolicy } from './context'
 
 export function PoliciesCollection() {

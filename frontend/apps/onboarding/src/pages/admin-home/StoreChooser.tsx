@@ -1,5 +1,5 @@
 import { For, Show } from 'solid-js'
-import { CollectionControls } from '@/solid/components/common/CollectionControls'
+import { CollectionControls } from '@podzone/shared/ui/components/common/CollectionControls'
 import {
     DataTable,
     TableBody,
@@ -7,11 +7,11 @@ import {
     TableHead,
     TableHeaderCell,
     TableRow,
-} from '@/solid/components/common/DataTable'
-import { EmptyBlock } from '@/solid/components/common/Feedback'
-import { Pagination } from '@/solid/components/common/Pagination'
-import { Badge, Button, Card, SelectField } from '@/solid/components/common/Primitives'
-import { SectionTitle } from '@/solid/components/common/SectionTitle'
+} from '@podzone/shared/ui/components/common/DataTable'
+import { EmptyBlock } from '@podzone/shared/ui/components/common/Feedback'
+import { Pagination } from '@podzone/shared/ui/components/common/Pagination'
+import { Badge, Button, Card, SelectField } from '@podzone/shared/ui/components/common/Primitives'
+import { SectionTitle } from '@podzone/shared/ui/components/common/SectionTitle'
 import { CreateFirstStore } from './CreateFirstStore'
 import { useAdminHome } from './context'
 

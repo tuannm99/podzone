@@ -1,6 +1,6 @@
 import { createEffect, createResource, createSignal, on, type Accessor } from 'solid-js'
 import { createStore } from 'solid-js/store'
-import { emptyPageInfo, type CollectionPage, type CollectionQuery } from '@/services/collection'
+import { emptyPageInfo, type CollectionPage, type CollectionQuery } from '../../services/collection'
 
 export function createPaginatedResource<T>(
     initialQuery: CollectionQuery,

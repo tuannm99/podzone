@@ -1,6 +1,6 @@
-import { useAuthContext } from '@/solid/context/auth-context'
+import { useAuthContext } from '@podzone/shared/auth'
 import { createEffect, createResource, createSignal, on, type Accessor } from 'solid-js'
-import { getRoutedOrderActivities, type RoutedOrderActivityFeedEntry } from '@/services/orders'
+import { getRoutedOrderActivities, type RoutedOrderActivityFeedEntry } from '@podzone/shared/services/orders'
 
 import { formatFeedSummary, resolveSinceIso, type ActivityFilter, type TimeWindow } from './presentation'
 

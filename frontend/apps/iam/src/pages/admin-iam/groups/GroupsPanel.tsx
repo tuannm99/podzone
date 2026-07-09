@@ -1,9 +1,9 @@
 import { Show } from 'solid-js'
 import { IamStatementBuilder } from '../shared/IamStatementBuilder'
-import { Button, SelectField } from '@/solid/components/common/Primitives'
-import { SearchSelectField } from '@/solid/components/common/SearchSelectField'
-import { SectionTitle } from '@/solid/components/common/SectionTitle'
-import { FormInputField, FormSelectField, createFormStore, jsonArray, required } from '@/solid/forms'
+import { Button, SelectField } from '@podzone/shared/ui/components/common/Primitives'
+import { SearchSelectField } from '@podzone/shared/ui/components/common/SearchSelectField'
+import { SectionTitle } from '@podzone/shared/ui/components/common/SectionTitle'
+import { FormInputField, FormSelectField, createFormStore, jsonArray, required } from '@podzone/shared/ui/forms'
 import type {
     CreateGroupFormValues,
     GroupInlinePolicyFormValues,

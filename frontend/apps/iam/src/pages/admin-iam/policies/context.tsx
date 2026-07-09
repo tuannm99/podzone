@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'solid-js'
 import type { Accessor, ParentProps, Setter } from 'solid-js'
-import type { PolicyAttachmentInfo, PolicyInfo, PolicyVersionInfo } from '@/services/iam'
-import type { CollectionQuery, PageInfo } from '@/services/collection'
+import type { PolicyAttachmentInfo, PolicyInfo, PolicyVersionInfo } from '@podzone/shared/services/iam'
+import type { CollectionQuery, PageInfo } from '@podzone/shared/services/collection'
 import type { IamPermissionOption } from '../shared/IamPermissionMatrix'
 import type { CreatePolicyFormValues, CreatePolicyVersionFormValues } from './forms'
 

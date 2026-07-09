@@ -18,13 +18,17 @@ export default defineConfig({
             exposes: {
                 './AdminIamPage': `${pagesRoot}/AdminIamPage`,
             },
-            shared: ['solid-js', '@tanstack/solid-router'],
+            shared: {
+                'solid-js': { singleton: true } as object,
+                '@tanstack/solid-router': { singleton: true } as object,
+            },
         }),
     ],
     resolve: {
         alias: {
             // Override: IAM-local code (components/) moved alongside pages
             '@/modules/iam': path.resolve(__dirname, './src'),
+            '@podzone/shared': path.resolve(__dirname, '../../packages/shared'),
             '@': sharedRoot,
         },
     },

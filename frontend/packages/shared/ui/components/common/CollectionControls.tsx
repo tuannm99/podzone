@@ -1,5 +1,5 @@
 import { Show, type Accessor } from 'solid-js'
-import type { CollectionQuery } from '@/services/collection'
+import type { CollectionQuery } from '../../../services/collection'
 import { CollectionFilters, type CollectionFilterField } from './CollectionFilters'
 import { CollectionToolbar, type CollectionSortOption } from './CollectionToolbar'
 import { ErrorAlert, LoadingInline } from './Feedback'
