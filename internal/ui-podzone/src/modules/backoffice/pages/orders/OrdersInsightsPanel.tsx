@@ -40,6 +40,11 @@ export function OrdersInsightsPanel() {
                                 when={insights.forcedRerouteSummary().length > 0}
                                 fallback={<p class="text-sm text-slate-600">No forced reroutes recorded yet.</p>}
                             >
+                                <Show when={insights.forcedRerouteSummary().length > 6}>
+                                    <p class="mb-1 text-xs text-gray-400">
+                                        Showing 6 of {insights.forcedRerouteSummary().length}
+                                    </p>
+                                </Show>
                                 <For each={insights.forcedRerouteSummary().slice(0, 6)}>
                                     {(item) => <Badge content={`${item.partner} · ${item.count}`} color="indigo" />}
                                 </For>
@@ -61,6 +66,11 @@ export function OrdersInsightsPanel() {
                                 <p class="text-sm text-emerald-700">No finance review orders are waiting right now.</p>
                             }
                         >
+                            <Show when={insights.reconciliationOrders().length > 6}>
+                                <p class="mb-1 text-xs text-gray-400">
+                                    Showing 6 of {insights.reconciliationOrders().length}
+                                </p>
+                            </Show>
                             <For each={insights.reconciliationOrders().slice(0, 6)}>
                                 {(order) => (
                                     <div class="rounded-md border border-emerald-100 bg-white p-3">
@@ -107,6 +117,11 @@ export function OrdersInsightsPanel() {
                             when={insights.partnerFinanceSummary().length > 0}
                             fallback={<p class="text-sm text-slate-600">No partner finance data yet.</p>}
                         >
+                            <Show when={insights.partnerFinanceSummary().length > 6}>
+                                <p class="mb-1 text-xs text-gray-400">
+                                    Showing 6 of {insights.partnerFinanceSummary().length}
+                                </p>
+                            </Show>
                             <For each={insights.partnerFinanceSummary().slice(0, 6)}>
                                 {(item) => (
                                     <div class="rounded-md border border-slate-200 bg-white p-3">
