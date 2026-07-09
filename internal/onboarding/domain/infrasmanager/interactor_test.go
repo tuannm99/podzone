@@ -273,7 +273,7 @@ func TestReconcileTenantPlacementRepublishesDriftedRoute(t *testing.T) {
 		SchemaName:  "t_tenant_1",
 	}
 
-	placements.EXPECT().GetTenantPlacementAllocation(mock.Anything, "tenant-1").Return(&allocation, nil).Twice()
+	placements.EXPECT().GetTenantPlacementAllocation(mock.Anything, "tenant-1").Return(&allocation, nil).Once()
 	reader.EXPECT().GetPlacementRoute(mock.Anything, "tenant-1").Return(driftedRoute, nil)
 	writer.EXPECT().PublishPlacementRoute(mock.Anything, "tenant-1", allocation).Return(nil)
 

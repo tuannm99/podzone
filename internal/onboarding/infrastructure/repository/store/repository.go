@@ -192,10 +192,7 @@ func (r *MongoRepository) ClaimNextQueued(
 ) (*storeentity.StoreRequest, error) {
 	return r.claimNext(
 		ctx,
-		[]storeentity.RequestStatus{
-			storeentity.RequestStatusQueued,
-			storeentity.RequestStatusPlanning,
-		},
+		[]storeentity.RequestStatus{storeentity.RequestStatusQueued},
 		storeentity.RequestStatusPlanning,
 		leaseOwner,
 		leaseTTL,
@@ -248,7 +245,7 @@ func (r *MongoRepository) claimNext(
 		},
 		options.FindOneAndUpdate().
 			SetSort(bson.D{{Key: "updated_at", Value: 1}}).
-			SetReturnDocument(options.After),
+			SetReturnDocument(options.Before),
 	).Decode(&request)
 	if err == mongo.ErrNoDocuments {
 		return nil, nil

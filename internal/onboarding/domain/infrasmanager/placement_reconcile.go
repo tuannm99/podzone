@@ -10,6 +10,27 @@ import (
 	"github.com/tuannm99/podzone/internal/onboarding/domain/infrasmanager/inputport"
 )
 
+func (s *Interactor) fetchPlacementState(
+	ctx context.Context,
+	tenantID string,
+) (*entity.PlacementAllocation, *entity.PlacementRoute, error) {
+	allocation, err := s.placements.GetTenantPlacementAllocation(ctx, tenantID)
+	if err != nil {
+		return nil, nil, err
+	}
+	if allocation == nil {
+		return nil, nil, entity.ErrPlacementNotFound
+	}
+	var route *entity.PlacementRoute
+	if s.routeReader != nil {
+		route, err = s.routeReader.GetPlacementRoute(ctx, tenantID)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+	return allocation, route, nil
+}
+
 func (s *Interactor) GetTenantPlacementStatus(
 	ctx context.Context,
 	tenantID string,
@@ -22,20 +43,9 @@ func (s *Interactor) GetTenantPlacementStatus(
 		return nil, errors.New("placement repository is not configured")
 	}
 
-	allocation, err := s.placements.GetTenantPlacementAllocation(ctx, tenantID)
+	allocation, route, err := s.fetchPlacementState(ctx, tenantID)
 	if err != nil {
 		return nil, err
-	}
-	if allocation == nil {
-		return nil, entity.ErrPlacementNotFound
-	}
-
-	var route *entity.PlacementRoute
-	if s.routeReader != nil {
-		route, err = s.routeReader.GetPlacementRoute(ctx, tenantID)
-		if err != nil {
-			return nil, err
-		}
 	}
 	status := placementStatusFromAllocation(tenantID, *allocation, route)
 	return &status, nil
@@ -47,25 +57,24 @@ func (s *Interactor) ReconcileTenantPlacement(
 	actor map[string]string,
 ) (*inputport.PlacementReconcileResponse, error) {
 	_ = actor
-	status, err := s.GetTenantPlacementStatus(ctx, tenantID)
-	if err != nil {
-		return nil, err
-	}
-	if !status.NeedsRepair {
-		return &inputport.PlacementReconcileResponse{
-			Status:     *status,
-			KVStoreKey: placementRouteKey(tenantID),
-		}, nil
+	tenantID = strings.TrimSpace(tenantID)
+	if tenantID == "" {
+		return nil, entity.ErrInvalidInput
 	}
 	if s.placements == nil || s.routeWriter == nil {
 		return nil, errors.New("placement route writer is not configured")
 	}
-	allocation, err := s.placements.GetTenantPlacementAllocation(ctx, tenantID)
+
+	allocation, route, err := s.fetchPlacementState(ctx, tenantID)
 	if err != nil {
 		return nil, err
 	}
-	if allocation == nil {
-		return nil, entity.ErrPlacementNotFound
+	status := placementStatusFromAllocation(tenantID, *allocation, route)
+	if !status.NeedsRepair {
+		return &inputport.PlacementReconcileResponse{
+			Status:     status,
+			KVStoreKey: placementRouteKey(tenantID),
+		}, nil
 	}
 	if err := s.routeWriter.PublishPlacementRoute(ctx, tenantID, *allocation); err != nil {
 		return nil, err
@@ -73,7 +82,7 @@ func (s *Interactor) ReconcileTenantPlacement(
 
 	publishedAt := time.Now().UTC()
 	reconciled := placementStatusFromAllocation(
-		strings.TrimSpace(tenantID),
+		tenantID,
 		*allocation,
 		allocationPlacementRoute(*allocation),
 	)

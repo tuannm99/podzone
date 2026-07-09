@@ -378,7 +378,7 @@ func (s *StoreInteractor) ProcessNextStoreRequest(
 	s.recordTransition(
 		ctx,
 		request.ID.Hex(),
-		storeentity.RequestStatusQueued,
+		request.Status,
 		storeentity.RequestStatusPlanning,
 		map[string]string{"service": "onboarding", "worker": "store-provisioner"},
 		"planning.started",
