@@ -1,3 +1,7 @@
+// Set to true by Vite define when VITE_BACKOFFICE_REMOTE_URL is present.
+// Routes use this to switch between local and federated page imports.
+declare const __MFE_BACKOFFICE__: boolean
+
 declare module 'backoffice/TenantHomePage' {
     import type { Component } from 'solid-js'
     const TenantHomePage: Component

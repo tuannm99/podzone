@@ -18,6 +18,9 @@ export default defineConfig({
             shared: ['solid-js', '@tanstack/solid-router'],
         }),
     ],
+    define: {
+        __MFE_BACKOFFICE__: JSON.stringify(!!process.env.VITE_BACKOFFICE_REMOTE_URL),
+    },
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),

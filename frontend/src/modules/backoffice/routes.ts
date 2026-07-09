@@ -9,7 +9,10 @@ export function createRouteTree<TParent extends AnyRoute>(parent: TParent, guard
         getParentRoute: () => parent,
         path: '/t/$tenantId',
         beforeLoad: async ({ params }) => guards.requireTenantAccess(params.tenantId),
-        component: lazyRouteComponent(() => import('./pages/TenantHomePage')),
+        component: lazyRouteComponent(
+            // __MFE_BACKOFFICE__ is replaced at build time; the dead branch is tree-shaken.
+            __MFE_BACKOFFICE__ ? () => import('backoffice/TenantHomePage') : () => import('./pages/TenantHomePage')
+        ),
     })
 
     const tenantOrdersRoute = createRoute({
@@ -23,42 +26,64 @@ export function createRouteTree<TParent extends AnyRoute>(parent: TParent, guard
             queuePage: typeof search.queuePage === 'number' ? search.queuePage : 1,
             appliedQueueSearch: typeof search.appliedQueueSearch === 'string' ? search.appliedQueueSearch : '',
         }),
-        component: lazyRouteComponent(() => import('./pages/TenantOrdersPage')),
+        component: lazyRouteComponent(
+            __MFE_BACKOFFICE__ ? () => import('backoffice/TenantOrdersPage') : () => import('./pages/TenantOrdersPage')
+        ),
     })
 
     const tenantOrderAuditRoute = createRoute({
         getParentRoute: () => parent,
         path: '/t/$tenantId/orders/audit',
         beforeLoad: async ({ params }) => guards.requireTenantAccess(params.tenantId),
-        component: lazyRouteComponent(() => import('./pages/TenantOrderAuditPage')),
+        component: lazyRouteComponent(
+            __MFE_BACKOFFICE__
+                ? () => import('backoffice/TenantOrderAuditPage')
+                : () => import('./pages/TenantOrderAuditPage')
+        ),
     })
 
     const tenantOrderFinanceRoute = createRoute({
         getParentRoute: () => parent,
         path: '/t/$tenantId/orders/finance',
         beforeLoad: async ({ params }) => guards.requireTenantAccess(params.tenantId),
-        component: lazyRouteComponent(() => import('./pages/TenantOrderFinancePage')),
+        component: lazyRouteComponent(
+            __MFE_BACKOFFICE__
+                ? () => import('backoffice/TenantOrderFinancePage')
+                : () => import('./pages/TenantOrderFinancePage')
+        ),
     })
 
     const tenantPartnersRoute = createRoute({
         getParentRoute: () => parent,
         path: '/t/$tenantId/partners',
         beforeLoad: async ({ params }) => guards.requireTenantAccess(params.tenantId),
-        component: lazyRouteComponent(() => import('./pages/TenantPartnersPage')),
+        component: lazyRouteComponent(
+            __MFE_BACKOFFICE__
+                ? () => import('backoffice/TenantPartnersPage')
+                : () => import('./pages/TenantPartnersPage')
+        ),
     })
 
     const tenantPartnerDetailRoute = createRoute({
         getParentRoute: () => parent,
         path: '/t/$tenantId/partners/$partnerId',
         beforeLoad: async ({ params }) => guards.requireTenantAccess(params.tenantId),
-        component: lazyRouteComponent(() => import('./pages/TenantPartnerDetailPage')),
+        component: lazyRouteComponent(
+            __MFE_BACKOFFICE__
+                ? () => import('backoffice/TenantPartnerDetailPage')
+                : () => import('./pages/TenantPartnerDetailPage')
+        ),
     })
 
     const tenantProductSetupRoute = createRoute({
         getParentRoute: () => parent,
         path: '/t/$tenantId/products/setup',
         beforeLoad: async ({ params }) => guards.requireTenantAccess(params.tenantId),
-        component: lazyRouteComponent(() => import('./pages/TenantProductSetupPage')),
+        component: lazyRouteComponent(
+            __MFE_BACKOFFICE__
+                ? () => import('backoffice/TenantProductSetupPage')
+                : () => import('./pages/TenantProductSetupPage')
+        ),
     })
 
     return [

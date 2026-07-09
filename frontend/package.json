@@ -14,7 +14,8 @@
         "build": "tsc -b && vite build",
         "build:backoffice": "vite build --config apps/backoffice/vite.config.ts",
         "build:all": "npm run build:backoffice && npm run build",
-        "preview:backoffice": "vite preview --config apps/backoffice/vite.config.ts --port 3001",
+        "preview:backoffice": "vite preview --config apps/backoffice/vite.config.ts --port 3001 --host 0.0.0.0",
+        "serve:backoffice": "npm run build:backoffice && npm run preview:backoffice",
         "lint": "eslint .",
         "preview": "vite preview"
     },
