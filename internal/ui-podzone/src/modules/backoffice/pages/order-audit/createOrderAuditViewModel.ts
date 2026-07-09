@@ -1,4 +1,4 @@
-import { createEffect, createResource, createSignal, type Accessor } from 'solid-js'
+import { createEffect, createResource, createSignal, on, type Accessor } from 'solid-js'
 import { getRoutedOrderActivities, type RoutedOrderActivityFeedEntry } from '@/services/orders'
 import { tenantStorage } from '@/services/tenantStorage'
 import { formatFeedSummary, resolveSinceIso, type ActivityFilter, type TimeWindow } from './presentation'
@@ -30,6 +30,7 @@ export function createOrderAuditViewModel(options: OrderAuditViewModelOptions) {
     const [loading, setLoading] = createSignal(false)
     const [loadingMore, setLoadingMore] = createSignal(false)
     let requestVersion = 0
+    let filterVersion = 0
     const [feedResource] = createResource(
         () =>
             options.workspaceReady()
@@ -60,6 +61,7 @@ export function createOrderAuditViewModel(options: OrderAuditViewModelOptions) {
 
     const loadEntries = async (after?: string, append = false) => {
         const currentRequest = ++requestVersion
+        const capturedFilterVersion = filterVersion
         setError('')
         if (append) {
             setLoadingMore(true)
@@ -80,6 +82,7 @@ export function createOrderAuditViewModel(options: OrderAuditViewModelOptions) {
                 includeSystem: activityFilter() === 'all' ? !hideSystemActivity() : activityFilter() === 'system',
             })
             if (currentRequest !== requestVersion) return
+            if (capturedFilterVersion !== filterVersion) return
             if (!result.success) {
                 setError(result.message)
                 if (!append) {
@@ -109,6 +112,7 @@ export function createOrderAuditViewModel(options: OrderAuditViewModelOptions) {
         }
     }
     const applyFilters = () => {
+        filterVersion++
         setAppliedActorFilter(actorFilter().trim())
         setAppliedOrderFilter(orderFilter().trim())
         setAppliedPartnerFilter(partnerFilter().trim())
@@ -139,6 +143,23 @@ export function createOrderAuditViewModel(options: OrderAuditViewModelOptions) {
         setNextCursor(result.data.nextCursor)
         setTotal(result.data.total)
     })
+
+    createEffect(
+        on(
+            [() => options.tenantID(), () => options.storeID()],
+            () => {
+                setActorFilter('')
+                setOrderFilter('')
+                setPartnerFilter('')
+                setAssigneeFilter('')
+                setAppliedActorFilter('')
+                setAppliedOrderFilter('')
+                setAppliedPartnerFilter('')
+                setAppliedAssigneeFilter('')
+            },
+            { defer: true },
+        ),
+    )
 
     return {
         entries,
