@@ -1,6 +1,6 @@
 import { For, Show } from 'solid-js'
 import { Badge } from '@/solid/components/common/Primitives'
-import { useTenantOrdersInsights } from './context'
+import { useTenantOrdersInsights } from './insights-context'
 import { anomalyFlagsFor, formatAnomalyLabel, formatBlockLabel, parseMoneyValue } from './utils'
 
 export function OrdersInsightsPanel() {
