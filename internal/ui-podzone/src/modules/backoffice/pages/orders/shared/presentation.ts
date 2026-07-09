@@ -1,5 +1,5 @@
-import type { QueueSort, QueueView, ShipmentSlaMode } from './board-context'
-import type { ActivityFilter, BadgeColor } from './order-card/types'
+import type { QueueSort, QueueView, ShipmentSlaMode } from '../board-context'
+import type { ActivityFilter, BadgeColor } from '../order-card/types'
 
 export const routeStatuses = [
     { name: 'Routing blocked', value: 'routing_blocked' },

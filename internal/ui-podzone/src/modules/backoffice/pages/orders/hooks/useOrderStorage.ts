@@ -1,6 +1,6 @@
 import { createSignal } from 'solid-js'
-import type { BulkDraft, SavedBulkTemplate, SavedQueuePreset, ShipmentSlaMode } from './board-context'
-import { bulkTemplateStorageKey, queuePresetStorageKey, resolveShipmentSla, toLocalDateTimeValue } from './presentation'
+import type { BulkDraft, SavedBulkTemplate, SavedQueuePreset, ShipmentSlaMode } from '../board-context'
+import { bulkTemplateStorageKey, queuePresetStorageKey, resolveShipmentSla, toLocalDateTimeValue } from '../shared/presentation'
 
 type OrderStorageParams = {
     tenantId: () => string

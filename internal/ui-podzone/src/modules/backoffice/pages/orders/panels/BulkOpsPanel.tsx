@@ -1,6 +1,6 @@
 import { For, Show } from 'solid-js'
 import { Button, InputField, SelectField } from '@/solid/components/common/Primitives'
-import { useTenantOrdersBoard, type ShipmentSlaMode } from './board-context'
+import { useTenantOrdersBoard, type ShipmentSlaMode } from '../board-context'
 
 const settlementOptions = [
     { name: 'Pending', value: 'pending' },

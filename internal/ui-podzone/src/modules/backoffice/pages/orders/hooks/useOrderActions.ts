@@ -15,10 +15,10 @@ import {
 } from '@/services/orders'
 import type { CatalogCandidate } from '@/services/productSetup'
 import type { FormStore } from '@/solid/forms'
-import type { BulkDraft } from './board-context'
-import type { RoutedOrderFormValues } from './forms'
+import type { BulkDraft } from '../board-context'
+import type { RoutedOrderFormValues } from '../forms'
 import type { useOrderDrafts } from './useOrderDrafts'
-import { resolveShipmentSla, toIsoDateTime, toLocalDateTimeValue } from './presentation'
+import { resolveShipmentSla, toIsoDateTime, toLocalDateTimeValue } from '../shared/presentation'
 
 type Drafts = ReturnType<typeof useOrderDrafts>
 

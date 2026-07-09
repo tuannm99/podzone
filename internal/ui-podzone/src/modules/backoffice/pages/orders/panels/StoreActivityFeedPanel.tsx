@@ -1,7 +1,7 @@
 import { For, Show } from 'solid-js'
 import { Badge, Button } from '@/solid/components/common/Primitives'
-import { useTenantOrdersInsights } from './insights-context'
-import { formatActivityActor, formatActivityTime } from './utils'
+import { useTenantOrdersInsights } from '../insights-context'
+import { formatActivityActor, formatActivityTime } from '../shared/utils'
 
 function activityColor(type: string) {
     switch (type) {

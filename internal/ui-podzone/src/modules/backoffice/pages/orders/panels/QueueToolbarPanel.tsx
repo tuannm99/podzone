@@ -1,6 +1,6 @@
 import { For, Show } from 'solid-js'
 import { Button, InputField } from '@/solid/components/common/Primitives'
-import { useTenantOrdersBoard } from './board-context'
+import { useTenantOrdersBoard } from '../board-context'
 
 export function QueueToolbarPanel() {
     const board = useTenantOrdersBoard()

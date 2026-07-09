@@ -7,19 +7,19 @@ import { PageShell } from '@/solid/components/common/PageShell'
 import { Badge, Card } from '@/solid/components/common/Primitives'
 import { SectionLead } from '@/solid/components/common/SectionLead'
 import { SectionTitle } from '@/solid/components/common/SectionTitle'
-import { BulkOpsPanel } from './BulkOpsPanel'
+import { BulkOpsPanel } from './panels/BulkOpsPanel'
 import { TenantOrdersBoardProvider } from './board-context'
 import type { TenantOrdersBoardContextValue } from './board-context'
-import { CreateRoutedOrderPanel } from './CreateRoutedOrderPanel'
+import { CreateRoutedOrderPanel } from './panels/CreateRoutedOrderPanel'
 import { TenantOrdersComposerProvider } from './composer-context'
 import type { TenantOrdersComposerContextValue } from './composer-context'
 import { TenantOrdersInsightsProvider } from './insights-context'
 import type { TenantOrdersInsightsContextValue } from './insights-context'
 import { OrderCard } from './OrderCard'
-import { OrdersQueueTable } from './OrdersQueueTable'
-import { OrdersInsightsPanel } from './OrdersInsightsPanel'
-import { QueueToolbarPanel } from './QueueToolbarPanel'
-import { StoreActivityFeedPanel } from './StoreActivityFeedPanel'
+import { OrdersQueueTable } from './panels/OrdersQueueTable'
+import { OrdersInsightsPanel } from './panels/OrdersInsightsPanel'
+import { QueueToolbarPanel } from './panels/QueueToolbarPanel'
+import { StoreActivityFeedPanel } from './panels/StoreActivityFeedPanel'
 import {
     activityColor,
     activityFilterOptions,
@@ -32,12 +32,12 @@ import {
     shipmentColor,
     shipmentOptions,
     statusColor,
-} from './presentation'
+} from './shared/presentation'
 import type { ActivityFilter } from './order-card/types'
-import type { useOrderActions } from './useOrderActions'
-import type { useOrderDrafts } from './useOrderDrafts'
-import type { useOrderInsights } from './useOrderInsights'
-import type { useOrderStorage } from './useOrderStorage'
+import type { useOrderActions } from './hooks/useOrderActions'
+import type { useOrderDrafts } from './hooks/useOrderDrafts'
+import type { useOrderInsights } from './hooks/useOrderInsights'
+import type { useOrderStorage } from './hooks/useOrderStorage'
 
 type TenantOrdersViewProps = {
     storeLabel: Accessor<string>

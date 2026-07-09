@@ -1,7 +1,7 @@
 import type { Accessor } from 'solid-js'
 import type { RoutedOrder } from '@/services/orders'
-import type { QueueSort, QueueView } from './board-context'
-import type { ActivityFilter } from './order-card/types'
+import type { QueueSort, QueueView } from '../board-context'
+import type { ActivityFilter } from '../order-card/types'
 import {
     formatActivitySummary,
     formatStoreActivitySummary,
@@ -10,8 +10,8 @@ import {
     anomalyFlagsFor,
     type PartnerFinanceSummaryItem,
     type StoreActivityFeedEntry,
-} from './utils'
-import { isOverdue } from './presentation'
+} from '../shared/utils'
+import { isOverdue } from '../shared/presentation'
 
 type OrderInsightsParams = {
     orders: Accessor<RoutedOrder[]>

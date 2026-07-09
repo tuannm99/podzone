@@ -1,7 +1,7 @@
 import { For, Show } from 'solid-js'
 import type { RoutedOrder } from '@/services/orders'
 import { Badge, Button, SelectField } from '@/solid/components/common/Primitives'
-import { formatActivityActor, formatActivityTime } from '../utils'
+import { formatActivityActor, formatActivityTime } from '../shared/utils'
 import type { ActivityFilter, OrderCardActions, OrderCardHelpers, OrderCardUi } from './types'
 
 type ActivityLogPanelProps = {

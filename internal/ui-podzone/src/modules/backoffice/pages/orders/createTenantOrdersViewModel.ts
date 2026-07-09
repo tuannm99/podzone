@@ -16,12 +16,12 @@ import type { QueueSort, QueueView, TenantOrdersBoardContextValue } from './boar
 import type { TenantOrdersComposerContextValue } from './composer-context'
 import type { TenantOrdersInsightsContextValue } from './insights-context'
 import type { ActivityFilter } from './order-card/types'
-import { isQueueSort, isQueueView } from './presentation'
+import { isQueueSort, isQueueView } from './shared/presentation'
 import { positiveInteger, routedOrderInitialValues } from './forms'
-import { useOrderActions } from './useOrderActions'
-import { useOrderDrafts } from './useOrderDrafts'
-import { useOrderInsights } from './useOrderInsights'
-import { useOrderStorage } from './useOrderStorage'
+import { useOrderActions } from './hooks/useOrderActions'
+import { useOrderDrafts } from './hooks/useOrderDrafts'
+import { useOrderInsights } from './hooks/useOrderInsights'
+import { useOrderStorage } from './hooks/useOrderStorage'
 
 export function createTenantOrdersViewModel() {
     const params = useParams({ from: '/t/$tenantId/orders' })
