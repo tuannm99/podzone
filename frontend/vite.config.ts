@@ -22,6 +22,7 @@ export default defineConfig({
             shared: {
                 'solid-js': { requiredVersion: '^1.0.0', singleton: true } as object,
                 '@tanstack/solid-router': { singleton: true } as object,
+                '@podzone/shared': { singleton: true } as object,
             },
         }),
     ],

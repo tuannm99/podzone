@@ -1,0 +1,25 @@
+# air config for Go hot-reload inside Docker dev containers
+# build.cmd / build.bin / tmp_dir are overridden per-service by run-go-service.sh
+
+[build]
+  include_ext = ["go", "toml", "yaml", "yml"]
+  exclude_dir  = [
+    "frontend",
+    "node_modules",
+    "dist",
+    ".git",
+    "tmp",
+    "vendor",
+    "deployments/docker/apisix-init",
+  ]
+  exclude_file = []
+  delay        = 1000
+
+[log]
+  time = false
+
+[color]
+  main    = "magenta"
+  watcher = "cyan"
+  build   = "yellow"
+  runner  = "green"

@@ -1,5 +1,5 @@
 import { createRoute, type AnyRoute } from '@tanstack/solid-router'
-import { remotePage } from '@/solid/remotePage'
+import { remotePage } from '@podzone/shared/ui/remotePage'
 
 type Guards = {
     requireAuth: () => void

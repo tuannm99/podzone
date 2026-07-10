@@ -4,8 +4,10 @@
   "private": true,
   "type": "module",
   "exports": {
+    ".": "./index.ts",
     "./ui": "./ui/index.ts",
-    "./ui/*": "./ui/*.ts",
+    "./ui/*": "./ui/*.tsx",
+    "./ui/remotePage": "./ui/remotePage.tsx",
     "./services": "./services/index.ts",
     "./services/*": "./services/*.ts",
     "./auth": "./auth/index.ts"

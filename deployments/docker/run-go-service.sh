@@ -52,6 +52,7 @@ case "$service" in
 esac
 
 exec air \
+  --config deployments/docker/air.toml \
   --build.cmd "$build_cmd" \
   --build.bin "$build_bin" \
   --tmp_dir "tmp/air-$service"
