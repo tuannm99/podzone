@@ -1,6 +1,5 @@
 .PHONY: all proto swagger build test coverage lint fmt dev down clean help
 .PHONY: docker-dev docker-dev-infra docker-dev-down mocks mocks-gen
-.PHONY: docker-dev-backoffice docker-dev-iam docker-dev-onboarding
 .PHONY: dev-backoffice-seed dev-backoffice-sample dev-kv-store-refresh dev-onboarding-reconcile-tenant
 .PHONY: dev-auth-bootstrap
 .PHONY: dev-ui-auth-sync dev-pod-sample dev-pod-up
@@ -67,17 +66,12 @@ fmt:
 docker-dev-infra:
 	docker compose -f deployments/docker/infras.yml up -d
 
+comma := ,
+PROFILE ?= full
+
 docker-dev:
-	docker compose --profile full -f deployments/docker/infras.yml -f deployments/docker/services.yml up --build
-
-docker-dev-backoffice:
-	docker compose --profile backoffice -f deployments/docker/infras.yml -f deployments/docker/services.yml up --build
-
-docker-dev-iam:
-	docker compose --profile iam -f deployments/docker/infras.yml -f deployments/docker/services.yml up --build
-
-docker-dev-onboarding:
-	docker compose --profile onboarding -f deployments/docker/infras.yml -f deployments/docker/services.yml up --build
+	docker compose $(foreach p,$(subst $(comma), ,$(PROFILE)),--profile $(p)) \
+		-f deployments/docker/infras.yml -f deployments/docker/services.yml up --build
 
 dev-pod-up:
 	@sh scripts/dev/run_local_pod_dev.sh "$(TENANT_ID)" "$(STORE_NAME)" "$(STORE_SUBDOMAIN)" "$(DEV_USERNAME)" "$(DEV_EMAIL)" "$(DEV_PASSWORD)"
@@ -307,12 +301,11 @@ help:
 	@echo "  make mocks-gen                        - Generate mocks with the pinned mockery tool"
 	@echo "  make portfw                           - Portfowrding"
 	@echo "  make dev SVC=${service}               - Run service"
-	@echo "  make docker-dev                       - Run full stack (all profiles)"
-	@echo "  make docker-dev-backoffice            - Run backoffice profile (auth+iam+backoffice+frontend)"
-	@echo "  make docker-dev-iam                   - Run iam profile (auth+iam+iam-remote+frontend)"
-	@echo "  make docker-dev-onboarding            - Run onboarding profile (auth+iam+onboarding+frontend)"
-	@echo "  make docker-dev-infra                 - Run only dockerized dev infrastructure"
-	@echo "  make docker-dev-down                  - Stop dockerized dev infra + services"
+	@echo "  make docker-dev                           - Run full stack (PROFILE=full)"
+	@echo "  make docker-dev PROFILE=iam               - Run iam profile only"
+	@echo "  make docker-dev PROFILE=backoffice,iam    - Run multiple profiles"
+	@echo "  make docker-dev-infra                     - Run only dockerized dev infrastructure"
+	@echo "  make docker-dev-down                      - Stop dockerized dev infra + services"
 	@echo "  make dev-pod-up TENANT_ID=t1          - Start local docker stack and auto-bootstrap tenant/sample/auth"
 	@echo "  make dev-backoffice-seed TENANT_ID=t1 - Create and provision one onboarding store"
 	@echo "  make dev-kv-store-refresh             - Rebuild Mongo runtime KV from onboarding allocations"
