@@ -1,5 +1,6 @@
 .PHONY: all proto swagger build test coverage lint fmt dev down clean help
 .PHONY: docker-dev docker-dev-infra docker-dev-down mocks mocks-gen
+.PHONY: docker-dev-backoffice docker-dev-iam docker-dev-onboarding
 .PHONY: dev-backoffice-seed dev-backoffice-sample dev-kv-store-refresh dev-onboarding-reconcile-tenant
 .PHONY: dev-auth-bootstrap
 .PHONY: dev-ui-auth-sync dev-pod-sample dev-pod-up
@@ -67,7 +68,16 @@ docker-dev-infra:
 	docker compose -f deployments/docker/infras.yml up -d
 
 docker-dev:
-	docker compose -f deployments/docker/infras.yml -f deployments/docker/services.yml up --build
+	docker compose -f deployments/docker/infras.yml -f deployments/docker/services.yml up --profile full --build
+
+docker-dev-backoffice:
+	docker compose -f deployments/docker/infras.yml -f deployments/docker/services.yml up --profile backoffice --build
+
+docker-dev-iam:
+	docker compose -f deployments/docker/infras.yml -f deployments/docker/services.yml up --profile iam --build
+
+docker-dev-onboarding:
+	docker compose -f deployments/docker/infras.yml -f deployments/docker/services.yml up --profile onboarding --build
 
 dev-pod-up:
 	@sh scripts/dev/run_local_pod_dev.sh "$(TENANT_ID)" "$(STORE_NAME)" "$(STORE_SUBDOMAIN)" "$(DEV_USERNAME)" "$(DEV_EMAIL)" "$(DEV_PASSWORD)"
@@ -297,7 +307,10 @@ help:
 	@echo "  make mocks-gen                        - Generate mocks with the pinned mockery tool"
 	@echo "  make portfw                           - Portfowrding"
 	@echo "  make dev SVC=${service}               - Run service"
-	@echo "  make docker-dev                       - Run dockerized dev infra + hot reload services"
+	@echo "  make docker-dev                       - Run full stack (all profiles)"
+	@echo "  make docker-dev-backoffice            - Run backoffice profile (auth+iam+backoffice+frontend)"
+	@echo "  make docker-dev-iam                   - Run iam profile (auth+iam+iam-remote+frontend)"
+	@echo "  make docker-dev-onboarding            - Run onboarding profile (auth+iam+onboarding+frontend)"
 	@echo "  make docker-dev-infra                 - Run only dockerized dev infrastructure"
 	@echo "  make docker-dev-down                  - Stop dockerized dev infra + services"
 	@echo "  make dev-pod-up TENANT_ID=t1          - Start local docker stack and auto-bootstrap tenant/sample/auth"
