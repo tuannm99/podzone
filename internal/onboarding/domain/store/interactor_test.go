@@ -463,3 +463,114 @@ func TestFinalizeNextStoreRequest_WaitsForPlacementRoute(t *testing.T) {
 	require.ErrorIs(t, err, ErrRouteNotReady)
 	require.Nil(t, finalized)
 }
+
+func makeReadinessRequest(workspaceID string) *storeentity.StoreRequest {
+	return &storeentity.StoreRequest{
+		ID:          primitive.NewObjectID(),
+		Name:        "Urban Finds",
+		Subdomain:   "urban-finds",
+		WorkspaceID: workspaceID,
+		RequestedBy: "user-1",
+	}
+}
+
+func TestGetStoreReadiness_Ready(t *testing.T) {
+	repo := storemocks.NewMockStoreRepository(t)
+	infra := infrasmocks.NewMockUsecase(t)
+	svc := &StoreInteractor{repo: repo, infra: infra}
+
+	req := makeReadinessRequest("workspace-1")
+	req.Status = storeentity.RequestStatusReady
+	repo.EXPECT().FindByID(mock.Anything, req.ID.Hex()).Return(req, nil)
+	infra.EXPECT().GetTenantPlacementStatus(mock.Anything, "workspace-1").
+		Return(&infrasinputport.PlacementStatus{AllocationReady: true, RouteReady: true}, nil)
+
+	ctx := authenticatedContext("workspace-1", "user-1")
+	resp, err := svc.GetStoreReadiness(ctx, req.ID.Hex())
+	require.NoError(t, err)
+	require.Equal(t, storeinputport.UIStateReady, resp.UIState)
+	require.True(t, resp.Readiness.StoreReady)
+	require.True(t, resp.Readiness.PlacementAllocationReady)
+	require.True(t, resp.Readiness.RouteReady)
+}
+
+func TestGetStoreReadiness_BlockedWhenPlacementNotReady(t *testing.T) {
+	repo := storemocks.NewMockStoreRepository(t)
+	infra := infrasmocks.NewMockUsecase(t)
+	svc := &StoreInteractor{repo: repo, infra: infra}
+
+	req := makeReadinessRequest("workspace-1")
+	req.Status = storeentity.RequestStatusReady
+	repo.EXPECT().FindByID(mock.Anything, req.ID.Hex()).Return(req, nil)
+	infra.EXPECT().GetTenantPlacementStatus(mock.Anything, "workspace-1").
+		Return(&infrasinputport.PlacementStatus{AllocationReady: false, RouteReady: false}, nil)
+
+	ctx := authenticatedContext("workspace-1", "user-1")
+	resp, err := svc.GetStoreReadiness(ctx, req.ID.Hex())
+	require.NoError(t, err)
+	require.Equal(t, storeinputport.UIStateBlocked, resp.UIState)
+	require.True(t, resp.Readiness.StoreReady)
+	require.False(t, resp.Readiness.PlacementAllocationReady)
+}
+
+func TestGetStoreReadiness_Provisioning(t *testing.T) {
+	repo := storemocks.NewMockStoreRepository(t)
+	svc := &StoreInteractor{repo: repo}
+
+	req := makeReadinessRequest("workspace-1")
+	req.Status = storeentity.RequestStatusProvisioning
+	repo.EXPECT().FindByID(mock.Anything, req.ID.Hex()).Return(req, nil)
+
+	ctx := authenticatedContext("workspace-1", "user-1")
+	resp, err := svc.GetStoreReadiness(ctx, req.ID.Hex())
+	require.NoError(t, err)
+	require.Equal(t, storeinputport.UIStateProvisioning, resp.UIState)
+	require.False(t, resp.Readiness.StoreReady)
+}
+
+func TestGetStoreReadiness_Failed(t *testing.T) {
+	repo := storemocks.NewMockStoreRepository(t)
+	svc := &StoreInteractor{repo: repo}
+
+	req := makeReadinessRequest("workspace-1")
+	req.Status = storeentity.RequestStatusFailed
+	req.LastError = "provisioning timed out"
+	repo.EXPECT().FindByID(mock.Anything, req.ID.Hex()).Return(req, nil)
+
+	ctx := authenticatedContext("workspace-1", "user-1")
+	resp, err := svc.GetStoreReadiness(ctx, req.ID.Hex())
+	require.NoError(t, err)
+	require.Equal(t, storeinputport.UIStateFailed, resp.UIState)
+	require.Equal(t, "provisioning timed out", resp.FailureReason)
+}
+
+func TestGetStoreReadiness_NotFound(t *testing.T) {
+	repo := storemocks.NewMockStoreRepository(t)
+	svc := &StoreInteractor{repo: repo}
+
+	repo.EXPECT().FindByID(mock.Anything, "missing-id").Return(nil, nil)
+
+	ctx := authenticatedContext("workspace-1", "user-1")
+	_, err := svc.GetStoreReadiness(ctx, "missing-id")
+	require.ErrorIs(t, err, ErrStoreNotFound)
+}
+
+func TestGetStoreReadiness_WorkspaceMismatchReturns404(t *testing.T) {
+	repo := storemocks.NewMockStoreRepository(t)
+	svc := &StoreInteractor{repo: repo}
+
+	req := makeReadinessRequest("workspace-other")
+	req.Status = storeentity.RequestStatusReady
+	repo.EXPECT().FindByID(mock.Anything, req.ID.Hex()).Return(req, nil)
+
+	ctx := authenticatedContext("workspace-1", "user-1")
+	_, err := svc.GetStoreReadiness(ctx, req.ID.Hex())
+	require.ErrorIs(t, err, ErrStoreNotFound)
+}
+
+func TestGetStoreReadiness_NoAuth(t *testing.T) {
+	svc := &StoreInteractor{}
+
+	_, err := svc.GetStoreReadiness(context.Background(), "some-id")
+	require.ErrorIs(t, err, ErrWorkspaceIDRequired)
+}

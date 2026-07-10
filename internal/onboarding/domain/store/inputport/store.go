@@ -80,9 +80,55 @@ type Usecase interface {
 	UpdateStoreRequestStatus(ctx context.Context, id string, status RequestStatus) error
 	ProcessNextStoreRequest(ctx context.Context, workerID string) (*Request, error)
 	FinalizeNextStoreRequest(ctx context.Context, workerID string) (*Request, error)
+	GetStoreReadiness(ctx context.Context, id string) (*ReadinessResponse, error)
 }
 
 type (
 	StoreStatus = RequestStatus
 	Store       = Request
 )
+
+type UIState string
+
+const (
+	UIStatePending      UIState = "pending"
+	UIStateProvisioning UIState = "provisioning"
+	UIStateBlocked      UIState = "blocked"
+	UIStateFailed       UIState = "failed"
+	UIStateReady        UIState = "ready"
+)
+
+func ToUIState(status RequestStatus, placementAllocationReady, routeReady bool) UIState {
+	switch status {
+	case RequestStatusRequested, RequestStatusPlanning, RequestStatusPlanned, RequestStatusPendingApproval:
+		return UIStatePending
+	case RequestStatusQueued, RequestStatusProvisioning, RequestStatusPendingPlatformSetup:
+		return UIStateProvisioning
+	case RequestStatusFailed, RequestStatusFailedNonRetryable, RequestStatusRejected,
+		RequestStatusCancelled, RequestStatusSuspended, RequestStatusArchived:
+		return UIStateFailed
+	case RequestStatusFailedRetryable:
+		return UIStateBlocked
+	case RequestStatusReady:
+		if placementAllocationReady && routeReady {
+			return UIStateReady
+		}
+		return UIStateBlocked
+	default:
+		return UIStatePending
+	}
+}
+
+type ReadinessDetail struct {
+	StoreReady               bool `json:"store_ready"`
+	PlacementAllocationReady bool `json:"placement_allocation_ready"`
+	RouteReady               bool `json:"route_ready"`
+}
+
+type ReadinessResponse struct {
+	RequestID     string          `json:"request_id"`
+	RequestStatus RequestStatus   `json:"request_status"`
+	Readiness     ReadinessDetail `json:"readiness"`
+	FailureReason string          `json:"failure_reason,omitempty"`
+	UIState       UIState         `json:"ui_state"`
+}

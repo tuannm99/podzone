@@ -615,3 +615,47 @@ func statusTransitionStep(status storeentity.RequestStatus) string {
 		return "status.updated"
 	}
 }
+
+func (s *StoreInteractor) GetStoreReadiness(
+	ctx context.Context,
+	id string,
+) (*storeinputport.ReadinessResponse, error) {
+	workspaceID, err := toolkit.GetTenantID(ctx)
+	if err != nil {
+		return nil, ErrWorkspaceIDRequired
+	}
+
+	req, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if req == nil {
+		return nil, ErrStoreNotFound
+	}
+	if req.WorkspaceID != workspaceID {
+		return nil, ErrStoreNotFound
+	}
+
+	status := storeinputport.RequestStatus(req.Status)
+
+	var placementAllocationReady, routeReady bool
+	if s.infra != nil && (status == storeinputport.RequestStatusReady ||
+		status == storeinputport.RequestStatusFailedRetryable) {
+		if ps, psErr := s.infra.GetTenantPlacementStatus(ctx, workspaceID); psErr == nil && ps != nil {
+			placementAllocationReady = ps.AllocationReady
+			routeReady = ps.RouteReady
+		}
+	}
+
+	return &storeinputport.ReadinessResponse{
+		RequestID:     id,
+		RequestStatus: status,
+		Readiness: storeinputport.ReadinessDetail{
+			StoreReady:               status == storeinputport.RequestStatusReady,
+			PlacementAllocationReady: placementAllocationReady,
+			RouteReady:               routeReady,
+		},
+		FailureReason: req.LastError,
+		UIState:       storeinputport.ToUIState(status, placementAllocationReady, routeReady),
+	}, nil
+}

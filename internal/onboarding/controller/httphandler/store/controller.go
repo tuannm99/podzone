@@ -38,6 +38,7 @@ func (c *Controller) RegisterRoutes(r *gin.RouterGroup) {
 		requests.POST("", c.CreateStoreRequest)
 		requests.GET("", c.ListStoreRequests)
 		requests.GET("/:id", c.GetStoreRequest)
+		requests.GET("/:id/readiness", c.GetStoreReadiness)
 		requests.GET("/:id/transitions", c.ListStoreRequestTransitions)
 		requests.POST("/:id/retry", c.RetryStoreRequest)
 		requests.POST("/:id/approve", c.ApproveStoreRequest)
@@ -49,6 +50,7 @@ func (c *Controller) RegisterRoutes(r *gin.RouterGroup) {
 		legacy.POST("", c.CreateStoreRequest)
 		legacy.GET("", c.ListStoreRequests)
 		legacy.GET("/:id", c.GetStoreRequest)
+		legacy.GET("/:id/readiness", c.GetStoreReadiness)
 		legacy.GET("/:id/transitions", c.ListStoreRequestTransitions)
 		legacy.POST("/:id/retry", c.RetryStoreRequest)
 		legacy.POST("/:id/approve", c.ApproveStoreRequest)
@@ -138,6 +140,16 @@ func (c *Controller) GetStoreRequest(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, request)
+}
+
+func (c *Controller) GetStoreReadiness(ctx *gin.Context) {
+	id := ctx.Param("id")
+	result, err := c.service.GetStoreReadiness(ctx.Request.Context(), id)
+	if err != nil {
+		writeStoreError(ctx, err, "Failed to get store readiness")
+		return
+	}
+	ctx.JSON(http.StatusOK, result)
 }
 
 func (c *Controller) ListStoreRequestTransitions(ctx *gin.Context) {

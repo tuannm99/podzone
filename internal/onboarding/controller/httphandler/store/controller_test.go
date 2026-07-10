@@ -142,3 +142,51 @@ func TestController_ListStoreRequestsReturnsForbiddenForAccessDenied(t *testing.
 	require.Equal(t, http.StatusForbidden, response.Code)
 	require.Contains(t, response.Body.String(), storedomain.ErrAccessDenied.Error())
 }
+
+func TestController_GetStoreReadiness_Returns200(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	usecase := storemocks.NewMockUsecase(t)
+	controller := &Controller{service: usecase}
+	router := gin.New()
+	controller.RegisterRoutes(router.Group("/onboarding/v1"))
+
+	usecase.EXPECT().
+		GetStoreReadiness(mock.Anything, "request-1").
+		Return(&storeinputport.ReadinessResponse{
+			RequestID:     "request-1",
+			RequestStatus: storeinputport.RequestStatusReady,
+			Readiness: storeinputport.ReadinessDetail{
+				StoreReady:               true,
+				PlacementAllocationReady: true,
+				RouteReady:               true,
+			},
+			UIState: storeinputport.UIStateReady,
+		}, nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/onboarding/v1/requests/request-1/readiness", nil)
+	req = req.WithContext(toolkit.WithTenantID(toolkit.WithUserID(req.Context(), "user-1"), "tenant-1"))
+	resp := httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+
+	require.Equal(t, http.StatusOK, resp.Code)
+	require.Contains(t, resp.Body.String(), `"ui_state":"ready"`)
+}
+
+func TestController_GetStoreReadiness_Returns404WhenNotFound(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	usecase := storemocks.NewMockUsecase(t)
+	controller := &Controller{service: usecase}
+	router := gin.New()
+	controller.RegisterRoutes(router.Group("/onboarding/v1"))
+
+	usecase.EXPECT().
+		GetStoreReadiness(mock.Anything, "missing").
+		Return(nil, storedomain.ErrStoreNotFound)
+
+	req := httptest.NewRequest(http.MethodGet, "/onboarding/v1/requests/missing/readiness", nil)
+	req = req.WithContext(toolkit.WithTenantID(toolkit.WithUserID(req.Context(), "user-1"), "tenant-1"))
+	resp := httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+
+	require.Equal(t, http.StatusNotFound, resp.Code)
+}
