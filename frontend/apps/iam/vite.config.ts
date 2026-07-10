@@ -5,7 +5,6 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const sharedRoot = path.resolve(__dirname, '../../src')
 const pagesRoot = path.resolve(__dirname, './src/pages')
 
 export default defineConfig({
@@ -27,10 +26,9 @@ export default defineConfig({
     ],
     resolve: {
         alias: {
-            // Override: IAM-local code (components/) moved alongside pages
+            // IAM-local components live alongside pages in apps/iam/src/
             '@/modules/iam': path.resolve(__dirname, './src'),
             '@podzone/shared': path.resolve(__dirname, '../../packages/shared'),
-            '@': sharedRoot,
         },
     },
     build: {

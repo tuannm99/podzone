@@ -5,7 +5,6 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const sharedRoot = path.resolve(__dirname, '../../src')
 const pagesRoot = path.resolve(__dirname, './src/pages')
 
 export default defineConfig({
@@ -30,7 +29,6 @@ export default defineConfig({
     resolve: {
         alias: {
             '@podzone/shared': path.resolve(__dirname, '../../packages/shared'),
-            '@': sharedRoot,
         },
     },
     build: {
