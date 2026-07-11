@@ -62,7 +62,7 @@ Primary docs:
 - [Traceability matrix](./01-srs/traceability-matrix.md)
 - [Recovery plan](./06-recovery/recovery-plan.md)
 - [Backbone flow refactor](./06-recovery/backbone-flow-refactor.md)
-- [C4 architecture](./02-architecture-overall/c4.md)
+- [C4 architecture](./02-architecture-overall/01-c4.md)
 - [Sprint 0](./04-sprints/sprint-00-foundation.md)
 
 ## Agent Rule

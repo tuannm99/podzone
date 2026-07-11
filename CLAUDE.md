@@ -26,10 +26,10 @@ Area-specific docs:
 
 - Frontend: `agent/SOLID_STYLE_GUIDE.md`
 - Onboarding placement: `internal/onboarding/README.md`
-- IAM: `docs/03-architecture-detail-design/iam-platform.md`
-- DDD/Clean Architecture: `docs/03-architecture-detail-design/ddd-clean-architecture.md`
-- FE refactor audit: `docs/03-architecture-detail-design/frontend-solid-audit.md`
-- Design system: `docs/03-architecture-detail-design/design-system.md`
+- IAM: `docs/03-architecture-detail-design/11-iam-platform.md`
+- DDD/Clean Architecture: `docs/03-architecture-detail-design/03-ddd-clean-architecture.md`
+- FE refactor audit: `docs/03-architecture-detail-design/13-frontend-solid-audit.md`
+- Design system: `docs/03-architecture-detail-design/15-design-system.md`
 
 ## Current Recovery Target
 

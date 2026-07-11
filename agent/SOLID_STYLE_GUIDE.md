@@ -342,7 +342,7 @@ Every Modal and Drawer must have:
 - `Escape` key closes the overlay
 
 Apply `useFocusTrap` from `solid/shared/` — see
-`docs/03-architecture-detail-design/design-system.md`.
+`docs/03-architecture-detail-design/15-design-system.md`.
 
 ### Global notifications
 

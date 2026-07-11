@@ -9,14 +9,14 @@ Use this guide when changing Go code in this repo.
 - Treat the Solid guide as mandatory for architecture, reactivity, async data,
   forms, collection UX, testing, and verification.
 - Track current migration gaps in
-  [`docs/03-architecture-detail-design/frontend-solid-audit.md`](../docs/03-architecture-detail-design/frontend-solid-audit.md).
+  [`docs/03-architecture-detail-design/13-frontend-solid-audit.md`](../docs/03-architecture-detail-design/13-frontend-solid-audit.md).
 
 ## Architecture
 
 - Follow clean architecture with service-local ownership.
 - Keep business rules in `internal/<service>/domain` or `internal/<service>/interactor`.
 - When applying DDD, follow
-  [`docs/03-architecture-detail-design/ddd-clean-architecture.md`](../docs/03-architecture-detail-design/ddd-clean-architecture.md).
+  [`docs/03-architecture-detail-design/03-ddd-clean-architecture.md`](../docs/03-architecture-detail-design/03-ddd-clean-architecture.md).
 - DDD names business boundaries; Clean Architecture controls dependency direction.
 - Use package shape consistently:
   - `entity`

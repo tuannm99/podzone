@@ -13,7 +13,7 @@ Start here:
 Related documents:
 
 - `../00-project-vision/README.md`
-- `../02-architecture-overall/c4.md`
+- `../02-architecture-overall/01-c4.md`
 - `../05-process/sdlc-operating-model.md`
 - `../04-sprints/README.md`
 

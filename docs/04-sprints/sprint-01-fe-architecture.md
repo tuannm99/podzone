@@ -430,6 +430,6 @@ Acceptance criteria:
 ## Source Docs
 
 - Style guide: `agent/SOLID_STYLE_GUIDE.md`
-- Design system: `docs/03-architecture-detail-design/design-system.md`
-- FE audit: `docs/03-architecture-detail-design/frontend-solid-audit.md`
+- Design system: `docs/03-architecture-detail-design/15-design-system.md`
+- FE audit: `docs/03-architecture-detail-design/13-frontend-solid-audit.md`
 - Sprint template: `docs/04-sprints/sprint-template.md`

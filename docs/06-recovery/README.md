@@ -32,5 +32,5 @@ Linked docs:
 
 - [SRS baseline](../01-srs/podzone-srs.md)
 - [Traceability matrix](../01-srs/traceability-matrix.md)
-- [C4 architecture](../02-architecture-overall/c4.md)
+- [C4 architecture](../02-architecture-overall/01-c4.md)
 - [Sprint 0](../04-sprints/sprint-00-foundation.md)

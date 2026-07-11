@@ -3,7 +3,7 @@
 **Sprint:** 0, Slice 0.4  
 **SRS:** SRS-ONB-002, SRS-ONB-003  
 **Recovery source:** `docs/06-recovery/backbone-flow-refactor.md` — Gap 1 (no combined readiness endpoint)  
-**Contract:** `docs/03-architecture-detail-design/transport-contracts.md` — "Slice 0.3: Store Readiness Contract"  
+**Contract:** `docs/03-architecture-detail-design/05-transport-contracts.md` — "Slice 0.3: Store Readiness Contract"  
 **Status:** Backend implemented and tested as of 2026-07-11 —
 `internal/onboarding/controller/httphandler/store/controller.go:145`
 (`Controller.GetStoreReadiness`) and
@@ -36,7 +36,7 @@ References:
 - docs/00-governance/agent-working-rule.md
 - CLAUDE.md
 - agent/SKILL.md
-- docs/03-architecture-detail-design/transport-contracts.md  (Slice 0.3 section)
+- docs/03-architecture-detail-design/05-transport-contracts.md  (Slice 0.3 section)
 - docs/06-recovery/backbone-flow-refactor.md
 - internal/onboarding/README.md
 - internal/onboarding/domain/store/inputport/store.go

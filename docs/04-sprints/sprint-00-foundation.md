@@ -29,7 +29,7 @@ sign in
 
 - SRS: `../01-srs/podzone-srs.md`
 - Traceability: `../01-srs/traceability-matrix.md`
-- C4: `../02-architecture-overall/c4.md`
+- C4: `../02-architecture-overall/01-c4.md`
 - Recovery: `../06-recovery/recovery-plan.md`
 - Backbone: `../06-recovery/backbone-flow-refactor.md`
 - Onboarding: `../../internal/onboarding/README.md`
@@ -73,7 +73,7 @@ Allowed files/boundaries:
 - `docs/01-srs`
 - `docs/05-process`
 - `docs/04-sprints`
-- `docs/02-architecture-overall/c4.md`
+- `docs/02-architecture-overall/01-c4.md`
 
 Acceptance criteria:
 
@@ -173,8 +173,8 @@ Agent role:
 
 Allowed files/boundaries:
 
-- `docs/03-architecture-detail-design/transport-contracts.md`
-- `docs/03-architecture-detail-design/collection-api-contract.md`
+- `docs/03-architecture-detail-design/05-transport-contracts.md`
+- `docs/03-architecture-detail-design/06-collection-api-contract.md`
 - `docs/05-process`
 - `docs/01-srs/traceability-matrix.md`
 

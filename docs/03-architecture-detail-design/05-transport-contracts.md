@@ -181,6 +181,6 @@ Returned when the authenticated workspace does not own this store request.
   gRPC; IAM-owned endpoints enforce policy internally.
 - Gateway checks are optional coarse PEPs. Resource- and state-dependent
   authorization remains mandatory at service handlers. See
-  [IAM Platform](./iam-platform.md).
+  [IAM Platform](./11-iam-platform.md).
 - `Backoffice` is GraphQL-owned and maps into context-local domain packages.
 - `grpcgateway` is only a transport adapter, not business logic.

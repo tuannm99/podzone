@@ -8,10 +8,10 @@ Read these before changing code:
 
 1. `agent/SKILL.md`
 2. `agent/SOLID_STYLE_GUIDE.md` before touching `internal/ui-podzone`
-3. `docs/03-architecture-detail-design/ddd-clean-architecture.md` before DDD changes
+3. `docs/03-architecture-detail-design/03-ddd-clean-architecture.md` before DDD changes
 4. `internal/onboarding/README.md` before onboarding or placement changes
-5. `docs/03-architecture-detail-design/iam-platform.md` before IAM architecture changes
-6. `docs/03-architecture-detail-design/frontend-solid-audit.md` before frontend refactors
+5. `docs/03-architecture-detail-design/11-iam-platform.md` before IAM architecture changes
+6. `docs/03-architecture-detail-design/13-frontend-solid-audit.md` before frontend refactors
 
 ## Current Architecture Rules
 
@@ -102,7 +102,7 @@ powerful but not dominate merchant-facing screens.
   They must not fall through to the route error boundary.
 - Prefer tabs, bounded scroll regions, drawers/modals, and list/detail flows
   over long always-mounted pages.
-- Remaining FE gaps are tracked in `docs/03-architecture-detail-design/frontend-solid-audit.md`.
+- Remaining FE gaps are tracked in `docs/03-architecture-detail-design/13-frontend-solid-audit.md`.
 
 ## Safe Task Split For Multiple Agents
 

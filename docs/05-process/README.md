@@ -26,7 +26,7 @@ Related handoff docs:
 
 - `ai-agent-sdlc.md`
 - `../00-governance/agent-working-rule.md`
-- `../03-architecture-detail-design/agent-onboarding.md`
+- `../03-architecture-detail-design/16-agent-onboarding.md`
 - `../../AGENTS.md`
 - `../../CLAUDE.md`
 

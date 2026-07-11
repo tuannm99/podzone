@@ -41,7 +41,7 @@ Investigated from actual code in `internal/`. Status key:
 | List store requests with status | onboarding | ⚠️ Exists, unverified | `GET /requests` returns `collection.Page[*Request]` with `status` field. 15 status values defined in `domain/store/entity`. FE needs to map to pending/failed/ready. |
 | Get single store request status | onboarding | ⚠️ Exists, unverified | `GET /requests/:id` — returns full `Request` including `Status`, `LastError`, `StoreID`. IAM workspace guard enforced. |
 | Placement allocation + route ready | onboarding | ⚠️ Exists, unverified | `GetTenantPlacementStatus` in `domain/infrasmanager` returns `PlacementStatus{AllocationReady, RouteReady}`. Admin HTTP at `/infras/placements/:tenantId/status`. Not user-facing. |
-| **Combined store readiness for FE** | onboarding | ⚠️ Implemented, not wired to FE | `GET /requests/:id/readiness` exists (`internal/onboarding/controller/httphandler/store/controller.go:145`, `Controller.GetStoreReadiness`). Contract documented in `transport-contracts.md` (Slice 0.3) and task spec at `docs/04-sprints/tasks/onboarding-readiness-api.md`. No frontend code calls this endpoint yet, and it is unverified end-to-end in Docker. |
+| **Combined store readiness for FE** | onboarding | ⚠️ Implemented, not wired to FE | `GET /requests/:id/readiness` exists (`internal/onboarding/controller/httphandler/store/controller.go:145`, `Controller.GetStoreReadiness`). Contract documented in `05-transport-contracts.md` (Slice 0.3) and task spec at `docs/04-sprints/tasks/onboarding-readiness-api.md`. No frontend code calls this endpoint yet, and it is unverified end-to-end in Docker. |
 | Resolve tenant DB route (KV) | pdtenantdb + onboarding | ⚠️ Exists, unverified | Route projection published to Redis/Valkey by onboarding worker after provisioning. `pkg/pdtenantdb` reads it. Must exist before backoffice opens. |
 | Enforce protected API permission | backoffice → IAM gRPC | ⚠️ Exists, unverified | Backoffice has `authz.go` and IAM gRPC client. GraphQL resolvers gate per tenant. Needs end-to-end test with a ready store. |
 
@@ -112,7 +112,7 @@ the full backbone flow end to end in Docker dev.
 Allowed docs:
 
 - `docs/04-sprints/tasks/onboarding-readiness-api.md`
-- `docs/03-architecture-detail-design/transport-contracts.md`
+- `docs/03-architecture-detail-design/05-transport-contracts.md`
 - `docs/01-srs/traceability-matrix.md`
 
 Done:

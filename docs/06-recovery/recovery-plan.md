@@ -81,7 +81,7 @@ Exit:
 
 - `docs/README.md` links the delivery chain;
 - `docs/01-srs/podzone-srs.md` exists;
-- `docs/02-architecture-overall/c4.md` exists;
+- `docs/02-architecture-overall/01-c4.md` exists;
 - `docs/04-sprints/sprint-00-foundation.md` exists;
 - `docs/05-process` contains templates.
 

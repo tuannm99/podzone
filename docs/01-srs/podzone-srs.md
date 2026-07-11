@@ -54,9 +54,9 @@ Detailed actor flows live in `../00-project-vision/02-actors-and-business-flows.
 
 The C4 context and container architecture are defined in:
 
-- `../02-architecture-overall/c4.md`
-- `../02-architecture-overall/system-context.md`
-- `../02-architecture-overall/containers.md`
+- `../02-architecture-overall/01-c4.md`
+- `../02-architecture-overall/02-system-context.md`
+- `../02-architecture-overall/03-containers.md`
 
 ## 5. Functional Requirements
 
@@ -68,7 +68,7 @@ sign out.
 Linked docs:
 
 - `../00-project-vision/iam-mvp.md`
-- `../02-architecture-overall/data-ownership.md`
+- `../02-architecture-overall/04-data-ownership.md`
 
 ### SRS-IAM-001 Centralized Authorization
 
@@ -79,7 +79,7 @@ boundaries.
 Linked docs:
 
 - `../00-project-vision/13-iam-permission-authoring.md`
-- `../03-architecture-detail-design/iam-platform.md`
+- `../03-architecture-detail-design/11-iam-platform.md`
 
 ### SRS-IAM-002 Permission Authoring
 
@@ -117,7 +117,7 @@ Runtime KV entries are projections that can be rebuilt.
 Linked docs:
 
 - `../../internal/onboarding/README.md`
-- `../02-architecture-overall/data-ownership.md`
+- `../02-architecture-overall/04-data-ownership.md`
 
 ### SRS-BO-001 Store-Scoped Backoffice
 
