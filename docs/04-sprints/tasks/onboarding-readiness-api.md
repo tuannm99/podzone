@@ -32,9 +32,8 @@ up", "Provisioning", "Blocked", "Failed", or "Open Backoffice" for a store.
 No more guessing from store status alone.
 
 References:
-- AGENTS.md
-- docs/00-governance/agent-working-rule.md
 - CLAUDE.md
+- docs/00-governance/agent-working-rule.md
 - agent/SKILL.md
 - docs/03-architecture-detail-design/05-transport-contracts.md  (Slice 0.3 section)
 - docs/06-recovery/backbone-flow-refactor.md

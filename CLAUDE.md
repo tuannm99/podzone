@@ -9,18 +9,17 @@ Start from the numbered docs. Do not use old paths such as `docs/srs`,
 
 Read in this order:
 
-1. `AGENTS.md`
-2. `docs/00-governance/agent-working-rule.md`
-3. `agent/SKILL.md`
-4. `docs/README.md`
-5. `docs/00-project-vision/README.md`
-6. `docs/01-srs/podzone-srs.md`
-7. `docs/01-srs/traceability-matrix.md`
-8. `docs/02-architecture-overall/README.md`
-9. `docs/03-architecture-detail-design/README.md`
-10. `docs/04-sprints/sprint-00-foundation.md`
-11. `docs/05-process/sdlc-operating-model.md`
-12. `docs/06-recovery/recovery-plan.md`
+1. `docs/00-governance/agent-working-rule.md`
+2. `agent/SKILL.md`
+3. `docs/README.md`
+4. `docs/00-project-vision/README.md`
+5. `docs/01-srs/podzone-srs.md`
+6. `docs/01-srs/traceability-matrix.md`
+7. `docs/02-architecture-overall/README.md`
+8. `docs/03-architecture-detail-design/README.md`
+9. `docs/04-sprints/sprint-00-foundation.md`
+10. `docs/05-process/sdlc-operating-model.md`
+11. `docs/06-recovery/recovery-plan.md`
 
 Area-specific docs:
 
@@ -54,13 +53,33 @@ manual database or KV edits.
   verification.
 - If a task is missing required docs, allowed scope, forbidden changes, or
   validation commands, stop and report the gap instead of coding.
-- Keep changes scoped to the requested slice.
+- Keep changes scoped to the requested slice. Do not modify files outside
+  scope or refactor unrelated code.
 - Do not add services, packages, tables, or dependencies without an explicit
   requirement or architecture decision.
+- Do not invent API DTOs, response fields, or error codes outside the
+  documented contract.
 - Do not change public contracts without updating the matching docs.
+- Do not change DB schema without a DB spec.
 - Do not move code into `pkg` unless it is genuinely shared and stable.
-- Do not use frontend permission checks as security boundaries. Backend
-  services must enforce authorization at inbound boundaries.
+- Do not put business logic in handlers/controllers or in frontend
+  components — see Architecture Summary and Frontend Summary below.
+- Do not bypass tenant isolation or permission checks. Do not use frontend
+  permission checks as security boundaries. Backend services must enforce
+  authorization at inbound boundaries.
+
+## Required Handoff
+
+After implementation, report:
+
+- summary of behavior changed;
+- changed files;
+- tests/validation run;
+- skipped checks with reason;
+- risks or follow-up.
+
+If required documentation is missing, stop and report what is missing
+instead of coding.
 
 ## Backend Commands
 

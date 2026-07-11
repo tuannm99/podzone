@@ -31,7 +31,7 @@ Detailed process templates live in:
 
 ## Source Of Truth
 
-`AGENTS.md` is the canonical required-reading order — read it first, it lists
+`CLAUDE.md` is the canonical required-reading order — read it first, it lists
 what to read before touching code. `docs/05-process/sdlc-operating-model.md`
 is the canonical phase/gate model; `docs/00-governance/agent-working-rule.md`
 is the canonical hard-rule list. This document does not repeat either — it

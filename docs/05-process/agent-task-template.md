@@ -13,9 +13,8 @@ Goal:
 <What should work after this task.>
 
 References:
-- AGENTS.md
-- docs/00-governance/agent-working-rule.md
 - CLAUDE.md
+- docs/00-governance/agent-working-rule.md
 - agent/SKILL.md
 - <feature spec>
 - <architecture doc>
@@ -69,7 +68,7 @@ Operators can ask whether one store request is blocked by missing placement,
 missing route projection, or unresolved DB placement.
 
 References:
-- AGENTS.md
+- CLAUDE.md
 - docs/00-governance/agent-working-rule.md
 - internal/onboarding/README.md
 - docs/05-process/spec-first-vertical-slice.md
