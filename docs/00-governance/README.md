@@ -12,5 +12,6 @@ Read this folder before assigning or executing coding work:
 5. [Naming Convention](./naming-convention.md)
 6. [Document Standard](./document-standard.md)
 7. [Review Workflow](./review-workflow.md)
+8. [Twelve-Factor App Rules](./twelve-factor.md)
 
 These rules sit above product, SRS, architecture, sprint, and process docs.

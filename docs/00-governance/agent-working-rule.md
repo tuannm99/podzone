@@ -119,6 +119,9 @@ domain -> usecase/interactor -> port -> adapter -> handler
 - Tenant/workspace/store scoped queries must always filter the required scope.
 - Backend services enforce authorization at inbound boundaries and delegate IAM
   evaluation through backend channels, not frontend probes.
+- Backend services follow `docs/00-governance/twelve-factor.md` — config
+  from environment, stateless processes, logs to stdout, graceful shutdown
+  via `fx.Lifecycle`.
 
 ## Frontend Rules
 

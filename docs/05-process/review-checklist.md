@@ -30,6 +30,19 @@ Use this checklist when reviewing AI-generated changes.
 - Are idempotency and retries considered for workers?
 - Is outbox used only for commit-coupled side effects?
 
+## Twelve-Factor Compliance
+
+See `docs/00-governance/twelve-factor.md` for the full rule set. For a
+backend service change, check the factors it touches:
+
+- Config: no hardcoded env-specific values, no secret committed?
+- Backing services: connection info via config, not hardcoded host/port?
+- Processes: no new local-disk or in-process durable state?
+- Disposability: new long-running work wired through `fx.Lifecycle`?
+- Logs: `pkg/pdlog` to stdout, not a new file-based logger?
+- Admin processes: new one-off task under `cmd/<service>` or
+  `scripts/dev/`, not a standalone script duplicating config loading?
+
 ## Frontend Architecture
 
 - Is the route page only a composition wrapper?

@@ -24,6 +24,7 @@ Read in this order:
 Area-specific docs:
 
 - Frontend: `agent/SOLID_STYLE_GUIDE.md`
+- Backend service rules: `docs/00-governance/twelve-factor.md`
 - Onboarding placement: `internal/onboarding/README.md`
 - IAM: `docs/03-architecture-detail-design/11-iam-platform.md`
 - DDD/Clean Architecture: `docs/03-architecture-detail-design/03-ddd-clean-architecture.md`
