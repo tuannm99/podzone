@@ -11,14 +11,13 @@ flowchart TB
     Catalog["Catalog Service"]
     Onboarding["Onboarding Service"]
 
-    AuthDB["auth DB"]
-    IAMDB["iam DB"]
-    BackofficeDB["backoffice DB"]
-    PartnerDB["partner DB"]
-    CatalogDB["catalog DB"]
-    Mongo["Mongo"]
-    RuntimeKV["Mongo runtime_kv"]
-    Redis["Redis"]
+    AuthDB["auth DB (Postgres)"]
+    IAMDB["iam DB (Postgres)"]
+    BackofficeDB["backoffice DB (Postgres, tenant-routed)"]
+    PartnerDB["partner DB (Postgres)"]
+    CatalogDB["catalog DB (not yet implemented)"]
+    Mongo["Mongo (onboarding, 10 collections)"]
+    Redis["Redis / Valkey"]
 
     Auth --> AuthDB
     Auth --> Redis
@@ -27,18 +26,29 @@ flowchart TB
     Partner --> PartnerDB
     Catalog --> CatalogDB
     Onboarding --> Mongo
-    Onboarding --> RuntimeKV
+    Onboarding -->|"publishes route projection"| Redis
+    Backoffice -->|"reads route projection via pdtenantdb"| Redis
 ```
 
+Corrected 2026-07-11: the KV route projection published by onboarding and
+read by `pkg/pdtenantdb` is **Redis/Valkey, not Mongo** — a prior version
+of this diagram mislabeled it as "Mongo runtime_kv". See
+[`03-architecture-detail-design/services/onboarding/db-design.md`](../03-architecture-detail-design/services/onboarding/db-design.md)
+"Not A Database Table: KV Route Projection".
+
 ## Auth Data Ownership
+
+Full schema, columns, and indexes:
+[`03-architecture-detail-design/services/auth/db-design.md`](../03-architecture-detail-design/services/auth/db-design.md).
 
 ```mermaid
 flowchart LR
     Users["users"]
     Sessions["auth_sessions"]
-    Refresh["refresh_tokens"]
+    Refresh["auth_refresh_tokens"]
     Audit["auth_audit_logs"]
-    IAMProj["iam_*_projection tables"]
+    IAMProj["iam_tenants_projection, iam_tenant_memberships_projection"]
+    Inbox["message_inbox (Kafka idempotency ledger)"]
 
     Users --> Sessions
     Users --> Refresh
@@ -47,6 +57,9 @@ flowchart LR
 ```
 
 ## IAM Data Ownership
+
+Full schema (32 tables), columns, and indexes:
+[`03-architecture-detail-design/services/iam/db-design.md`](../03-architecture-detail-design/services/iam/db-design.md).
 
 ```mermaid
 flowchart LR
@@ -70,16 +83,24 @@ flowchart LR
 
 ## Backoffice Data Ownership
 
+Full schema, columns, and indexes:
+[`03-architecture-detail-design/services/backoffice/db-design.md`](../03-architecture-detail-design/services/backoffice/db-design.md).
+Postgres only — no Mongo (corrected 2026-07-11; see linked doc for the
+grep evidence).
+
 ```mermaid
 flowchart LR
     Stores["stores"]
     ProductSetup["product_setup_*"]
-    RoutedOrders["routed_orders"]
+    RoutedOrders["routed_orders (legacy, still written)"]
+    CustomerOrders["customer_orders (current aggregate)"]
     Activities["routed_order_activities"]
 
     Stores --> ProductSetup
     Stores --> RoutedOrders
+    Stores --> CustomerOrders
     RoutedOrders --> Activities
+    CustomerOrders --> Activities
 ```
 
 ## Notes

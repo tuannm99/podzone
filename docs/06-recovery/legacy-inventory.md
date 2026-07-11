@@ -11,7 +11,7 @@ Use this to classify the current code before refactoring.
 | auth | Yes (services.yml) | Yes (17 test files) | Postgres — user/session/token data | Stabilize | JWT verifier, Google OAuth, worker publishes events via Kafka. Verify login + session flow end-to-end. |
 | iam | Yes (services.yml) | Yes (11 test files) | Postgres — tenant, membership, policy, role, boundary | Stabilize | gRPC-only (no HTTP). Required by backoffice, onboarding, partner. Bootstrap permissions must be verified. |
 | onboarding | Yes (services.yml) | Yes (14 test files) | Mongo — store requests, infrasmanager (placement allocation, resource inventory, route projection) | Stabilize | Core backbone dependency. Provisioning pipeline and placement backbone are the highest-risk area. |
-| backoffice | Yes (services.yml) | Yes (18 test files) | Postgres (tenant DB via pdtenantdb) + Mongo (store-scoped runtime) | Stabilize | GraphQL API only. Must not open until store request status = ready AND placement route is live. |
+| backoffice | Yes (services.yml) | Yes (18 test files) | Postgres only, tenant DB via pdtenantdb (no Mongo — see `services/backoffice/db-design.md`) | Stabilize | GraphQL API only. Must not open until store request status = ready AND placement route is live. |
 | partner | Yes (services.yml) | Yes (2 test files, partial) | Postgres — partner records | Later | Not needed for first backbone slice. |
 | catalog | Yes (services.yml) | No test files | Mongo — catalog data | Later | Not needed for first backbone slice. |
 | grpcgateway | Yes (services.yml) | No test files | None | Stabilize | HTTP → gRPC adapter. Backbone entry point for FE API calls. |
@@ -40,7 +40,7 @@ Use this to classify the current code before refactoring.
 | Store requests CRUD | onboarding | ⚠️ Exists, unverified | Partial | `GET/POST /requests`, `GET /requests/:id`. Returns full status lifecycle. |
 | Tenant placement status | onboarding | ⚠️ Exists, unverified | No HTTP contract doc | `GetTenantPlacementStatus` usecase exists. Admin-only HTTP at `/infras/placements/:tenantId/status`. No user-facing readiness contract documented. |
 | Combined store readiness check | onboarding | ❌ Missing | No | No single endpoint combines store request status + placement allocation ready + route ready. FE needs this to show ready/blocked/pending states. |
-| Backoffice GraphQL protected read | backoffice | ⚠️ Exists, unverified | Partial (schema exists) | GraphQL schema in `internal/backoffice/graphql/`. Verify one query end-to-end with a ready store. |
+| Backoffice GraphQL protected read | backoffice | ⚠️ Exists, unverified | Partial (schema exists) | GraphQL schema in `internal/backoffice/controller/graphql/`. Verify one query end-to-end with a ready store. |
 
 ## Data Stores
 
@@ -50,8 +50,7 @@ Use this to classify the current code before refactoring.
 | Postgres (iam schema) | iam | Yes | org/tenant/user scoped | Yes | Tenant, membership, policy, role, boundary. Verify bootstrap seeding. |
 | Mongo (onboarding DB) | onboarding | Yes | workspace/store scoped | Yes | Store requests, placement allocations, resource inventory, route projections. |
 | Redis/Valkey (runtime KV) | onboarding → backoffice | Yes | tenant route scoped | No — rebuildable | Route projection published by onboarding worker. Read by `pkg/pdtenantdb`. |
-| Postgres (tenant DB / per-schema) | backoffice | Yes | tenant/store scoped | Yes | Resolved at runtime from KV projection via `pdtenantdb`. |
-| Mongo (backoffice store runtime) | backoffice | Yes | store scoped | Yes | Store-local operating data (orders, products, etc.). |
+| Postgres (tenant DB / per-schema) | backoffice | Yes | tenant/store scoped | Yes | Resolved at runtime from KV projection via `pdtenantdb`. Stores, product setup, orders, activities — all Postgres, no Mongo (corrected 2026-07-11, see `services/backoffice/db-design.md`). |
 
 ## Broken Or Risky Flows
 

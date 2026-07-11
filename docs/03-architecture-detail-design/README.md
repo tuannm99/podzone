@@ -36,6 +36,10 @@ Product surfaces:
 15. [Design System](./15-design-system.md)
 16. [Agent Onboarding](./16-agent-onboarding.md)
 
+Per-service design (BE + FE, one component spec + DB design/ERD each):
+
+- [Services Index](./services/README.md)
+
 Contracts:
 
 - [OpenAPI](./openapi/)
