@@ -50,5 +50,11 @@ export default defineConfig({
         port: 3002,
         host: '0.0.0.0',
         cors: true,
+        // Requests arrive via APISIX (/mfe/iam/*) with a rewritten Host header
+        // (e.g. "apisix"), not "localhost:3002". Vite's preview server rejects
+        // unrecognized Host headers by default (403) — this is an internal
+        // Docker-only dev service, not internet-exposed, so disabling the
+        // check is safe.
+        allowedHosts: true,
     },
 })

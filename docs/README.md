@@ -50,6 +50,9 @@ snapshot of recovery phase, backbone flow status, and known doc debt.
 10. [PZEP](./09-pzep/README.md)
     Podzone Enhancement Proposals — feature-level design for
     cross-component changes.
+11. [Knowledge Base](./10-knowledge-base/README.md)
+    Concise runtime/infra incident notes from live debugging — search here
+    before re-debugging a symptom that looks familiar.
 
 ## Current Recovery Target
 

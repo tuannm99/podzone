@@ -65,6 +65,12 @@ When adding a remote app to the federation:
 7. **Use `npm run dev:<name>`** (`vite build --watch` + `vite preview`) for
    Docker hot reload — `vite dev` mode does not rebuild remote bundles the
    host consumes. See `deployments/docker/services.yml`.
+8. **Set `preview.allowedHosts: true`** in the remote's `vite.config.ts`.
+   The remote is reached through APISIX (`/mfe/<name>/*`), which forwards
+   its own Host header, not `localhost:<port>` — Vite's preview server
+   rejects unrecognized Host headers (`403`) by default. Safe to disable
+   here since these are internal Docker-only dev services. See
+   `docs/10-knowledge-base/2026-07-11-mfe-remoteentry-empty-response.md`.
 
 ## Where Versions Come From
 

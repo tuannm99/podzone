@@ -309,6 +309,9 @@ docs/08-adr/
 
 docs/09-pzep/
   Podzone Enhancement Proposals (PZEP-NNNN)
+
+docs/10-knowledge-base/
+  concise runtime/infra incident notes from live debugging
 ```
 
 Do not create parallel draft folders. Add a new top-level docs folder only when
