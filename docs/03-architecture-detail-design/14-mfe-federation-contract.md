@@ -70,7 +70,7 @@ When adding a remote app to the federation:
    its own Host header, not `localhost:<port>` — Vite's preview server
    rejects unrecognized Host headers (`403`) by default. Safe to disable
    here since these are internal Docker-only dev services. See
-   `docs/10-knowledge-base/2026-07-11-mfe-remoteentry-empty-response.md`.
+   `docs/10-knowledge-base/local-dev/2026-07-11-mfe-remoteentry-empty-response.md`.
 
 ## Where Versions Come From
 

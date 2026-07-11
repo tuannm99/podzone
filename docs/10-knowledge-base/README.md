@@ -4,11 +4,25 @@ Parent index: [Podzone Documentation Index](../README.md).
 
 Concise incident notes from live debugging — runtime/infra issues found by
 running the stack, not by code review (those go in `docs/07-problems/`).
-One file per incident. Keep entries short: symptom, what was checked, root
-cause, fix. Skip sections that don't apply rather than padding them.
+Split by environment, since the same symptom can have a different cause
+depending on where it happens (a Docker/WSL2 port-forward quirk only
+exists in local dev; a staging/prod incident is never that).
 
-Search this folder before debugging a symptom that looks familiar —
-Docker/WSL2 networking quirks and MFE gateway issues tend to repeat.
+One file per incident, inside the environment folder it happened in. Keep
+entries short: symptom, what was checked, root cause, fix. Skip sections
+that don't apply rather than padding them.
+
+Search the relevant environment folder before debugging a symptom that
+looks familiar — infra quirks tend to repeat within an environment, not
+across them.
+
+## Environments
+
+| Environment | Folder | Notes |
+|---|---|---|
+| Local dev | [`local-dev/`](./local-dev/README.md) | Docker Compose on a developer machine (WSL2, Docker Desktop). Most entries live here today. |
+| Staging | [`staging/`](./staging/README.md) | No incidents recorded yet — staging isn't running. |
+| Production | [`prod/`](./prod/README.md) | No incidents recorded yet — prod doesn't exist yet. |
 
 ## Entry Template
 
@@ -41,10 +55,3 @@ found, number them.>
 <Optional — only if there's a concrete guard to add (a doc rule, a config
 default, a check). Skip if the fix is a one-off.>
 ```
-
-## Index
-
-| Date | Title | Area |
-|---|---|---|
-| 2026-07-11 | [MFE remoteEntry.js ERR_EMPTY_RESPONSE / 403 through APISIX](./2026-07-11-mfe-remoteentry-empty-response.md) | Docker/WSL2, APISIX, Vite preview |
-| 2026-07-11 | [Backoffice GraphQL POST /graphql 404](./2026-07-11-backoffice-graphql-404.md) | APISIX, MFE remote config drift |
