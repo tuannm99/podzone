@@ -27,6 +27,7 @@
         "serve:onboarding": "npm run build:onboarding && npm run preview:onboarding",
         "dev:iam": "npm run build:iam && (npm run watch:iam & npm run preview:iam)",
         "dev:onboarding": "npm run build:onboarding && (npm run watch:onboarding & npm run preview:onboarding)",
+        "dev:backoffice": "npm run build:backoffice && (npm run watch:backoffice & npm run preview:backoffice)",
         "lint": "eslint .",
         "preview": "vite preview"
     },

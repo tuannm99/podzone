@@ -215,6 +215,18 @@ put_admin "routes/1010" '{
   "plugin_config_id": "9000"
 }'
 
+put_admin "routes/1015" '{
+  "name": "podzone-backoffice-graphql-gateway",
+  "uri": "/backoffice/graphql*",
+  "service_id": "110",
+  "plugin_config_id": "9000",
+  "plugins": {
+    "proxy-rewrite": {
+      "regex_uri": ["^/backoffice/graphql(.*)", "/query$1"]
+    }
+  }
+}'
+
 put_admin "routes/1020" '{
   "name": "podzone-ui",
   "uri": "/*",

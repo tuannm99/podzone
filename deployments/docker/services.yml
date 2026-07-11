@@ -304,7 +304,11 @@ services:
     container_name: podzone-backoffice-remote-dev
     profiles: [backoffice, full]
     working_dir: /app
-    command: ['npm', 'run', 'serve:backoffice']
+    command: ['npm', 'run', 'dev:backoffice']
+    environment:
+      VITE_PODZONE_GW_API_URL: http://localhost:8080
+      VITE_PODZONE_GRAPHQL_API_URL: http://localhost:9080/backoffice/graphql
+      VITE_PODZONE_ONBOARDING_API_URL: http://localhost:8800
     volumes:
       - ../../frontend:/app
       - podzone_ui_node_modules:/app/node_modules
@@ -333,6 +337,10 @@ services:
     profiles: [onboarding, full]
     working_dir: /app
     command: ['npm', 'run', 'dev:onboarding']
+    environment:
+      VITE_PODZONE_GW_API_URL: http://localhost:8080
+      VITE_PODZONE_GRAPHQL_API_URL: http://localhost:9080/backoffice/graphql
+      VITE_PODZONE_ONBOARDING_API_URL: http://localhost:8800
     volumes:
       - ../../frontend:/app
       - podzone_ui_node_modules:/app/node_modules
@@ -349,7 +357,7 @@ services:
     command: ['npm', 'run', 'dev', '--', '--host', '0.0.0.0', '--port', '3000']
     environment:
       VITE_PODZONE_GW_API_URL: http://localhost:8080
-      VITE_PODZONE_GRAPHQL_API_URL: http://localhost:8000/query
+      VITE_PODZONE_GRAPHQL_API_URL: http://localhost:9080/backoffice/graphql
       VITE_API_PROXY_TARGET: http://grpc-gateway:8080
       VITE_BACKOFFICE_REMOTE_URL: ${VITE_BACKOFFICE_REMOTE_URL:-http://localhost:9080/mfe/backoffice/assets/remoteEntry.js}
       VITE_IAM_REMOTE_URL: ${VITE_IAM_REMOTE_URL:-http://localhost:9080/mfe/iam/assets/remoteEntry.js}
