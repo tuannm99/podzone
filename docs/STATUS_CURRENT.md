@@ -4,7 +4,7 @@ Living snapshot of where Podzone recovery stands. Update this at the end of
 every sprint (see `docs/04-sprints/sprint-process.md`). This is a pointer and
 snapshot, not a spec — link out to the owning doc for detail.
 
-Last updated: 2026-07-11.
+Last updated: 2026-07-11 (ADR/PZEP practice added).
 
 ## Read First
 
@@ -35,12 +35,30 @@ placement -> open store-scoped Backoffice -> call one protected API`
   ⚠️ exists-but-unverified-in-Docker. No known code gap; the open work is
   running the stack and confirming the flow, not writing new handlers.
 
+## Decision Records
+
+ADR and PZEP practice now exists (previously referenced by 6+ governance
+docs but never actually created — see `docs/08-adr/README.md` and
+`docs/09-pzep/README.md` for the backfilled examples):
+
+- [ADR-0001](./08-adr/ADR-0001-mfe-solid-js-not-federation-singleton.md) —
+  MFE `solid-js` not a federation singleton.
+- [ADR-0002](./08-adr/ADR-0002-npm-vite-alias-not-pnpm-workspaces.md) — npm
+  + Vite alias, not pnpm workspaces.
+- [PZEP-0001](./09-pzep/PZEP-0001-onboarding-store-readiness-endpoint.md) —
+  onboarding store readiness endpoint (backend done, FE integration open).
+
 ## Known Doc Debt
 
-- `docs/01-srs/traceability-matrix.md` is mostly `TBD` — Sprint 0 exit
-  criteria requires it mapped for the backbone SRS IDs; not done yet.
+- `docs/01-srs/traceability-matrix.md` is filled for the 6 backbone SRS
+  IDs (Design/UI spec, Contract/DB, Sprint, Agent task, Verification
+  columns) but still `TBD` for non-backbone IDs (IAM-002, CAT-001,
+  PARTNER-001, ORDER-001, SETTLEMENT-001) — out of scope until R6.
 - `docs/01-srs/podzone-srs.md` backbone requirement IDs lack acceptance
   criteria (single "shall" sentences only).
+- `docs/03-architecture-detail-design/12-frontend-edge.md` and
+  `13-frontend-solid-audit.md` predate the MFE split and are flagged
+  stale inline — not re-verified against current `frontend/` code.
 
 ## Not Yet Started
 

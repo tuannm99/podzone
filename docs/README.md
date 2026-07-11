@@ -15,6 +15,8 @@ and follow the links below.
   -> 04 Sprint slice
   -> 05 Agent task/process
   -> 06 Recovery evidence
+  -> 08 ADR (when an architecture boundary decision is made)
+  -> 09 PZEP (when a cross-component feature is proposed)
 ```
 
 Coding starts only after the target work links back to this chain.
@@ -42,6 +44,12 @@ snapshot of recovery phase, backbone flow status, and known doc debt.
    Current stabilization plan for the unstable agent-expanded codebase.
 8. [Problems](./07-problems/)
    Dated issue notes and recovery evidence.
+9. [ADR](./08-adr/README.md)
+   Architecture Decision Records — service boundaries, data ownership,
+   cross-service communication, technology/pattern choices.
+10. [PZEP](./09-pzep/README.md)
+    Podzone Enhancement Proposals — feature-level design for
+    cross-component changes.
 
 ## Current Recovery Target
 

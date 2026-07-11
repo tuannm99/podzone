@@ -1,11 +1,18 @@
 # Podzone Design System
 
 Stack: SolidJS + Tailwind v4 + Flowbite plugin.
-Source root: `internal/ui-podzone/src/solid/`.
+Source root: `frontend/packages/shared/ui/` (moved here from
+`internal/ui-podzone/src/solid/` during the MFE split).
+
+**Staleness note (2026-07-11):** the component inventory, gap list, and file
+names below were written against the pre-MFE-split tree and have not been
+re-verified against the current `frontend/packages/shared/ui/` layout. Some
+files may have moved, merged, or been renamed. Confirm a component still
+exists at the stated path before treating a gap as still open.
 
 Read `agent/SOLID_STYLE_GUIDE.md` for architecture rules.
-This document covers **what** exists in `solid/`, its API conventions,
-current gaps, and how to extend it correctly.
+This document covers **what** exists in `frontend/packages/shared/ui/`, its
+API conventions, current gaps, and how to extend it correctly.
 
 ---
 

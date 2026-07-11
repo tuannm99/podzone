@@ -1,6 +1,7 @@
 # MFE Federation Version Contract
 
 Version contract for shared modules in the Podzone Module Federation setup.
+Decision record: [ADR-0001](../08-adr/ADR-0001-mfe-solid-js-not-federation-singleton.md).
 
 ## Shared Modules
 

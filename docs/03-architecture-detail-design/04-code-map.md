@@ -8,7 +8,7 @@ flowchart TB
     Internal["internal/*"]
     Pkg["pkg/*"]
     Proto["api/proto/*"]
-    UI["internal/ui-podzone"]
+    UI["frontend/"]
     Docs["docs/02-architecture-overall"]
     Deploy["deployments/docker"]
 

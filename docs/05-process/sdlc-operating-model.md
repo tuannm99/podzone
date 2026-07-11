@@ -112,9 +112,11 @@ Goal: decide where the behavior belongs.
 Artifacts:
 
 - update existing architecture docs when possible;
-- add a decision section to the relevant architecture doc for meaningful
-  architectural decisions. Create a dedicated ADR folder only after
-  `docs/README.md` makes it canonical.
+- write an ADR in `docs/08-adr/` (see
+  `docs/05-process/adr-template.md`) for a meaningful architecture
+  decision — service boundary, data ownership, cross-service
+  communication, dependency direction, or a technology/pattern choice —
+  and link it from every architecture doc it affects.
 
 Required questions:
 
@@ -301,6 +303,12 @@ docs/06-recovery/
 
 docs/07-problems/
   dated issue notes and recovery evidence
+
+docs/08-adr/
+  Architecture Decision Records (ADR-NNNN)
+
+docs/09-pzep/
+  Podzone Enhancement Proposals (PZEP-NNNN)
 ```
 
 Do not create parallel draft folders. Add a new top-level docs folder only when

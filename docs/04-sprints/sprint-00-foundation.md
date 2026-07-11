@@ -52,6 +52,18 @@ Out:
 - Terraform/cloud automation;
 - complete UI redesign.
 
+## Design Decisions Required
+
+- [ADR-0001](../08-adr/ADR-0001-mfe-solid-js-not-federation-singleton.md) —
+  MFE remotes do not share `solid-js` as a federation singleton.
+- [ADR-0002](../08-adr/ADR-0002-npm-vite-alias-not-pnpm-workspaces.md) —
+  monorepo dependency resolution uses npm + Vite `resolve.alias`, not pnpm
+  workspaces.
+- [PZEP-0001](../09-pzep/PZEP-0001-onboarding-store-readiness-endpoint.md) —
+  onboarding store readiness endpoint (backend done, FE integration open —
+  see Slice 0.4 and `backbone-flow-refactor.md` "First Agent-Ready Task
+  Candidate").
+
 ## Vertical Slices
 
 ### Slice 0.1: Documentation Spine

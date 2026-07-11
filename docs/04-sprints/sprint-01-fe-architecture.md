@@ -25,7 +25,8 @@ npm `workspaces` field was ever added, and `@podzone/shared` resolution has
 always gone through the alias in `frontend/vite.config.ts`, not a
 package-manager workspace protocol. `pnpm-workspace.yaml` was dead weight
 and has been deleted. Do not re-add it without an explicit decision to
-migrate to pnpm.
+migrate to pnpm — decision record:
+[ADR-0002](../08-adr/ADR-0002-npm-vite-alias-not-pnpm-workspaces.md).
 
 ---
 

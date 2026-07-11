@@ -1,6 +1,12 @@
 # Frontend Solid Audit
 
-Audit scope: `internal/ui-podzone/src`.
+Audit scope: `internal/ui-podzone/src` (historical — this path no longer
+exists; the frontend moved to `frontend/src` (HOST) + `frontend/apps/*`
+(MFE remotes) + `frontend/packages/shared` (shared lib) during the MFE
+split). This document is a point-in-time migration record, not re-verified
+against the current module boundaries. Findings referencing specific files
+may point at code that has since moved or been rewritten — check the file
+still exists at the stated path before trusting a finding.
 
 This document records migration work. Stable conventions live in
 `agent/SOLID_STYLE_GUIDE.md`.

@@ -42,7 +42,7 @@ Provide the operational portal for store owners and their teams.
 ### Current modules
 
 - `internal/backoffice`
-- `internal/ui-podzone`
+- `frontend/`
 
 ### Current capabilities
 

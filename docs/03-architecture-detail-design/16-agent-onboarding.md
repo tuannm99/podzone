@@ -7,7 +7,7 @@ This brief is for additional coding agents joining Podzone.
 Read these before changing code:
 
 1. `agent/SKILL.md`
-2. `agent/SOLID_STYLE_GUIDE.md` before touching `internal/ui-podzone`
+2. `agent/SOLID_STYLE_GUIDE.md` before touching `frontend/`
 3. `docs/03-architecture-detail-design/03-ddd-clean-architecture.md` before DDD changes
 4. `internal/onboarding/README.md` before onboarding or placement changes
 5. `docs/03-architecture-detail-design/11-iam-platform.md` before IAM architecture changes
@@ -31,7 +31,7 @@ Read these before changing code:
 - Use `go tool gofumpt -w` for touched Go files and run scoped
   `golangci-lint` before handoff.
 - Frontend changes must run `npm run format`, `npm run lint`, `npm run build`,
-  and `npm run format:check` in `internal/ui-podzone`.
+  and `npm run format:check` in `frontend/`.
 - The user runs Docker hot reload. Do not start an extra frontend dev server
   unless explicitly asked.
 

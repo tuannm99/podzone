@@ -43,6 +43,22 @@ Minimum sections:
 - acceptance criteria mapping;
 - open questions.
 
+## ADR Documents
+
+ADR describes **why** an architecture-boundary decision was made — the
+options considered and the tradeoff picked, not implementation steps.
+
+Minimum sections:
+
+- status;
+- date;
+- related commit;
+- context;
+- decision;
+- alternatives considered;
+- consequences;
+- rule of thumb (when one exists).
+
 ## Component Specs
 
 Component specs describe a service/module boundary. They must include:

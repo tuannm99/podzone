@@ -214,7 +214,7 @@ flowchart LR
     GatewayRegistrar["internal/grpcgateway"]
     Proto["pkg/api/proto"]
     Services["Auth / IAM / Catalog / Partner gRPC"]
-    UI["internal/ui-podzone"]
+    UI["frontend/ (HOST + MFE remotes)"]
 
     UI --> APISIX
     GatewayRegistrar --> Proto

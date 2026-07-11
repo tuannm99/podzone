@@ -13,6 +13,12 @@ boundaries.
 ## Status
 Draft | Review | Approved | Implementing | Done | Rejected
 
+## Date
+<YYYY-MM-DD>
+
+## Related Commit
+<commit hash or PR link, once implemented — leave blank in Draft/Review>
+
 ## Requirement Sources
 - Business:
 - Feature:
@@ -139,3 +145,6 @@ Rules:
 - PZEP must identify affected components.
 - PZEP must mention API/DB/event/permission changes when applicable.
 - ADR is still required for architecture boundary decisions.
+- Backfilling a PZEP for a cross-component change already implemented is
+  acceptable — set `Related Commit`, `Status: Done` — over leaving a real
+  cross-component change undocumented.

@@ -82,6 +82,7 @@ flowchart LR
 ## Slice 0.3: Store Readiness Contract (Backbone)
 
 **Source:** SRS-ONB-002, SRS-ONB-003, backbone-flow-refactor.md
+**PZEP:** [PZEP-0001](../09-pzep/PZEP-0001-onboarding-store-readiness-endpoint.md)
 
 This contract defines the user-facing readiness check the FE store-chooser
 calls to decide whether to allow opening Backoffice.
