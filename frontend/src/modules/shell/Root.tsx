@@ -5,7 +5,7 @@ import { AuthContextProvider } from '@/modules/shell/AuthContextProvider'
 import { TenantWorkspaceProvider } from '@/modules/shell/workspace/context'
 import { AppShell, Container } from '@podzone/shared/ui/components/common/AppShell'
 import { ScrollToTopButton } from '@podzone/shared/ui/components/common/ScrollToTop'
-import { PodzoneNavbar } from './layout/PodzoneNavbar'
+import { PodzoneNavbar } from './PodzoneNavbar'
 
 function parseTenantId(pathname: string) {
     const match = pathname.match(/^\/t\/([^/]+)/)

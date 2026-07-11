@@ -5,7 +5,7 @@ import { createRouteTree as createOnboardingRouteTree } from '@onboarding/routes
 import { createRouteTree as createShellRouteTree } from './modules/shell/routes'
 import { ensureActiveTenant } from '@podzone/shared/services/auth'
 import { tokenStorage } from '@podzone/shared/services/tokenStorage'
-import Root from './solid/root'
+import Root from './modules/shell/Root'
 
 function requireAuth() {
     if (!tokenStorage.getToken()) {
@@ -31,7 +31,7 @@ const guards = { requireAuth, requireGuest, requireTenantAccess }
 
 const rootRoute = createRootRoute({
     component: Root,
-    notFoundComponent: lazyRouteComponent(() => import('./solid/routes/NotFoundRoute')),
+    notFoundComponent: lazyRouteComponent(() => import('./modules/shell/routes/NotFoundRoute')),
 })
 
 const indexRoute = createRoute({
