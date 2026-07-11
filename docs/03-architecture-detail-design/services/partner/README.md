@@ -75,41 +75,14 @@ over HTTP via `internal/grpcgateway` (`registrar_partner.go`).
 
 ## Runtime Flows
 
-Every inbound call except the internal step of `GetPartner`/`UpdatePartner`
-fetching the record first goes through the same tenant-authorization flow
+Every inbound call goes through the same tenant-authorization flow
 (`internal/partner/controller/grpchandler/authz.go`,
-`authTenantAuthorizer.AuthorizeTenant`):
-
-```mermaid
-sequenceDiagram
-    participant Caller as Caller (backoffice / gateway)
-    participant Partner as Partner Service
-    participant Auth as Auth Service
-    participant IAM as IAM Service
-
-    Caller->>Partner: gRPC call + Bearer JWT (metadata)
-    Partner->>Partner: parse JWT (HS256, partner.auth.jwt_secret)
-    Partner->>Partner: validate claims.Key == partner.auth.jwt_key
-    Partner->>Partner: require active_tenant_id, session_id, user_id present
-    Partner->>Auth: GetSession(sessionId) [forwards original auth header]
-    Auth-->>Partner: session (status, userId, tenantId)
-    Partner->>Partner: reject if session inactive or user/tenant mismatch
-    Partner->>IAM: GetTenantMembership(tenantId, userId)
-    IAM-->>Partner: membership (status)
-    Partner->>Partner: reject if membership not active
-    Partner->>IAM: CheckPermission(tenantId, userId, permission)
-    IAM-->>Partner: allowed (bool)
-    alt allowed
-        Partner->>Partner: proceed to usecase
-    else denied
-        Partner-->>Caller: PermissionDenied
-    end
-```
-
-`GetPartner`/`UpdatePartner`/`UpdatePartnerStatus` fetch the record by ID
-*before* authorizing, then authorize against the record's actual
-`tenant_id` — the caller cannot claim a different tenant to bypass the
-check (see `partner_server.go`).
+`authTenantAuthorizer.AuthorizeTenant`) — see
+[api-design.md](./api-design.md) "C4: Sequences Per Usecase" for the
+sequence diagram. `GetPartner`/`UpdatePartner`/`UpdatePartnerStatus` fetch
+the record by ID *before* authorizing, then authorize against the record's
+actual `tenant_id` — the caller cannot claim a different tenant to bypass
+the check (see `partner_server.go`).
 
 ## Failure Modes
 

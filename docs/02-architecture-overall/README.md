@@ -7,10 +7,15 @@ Parent index: [Podzone Documentation Index](../README.md).
 
 ## Scope
 
+This folder covers C1 (system context) and C2 (container view) only — the
+system-wide picture. C3 (component view) and C4 (dynamic/sequence view) live
+per service in
+[`03-architecture-detail-design/services/<name>/`](../03-architecture-detail-design/services/README.md),
+next to that service's API contract, not here — a sequence diagram is only
+useful next to the usecase/API it describes.
+
 - `C1` System context: external actors and major systems
 - `C2` Container view: deployable services and shared infrastructure
-- `C3` Component/module view: main modules inside `auth`, `iam`, and `backoffice`
-- `C4` Detail design: sequence diagrams only
 
 ## Read In This Order
 
@@ -18,8 +23,8 @@ Parent index: [Podzone Documentation Index](../README.md).
 2. [System Context](./02-system-context.md)
 3. [Containers](./03-containers.md)
 4. [Data Ownership](./04-data-ownership.md)
-5. [Sequences](./05-sequences.md)
-6. [Architecture Detail Design](../03-architecture-detail-design/README.md)
+5. [Architecture Detail Design](../03-architecture-detail-design/README.md)
+6. [Per-Service Detail Design (C3/C4, API, DB)](../03-architecture-detail-design/services/README.md)
 
 ## Topic Index
 
