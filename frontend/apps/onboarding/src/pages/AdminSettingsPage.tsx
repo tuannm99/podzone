@@ -1,4 +1,3 @@
-import { useNavigate, useSearch } from '@tanstack/solid-router'
 import { createSignal } from 'solid-js'
 import { useAuthContext } from '@podzone/shared/auth'
 import { AdminSettingsView } from './admin-settings/AdminSettingsView'
@@ -13,15 +12,9 @@ import { createWorkspaceAccessViewModel } from './admin-settings/team-access/cre
 
 export function createAdminSettingsViewModel(): AdminSettingsViewModel {
     const auth = useAuthContext()
-    const navigate = useNavigate()
-    const search = useSearch({ from: '/admin/settings' })
-    const validTabs = new Set<AdminSettingsTab>(['overview', 'sessions', 'team', 'invites', 'audit', 'platform'])
-    const activeTab = (): AdminSettingsTab => {
-        const tab = search().tab
-        return validTabs.has(tab as AdminSettingsTab) ? (tab as AdminSettingsTab) : 'overview'
-    }
+    const [activeTab, setActiveTabSignal] = createSignal<AdminSettingsTab>('overview')
     const setActiveTab = (tab: AdminSettingsTab) => {
-        void navigate({ to: '/admin/settings', search: (prev) => ({ ...prev, tab }) })
+        setActiveTabSignal(tab)
     }
     const userID = parseUserID(auth.getUserId())
     const [routeTenantID, setRouteTenantID] = createSignal(auth.getLastKnownTenantId())
@@ -36,7 +29,11 @@ export function createAdminSettingsViewModel(): AdminSettingsViewModel {
     const workspaceAccess = createWorkspaceAccessViewModel(
         userID,
         user.activeTenantID,
-        () => activeTab() === 'overview' || activeTab() === 'team' || activeTab() === 'invites'
+        () => activeTab() === 'overview' || activeTab() === 'team' || activeTab() === 'invites',
+        {
+            membersEnabled: () => activeTab() === 'team',
+            invitesEnabled: () => activeTab() === 'invites',
+        }
     )
 
     return {

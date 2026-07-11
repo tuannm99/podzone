@@ -13,7 +13,8 @@ Goal:
 <What should work after this task.>
 
 References:
-- STATUS_CURENT.md
+- AGENTS.md
+- docs/00-governance/agent-working-rule.md
 - CLAUDE.md
 - agent/SKILL.md
 - <feature spec>
@@ -68,7 +69,8 @@ Operators can ask whether one store request is blocked by missing placement,
 missing route projection, or unresolved DB placement.
 
 References:
-- STATUS_CURENT.md
+- AGENTS.md
+- docs/00-governance/agent-working-rule.md
 - internal/onboarding/README.md
 - docs/05-process/spec-first-vertical-slice.md
 - internal/onboarding/domain/infrasmanager/placement_reconcile.go

@@ -21,6 +21,8 @@ Detailed process templates live in:
 - `docs/05-process/spec-first-vertical-slice.md`
 - `docs/05-process/feature-spec-template.md`
 - `docs/05-process/ui-state-spec-template.md`
+- `docs/05-process/pzep-template.md`
+- `docs/05-process/component-spec-template.md`
 - `docs/05-process/api-contract-template.md`
 - `docs/05-process/db-contract-template.md`
 - `docs/05-process/vertical-slice-breakdown-template.md`
@@ -31,11 +33,12 @@ Detailed process templates live in:
 
 Agents must read the current context before coding:
 
-1. `STATUS_CURENT.md`
-2. `CLAUDE.md`
-3. `agent/SKILL.md`
-4. `agent/SOLID_STYLE_GUIDE.md` for frontend work
-5. Domain-specific docs:
+1. `AGENTS.md`
+2. `docs/00-governance/agent-working-rule.md`
+3. `CLAUDE.md`
+4. `agent/SKILL.md`
+5. `agent/SOLID_STYLE_GUIDE.md` for frontend work
+6. Domain-specific docs:
    - `internal/onboarding/README.md`
    - `docs/03-architecture-detail-design/iam-platform.md`
    - `docs/03-architecture-detail-design/ddd-clean-architecture.md`
@@ -50,7 +53,9 @@ Use this flow for every non-trivial change:
 
 ```text
 Requirement
-  -> Architecture note
+  -> PZEP when cross-component
+  -> Architecture/component note
+  -> Contract
   -> Task slice
   -> Implementation
   -> Verification

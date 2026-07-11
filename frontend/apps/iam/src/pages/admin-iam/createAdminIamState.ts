@@ -1,3 +1,4 @@
+import { type Accessor } from 'solid-js'
 import { createAssignmentsState } from './assignments/createAssignmentsState'
 import { createDirectoryViewModel } from './directory/createDirectoryViewModel'
 import { createGroupsState } from './groups/createGroupsState'
@@ -6,15 +7,18 @@ import { createPoliciesState } from './policies/createPoliciesState'
 import { createPrincipalsState } from './principals/createPrincipalsState'
 import { createShellState } from './shared/createShellState'
 import { createTrustSimulationState } from './trust-simulation/createTrustSimulationState'
+import type { IamSectionID } from './presentation'
 
-export function createAdminIamState(userID: number) {
+export function createAdminIamState(userID: number, activeSection: Accessor<IamSectionID>) {
     const shell = createShellState()
+    const onSection = (id: IamSectionID) => () => shell.allowed() && activeSection() === id
     const platformEnabled = () => shell.allowed() && shell.canManagePlatform()
-    const organizations = createOrganizationsState(shell.allowed, shell.setCanManagePlatform)
+
+    const organizations = createOrganizationsState(onSection('iam-orgs'), shell.setCanManagePlatform)
     const assignments = createAssignmentsState(userID)
-    const policies = createPoliciesState(shell.allowed, organizations.selectedOrgId)
-    const groups = createGroupsState(shell.allowed, organizations.selectedOrgId)
-    const principals = createPrincipalsState(userID, platformEnabled)
+    const policies = createPoliciesState(onSection('iam-policies'), organizations.selectedOrgId)
+    const groups = createGroupsState(onSection('iam-groups'), organizations.selectedOrgId)
+    const principals = createPrincipalsState(userID, () => platformEnabled() && activeSection() === 'iam-principals')
     const trustSimulation = createTrustSimulationState(userID)
     const directory = createDirectoryViewModel({
         allowed: shell.allowed,

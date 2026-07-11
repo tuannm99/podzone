@@ -18,8 +18,7 @@ import (
 func NewMockStoreRepository(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *MockStoreRepository {
+}) *MockStoreRepository {
 	mock := &MockStoreRepository{}
 	mock.Mock.Test(t)
 

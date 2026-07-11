@@ -1,4 +1,4 @@
-import { createSignal } from 'solid-js'
+import { createSignal, type Accessor } from 'solid-js'
 import {
     checkDatabaseClusterHealth,
     deleteResource,
@@ -19,7 +19,7 @@ export type ResourceEditor =
     | { kind: 'kubernetes-clusters'; value?: KubernetesClusterResource }
     | { kind: 'runtime-pools'; value?: RuntimePoolResource }
 
-export function createResourcesViewModel() {
+export function createResourcesViewModel(enabled?: Accessor<boolean>) {
     const [editor, setEditor] = createSignal<ResourceEditor>()
     const [saving, setSaving] = createSignal(false)
     const [deletingName, setDeletingName] = createSignal('')
@@ -31,21 +31,33 @@ export function createResourcesViewModel() {
         sortBy: 'updatedAt',
         sortDirection: 'SORT_DIRECTION_DESC' as const,
     }
-    const databaseClusters = createPaginatedResource(query, async (next) => {
-        const result = await listDatabaseClusters(next)
-        if (!result.success) throw new Error(result.message)
-        return result.data
-    })
-    const kubernetesClusters = createPaginatedResource(query, async (next) => {
-        const result = await listKubernetesClusters(next)
-        if (!result.success) throw new Error(result.message)
-        return result.data
-    })
-    const runtimePools = createPaginatedResource(query, async (next) => {
-        const result = await listRuntimePools(next)
-        if (!result.success) throw new Error(result.message)
-        return result.data
-    })
+    const databaseClusters = createPaginatedResource(
+        query,
+        async (next) => {
+            const result = await listDatabaseClusters(next)
+            if (!result.success) throw new Error(result.message)
+            return result.data
+        },
+        { enabled }
+    )
+    const kubernetesClusters = createPaginatedResource(
+        query,
+        async (next) => {
+            const result = await listKubernetesClusters(next)
+            if (!result.success) throw new Error(result.message)
+            return result.data
+        },
+        { enabled }
+    )
+    const runtimePools = createPaginatedResource(
+        query,
+        async (next) => {
+            const result = await listRuntimePools(next)
+            if (!result.success) throw new Error(result.message)
+            return result.data
+        },
+        { enabled }
+    )
 
     const reload = async (kind: ResourceEditor['kind']) => {
         if (kind === 'database-clusters') await databaseClusters.reload()

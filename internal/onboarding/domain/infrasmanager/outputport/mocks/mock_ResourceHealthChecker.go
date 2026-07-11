@@ -16,8 +16,7 @@ import (
 func NewMockResourceHealthChecker(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *MockResourceHealthChecker {
+}) *MockResourceHealthChecker {
 	mock := &MockResourceHealthChecker{}
 	mock.Mock.Test(t)
 

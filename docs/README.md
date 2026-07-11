@@ -7,7 +7,8 @@ and follow the links below.
 ## Canonical Flow
 
 ```text
-00 Project vision
+00 Governance
+  -> 00 Project vision
   -> 01 SRS
   -> 02 Architecture overall
   -> 03 Architecture detail design
@@ -20,21 +21,23 @@ Coding starts only after the target work links back to this chain.
 
 ## Start Here
 
-0. [Project Vision](./00-project-vision/README.md)
+0. [Governance](./00-governance/README.md)
+   Agent working rules, ready/done gates, traceability, naming, and review.
+1. [Project Vision](./00-project-vision/README.md)
    Product vision, actors, business flows, domain map, and BA requirements.
-1. [SRS](./01-srs/README.md)
+2. [SRS](./01-srs/README.md)
    System requirements, MVP backbone, and traceability matrix.
-2. [Architecture Overall](./02-architecture-overall/README.md)
+3. [Architecture Overall](./02-architecture-overall/README.md)
    C4, system context, containers, data ownership, and runtime sequences.
-3. [Architecture Detail Design](./03-architecture-detail-design/README.md)
+4. [Architecture Detail Design](./03-architecture-detail-design/README.md)
    Module design, transport contracts, IAM, DDD, frontend, deployment, and OpenAPI.
-4. [Sprints](./04-sprints/README.md)
+5. [Sprints](./04-sprints/README.md)
    Small delivery slices that agents can implement.
-5. [Process](./05-process/README.md)
+6. [Process](./05-process/README.md)
    SDLC rules, spec-first vertical slices, task templates, and review checklist.
-6. [Recovery](./06-recovery/README.md)
+7. [Recovery](./06-recovery/README.md)
    Current stabilization plan for the unstable agent-expanded codebase.
-7. [Problems](./07-problems/)
+8. [Problems](./07-problems/)
    Dated issue notes and recovery evidence.
 
 ## Current Recovery Target
@@ -63,6 +66,7 @@ Primary docs:
 
 An agent task is not ready unless it names:
 
+- governance rule: [Agent Working Rule](./00-governance/agent-working-rule.md);
 - SRS requirement ID;
 - requirement or recovery doc;
 - architecture/C4 doc when relevant;

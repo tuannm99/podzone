@@ -9,16 +9,18 @@ Start from the numbered docs. Do not use old paths such as `docs/srs`,
 
 Read in this order:
 
-1. `agent/SKILL.md`
-2. `docs/README.md`
-3. `docs/00-project-vision/README.md`
-4. `docs/01-srs/podzone-srs.md`
-5. `docs/01-srs/traceability-matrix.md`
-6. `docs/02-architecture-overall/README.md`
-7. `docs/03-architecture-detail-design/README.md`
-8. `docs/04-sprints/sprint-00-foundation.md`
-9. `docs/05-process/sdlc-operating-model.md`
-10. `docs/06-recovery/recovery-plan.md`
+1. `AGENTS.md`
+2. `docs/00-governance/agent-working-rule.md`
+3. `agent/SKILL.md`
+4. `docs/README.md`
+5. `docs/00-project-vision/README.md`
+6. `docs/01-srs/podzone-srs.md`
+7. `docs/01-srs/traceability-matrix.md`
+8. `docs/02-architecture-overall/README.md`
+9. `docs/03-architecture-detail-design/README.md`
+10. `docs/04-sprints/sprint-00-foundation.md`
+11. `docs/05-process/sdlc-operating-model.md`
+12. `docs/06-recovery/recovery-plan.md`
 
 Area-specific docs:
 
@@ -50,6 +52,8 @@ manual database or KV edits.
 - Do not start coding from broad requirements. Use a sprint slice or agent task
   that links to SRS, architecture, contracts, acceptance criteria, and
   verification.
+- If a task is missing required docs, allowed scope, forbidden changes, or
+  validation commands, stop and report the gap instead of coding.
 - Keep changes scoped to the requested slice.
 - Do not add services, packages, tables, or dependencies without an explicit
   requirement or architecture decision.
@@ -126,6 +130,7 @@ Docker hot reload.
 When behavior, architecture, contracts, or recovery scope changes, update the
 matching numbered docs:
 
+- Governance/agent rules: `docs/00-governance`
 - Product/BA: `docs/00-project-vision`
 - Requirements/traceability: `docs/01-srs`
 - Overall architecture/C4: `docs/02-architecture-overall`

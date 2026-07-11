@@ -4,3 +4,8 @@ WORKDIR /app
 
 COPY frontend/package*.json ./
 RUN npm install
+
+COPY deployments/docker/entrypoint-ui.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

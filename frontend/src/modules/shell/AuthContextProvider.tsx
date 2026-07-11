@@ -23,5 +23,9 @@ export function AuthContextProvider(props: ParentProps) {
         clearAllStoreIds: () => storeStorage.clearAll(),
     }
 
+    // Expose globally so MFE remotes (which run in a separate solid-js reactive
+    // scope and cannot reach this provider's context tree) can still access auth.
+    window.__pz_auth_value__ = ctx
+
     return <AuthContextToken.Provider value={ctx}>{props.children}</AuthContextToken.Provider>
 }

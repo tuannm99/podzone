@@ -41,43 +41,6 @@ func (_m *MockManager) EXPECT() *MockManager_Expecter {
 	return &MockManager_Expecter{mock: &_m.Mock}
 }
 
-// CloseIdleDedicated provides a mock function for the type MockManager
-func (_mock *MockManager) CloseIdleDedicated(now time.Time) {
-	_mock.Called(now)
-}
-
-// MockManager_CloseIdleDedicated_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CloseIdleDedicated'
-type MockManager_CloseIdleDedicated_Call struct {
-	*mock.Call
-}
-
-// CloseIdleDedicated is a helper method to define mock.On call
-//   - now time.Time
-func (_e *MockManager_Expecter) CloseIdleDedicated(now interface{}) *MockManager_CloseIdleDedicated_Call {
-	return &MockManager_CloseIdleDedicated_Call{Call: _e.mock.On("CloseIdleDedicated", now)}
-}
-
-func (_c *MockManager_CloseIdleDedicated_Call) Run(run func(now time.Time)) *MockManager_CloseIdleDedicated_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 time.Time
-		if args[0] != nil {
-			arg0 = args[0].(time.Time)
-		}
-		run(arg0)
-	})
-	return _c
-}
-
-func (_c *MockManager_CloseIdleDedicated_Call) Return() *MockManager_CloseIdleDedicated_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *MockManager_CloseIdleDedicated_Call) RunAndReturn(run func(now time.Time)) *MockManager_CloseIdleDedicated_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // CloseAll provides a mock function for the type MockManager
 func (_mock *MockManager) CloseAll() error {
 	ret := _mock.Called()
@@ -119,6 +82,46 @@ func (_c *MockManager_CloseAll_Call) Return(err error) *MockManager_CloseAll_Cal
 
 func (_c *MockManager_CloseAll_Call) RunAndReturn(run func() error) *MockManager_CloseAll_Call {
 	_c.Call.Return(run)
+	return _c
+}
+
+// CloseIdleDedicated provides a mock function for the type MockManager
+func (_mock *MockManager) CloseIdleDedicated(now time.Time) {
+	_mock.Called(now)
+	return
+}
+
+// MockManager_CloseIdleDedicated_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CloseIdleDedicated'
+type MockManager_CloseIdleDedicated_Call struct {
+	*mock.Call
+}
+
+// CloseIdleDedicated is a helper method to define mock.On call
+//   - now time.Time
+func (_e *MockManager_Expecter) CloseIdleDedicated(now interface{}) *MockManager_CloseIdleDedicated_Call {
+	return &MockManager_CloseIdleDedicated_Call{Call: _e.mock.On("CloseIdleDedicated", now)}
+}
+
+func (_c *MockManager_CloseIdleDedicated_Call) Run(run func(now time.Time)) *MockManager_CloseIdleDedicated_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 time.Time
+		if args[0] != nil {
+			arg0 = args[0].(time.Time)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockManager_CloseIdleDedicated_Call) Return() *MockManager_CloseIdleDedicated_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockManager_CloseIdleDedicated_Call) RunAndReturn(run func(now time.Time)) *MockManager_CloseIdleDedicated_Call {
+	_c.Run(run)
 	return _c
 }
 

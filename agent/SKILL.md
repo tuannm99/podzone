@@ -9,13 +9,14 @@ Use this guide when changing Go code in this repo.
 - Treat the Solid guide as mandatory for architecture, reactivity, async data,
   forms, collection UX, testing, and verification.
 - Track current migration gaps in
-  [`docs/architecture/frontend-solid-audit.md`](../docs/architecture/frontend-solid-audit.md).
+  [`docs/03-architecture-detail-design/frontend-solid-audit.md`](../docs/03-architecture-detail-design/frontend-solid-audit.md).
 
 ## Architecture
 
 - Follow clean architecture with service-local ownership.
 - Keep business rules in `internal/<service>/domain` or `internal/<service>/interactor`.
-- When applying DDD, follow `docs/architecture/ddd-clean-architecture.md`.
+- When applying DDD, follow
+  [`docs/03-architecture-detail-design/ddd-clean-architecture.md`](../docs/03-architecture-detail-design/ddd-clean-architecture.md).
 - DDD names business boundaries; Clean Architecture controls dependency direction.
 - Use package shape consistently:
   - `entity`
@@ -466,14 +467,19 @@ go tool gqlgen generate
 
 ## Docs
 
-- Architecture docs live under `docs/architecture`.
+- Start from [`docs/README.md`](../docs/README.md) for the canonical SDLC map.
+- Agent working rules live under
+  [`docs/00-governance/agent-working-rule.md`](../docs/00-governance/agent-working-rule.md).
+- Architecture overall docs live under `docs/02-architecture-overall`.
+- Architecture detail design docs live under `docs/03-architecture-detail-design`.
+- Process, PZEP, contract, and task templates live under `docs/05-process`.
 - Use Mermaid for diagrams.
-- Follow existing C4 split:
-  - context
+- Follow the documented C4 split:
+  - system context
   - containers
-  - modules
   - sequences
-  - deployment
+  - data ownership
+  - detail design modules
 - When changing runtime boundaries, update docs in the same batch.
 
 ## Runtime / Deployment

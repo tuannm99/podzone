@@ -17,8 +17,7 @@ import (
 func NewMockResourceInventoryRepository(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *MockResourceInventoryRepository {
+}) *MockResourceInventoryRepository {
 	mock := &MockResourceInventoryRepository{}
 	mock.Mock.Test(t)
 

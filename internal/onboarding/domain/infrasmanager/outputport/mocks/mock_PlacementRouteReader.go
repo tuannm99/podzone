@@ -16,8 +16,7 @@ import (
 func NewMockPlacementRouteReader(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *MockPlacementRouteReader {
+}) *MockPlacementRouteReader {
 	mock := &MockPlacementRouteReader{}
 	mock.Mock.Test(t)
 

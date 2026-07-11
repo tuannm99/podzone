@@ -318,7 +318,7 @@ services:
     container_name: podzone-iam-remote-dev
     profiles: [iam, full]
     working_dir: /app
-    command: ['npm', 'run', 'serve:iam']
+    command: ['npm', 'run', 'dev:iam']
     volumes:
       - ../../frontend:/app
       - podzone_ui_node_modules:/app/node_modules
@@ -332,7 +332,7 @@ services:
     container_name: podzone-onboarding-remote-dev
     profiles: [onboarding, full]
     working_dir: /app
-    command: ['npm', 'run', 'serve:onboarding']
+    command: ['npm', 'run', 'dev:onboarding']
     volumes:
       - ../../frontend:/app
       - podzone_ui_node_modules:/app/node_modules

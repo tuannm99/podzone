@@ -18,7 +18,11 @@ export default defineConfig({
                 './AdminIamPage': `${pagesRoot}/AdminIamPage`,
             },
             shared: {
-                'solid-js': { singleton: true } as object,
+                // solid-js intentionally excluded: keeping it as a singleton causes
+                // createSignal (via importShared → HOST's module) and createRenderEffect
+                // (static import → remote's bundle) to be in different reactive systems,
+                // breaking signal-to-effect subscriptions. Remote uses its own bundle
+                // so all reactive code shares one instance. Auth is bridged via window.__pz_auth_value__.
                 '@tanstack/solid-router': { singleton: true } as object,
                 '@podzone/shared': { singleton: true } as object,
             },

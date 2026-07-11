@@ -76,7 +76,10 @@ func (_c *MockKVStore_Del_Call) Run(run func(ctx context.Context, path string)) 
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
-		run(arg0, arg1)
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -86,7 +89,7 @@ func (_c *MockKVStore_Del_Call) Return(err error) *MockKVStore_Del_Call {
 	return _c
 }
 
-func (_c *MockKVStore_Del_Call) RunAndReturn(run func(context.Context, string) error) *MockKVStore_Del_Call {
+func (_c *MockKVStore_Del_Call) RunAndReturn(run func(ctx context.Context, path string) error) *MockKVStore_Del_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -141,7 +144,10 @@ func (_c *MockKVStore_Get_Call) Run(run func(ctx context.Context, path string)) 
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
-		run(arg0, arg1)
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -151,7 +157,7 @@ func (_c *MockKVStore_Get_Call) Return(bytes []byte, err error) *MockKVStore_Get
 	return _c
 }
 
-func (_c *MockKVStore_Get_Call) RunAndReturn(run func(context.Context, string) ([]byte, error)) *MockKVStore_Get_Call {
+func (_c *MockKVStore_Get_Call) RunAndReturn(run func(ctx context.Context, path string) ([]byte, error)) *MockKVStore_Get_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -206,7 +212,10 @@ func (_c *MockKVStore_GetKVs_Call) Run(run func(ctx context.Context, prefix stri
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
-		run(arg0, arg1)
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -216,7 +225,7 @@ func (_c *MockKVStore_GetKVs_Call) Return(stringToBytes map[string][]byte, err e
 	return _c
 }
 
-func (_c *MockKVStore_GetKVs_Call) RunAndReturn(run func(context.Context, string) (map[string][]byte, error)) *MockKVStore_GetKVs_Call {
+func (_c *MockKVStore_GetKVs_Call) RunAndReturn(run func(ctx context.Context, prefix string) (map[string][]byte, error)) *MockKVStore_GetKVs_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -265,7 +274,11 @@ func (_c *MockKVStore_Put_Call) Run(run func(ctx context.Context, path string, v
 		if args[2] != nil {
 			arg2 = args[2].([]byte)
 		}
-		run(arg0, arg1, arg2)
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
 	})
 	return _c
 }
@@ -275,7 +288,7 @@ func (_c *MockKVStore_Put_Call) Return(err error) *MockKVStore_Put_Call {
 	return _c
 }
 
-func (_c *MockKVStore_Put_Call) RunAndReturn(run func(context.Context, string, []byte) error) *MockKVStore_Put_Call {
+func (_c *MockKVStore_Put_Call) RunAndReturn(run func(ctx context.Context, path string, value []byte) error) *MockKVStore_Put_Call {
 	_c.Call.Return(run)
 	return _c
 }

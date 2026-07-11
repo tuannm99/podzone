@@ -18,8 +18,7 @@ import (
 func NewMockConnectionStore(t interface {
 	mock.TestingT
 	Cleanup(func())
-},
-) *MockConnectionStore {
+}) *MockConnectionStore {
 	mock := &MockConnectionStore{}
 	mock.Mock.Test(t)
 

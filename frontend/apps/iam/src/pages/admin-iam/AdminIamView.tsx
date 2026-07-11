@@ -1,4 +1,3 @@
-import { useNavigate, useSearch } from '@tanstack/solid-router'
 import { Show } from 'solid-js'
 import type { AdminIamViewModel } from './createAdminIamViewModel'
 import { EmptyBlock, ErrorAlert, InfoAlert, LoadingInline } from '@podzone/shared/ui/components/common/Feedback'
@@ -11,7 +10,7 @@ import { GroupsPanel } from './groups/GroupsPanel'
 import { OrganizationsPanel } from './organizations/OrganizationsPanel'
 import { AdminIamPolicyProvider } from './policies/context'
 import { PoliciesPanel } from './policies/PoliciesPanel'
-import { type IamSection, type IamSectionID } from './presentation'
+import { type IamSection } from './presentation'
 import { AdminIamPrincipalProvider } from './principals/context'
 import { PrincipalPoliciesPanel } from './principals/PrincipalPoliciesPanel'
 import { AdminIamTrustSimProvider } from './trust-simulation/context'
@@ -31,16 +30,8 @@ export function AdminIamView(props: { model: AdminIamViewModel }) {
         )
     }
     const sectionTabs = () => sections().map((section) => ({ value: section.id, label: section.label }))
-    const navigate = useNavigate()
-    const search = useSearch({ from: '/admin/iam' })
-    const activeSection = (): IamSectionID => {
-        const s = search().section
-        return sections().some((sec) => sec.id === s) ? (s as IamSectionID) : 'iam-orgs'
-    }
-
-    const selectSection = (section: IamSectionID) => {
-        void navigate({ to: '/admin/iam', search: (prev) => ({ ...prev, section }) })
-    }
+    const activeSection = props.model.activeSection
+    const selectSection = props.model.setSection
 
     return (
         <PageShell>

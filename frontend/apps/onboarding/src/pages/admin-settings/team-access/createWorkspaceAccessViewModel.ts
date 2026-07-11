@@ -5,8 +5,14 @@ import { createPaginatedResource } from '@podzone/shared/ui/pagination'
 export function createWorkspaceAccessViewModel(
     userID: number,
     activeTenantID: Accessor<string>,
-    enabled: Accessor<boolean>
+    enabled: Accessor<boolean>,
+    options?: {
+        membersEnabled?: Accessor<boolean>
+        invitesEnabled?: Accessor<boolean>
+    }
 ) {
+    const membersEnabled = options?.membersEnabled ?? enabled
+    const invitesEnabled = options?.invitesEnabled ?? enabled
     const [selectedTenantID, setSelectedTenantID] = createSignal(activeTenantID())
     const [membershipsResource, { refetch: reloadMemberships }] = createResource(
         () => (enabled() && userID ? userID : undefined),
@@ -30,7 +36,7 @@ export function createWorkspaceAccessViewModel(
             return result.data
         },
         {
-            enabled: () => enabled() && Boolean(userID && selectedTenantID().trim()),
+            enabled: () => membersEnabled() && Boolean(userID && selectedTenantID().trim()),
             dependency: selectedTenantID,
         }
     )
@@ -47,7 +53,7 @@ export function createWorkspaceAccessViewModel(
             return result.data
         },
         {
-            enabled: () => enabled() && Boolean(userID && selectedTenantID().trim()),
+            enabled: () => invitesEnabled() && Boolean(userID && selectedTenantID().trim()),
             dependency: selectedTenantID,
         }
     )

@@ -9,9 +9,15 @@ function createAdminProvisioningViewModel(): AdminProvisioningViewModel {
     const shell = createProvisioningShellViewModel()
     return {
         shell,
-        pipeline: createPipelineViewModel(shell.selectedTenantId, shell.workspaceReady),
-        resources: createResourcesViewModel(),
-        connections: createConnectionsViewModel(shell.selectedTenantId, shell.workspaceReady),
+        pipeline: createPipelineViewModel(
+            shell.selectedTenantId,
+            () => shell.workspaceReady() && shell.activeTab() === 'pipeline'
+        ),
+        resources: createResourcesViewModel(() => shell.activeTab() === 'resources'),
+        connections: createConnectionsViewModel(
+            shell.selectedTenantId,
+            () => shell.workspaceReady() && shell.activeTab() === 'connections'
+        ),
     }
 }
 

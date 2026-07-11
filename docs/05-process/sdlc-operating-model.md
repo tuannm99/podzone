@@ -48,7 +48,8 @@ Inputs:
 
 Outputs:
 
-- short entry in `STATUS_CURENT.md` or a requirement draft;
+- short entry in `docs/06-recovery/recovery-plan.md`, a problem note, or a
+  requirement draft;
 - initial owner domain;
 - decision: reject, park, research, or specify.
 
@@ -244,7 +245,7 @@ Goal: keep future agents aligned.
 
 Update when relevant:
 
-- `STATUS_CURENT.md`;
+- `docs/06-recovery/recovery-plan.md` when recovery scope changes;
 - requirement status;
 - architecture docs;
 - ADRs;
@@ -261,6 +262,9 @@ Canonical structure:
 ```text
 docs/README.md
   canonical index and reading order
+
+docs/00-governance/
+  mandatory agent rules, ready/done gates, traceability, naming, and review workflow
 
 docs/00-project-vision/
   BA/product/domain requirements and UI state specs when needed

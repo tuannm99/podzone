@@ -341,7 +341,8 @@ Every Modal and Drawer must have:
 - Focus restored to the trigger element on close
 - `Escape` key closes the overlay
 
-Apply `useFocusTrap` from `solid/shared/` — see `docs/architecture/design-system.md`.
+Apply `useFocusTrap` from `solid/shared/` — see
+`docs/03-architecture-detail-design/design-system.md`.
 
 ### Global notifications
 
@@ -404,3 +405,93 @@ The following patterns are bugs, not style preferences:
 | `<a href>` for internal SPA routes | Full page reload — use `Link` wrapper |
 | Raw `window.confirm()` | Use the shared confirm dialog |
 | Local `message`/`error` signals for notifications | Lost on navigate — use `ToasterContext` |
+| `solid-js` as a federation singleton in remote vite configs | Cross reactive-system: signals from HOST's solid-js, `createRenderEffect` from remote bundle — subscriptions silently fail (see MFE section below) |
+
+---
+
+## MFE / Vite-Plugin-Federation — SolidJS Reactive System Split
+
+### The Bug
+
+When a remote app (IAM, Onboarding) declares `solid-js` as a federation
+singleton, the HOST's `vite dev` server registers its own `solid-js` module
+in `globalThis.__federation_shared__`. Remote bundle code that calls
+`importShared("solid-js")` receives the **HOST's** solid-js module (loaded
+from `localhost:3000/...`).
+
+At the same time, the remote bundle's JSX templates import `createRenderEffect`
+and `createComponent` as **static imports** from `solid-wpaq3ZqP.js`
+(`localhost:3002/assets/...`). Different URL → different ES module instance →
+different global `Listener` variable.
+
+Result: `createSignal` subscribes to HOST's reactive system; `createRenderEffect`
+registers tracking in the REMOTE's reactive system. When a signal setter is
+called, it notifies HOST's subscribers only. The `createRenderEffect` inside
+`Tabs` (or any component) was **never registered** as a HOST subscriber →
+UI does not update on click, but renders correctly on initial load (effects
+run once synchronously regardless of subscription).
+
+**Symptom:** "clicking tab does not change active visual; reload shows the
+correct initial state."
+
+### The Fix
+
+**Do not declare `solid-js` as a singleton in remote vite configs.**
+
+```ts
+// apps/iam/vite.config.ts  and  apps/onboarding/vite.config.ts
+shared: {
+  // solid-js intentionally excluded — see MFE section in SOLID_STYLE_GUIDE.md
+  '@tanstack/solid-router': { singleton: true },
+  '@podzone/shared': { singleton: true },
+},
+```
+
+Without `solid-js` in the remote's `shared` map, `importShared("solid-js")`
+falls back to the local bundle (`solid-wpaq3ZqP.js`). Both `createSignal` and
+`createRenderEffect` resolve to the same module instance → one reactive system
+→ subscriptions work.
+
+### Bridging Auth Context
+
+Removing the singleton breaks `useContext(AuthContextToken)` in remotes because
+the provider is in the HOST's owner tree and the REMOTE's `useContext` searches
+the REMOTE's owner tree (a separate reactive scope).
+
+Fix: store the auth value globally in `AuthContextProvider`, and read it first
+in `useAuthContext()`:
+
+```ts
+// packages/shared/auth/auth-context.ts
+export function useAuthContext(): AuthContext {
+  if (window.__pz_auth_value__) return window.__pz_auth_value__
+  const ctx = useContext(AuthContextToken)
+  if (!ctx) throw new Error('useAuthContext must be used inside AuthContextProvider')
+  return ctx
+}
+```
+
+```tsx
+// src/modules/shell/AuthContextProvider.tsx
+window.__pz_auth_value__ = ctx  // set before returning the Provider
+```
+
+### Why `@podzone/shared` Singleton Does Not Cause This
+
+The `@podzone/shared` singleton config has no effect because Vite's alias
+(`@podzone/shared → ../../packages/shared`) is resolved **before** the
+federation plugin sees the import. The aliased path no longer matches the
+package name key in `shared`, so `@podzone/shared` is always bundled locally
+into the remote — `pagination-CH3jtJvn.js` et al. This is why Tabs' compiled
+output always uses `solid-wpaq3ZqP.js` directly.
+
+### Rule of Thumb
+
+For MFE remotes built with `vite-plugin-solid` + `@originjs/vite-plugin-federation`:
+
+> A package is safe as a federation singleton **only if** its reactive primitives
+> (`createSignal`, `createEffect`, etc.) and its DOM runtime primitives
+> (`createRenderEffect`, `createComponent`) are **both** served through
+> `importShared` — not split between static import and `importShared`.
+> `solid-js` fails this test because JSX compilation emits static imports for
+> the DOM runtime primitives regardless of the shared config.
