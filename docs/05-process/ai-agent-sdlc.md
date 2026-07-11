@@ -31,55 +31,23 @@ Detailed process templates live in:
 
 ## Source Of Truth
 
-Agents must read the current context before coding:
+`AGENTS.md` is the canonical required-reading order — read it first, it lists
+what to read before touching code. `docs/05-process/sdlc-operating-model.md`
+is the canonical phase/gate model; `docs/00-governance/agent-working-rule.md`
+is the canonical hard-rule list. This document does not repeat either — it
+only adds agent-specific operating detail (roles, parallel-work safety,
+verification commands, commit format) that those two do not cover.
 
-1. `AGENTS.md`
-2. `docs/00-governance/agent-working-rule.md`
-3. `CLAUDE.md`
-4. `agent/SKILL.md`
-5. `agent/SOLID_STYLE_GUIDE.md` for frontend work
-6. Domain-specific docs:
-   - `internal/onboarding/README.md`
-   - `docs/03-architecture-detail-design/iam-platform.md`
-   - `docs/03-architecture-detail-design/ddd-clean-architecture.md`
-   - `docs/03-architecture-detail-design/frontend-solid-audit.md`
+For frontend work, also read `agent/SOLID_STYLE_GUIDE.md`.
 
-If docs and code disagree, inspect code and update the relevant docs in the same
-handoff or explicitly report the mismatch.
-
-## Development Flow
-
-Use this flow for every non-trivial change:
-
-```text
-Requirement
-  -> PZEP when cross-component
-  -> Architecture/component note
-  -> Contract
-  -> Task slice
-  -> Implementation
-  -> Verification
-  -> Status update
-  -> Commit
-```
-
-Do not jump from requirement straight to broad code edits when the affected
-domain, contract, or done criteria are unclear.
+If docs and code disagree, inspect code and update the relevant docs in the
+same handoff or explicitly report the mismatch.
 
 ## Task Definition
 
-A good AI-agent task includes:
-
-- goal;
-- affected service/module;
-- in-scope files or boundaries;
-- out-of-scope areas;
-- API, DB, proto, GraphQL, or UI contract changes;
-- expected behavior;
-- verification commands;
-- done criteria.
-
-Example:
+A good AI-agent task includes everything in `docs/00-governance/
+definition-of-ready.md` "Agent Task Ready". Example of a task written to
+that bar:
 
 ```text
 Goal:
@@ -157,28 +125,24 @@ phase.
 
 ## Architecture Guardrails
 
+In addition to the Backend/Frontend Rules in
+`docs/00-governance/agent-working-rule.md`:
+
 ### Backend
 
-- Controllers are inbound adapters only.
-- Interactors own usecase orchestration.
-- Infrastructure implements output ports.
-- Cross-service calls use gRPC clients, events, or projections.
-- Do not import another service's domain or interactor directly.
+- Cross-service calls use gRPC clients, events, or projections. Do not import
+  another service's domain or interactor directly.
 - Transactional outbox is for commit-coupled side effects, not every job.
 - Use generated mockery/testify mocks for ports unless a reusable testkit fake
   already exists.
 
 ### Frontend
 
-- `Page.tsx` is a route/composition wrapper.
-- `XView.tsx` renders layout.
-- `createXViewModel.ts` owns state, resources, forms, actions, and derived
-  values.
-- Panels render and call ViewModel actions; panels do not call services.
-- Operational lists require backend pagination, search, filters, sort, loading,
-  error, empty, table/list, and pagination states.
-- Frontend must not call IAM permission-check endpoints as authorization probes.
-- Permission and validation errors stay in the current screen.
+- `Page.tsx` is a route/composition wrapper, `XView.tsx` renders layout,
+  `createXViewModel.ts` owns state/resources/forms/actions/derived values —
+  see `agent/SOLID_STYLE_GUIDE.md` for the full pattern.
+- Frontend must not call IAM permission-check endpoints as authorization
+  probes.
 
 ## Verification
 
@@ -196,7 +160,7 @@ git diff --check
 For frontend:
 
 ```bash
-cd internal/ui-podzone
+cd frontend
 npm run format
 npm run lint
 npm run build
@@ -233,22 +197,23 @@ Known gaps:
 - what remains unfinished or risky
 
 Suggested commit:
-- type(vibe): scope - summary
+- type(scope): summary
 ```
 
 If tests were not run, say why.
 
 ## Commit Strategy
 
-Keep commits small and themed.
+Keep commits small and themed. `type(scope)` — scope is the module or area
+touched, not a fixed tag.
 
 Good examples:
 
 ```text
-fix(vibe): onboarding - repair placement route reconciliation
-feat(vibe): onboarding - add resource health checks
-refactor(vibe): ui - split admin settings view models
-docs(vibe): process - document ai agent sdlc
+fix(onboarding): repair placement route reconciliation
+feat(onboarding): add resource health checks
+refactor(frontend): split admin settings view models
+docs(sprint0): document ai agent sdlc
 ```
 
 Avoid commits that mix unrelated backend, frontend, generated, and docs changes.
@@ -257,7 +222,12 @@ Avoid commits that mix unrelated backend, frontend, generated, and docs changes.
 
 Use vertical slices with explicit exit criteria.
 
-Current priority lanes:
+**Recovery gate:** lanes 2-4 below are post-recovery roadmap, not current
+work. Per `docs/06-recovery/recovery-plan.md`, do not start them until the
+backbone flow's R5 exit criteria are met (see `docs/STATUS_CURRENT.md` for
+current phase). Lane 1 (onboarding backbone) is the only lane active now.
+
+Priority lanes:
 
 1. Onboarding backbone:
    - request lifecycle;

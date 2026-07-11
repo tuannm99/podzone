@@ -4,7 +4,16 @@
 **SRS:** SRS-ONB-002, SRS-ONB-003  
 **Recovery source:** `docs/06-recovery/backbone-flow-refactor.md` — Gap 1 (no combined readiness endpoint)  
 **Contract:** `docs/03-architecture-detail-design/transport-contracts.md` — "Slice 0.3: Store Readiness Contract"  
-**Status:** Ready to implement
+**Status:** Backend implemented and tested as of 2026-07-11 —
+`internal/onboarding/controller/httphandler/store/controller.go:145`
+(`Controller.GetStoreReadiness`) and
+`internal/onboarding/domain/store/interactor.go:619`
+(`StoreInteractor.GetStoreReadiness`), covered by
+`interactor_test.go` (Ready/Blocked/Provisioning/Failed/NotFound/
+WorkspaceMismatch/NoAuth cases) and `controller_test.go`. Remaining work:
+frontend integration (no FE code calls this endpoint yet) and end-to-end
+verification in Docker dev. See `docs/06-recovery/backbone-flow-refactor.md`
+"First Agent-Ready Task Candidate" for the next slice.
 
 ---
 
