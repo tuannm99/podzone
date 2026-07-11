@@ -1,6 +1,6 @@
 package pdauthn
 
-import "github.com/golang-jwt/jwt"
+import "github.com/golang-jwt/jwt/v5"
 
 type PolicyStatement struct {
 	Effect          string            `json:"effect"`
@@ -32,7 +32,7 @@ type Claims struct {
 	AssumedRoleSessionName      string            `json:"assumed_role_session_name,omitempty"`
 	AssumedRoleSourceIdentity   string            `json:"assumed_role_source_identity,omitempty"`
 	Key                         string            `json:"key"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 type Config struct {

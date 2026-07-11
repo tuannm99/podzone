@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	partnerconfig "github.com/tuannm99/podzone/internal/partner/config"
 	pbauthv1 "github.com/tuannm99/podzone/pkg/api/proto/auth/v1"
 	pbiamv1 "github.com/tuannm99/podzone/pkg/api/proto/iam/v1"
@@ -28,7 +28,7 @@ type partnerJWTClaims struct {
 	ActiveTenantID string `json:"active_tenant_id"`
 	SessionID      string `json:"session_id"`
 	Key            string `json:"key"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 type authzClientParams struct {

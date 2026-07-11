@@ -3,7 +3,7 @@ package domain
 import (
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/tuannm99/podzone/internal/auth/config"
 	"github.com/tuannm99/podzone/internal/auth/domain/entity"
 	"github.com/tuannm99/podzone/internal/auth/domain/inputport"
@@ -75,9 +75,9 @@ func (t *tokenUCImpl) CreateJwtTokenForSessionState(
 		AssumedRoleSessionName:      session.AssumedRoleSessionName,
 		AssumedRoleSourceIdentity:   session.AssumedRoleSourceIdentity,
 		Key:                         t.cfg.JWTKey,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expiresAt.Unix(),
-			IssuedAt:  time.Now().Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}
 

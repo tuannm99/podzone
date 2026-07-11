@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -45,9 +45,9 @@ func TestTokenUsecase_CreateJwtToken_Success(t *testing.T) {
 	assert.Empty(t, claims.ActiveTenantID)
 
 	now := time.Now().Unix()
-	assert.Greater(t, claims.ExpiresAt, now)
-	assert.LessOrEqual(t, claims.ExpiresAt, now+int64(25*time.Hour.Seconds()))
-	assert.LessOrEqual(t, now, claims.IssuedAt)
+	assert.Greater(t, claims.ExpiresAt.Unix(), now)
+	assert.LessOrEqual(t, claims.ExpiresAt.Unix(), now+int64(25*time.Hour.Seconds()))
+	assert.LessOrEqual(t, now, claims.IssuedAt.Unix())
 }
 
 func TestTokenUsecase_CreateJwtToken_DifferentUsers_ProduceDifferentTokens(t *testing.T) {

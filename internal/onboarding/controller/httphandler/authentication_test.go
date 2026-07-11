@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/require"
 
 	onboardingconfig "github.com/tuannm99/podzone/internal/onboarding/config"
@@ -40,8 +40,8 @@ func performAuthenticatedRequest(
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, pdauthn.Claims{
 		UserID:         7,
 		ActiveTenantID: activeTenantID,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour).Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
 		},
 	})
 	signedToken, err := token.SignedString([]byte(secret))

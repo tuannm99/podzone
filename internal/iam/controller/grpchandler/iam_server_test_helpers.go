@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/metadata"
@@ -275,9 +275,9 @@ func rawAccessTokenForIAMUserSource(t *testing.T, userID uint, identitySource st
 		IdentitySource: identitySource,
 		Key:            testIAMServerCfg.Authn.JWTKey,
 		SessionID:      "session-test",
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: nowPlusHour().Unix(),
-			IssuedAt:  time.Now().UTC().Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(nowPlusHour()),
+			IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
 		},
 	}
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(

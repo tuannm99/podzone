@@ -5,92 +5,204 @@ on:
   push:
     branches:
       - main
-
       - master
+  schedule:
+    - cron: '0 2 * * *'  # nightly at 02:00 UTC for vuln scan
 
 permissions:
   contents: read
 
 jobs:
-  unit-test:
-    name: Unit test + coverage
-
+  # ── detect what changed ─────────────────────────────────────────────────────
+  changes:
+    name: Detect changes
     runs-on: ubuntu-latest
-
+    outputs:
+      be:            ${{ steps.f.outputs.be }}
+      fe-shell:      ${{ steps.f.outputs.fe-shell }}
+      fe-iam:        ${{ steps.f.outputs.fe-iam }}
+      fe-backoffice: ${{ steps.f.outputs.fe-backoffice }}
+      fe-onboarding: ${{ steps.f.outputs.fe-onboarding }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Setup Go
-        uses: actions/setup-go@v6
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: f
         with:
-          go-version: '1.26.x'
+          filters: |
+            be:
+              - 'internal/**'
+              - 'pkg/**'
+              - 'go.mod'
+              - 'go.sum'
+            fe-shell:
+              - 'frontend/src/**'
+              - 'frontend/packages/**'
+              - 'frontend/vite.config.ts'
+              - 'frontend/tsconfig*.json'
+              - 'frontend/package.json'
+              - 'frontend/package-lock.json'
+            fe-iam:
+              - 'frontend/apps/iam/**'
+              - 'frontend/packages/**'
+            fe-backoffice:
+              - 'frontend/apps/backoffice/**'
+              - 'frontend/packages/**'
+            fe-onboarding:
+              - 'frontend/apps/onboarding/**'
+              - 'frontend/packages/**'
+
+  # ── backend: test ───────────────────────────────────────────────────────────
+  be-test:
+    name: BE — test + coverage
+    needs: changes
+    if: needs.changes.outputs.be == 'true' || github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.5'
           cache: true
 
-      - name: Run unit tests with coverage
+      - name: Run tests
         shell: bash
         run: |
           set -euo pipefail
-
           mkdir -p coverage
+          go test ./internal/... ./pkg/... \
+            -race \
+            -covermode=atomic \
+            -coverprofile=coverage/root.out
 
-          for mod in $(find . -name go.mod -not -path "./vendor/*" -exec dirname {} \; | sort); do
-            echo "::group::Testing $mod"
+      - name: Coverage summary
+        run: go tool cover -func=coverage/root.out | tail -1
 
-            safe_name=$(echo "$mod" | sed 's#^\./##; s#[/.]#_#g')
-            [ "$safe_name" = "" ] && safe_name="root"
-
-            (
-              cd "$mod"
-              go test ./... \
-                -race \
-                -covermode=atomic \
-                -coverprofile="../coverage/${safe_name}.out"
-            )
-
-            echo "::endgroup::"
-          done
-
-      - name: Show coverage summary
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          for f in coverage/*.out; do
-            echo "===== $f ====="
-            go tool cover -func="$f" | tail -n 1 || true
-          done
-
-      - name: Upload coverage artifacts
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: go-coverage
           path: coverage/*.out
 
-  govulncheck:
-    name: Go vulnerability scan
+  # ── backend: lint ───────────────────────────────────────────────────────────
+  be-lint:
+    name: BE — lint
+    needs: changes
+    if: needs.changes.outputs.be == 'true'
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Setup Go
-        uses: actions/setup-go@v6
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          go-version: '1.26.x'
+          go-version: '1.26.5'
           cache: true
 
-      - name: Install govulncheck
-        run: go install golang.org/x/vuln/cmd/govulncheck@latest
-
-      - name: Run govulncheck for all modules
+      - name: golangci-lint
         shell: bash
         run: |
-          set -euo pipefail
+          GOCACHE=/tmp/podzone-gocache \
+          GOLANGCI_LINT_CACHE=/tmp/podzone-golangci-cache \
+          go tool golangci-lint run --timeout=5m ./internal/... ./pkg/...
 
-          for mod in $(find . -name go.mod -not -path "./vendor/*" -exec dirname {} \; | sort); do
-            echo "::group::govulncheck $mod"
-            (cd "$mod" && govulncheck ./...)
-            echo "::endgroup::"
-          done
+  # ── frontend shared install step ─────────────────────────────────────────────
+  # Each FE job runs npm ci independently; setup-node caches the npm registry
+  # so installs are fast (~20s) without needing to share node_modules.
+
+  # ── frontend: shell (HOST) ───────────────────────────────────────────────────
+  fe-shell:
+    name: FE — shell build + lint
+    needs: changes
+    if: needs.changes.outputs.fe-shell == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+        working-directory: frontend
+
+      - run: npm run format:check
+        working-directory: frontend
+
+      - run: npm run lint
+        working-directory: frontend
+
+      - run: npm run build
+        working-directory: frontend
+
+  # ── frontend: IAM remote ─────────────────────────────────────────────────────
+  fe-iam:
+    name: FE — IAM build
+    needs: changes
+    if: needs.changes.outputs.fe-iam == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+        working-directory: frontend
+
+      - run: npm run build:iam
+        working-directory: frontend
+
+  # ── frontend: Backoffice remote ───────────────────────────────────────────────
+  fe-backoffice:
+    name: FE — Backoffice build
+    needs: changes
+    if: needs.changes.outputs.fe-backoffice == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run build:backoffice
+        working-directory: frontend
+
+  # ── frontend: Onboarding remote ───────────────────────────────────────────────
+  fe-onboarding:
+    name: FE — Onboarding build
+    needs: changes
+    if: needs.changes.outputs.fe-onboarding == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+        working-directory: frontend
+
+      - run: npm run build:onboarding
+        working-directory: frontend
+
+  # ── vuln scan: nightly only ───────────────────────────────────────────────────
+  govulncheck:
+    name: Go vulnerability scan
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.5'
+          cache: true
+
+      - run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - run: govulncheck ./internal/... ./pkg/...

@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	boconfig "github.com/tuannm99/podzone/internal/backoffice/config"
 	"github.com/tuannm99/podzone/internal/backoffice/runtime/scope"
 	"github.com/tuannm99/podzone/internal/backoffice/runtime/tenancy"
@@ -27,7 +27,7 @@ type backofficeJWTClaims struct {
 	ActiveTenantID string `json:"active_tenant_id"`
 	SessionID      string `json:"session_id"`
 	Key            string `json:"key"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 func NewTenantMiddleware(

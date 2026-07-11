@@ -1,4 +1,4 @@
-.PHONY: all proto swagger build test coverage lint fmt dev down clean help
+.PHONY: all proto swagger build test coverage lint fmt vulncheck dev down clean help
 .PHONY: docker-dev docker-dev-infra docker-dev-down mocks mocks-gen
 .PHONY: dev-backoffice-seed dev-backoffice-sample dev-kv-store-refresh dev-onboarding-reconcile-tenant
 .PHONY: dev-auth-bootstrap
@@ -57,6 +57,10 @@ coverage:
 lint:
 	@echo "$(COLOR_GREEN)Running linter...$(COLOR_RESET)"
 	GOCACHE=$(GO_CACHE) $(GO) tool golangci-lint run --timeout=5m $(LINT_PKGS)
+
+vulncheck:
+	@echo "$(COLOR_GREEN)Running govulncheck...$(COLOR_RESET)"
+	GOCACHE=$(GO_CACHE) $(GO) tool govulncheck ./internal/... ./pkg/...
 
 fmt:
 	@echo "$(COLOR_GREEN)Formatting Go code...$(COLOR_RESET)"
