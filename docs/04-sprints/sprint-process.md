@@ -41,7 +41,7 @@ Each task must include:
 
 Before closing a sprint:
 
-- update `STATUS_CURENT.md`;
+- update `docs/STATUS_CURRENT.md`;
 - update `docs/01-srs/traceability-matrix.md`;
 - update related architecture docs;
 - record known gaps;

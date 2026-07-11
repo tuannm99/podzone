@@ -224,5 +224,5 @@ git diff --check -- docs/04-sprints docs/05-process
 
 - New agent can read SRS -> C4 -> sprint -> task without asking what to build.
 - First backbone vertical slice is documented enough to implement.
-- `STATUS_CURENT.md` links to SRS/process/sprint docs.
+- `docs/STATUS_CURRENT.md` links to SRS/process/sprint docs.
 - Traceability matrix maps Sprint 0 slices to SRS IDs.

@@ -3,9 +3,16 @@
 Identified from code review of commits b3deb73..43530c2 (2026-07-07).
 Scope: `internal/onboarding/`, `scripts/dev/reconcile_legacy_tenant.go`.
 
+Status as of 2026-07-11: P1 confirmed resolved (see note inline). P2–P8 have
+not been re-verified against current code — do not assume resolved or open
+without checking the referenced file/line first.
+
 ---
 
 ## P1 — LIKE `_` wildcard over-counts tenant schemas
+
+**Resolved as of 2026-07-11.** `health.go` now uses
+`starts_with(schema_name, $1)`, exactly the fix suggested below.
 
 **File:** `internal/onboarding/infrastructure/provisioning/provider/health.go:71`
 **Severity:** High — corrupts capacity metrics used for placement planning

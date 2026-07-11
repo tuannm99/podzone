@@ -19,6 +19,9 @@ and follow the links below.
 
 Coding starts only after the target work links back to this chain.
 
+Read [STATUS_CURRENT.md](./STATUS_CURRENT.md) first — it is the living
+snapshot of recovery phase, backbone flow status, and known doc debt.
+
 ## Start Here
 
 0. [Governance](./00-governance/README.md)

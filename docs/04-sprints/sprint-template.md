@@ -77,7 +77,7 @@ Repeat.
 
 ## Status Update Required
 
-- `STATUS_CURENT.md`
+- `docs/STATUS_CURRENT.md`
 - `docs/01-srs/traceability-matrix.md`
 - Other:
 ```

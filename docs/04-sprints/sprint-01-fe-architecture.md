@@ -18,6 +18,15 @@ without breaking the current monolith build or the recovery backbone flow.
 Each sprint 1x is independently shippable. Stop after 1a or 1b if backbone
 stabilization takes priority again.
 
+**Post-completion note (2026-07-11):** the "Target stack" below names pnpm
+workspaces, and slice 1c.3 added `frontend/pnpm-workspace.yaml`. The project
+settled on **npm + Vite `resolve.alias`** instead — no `pnpm-lock.yaml` or
+npm `workspaces` field was ever added, and `@podzone/shared` resolution has
+always gone through the alias in `frontend/vite.config.ts`, not a
+package-manager workspace protocol. `pnpm-workspace.yaml` was dead weight
+and has been deleted. Do not re-add it without an explicit decision to
+migrate to pnpm.
+
 ---
 
 ## Context

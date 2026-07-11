@@ -167,7 +167,7 @@ Exit:
 
 For every agent task:
 
-1. Read `STATUS_CURENT.md`.
+1. Read `docs/STATUS_CURRENT.md`.
 2. Read `docs/06-recovery/recovery-plan.md`.
 3. Read linked SRS and sprint docs.
 4. Confirm task scope and allowed files.

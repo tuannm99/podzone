@@ -1,6 +1,6 @@
 # Backbone Flow Refactor
 
-Status: updated 2026-07-10.
+Status: updated 2026-07-11.
 
 This document describes the first runtime flow to stabilize before expanding
 Podzone.
@@ -41,7 +41,7 @@ Investigated from actual code in `internal/`. Status key:
 | List store requests with status | onboarding | ⚠️ Exists, unverified | `GET /requests` returns `collection.Page[*Request]` with `status` field. 15 status values defined in `domain/store/entity`. FE needs to map to pending/failed/ready. |
 | Get single store request status | onboarding | ⚠️ Exists, unverified | `GET /requests/:id` — returns full `Request` including `Status`, `LastError`, `StoreID`. IAM workspace guard enforced. |
 | Placement allocation + route ready | onboarding | ⚠️ Exists, unverified | `GetTenantPlacementStatus` in `domain/infrasmanager` returns `PlacementStatus{AllocationReady, RouteReady}`. Admin HTTP at `/infras/placements/:tenantId/status`. Not user-facing. |
-| **Combined store readiness for FE** | onboarding | ❌ Missing | No single user-facing endpoint that combines `store.Status == ready` AND `placement.AllocationReady AND RouteReady`. FE currently makes two calls or guesses from store status alone. |
+| **Combined store readiness for FE** | onboarding | ⚠️ Implemented, not wired to FE | `GET /requests/:id/readiness` exists (`internal/onboarding/controller/httphandler/store/controller.go:145`, `Controller.GetStoreReadiness`). Contract documented in `transport-contracts.md` (Slice 0.3) and task spec at `docs/04-sprints/tasks/onboarding-readiness-api.md`. No frontend code calls this endpoint yet, and it is unverified end-to-end in Docker. |
 | Resolve tenant DB route (KV) | pdtenantdb + onboarding | ⚠️ Exists, unverified | Route projection published to Redis/Valkey by onboarding worker after provisioning. `pkg/pdtenantdb` reads it. Must exist before backoffice opens. |
 | Enforce protected API permission | backoffice → IAM gRPC | ⚠️ Exists, unverified | Backoffice has `authz.go` and IAM gRPC client. GraphQL resolvers gate per tenant. Needs end-to-end test with a ready store. |
 
@@ -49,7 +49,7 @@ Investigated from actual code in `internal/`. Status key:
 
 The following gaps block the backbone from running reliably in Docker dev:
 
-1. **No combined readiness endpoint**: FE cannot determine "this store is ready for Backoffice" in a single call. The current `GET /requests/:id` returns `status=ready` but does not confirm placement allocation and route projection are both live. A store can show `status=ready` while backoffice fails to open due to missing KV route.
+1. **Combined readiness endpoint exists but is not wired to FE**: `GET /requests/:id/readiness` already combines store status with placement allocation/route readiness (see capability table above). The remaining gap is frontend integration and end-to-end verification in Docker, not endpoint design.
 
 2. **Placement bootstrap sequence is unclear**: `dev-bootstrap` seeds a store request and calls onboarding, but whether the full provisioning pipeline (planning → queued → provisioning → ready + placement write + KV projection publish) completes automatically in Docker dev is unverified.
 
@@ -99,23 +99,28 @@ The following gaps block the backbone from running reliably in Docker dev:
 
 ## First Agent-Ready Task Candidate
 
-Do not implement yet until contracts are written.
+The readiness contract and endpoint already exist (see gap #1 above). The
+next slice is integration and verification, not contract design.
 
 Candidate:
 
 ```text
-Define onboarding placement readiness query contract.
+Wire the workspace/store chooser to GET /requests/:id/readiness and verify
+the full backbone flow end to end in Docker dev.
 ```
 
 Allowed docs:
 
+- `docs/04-sprints/tasks/onboarding-readiness-api.md`
 - `docs/03-architecture-detail-design/transport-contracts.md`
-- `docs/03-architecture-detail-design/collection-api-contract.md`
 - `docs/01-srs/traceability-matrix.md`
-- `docs/04-sprints/sprint-00-foundation.md`
 
 Done:
 
-- request/response/errors/permission/UI behavior documented;
-- no code change;
+- FE store chooser calls the readiness endpoint instead of inferring from
+  store status alone;
+- the 15 store-request statuses map to pending/failed/ready per the mapping
+  in gap #4 above;
+- flow verified end to end in Docker dev (sign in → workspace → ready store
+  → Backoffice → one protected API call);
 - traceability updated.
