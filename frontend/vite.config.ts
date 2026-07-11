@@ -8,6 +8,20 @@ const BACKOFFICE_REMOTE = process.env.VITE_BACKOFFICE_REMOTE_URL ?? 'http://loca
 const IAM_REMOTE = process.env.VITE_IAM_REMOTE_URL ?? 'http://localhost:3002/assets/remoteEntry.js'
 const ONBOARDING_REMOTE = process.env.VITE_ONBOARDING_REMOTE_URL ?? 'http://localhost:3003/assets/remoteEntry.js'
 
+// Which remotes are actually running under the active `make docker-dev
+// PROFILE=...` invocation (see deployments/docker/services.yml
+// VITE_ACTIVE_PROFILES). __MFE_<NAME>__ must reflect whether the remote
+// container is really up, not just whether its URL env var happens to be
+// set — services.yml always provides a default URL for all three remotes
+// regardless of profile, so checking var presence alone made every route
+// try to fetch remotes that were never started under a narrow profile
+// (e.g. PROFILE=iam never starts onboarding-remote, but /admin is owned by
+// onboarding — this broke the post-login landing page for every narrow
+// profile). Falls back to "full" when unset, matching a raw `docker
+// compose up` that bypasses the Makefile.
+const ACTIVE_PROFILES = (process.env.VITE_ACTIVE_PROFILES ?? 'full').split(',').map((p) => p.trim())
+const isRemoteActive = (name: string) => ACTIVE_PROFILES.includes('full') || ACTIVE_PROFILES.includes(name)
+
 export default defineConfig({
     plugins: [
         tailwindcss(),
@@ -27,9 +41,9 @@ export default defineConfig({
         }),
     ],
     define: {
-        __MFE_BACKOFFICE__: JSON.stringify(!!process.env.VITE_BACKOFFICE_REMOTE_URL),
-        __MFE_IAM__: JSON.stringify(!!process.env.VITE_IAM_REMOTE_URL),
-        __MFE_ONBOARDING__: JSON.stringify(!!process.env.VITE_ONBOARDING_REMOTE_URL),
+        __MFE_BACKOFFICE__: JSON.stringify(isRemoteActive('backoffice')),
+        __MFE_IAM__: JSON.stringify(isRemoteActive('iam')),
+        __MFE_ONBOARDING__: JSON.stringify(isRemoteActive('onboarding')),
     },
     resolve: {
         alias: {

@@ -74,14 +74,15 @@ comma := ,
 PROFILE ?= full
 
 docker-dev:
-	docker compose $(foreach p,$(subst $(comma), ,$(PROFILE)),--profile $(p)) \
+	PROFILE=$(PROFILE) docker compose $(foreach p,$(subst $(comma), ,$(PROFILE)),--profile $(p)) \
 		-f deployments/docker/infras.yml -f deployments/docker/services.yml up --build
 
 dev-pod-up:
 	@sh scripts/dev/run_local_pod_dev.sh "$(TENANT_ID)" "$(STORE_NAME)" "$(STORE_SUBDOMAIN)" "$(DEV_USERNAME)" "$(DEV_EMAIL)" "$(DEV_PASSWORD)"
 
 docker-dev-down:
-	docker compose -f deployments/docker/infras.yml -f deployments/docker/services.yml down
+	docker compose --profile full \
+		-f deployments/docker/infras.yml -f deployments/docker/services.yml down
 
 dev-backoffice-seed:
 	@DB_NAME=$(DB_NAME) \

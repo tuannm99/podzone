@@ -372,6 +372,14 @@ services:
       VITE_BACKOFFICE_REMOTE_URL: ${VITE_BACKOFFICE_REMOTE_URL:-http://localhost:9080/mfe/backoffice/assets/remoteEntry.js}
       VITE_IAM_REMOTE_URL: ${VITE_IAM_REMOTE_URL:-http://localhost:9080/mfe/iam/assets/remoteEntry.js}
       VITE_ONBOARDING_REMOTE_URL: ${VITE_ONBOARDING_REMOTE_URL:-http://localhost:9080/mfe/onboarding/assets/remoteEntry.js}
+      # Which remotes are actually starting under this `make docker-dev
+      # PROFILE=...` invocation — used by vite.config.ts to decide whether a
+      # route should attempt the federation import or fall back to the page
+      # bundled locally into the HOST. Falls back to "full" when not set
+      # (e.g. a raw `docker compose up` bypassing the Makefile), matching
+      # prior behavior. See docs/10-knowledge-base/local-dev/ for the
+      # incident this fixes.
+      VITE_ACTIVE_PROFILES: ${PROFILE:-full}
     volumes:
       - ../../frontend:/app
       - podzone_ui_node_modules:/app/node_modules
