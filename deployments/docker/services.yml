@@ -11,6 +11,8 @@ x-go-dev-common: &go-dev-common
   environment:
     GOMODCACHE: /go/pkg/mod
     GOCACHE: /root/.cache/go-build
+  mem_limit: 512m
+  cpus: 1.0
 
 # Profiles
 # --------
@@ -44,6 +46,8 @@ services:
       redis:
         condition: service_healthy
       postgres:
+        condition: service_healthy
+      kafka:
         condition: service_healthy
     # ports:
     #   - '50051:50051'
@@ -312,6 +316,8 @@ services:
     volumes:
       - ../../frontend:/app
       - podzone_ui_node_modules:/app/node_modules
+    mem_limit: 1024m
+    cpus: 1.5
     ports:
       - '3001:3001'
 
@@ -326,6 +332,8 @@ services:
     volumes:
       - ../../frontend:/app
       - podzone_ui_node_modules:/app/node_modules
+    mem_limit: 1024m
+    cpus: 1.5
     ports:
       - '3002:3002'
 
@@ -344,6 +352,8 @@ services:
     volumes:
       - ../../frontend:/app
       - podzone_ui_node_modules:/app/node_modules
+    mem_limit: 1024m
+    cpus: 1.5
     ports:
       - '3003:3003'
 
@@ -365,6 +375,8 @@ services:
     volumes:
       - ../../frontend:/app
       - podzone_ui_node_modules:/app/node_modules
+    mem_limit: 768m
+    cpus: 1.5
     depends_on:
       grpc-gateway:
         condition: service_started
@@ -395,6 +407,8 @@ services:
     environment:
       APISIX_ADMIN_URL: http://apisix:9180/apisix/admin
       APISIX_ADMIN_KEY: edd1c9f034335f136f87ad84b625c8f1
+    mem_limit: 64m
+    cpus: 0.25
     depends_on:
       apisix:
         condition: service_started
