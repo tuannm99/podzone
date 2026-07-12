@@ -1,6 +1,6 @@
 # Backbone Flow Refactor
 
-Status: updated 2026-07-11.
+Status: updated 2026-07-12.
 
 This document describes the first runtime flow to stabilize before expanding
 Podzone.
@@ -26,24 +26,36 @@ User
 - SRS-ONB-003
 - SRS-BO-001
 
-## Current Status (2026-07-10)
+## Current Status (2026-07-12)
 
-Investigated from actual code in `internal/`. Status key:
-- ✅ Verified working  
-- ⚠️ Exists, unverified in Docker  
-- ❌ Missing  
+Investigated from actual code in `internal/`, then re-verified against the
+already-running `full`-profile Docker dev stack (containers up, not started
+fresh for this pass) using the seeded dev-bootstrap identity
+(`devowner@podzone.dev`, tenant `tenant-dev`, store "Demo Store"). Status key:
+- ✅ Verified working
+- ⚠️ Exists, unverified in Docker
+- ❌ Missing
 - 🔍 Needs investigation
+
+**Verification method (2026-07-12):** real HTTP calls with the dev JWT from
+`/dev-auth-bootstrap.json`, directly against the running containers (onboarding
+on `:8800`, Backoffice GraphQL through APISIX on `:9080/backoffice/graphql`) —
+the same calls the frontend code makes, not unit tests. **Not done:** a
+literal browser click-through with a screenshot — no headless browser
+automation tool was available in this environment (no root to install
+Chromium's system deps, and a binary-only download did not complete
+reliably). Treat rows below as API-level, not pixel-level, verification.
 
 | Capability | Owner | Code Status | Notes |
 | --- | --- | --- | --- |
-| Validate session / JWT | auth | ⚠️ Exists, unverified | `pkg/pdauthn` verifier used at all service inbound boundaries. Auth gRPC handler in `internal/auth/controller/grpchandler/`. Needs Docker run to verify. |
-| Resolve workspace membership | iam | ⚠️ Exists, unverified | gRPC-only. Used by onboarding and backoffice guards via `iam-service:50053`. Bootstrap membership created by `dev-bootstrap` script. Needs verification. |
-| List store requests with status | onboarding | ⚠️ Exists, unverified | `GET /requests` returns `collection.Page[*Request]` with `status` field. 15 status values defined in `domain/store/entity`. FE needs to map to pending/failed/ready. |
-| Get single store request status | onboarding | ⚠️ Exists, unverified | `GET /requests/:id` — returns full `Request` including `Status`, `LastError`, `StoreID`. IAM workspace guard enforced. |
-| Placement allocation + route ready | onboarding | ⚠️ Exists, unverified | `GetTenantPlacementStatus` in `domain/infrasmanager` returns `PlacementStatus{AllocationReady, RouteReady}`. Admin HTTP at `/infras/placements/:tenantId/status`. Not user-facing. |
-| **Combined store readiness for FE** | onboarding | ⚠️ Implemented, not wired to FE | `GET /requests/:id/readiness` exists (`internal/onboarding/controller/httphandler/store/controller.go:145`, `Controller.GetStoreReadiness`). Contract documented in `05-transport-contracts.md` (Slice 0.3) and task spec at `docs/04-sprints/tasks/onboarding-readiness-api.md`. No frontend code calls this endpoint yet, and it is unverified end-to-end in Docker. |
-| Resolve tenant DB route (KV) | pdtenantdb + onboarding | ⚠️ Exists, unverified | Route projection published to Redis/Valkey by onboarding worker after provisioning. `pkg/pdtenantdb` reads it. Must exist before backoffice opens. |
-| Enforce protected API permission | backoffice → IAM gRPC | ⚠️ Exists, unverified | Backoffice has `authz.go` and IAM gRPC client. GraphQL resolvers gate per tenant. Needs end-to-end test with a ready store. |
+| Validate session / JWT | auth | ✅ Verified working | Dev-bootstrap JWT accepted by both onboarding's HTTP middleware and backoffice's GraphQL `TenantMiddleware`; a request with no `Authorization` header cleanly returned `{"errors":[{"message":"authorization bearer token is required","extensions":{"code":"UNAUTHENTICATED"}}]}` instead of crashing. |
+| Resolve workspace membership | iam | ✅ Verified working (indirect) | Not called directly, but every tenant-scoped call below succeeded for `tenant-dev`, which requires IAM membership resolution to have passed. |
+| List store requests with status | onboarding | ✅ Verified working | `GET :8800/onboarding/v1/requests` with `X-Tenant-ID: tenant-dev` returned the real seeded request: `{id, name: "Demo Store", subdomain: "demo-store", status: "ready", store_id, ...}`. |
+| Get single store request status | onboarding | 🔍 Not directly tested this pass | `GET /requests/:id` itself wasn't called; readiness (below) covers overlapping ground for the one seeded request. |
+| Placement allocation + route ready | onboarding | ✅ Verified working (indirect) | Confirmed via the readiness response: `placement_allocation_ready: true`, `route_ready: true` for the seeded request. |
+| **Combined store readiness for FE** | onboarding | ✅ Verified working end to end | `GET :8800/onboarding/v1/requests/<id>/readiness` returned `{"request_status":"ready","readiness":{"store_ready":true,"placement_allocation_ready":true,"route_ready":true},"ui_state":"ready"}` — exactly the shape `getStoreReadiness`/`createStoreReadinessViewModel` (2026-07-12 FE change) expect, and `ui_state: "ready"` correctly maps to `readinessBadgeColor('ready') -> 'green'`. Only the `ready` path was exercised — no seeded request exists in `pending`/`provisioning`/`blocked`/`failed` to confirm those branches live. |
+| Resolve tenant DB route (KV) | pdtenantdb + onboarding | ✅ Verified working (indirect) | The Backoffice GraphQL query below returned real Postgres-backed data for `tenant-dev`, which requires the route projection to have resolved correctly. |
+| Enforce protected API permission | backoffice → IAM gRPC | ✅ Verified working | `POST :9080/backoffice/graphql` `stores` query with the dev JWT returned the real store (`{"id":"...","name":"Demo Store","status":"active","isActive":true}`) — this is the "one protected Backoffice API call" the exit criteria asks for. Missing/invalid auth returns a clear GraphQL error, not a crash. |
 
 ## Known Gaps
 
@@ -88,31 +100,30 @@ The following gaps block the backbone from running reliably in Docker dev:
 
 ## Exit Criteria
 
-- A new user can sign in.
-- The first workspace/root ownership is clear.
-- Store list distinguishes pending, failed, and ready stores.
-- Ready store has resolvable placement.
-- Missing placement shows a provisioning/readiness error, not a generic crash.
-- Backoffice never opens store-scoped mode without ready placement.
-- One protected Backoffice API returns success for authorized user and
-  permission detail for unauthorized user.
+- A new user can sign in. **✅ API-level, 2026-07-12** — dev-bootstrap JWT accepted; missing/invalid auth cleanly rejected, not a crash.
+- The first workspace/root ownership is clear. **✅** — `tenant-dev` resolved from the JWT's `active_tenant_id` claim (backoffice) and from the `X-Tenant-ID` header checked against membership (onboarding) — two different, both-correct resolution mechanisms per service, confirmed by reading `internal/backoffice/tenant_middleware.go`.
+- Store list distinguishes pending, failed, and ready stores. **⚠️ Partially** — the one seeded request is `ready`, and `ui_state: "ready"` was confirmed correct; pending/provisioning/blocked/failed were not exercised (no seed data in those states).
+- Ready store has resolvable placement. **✅** — readiness response shows `placement_allocation_ready: true`, `route_ready: true` for the ready request.
+- Missing placement shows a provisioning/readiness error, not a generic crash. **🔍 Not tested** — would need a request stuck without placement, none seeded.
+- Backoffice never opens store-scoped mode without ready placement. **🔍 Not directly tested** — the one available store is fully ready, so this guard was never exercised against a not-ready store this pass.
+- One protected Backoffice API returns success for authorized user and permission detail for unauthorized user. **✅** — `stores` GraphQL query succeeded with a valid token; a request with no token returned a clear `UNAUTHENTICATED` GraphQL error, not a crash.
+
+**Still open:** literal browser UI verification (no automation tool available this pass — see Current Status note), and every non-`ready` `ui_state` path (needs seed data or a way to force a request into `pending`/`provisioning`/`blocked`/`failed`).
 
 ## First Agent-Ready Task Candidate
 
-The readiness contract and endpoint already exist (see gap #1 above). FE
-integration is done (2026-07-12, see
-`docs/04-sprints/tasks/wire-store-readiness-frontend.md`) but only verified
-at the build/lint level. The next slice is Docker end-to-end verification,
-not further integration work.
-
-Candidate:
+Readiness is wired FE-to-backend and verified at the API level for the
+`ready` path (2026-07-12). Two things remain, neither blocking day-to-day
+work on the backbone but both worth closing before calling this exit
+criteria fully met:
 
 ```text
-Run the full backbone flow end to end in Docker dev (sign in → choose
-workspace → request or select store → onboarding placement resolves → open
-store-scoped Backoffice → call one protected business API) and confirm the
-provisioning requests panel shows the correct ui_state for at least one
-request in each of pending/provisioning/blocked/failed/ready.
+1. Seed (or otherwise force) at least one store request into each of
+   pending/provisioning/blocked/failed and re-check the readiness endpoint
+   + provisioning requests panel badge for each.
+2. Get a working headless-browser tool into this environment (or add a
+   project run-skill once one exists) so future backbone checks can
+   confirm the actual rendered UI, not just the API responses.
 ```
 
 Allowed docs:
@@ -123,8 +134,7 @@ Allowed docs:
 
 Done:
 
-- flow verified end to end in Docker dev (sign in → workspace → ready store
-  → Backoffice → one protected API call);
-- provisioning requests panel observed showing correct badge/color for a
-  request in each ui_state, not just build-level type-checking;
+- a request in each ui_state observed via both the readiness endpoint and
+  the rendered provisioning requests panel;
+- browser-level screenshot confirming the panel renders correctly;
 - traceability updated.

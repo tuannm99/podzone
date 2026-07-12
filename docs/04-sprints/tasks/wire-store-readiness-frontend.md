@@ -10,9 +10,20 @@
 (new), `createAdminHomeViewModel.ts` (wired), `presentation.ts`
 (`readinessBadgeColor`), `ProvisioningRequestsPanel.tsx` (badge now driven by
 `ui_state`). `npm run build` / `build:onboarding` / `lint` / `format:check`
-all pass. **Not done:** end-to-end verification in a live Docker dev
-environment (needs a running backend + seeded store requests in every
-`ui_state` to observe) — this pass is static/build-level verification only.
+all pass.
+
+**API-level verified 2026-07-12** against the running `full`-profile Docker
+dev stack: `curl`'d `GET :8800/onboarding/v1/requests/<id>/readiness` with
+the dev-bootstrap JWT for the seeded "Demo Store" request — response was
+`{"request_status":"ready","readiness":{"store_ready":true,"placement_allocation_ready":true,"route_ready":true},"ui_state":"ready"}`,
+exactly the shape `getStoreReadiness` expects, and `readinessBadgeColor('ready')`
+correctly resolves to green. See `docs/06-recovery/backbone-flow-refactor.md`
+"Current Status" for the full verification trail.
+
+**Still not done:** (1) browser-rendered confirmation that the badge
+actually paints green in the running UI — no headless-browser tool was
+available in this environment this pass; (2) the `pending`/`provisioning`/
+`blocked`/`failed` branches — only `ready` has seed data to exercise.
 
 **Confirmed bug this fixes:** `ProvisioningRequestsPanel.tsx` currently
 derives the status badge color from a client-side prefix check —
