@@ -15,14 +15,19 @@ security boundary — actual authorization is enforced per
 [SRS-IAM-001](./SRS-IAM-001-centralized-authorization.md) regardless of what
 the UI shows or hides.
 
-Status: planned, not yet scheduled — this expands feature breadth beyond the
-current backbone flow (see `../../06-recovery/recovery-plan.md` Phase R5
-"Stabilize Runtime"); do not implement until the backbone flow
+Status: **unblocked 2026-07-12** — explicit product decision to proceed
+after the backbone flow
 ([SRS-ONB-001](../onboarding/SRS-ONB-001-workspace-and-store-entry.md),
 [SRS-ONB-002](../onboarding/SRS-ONB-002-store-provisioning-workflow.md),
 [SRS-ONB-003](../onboarding/SRS-ONB-003-placement-source-of-truth.md),
-[SRS-BO-001](../backoffice/SRS-BO-001-store-scoped-backoffice.md)) works end
-to end in Docker dev.
+[SRS-BO-001](../backoffice/SRS-BO-001-store-scoped-backoffice.md)) was
+verified at the API level (not full browser UI — see
+`../../06-recovery/backbone-flow-refactor.md`). First slice implemented
+same day: sidebar nav gating for Provisioning/IAM, see
+`../../04-sprints/tasks/gate-platform-nav-by-role.md`. Splitting `/admin/iam`
+into two distinct consoles (vs. today's one console that internally adapts
+via `canManagePlatform`) is not yet done — the nav-visibility slice was
+judged sufficient for now.
 
 Linked docs:
 

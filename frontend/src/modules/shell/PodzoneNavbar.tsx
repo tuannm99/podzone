@@ -5,12 +5,14 @@ import { tokenStorage } from '@podzone/shared/services/tokenStorage'
 import { useTenantWorkspace } from '@podzone/shared/auth'
 import { Button } from '@podzone/shared/ui/components/common/Primitives'
 import { classes } from '@podzone/shared/ui/shared/utils'
+import { usePlatformAccess } from './usePlatformAccess'
 
 type NavItem = {
     href: string
     label: string
     section: 'Platform' | 'Operations'
     active: boolean
+    tag?: string
 }
 
 function normalizePath(path: string) {
@@ -31,6 +33,7 @@ function initials(value: string) {
 export function PodzoneNavbar() {
     const workspace = useTenantWorkspace()
     const user = tokenStorage.getUser()
+    const platformAccess = usePlatformAccess()
     const pathname = useRouterState({
         select: (state) => normalizePath(state.location.pathname),
     })
@@ -53,6 +56,12 @@ export function PodzoneNavbar() {
         return currentPath === targetPath || (includeChildren && currentPath.startsWith(`${targetPath}/`))
     }
 
+    // Provisioning and IAM are gated by role (SRS-IAM-003): Provisioning is
+    // platform-admin only, IAM is shown for a platform admin (tagged ROOT)
+    // or anyone belonging to at least one organization (tagged ORG) — both
+    // signals come from one listOrganizations call, see usePlatformAccess.
+    // This is UX only; the backend already 403s the underlying APIs for
+    // unauthorized callers regardless of what the nav shows (SRS-IAM-001).
     const links = (): NavItem[] => [
         {
             href: '/admin',
@@ -60,24 +69,33 @@ export function PodzoneNavbar() {
             section: 'Platform',
             active: isCurrent('/admin'),
         },
-        {
-            href: '/admin/provisioning',
-            label: 'Provisioning',
-            section: 'Platform',
-            active: isCurrent('/admin/provisioning', true),
-        },
+        ...(platformAccess.canManagePlatform()
+            ? [
+                  {
+                      href: '/admin/provisioning',
+                      label: 'Provisioning',
+                      section: 'Platform' as const,
+                      active: isCurrent('/admin/provisioning', true),
+                  },
+              ]
+            : []),
         {
             href: '/admin/settings',
             label: 'Settings',
             section: 'Platform',
             active: isCurrent('/admin/settings', true),
         },
-        {
-            href: '/admin/iam',
-            label: 'IAM',
-            section: 'Platform',
-            active: isCurrent('/admin/iam', true),
-        },
+        ...(platformAccess.canManagePlatform() || platformAccess.hasAnyOrganization()
+            ? [
+                  {
+                      href: '/admin/iam',
+                      label: 'IAM',
+                      section: 'Platform' as const,
+                      active: isCurrent('/admin/iam', true),
+                      tag: platformAccess.canManagePlatform() ? 'ROOT' : 'ORG',
+                  },
+              ]
+            : []),
         ...(hasTenant() && currentStoreId()
             ? [
                   {
@@ -125,8 +143,14 @@ export function PodzoneNavbar() {
 
     const navLinkClass = (active: boolean) =>
         classes(
-            'flex h-10 items-center rounded-md px-3 text-sm font-medium transition',
+            'flex h-10 items-center justify-between gap-2 rounded-md px-3 text-sm font-medium transition',
             active ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-950'
+        )
+
+    const navTagClass = (active: boolean) =>
+        classes(
+            'rounded px-1.5 py-0.5 text-[9px] font-bold tracking-wide',
+            active ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
         )
 
     return (
@@ -182,7 +206,10 @@ export function PodzoneNavbar() {
                                     class={navLinkClass(link.active)}
                                     aria-current={link.active ? 'page' : undefined}
                                 >
-                                    {link.label}
+                                    <span>{link.label}</span>
+                                    <Show when={link.tag}>
+                                        <span class={navTagClass(link.active)}>{link.tag}</span>
+                                    </Show>
                                 </Link>
                             )}
                         </For>

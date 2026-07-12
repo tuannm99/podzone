@@ -70,7 +70,7 @@ contract/sprint links per requirement.
 | [SRS-AUTH-001](./auth/SRS-AUTH-001-authentication.md) | Authentication | Active |
 | [SRS-IAM-001](./iam/SRS-IAM-001-centralized-authorization.md) | Centralized Authorization | Active |
 | [SRS-IAM-002](./iam/SRS-IAM-002-permission-authoring.md) | Permission Authoring | Active |
-| [SRS-IAM-003](./iam/SRS-IAM-003-platform-vs-organization-administration-surface.md) | Platform Vs Organization Administration Surface | Planned, post-backbone |
+| [SRS-IAM-003](./iam/SRS-IAM-003-platform-vs-organization-administration-surface.md) | Platform Vs Organization Administration Surface | Active — nav gating slice done, console split not started |
 | [SRS-IAM-004](./iam/SRS-IAM-004-platform-admin-bootstrap-and-recovery.md) | Platform Admin Bootstrap And Recovery | Planned, post-backbone |
 | [SRS-ONB-001](./onboarding/SRS-ONB-001-workspace-and-store-entry.md) | Workspace And Store Entry | Active |
 | [SRS-ONB-002](./onboarding/SRS-ONB-002-store-provisioning-workflow.md) | Store Provisioning Workflow | Active |
