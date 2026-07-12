@@ -313,6 +313,12 @@ services:
       VITE_PODZONE_GW_API_URL: http://localhost:8080
       VITE_PODZONE_GRAPHQL_API_URL: http://localhost:9080/backoffice/graphql
       VITE_PODZONE_ONBOARDING_API_URL: http://localhost:8800
+      # Docker Desktop/WSL2 bind mounts don't reliably forward inotify events
+      # into the container, so `vite build --watch` silently stops rebuilding
+      # on host file edits. Polling works regardless of inotify propagation.
+      # See docs/10-knowledge-base/local-dev/2026-07-12-mfe-remote-watch-not-picking-up-changes.md.
+      CHOKIDAR_USEPOLLING: 'true'
+      CHOKIDAR_INTERVAL: '300'
     volumes:
       - ../../frontend:/app
       - podzone_ui_node_modules:/app/node_modules
@@ -329,6 +335,10 @@ services:
     profiles: [iam, full]
     working_dir: /app
     command: ['npm', 'run', 'dev:iam']
+    environment:
+      # See the same var in backoffice-remote above for why this is needed.
+      CHOKIDAR_USEPOLLING: 'true'
+      CHOKIDAR_INTERVAL: '300'
     volumes:
       - ../../frontend:/app
       - podzone_ui_node_modules:/app/node_modules
@@ -349,6 +359,9 @@ services:
       VITE_PODZONE_GW_API_URL: http://localhost:8080
       VITE_PODZONE_GRAPHQL_API_URL: http://localhost:9080/backoffice/graphql
       VITE_PODZONE_ONBOARDING_API_URL: http://localhost:8800
+      # See the same var in backoffice-remote above for why this is needed.
+      CHOKIDAR_USEPOLLING: 'true'
+      CHOKIDAR_INTERVAL: '300'
     volumes:
       - ../../frontend:/app
       - podzone_ui_node_modules:/app/node_modules
@@ -380,6 +393,12 @@ services:
       # prior behavior. See docs/10-knowledge-base/local-dev/ for the
       # incident this fixes.
       VITE_ACTIVE_PROFILES: ${PROFILE:-full}
+      # See the same var on the *-remote services above — the dev server's
+      # HMR watcher is subject to the same WSL2 bind-mount inotify gap, just
+      # less visible here since a full page navigation re-fetches fresh
+      # source regardless of whether HMR's watcher noticed the change.
+      CHOKIDAR_USEPOLLING: 'true'
+      CHOKIDAR_INTERVAL: '300'
     volumes:
       - ../../frontend:/app
       - podzone_ui_node_modules:/app/node_modules
