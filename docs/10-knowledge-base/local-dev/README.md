@@ -13,3 +13,4 @@ their own host-mapped ports.
 |---|---|---|
 | 2026-07-11 | [MFE remoteEntry.js ERR_EMPTY_RESPONSE / 403 through APISIX](./2026-07-11-mfe-remoteentry-empty-response.md) | Docker/WSL2, APISIX, Vite preview |
 | 2026-07-11 | [Backoffice GraphQL POST /graphql 404](./2026-07-11-backoffice-graphql-404.md) | APISIX, MFE remote config drift |
+| 2026-07-12 | [MFE remote stops picking up file changes, "Module X could not be loaded"](./2026-07-12-mfe-remote-watch-not-picking-up-changes.md) | Docker/WSL2 bind-mount inotify, vite build --watch |
