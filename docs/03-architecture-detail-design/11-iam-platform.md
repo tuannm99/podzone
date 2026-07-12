@@ -64,6 +64,22 @@ The current implementation is not yet a reusable platform because:
 The extraction must therefore begin at the Decision API and identity contract,
 not by moving `internal/iam` unchanged into another repository.
 
+**Phase 0 done (2026-07-12):** a live inventory of every cross-service call
+into IAM's decision API found only 6 call sites total (onboarding 4,
+backoffice 1, partner 1, ~21 permission strings) — a small, tractable
+surface. Backoffice's one call site was the only one whose resource
+identifier depends on request-time GraphQL context rather than a static
+route, and its actual permission model turned out to be four roles with a
+strictly nested static grant set — no dynamic policy features used at all.
+See [SRS-IAM-005](../01-srs/iam/SRS-IAM-005-decision-api-scoped-to-dynamic-policy-consumers.md),
+[ADR-0004](../08-adr/ADR-0004-backoffice-static-rbac-not-iam-decision-api.md),
+and [PZEP-0003](../09-pzep/PZEP-0003-iam-decoupling-and-sdk-phase-1.md)
+(Draft) for the resulting plan: Backoffice moves to local static
+role-checking (removing its resource-dependent call entirely), and a Go
+SDK (Phase 1 below) covers the remaining, genuinely tenant/platform-scoped
+callers — meaningfully de-risking Phase 4 (gateway) and Phase 5
+(open-source extraction) below.
+
 Also unresolved: there is currently no cross-tenant "root admin" concept.
 Platform-scope roles (`platform_owner`, `platform_admin`) grant no implicit
 access to any tenant's store — `CheckPermissionForResource` never consults

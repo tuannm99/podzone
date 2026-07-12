@@ -72,6 +72,7 @@ contract/sprint links per requirement.
 | [SRS-IAM-002](./iam/SRS-IAM-002-permission-authoring.md) | Permission Authoring | Active |
 | [SRS-IAM-003](./iam/SRS-IAM-003-platform-vs-organization-administration-surface.md) | Platform Vs Organization Administration Surface | Active — nav gating slice done, console split not started |
 | [SRS-IAM-004](./iam/SRS-IAM-004-platform-admin-bootstrap-and-recovery.md) | Platform Admin Bootstrap And Recovery | Planned, post-backbone |
+| [SRS-IAM-005](./iam/SRS-IAM-005-decision-api-scoped-to-dynamic-policy-consumers.md) | IAM Decision API Scoped To Dynamic-Policy Consumers | Draft, ready to spec into tasks |
 | [SRS-ONB-001](./onboarding/SRS-ONB-001-workspace-and-store-entry.md) | Workspace And Store Entry | Active |
 | [SRS-ONB-002](./onboarding/SRS-ONB-002-store-provisioning-workflow.md) | Store Provisioning Workflow | Active |
 | [SRS-ONB-003](./onboarding/SRS-ONB-003-placement-source-of-truth.md) | Placement Source Of Truth | Active |

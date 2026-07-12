@@ -21,6 +21,7 @@ does not replace an ADR for pure architecture-boundary decisions (see
 |---|---|---|---|
 | [PZEP-0001](./PZEP-0001-onboarding-store-readiness-endpoint.md) | Onboarding store readiness endpoint | Done | 2026-07-10 |
 | [PZEP-0002](./PZEP-0002-platform-admin-bootstrap-and-recovery.md) | Platform admin bootstrap and recovery | Draft | 2026-07-12 |
+| [PZEP-0003](./PZEP-0003-iam-decoupling-and-sdk-phase-1.md) | Backoffice/IAM decoupling and IAM SDK Phase 1 | Draft | 2026-07-12 |
 
 ## Links Back To Delivery
 
