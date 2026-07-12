@@ -145,29 +145,31 @@ export function PodzoneNavbar() {
                     </div>
                 </div>
 
-                <div class="border-b border-gray-200 p-4">
-                    <Show
-                        when={workspace}
-                        fallback={
-                            <div class="space-y-2">
-                                <label class="text-xs font-semibold uppercase text-gray-500">Workspace</label>
-                                <Button href="/admin" color="alternative" size="sm" class="w-full">
-                                    Choose store
-                                </Button>
-                            </div>
-                        }
+                <div class="border-b border-gray-200 p-3">
+                    <Link
+                        to="/admin"
+                        class="flex h-12 items-center gap-2.5 rounded-md border border-gray-200 px-3 hover:bg-gray-50"
                     >
-                        <div class="space-y-2">
-                            <label class="text-xs font-semibold uppercase text-gray-500">Current store</label>
-                            <div class="truncate rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-950">
-                                {storeName()}
-                            </div>
-                            <div class="truncate text-xs text-gray-500">{activeTenantId().trim()}</div>
-                            <Button href="/admin" color="alternative" size="sm" class="w-full">
-                                Change store
-                            </Button>
-                        </div>
-                    </Show>
+                        <span class="flex size-7 shrink-0 items-center justify-center rounded-md bg-gray-100 text-[10px] font-bold text-gray-500">
+                            {hasTenant() ? initials(storeName()) : 'PZ'}
+                        </span>
+                        <span class="min-w-0 flex-1 text-left">
+                            <span class="block truncate text-sm font-medium text-gray-950">{storeName()}</span>
+                            <Show when={hasTenant()}>
+                                <span class="block truncate text-[11px] text-gray-500">{activeTenantId().trim()}</span>
+                            </Show>
+                        </span>
+                        <svg
+                            class="size-4 shrink-0 text-gray-400"
+                            viewBox="0 0 20 20"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.75"
+                            aria-hidden="true"
+                        >
+                            <path d="M7 7l3-3 3 3M7 13l3 3 3-3" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </Link>
                 </div>
 
                 <nav class="flex-1 space-y-6 overflow-y-auto p-4">
