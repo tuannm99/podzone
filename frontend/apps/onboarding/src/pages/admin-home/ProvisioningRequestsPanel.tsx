@@ -105,13 +105,7 @@ export function ProvisioningRequestsPanel() {
                                         <TableCell>
                                             <Badge
                                                 content={vm.provisioningStatusLabel(request.status)}
-                                                color={
-                                                    request.status === 'ready'
-                                                        ? 'green'
-                                                        : request.status.startsWith('failed')
-                                                          ? 'red'
-                                                          : 'yellow'
-                                                }
+                                                color={vm.readinessBadgeColor(vm.storeReadiness.uiStateFor(request.id))}
                                             />
                                         </TableCell>
                                         <TableCell>{request.requested_by}</TableCell>

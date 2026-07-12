@@ -9,12 +9,14 @@ import {
     membershipStatusColor,
     parseUserID,
     provisioningStatusLabel,
+    readinessBadgeColor,
     slugify,
     type StoreAttention,
     type WorkspaceSummary,
 } from './presentation'
 import { collectWorkspaceData } from './loadWorkspaceData'
 import { createStoreCollectionsViewModel } from './createStoreCollectionsViewModel'
+import { createStoreReadinessViewModel } from './createStoreReadinessViewModel'
 import type { CreateStoreFormValues, CreateWorkspaceFormValues } from './forms'
 
 export function createAdminHomeViewModel() {
@@ -72,6 +74,9 @@ export function createAdminHomeViewModel() {
     const storeCollections = createStoreCollectionsViewModel(selectedWorkspaceId, loadingTenants)
     const stores = storeCollections.stores
     const storeRequests = storeCollections.requests
+    const storeReadiness = createStoreReadinessViewModel(selectedWorkspaceId, () =>
+        storeRequests.items().map((request) => request.id)
+    )
     const currentSelectionLabel = () => {
         const workspace = selectedWorkspace()
         const store = stores.items().find((item) => item.id === selectedStoreId())
@@ -348,6 +353,7 @@ export function createAdminHomeViewModel() {
         storesError: storeCollections.storesError,
         storeRequests,
         storeRequestsError: storeCollections.requestsError,
+        storeReadiness,
         activeMemberships,
         activeWorkspaceSummaries,
         selectedWorkspace,
@@ -356,6 +362,7 @@ export function createAdminHomeViewModel() {
         slugify,
         membershipStatusColor,
         provisioningStatusLabel,
+        readinessBadgeColor,
         buildOrdersHref,
         prepareTenant,
         openStore,

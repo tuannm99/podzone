@@ -1,4 +1,4 @@
-import type { StoreRequestStatus } from '@podzone/shared/services/onboarding'
+import type { StoreReadinessUiState, StoreRequestStatus } from '@podzone/shared/services/onboarding'
 
 export type StoreAttention = {
     tenantId: string
@@ -63,6 +63,26 @@ export function provisioningStatusLabel(status: StoreRequestStatus) {
             return 'Pending platform setup'
         default:
             return status.charAt(0).toUpperCase() + status.slice(1)
+    }
+}
+
+// Driven by the readiness endpoint's authoritative ui_state, not
+// request.status alone — a 'failed_retryable' request is 'blocked', not
+// 'failed', and a request.status of 'ready' with placement not yet ready
+// is also 'blocked'. See docs/03-architecture-detail-design/05-transport-contracts.md
+// "Slice 0.3: Store Readiness Contract" for the full mapping.
+export function readinessBadgeColor(uiState: StoreReadinessUiState | undefined) {
+    switch (uiState) {
+        case 'ready':
+            return 'green'
+        case 'failed':
+            return 'red'
+        case 'pending':
+        case 'provisioning':
+        case 'blocked':
+            return 'yellow'
+        default:
+            return 'dark'
     }
 }
 

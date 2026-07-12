@@ -39,6 +39,20 @@ export type StoreRequest = {
     updated_at: string
 }
 
+export type StoreReadinessUiState = 'pending' | 'provisioning' | 'blocked' | 'failed' | 'ready'
+
+export type StoreReadiness = {
+    request_id: string
+    request_status: StoreRequestStatus
+    readiness: {
+        store_ready: boolean
+        placement_allocation_ready: boolean
+        route_ready: boolean
+    }
+    failure_reason?: string
+    ui_state: StoreReadinessUiState
+}
+
 type Result<T> = { success: true; data: T } | { success: false; message: string }
 
 function errorMessage(error: unknown): string {
@@ -98,6 +112,18 @@ export async function retryStoreRequest(input: { tenantId: string; requestId: st
             { headers: tenantHeaders(input.tenantId) }
         )
         return { success: true, data: undefined }
+    } catch (error) {
+        return { success: false, message: errorMessage(error) }
+    }
+}
+
+export async function getStoreReadiness(tenantId: string, requestId: string): Promise<Result<StoreReadiness>> {
+    try {
+        const response = await http.get<StoreReadiness>(
+            `${ONBOARDING_API_URL}/onboarding/v1/requests/${encodeURIComponent(requestId)}/readiness`,
+            { headers: tenantHeaders(tenantId) }
+        )
+        return { success: true, data: response.data }
     } catch (error) {
         return { success: false, message: errorMessage(error) }
     }
