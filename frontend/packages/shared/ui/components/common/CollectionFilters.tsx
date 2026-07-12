@@ -79,10 +79,10 @@ export function CollectionFilters(props: CollectionFiltersProps) {
     return (
         <div class="space-y-3">
             <form
-                class="grid gap-3 rounded-md border border-gray-200 bg-gray-50 p-3 md:grid-cols-[minmax(10rem,0.7fr)_minmax(10rem,0.7fr)_minmax(12rem,1fr)_auto]"
+                class="flex flex-wrap items-end gap-3 rounded-md border border-gray-200 bg-gray-50 p-3"
                 onSubmit={addFilter}
             >
-                <label class="space-y-1 text-sm text-gray-600">
+                <label class="min-w-40 flex-1 space-y-1 text-sm text-gray-600">
                     <span class="font-medium text-gray-800">Filter field</span>
                     <select
                         value={field()}
@@ -93,7 +93,7 @@ export function CollectionFilters(props: CollectionFiltersProps) {
                     </select>
                 </label>
 
-                <label class="space-y-1 text-sm text-gray-600">
+                <label class="min-w-40 flex-1 space-y-1 text-sm text-gray-600">
                     <span class="font-medium text-gray-800">Operator</span>
                     <select
                         value={operator()}
@@ -106,7 +106,7 @@ export function CollectionFilters(props: CollectionFiltersProps) {
                     </select>
                 </label>
 
-                <label class="space-y-1 text-sm text-gray-600">
+                <label class="min-w-48 flex-[2] space-y-1 text-sm text-gray-600">
                     <span class="font-medium text-gray-800">Value</span>
                     <input
                         value={value()}
@@ -116,7 +116,7 @@ export function CollectionFilters(props: CollectionFiltersProps) {
                     />
                 </label>
 
-                <Button type="submit" color="alternative" size="sm" class="md:self-end">
+                <Button type="submit" color="alternative" size="sm">
                     Add filter
                 </Button>
             </form>
