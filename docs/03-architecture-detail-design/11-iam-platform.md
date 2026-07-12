@@ -64,6 +64,14 @@ The current implementation is not yet a reusable platform because:
 The extraction must therefore begin at the Decision API and identity contract,
 not by moving `internal/iam` unchanged into another repository.
 
+Also unresolved: there is currently no cross-tenant "root admin" concept.
+Platform-scope roles (`platform_owner`, `platform_admin`) grant no implicit
+access to any tenant's store — `CheckPermissionForResource` never consults
+platform roles/policies on the tenant-scoped path, only tenant memberships
+and an org-`manage_iam` fallback scoped to that tenant's own org. See
+[ADR-0003](../08-adr/ADR-0003-platform-scope-tenant-access-override.md)
+(Proposed) for the analysis and a candidate audited override mechanism.
+
 ## Product Boundary
 
 ```mermaid
@@ -376,7 +384,10 @@ revision rather than attempting unbounded key deletion.
 - Store immutable administration audit records and configurable decision logs.
 - Support policy shadow evaluation before enforcement.
 - Treat organization root and system admin as separate durable bindings.
-- Require explicit bootstrap/recovery procedures for the first system admin.
+- Require explicit bootstrap/recovery procedures for the first system admin —
+  see [SRS-IAM-004](../01-srs/iam/SRS-IAM-004-platform-admin-bootstrap-and-recovery.md)
+  and [PZEP-0002](../09-pzep/PZEP-0002-platform-admin-bootstrap-and-recovery.md)
+  (Draft, `cmd/iam-bootstrap`) for the confirmed gap and proposed fix.
 - Version every public proto, policy schema, event envelope, and SDK behavior.
 
 ## Target Repository Shape

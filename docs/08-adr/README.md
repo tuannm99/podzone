@@ -17,6 +17,7 @@ boundary change.**
 |---|---|---|---|
 | [ADR-0001](./ADR-0001-mfe-solid-js-not-federation-singleton.md) | MFE remotes do not share `solid-js` as a federation singleton | Accepted | 2026-07-10 |
 | [ADR-0002](./ADR-0002-npm-vite-alias-not-pnpm-workspaces.md) | Monorepo dependency resolution uses npm + Vite `resolve.alias`, not pnpm workspaces | Accepted | 2026-07-11 |
+| [ADR-0003](./ADR-0003-platform-scope-tenant-access-override.md) | Platform-scope roles do not implicitly bypass tenant-scoped access checks | Proposed | 2026-07-12 |
 
 ## Links Back To Delivery
 

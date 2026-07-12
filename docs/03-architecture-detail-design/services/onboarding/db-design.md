@@ -13,61 +13,91 @@ Field lists are taken directly from Go struct `bson` tags — see the
 source file cited per collection. Do not add a field to a collection
 without updating both the struct and this doc.
 
-## ERD
+## Entity-Relationship Diagrams
+
+One diagram for all 10 collections was hard to follow, so this is split
+into a one-screen overview plus one diagram per collection group — same
+grouping as `## Collections` below. Mongo has no FK enforcement — every
+edge below is an application-level ID reference, not a database
+constraint; that is called out per-edge rather than repeated on every
+line.
+
+### Overview — Anchor Collections
 
 ```mermaid
 erDiagram
-    store_requests ||--o{ store_request_transitions : "request_id (reference, not FK)"
-    store_requests ||--o| placement_allocations : "tenant_id (reference, not FK)"
-    placement_allocations }o--|| placement_plans : "request_id (reference, not FK)"
-    placement_plans }o--o{ resource_db_clusters : "cluster_name (reference, not FK)"
-    placement_plans }o--o{ resource_k8s_clusters : "cluster_name (reference, not FK)"
-    placement_plans }o--o{ resource_runtime_pools : "cluster_name (reference, not FK)"
-    connections ||--o{ connection_events : "tenant_id+infra_type+name (reference, not FK)"
-    connection_outbox }o--|| connection_events : "event_id (reference, not FK)"
+    store_requests ||--o{ store_request_transitions : "request_id (reference)"
+    store_requests ||--o| placement_allocations : "tenant_id (reference)"
+    placement_allocations }o--|| placement_plans : "request_id (reference)"
+    placement_plans }o--o{ resource_db_clusters : "cluster_name (reference)"
+    connections ||--o{ connection_events : "tenant_id+infra_type+name (reference)"
+    connection_outbox }o--|| connection_events : "event_id (reference)"
 
     store_requests {
         ObjectId _id PK
-        string workspace_id
-        string name
         string subdomain UK
-        string requested_by
-        string owner_id
         string status
-        ObjectId store_id
-        string last_error
-        string lease_owner
-        time created_at
-        time updated_at
-        time approved_at
-        time completed_at
-        time lease_until
-        int attempt
     }
-    store_request_transitions {
-        ObjectId _id PK
-        string request_id
-        string from
-        string to
-        map actor
-        string step
-        string reason
-        string error_code
-        time created_at
+    placement_allocations {
+        string request_id "-> store_requests, see Placement"
+        string tenant_id
+        string status
+    }
+    placement_plans {
+        string request_id UK
+        string cluster_name "-> Resource Inventory"
     }
     connections {
         string tenant_id
         string infra_type
         string name
-        string endpoint
-        string secret_ref
+    }
+```
+
+Everything below expands one of these anchors plus its detail/child
+collections.
+
+### Store Lifecycle
+
+Owned by `internal/onboarding/infrastructure/repository/store`.
+
+```mermaid
+erDiagram
+    store_requests ||--o{ store_request_transitions : "request_id (reference, not FK)"
+
+    store_requests {
+        ObjectId _id PK
+        string workspace_id
+        string subdomain UK
+        string status
+        ObjectId store_id
+        string lease_owner
+        time updated_at
+    }
+    store_request_transitions {
+        ObjectId _id PK
+        string request_id "-> store_requests"
+        string from
+        string to
+        time created_at
+    }
+```
+
+### Infrastructure Connections
+
+Owned by `internal/onboarding/infrastructure/repository/infrasmanager`.
+
+```mermaid
+erDiagram
+    connections ||--o{ connection_events : "tenant_id+infra_type+name (reference, not FK)"
+    connection_outbox }o--|| connection_events : "event_id (reference, not FK)"
+
+    connections {
+        string tenant_id
+        string infra_type
+        string name
         string status
         int64 version
-        map meta
-        map config
-        time created_at
-        time updated_at
-        time deleted_at
     }
     connection_events {
         string id UK
@@ -75,101 +105,82 @@ erDiagram
         string tenant_id
         string infra_type
         string name
-        string action
-        string status
-        map request
-        map result
-        string error
-        map actor
-        time created_at
     }
     connection_outbox {
         string event_id UK
         string correlation_id
         string topic
-        map payload
-        string tenant_id
-        string infra_type
-        string name
         string status
-        int retry_count
-        time next_retry
-        time created_at
-        time updated_at
     }
+```
+
+### Placement
+
+Owned by `internal/onboarding/infrastructure/repository/infrasmanager`.
+`placement_allocations` is the source of truth; the Redis/Valkey route
+projection read by `pkg/pdtenantdb` is derived from it (see
+[Not A Database Table](#not-a-database-table-kv-route-projection) below).
+
+```mermaid
+erDiagram
+    store_requests ||--o| placement_allocations : "tenant_id (reference, not FK)"
+    placement_allocations }o--|| placement_plans : "request_id (reference, not FK)"
+
     placement_allocations {
         string id
-        string request_id
-        string tenant_id
-        string store_id
-        string runtime
-        string cluster_name
-        string mode
-        string db_name
-        string schema_name
-        string endpoint
-        string secret_ref
+        string request_id "-> store_requests"
+        string tenant_id UK "unique where status=ready"
+        string cluster_name "-> Resource Inventory"
         string status
-        map provider_meta
-        time created_at
-        time updated_at
     }
     placement_plans {
         string request_id UK
         string tenant_id
-        string store_id
-        string runtime
-        string cluster_name
-        string mode
-        string db_name
-        string schema_name
-        map provider_meta
+        string cluster_name "-> Resource Inventory"
         object inventory_snapshot
         object capacity_snapshot
         object policy_decision
-        time created_at
-        time updated_at
     }
+```
+
+### Resource Inventory
+
+Owned by `internal/onboarding/infrastructure/repository/infrasmanager`.
+Three independent capacity/health catalogs — no relationships between
+them; each is referenced by name from `placement_plans.cluster_name` /
+`placement_allocations.cluster_name` (see Placement above).
+
+```mermaid
+erDiagram
     resource_db_clusters {
         string name UK
         string engine
-        string region
-        string placement_db
         int max_tenants
         int current_tenants
         int max_schemas
         int current_schemas
-        int max_connections
-        int current_connections
-        string status
         bool healthy
-        time created_at
-        time updated_at
     }
     resource_k8s_clusters {
         string name UK
         string region
         array namespaces
-        string status
         bool healthy
-        time created_at
-        time updated_at
     }
     resource_runtime_pools {
         string name UK
         string kind
         int max_tenants
         int current_tenants
-        string status
         bool healthy
-        time created_at
-        time updated_at
     }
 ```
 
 ## Collections
 
-### `store_requests`
+### Store Lifecycle
+
+#### `store_requests`
 
 **Owner:** onboarding · **Source:** `internal/onboarding/domain/store/entity/store.go` (`StoreRequest`)
 **Scope:** workspace-scoped (`workspace_id`). **Source of truth**, not a projection.
@@ -194,7 +205,7 @@ Indexes: unique on `subdomain`; `(workspace_id, status)`; `(workspace_id,
 updated_at desc)`; `(status, lease_until, updated_at)` (worker claim
 query).
 
-### `store_request_transitions`
+#### `store_request_transitions`
 
 **Owner:** onboarding · **Source:** `StoreRequestTransition` in the same file.
 **Scope:** not directly scoped — scoped transitively via `request_id`.
@@ -213,7 +224,9 @@ Audit trail, append-only.
 
 Index: `(request_id, created_at desc)`.
 
-### `connections`
+### Infrastructure Connections
+
+#### `connections`
 
 **Owner:** onboarding (infrasmanager) · **Source:** `internal/onboarding/infrastructure/repository/infrasmanager/repository.go`.
 **Scope:** tenant-scoped (`tenant_id`). Source of truth for provisioned
@@ -237,7 +250,7 @@ tenant).
 Indexes: `(tenant_id, infra_type, name)`; `(infra_type, status)`;
 `(tenant_id, updated_at desc)`.
 
-### `connection_events`
+#### `connection_events`
 
 **Owner:** onboarding (infrasmanager). Append-only event log for
 connection lifecycle actions (create/destroy/manual_upsert/
@@ -257,7 +270,7 @@ publish_kv_store/delete_kv_store).
 Indexes: unique on `id`; `(correlation_id, created_at desc)`;
 `(tenant_id, infra_type, name, created_at desc)`.
 
-### `connection_outbox`
+#### `connection_outbox`
 
 **Owner:** onboarding (infrasmanager). Implements `messaging.OutboxStore`
 — transactional outbox for `kv_store.publish`/`kv_store.delete` events.
@@ -278,7 +291,9 @@ outbox pattern.
 
 Indexes: `(status, next_retry)` (due-query); unique on `event_id`.
 
-### `placement_allocations`
+### Placement
+
+#### `placement_allocations`
 
 **Owner:** onboarding (infrasmanager) · **Scope:** tenant+store-scoped.
 **Source of truth per SRS-ONB-003** — the KV/Redis route projection read
@@ -302,7 +317,7 @@ placement per tenant at the DB level; `(status, updated_at desc)`. A
 legacy index `uniq_placement_allocation_tenant_store` is dropped at
 startup if present (`dropLegacyPlacementIndex`).
 
-### `placement_plans`
+#### `placement_plans`
 
 **Owner:** onboarding (infrasmanager). The planning snapshot that
 precedes allocation — captures the inventory/capacity state and policy
@@ -321,7 +336,9 @@ decision used to pick a placement target.
 
 Indexes: unique on `request_id`; `(tenant_id, store_id, updated_at desc)`.
 
-### `resource_db_clusters`
+### Resource Inventory
+
+#### `resource_db_clusters`
 
 **Owner:** onboarding (infrasmanager). Capacity/health inventory for
 Postgres DB clusters available for placement.
@@ -338,7 +355,7 @@ Postgres DB clusters available for placement.
 
 Index: unique on `name`; `(status, healthy)`.
 
-### `resource_k8s_clusters`
+#### `resource_k8s_clusters`
 
 **Owner:** onboarding (infrasmanager). Capacity/health inventory for
 Kubernetes clusters, with nested per-namespace capacity.
@@ -352,7 +369,7 @@ Kubernetes clusters, with nested per-namespace capacity.
 
 Index: unique on `name`; `(status, healthy)`.
 
-### `resource_runtime_pools`
+#### `resource_runtime_pools`
 
 **Owner:** onboarding (infrasmanager). Capacity/health inventory for
 generic runtime pools (non-DB, non-k8s compute).
@@ -372,8 +389,8 @@ Index: unique on `name`; `(status, healthy)`.
 (`internal/onboarding/infrastructure/provisioning/router/placement_route_reader.go`)
 writes a route projection to Redis/Valkey, read by `pkg/pdtenantdb` to
 resolve which Postgres cluster/schema a Backoffice tenant query should
-hit. This is **not a Mongo collection** and not listed in the ERD above —
-it is a derived, rebuildable cache of `placement_allocations`. See
+hit. This is **not a Mongo collection** and not listed in any diagram
+above — it is a derived, rebuildable cache of `placement_allocations`. See
 [data-ownership.md](../../../02-architecture-overall/04-data-ownership.md).
 
 ## Links Back To Delivery

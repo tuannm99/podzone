@@ -20,139 +20,103 @@ See also: [Data Ownership](../../../02-architecture-overall/04-data-ownership.md
 [Legacy Inventory](../../../06-recovery/legacy-inventory.md),
 [DDD And Clean Architecture](../../03-ddd-clean-architecture.md).
 
-## ERD
+## Entity-Relationship Diagrams
 
 **No table in this schema has a `REFERENCES` foreign-key constraint.**
 Every cross-table link below is a plain `TEXT` column matched by
-convention (a "logical reference"), enforced only in application code.
-The diagram draws these logical links for readability — do not read them
-as DB-enforced relationships.
+convention (a "logical reference"), enforced only in application code —
+diagrams draw these logical links for readability, do not read them as
+DB-enforced relationships. `routed_orders` alone carries ~30 columns
+accumulated from the routing/fulfillment/settlement/exception subdomains
+(migrations `0003`–`0014`); cramming all 6 tables with full column lists
+into one diagram was unreadable, so this is split into a compact overview
+plus one diagram per subdomain, matching the "Owner" subdomain noted for
+each table under `## Tables` below. Each diagram keeps only PK/FK/UK
+columns — full column lists are in `## Tables`.
+
+### Overview
 
 ```mermaid
 erDiagram
     stores ||--o{ product_setup_drafts : "store_id (logical)"
-    stores ||--o{ product_setup_candidates : "store_id (logical)"
     stores ||--o{ routed_orders : "store_id (logical)"
-    stores ||--o{ routed_order_activities : "store_id (logical)"
     stores ||--o{ customer_orders : "store_id (logical)"
     product_setup_drafts ||--|| product_setup_candidates : "draft_id (logical, unique)"
-    product_setup_candidates ||--o{ routed_orders : "candidate_id (logical)"
     product_setup_candidates ||--o{ customer_orders : "candidate_id (logical)"
     routed_orders ||--o{ routed_order_activities : "order_id (logical)"
 
     stores {
         text id PK
-        text name
-        text description
-        text owner_id
-        text status
-        timestamptz created_at
-        timestamptz updated_at
     }
+    product_setup_drafts {
+        text id PK
+    }
+    product_setup_candidates {
+        text id PK
+    }
+    routed_orders {
+        text id PK
+    }
+    routed_order_activities {
+        bigserial id PK
+    }
+    customer_orders {
+        text id PK
+    }
+```
+
+`stores` is the root every other table fans out from via a logical
+`store_id`; it has no incoming logical references itself, so it is not
+redrawn as its own diagram below — see `### \`stores\`` under `## Tables`
+for its full column list.
+
+### Catalog (Product Setup)
+
+```mermaid
+erDiagram
+    product_setup_drafts ||--|| product_setup_candidates : "draft_id (logical, unique)"
 
     product_setup_drafts {
         text id PK
-        text store_id "logical FK -> stores.id"
-        text name
-        text partner
-        text base_cost
-        text retail_price
+        text store_id "logical FK -> stores, see Overview"
         text status
-        text notes
-        timestamptz created_at
-        timestamptz updated_at
     }
-
     product_setup_candidates {
         text id PK
-        text store_id "logical FK -> stores.id"
-        text draft_id UK "logical FK -> product_setup_drafts.id, 1:1"
-        text title
+        text store_id "logical FK -> stores, see Overview"
+        text draft_id UK "logical FK -> product_setup_drafts, 1:1"
         text sku
-        text partner
-        text base_cost
-        text retail_price
-        text estimated_margin
         text status
-        text channel
-        text variants_json
-        text artwork_checklist_json
-        text merchandising_notes
-        timestamptz updated_at
     }
+```
+
+### Order, Fulfillment And Settlement
+
+```mermaid
+erDiagram
+    routed_orders ||--o{ routed_order_activities : "order_id (logical)"
 
     routed_orders {
         text id PK
-        text store_id "logical FK -> stores.id"
-        text candidate_id "logical FK -> product_setup_candidates.id"
-        text product_title
-        text partner
-        int quantity
-        text total
-        text customer_name
+        text store_id "logical FK -> stores, see Overview"
+        text candidate_id "logical FK -> product_setup_candidates, see Catalog"
         text status
-        text timeline_json
-        text exception_type
         text exception_status
-        text shipment_status
-        text shipment_carrier
-        text shipment_tracking_number
-        text shipment_tracking_url
-        text shipment_notes
-        timestamptz shipped_at
-        timestamptz delivered_at
-        text base_cost_snapshot
-        text fulfillment_cost
-        text shipping_cost
-        text realized_margin
         text settlement_status
-        text settlement_notes
-        text issue_cost
-        text issue_resolution
-        text issue_notes
-        text operator_assignee
-        timestamptz shipment_sla_due_at
-        timestamptz issue_sla_due_at
-        text routing_block_code
-        text routing_block_reason
-        timestamptz created_at
-        timestamptz updated_at
     }
-
     routed_order_activities {
         bigserial id PK
-        text store_id "logical FK -> stores.id"
-        text order_id "logical FK -> routed_orders.id"
-        text product_title
-        text partner
-        text operator_assignee
+        text store_id "logical FK -> stores, see Overview"
+        text order_id "logical FK -> routed_orders"
         text activity_type
-        text actor
-        text message
-        text details_json
-        timestamptz created_at
     }
-
     customer_orders {
         text id PK
         bigint aggregate_version
-        text store_id "logical FK -> stores.id"
-        text candidate_id "logical FK -> product_setup_candidates.id"
-        text product_title
-        int quantity
-        text total
-        text customer_name
+        text store_id "logical FK -> stores, see Overview"
+        text candidate_id "logical FK -> product_setup_candidates, see Catalog"
         text status
-        text partner
-        text operator_assignee
-        timestamptz shipment_sla_due_at
-        timestamptz issue_sla_due_at
-        text exception_status
-        text routing_block_code
-        text routing_block_reason
         text settlement_status
-        timestamptz created_at
-        timestamptz updated_at
     }
 ```
 

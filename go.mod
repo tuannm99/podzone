@@ -1,20 +1,20 @@
 module github.com/tuannm99/podzone
 
-go 1.26.0
+go 1.26.5
 
 tool (
 	github.com/99designs/gqlgen
 	github.com/bufbuild/buf/cmd/buf
-	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 	github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway
 	github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
 	github.com/pressly/goose/v3/cmd/goose
-	github.com/segmentio/golines
 	github.com/vektra/mockery/v3
 
 	golang.org/x/vuln/cmd/govulncheck
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc
 	google.golang.org/protobuf/cmd/protoc-gen-go
+	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
+	github.com/segmentio/golines
 	mvdan.cc/gofumpt
 )
 

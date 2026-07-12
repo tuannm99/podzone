@@ -21,8 +21,7 @@ Each feature requirement should include:
 
 ## PZEP Documents
 
-PZEP describes **how** an approved requirement will be delivered at feature
-level.
+PZEP describes **how** an approved requirement will be delivered at feature level.
 
 Minimum sections:
 
@@ -45,8 +44,7 @@ Minimum sections:
 
 ## ADR Documents
 
-ADR describes **why** an architecture-boundary decision was made — the
-options considered and the tradeoff picked, not implementation steps.
+ADR describes **why** an architecture-boundary decision was made — the options considered and the tradeoff picked, not implementation steps.
 
 Minimum sections:
 

@@ -1,5 +1,10 @@
 import { createEffect, createResource, createSignal, on, type Accessor } from 'solid-js'
-import { listTenantInvites, listTenantMembers, listUserTenants, type TenantMembership } from '@podzone/shared/services/iam'
+import {
+    listTenantInvites,
+    listTenantMembers,
+    listUserTenants,
+    type TenantMembership,
+} from '@podzone/shared/services/iam'
 import { createPaginatedResource } from '@podzone/shared/ui/pagination'
 
 export function createWorkspaceAccessViewModel(

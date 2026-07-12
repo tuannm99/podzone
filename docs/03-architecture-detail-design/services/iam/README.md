@@ -128,8 +128,18 @@ code.
   backend services on the internal network, not end users directly.
 - Authorization: IAM **is** the authorization system; there is no meta-
   authorization layer in front of it beyond network boundary.
+- Bootstrap: there is currently **no** code path that grants the first
+  `platform_owner` — `AddPlatformRole` requires the caller to already hold
+  `platform:manage_roles`, and no migration seeds a platform role to a real
+  user. See [SRS-IAM-004](../../../01-srs/iam/SRS-IAM-004-platform-admin-bootstrap-and-recovery.md)
+  and [PZEP-0002](../../../09-pzep/PZEP-0002-platform-admin-bootstrap-and-recovery.md)
+  (Draft) for the proposed `cmd/iam-bootstrap` fix, not yet implemented.
 - Tenant/workspace/store isolation: enforced per-table, see "Tenant
-  Scoping Summary" in db-design.md.
+  Scoping Summary" in db-design.md. Platform-scope roles/policies
+  (`platform_owner`, `platform_admin`) currently grant **no** implicit
+  cross-tenant store access — see
+  [ADR-0003](../../../08-adr/ADR-0003-platform-scope-tenant-access-override.md)
+  (Proposed) for a candidate audited override mechanism, not yet accepted.
 - Sensitive data: `tenant_invites.token_hash` (hash, not raw token,
   correctly). `iam_audit_logs.payload_json` can contain caller-supplied
   detail — do not put secrets in audit payloads.
@@ -169,6 +179,21 @@ State/data flow follows the `createAdminIamViewModel` pattern (state in
 in `createAdminIamResources.ts`, contexts in `createAdminIamContexts.ts`)
 — see `agent/SOLID_STYLE_GUIDE.md` for the ViewModel pattern itself, not
 re-explained here.
+
+**Not here:** `/admin/settings` (session/workspace account settings —
+sessions, audit log, invites, team access, platform roles) briefly passed
+through this remote on 2026-07-12 but was relocated to the shell
+(`frontend/src/modules/shell/pages/admin-settings/`) the same day. Reason:
+`frontend/apps/iam` is the one FE surface most likely to be reused if IAM
+is ever extracted as a standalone product for other systems (see
+"Target Repository Shape" in `11-iam-platform.md` — the extraction target
+is backend-only today, but the same reusability boundary should hold for
+any future FE split too). `/admin/settings` is Podzone-product
+composition — its Overview tab renders `TENANT_GQL_URL` labeled "Store
+GraphQL API" and workspace/store copy, which is Podzone-specific, not
+generic IAM UI — so it must not live inside the remote that is a
+reuse-extraction candidate, even though it calls IAM/Auth APIs like any
+other Podzone screen would.
 
 ## Agent Rules
 

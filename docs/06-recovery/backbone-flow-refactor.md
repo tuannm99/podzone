@@ -49,13 +49,13 @@ Investigated from actual code in `internal/`. Status key:
 
 The following gaps block the backbone from running reliably in Docker dev:
 
-1. **Combined readiness endpoint exists but is not wired to FE**: `GET /requests/:id/readiness` already combines store status with placement allocation/route readiness (see capability table above). The remaining gap is frontend integration and end-to-end verification in Docker, not endpoint design.
+1. **Combined readiness endpoint exists and is now wired to FE (2026-07-12)**: `GET /requests/:id/readiness` combines store status with placement allocation/route readiness (see capability table above). `ProvisioningRequestsPanel.tsx`'s status badge now reads the endpoint's `ui_state` per visible request instead of inferring from `request.status` alone — see `docs/04-sprints/tasks/wire-store-readiness-frontend.md`. **Remaining:** end-to-end verification in a live Docker dev environment (this pass was build/lint-level only, no running backend was exercised).
 
 2. **Placement bootstrap sequence is unclear**: `dev-bootstrap` seeds a store request and calls onboarding, but whether the full provisioning pipeline (planning → queued → provisioning → ready + placement write + KV projection publish) completes automatically in Docker dev is unverified.
 
 3. **IAM permissions for backoffice guard**: The backoffice graphql guard calls IAM to check permission. Whether the bootstrapped user has the correct permission rows for a fresh store is unverified.
 
-4. **FE store chooser maps 15 statuses to 3 UI states**: The frontend store chooser must map `requested | planning | planned | pending_approval | queued | provisioning` → pending, `failed | failed_retryable | failed_non_retryable | rejected | suspended` → failed, `ready` → ready. This mapping is not yet documented in a UI contract.
+4. **FE store chooser maps 15 statuses to 3 UI states — done, corrected mapping**: the mapping stated here previously was imprecise (`failed_retryable` grouped under `failed`). The authoritative mapping lives in `docs/03-architecture-detail-design/05-transport-contracts.md` "Slice 0.3: Store Readiness Contract": `requested | planning | planned | pending_approval` → `pending`; `queued | provisioning | pending_platform_setup` → `provisioning`; `failed_retryable` → `blocked` (not `failed`); `failed | failed_non_retryable | rejected | cancelled | suspended | archived` → `failed`; `ready` + placement/route ready → `ready`; `ready` + placement not ready → `blocked`. `ProvisioningRequestsPanel.tsx` now consumes this mapping via the backend's `ui_state` field directly rather than re-implementing it client-side.
 
 5. **MFE remote load errors**: If an MFE remote (backoffice/iam/onboarding) is down, the shell shows an error boundary. But the shell's workspace chooser (in `src/modules/shell/`) is not yet a remote — it runs inline in the host.
 
@@ -99,28 +99,32 @@ The following gaps block the backbone from running reliably in Docker dev:
 
 ## First Agent-Ready Task Candidate
 
-The readiness contract and endpoint already exist (see gap #1 above). The
-next slice is integration and verification, not contract design.
+The readiness contract and endpoint already exist (see gap #1 above). FE
+integration is done (2026-07-12, see
+`docs/04-sprints/tasks/wire-store-readiness-frontend.md`) but only verified
+at the build/lint level. The next slice is Docker end-to-end verification,
+not further integration work.
 
 Candidate:
 
 ```text
-Wire the workspace/store chooser to GET /requests/:id/readiness and verify
-the full backbone flow end to end in Docker dev.
+Run the full backbone flow end to end in Docker dev (sign in → choose
+workspace → request or select store → onboarding placement resolves → open
+store-scoped Backoffice → call one protected business API) and confirm the
+provisioning requests panel shows the correct ui_state for at least one
+request in each of pending/provisioning/blocked/failed/ready.
 ```
 
 Allowed docs:
 
-- `docs/04-sprints/tasks/onboarding-readiness-api.md`
+- `docs/04-sprints/tasks/wire-store-readiness-frontend.md`
 - `docs/03-architecture-detail-design/05-transport-contracts.md`
 - `docs/01-srs/traceability-matrix.md`
 
 Done:
 
-- FE store chooser calls the readiness endpoint instead of inferring from
-  store status alone;
-- the 15 store-request statuses map to pending/failed/ready per the mapping
-  in gap #4 above;
 - flow verified end to end in Docker dev (sign in → workspace → ready store
   → Backoffice → one protected API call);
+- provisioning requests panel observed showing correct badge/color for a
+  request in each ui_state, not just build-level type-checking;
 - traceability updated.

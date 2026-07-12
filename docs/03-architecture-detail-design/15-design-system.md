@@ -21,7 +21,7 @@ API conventions, current gaps, and how to extend it correctly.
 | Family | Files | Status |
 |--------|-------|--------|
 | Primitives / Form fields | `Primitives.tsx` | ⚠️ Needs token refactor, label fix |
-| Navigation shells | `Navigation.tsx`, `layout/PodzoneNavbar.tsx` | ⚠️ Raw anchors |
+| Navigation shells | `Navigation.tsx`, `layout/PodzoneNavbar.tsx` | ⚠️ Raw anchors; workspace switcher is one compact row (see Patterns → Workspace Switcher) |
 | Overlays | `Overlay.tsx` | ❌ No focus trap, no ARIA dialog |
 | Collection controls | `CollectionControls`, `CollectionFilters`, `CollectionToolbar` | ✅ |
 | Table | `DataTable.tsx` | ⚠️ No sort headers, no built-in empty/skeleton rows |
@@ -263,6 +263,35 @@ Wrap all modal and drawer open/close with:
 Until the shared `Modal`/`Drawer` components are fixed (Gap G2), feature teams
 must add these attributes and focus management at the call site.
 
+### Workspace Switcher
+
+The sidebar's workspace control (`PodzoneNavbar.tsx`) is **one row, fixed
+height (`h-12`), regardless of state** — an icon/initials chip, store name +
+tenant id (or "Choose a store" when empty), and a chevron, wrapped in one
+clickable `Link` to `/admin`. There is no separate uppercase section label
+above it ("WORKSPACE") and no dedicated "Change store" button below it —
+those doubled the block's height across two states (empty: label + button;
+selected: label + info box + subtext + button) for a control that is just a
+link to the store chooser.
+
+```tsx
+<Link to="/admin" class="flex h-12 items-center gap-2.5 rounded-md border border-gray-200 px-3 hover:bg-gray-50">
+  <span class="flex size-7 shrink-0 items-center justify-center rounded-md bg-gray-100 text-[10px] font-bold text-gray-500">
+    {hasTenant() ? initials(storeName()) : 'PZ'}
+  </span>
+  <span class="min-w-0 flex-1 text-left">
+    <span class="block truncate text-sm font-medium text-gray-950">{storeName()}</span>
+    <Show when={hasTenant()}>
+      <span class="block truncate text-[11px] text-gray-500">{activeTenantId().trim()}</span>
+    </Show>
+  </span>
+  {/* chevron svg */}
+</Link>
+```
+
+Reuse this one-row pattern for any other "current X, click to switch" control
+(e.g. a future organization switcher) instead of a label+card+button stack.
+
 ---
 
 ## Known Gaps
@@ -384,6 +413,18 @@ The default button color is named "blue" but renders black.
 `'primary' | 'secondary' | 'danger' | 'success' | 'ghost'`. Derive colors from
 CSS custom properties so a brand change touches only `global.css`, not
 every call site. Run a codemod to update existing `color="blue"` → `color="primary"`.
+
+### G7 — `PageShell` has no max-width (P3, not yet prioritized)
+
+`PageShell.tsx` is `<div class="space-y-4 lg:space-y-5">{children}</div>` —
+no width cap at all. On a wide viewport, a low-content page (e.g. a metrics
+row of 2-3 cards) stretches full width and reads as sparse/empty — observed
+while mocking up the SRS-IAM-003 platform-overview placeholder screen. Not
+fixed yet: current low-content pages are placeholders (SRS-IAM-003 planned,
+not built), so it's unclear whether this is really a gap or will resolve
+itself once those pages have real content. Revisit once a real page hits
+this — don't add a max-width speculatively, since some pages (wide tables,
+`DataTable`) may rely on full width.
 
 ---
 

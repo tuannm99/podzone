@@ -177,8 +177,8 @@ brokers, IAM gRPC endpoint).
 ## Frontend Surface
 
 Dedicated MFE remote at `frontend/apps/onboarding` (route prefix
-`/admin`, `/admin/settings`, `/admin/provisioning`). Registered via
-`remotePage()` in `frontend/apps/onboarding/src/routes.ts` — see
+`/admin`, `/admin/provisioning`). Registered via `remotePage()` in
+`frontend/apps/onboarding/src/routes.ts` — see
 `agent/SOLID_STYLE_GUIDE.md` for the ViewModel/Panel conventions used
 throughout, not repeated here.
 
@@ -188,11 +188,20 @@ Pages (`frontend/apps/onboarding/src/pages/`):
   (`StoreChooser.tsx`), create-first-store flow, provisioning-requests
   panel. This is the FE surface that should call the readiness endpoint
   per PZEP-0001's open question — not wired yet.
-- `AdminSettingsPage.tsx` → `admin-settings/` — sessions/audit, invites,
-  platform roles, team access.
 - `AdminProvisioningPage.tsx` → `admin-provisioning/` — provisioning
   pipeline view, connections editor, resource editor (admin/operator
   surface for the infra-manager APIs above).
+
+`/admin/settings` (sessions/audit, invites, platform roles, team access)
+moved out to the shell (`frontend/src/modules/shell/pages/admin-settings/`,
+2026-07-12) — every one of those panels called
+`@podzone/shared/services/auth` or `@podzone/shared/services/iam`, none
+called onboarding's own backend, so it had no business living in this
+app's bundle. It briefly passed through the `iam` MFE remote first, but
+landed in the shell instead: `apps/iam` is a reuse-extraction candidate if
+IAM ever ships as a standalone product (see `11-iam-platform.md`), and
+`/admin/settings` is Podzone-product composition, not generic IAM UI. See
+[IAM Frontend Surface](../iam/README.md#frontend-surface).
 
 ## Links Back To Delivery
 

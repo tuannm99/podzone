@@ -7,8 +7,16 @@ Parent index: [Podzone Documentation Index](../README.md).
 
 Start here:
 
-1. `podzone-srs.md`
+1. `podzone-srs.md` — purpose, scope, actors, NFRs, and an index table into
+   the per-requirement files below.
 2. `traceability-matrix.md`
+
+Individual functional requirements live one file per requirement, grouped by
+domain folder (`auth/`, `iam/`, `onboarding/`, `backoffice/`, `partner/`) —
+`podzone-srs.md` section 5 is the index into these, not the content itself.
+`backoffice/` also holds `SRS-CAT-*`, `SRS-ORDER-*`, and `SRS-SETTLEMENT-*`
+since those are DDD subdomains inside the one `internal/backoffice` service,
+not separate services.
 
 Related documents:
 

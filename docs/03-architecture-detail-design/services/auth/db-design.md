@@ -11,12 +11,19 @@ same goose sequence numbering convention, not missing files here).
 See also: [Data Ownership](../../../02-architecture-overall/04-data-ownership.md),
 [Legacy Inventory](../../../06-recovery/legacy-inventory.md).
 
-## ERD
+## Entity-Relationship Diagrams
 
 Only edges backed by an actual `REFERENCES` constraint in the migrations
 are drawn as relationships. Cross-table associations that exist only as a
 plain column (no FK constraint) are called out as **logical references**
-below the diagram, not drawn here — see per-table notes.
+in the owning table's attribute block, not drawn as an edge. Auth only has
+7 tables, but a single diagram mixing identity, session, audit, and the
+IAM read-model still reads as clutter — so it is split into a one-screen
+overview plus one diagram per concern below, matching the table headings
+in `## Tables`. Attribute blocks here keep only PK/FK/UK columns and
+notable secret/logical-ref columns; full column lists are in `## Tables`.
+
+### Overview
 
 ```mermaid
 erDiagram
@@ -28,88 +35,100 @@ erDiagram
         bigint id PK
         text username UK
         text email UK
-        text password "bcrypt hash, secret"
-        text full_name
-        text middle_name
-        text first_name
-        text last_name
-        text address
-        text initial_from
-        smallint age
-        timestamptz dob
-        timestamptz created_at
-        timestamptz updated_at
     }
-
     auth_sessions {
         text id PK
         bigint user_id FK
-        text active_tenant_id "logical ref: iam_tenants_projection.tenant_id"
-        text status
-        text session_policy_json
-        text session_tags_json
-        bigint assumed_role_id
-        text assumed_role_scope
-        text assumed_role_name
-        text assumed_role_tenant_id "logical ref: iam_tenants_projection.tenant_id"
-        text assumed_role_service_principal
-        text assumed_role_session_name
-        text assumed_role_source_identity
-        timestamptz assumed_role_expires_at
-        timestamptz created_at
-        timestamptz updated_at
-        timestamptz expires_at
-        timestamptz revoked_at
+        text active_tenant_id "logical ref -> iam_tenants_projection"
     }
-
     auth_refresh_tokens {
         text id PK
         text session_id FK
-        text token_hash "sha256 hex, secret, UK"
-        text replaced_by_token_id "logical ref: auth_refresh_tokens.id, no FK constraint"
-        timestamptz expires_at
-        timestamptz created_at
-        timestamptz updated_at
-        timestamptz revoked_at
     }
-
     auth_audit_logs {
         text id PK
         bigint actor_user_id FK
-        text action
-        text resource_type
-        text resource_id
-        text tenant_id "logical ref: iam_tenants_projection.tenant_id"
-        text status
-        jsonb payload_json
-        timestamptz created_at
     }
+    iam_tenants_projection {
+        text tenant_id PK
+    }
+```
+
+### Sessions And Tokens
+
+```mermaid
+erDiagram
+    users ||--o{ auth_sessions : "user_id"
+    auth_sessions ||--o{ auth_refresh_tokens : "session_id"
+
+    users {
+        bigint id PK
+        text username UK
+        text email UK
+    }
+    auth_sessions {
+        text id PK
+        bigint user_id FK
+        text active_tenant_id "logical ref -> iam_tenants_projection.tenant_id, no FK"
+        text status "active | revoked"
+        bigint assumed_role_id "0 = no assumed role"
+        text assumed_role_tenant_id "logical ref -> iam_tenants_projection.tenant_id, no FK"
+    }
+    auth_refresh_tokens {
+        text id PK
+        text session_id FK
+        text token_hash UK "sha256 hex, secret"
+        text replaced_by_token_id "logical ref -> auth_refresh_tokens.id, no FK"
+    }
+```
+
+### Audit
+
+```mermaid
+erDiagram
+    users ||--o{ auth_audit_logs : "actor_user_id"
+
+    users {
+        bigint id PK
+    }
+    auth_audit_logs {
+        text id PK
+        bigint actor_user_id FK
+        text tenant_id "logical ref -> iam_tenants_projection.tenant_id, no FK"
+    }
+```
+
+### IAM Projections (Read Model)
+
+`iam_tenant_memberships_projection.tenant_id` is a logical reference to
+`iam_tenants_projection.tenant_id` — no FK constraint is declared, since
+both rows are populated independently from IAM Kafka events and must not
+block on each other's arrival order.
+
+```mermaid
+erDiagram
+    iam_tenants_projection ||--o{ iam_tenant_memberships_projection : "tenant_id (logical, no FK)"
 
     iam_tenants_projection {
         text tenant_id PK
-        text slug
-        text name
-        timestamptz created_at
-        timestamptz updated_at
     }
-
     iam_tenant_memberships_projection {
-        text tenant_id PK "logical ref: iam_tenants_projection.tenant_id, no FK constraint"
+        text tenant_id PK "logical ref, no FK"
         bigint user_id PK
-        text role_name
-        text status
-        timestamptz created_at
-        timestamptz updated_at
     }
+```
 
+### Messaging (Infra)
+
+`message_inbox` has no relationships — it is an idempotency ledger keyed
+by consumer name and message id, not domain data.
+
+```mermaid
+erDiagram
     message_inbox {
         text consumer_name PK
         text message_id PK
         text status
-        text error_text
-        timestamptz started_at
-        timestamptz processed_at
-        timestamptz updated_at
     }
 ```
 

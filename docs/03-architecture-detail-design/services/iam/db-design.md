@@ -12,66 +12,116 @@ Schema built by reading all 23 schema-affecting migrations in
 `internal/iam/migrations/sql/` (0001–0029; some numbers are data-only and
 add no new table/column — noted inline where relevant).
 
-## Entity-Relationship Diagram
+## Entity-Relationship Diagrams
+
+32 tables in one diagram is unreadable, so this is split into a one-screen
+overview (anchor entities only) plus one focused diagram per functional
+group — same grouping as the `## Tables` sections below, so each diagram
+sits right above the prose that documents its columns in full. `user_id`
+throughout this schema is a **plain `BIGINT` with no foreign key** — user
+identity is owned by the `auth` service; IAM treats it as an opaque
+external ID. Cross-group foreign keys are called out as a note under each
+diagram rather than redrawn everywhere.
+
+### Overview — Anchor Entities
+
+```mermaid
+erDiagram
+    IAM_ORGANIZATIONS ||--o{ TENANTS : "org_id (soft ref, no FK)"
+    IAM_ORGANIZATIONS ||--o{ IAM_GROUPS : "org_id (nullable)"
+    TENANTS ||--o{ IAM_GROUPS : "tenant_id (nullable)"
+    IAM_ROLES ||--o{ TENANT_MEMBERSHIPS : "role_id"
+    TENANTS ||--o{ TENANT_MEMBERSHIPS : "tenant_id"
+    IAM_POLICIES ||--o{ IAM_ROLES : "permission boundary (1:1, nullable)"
+    IAM_GROUPS ||--o{ IAM_POLICIES : "policy attachments"
+
+    IAM_ORGANIZATIONS {
+        text id PK
+        text slug UK
+        bigint root_user_id "unique when > 0"
+    }
+    TENANTS {
+        text id PK
+        text slug UK
+        text org_id "indexed, no FK constraint"
+    }
+    IAM_ROLES {
+        bigint id PK
+        text name UK
+        text scope "tenant | platform | organization"
+    }
+    IAM_POLICIES {
+        bigint id PK
+        text scope "tenant | platform | organization"
+        text name "unique per (scope, org_id)"
+    }
+    IAM_GROUPS {
+        bigint id PK
+        text scope "platform | organization | tenant"
+        text name "unique per scope"
+    }
+    TENANT_MEMBERSHIPS {
+        text tenant_id PK_FK
+        bigint user_id PK
+        bigint role_id FK
+    }
+```
+
+Everything below expands one of these five anchors plus its junction and
+detail tables.
+
+### Organization And Tenant
 
 ```mermaid
 erDiagram
     IAM_ORGANIZATIONS ||--o{ TENANTS : "org_id (soft ref, no FK)"
     IAM_ORGANIZATIONS ||--o{ IAM_ORGANIZATION_MEMBERSHIPS : "org_id"
     IAM_ORGANIZATIONS ||--o{ IAM_ORG_SERVICE_CONTROL_POLICIES : "org_id"
-    IAM_ORGANIZATIONS ||--o{ IAM_POLICIES : "org_id (nullable)"
-    IAM_ORGANIZATIONS ||--o{ IAM_GROUPS : "org_id (nullable)"
-
     TENANTS ||--o{ TENANT_MEMBERSHIPS : "tenant_id"
     TENANTS ||--o{ TENANT_INVITES : "tenant_id"
-    TENANTS ||--o{ IAM_TENANT_USER_POLICY_ATTACHMENTS : "tenant_id"
-    TENANTS ||--o{ IAM_TENANT_USER_INLINE_POLICIES : "tenant_id"
-    TENANTS ||--o{ IAM_TENANT_USER_PERMISSION_BOUNDARIES : "tenant_id"
-    TENANTS ||--o{ IAM_GROUPS : "tenant_id (nullable)"
-
-    IAM_ROLES ||--o{ IAM_ROLE_PERMISSIONS : "role_id"
-    IAM_ROLES ||--o{ TENANT_MEMBERSHIPS : "role_id"
-    IAM_ROLES ||--o{ USER_PLATFORM_ROLES : "role_id"
-    IAM_ROLES ||--o{ TENANT_INVITES : "role_id"
-    IAM_ROLES ||--o{ IAM_ROLE_POLICY_ATTACHMENTS : "role_id"
-    IAM_ROLES ||--o{ IAM_ROLE_TRUST_STATEMENTS : "role_id"
-    IAM_ROLES ||--o| IAM_ROLE_PERMISSION_BOUNDARIES : "role_id (1:1)"
-    IAM_ROLES ||--o{ IAM_ORGANIZATION_MEMBERSHIPS : "role_id"
-
-    IAM_PERMISSIONS ||--o{ IAM_ROLE_PERMISSIONS : "permission_id"
-
-    IAM_POLICIES ||--o{ IAM_POLICY_STATEMENTS : "policy_id"
-    IAM_POLICIES ||--o{ IAM_POLICY_VERSIONS : "policy_id"
-    IAM_POLICIES ||--o{ IAM_POLICY_VERSION_STATEMENTS : "policy_id"
-    IAM_POLICIES ||--o{ IAM_ROLE_POLICY_ATTACHMENTS : "policy_id"
-    IAM_POLICIES ||--o{ IAM_USER_POLICY_ATTACHMENTS : "policy_id"
-    IAM_POLICIES ||--o{ IAM_TENANT_USER_POLICY_ATTACHMENTS : "policy_id"
-    IAM_POLICIES ||--o{ IAM_GROUP_POLICY_ATTACHMENTS : "policy_id"
-    IAM_POLICIES ||--o{ IAM_ORG_SERVICE_CONTROL_POLICIES : "policy_id"
-    IAM_POLICIES ||--o| IAM_PLATFORM_USER_PERMISSION_BOUNDARIES : "policy_id"
-    IAM_POLICIES ||--o{ IAM_TENANT_USER_PERMISSION_BOUNDARIES : "policy_id"
-    IAM_POLICIES ||--o| IAM_ROLE_PERMISSION_BOUNDARIES : "policy_id"
-
-    IAM_GROUPS ||--o{ IAM_GROUP_MEMBERS : "group_id"
-    IAM_GROUPS ||--o{ IAM_GROUP_POLICY_ATTACHMENTS : "group_id"
-    IAM_GROUPS ||--o{ IAM_GROUP_INLINE_POLICIES : "group_id"
-
-    IAM_GROUP_INLINE_POLICIES ||--o{ IAM_GROUP_INLINE_POLICY_STATEMENTS : "(group_id, name)"
-    IAM_PLATFORM_USER_INLINE_POLICIES ||--o{ IAM_PLATFORM_USER_INLINE_POLICY_STATEMENTS : "(user_id, name)"
-    IAM_TENANT_USER_INLINE_POLICIES ||--o{ IAM_TENANT_USER_INLINE_POLICY_STATEMENTS : "(tenant_id, user_id, name)"
 
     IAM_ORGANIZATIONS {
         text id PK
         text slug UK
-        text name
         bigint root_user_id "unique when > 0"
     }
     TENANTS {
         text id PK
         text slug UK
-        text name
         text org_id "indexed, no FK constraint"
     }
+    TENANT_MEMBERSHIPS {
+        text tenant_id PK_FK
+        bigint user_id PK
+        bigint role_id FK "-> iam_roles, see RBAC Core"
+    }
+    TENANT_INVITES {
+        text id PK
+        text tenant_id FK
+        bigint role_id FK "-> iam_roles, see RBAC Core"
+        text token_hash UK
+    }
+    IAM_ORGANIZATION_MEMBERSHIPS {
+        text org_id PK_FK
+        bigint user_id PK
+        bigint role_id FK "-> iam_roles, see RBAC Core"
+    }
+    IAM_ORG_SERVICE_CONTROL_POLICIES {
+        text org_id PK_FK
+        bigint policy_id PK_FK "-> iam_policies, see Policy Engine"
+    }
+```
+
+### RBAC Core
+
+```mermaid
+erDiagram
+    IAM_ROLES ||--o{ IAM_ROLE_PERMISSIONS : "role_id"
+    IAM_ROLES ||--o{ USER_PLATFORM_ROLES : "role_id"
+    IAM_ROLES ||--o{ IAM_ROLE_TRUST_STATEMENTS : "role_id"
+    IAM_ROLES ||--o| IAM_ROLE_PERMISSION_BOUNDARIES : "role_id (1:1)"
+    IAM_PERMISSIONS ||--o{ IAM_ROLE_PERMISSIONS : "permission_id"
+
     IAM_ROLES {
         bigint id PK
         text name UK
@@ -80,31 +130,175 @@ erDiagram
     }
     IAM_PERMISSIONS {
         bigint id PK
-        text name UK
+        text name UK "e.g. store:create"
         text resource
         text action
     }
+    IAM_ROLE_PERMISSIONS {
+        bigint role_id PK_FK
+        bigint permission_id PK_FK
+    }
+    USER_PLATFORM_ROLES {
+        bigint user_id PK
+        bigint role_id PK_FK
+    }
+    IAM_ROLE_TRUST_STATEMENTS {
+        bigint id PK
+        bigint role_id FK
+        text principal_type "platform_role | tenant_role"
+    }
+    IAM_ROLE_PERMISSION_BOUNDARIES {
+        bigint role_id PK_FK
+        bigint policy_id FK "-> iam_policies, see Policy Engine"
+    }
+```
+
+### Policy Engine (Managed Policies)
+
+```mermaid
+erDiagram
+    IAM_POLICIES ||--o{ IAM_POLICY_STATEMENTS : "policy_id"
+    IAM_POLICIES ||--o{ IAM_POLICY_VERSIONS : "policy_id"
+    IAM_POLICY_VERSIONS ||--o{ IAM_POLICY_VERSION_STATEMENTS : "(policy_id, version)"
+    IAM_POLICIES ||--o{ IAM_ROLE_POLICY_ATTACHMENTS : "policy_id"
+    IAM_POLICIES ||--o{ IAM_USER_POLICY_ATTACHMENTS : "policy_id"
+    IAM_POLICIES ||--o{ IAM_TENANT_USER_POLICY_ATTACHMENTS : "policy_id"
+    IAM_POLICIES ||--o{ IAM_GROUP_POLICY_ATTACHMENTS : "policy_id"
+
     IAM_POLICIES {
         bigint id PK
         text scope "tenant | platform | organization"
         text name "unique per (scope, org_id)"
         text default_version
-        text org_id FK "nullable, required iff scope=organization"
+        text org_id FK "nullable, -> iam_organizations"
     }
-    IAM_GROUPS {
+    IAM_POLICY_STATEMENTS {
         bigint id PK
-        text scope "platform | organization | tenant"
-        text tenant_id FK "nullable"
-        text org_id FK "nullable"
-        text name "unique per scope"
+        bigint policy_id FK
+        text effect
+        text action_pattern
+    }
+    IAM_POLICY_VERSIONS {
+        bigint id PK
+        bigint policy_id FK
+        text version UK "per policy_id"
+    }
+    IAM_POLICY_VERSION_STATEMENTS {
+        bigint policy_id PK_FK
+        text version PK
+        int statement_index PK
+    }
+    IAM_ROLE_POLICY_ATTACHMENTS {
+        bigint role_id PK_FK "-> iam_roles, see RBAC Core"
+        bigint policy_id PK_FK
+    }
+    IAM_USER_POLICY_ATTACHMENTS {
+        bigint user_id PK
+        text scope PK
+        bigint policy_id PK_FK
+    }
+    IAM_TENANT_USER_POLICY_ATTACHMENTS {
+        text tenant_id PK_FK "-> tenants, see Organization And Tenant"
+        bigint user_id PK
+        bigint policy_id PK_FK
+    }
+    IAM_GROUP_POLICY_ATTACHMENTS {
+        bigint group_id PK_FK "-> iam_groups, see Groups"
+        bigint policy_id PK_FK
     }
 ```
 
-The diagram omits pure `created_at`/`updated_at` bookkeeping columns and the
-junction/statement tables' non-key columns for readability — full column
-lists are below. `user_id` throughout this schema is a **plain `BIGINT`
-with no foreign key** — user identity is owned by the `auth` service; IAM
-treats it as an opaque external ID.
+`iam_policies` is also referenced (not redrawn) by
+`iam_org_service_control_policies.policy_id` (Organization And Tenant),
+`iam_role_permission_boundaries.policy_id` (RBAC Core), and both
+Permission Boundaries tables below.
+
+### Permission Boundaries (Max-Grant Ceiling)
+
+```mermaid
+erDiagram
+    IAM_POLICIES ||--o| IAM_PLATFORM_USER_PERMISSION_BOUNDARIES : "policy_id"
+    IAM_POLICIES ||--o{ IAM_TENANT_USER_PERMISSION_BOUNDARIES : "policy_id"
+
+    IAM_POLICIES {
+        bigint id PK
+        text scope
+        text name
+    }
+    IAM_PLATFORM_USER_PERMISSION_BOUNDARIES {
+        bigint user_id PK
+        bigint policy_id FK
+    }
+    IAM_TENANT_USER_PERMISSION_BOUNDARIES {
+        text tenant_id PK_FK "-> tenants, see Organization And Tenant"
+        bigint user_id PK
+        bigint policy_id FK
+    }
+```
+
+### Groups
+
+```mermaid
+erDiagram
+    IAM_GROUPS ||--o{ IAM_GROUP_MEMBERS : "group_id"
+    IAM_GROUPS ||--o{ IAM_GROUP_POLICY_ATTACHMENTS : "group_id"
+    IAM_GROUPS ||--o{ IAM_GROUP_INLINE_POLICIES : "group_id"
+
+    IAM_GROUPS {
+        bigint id PK
+        text scope "platform | organization | tenant"
+        text tenant_id FK "nullable, -> tenants"
+        text org_id FK "nullable, -> iam_organizations"
+        text name "unique per scope"
+    }
+    IAM_GROUP_MEMBERS {
+        bigint group_id PK_FK
+        bigint user_id PK
+    }
+    IAM_GROUP_POLICY_ATTACHMENTS {
+        bigint group_id PK_FK
+        bigint policy_id PK_FK "-> iam_policies, see Policy Engine"
+    }
+    IAM_GROUP_INLINE_POLICIES {
+        bigint group_id PK
+        text name PK
+    }
+```
+
+### Inline Policies (Per-Principal, Not Reusable)
+
+Three parallel families — one per principal scope — each with a parent
+"policy name" table and a child "statements" table using a composite FK
+back to the parent (not a surrogate ID):
+
+```mermaid
+erDiagram
+    IAM_GROUP_INLINE_POLICIES ||--o{ IAM_GROUP_INLINE_POLICY_STATEMENTS : "(group_id, name)"
+    IAM_PLATFORM_USER_INLINE_POLICIES ||--o{ IAM_PLATFORM_USER_INLINE_POLICY_STATEMENTS : "(user_id, name)"
+    IAM_TENANT_USER_INLINE_POLICIES ||--o{ IAM_TENANT_USER_INLINE_POLICY_STATEMENTS : "(tenant_id, user_id, name)"
+
+    IAM_GROUP_INLINE_POLICIES {
+        bigint group_id PK "-> iam_groups, see Groups"
+        text name PK
+    }
+    IAM_PLATFORM_USER_INLINE_POLICIES {
+        bigint user_id PK
+        text name PK
+    }
+    IAM_TENANT_USER_INLINE_POLICIES {
+        text tenant_id PK "-> tenants, see Organization And Tenant"
+        bigint user_id PK
+        text name PK
+    }
+```
+
+| Family | Parent table | Statements table | Parent PK |
+|---|---|---|---|
+| Group | `iam_group_inline_policies` | `iam_group_inline_policy_statements` | `(group_id, name)` |
+| Platform user | `iam_platform_user_inline_policies` | `iam_platform_user_inline_policy_statements` | `(user_id, name)` |
+| Tenant user | `iam_tenant_user_inline_policies` | `iam_tenant_user_inline_policy_statements` | `(tenant_id, user_id, name)` |
+
+All statement tables have `conditions_json TEXT DEFAULT '[]'` (added 0017) alongside `effect`, `action_pattern`, `resource_pattern DEFAULT '*'`, `statement_index`.
 
 ## Tables
 
@@ -186,11 +380,21 @@ treats it as an opaque external ID.
 - Owner: iam. Immutable statements frozen per version.
 - Columns: `policy_id FK->iam_policies CASCADE`, `version`, `statement_index`, `effect`, `action_pattern`, `resource_pattern DEFAULT '*'`, `conditions_json DEFAULT '[]'` (0017), `created_at`. PK `(policy_id, version, statement_index)`.
 
-#### `iam_role_policy_attachments`, `iam_user_policy_attachments`, `iam_tenant_user_policy_attachments`, `iam_group_policy_attachments`
-- Junction tables attaching a managed policy to a role / platform-scoped user / tenant-scoped user / group, respectively.
-- `iam_user_policy_attachments` PK `(user_id, scope, policy_id)` — `scope` here disambiguates platform vs. other non-tenant attachment contexts.
-- `iam_tenant_user_policy_attachments` PK `(tenant_id, user_id, policy_id)`.
-- All `ON DELETE CASCADE` on the policy side.
+Four junction tables attach a managed policy to a role / platform-scoped
+user / tenant-scoped user / group, respectively. All `ON DELETE CASCADE` on
+the policy side.
+
+#### `iam_role_policy_attachments`
+- Junction: `role_id FK->iam_roles CASCADE`, `policy_id FK->iam_policies CASCADE`. PK `(role_id, policy_id)`.
+
+#### `iam_user_policy_attachments`
+- Junction: `user_id BIGINT` (no FK), `scope`, `policy_id FK->iam_policies CASCADE`. PK `(user_id, scope, policy_id)` — `scope` disambiguates platform vs. other non-tenant attachment contexts.
+
+#### `iam_tenant_user_policy_attachments`
+- Junction: `tenant_id FK->tenants CASCADE`, `user_id BIGINT` (no FK), `policy_id FK->iam_policies CASCADE`. PK `(tenant_id, user_id, policy_id)`.
+
+`iam_group_policy_attachments` (group ↔ policy junction) is documented under
+Groups below, next to `iam_groups`.
 
 ### Permission Boundaries (Max-Grant Ceiling)
 
@@ -215,17 +419,28 @@ treats it as an opaque external ID.
 
 ### Inline Policies (Per-Principal, Not Reusable)
 
-Three parallel families — one per principal scope — each with a parent
-"policy name" table and a child "statements" table using a composite FK
-back to the parent (not a surrogate ID):
+Family/parent-child layout diagrammed above in
+[Entity-Relationship Diagrams § Inline Policies](#inline-policies-per-principal-not-reusable).
+All statement tables have `conditions_json TEXT DEFAULT '[]'` (added 0017)
+alongside `effect`, `action_pattern`, `resource_pattern DEFAULT '*'`, `statement_index`.
 
-| Family | Parent table | Statements table | Parent PK |
-|---|---|---|---|
-| Group | `iam_group_inline_policies` | `iam_group_inline_policy_statements` | `(group_id, name)` |
-| Platform user | `iam_platform_user_inline_policies` | `iam_platform_user_inline_policy_statements` | `(user_id, name)` |
-| Tenant user | `iam_tenant_user_inline_policies` | `iam_tenant_user_inline_policy_statements` | `(tenant_id, user_id, name)` |
+#### `iam_group_inline_policies`
+- Owner: iam. Parent row for a named inline policy attached directly to one group (not a reusable managed policy). PK `(group_id, name)`, `group_id FK->iam_groups CASCADE`.
 
-All statement tables have `conditions_json TEXT DEFAULT '[]'` (added 0017) alongside `effect`, `action_pattern`, `resource_pattern DEFAULT '*'`, `statement_index`.
+#### `iam_group_inline_policy_statements`
+- Owner: iam. Statements for a group inline policy. `(group_id, name) FK->iam_group_inline_policies CASCADE`, `statement_index`, `effect`, `action_pattern`, `resource_pattern DEFAULT '*'`, `conditions_json`.
+
+#### `iam_platform_user_inline_policies`
+- Owner: iam. Parent row for a named inline policy attached directly to one platform-scoped user. PK `(user_id, name)`, `user_id BIGINT` (no FK — owned by `auth`).
+
+#### `iam_platform_user_inline_policy_statements`
+- Owner: iam. Statements for a platform-user inline policy. `(user_id, name) FK->iam_platform_user_inline_policies CASCADE`, `statement_index`, `effect`, `action_pattern`, `resource_pattern DEFAULT '*'`, `conditions_json`.
+
+#### `iam_tenant_user_inline_policies`
+- Owner: iam. Parent row for a named inline policy attached directly to one user within one tenant. PK `(tenant_id, user_id, name)`, `tenant_id FK->tenants CASCADE`.
+
+#### `iam_tenant_user_inline_policy_statements`
+- Owner: iam. Statements for a tenant-user inline policy. `(tenant_id, user_id, name) FK->iam_tenant_user_inline_policies CASCADE`, `statement_index`, `effect`, `action_pattern`, `resource_pattern DEFAULT '*'`, `conditions_json`.
 
 ### Audit And Messaging
 
