@@ -56,12 +56,6 @@ declare module 'onboarding/AdminHomePage' {
     export default AdminHomePage
 }
 
-declare module 'onboarding/AdminSettingsPage' {
-    import type { Component } from 'solid-js'
-    const AdminSettingsPage: Component
-    export default AdminSettingsPage
-}
-
 declare module 'onboarding/AdminProvisioningPage' {
     import type { Component } from 'solid-js'
     const AdminProvisioningPage: Component

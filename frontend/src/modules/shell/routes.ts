@@ -2,6 +2,7 @@ import { createRoute, lazyRouteComponent, type AnyRoute } from '@tanstack/solid-
 
 type Guards = {
     requireGuest: () => void
+    requireAuth: () => void
 }
 
 export function createRouteTree<TParent extends AnyRoute>(parent: TParent, guards: Guards) {
@@ -38,5 +39,22 @@ export function createRouteTree<TParent extends AnyRoute>(parent: TParent, guard
         component: lazyRouteComponent(() => import('./pages/auth/DevAuthBootstrapPage')),
     })
 
-    return [loginRoute, registerRoute, googleCallbackRoute, acceptInviteRoute, devAuthBootstrapRoute]
+    const adminSettingsRoute = createRoute({
+        getParentRoute: () => parent,
+        path: '/admin/settings',
+        beforeLoad: guards.requireAuth,
+        validateSearch: (search: Record<string, unknown>) => ({
+            tab: search.tab as string | undefined,
+        }),
+        component: lazyRouteComponent(() => import('./pages/AdminSettingsPage')),
+    })
+
+    return [
+        loginRoute,
+        registerRoute,
+        googleCallbackRoute,
+        acceptInviteRoute,
+        devAuthBootstrapRoute,
+        adminSettingsRoute,
+    ]
 }

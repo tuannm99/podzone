@@ -16,7 +16,6 @@ export default defineConfig({
             filename: 'remoteEntry.js',
             exposes: {
                 './AdminHomePage': `${pagesRoot}/AdminHomePage`,
-                './AdminSettingsPage': `${pagesRoot}/AdminSettingsPage`,
                 './AdminProvisioningPage': `${pagesRoot}/AdminProvisioningPage`,
             },
             shared: {

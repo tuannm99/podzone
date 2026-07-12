@@ -19,21 +19,6 @@ export function createRouteTree<TParent extends AnyRoute>(parent: TParent, guard
         ),
     })
 
-    const adminSettingsRoute = createRoute({
-        getParentRoute: () => parent,
-        path: '/admin/settings',
-        beforeLoad: guards.requireAuth,
-        validateSearch: (search: Record<string, unknown>) => ({
-            tab: search.tab as string | undefined,
-        }),
-        component: remotePage(
-            __MFE_ONBOARDING__
-                ? () => import('onboarding/AdminSettingsPage')
-                : () => import('./pages/AdminSettingsPage'),
-            'onboarding',
-        ),
-    })
-
     const adminProvisioningRoute = createRoute({
         getParentRoute: () => parent,
         path: '/admin/provisioning',
@@ -49,5 +34,5 @@ export function createRouteTree<TParent extends AnyRoute>(parent: TParent, guard
         ),
     })
 
-    return [adminHomeRoute, adminSettingsRoute, adminProvisioningRoute]
+    return [adminHomeRoute, adminProvisioningRoute]
 }
