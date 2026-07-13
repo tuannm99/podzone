@@ -1,0 +1,26 @@
+<div [class]="wrapperClass()">
+  @for (item of items(); track item.label) {
+    @if (item.href) {
+      <a [routerLink]="item.href" [class]="itemClass(item)">
+        <ng-container *ngTemplateOutlet="itemContent; context: { $implicit: item }" />
+      </a>
+    } @else if (item.onClick) {
+      <button type="button" [class]="itemClass(item)" (click)="item.onClick()">
+        <ng-container *ngTemplateOutlet="itemContent; context: { $implicit: item }" />
+      </button>
+    } @else {
+      <div [class]="itemClass(item)">
+        <ng-container *ngTemplateOutlet="itemContent; context: { $implicit: item }" />
+      </div>
+    }
+  }
+</div>
+
+<ng-template #itemContent let-item>
+  <div class="min-w-0">
+    <p class="truncate text-sm font-medium">{{ item.label }}</p>
+    @if (item.description) {
+      <p class="mt-1 text-sm text-gray-500">{{ item.description }}</p>
+    }
+  </div>
+</ng-template>

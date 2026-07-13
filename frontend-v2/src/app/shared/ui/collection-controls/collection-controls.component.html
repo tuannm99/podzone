@@ -1,0 +1,25 @@
+<div class="space-y-3">
+  <app-collection-toolbar
+    [search]="query().search || ''"
+    [searchPlaceholder]="searchPlaceholder()"
+    [sortBy]="query().sortBy || 'createdAt'"
+    [sortDirection]="query().sortDirection || 'SORT_DIRECTION_DESC'"
+    [pageSize]="query().pageSize"
+    [sortOptions]="sortOptions()"
+    (searchChange)="updateQuery()({ search: $event })"
+    (sortByChange)="updateQuery()({ sortBy: $event })"
+    (sortDirectionChange)="updateQuery()({ sortDirection: $event })"
+    (pageSizeChange)="updateQuery()({ pageSize: $event })"
+  />
+  <app-collection-filters
+    [fields]="filterFields()"
+    [filters]="query().filters || []"
+    (filtersChange)="updateQuery()({ filters: $event })"
+  />
+  @if (error()) {
+    <app-error-alert>{{ error() }}</app-error-alert>
+  }
+  @if (loading()) {
+    <app-loading-inline label="Loading collection..." />
+  }
+</div>

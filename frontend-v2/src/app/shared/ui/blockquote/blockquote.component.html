@@ -1,0 +1,6 @@
+<figure [class]="className()">
+  <blockquote class="text-base leading-7 text-gray-700"><ng-content /></blockquote>
+  @if (cite()) {
+    <figcaption class="mt-3 text-sm font-medium text-gray-500">{{ cite() }}</figcaption>
+  }
+</figure>

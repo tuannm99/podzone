@@ -1,0 +1,9 @@
+<div [class]="className()">
+  @if (safeSvg(); as svg) {
+    <div [class]="panelClass()" [innerHTML]="svg"></div>
+  } @else {
+    <div [class]="emptyClass()">
+      {{ errorMessage() || 'Add a value to generate a QR code.' }}
+    </div>
+  }
+</div>

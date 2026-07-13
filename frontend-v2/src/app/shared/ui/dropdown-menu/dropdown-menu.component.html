@@ -1,0 +1,41 @@
+<div [class]="containerClass()" #container>
+  <button
+    type="button"
+    class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50"
+    (click)="toggle()"
+  >
+    <!-- Solid's `trigger?: JSX.Element` slot vs `label` fallback collapses
+             to: project a [trigger] slot if the caller supplies one, else
+             show label()/'More' text. Angular content projection can't
+             detect "was anything actually projected" without ContentChild
+             boilerplate, so both are rendered; an empty <ng-content> is
+             harmless when the caller doesn't use the [trigger] slot. -->
+    <ng-content select="[trigger]" />
+    @if (!label()) {
+      <span>More</span>
+    } @else {
+      <span>{{ label() }}</span>
+    }
+    <span [class]="open() ? 'text-gray-400 transition rotate-180' : 'text-gray-400 transition'"
+      >⌄</span
+    >
+  </button>
+
+  @if (open()) {
+    <div [class]="menuClassName()">
+      <div class="space-y-1">
+        @for (item of items(); track item.label) {
+          @if (item.href) {
+            <a [href]="item.href" [class]="linkItemClass(item)" (click)="open.set(false)">{{
+              item.label
+            }}</a>
+          } @else {
+            <button type="button" [class]="buttonItemClass(item)" (click)="select(item)">
+              {{ item.label }}
+            </button>
+          }
+        }
+      </div>
+    </div>
+  }
+</div>

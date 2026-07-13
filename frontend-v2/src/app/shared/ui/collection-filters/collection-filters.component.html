@@ -1,0 +1,56 @@
+<div class="space-y-3">
+  <form
+    class="flex flex-wrap items-end gap-3 rounded-md border border-gray-200 bg-gray-50 p-3"
+    (submit)="addFilter($event)"
+  >
+    <label class="min-w-40 flex-1 space-y-1 text-sm text-gray-600">
+      <span class="font-medium text-gray-800">Filter field</span>
+      <select
+        [value]="field()"
+        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
+        (change)="onFieldChange($event)"
+      >
+        @for (item of fields(); track item.value) {
+          <option [value]="item.value">{{ item.label }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="min-w-40 flex-1 space-y-1 text-sm text-gray-600">
+      <span class="font-medium text-gray-800">Operator</span>
+      <select
+        [value]="operator()"
+        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
+        (change)="onOperatorChange($event)"
+      >
+        @for (item of selectedField()?.operators ?? []; track item) {
+          <option [value]="item">{{ operatorLabels[item] }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="min-w-48 flex-[2] space-y-1 text-sm text-gray-600">
+      <span class="font-medium text-gray-800">Value</span>
+      <input
+        [value]="value()"
+        [placeholder]="
+          operator() === 'FILTER_OPERATOR_IN' ? 'Comma-separated values' : 'Filter value'
+        "
+        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2"
+        (input)="onValueInput($event)"
+      />
+    </label>
+
+    <app-button type="submit" color="alternative" size="sm">Add filter</app-button>
+  </form>
+
+  @if (filters().length > 0) {
+    <div class="flex flex-wrap gap-2" aria-label="Active filters">
+      @for (filter of filters(); track filter.field; let index = $index) {
+        <app-button type="button" color="light" size="xs" (buttonClick)="removeFilter(index)">
+          {{ filter.field }} {{ operatorLabels[filter.operator] }} {{ filter.values.join(', ') }} ×
+        </app-button>
+      }
+    </div>
+  }
+</div>

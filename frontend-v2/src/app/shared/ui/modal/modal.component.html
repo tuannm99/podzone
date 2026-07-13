@@ -1,0 +1,39 @@
+@if (open()) {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 p-4 backdrop-blur-sm"
+    (click)="onBackdropClick($event)"
+  >
+    <div
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-labelledby]="title() ? headingId : null"
+      [class]="panelClassName()"
+      (keydown.escape)="onEscape()"
+    >
+      <div class="flex items-start justify-between gap-4">
+        @if (title()) {
+          <h2 [id]="headingId" class="text-xl font-semibold tracking-tight text-gray-900">
+            {{ title() }}
+          </h2>
+        }
+        <!-- Solid only rendered this button when `onClose` was
+                     passed; Angular's `output()` has no "was anyone
+                     listening" check, so it's always rendered here. -->
+        <button
+          type="button"
+          class="rounded-full px-2 py-1 text-sm font-medium text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
+          (click)="closed.emit()"
+          aria-label="Close modal"
+        >
+          ✕
+        </button>
+      </div>
+      <div class="mt-4">
+        <ng-content />
+      </div>
+      <div class="mt-6 flex flex-wrap justify-end gap-3">
+        <ng-content select="[footer]" />
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,7 @@
+<div [class]="wrapperClass()" aria-hidden="true">
+  @for (index of lineIndexes(); track index) {
+    <app-skeleton
+      [class]="index === lines() - 1 ? 'h-4 rounded-lg w-3/4' : 'h-4 rounded-lg w-full'"
+    />
+  }
+</div>

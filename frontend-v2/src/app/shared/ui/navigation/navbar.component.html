@@ -1,0 +1,24 @@
+<!--
+  Solid's version rendered `actions` twice (once mobile-only, once
+  desktop-only) since {props.actions} is a plain JSX value that can be
+  inserted more than once. Angular's <ng-content> can only project a given
+  piece of projected content into ONE outlet — duplicating it isn't
+  possible without the consumer passing duplicate markup. Rendered once
+  here; still visually reasonable across breakpoints but not a byte-for-
+  byte structural port. Flagged in the porting report.
+-->
+<header [class]="className()">
+  <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div class="flex items-center justify-between gap-4">
+      <div><ng-content select="[slot=brand]" /></div>
+    </div>
+    <div class="flex flex-1 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <nav class="flex flex-wrap items-center gap-2">
+        @for (item of items(); track item.label) {
+          <app-nav-action [item]="item" />
+        }
+      </nav>
+      <div><ng-content select="[slot=actions]" /></div>
+    </div>
+  </div>
+</header>

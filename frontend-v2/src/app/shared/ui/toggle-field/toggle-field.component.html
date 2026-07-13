@@ -1,0 +1,17 @@
+<label
+  class="flex items-center justify-between gap-4 rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm"
+>
+  <span class="text-sm font-medium text-gray-700">{{ label() }}</span>
+  <span class="relative inline-flex items-center">
+    <input
+      type="checkbox"
+      class="peer sr-only"
+      [checked]="checked()"
+      (change)="checkedChange.emit($any($event.target).checked)"
+    />
+    <span class="h-6 w-11 rounded-full bg-gray-300 transition peer-checked:bg-gray-950"></span>
+    <span
+      class="pointer-events-none absolute left-0.5 top-0.5 size-5 rounded-full bg-white shadow transition peer-checked:translate-x-5"
+    ></span>
+  </span>
+</label>

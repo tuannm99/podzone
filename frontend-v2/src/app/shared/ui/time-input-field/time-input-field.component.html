@@ -1,0 +1,11 @@
+<app-input-field
+  type="time"
+  [label]="label()"
+  [value]="value()"
+  [id]="id()"
+  [placeholder]="placeholder()"
+  [disabled]="disabled()"
+  [error]="error()"
+  [errorText]="errorText()"
+  (valueChange)="valueChange.emit($event)"
+/>

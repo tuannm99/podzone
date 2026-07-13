@@ -1,0 +1,56 @@
+<form
+  class="grid gap-3 lg:grid-cols-[minmax(14rem,1fr)_minmax(10rem,0.5fr)_auto_auto]"
+  (submit)="submitSearch($event)"
+>
+  <label class="space-y-1 text-sm text-gray-600">
+    <span class="font-medium text-gray-800">Search</span>
+    <div class="flex gap-2">
+      <input
+        type="search"
+        [value]="searchDraft()"
+        [placeholder]="searchPlaceholder()"
+        class="min-w-0 flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm"
+        (input)="onSearchInput($event)"
+      />
+      <app-button type="submit" color="alternative" size="sm">Search</app-button>
+    </div>
+  </label>
+
+  <label class="space-y-1 text-sm text-gray-600">
+    <span class="font-medium text-gray-800">Sort</span>
+    <select
+      [value]="sortBy()"
+      class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+      (change)="onSortByChange($event)"
+    >
+      @for (option of sortOptions(); track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select>
+  </label>
+
+  <label class="space-y-1 text-sm text-gray-600">
+    <span class="font-medium text-gray-800">Direction</span>
+    <select
+      [value]="sortDirection()"
+      class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+      (change)="onSortDirectionChange($event)"
+    >
+      <option value="SORT_DIRECTION_DESC">Descending</option>
+      <option value="SORT_DIRECTION_ASC">Ascending</option>
+    </select>
+  </label>
+
+  <label class="space-y-1 text-sm text-gray-600">
+    <span class="font-medium text-gray-800">Rows</span>
+    <select
+      [value]="pageSize()"
+      class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+      (change)="onPageSizeChange($event)"
+    >
+      @for (size of pageSizeOptions; track size) {
+        <option [value]="size">{{ size }}</option>
+      }
+    </select>
+  </label>
+</form>

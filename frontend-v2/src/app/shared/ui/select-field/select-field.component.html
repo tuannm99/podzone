@@ -1,0 +1,18 @@
+<app-field-label [label]="label()" [for]="id()">
+  <select
+    [id]="id()"
+    [class]="fieldClass()"
+    [value]="value()"
+    [disabled]="disabled()"
+    [attr.aria-invalid]="error() || null"
+    [attr.aria-describedby]="errorId()"
+    (change)="valueChange.emit($any($event.target).value)"
+  >
+    @for (option of options(); track option.value) {
+      <option [value]="option.value">{{ option.name }}</option>
+    }
+  </select>
+  @if (errorText()) {
+    <span [id]="errorId()" class="block text-xs font-medium text-red-600">{{ errorText() }}</span>
+  }
+</app-field-label>

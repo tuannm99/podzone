@@ -1,0 +1,28 @@
+@if (open()) {
+  <div class="fixed inset-0 z-50 bg-gray-900/30 backdrop-blur-sm" (click)="onBackdropClick($event)">
+    <aside
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-labelledby]="title() ? headingId : null"
+      [class]="panelClassName()"
+      (keydown.escape)="onEscape()"
+    >
+      <div class="flex items-start justify-between gap-4">
+        @if (title()) {
+          <h2 [id]="headingId" class="text-lg font-semibold text-gray-900">{{ title() }}</h2>
+        }
+        <button
+          type="button"
+          class="rounded-full px-2 py-1 text-sm font-medium text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
+          (click)="closed.emit()"
+          aria-label="Close drawer"
+        >
+          ✕
+        </button>
+      </div>
+      <div class="mt-5">
+        <ng-content />
+      </div>
+    </aside>
+  </div>
+}

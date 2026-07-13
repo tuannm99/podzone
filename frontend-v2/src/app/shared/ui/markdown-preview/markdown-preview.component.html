@@ -1,0 +1,9 @@
+@if (hasSource()) {
+  <div [class]="viewerClass()">
+    <pre class="whitespace-pre-wrap p-6 text-sm leading-7 text-slate-700">{{ source() }}</pre>
+  </div>
+} @else {
+  <div [class]="emptyClass()">
+    {{ emptyMessage() ?? 'No Markdown content yet.' }}
+  </div>
+}

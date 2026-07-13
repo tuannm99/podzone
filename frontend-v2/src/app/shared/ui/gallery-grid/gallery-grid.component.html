@@ -1,0 +1,10 @@
+<div [class]="className()">
+  @for (item of items(); track item.src) {
+    <figure class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+      <img [src]="item.src" [alt]="item.alt" class="h-56 w-full object-cover" />
+      @if (item.caption) {
+        <figcaption class="px-4 py-3 text-sm text-gray-500">{{ item.caption }}</figcaption>
+      }
+    </figure>
+  }
+</div>

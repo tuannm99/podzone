@@ -1,0 +1,9 @@
+<label class="flex items-center gap-3 text-sm text-gray-700">
+  <input
+    type="checkbox"
+    class="size-4 rounded border-gray-300 text-gray-950 focus:ring-gray-300"
+    [checked]="checked()"
+    (change)="checkedChange.emit($any($event.target).checked)"
+  />
+  <span>{{ label() }}</span>
+</label>

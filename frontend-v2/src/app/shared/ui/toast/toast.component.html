@@ -1,0 +1,23 @@
+@if (show()) {
+  <div [class]="wrapperClass()" role="status">
+    <div class="space-y-1">
+      @if (title()) {
+        <p class="text-sm font-semibold">{{ title() }}</p>
+      }
+      <div class="text-sm"><ng-content /></div>
+    </div>
+    <div class="flex items-start gap-2">
+      <ng-content select="[action]" />
+      @if (closable()) {
+        <button
+          type="button"
+          class="rounded-full px-2 py-1 text-sm font-medium text-gray-500 hover:bg-white/70 hover:text-gray-900"
+          (click)="close.emit()"
+          aria-label="Close toast"
+        >
+          ✕
+        </button>
+      }
+    </div>
+  </div>
+}

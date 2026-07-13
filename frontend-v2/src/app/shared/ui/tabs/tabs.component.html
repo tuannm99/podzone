@@ -1,0 +1,17 @@
+<div role="tablist" [attr.aria-label]="ariaLabel()" [class]="rootClass()">
+  <div [class]="groupClass()">
+    @for (item of items(); track item.value; let index = $index) {
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="value() === item.value"
+        [tabIndex]="value() === item.value ? 0 : -1"
+        [class]="tabClass(item)"
+        (click)="select(item)"
+        (keydown)="onKeyDown($event, index)"
+      >
+        {{ item.label }}
+      </button>
+    }
+  </div>
+</div>

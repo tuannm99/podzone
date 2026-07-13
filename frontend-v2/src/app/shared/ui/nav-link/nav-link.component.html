@@ -1,0 +1,20 @@
+<a
+  [routerLink]="href()"
+  routerLinkActive="bg-gray-900 text-white shadow-sm"
+  [routerLinkActiveOptions]="{ exact: exact() }"
+  #rla="routerLinkActive"
+  class="flex h-10 items-center justify-between gap-2 rounded-md px-3 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-950"
+>
+  <span><ng-content /></span>
+  @if (tag()) {
+    <span
+      [class]="
+        rla.isActive
+          ? 'rounded px-1.5 py-0.5 text-[9px] font-bold tracking-wide bg-white/20 text-white'
+          : 'rounded px-1.5 py-0.5 text-[9px] font-bold tracking-wide bg-gray-100 text-gray-500'
+      "
+    >
+      {{ tag() }}
+    </span>
+  }
+</a>

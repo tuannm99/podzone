@@ -1,0 +1,62 @@
+<div class="relative">
+  <!-- FieldLabel inlined here (not yet a separate shared component in
+         this port pass — see this batch's report) -->
+  <div class="space-y-1.5">
+    <label class="block text-xs font-semibold uppercase text-gray-500">{{ label() }}</label>
+    <div class="relative">
+      <input
+        role="combobox"
+        [attr.aria-expanded]="open()"
+        aria-autocomplete="list"
+        [attr.aria-controls]="listboxId"
+        [attr.aria-activedescendant]="
+          activeIndex() >= 0 ? listboxId + '-option-' + activeIndex() : null
+        "
+        [class]="inputClass()"
+        [value]="query()"
+        [placeholder]="placeholder() || 'Search...'"
+        (focus)="onFocus()"
+        (input)="onInput($any($event.target).value)"
+        (keydown)="onKeyDown($event)"
+      />
+      @if (loading()) {
+        <app-spinner class="absolute right-3 top-3 size-4 text-gray-500" />
+      }
+    </div>
+  </div>
+
+  @if (error()) {
+    <p class="mt-1 text-xs font-medium text-red-600">{{ error() }}</p>
+  }
+
+  @if (open()) {
+    <div
+      [id]="listboxId"
+      role="listbox"
+      class="absolute z-30 mt-1 max-h-64 w-full overflow-y-auto rounded-md border border-gray-200 bg-white p-1 shadow-lg"
+    >
+      @if (options().length > 0) {
+        @for (option of options(); track option.value; let index = $index) {
+          <button
+            [id]="listboxId + '-option-' + index"
+            type="button"
+            role="option"
+            [attr.aria-selected]="option.value === value()"
+            [class]="optionClass(option, index)"
+            (mousedown)="$event.preventDefault()"
+            (click)="choose(option)"
+          >
+            <span class="block truncate text-sm font-medium text-gray-900">{{ option.label }}</span>
+            @if (option.description) {
+              <span class="block truncate text-xs text-gray-500">{{ option.description }}</span>
+            }
+          </button>
+        }
+      } @else {
+        <p class="px-3 py-4 text-center text-sm text-gray-500">
+          {{ loading() ? 'Loading...' : emptyText() || 'No matching results' }}
+        </p>
+      }
+    </div>
+  }
+</div>

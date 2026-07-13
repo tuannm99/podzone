@@ -1,0 +1,15 @@
+<div [class]="wrapperClass()">
+  @if (label() || showValue()) {
+    <div class="flex items-center justify-between gap-4 text-sm">
+      @if (label()) {
+        <span class="font-medium text-gray-700">{{ label() }}</span>
+      }
+      @if (showValue()) {
+        <span class="text-gray-500">{{ percent() }}%</span>
+      }
+    </div>
+  }
+  <div class="h-2.5 overflow-hidden rounded-full bg-gray-200">
+    <div [class]="fillClass()" [style.width.%]="percent()"></div>
+  </div>
+</div>

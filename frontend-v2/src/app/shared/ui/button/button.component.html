@@ -1,0 +1,42 @@
+@if (href() && !isExternal()) {
+  <a
+    [routerLink]="href()"
+    [class]="className()"
+    [attr.aria-disabled]="disabled() || loading()"
+    [attr.aria-label]="ariaLabel()"
+    (click)="onLinkClick($event)"
+  >
+    @if (loading()) {
+      <app-spinner class="size-3.5" />
+    }
+    <ng-content />
+  </a>
+} @else if (href()) {
+  <a
+    [href]="href()"
+    [target]="target()"
+    rel="noopener noreferrer"
+    [class]="className()"
+    [attr.aria-disabled]="disabled() || loading()"
+    [attr.aria-label]="ariaLabel()"
+    (click)="onLinkClick($event)"
+  >
+    @if (loading()) {
+      <app-spinner class="size-3.5" />
+    }
+    <ng-content />
+  </a>
+} @else {
+  <button
+    [type]="type()"
+    [class]="className()"
+    [disabled]="disabled() || loading()"
+    [attr.aria-label]="ariaLabel()"
+    (click)="buttonClick.emit($event)"
+  >
+    @if (loading()) {
+      <app-spinner class="size-3.5" />
+    }
+    <ng-content />
+  </button>
+}

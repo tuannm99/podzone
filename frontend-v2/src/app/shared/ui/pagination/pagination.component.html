@@ -1,0 +1,50 @@
+@if (totalPages() > 1) {
+  <div [class]="containerClass()">
+    <p class="text-sm text-gray-500">Showing {{ start() }}-{{ finish() }} of {{ total() }}</p>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <app-button
+        type="button"
+        [pill]="true"
+        size="xs"
+        color="alternative"
+        [disabled]="loading() || page() <= 1"
+        (buttonClick)="changePage($event, Math.max(1, page() - 1))"
+      >
+        Previous
+      </app-button>
+
+      <div class="flex flex-wrap items-center gap-2">
+        @for (item of items(); track $index) {
+          @if (item === 'ellipsis') {
+            <span class="px-2 text-sm text-gray-400">...</span>
+          } @else {
+            <button
+              type="button"
+              [class]="pageButtonClass(item)"
+              [disabled]="loading()"
+              [attr.aria-current]="item === page() ? 'page' : null"
+              (click)="changePage($event, item)"
+            >
+              @if (loading() && item === page()) {
+                <app-spinner class="size-3.5" />
+              }
+              {{ item }}
+            </button>
+          }
+        }
+      </div>
+
+      <app-button
+        type="button"
+        [pill]="true"
+        size="xs"
+        color="alternative"
+        [disabled]="loading() || page() >= totalPages()"
+        (buttonClick)="changePage($event, Math.min(totalPages(), page() + 1))"
+      >
+        Next
+      </app-button>
+    </div>
+  </div>
+}

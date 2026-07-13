@@ -1,0 +1,16 @@
+<app-field-label [label]="label()" [for]="id()">
+  <input
+    [id]="id()"
+    [class]="fieldClass()"
+    [type]="type()"
+    [value]="value()"
+    [placeholder]="placeholder()"
+    [disabled]="disabled()"
+    [attr.aria-invalid]="error() || null"
+    [attr.aria-describedby]="errorId()"
+    (input)="valueChange.emit($any($event.target).value)"
+  />
+  @if (errorText()) {
+    <span [id]="errorId()" class="block text-xs font-medium text-red-600">{{ errorText() }}</span>
+  }
+</app-field-label>

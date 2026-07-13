@@ -1,0 +1,11 @@
+<div [class]="className()">
+  <div class="space-y-1">
+    <h2 class="text-xl font-semibold tracking-tight text-gray-900">{{ title() }}</h2>
+    @if (copy()) {
+      <p class="text-sm text-gray-500">{{ copy() }}</p>
+    }
+  </div>
+  <div class="shrink-0">
+    <ng-content select="[action]" />
+  </div>
+</div>

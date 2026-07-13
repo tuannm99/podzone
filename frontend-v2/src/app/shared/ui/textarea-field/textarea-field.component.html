@@ -1,0 +1,14 @@
+<app-field-label [label]="label()" [for]="id()">
+  <textarea
+    [id]="id()"
+    [class]="fieldClass()"
+    [rows]="rows()"
+    [value]="value()"
+    [attr.aria-invalid]="error() || null"
+    [attr.aria-describedby]="errorId()"
+    (input)="valueChange.emit($any($event.target).value)"
+  ></textarea>
+  @if (errorText()) {
+    <span [id]="errorId()" class="block text-xs font-medium text-red-600">{{ errorText() }}</span>
+  }
+</app-field-label>

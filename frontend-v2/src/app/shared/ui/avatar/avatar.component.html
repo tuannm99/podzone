@@ -1,0 +1,12 @@
+<div [class]="wrapperClass()">
+  <div [class]="innerClass()">
+    @if (src()) {
+      <img [src]="src()" [alt]="alt() ?? name() ?? 'Avatar'" class="h-full w-full object-cover" />
+    } @else {
+      <span>{{ initialsText() }}</span>
+    }
+  </div>
+  @if (status()) {
+    <app-indicator [color]="statusColor()" class="absolute bottom-0 right-0 ring-2 ring-white" />
+  }
+</div>

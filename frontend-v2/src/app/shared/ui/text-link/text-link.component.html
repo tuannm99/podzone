@@ -1,0 +1,5 @@
+@if (!isExternal()) {
+  <a [routerLink]="href()" [class]="className()"><ng-content /></a>
+} @else {
+  <a [href]="href()" [target]="target()" [attr.rel]="rel()" [class]="className()"><ng-content /></a>
+}

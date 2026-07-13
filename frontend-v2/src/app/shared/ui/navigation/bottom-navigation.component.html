@@ -1,0 +1,11 @@
+<nav [class]="className()">
+  <div class="mx-auto flex max-w-xl items-center justify-around gap-2">
+    @for (item of items(); track item.label) {
+      <app-nav-action
+        [item]="item"
+        class="min-w-0 flex-1 flex-col justify-center gap-1 px-2 py-1.5 text-xs"
+        activeClass="bg-transparent text-gray-950"
+      />
+    }
+  </div>
+</nav>
