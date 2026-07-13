@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import solidPlugin from 'vite-plugin-solid'
-import federation from '@originjs/vite-plugin-federation'
+import { federation } from '@module-federation/vite'
 import path from 'path'
 import { fileURLToPath } from 'url'
 

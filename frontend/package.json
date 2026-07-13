@@ -49,11 +49,13 @@
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
+        "@module-federation/vite": "^1.16.16",
         "@originjs/vite-plugin-federation": "^1.4.1",
         "@tailwindcss/vite": "^4.3.2",
         "@types/node": "^24.13.2",
         "eslint": "^10.6.0",
         "globals": "^17.7.0",
+        "native-to-mf-bridge": "^0.1.0",
         "prettier": "^3.9.4",
         "tailwindcss": "^4.3.2",
         "typescript": "^6.0.3",

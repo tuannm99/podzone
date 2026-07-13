@@ -382,9 +382,12 @@ services:
       VITE_PODZONE_GW_API_URL: http://localhost:8080
       VITE_PODZONE_GRAPHQL_API_URL: http://localhost:9080/backoffice/graphql
       VITE_API_PROXY_TARGET: http://grpc-gateway:8080
-      VITE_BACKOFFICE_REMOTE_URL: ${VITE_BACKOFFICE_REMOTE_URL:-http://localhost:9080/mfe/backoffice/assets/remoteEntry.js}
-      VITE_IAM_REMOTE_URL: ${VITE_IAM_REMOTE_URL:-http://localhost:9080/mfe/iam/assets/remoteEntry.js}
-      VITE_ONBOARDING_REMOTE_URL: ${VITE_ONBOARDING_REMOTE_URL:-http://localhost:9080/mfe/onboarding/assets/remoteEntry.js}
+      # @module-federation/vite emits remoteEntry.js at the build output
+      # root, not inside assets/ (that was @originjs/vite-plugin-federation's
+      # layout) — see docs/09-pzep/PZEP-0005-host-federation-migration-to-mf2.md.
+      VITE_BACKOFFICE_REMOTE_URL: ${VITE_BACKOFFICE_REMOTE_URL:-http://localhost:9080/mfe/backoffice/remoteEntry.js}
+      VITE_IAM_REMOTE_URL: ${VITE_IAM_REMOTE_URL:-http://localhost:9080/mfe/iam/remoteEntry.js}
+      VITE_ONBOARDING_REMOTE_URL: ${VITE_ONBOARDING_REMOTE_URL:-http://localhost:9080/mfe/onboarding/remoteEntry.js}
       # Which remotes are actually starting under this `make docker-dev
       # PROFILE=...` invocation — used by vite.config.ts to decide whether a
       # route should attempt the federation import or fall back to the page

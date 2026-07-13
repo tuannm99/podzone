@@ -1,12 +1,20 @@
 import { defineConfig } from 'vite'
 import solidPlugin from 'vite-plugin-solid'
 import tailwindcss from '@tailwindcss/vite'
-import federation from '@originjs/vite-plugin-federation'
+import { federation } from '@module-federation/vite'
+import { nativeToMfBridge } from 'native-to-mf-bridge'
 import path from 'path'
 
-const BACKOFFICE_REMOTE = process.env.VITE_BACKOFFICE_REMOTE_URL ?? 'http://localhost:3001/assets/remoteEntry.js'
-const IAM_REMOTE = process.env.VITE_IAM_REMOTE_URL ?? 'http://localhost:3002/assets/remoteEntry.js'
-const ONBOARDING_REMOTE = process.env.VITE_ONBOARDING_REMOTE_URL ?? 'http://localhost:3003/assets/remoteEntry.js'
+// @module-federation/vite emits remoteEntry.js at the build output root,
+// not inside assets/ (that was @originjs/vite-plugin-federation's layout) —
+// see docs/09-pzep/PZEP-0005-host-federation-migration-to-mf2.md.
+const BACKOFFICE_REMOTE = process.env.VITE_BACKOFFICE_REMOTE_URL ?? 'http://localhost:3001/remoteEntry.js'
+const IAM_REMOTE = process.env.VITE_IAM_REMOTE_URL ?? 'http://localhost:3002/remoteEntry.js'
+const ONBOARDING_REMOTE = process.env.VITE_ONBOARDING_REMOTE_URL ?? 'http://localhost:3003/remoteEntry.js'
+// frontend-v2 (Angular) is a native-federation remote, not a
+// @module-federation/vite remote — bridged in below via native-to-mf-bridge.
+// See docs/09-pzep/PZEP-0005-host-federation-migration-to-mf2.md.
+const FRONTEND_V2_REMOTE = process.env.VITE_FRONTEND_V2_REMOTE_URL ?? 'http://localhost:3004/remoteEntry.json'
 
 // Which remotes are actually running under the active `make docker-dev
 // PROFILE=...` invocation (see deployments/docker/services.yml
@@ -26,6 +34,14 @@ export default defineConfig({
     plugins: [
         tailwindcss(),
         solidPlugin(),
+        nativeToMfBridge({
+            remotes: {
+                '@native/frontend-v2': {
+                    entry: FRONTEND_V2_REMOTE,
+                    defaultExpose: './Component',
+                },
+            },
+        }),
         federation({
             name: 'shell',
             remotes: {
