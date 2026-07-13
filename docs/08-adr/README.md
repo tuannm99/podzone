@@ -19,6 +19,7 @@ boundary change.**
 | [ADR-0002](./ADR-0002-npm-vite-alias-not-pnpm-workspaces.md) | Monorepo dependency resolution uses npm + Vite `resolve.alias`, not pnpm workspaces | Accepted | 2026-07-11 |
 | [ADR-0003](./ADR-0003-platform-scope-tenant-access-override.md) | Platform-scope roles do not implicitly bypass tenant-scoped access checks | Proposed | 2026-07-12 |
 | [ADR-0004](./ADR-0004-backoffice-static-rbac-not-iam-decision-api.md) | Backoffice enforces authorization with a static role→action table, not IAM's decision API | Proposed | 2026-07-12 |
+| [ADR-0005](./ADR-0005-frontend-framework-angular-replaces-solidjs.md) | Frontend framework — Angular replaces SolidJS as the target, migrated incrementally | Proposed | 2026-07-13 |
 
 ## Links Back To Delivery
 

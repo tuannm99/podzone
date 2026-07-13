@@ -23,7 +23,11 @@ Read in this order:
 
 Area-specific docs:
 
-- Frontend: `agent/SOLID_STYLE_GUIDE.md`
+- Frontend (`frontend/`, SolidJS, the active app): `agent/SOLID_STYLE_GUIDE.md`
+- Frontend (`frontend-v2/`, Angular, migration target — not yet wired to
+  the real host, see `docs/09-pzep/PZEP-0004-solidjs-to-angular-frontend-migration.md`):
+  `agent/ANGULAR_STYLE_GUIDE.md`
+- Frontend framework decision: `docs/08-adr/ADR-0005-frontend-framework-angular-replaces-solidjs.md`
 - Backend service rules: `docs/00-governance/twelve-factor.md`
 - Onboarding placement: `internal/onboarding/README.md`
 - IAM: `docs/03-architecture-detail-design/11-iam-platform.md`
@@ -108,7 +112,8 @@ Use tools pinned in `go.mod` through `go tool`.
 
 ## Frontend Commands
 
-For `frontend/`, read `agent/SOLID_STYLE_GUIDE.md` first.
+For `frontend/` (SolidJS, the active app), read `agent/SOLID_STYLE_GUIDE.md`
+first.
 
 Run all four before finishing frontend work:
 
@@ -123,6 +128,11 @@ npm run format:check
 Do not start another dev server unless explicitly asked. The user normally runs
 Docker hot reload.
 
+For `frontend-v2/` (Angular, migration target), read
+`agent/ANGULAR_STYLE_GUIDE.md` first. No phase beyond the Phase 0 scaffold
+is authorized without its own accepted PZEP — see
+`docs/09-pzep/PZEP-0004-solidjs-to-angular-frontend-migration.md`.
+
 ## Architecture Summary
 
 - `controller/`: inbound adapters only. Parse request, call one usecase, map
@@ -136,7 +146,7 @@ Docker hot reload.
 - Messaging runtime lives in `pkg/pdkafka` and `pkg/messaging`; service-specific
   event handlers live under `internal/<service>/controller/eventhandler`.
 
-## Frontend Summary
+## Frontend Summary — `frontend/` (SolidJS)
 
 - Route pages are thin composition roots.
 - `createXViewModel` owns remote reads, mutations, loading, error, and actions.
@@ -144,6 +154,18 @@ Docker hot reload.
 - Remote reads use `createResource` or the shared pagination resource.
 - Collections require search/filter/sort/loading/error/empty/pagination states.
 - Internal navigation uses router/Link primitives, not `window.location.href`.
+
+## Frontend Summary — `frontend-v2/` (Angular, migration target)
+
+- Route components are thin composition roots.
+- One feature `@Injectable()` service owns remote reads (`resource`/
+  `rxResource`), mutations, loading, error, and actions.
+- Components render `input()`s/`output()`s and invoke actions; they do not
+  inject `HttpClient` directly.
+- Collections require search/filter/sort/loading/error/empty/pagination
+  states, same as `frontend/`.
+- Internal navigation uses `routerLink`/`Router.navigate()`, not
+  `window.location.href`.
 
 ## Docs Updates
 

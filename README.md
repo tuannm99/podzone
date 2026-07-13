@@ -165,6 +165,10 @@ Additional CLI tools:
 # protoc is only required for workflows that invoke it directly.
 # buf generation uses the Go tools pinned in go.mod.
 go install github.com/air-verse/air@v1.63.0
+
+# Angular CLI — required for frontend-v2/ (Angular evaluation spike, see
+# frontend-v2/README.md). Not required for frontend/ (SolidJS, the real app).
+npm install -g @angular/cli@latest
 ```
 
 ### Development Workflow

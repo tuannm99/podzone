@@ -22,6 +22,10 @@ does not replace an ADR for pure architecture-boundary decisions (see
 | [PZEP-0001](./PZEP-0001-onboarding-store-readiness-endpoint.md) | Onboarding store readiness endpoint | Done | 2026-07-10 |
 | [PZEP-0002](./PZEP-0002-platform-admin-bootstrap-and-recovery.md) | Platform admin bootstrap and recovery | Draft | 2026-07-12 |
 | [PZEP-0003](./PZEP-0003-iam-decoupling-and-sdk-phase-1.md) | Backoffice/IAM decoupling and IAM SDK Phase 1 | Draft | 2026-07-12 |
+| [PZEP-0004](./PZEP-0004-solidjs-to-angular-frontend-migration.md) | SolidJS → Angular frontend migration plan | Draft | 2026-07-13 |
+| [PZEP-0005](./PZEP-0005-host-federation-migration-to-mf2.md) | Host federation migration to Module Federation 2 (`@module-federation/vite`) | Done (uncommitted) | 2026-07-13 |
+| [PZEP-0006](./PZEP-0006-angular-base-mfe-scaffold.md) | Angular base MFE scaffold — shell, onboarding feature area, design system port | Done (uncommitted) | 2026-07-13 |
+| [PZEP-0007](./PZEP-0007-angular-design-system-port.md) | Angular design-system port — full `packages/shared/ui` component library | Done (uncommitted) | 2026-07-14 |
 
 ## Links Back To Delivery
 
