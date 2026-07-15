@@ -1,25 +1,37 @@
 import { Component, inject } from '@angular/core';
-import { ToasterService, type ToastType } from '../../services/toaster.service';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { classes } from '../../utils';
+import { ToasterService, type ToastType } from '../../services/toaster.service';
 
-const toastColorClasses: Record<ToastType, string> = {
-  success: 'bg-green-700 text-white',
-  error: 'bg-red-700 text-white',
-  info: 'bg-gray-800 text-white',
-  warning: 'bg-yellow-600 text-white',
+const toastToneClasses: Record<ToastType, string> = {
+  success: 'toast--success',
+  error: 'toast--error',
+  info: 'toast--info',
+  warning: 'toast--warning',
+};
+
+const toastIcons: Record<ToastType, string> = {
+  success: 'check_circle',
+  error: 'error',
+  info: 'info',
+  warning: 'warning',
 };
 
 @Component({
   selector: 'app-toaster-provider',
+  imports: [MatIconModule, MatButtonModule],
   templateUrl: './toaster-provider.component.html',
+  styleUrl: './toaster-provider.component.scss',
 })
 export class ToasterProvider {
   protected toaster = inject(ToasterService);
 
   protected toastClass(type: ToastType) {
-    return classes(
-      'flex items-center gap-3 rounded-lg px-4 py-3 shadow-lg text-sm font-medium',
-      toastColorClasses[type],
-    );
+    return classes('toast', toastToneClasses[type]);
+  }
+
+  protected toastIcon(type: ToastType) {
+    return toastIcons[type];
   }
 }

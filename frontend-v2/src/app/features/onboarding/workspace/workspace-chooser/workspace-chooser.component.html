@@ -1,0 +1,9 @@
+@if (loading()) {
+  <app-loading-block label="Loading workspaces…" />
+} @else if (error()) {
+  <app-error-alert>{{ error() }}</app-error-alert>
+} @else if (memberships().length === 0) {
+  <app-empty-block title="No workspaces yet" copy="You don't belong to any workspace yet." />
+} @else {
+  <app-list-group [items]="items()" />
+}

@@ -1,0 +1,52 @@
+// Angular Material 3 theming — see https://material.angular.dev/guide/theming
+// Per ADR-0006, frontend-v2 uses Angular Material + SCSS exclusively; no
+// Tailwind/Flowbite. `frontend/` (SolidJS) keeps its own design system.
+@use '@angular/material' as mat;
+
+html {
+  height: 100%;
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    )
+  );
+}
+
+body {
+  // Change to `dark` or `light dark` to opt into dark mode / follow the
+  // user's system setting.
+  color-scheme: light;
+
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+
+  margin: 0;
+  min-height: 100%;
+}
+
+html,
+app-root {
+  min-height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}

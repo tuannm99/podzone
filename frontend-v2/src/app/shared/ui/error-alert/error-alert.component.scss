@@ -1,0 +1,18 @@
+.app-error-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font: var(--mat-sys-body-medium);
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+
+  mat-icon {
+    flex: none;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    margin-top: 0.125rem;
+  }
+}

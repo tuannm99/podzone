@@ -1,0 +1,69 @@
+<div class="register-page">
+  <div class="register-page__grid">
+    <app-card tone="inverse" class="register-page__hero">
+      <app-section-lead
+        eyebrow="Store Setup"
+        title="Create your seller account."
+        copy="Start with one account, then create stores, invite teammates, and run day-to-day POD operations from the same backoffice."
+      />
+      <div class="register-page__note">
+        New accounts go straight into the same secure sign-in flow used by the rest of the
+        backoffice.
+      </div>
+    </app-card>
+
+    <app-card class="register-page__form-card">
+      <div class="register-page__form-header">
+        <h1 class="register-page__form-title">Create account</h1>
+        <p class="register-page__form-subtitle">
+          Set up your account to create stores and manage your team.
+        </p>
+      </div>
+
+      <form class="register-page__form" (submit)="submit($event)">
+        <app-input-field
+          label="Username"
+          [value]="username()"
+          (valueChange)="username.set($event)"
+          placeholder="store_owner"
+        />
+        <app-input-field
+          label="Email"
+          type="email"
+          [value]="email()"
+          (valueChange)="email.set($event)"
+          placeholder="owner@store.com"
+        />
+        <app-input-field
+          label="Password"
+          type="password"
+          [value]="password()"
+          (valueChange)="password.set($event)"
+          placeholder="Create a password"
+        />
+        <app-input-field
+          label="Confirm password"
+          type="password"
+          [value]="confirmPassword()"
+          (valueChange)="confirmPassword.set($event)"
+          placeholder="Repeat the password"
+          [error]="confirmPasswordMismatch()"
+          [errorText]="confirmPasswordMismatch() ? 'Passwords do not match' : ''"
+        />
+
+        @if (error()) {
+          <app-error-alert>{{ error() }}</app-error-alert>
+        }
+
+        <app-button type="submit" [loading]="submitting()" [disabled]="!canSubmit()"
+          >Create account</app-button
+        >
+      </form>
+
+      <p class="register-page__footer">
+        Already have an account?
+        <a routerLink="/login" class="register-page__footer-link">Sign in</a>
+      </p>
+    </app-card>
+  </div>
+</div>

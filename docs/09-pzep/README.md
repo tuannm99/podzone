@@ -26,6 +26,7 @@ does not replace an ADR for pure architecture-boundary decisions (see
 | [PZEP-0005](./PZEP-0005-host-federation-migration-to-mf2.md) | Host federation migration to Module Federation 2 (`@module-federation/vite`) | Done (uncommitted) | 2026-07-13 |
 | [PZEP-0006](./PZEP-0006-angular-base-mfe-scaffold.md) | Angular base MFE scaffold — shell, onboarding feature area, design system port | Done (uncommitted) | 2026-07-13 |
 | [PZEP-0007](./PZEP-0007-angular-design-system-port.md) | Angular design-system port — full `packages/shared/ui` component library | Done (uncommitted) | 2026-07-14 |
+| [PZEP-0008](./PZEP-0008-angular-onboarding-backbone-integration.md) | Angular onboarding backbone integration — core infra + workspace/store/handoff | Approved | 2026-07-14 |
 
 ## Links Back To Delivery
 

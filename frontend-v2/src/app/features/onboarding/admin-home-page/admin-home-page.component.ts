@@ -1,9 +1,34 @@
-import { Component } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+
 import { Card } from '../../../shared/ui/card/card.component';
+import { ToasterService } from '../../../shared/services/toaster.service';
+import { OnboardingWorkspaceService } from '../workspace/onboarding-workspace.service';
+import { WorkspaceChooser } from '../workspace/workspace-chooser/workspace-chooser.component';
 
 @Component({
   selector: 'app-admin-home-page',
-  imports: [Card],
+  imports: [Card, WorkspaceChooser],
+  providers: [OnboardingWorkspaceService],
   templateUrl: './admin-home-page.component.html',
+  styleUrl: './admin-home-page.component.scss',
 })
-export class AdminHomePage {}
+export class AdminHomePage {
+  protected readonly workspace = inject(OnboardingWorkspaceService);
+  private readonly toaster = inject(ToasterService);
+
+  protected selectingTenantId = signal('');
+
+  async onSelectWorkspace(tenantId: string) {
+    this.selectingTenantId.set(tenantId);
+    try {
+      const result = await this.workspace.selectWorkspace(tenantId);
+      if (!result.success) {
+        this.toaster.error(result.message);
+        return;
+      }
+      this.toaster.success(`Workspace ${tenantId} selected.`);
+    } finally {
+      this.selectingTenantId.set('');
+    }
+  }
+}

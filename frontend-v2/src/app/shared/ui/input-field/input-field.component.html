@@ -1,16 +1,17 @@
-<app-field-label [label]="label()" [for]="id()">
+<mat-form-field appearance="outline" [color]="error() ? 'warn' : 'primary'" class="app-input-field">
+  <mat-label>{{ label() }}</mat-label>
   <input
+    matInput
     [id]="id()"
-    [class]="fieldClass()"
     [type]="type()"
     [value]="value()"
-    [placeholder]="placeholder()"
+    [attr.placeholder]="placeholder()"
     [disabled]="disabled()"
     [attr.aria-invalid]="error() || null"
     [attr.aria-describedby]="errorId()"
     (input)="valueChange.emit($any($event.target).value)"
   />
   @if (errorText()) {
-    <span [id]="errorId()" class="block text-xs font-medium text-red-600">{{ errorText() }}</span>
+    <mat-hint [attr.id]="errorId()" class="app-input-field__error">{{ errorText() }}</mat-hint>
   }
-</app-field-label>
+</mat-form-field>

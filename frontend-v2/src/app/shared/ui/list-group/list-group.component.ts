@@ -1,5 +1,6 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
+import { MatListModule } from '@angular/material/list';
 import { RouterLink } from '@angular/router';
 import { classes } from '../../utils';
 
@@ -19,21 +20,13 @@ export type ListGroupItem = {
 
 @Component({
   selector: 'app-list-group',
-  imports: [RouterLink, NgTemplateOutlet],
+  imports: [RouterLink, NgTemplateOutlet, MatListModule],
   templateUrl: './list-group.component.html',
+  styleUrl: './list-group.component.scss',
 })
 export class ListGroup {
   items = input.required<ListGroupItem[]>();
   class = input<string>();
 
-  protected wrapperClass = computed(() =>
-    classes('overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm', this.class()),
-  );
-
-  protected itemClass(item: ListGroupItem) {
-    return classes(
-      'flex w-full items-center justify-between gap-4 border-b border-gray-100 px-4 py-3 text-left transition last:border-b-0',
-      item.active ? 'bg-blue-50 text-blue-900' : 'text-gray-700 hover:bg-gray-50',
-    );
-  }
+  protected wrapperClass = computed(() => classes('app-list-group', this.class()));
 }

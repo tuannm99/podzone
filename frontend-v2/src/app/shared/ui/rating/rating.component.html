@@ -1,5 +1,0 @@
-<div [class]="wrapperClass()" [attr.aria-label]="'Rated ' + value() + ' out of ' + max()">
-  @for (item of stars(); track item) {
-    <span [class]="item <= value() ? 'text-lg text-amber-400' : 'text-lg text-gray-300'">★</span>
-  }
-</div>

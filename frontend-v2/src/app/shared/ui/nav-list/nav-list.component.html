@@ -1,0 +1,10 @@
+<div class="nav-list">
+  @if (label()) {
+    <div class="nav-list__label">{{ label() }}</div>
+  }
+  @for (item of items(); track item.href) {
+    <app-nav-link [href]="item.href" [exact]="!!item.exact" [tag]="item.tag">{{
+      item.label
+    }}</app-nav-link>
+  }
+</div>

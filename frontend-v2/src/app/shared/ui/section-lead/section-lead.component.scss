@@ -1,0 +1,29 @@
+.section-lead {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  // Text color is intentionally inherited from the parent (e.g. app-card's
+  // `tone`), not hardcoded — so this component looks right on both light
+  // and dark surfaces. Muted lines use opacity, not a separate color token,
+  // for the same reason.
+}
+
+.section-lead__eyebrow {
+  margin: 0;
+  font: var(--mat-sys-label-medium);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.section-lead__title {
+  margin: 0;
+  font: var(--mat-sys-headline-small);
+}
+
+.section-lead__copy {
+  margin: 0;
+  max-width: 42rem;
+  font: var(--mat-sys-body-medium);
+  opacity: 0.85;
+}

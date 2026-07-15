@@ -1,0 +1,18 @@
+.empty-block {
+  border-radius: 8px;
+  border: 1px dashed var(--mat-sys-outline-variant);
+  background-color: var(--mat-sys-surface-container-low);
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+}
+
+.empty-block__title {
+  margin: 0;
+  font: var(--mat-sys-title-medium);
+}
+
+.empty-block__copy {
+  margin: 0.5rem 0 0;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}

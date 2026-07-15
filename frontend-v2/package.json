@@ -6,24 +6,25 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "format": "prettier --write \"src/**/*.{ts,html,scss}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,html,scss}\""
   },
   "private": true,
   "packageManager": "npm@11.12.1",
   "dependencies": {
     "@angular-architects/native-federation": "^22.0.5",
+    "@angular/cdk": "^22.0.4",
     "@angular/common": "^22.0.0",
     "@angular/compiler": "^22.0.0",
     "@angular/core": "^22.0.0",
     "@angular/forms": "^22.0.0",
+    "@angular/material": "^22.0.4",
     "@angular/platform-browser": "^22.0.0",
     "@angular/router": "^22.0.0",
-    "@tailwindcss/postcss": "^4.3.2",
     "es-module-shims": "^2.8.0",
-    "flowbite": "^4.0.2",
     "qrcode": "^1.5.4",
     "rxjs": "~7.8.0",
-    "tailwindcss": "^4.3.2",
     "tslib": "^2.3.0"
   },
   "devDependencies": {

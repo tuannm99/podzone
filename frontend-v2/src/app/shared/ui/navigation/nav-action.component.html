@@ -1,9 +1,0 @@
-@if (item().href) {
-  <app-link [href]="item().href!" [class]="className()">
-    <span>{{ item().label }}</span>
-  </app-link>
-} @else {
-  <button type="button" [class]="className()" (click)="onClick()">
-    <span>{{ item().label }}</span>
-  </button>
-}

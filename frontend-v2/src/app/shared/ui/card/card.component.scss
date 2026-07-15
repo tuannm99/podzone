@@ -1,0 +1,9 @@
+.app-card {
+  display: block;
+  padding: 1.25rem;
+
+  &--inverse {
+    background-color: var(--mat-sys-inverse-surface);
+    color: var(--mat-sys-inverse-on-surface);
+  }
+}

@@ -1,14 +1,16 @@
-<div aria-live="polite" aria-atomic="false" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+<div aria-live="polite" aria-atomic="false" class="toaster">
   @for (toast of toaster.toasts(); track toast.id) {
     <div role="status" [class]="toastClass(toast.type)">
-      <span class="flex-1">{{ toast.message }}</span>
+      <mat-icon aria-hidden="true">{{ toastIcon(toast.type) }}</mat-icon>
+      <span class="toast__message">{{ toast.message }}</span>
       <button
+        mat-icon-button
         type="button"
         aria-label="Dismiss"
-        class="ml-2 opacity-70 hover:opacity-100"
+        class="toast__dismiss"
         (click)="toaster.dismiss(toast.id)"
       >
-        ✕
+        <mat-icon aria-hidden="true">close</mat-icon>
       </button>
     </div>
   }

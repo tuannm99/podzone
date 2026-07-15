@@ -1,0 +1,37 @@
+.nav-link {
+  display: flex;
+  height: 2.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-radius: 8px;
+  padding: 0 0.75rem;
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-on-surface-variant);
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--mat-sys-surface-container-high);
+    color: var(--mat-sys-on-surface);
+  }
+
+  &--active {
+    background-color: var(--mat-sys-secondary-container);
+    color: var(--mat-sys-on-secondary-container);
+  }
+}
+
+.nav-link__tag {
+  border-radius: 4px;
+  padding: 0.125rem 0.375rem;
+  font: var(--mat-sys-label-small);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background-color: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface-variant);
+
+  &--active {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: inherit;
+  }
+}

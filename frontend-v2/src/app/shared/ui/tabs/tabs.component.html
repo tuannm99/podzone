@@ -1,17 +1,15 @@
-<div role="tablist" [attr.aria-label]="ariaLabel()" [class]="rootClass()">
-  <div [class]="groupClass()">
-    @for (item of items(); track item.value; let index = $index) {
-      <button
-        type="button"
-        role="tab"
-        [attr.aria-selected]="value() === item.value"
-        [tabIndex]="value() === item.value ? 0 : -1"
-        [class]="tabClass(item)"
-        (click)="select(item)"
-        (keydown)="onKeyDown($event, index)"
-      >
-        {{ item.label }}
-      </button>
-    }
-  </div>
-</div>
+<nav mat-tab-nav-bar [tabPanel]="panel">
+  @for (tab of tabs(); track tab.value) {
+    <button
+      type="button"
+      mat-tab-link
+      [active]="tab.value === activeValue()"
+      (click)="activeValueChange.emit(tab.value)"
+    >
+      {{ tab.label }}
+    </button>
+  }
+</nav>
+<mat-tab-nav-panel #panel class="tabs__panel">
+  <ng-content />
+</mat-tab-nav-panel>

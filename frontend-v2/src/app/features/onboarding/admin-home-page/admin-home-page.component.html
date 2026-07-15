@@ -1,7 +1,15 @@
-<app-card>
-  <h1 class="text-lg font-semibold text-gray-900">Admin Home</h1>
-  <p class="mt-2 text-sm text-gray-600">
-    Onboarding feature area scaffold — business logic not yet ported. See
-    docs/09-pzep/PZEP-0004-solidjs-to-angular-frontend-migration.md Phase 2.
-  </p>
+<app-card class="admin-home-page__card">
+  <div class="admin-home-page__header">
+    <h1 class="admin-home-page__title">Choose a workspace</h1>
+    <p class="admin-home-page__subtitle">Select a workspace to continue to its stores.</p>
+  </div>
+
+  <app-workspace-chooser
+    [memberships]="workspace.activeMemberships()"
+    [loading]="workspace.memberships.isLoading()"
+    [error]="workspace.memberships.error()?.message ?? ''"
+    [selectedTenantId]="workspace.selectedTenantId()"
+    [selectingTenantId]="selectingTenantId()"
+    (select)="onSelectWorkspace($event)"
+  />
 </app-card>

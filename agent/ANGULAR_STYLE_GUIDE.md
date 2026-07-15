@@ -72,6 +72,32 @@ src/app/shared/               domain-neutral, reusable UI components and primiti
 
 ---
 
+## UI / Design System
+
+`frontend-v2` uses **Angular Material + SCSS** exclusively — no Tailwind CSS,
+no Flowbite, no `tailwind-merge` (see
+`docs/08-adr/ADR-0006-angular-material-replaces-ported-tailwind-design-system.md`).
+This is a permanent, deliberate divergence from `frontend/`'s Tailwind/
+Flowbite-derived design system, not a transitional state.
+
+- Each component gets its own `*.component.scss` (`styleUrl`, not inline
+  `styles`) rather than utility classes in the template.
+- Use Material's CSS custom properties (`var(--mat-sys-primary)`,
+  `var(--mat-sys-on-surface-variant)`, `var(--mat-sys-outline-variant)`,
+  typography tokens like `var(--mat-sys-body-medium)`, etc.) for color and
+  type instead of hardcoded hex values or Tailwind-style utility classes —
+  this is what makes components correctly follow the Material 3 theme
+  (`src/styles.scss`) automatically, including any future light/dark switch.
+- Reach for a real Material component (`MatButtonModule`, `MatCardModule`,
+  `MatFormFieldModule`, `MatListModule`, `MatIconModule`, etc.) before
+  hand-rolling markup. Only build a custom `shared/ui` primitive when
+  Material has no equivalent (e.g. `SectionLead`, `NavLink`).
+- Do not add a new Tailwind/Flowbite-style component to `shared/ui` and do
+  not reintroduce Tailwind CSS, PostCSS-Tailwind config, or `tailwind-merge`
+  as a dependency.
+
+---
+
 ## Angular Reactivity
 
 ### Signal inputs, not `@Input()` decorators
@@ -289,20 +315,25 @@ per-field `createSignal`" rule.
 ### Field accessibility
 
 Every field primitive must thread a stable `id` through, same requirement
-as `SOLID_STYLE_GUIDE.md`:
+as `SOLID_STYLE_GUIDE.md`. Prefer `mat-form-field` + `matInput` + `mat-label`
+over hand-rolled `<label>`/`<input>` markup — it wires label/id association
+and error styling (via `[color]="hasError() ? 'warn' : 'primary'"`, since
+`mat-error`'s automatic error-state detection requires a bound
+`FormControl`/`NgModel` that a plain `value`/`valueChange` input pair does
+not have) for you:
 
 ```html
-<div class="space-y-1.5">
-  <label [for]="id()">{{ label() }}</label>
-  <input [id]="id()" [attr.aria-invalid]="hasError() || null" [attr.aria-describedby]="hasError() ? errorId() : null" />
+<mat-form-field appearance="outline" [color]="hasError() ? 'warn' : 'primary'">
+  <mat-label>{{ label() }}</mat-label>
+  <input matInput [id]="id()" [attr.aria-invalid]="hasError() || null" [attr.aria-describedby]="hasError() ? errorId() : null" />
   @if (hasError()) {
-    <span [id]="errorId()" class="text-xs text-danger">{{ errorText() }}</span>
+    <mat-hint [attr.id]="errorId()">{{ errorText() }}</mat-hint>
   }
-</div>
+</mat-form-field>
 ```
 
 ```ts
-id = input<string>(inject(EnvironmentInjector).get(...) /* or */ crypto.randomUUID())
+id = input<string>(createUniqueId()) // shared/utils.ts — Angular has no public equivalent of Solid's createUniqueId()
 ```
 
 Generate a stable id once per component instance (e.g. in a field
@@ -415,10 +446,12 @@ above under Collections.
 Every modal/drawer-equivalent component must have the same guarantees as
 `SOLID_STYLE_GUIDE.md`'s Overlays section: `role="dialog"`,
 `aria-modal="true"`, `aria-labelledby`, focus moved in on open and restored
-on close, Tab/Shift-Tab trapped, `Escape` closes. Do not hand-roll this —
-add `@angular/cdk` (not yet a dependency of `frontend-v2` as of this
-writing) and use `@angular/cdk/a11y`'s `FocusTrap`/`FocusMonitor` rather
-than reimplementing focus management from scratch.
+on close, Tab/Shift-Tab trapped, `Escape` closes. Do not hand-roll this.
+`@angular/cdk` is already a dependency (pulled in by `@angular/material`,
+see ADR-0006) — prefer `MatDialog` (built on CDK's overlay + focus trap)
+for a real modal, or `@angular/cdk/a11y`'s `FocusTrap`/`FocusMonitor`
+directly for a custom overlay that isn't a good fit for `MatDialog`. Never
+reimplement focus management from scratch.
 
 ### Global notifications
 
@@ -447,8 +480,9 @@ export class ToasterService {
 
 Same requirements as `SOLID_STYLE_GUIDE.md`: `<table>` for operational row
 data, `<ul>`/`<li>` for lists, `aria-label` on every icon-only button,
-visible focus rings preserved (don't strip Tailwind's focus utilities),
-status changes always paired with text/icon, not color alone.
+visible focus rings preserved (Material components ship a visible focus
+indicator by default — do not override it away in component SCSS), status
+changes always paired with text/icon, not color alone.
 
 ---
 
@@ -513,15 +547,18 @@ a split-module class of bug analogous to Solid's federation reactive-split).
 
 ### Not yet true — do not assume it
 
-The current host (`frontend/vite.config.ts`) uses
-`@originjs/vite-plugin-federation`, a different federation
-protocol/manifest format than native-federation's. **This remote is not
-loadable by the current host.** Real cross-framework federation requires
-the host to migrate to `@module-federation/vite` (MF2) first — see
-ADR-0005 and PZEP-0004 Phase 1. Do not write code in either
-`frontend-v2` or `frontend/` that assumes today's host can already load an
-Angular remote — it can't, and that gap is a whole separate, higher-risk
-migration step, not a config tweak.
+The host (`frontend/vite.config.ts`) migrated to `@module-federation/vite`
+(MF2) in PZEP-0005, bridged to native-federation remotes via
+`native-to-mf-bridge` — the bridge mechanism was verified live (real
+import map fetched from this app's dev server). **`frontend-v2` is still
+not mounted as an actual route in the host's route tree** — the bridge was
+only proven with a throwaway one-off import, not a real page. Do not write
+code in either `frontend-v2` or `frontend/` that assumes a user can reach
+`frontend-v2` through the host today — that mount is a separate,
+not-yet-scheduled step (PZEP-0004 Phase 2+), not a config tweak. Until
+then, `frontend-v2` is developed and gate-reviewed standalone via
+`ng serve` (port 3004) against the real backend, with its own `/login`
+route (see PZEP-0008).
 
 ### Rule of thumb (anticipated — apply once Phase 1 is real)
 

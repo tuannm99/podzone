@@ -1,0 +1,12 @@
+.nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.nav-list__label {
+  padding: 0 0.75rem;
+  font: var(--mat-sys-label-small);
+  text-transform: uppercase;
+  color: var(--mat-sys-outline);
+}

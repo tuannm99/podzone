@@ -1,12 +1,13 @@
 import { Component, computed, input, output } from '@angular/core';
-import { FieldLabel } from '../field-label/field-label.component';
-import { fieldBaseClasses } from '../field-classes';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { createUniqueId } from '../../utils';
 
 @Component({
   selector: 'app-input-field',
-  imports: [FieldLabel],
+  imports: [MatFormFieldModule, MatInputModule],
   templateUrl: './input-field.component.html',
+  styleUrl: './input-field.component.scss',
 })
 export class InputField {
   label = input.required<string>();
@@ -20,6 +21,5 @@ export class InputField {
 
   valueChange = output<string>();
 
-  protected fieldClass = computed(() => fieldBaseClasses(this.error()));
   protected errorId = computed(() => (this.errorText() ? `${this.id()}-error` : null));
 }

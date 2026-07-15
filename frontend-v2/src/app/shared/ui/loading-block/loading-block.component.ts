@@ -5,6 +5,7 @@ import { LoadingInline } from '../loading-inline/loading-inline.component';
   selector: 'app-loading-block',
   imports: [LoadingInline],
   templateUrl: './loading-block.component.html',
+  styleUrl: './loading-block.component.scss',
 })
 export class LoadingBlock {
   label = input.required<string>();

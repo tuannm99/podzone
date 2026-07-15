@@ -5,6 +5,7 @@ import { Spinner } from '../spinner/spinner.component';
   selector: 'app-loading-inline',
   imports: [Spinner],
   templateUrl: './loading-inline.component.html',
+  styleUrl: './loading-inline.component.scss',
 })
 export class LoadingInline {
   label = input.required<string>();

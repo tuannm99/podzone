@@ -1,0 +1,73 @@
+<div class="login-page">
+  <div class="login-page__grid">
+    <app-card tone="inverse" class="login-page__hero">
+      <app-section-lead
+        eyebrow="PODZONE"
+        title="Run your POD stores from one backoffice."
+        copy="Sign in once to manage stores, team access, invites, and the operational side of your POD business."
+      />
+
+      <div class="login-page__tips">
+        <div class="login-page__tip">
+          <p class="login-page__tip-index">01</p>
+          <p class="login-page__tip-copy">One sign-in unlocks your store operations workspace.</p>
+        </div>
+        <div class="login-page__tip">
+          <p class="login-page__tip-index">02</p>
+          <p class="login-page__tip-copy">
+            Store switching keeps each session scoped to the right shop.
+          </p>
+        </div>
+        <div class="login-page__tip">
+          <p class="login-page__tip-index">03</p>
+          <p class="login-page__tip-copy">
+            Team access and invites stay tied to the correct store.
+          </p>
+        </div>
+      </div>
+    </app-card>
+
+    <app-card class="login-page__form-card">
+      <div class="login-page__form-header">
+        <h1 class="login-page__form-title">Sign in</h1>
+        <p class="login-page__form-subtitle">Use your account to open the seller backoffice.</p>
+      </div>
+
+      <form class="login-page__form" (submit)="submit($event)">
+        <app-input-field
+          label="Username or email"
+          [value]="username()"
+          (valueChange)="username.set($event)"
+          placeholder="owner@store.com"
+        />
+        <app-input-field
+          label="Password"
+          type="password"
+          [value]="password()"
+          (valueChange)="password.set($event)"
+          placeholder="Enter your password"
+        />
+
+        @if (error()) {
+          <app-error-alert>{{ error() }}</app-error-alert>
+        }
+
+        <div class="login-page__actions">
+          <app-button
+            type="submit"
+            [loading]="submitting()"
+            [disabled]="!username().trim() || !password()"
+          >
+            Continue
+          </app-button>
+          <app-button [href]="googleLoginUrl" variant="stroked">Sign in with Google</app-button>
+        </div>
+      </form>
+
+      <p class="login-page__footer">
+        Need an account?
+        <a routerLink="/register" class="login-page__footer-link">Create one</a>
+      </p>
+    </app-card>
+  </div>
+</div>

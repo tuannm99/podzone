@@ -1,5 +1,3 @@
-// Ported verbatim from frontend/packages/shared/ui/shared/utils.ts —
-// keep both in sync if this changes.
 export function classes(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(' ');
 }
