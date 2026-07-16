@@ -309,6 +309,7 @@ help:
 	@echo "  make docker-dev                           - Run full stack (PROFILE=full)"
 	@echo "  make docker-dev PROFILE=iam               - Run iam profile only"
 	@echo "  make docker-dev PROFILE=backoffice,iam    - Run multiple profiles"
+	@echo "  make docker-dev PROFILE=frontend-v2       - Run frontend-v2 (Angular) standalone dev server only"
 	@echo "  make docker-dev-infra                     - Run only dockerized dev infrastructure"
 	@echo "  make docker-dev-down                      - Stop dockerized dev infra + services"
 	@echo "  make dev-pod-up TENANT_ID=t1          - Start local docker stack and auto-bootstrap tenant/sample/auth"

@@ -54,7 +54,7 @@ export class RegisterPage {
         this.error.set(result.message);
         return;
       }
-      await this.router.navigateByUrl('/admin');
+      await this.router.navigateByUrl('/');
     } finally {
       this.submitting.set(false);
     }

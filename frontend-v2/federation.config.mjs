@@ -21,6 +21,20 @@ export default withNativeFederation({
             build: 'package',
             includeSecondaries: { keepAll: true },
           },
+          // Same reason: app.config.ts imports the secondary entry point
+          // '@angular/platform-browser/animations/async' (provideAnimationsAsync,
+          // added for Angular Material). ignoreUnusedDeps' static analysis
+          // does not resolve that subpath as a shared chunk on its own —
+          // without this override the browser's import map has no entry for
+          // it and the app fails at runtime with "Unable to resolve
+          // specifier '@angular/platform-browser/animations/async'".
+          '@angular/platform-browser': {
+            singleton: true,
+            strictVersion: true,
+            requiredVersion: 'auto',
+            build: 'package',
+            includeSecondaries: { keepAll: true },
+          },
         },
       },
     ),

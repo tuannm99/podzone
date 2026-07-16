@@ -136,6 +136,13 @@ $sidebar-width: 16rem;
   flex: 1;
 }
 
+.shell__footer-name,
+.shell__footer-sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .shell__footer-name {
   font: var(--mat-sys-body-medium);
 }
@@ -143,6 +150,10 @@ $sidebar-width: 16rem;
 .shell__footer-sub {
   font: var(--mat-sys-label-small);
   color: var(--mat-sys-on-surface-variant);
+}
+
+.shell__logout {
+  flex: none;
 }
 
 .shell__header {

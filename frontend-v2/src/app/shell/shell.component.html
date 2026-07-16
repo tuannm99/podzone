@@ -26,10 +26,17 @@
     </nav>
 
     <div class="shell__footer">
-      <div class="shell__avatar">PZ</div>
+      <div class="shell__avatar">{{ userInitial() }}</div>
       <div class="shell__footer-text">
-        <div class="shell__footer-name">Not signed in</div>
-        <div class="shell__footer-sub">Auth not wired yet</div>
+        <div class="shell__footer-name">
+          {{ currentUser()?.username || currentUser()?.email || 'Not signed in' }}
+        </div>
+        <div class="shell__footer-sub">{{ currentUser()?.email || '' }}</div>
+      </div>
+      <div class="shell__logout">
+        <app-button variant="stroked" ariaLabel="Log out" (buttonClick)="logout()">
+          <mat-icon aria-hidden="true">logout</mat-icon>
+        </app-button>
       </div>
     </div>
   </aside>

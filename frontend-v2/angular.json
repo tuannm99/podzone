@@ -108,7 +108,9 @@
           },
           "defaultConfiguration": "development",
           "options": {
-            "port": 3004
+            "port": 3004,
+            "host": "0.0.0.0",
+            "poll": 300
           }
         }
       }

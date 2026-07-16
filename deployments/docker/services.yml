@@ -427,6 +427,57 @@ services:
     ports:
       - '3000:3000'
 
+  frontend-v2:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile.frontend-v2-dev
+    container_name: podzone-frontend-v2-dev
+    profiles: [frontend-v2, full]
+    working_dir: /app
+    command: ['npm', 'start']
+    # Host/port/poll for the dev server are set in frontend-v2/angular.json's
+    # `serve-original` architect (host 0.0.0.0, poll 300ms) rather than
+    # passed as CLI flags here, since the native-federation `serve` builder
+    # wraps `serve-original` and doesn't forward unknown flags like `--host`
+    # through to it. The poll interval is the same WSL2/Docker bind-mount
+    # inotify workaround as CHOKIDAR_USEPOLLING on the other frontend
+    # services — see docs/10-knowledge-base/local-dev/2026-07-12-mfe-remote-watch-not-picking-up-changes.md.
+    # frontend-v2 is not yet mounted into the SolidJS host or fronted by
+    # APISIX (PZEP-0004 Phase 2+) — it runs standalone here, same as `ng
+    # serve` outside Docker, calling the gateway directly via the hardcoded
+    # localhost URLs in src/environments/environment.development.ts.
+    volumes:
+      - ../../frontend-v2:/app
+      - podzone_frontend_v2_node_modules:/app/node_modules
+      # native-federation's `ng serve` (unlike Vite's dev servers used by
+      # the other frontend services) writes real build output to dist/ and
+      # .angular/cache/ as part of normal operation. The container runs as
+      # root, so without isolating these two paths behind their own
+      # volumes, every dev-server run leaves root-owned files inside the
+      # bind-mounted frontend-v2/ dir, breaking `ng build`/`ng test` run
+      # directly on the host afterwards (EACCES). Keeping them
+      # container-only volumes also avoids sharing build artifacts between
+      # the container's musl/Alpine toolchain and the host's glibc one.
+      - podzone_frontend_v2_dist:/app/dist
+      - podzone_frontend_v2_angular_cache:/app/.angular
+    mem_limit: 768m
+    cpus: 1.5
+    depends_on:
+      grpc-gateway:
+        condition: service_started
+        # grpc-gateway's own profiles ([backoffice, iam, onboarding, full])
+        # don't include `frontend-v2` — under `PROFILE=frontend-v2` alone it
+        # won't be started, and a required dependency on an out-of-profile
+        # service is a compose config error. `frontend-v2` doesn't need
+        # grpc-gateway running inside the container anyway (it only serves
+        # the Angular bundle; API calls happen from the browser at
+        # localhost:8080, not from this container) — this is a start-order
+        # hint for when both are in the active profile set, not a hard
+        # requirement.
+        required: false
+    ports:
+      - '3004:3004'
+
   apisix-init:
     image: curlimages/curl:8.12.1
     container_name: podzone-apisix-init
@@ -463,3 +514,6 @@ volumes:
   podzone_go_mod_cache:
   podzone_go_build_cache:
   podzone_ui_node_modules:
+  podzone_frontend_v2_node_modules:
+  podzone_frontend_v2_dist:
+  podzone_frontend_v2_angular_cache:

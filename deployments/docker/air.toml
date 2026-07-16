@@ -5,6 +5,7 @@
   include_ext = ["go", "toml", "yaml", "yml"]
   exclude_dir  = [
     "frontend",
+    "frontend-v2",
     "node_modules",
     "dist",
     ".git",

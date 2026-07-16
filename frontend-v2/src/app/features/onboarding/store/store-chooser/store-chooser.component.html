@@ -1,0 +1,44 @@
+@if (loading()) {
+  <app-loading-block label="Loading stores…" />
+} @else if (error()) {
+  <app-error-alert>{{ error() }}</app-error-alert>
+} @else {
+  @if (stores().length === 0) {
+    <app-empty-block title="No stores yet" copy="Create your first store to continue." />
+  } @else {
+    <div class="store-chooser__list">
+      @for (store of stores(); track store.id) {
+        <div class="store-chooser__row">
+          <div class="store-chooser__row-main">
+            <p class="store-chooser__row-name">{{ store.name }}</p>
+            <p class="store-chooser__row-sub">{{ store.subdomain }}</p>
+          </div>
+          <app-badge [tone]="tone(store.status)">{{ label(store.status) }}</app-badge>
+          @if (store.status === 'ready') {
+            <app-button [href]="backofficeUrl(store)">Open</app-button>
+          } @else if (retryable(store.status)) {
+            <app-button
+              variant="stroked"
+              [loading]="retryingId() === store.id"
+              (buttonClick)="retryStore.emit(store.id)"
+            >
+              Retry
+            </app-button>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <form class="store-chooser__create" (submit)="onCreateSubmit($event)">
+    <app-input-field
+      label="New store name"
+      [value]="newStoreName()"
+      (valueChange)="newStoreNameChange.emit($event)"
+      placeholder="My Store"
+    />
+    <app-button type="submit" [loading]="creating()" [disabled]="!newStoreName().trim()">
+      Create store
+    </app-button>
+  </form>
+}

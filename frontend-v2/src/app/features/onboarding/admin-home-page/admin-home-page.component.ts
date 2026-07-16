@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { Card } from '../../../shared/ui/card/card.component';
 import { ToasterService } from '../../../shared/services/toaster.service';
@@ -15,6 +16,7 @@ import { WorkspaceChooser } from '../workspace/workspace-chooser/workspace-choos
 export class AdminHomePage {
   protected readonly workspace = inject(OnboardingWorkspaceService);
   private readonly toaster = inject(ToasterService);
+  private readonly router = inject(Router);
 
   protected selectingTenantId = signal('');
 
@@ -26,7 +28,7 @@ export class AdminHomePage {
         this.toaster.error(result.message);
         return;
       }
-      this.toaster.success(`Workspace ${tenantId} selected.`);
+      await this.router.navigate(['/t', tenantId, 'stores']);
     } finally {
       this.selectingTenantId.set('');
     }

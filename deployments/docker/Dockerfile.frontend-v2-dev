@@ -1,0 +1,11 @@
+FROM node:24-alpine
+
+WORKDIR /app
+
+COPY frontend-v2/package*.json ./
+RUN npm install
+
+COPY deployments/docker/entrypoint-ui.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

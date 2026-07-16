@@ -1,0 +1,22 @@
+.store-chooser-page__card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.store-chooser-page__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.store-chooser-page__title {
+  margin: 0;
+  font: var(--mat-sys-title-large);
+}
+
+.store-chooser-page__subtitle {
+  margin: 0;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}

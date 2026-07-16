@@ -1,6 +1,20 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!-- @angular-architects/native-federation's dev-mode external bundler
+         (node-modules-bundler.js/angular-bundler.js) does not esbuild-`define`
+         `ngDevMode` for dev builds the way its own production bundling (and
+         Angular CLI's own application builder) does. Compiled class-metadata
+         code in per-package federation chunks references the bare `ngDevMode`
+         identifier and throws `ReferenceError: ngDevMode is not defined` if
+         nothing has set it as a real global yet by the time that chunk
+         evaluates. Setting it here, before any module script runs, closes
+         that gap regardless of chunk load order. `false` matches what both
+         native-federation and Angular CLI already use for production, so
+         this only affects extra dev-only diagnostics, not functionality. -->
+    <script>
+      window.ngDevMode = false;
+    </script>
     <meta charset="utf-8" />
     <title>FrontendV2</title>
     <base href="/" />

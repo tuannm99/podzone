@@ -1,0 +1,21 @@
+<app-card class="store-chooser-page__card">
+  <div class="store-chooser-page__header">
+    <h1 class="store-chooser-page__title">Choose a store</h1>
+    <p class="store-chooser-page__subtitle">
+      Select a store to open its backoffice, or create a new one.
+    </p>
+  </div>
+
+  <app-store-chooser
+    [tenantId]="tenantId()"
+    [stores]="store.requests.value() ?? []"
+    [loading]="store.requests.isLoading()"
+    [error]="store.requests.error()?.message ?? ''"
+    [retryingId]="store.retryingId()"
+    [creating]="store.creating()"
+    [newStoreName]="newStoreName()"
+    (newStoreNameChange)="newStoreName.set($event)"
+    (createStore)="onCreateStore()"
+    (retryStore)="onRetryStore($event)"
+  />
+</app-card>
