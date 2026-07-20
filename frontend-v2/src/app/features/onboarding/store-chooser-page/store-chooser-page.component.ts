@@ -1,7 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
+import { AuthService } from '../../../core/auth/auth.service';
+import { Button } from '../../../shared/ui/button/button.component';
 import { Card } from '../../../shared/ui/card/card.component';
 import { ToasterService } from '../../../shared/services/toaster.service';
 import { OnboardingStoreService } from '../store/onboarding-store.service';
@@ -9,7 +12,7 @@ import { StoreChooser } from '../store/store-chooser/store-chooser.component';
 
 @Component({
   selector: 'app-store-chooser-page',
-  imports: [Card, StoreChooser],
+  imports: [Card, StoreChooser, Button, MatIconModule, RouterLink],
   providers: [OnboardingStoreService],
   templateUrl: './store-chooser-page.component.html',
   styleUrl: './store-chooser-page.component.scss',
@@ -17,6 +20,7 @@ import { StoreChooser } from '../store/store-chooser/store-chooser.component';
 export class StoreChooserPage {
   private readonly route = inject(ActivatedRoute);
   private readonly toaster = inject(ToasterService);
+  private readonly auth = inject(AuthService);
   protected readonly store = inject(OnboardingStoreService);
 
   private readonly paramMap = toSignal(this.route.paramMap, { requireSync: true });
@@ -26,6 +30,10 @@ export class StoreChooserPage {
 
   constructor() {
     this.store.setTenantId(this.tenantId());
+  }
+
+  protected logout() {
+    void this.auth.logout();
   }
 
   async onCreateStore() {

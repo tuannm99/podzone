@@ -1,6 +1,6 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
-import { MatListModule } from '@angular/material/list';
+import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { classes } from '../../utils';
 
@@ -16,11 +16,13 @@ export type ListGroupItem = {
   href?: string;
   active?: boolean;
   onClick?: () => void;
+  /** Short (1-2 char) code rendered in a leading avatar chip, e.g. tenant initials. */
+  leadingText?: string;
 };
 
 @Component({
   selector: 'app-list-group',
-  imports: [RouterLink, NgTemplateOutlet, MatListModule],
+  imports: [RouterLink, NgTemplateOutlet, MatIconModule],
   templateUrl: './list-group.component.html',
   styleUrl: './list-group.component.scss',
 })

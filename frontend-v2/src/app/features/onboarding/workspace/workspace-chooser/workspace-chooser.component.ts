@@ -7,7 +7,7 @@ import {
   type ListGroupItem,
 } from '../../../../shared/ui/list-group/list-group.component';
 import { LoadingBlock } from '../../../../shared/ui/loading-block/loading-block.component';
-import type { TenantMembership } from '../workspace.types';
+import { formatRoleLabel, type TenantMembership } from '../workspace.types';
 
 @Component({
   selector: 'app-workspace-chooser',
@@ -25,10 +25,11 @@ export class WorkspaceChooser {
 
   protected items = computed<ListGroupItem[]>(() =>
     this.memberships().map((membership) => ({
-      label: membership.tenantId,
+      label: `Workspace ${membership.tenantId.slice(0, 8)}`,
       description:
-        membership.roleName +
-        (this.selectingTenantId() === membership.tenantId ? ' · switching…' : ''),
+        formatRoleLabel(membership.roleName) +
+        (this.selectingTenantId() === membership.tenantId ? ' · Switching…' : ''),
+      leadingText: membership.tenantId.slice(0, 2),
       active: membership.tenantId === this.selectedTenantId(),
       onClick: () => this.select.emit(membership.tenantId),
     })),

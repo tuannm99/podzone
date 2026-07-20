@@ -1,24 +1,41 @@
-<mat-list [class]="wrapperClass()">
+<div [class]="wrapperClass()">
   @for (item of items(); track item.label) {
     @if (item.href) {
-      <a mat-list-item [routerLink]="item.href" [activated]="!!item.active">
+      <a
+        class="app-list-group__row"
+        [routerLink]="item.href"
+        [class.app-list-group__row--active]="!!item.active"
+      >
         <ng-container *ngTemplateOutlet="itemContent; context: { $implicit: item }" />
       </a>
     } @else if (item.onClick) {
-      <button mat-list-item type="button" [activated]="!!item.active" (click)="item.onClick()">
+      <button
+        type="button"
+        class="app-list-group__row"
+        [class.app-list-group__row--active]="!!item.active"
+        (click)="item.onClick()"
+      >
         <ng-container *ngTemplateOutlet="itemContent; context: { $implicit: item }" />
       </button>
     } @else {
-      <mat-list-item [activated]="!!item.active">
+      <div class="app-list-group__row app-list-group__row--static">
         <ng-container *ngTemplateOutlet="itemContent; context: { $implicit: item }" />
-      </mat-list-item>
+      </div>
     }
   }
-</mat-list>
+</div>
 
 <ng-template #itemContent let-item>
-  <span matListItemTitle>{{ item.label }}</span>
-  @if (item.description) {
-    <span matListItemLine>{{ item.description }}</span>
+  @if (item.leadingText) {
+    <span class="app-list-group__avatar">{{ item.leadingText }}</span>
+  }
+  <span class="app-list-group__main">
+    <span class="app-list-group__title">{{ item.label }}</span>
+    @if (item.description) {
+      <span class="app-list-group__description">{{ item.description }}</span>
+    }
+  </span>
+  @if (item.href || item.onClick) {
+    <mat-icon class="app-list-group__chevron" aria-hidden="true">chevron_right</mat-icon>
   }
 </ng-template>

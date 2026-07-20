@@ -1,4 +1,4 @@
-<div class="shell">
+<div class="shell" [class.shell--nav-collapsed]="navCollapsed()">
   <aside class="shell__sidebar">
     <div class="shell__brand">
       <a routerLink="/" class="shell__logo">PZ</a>
@@ -43,6 +43,14 @@
 
   <header class="shell__header">
     <div class="shell__header-inner">
+      <button
+        type="button"
+        class="shell__nav-toggle"
+        [attr.aria-label]="navCollapsed() ? 'Show navigation' : 'Hide navigation'"
+        (click)="toggleNav()"
+      >
+        <mat-icon aria-hidden="true">{{ navCollapsed() ? 'menu' : 'menu_open' }}</mat-icon>
+      </button>
       <div class="shell__header-text">
         <div class="shell__header-title">Choose a store</div>
         <div class="shell__header-sub">Platform workspace</div>

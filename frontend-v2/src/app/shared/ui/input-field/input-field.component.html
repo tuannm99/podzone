@@ -1,4 +1,9 @@
-<mat-form-field appearance="outline" [color]="error() ? 'warn' : 'primary'" class="app-input-field">
+<mat-form-field
+  appearance="outline"
+  subscriptSizing="dynamic"
+  [color]="error() ? 'warn' : 'primary'"
+  class="app-input-field"
+>
   <mat-label>{{ label() }}</mat-label>
   <input
     matInput

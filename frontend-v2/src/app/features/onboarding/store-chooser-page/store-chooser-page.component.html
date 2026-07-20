@@ -1,9 +1,20 @@
 <app-card class="store-chooser-page__card">
   <div class="store-chooser-page__header">
-    <h1 class="store-chooser-page__title">Choose a store</h1>
-    <p class="store-chooser-page__subtitle">
-      Select a store to open its backoffice, or create a new one.
-    </p>
+    <div class="store-chooser-page__heading-row">
+      <a routerLink="/" class="store-chooser-page__back" aria-label="Back to workspaces">
+        <mat-icon aria-hidden="true">arrow_back</mat-icon>
+      </a>
+      <div class="store-chooser-page__heading">
+        <p class="store-chooser-page__eyebrow">Workspace {{ tenantId().slice(0, 8) }}</p>
+        <h1 class="store-chooser-page__title">Choose a store</h1>
+        <p class="store-chooser-page__subtitle">
+          Select a store to open its backoffice, or create a new one.
+        </p>
+      </div>
+    </div>
+    <app-button variant="stroked" ariaLabel="Log out" (buttonClick)="logout()">
+      <mat-icon aria-hidden="true">logout</mat-icon>
+    </app-button>
   </div>
 
   <app-store-chooser

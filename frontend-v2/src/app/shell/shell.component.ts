@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { AuthService } from '../core/auth/auth.service';
@@ -25,5 +25,11 @@ export class Shell {
 
   protected logout() {
     void this.auth.logout();
+  }
+
+  protected readonly navCollapsed = signal(false);
+
+  protected toggleNav() {
+    this.navCollapsed.update((collapsed) => !collapsed);
   }
 }
