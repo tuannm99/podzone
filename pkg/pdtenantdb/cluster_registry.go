@@ -17,6 +17,16 @@ type ClusterConfig struct {
 	User     string `json:"user"`
 	Password string `json:"password"`
 	SSLMode  string `json:"ssl_mode"`
+
+	// AppUser/AppPassword, when set, are a separate least-privilege
+	// credential used for ordinary tenant query connections (Manager's
+	// WithTenantTx) - User/Password stay reserved for schema bootstrap and
+	// migrations only. Empty by default: falls back to User/Password for
+	// everything, today's behavior. See docs/09-pzep/
+	// PZEP-0009-backoffice-least-privilege-app-db-role.md and
+	// docs/07-problems/multitenancy-2026-07-23.md MT1.
+	AppUser     string `json:"app_user,omitempty"`
+	AppPassword string `json:"app_password,omitempty"`
 }
 
 type ClusterRegistry interface {

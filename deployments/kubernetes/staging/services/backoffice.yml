@@ -36,10 +36,10 @@ spec:
 
           resources:
             requests:
-              cpu: '20m'
+              cpu: '100m'
               memory: '50Mi'
             limits:
-              cpu: '50m'
+              cpu: '500m'
               memory: '128Mi'
 
           # readinessProbe:

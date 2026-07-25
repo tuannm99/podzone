@@ -10,6 +10,8 @@ import (
 	"sync"
 
 	"github.com/jmoiron/sqlx"
+
+	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 )
 
 //go:embed sql/*.sql
@@ -106,6 +108,37 @@ CREATE TABLE IF NOT EXISTS backoffice_schema_migrations (
 		appliedScopes.Store(scopeKey, struct{}{})
 	}
 	return nil
+}
+
+// ApplyToSchema opens its own transaction, sets search_path to schemaName
+// (schema-mode; pass "" for database-mode, where the migration runs against
+// the connection's default search_path), applies pending migrations, and
+// commits. Matches pdtenantdb.Config.OnSchemaBootstrap's signature - wire it
+// directly there so migrations run once per tenant scope instead of on every
+// repository call. See docs/07-problems/multitenancy-2026-07-23.md MT8 and
+// docs/07-problems/repository-query-layer-2026-07-24.md RQ4 step 1.
+func ApplyToSchema(ctx context.Context, db *sqlx.DB, schemaName string) error {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin migration tx: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	if schemaName != "" {
+		// SET LOCAL, not SET, to stay safe under PgBouncer transaction
+		// pooling - matches pdtenantdb.Manager.WithTenantTx's own guard.
+		if _, err := tx.ExecContext(ctx, fmt.Sprintf(
+			`SET LOCAL search_path TO %s, public`,
+			pdtenantdb.QuoteIdent(schemaName),
+		)); err != nil {
+			return fmt.Errorf("set search_path for migrations: %w", err)
+		}
+	}
+
+	if err := ApplyTx(ctx, tx); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func migrationScopeKey(ctx context.Context, tx *sqlx.Tx) (string, error) {

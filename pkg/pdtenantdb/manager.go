@@ -35,6 +35,11 @@ type managerImpl struct {
 	mu    sync.Mutex
 	pools map[ConnKey]*sqlx.DB
 
+	// adminPools holds the elevated-credential pool for a (cluster,db) key,
+	// used only for schema bootstrap / migrations, when ClusterConfig.AppUser
+	// is set. Empty/unused when AppUser is not configured - see PZEP-0009.
+	adminPools map[ConnKey]*sqlx.DB
+
 	// Track last used for dedicated DB pools (to close idle pools)
 	lastUsed map[ConnKey]time.Time
 	creating map[ConnKey]struct{}
@@ -65,12 +70,13 @@ func NewManager(cfg *Config, resolver PlacementResolver, registry ClusterRegistr
 	}
 
 	return &managerImpl{
-		cfg:      cfg,
-		resolver: resolver,
-		registry: registry,
-		pools:    make(map[ConnKey]*sqlx.DB),
-		lastUsed: make(map[ConnKey]time.Time),
-		creating: make(map[ConnKey]struct{}),
+		cfg:        cfg,
+		resolver:   resolver,
+		registry:   registry,
+		pools:      make(map[ConnKey]*sqlx.DB),
+		adminPools: make(map[ConnKey]*sqlx.DB),
+		lastUsed:   make(map[ConnKey]time.Time),
+		creating:   make(map[ConnKey]struct{}),
 	}
 }
 
@@ -116,12 +122,72 @@ func (m *managerImpl) ensureSchema(ctx context.Context, db *sqlx.DB, key ConnKey
 	if _, loaded := m.bootstrapped.LoadOrStore(bsKey, struct{}{}); loaded {
 		return nil
 	}
-	_, err := db.ExecContext(ctx, fmt.Sprintf(`CREATE SCHEMA IF NOT EXISTS %s`, pgQuoteIdent(schemaName)))
+	// CREATE SCHEMA and migrations always need the admin credential, even
+	// when db (the caller's query pool) is running as the least-privilege
+	// app role. adminDB falls back to db itself when no app role is
+	// configured - see PZEP-0009.
+	adminDB, err := m.adminDBFor(ctx, key, db)
 	if err != nil {
+		m.bootstrapped.Delete(bsKey)
+		return err
+	}
+	createSchemaSQL := fmt.Sprintf(`CREATE SCHEMA IF NOT EXISTS %s`, QuoteIdent(schemaName))
+	if _, err := adminDB.ExecContext(ctx, createSchemaSQL); err != nil {
 		// Remove so the next call can retry.
 		m.bootstrapped.Delete(bsKey)
+		return err
 	}
-	return err
+	if m.cfg.OnSchemaBootstrap != nil {
+		if err := m.cfg.OnSchemaBootstrap(ctx, adminDB, schemaName); err != nil {
+			m.bootstrapped.Delete(bsKey)
+			return err
+		}
+	}
+	return nil
+}
+
+// adminDBFor returns the elevated-credential pool for key, opening it on
+// first use. Returns fallback unchanged when the cluster has no AppUser
+// configured, so callers with AppUser unset never open a second connection
+// pool - see PZEP-0009.
+func (m *managerImpl) adminDBFor(ctx context.Context, key ConnKey, fallback *sqlx.DB) (*sqlx.DB, error) {
+	clusterCfg, err := m.registry.GetCluster(ctx, key.ClusterName)
+	if err != nil {
+		return nil, err
+	}
+	if clusterCfg.AppUser == "" {
+		return fallback, nil
+	}
+
+	m.mu.Lock()
+	if db := m.adminPools[key]; db != nil {
+		m.mu.Unlock()
+		return db, nil
+	}
+	m.mu.Unlock()
+
+	dsn := buildDSN(clusterCfg, key.DBName, false)
+	db, err := SQLXOpen("postgres", dsn)
+	if err != nil {
+		return nil, err
+	}
+	db.SetConnMaxLifetime(m.cfg.ConnMaxLifetime)
+	db.SetMaxOpenConns(m.cfg.MaxOpenConns)
+	db.SetMaxIdleConns(m.cfg.MaxIdleConns)
+	if err := db.PingContext(ctx); err != nil {
+		_ = db.Close()
+		return nil, err
+	}
+
+	m.mu.Lock()
+	if existing := m.adminPools[key]; existing != nil {
+		m.mu.Unlock()
+		_ = db.Close()
+		return existing, nil
+	}
+	m.adminPools[key] = db
+	m.mu.Unlock()
+	return db, nil
 }
 
 func (m *managerImpl) WithTenantTx(
@@ -145,7 +211,7 @@ func (m *managerImpl) WithTenantTx(
 	if pl.Mode == ModeSchema && pl.SchemaName != "" {
 		_, err = tx.ExecContext(ctx, fmt.Sprintf(
 			`SET LOCAL search_path TO %s, public`,
-			pgQuoteIdent(pl.SchemaName),
+			QuoteIdent(pl.SchemaName),
 		))
 		if err != nil {
 			return err
@@ -188,7 +254,11 @@ func (m *managerImpl) getOrCreateDB(ctx context.Context, key ConnKey, dedicated 
 			return nil, err
 		}
 
-		dsn := buildDSN(clusterCfg, key.DBName)
+		// true: prefer AppUser/AppPassword when configured. This is the
+		// query pool WithTenantTx hands to repository code - falls back to
+		// the admin credential when no app role is configured, identical to
+		// today's DSN. See PZEP-0009.
+		dsn := buildDSN(clusterCfg, key.DBName, true)
 		db, err := SQLXOpen("postgres", dsn)
 		if err != nil {
 			return nil, err
@@ -201,6 +271,22 @@ func (m *managerImpl) getOrCreateDB(ctx context.Context, key ConnKey, dedicated 
 		if err := db.PingContext(ctx); err != nil {
 			_ = db.Close()
 			return nil, err
+		}
+
+		// Dedicated (database-per-tenant) pools have no per-schema bootstrap
+		// hook - this is the once-per-pool equivalent for database mode,
+		// matching ensureSchema's schema-mode hook. Always runs against the
+		// admin credential, even though db above may be the app-role pool.
+		if dedicated && m.cfg.OnSchemaBootstrap != nil {
+			adminDB, err := m.adminDBFor(ctx, key, db)
+			if err != nil {
+				_ = db.Close()
+				return nil, err
+			}
+			if err := m.cfg.OnSchemaBootstrap(ctx, adminDB, ""); err != nil {
+				_ = db.Close()
+				return nil, err
+			}
 		}
 
 		m.mu.Lock()
@@ -272,13 +358,25 @@ func (m *managerImpl) CloseAll() error {
 		delete(m.pools, k)
 		delete(m.lastUsed, k)
 	}
+	for k, db := range m.adminPools {
+		_ = db.Close()
+		delete(m.adminPools, k)
+	}
 	return nil
 }
 
-func buildDSN(c ClusterConfig, dbName string) string {
+// buildDSN builds the connection string for c/dbName. When preferAppRole is
+// true and c.AppUser is set, the least-privilege app credential is used
+// instead of the admin one - see PZEP-0009. Bootstrap/migration connections
+// always pass preferAppRole=false.
+func buildDSN(c ClusterConfig, dbName string, preferAppRole bool) string {
+	user, password := c.User, c.Password
+	if preferAppRole && c.AppUser != "" {
+		user, password = c.AppUser, c.AppPassword
+	}
 	u := &url.URL{
 		Scheme: "postgres",
-		User:   url.UserPassword(c.User, c.Password),
+		User:   url.UserPassword(user, password),
 		Host:   fmt.Sprintf("%s:%d", c.Host, c.Port),
 		Path:   "/" + dbName,
 	}
@@ -290,7 +388,7 @@ func buildDSN(c ClusterConfig, dbName string) string {
 	return u.String()
 }
 
-func pgQuoteIdent(s string) string {
+func QuoteIdent(s string) string {
 	// Quote identifier to avoid injection in SET search_path.
 	return `"` + strings.ReplaceAll(s, `"`, `""`) + `"`
 }

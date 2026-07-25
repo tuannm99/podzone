@@ -16,7 +16,6 @@ import (
 
 	orderctx "github.com/tuannm99/podzone/internal/backoffice/domain/order"
 	routingctx "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
-	"github.com/tuannm99/podzone/internal/backoffice/migrations"
 	"github.com/tuannm99/podzone/pkg/collection"
 	"github.com/tuannm99/podzone/pkg/ddd"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
@@ -154,9 +153,6 @@ func (r *OrderRoutingRepositoryImpl) GetCustomerOrder(
 
 	var row customerOrderRow
 	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
-		if err := ensureRoutedOrderTables(ctx, tx); err != nil {
-			return err
-		}
 		if err := tx.GetContext(ctx, &row, query, args...); err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return ddd.ErrNotFound
@@ -254,9 +250,6 @@ func (r *OrderRoutingRepositoryImpl) ListPageByStore(
 	var rows []routedOrderRow
 	var activitiesByOrderID map[string][]routingctx.RoutedOrderActivity
 	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
-		if err := ensureRoutedOrderTables(ctx, tx); err != nil {
-			return err
-		}
 		if err := tx.GetContext(ctx, &total, countSQL, countArgs...); err != nil {
 			return err
 		}
@@ -335,9 +328,6 @@ func (r *OrderRoutingRepositoryImpl) list(ctx context.Context, storeID string) (
 	var rows []routedOrderRow
 	var activitiesByOrderID map[string][]routingctx.RoutedOrderActivity
 	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
-		if err := ensureRoutedOrderTables(ctx, tx); err != nil {
-			return err
-		}
 		if err := tx.SelectContext(ctx, &rows, query, args...); err != nil {
 			return err
 		}
@@ -409,9 +399,6 @@ func (r *OrderRoutingRepositoryImpl) GetByID(ctx context.Context, id string) (*r
 	var row routedOrderRow
 	var activitiesByOrderID map[string][]routingctx.RoutedOrderActivity
 	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
-		if err := ensureRoutedOrderTables(ctx, tx); err != nil {
-			return err
-		}
 		if err := tx.GetContext(ctx, &row, query, args...); err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return fmt.Errorf("routed order not found")
@@ -517,9 +504,6 @@ func (r *OrderRoutingRepositoryImpl) ListActivityFeed(
 	var rows []routedOrderActivityRow
 	var total int
 	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
-		if err := ensureRoutedOrderTables(ctx, tx); err != nil {
-			return err
-		}
 		if err := tx.GetContext(ctx, &total, countQuery, countArgs...); err != nil {
 			return err
 		}
@@ -614,9 +598,6 @@ func (r *OrderRoutingRepositoryImpl) Create(
 		return nil, err
 	}
 	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
-		if err := ensureRoutedOrderTables(ctx, tx); err != nil {
-			return err
-		}
 		if _, err = tx.ExecContext(ctx, aggregateQuery, aggregateArgs...); err != nil {
 			return err
 		}
@@ -703,9 +684,6 @@ func (r *OrderRoutingRepositoryImpl) Update(
 		return nil, err
 	}
 	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
-		if err := ensureRoutedOrderTables(ctx, tx); err != nil {
-			return err
-		}
 		var existingActivityCount int
 		if err := tx.GetContext(ctx, &existingActivityCount, `SELECT COUNT(*) FROM routed_order_activities WHERE order_id = $1`, order.ID); err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
@@ -753,10 +731,6 @@ func (r *OrderRoutingRepositoryImpl) withTenantTx(ctx context.Context, fn func(t
 		return err
 	}
 	return r.mgr.WithTenantTx(ctx, tenantID, nil, fn)
-}
-
-func ensureRoutedOrderTables(ctx context.Context, tx *sqlx.Tx) error {
-	return migrations.ApplyTx(ctx, tx)
 }
 
 func mapRoutedOrderRow(

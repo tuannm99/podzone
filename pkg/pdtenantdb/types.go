@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
@@ -25,6 +26,16 @@ type Config struct {
 	// Dedicated DB pool controls (database-per-tenant)
 	MaxDedicatedPools int
 	DedicatedIdleTTL  time.Duration
+
+	// OnSchemaBootstrap runs once per tenant scope the first time it is
+	// resolved in this process: once per schema for schema-mode tenants
+	// (right after CREATE SCHEMA IF NOT EXISTS succeeds), once per new
+	// dedicated pool for database-mode tenants. schemaName is "" in the
+	// database-mode case. The owning service uses this to apply its own
+	// migrations without pkg/pdtenantdb importing anything service-specific,
+	// and without a per-request round trip (see docs/07-problems/
+	// multitenancy-2026-07-23.md MT8). Optional; nil is a no-op.
+	OnSchemaBootstrap func(ctx context.Context, db *sqlx.DB, schemaName string) error
 }
 
 type ConnKey struct {

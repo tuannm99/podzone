@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/knadh/koanf/v2"
 
@@ -10,10 +11,33 @@ import (
 )
 
 type Config struct {
-	Auth                 RPCConfig `mapstructure:"auth"`
-	IAM                  RPCConfig `mapstructure:"iam"`
-	Partner              RPCConfig `mapstructure:"partner"`
-	InternalServiceToken string    `mapstructure:"internal_service_token"`
+	Auth                 RPCConfig      `mapstructure:"auth"`
+	IAM                  RPCConfig      `mapstructure:"iam"`
+	Partner              RPCConfig      `mapstructure:"partner"`
+	InternalServiceToken string         `mapstructure:"internal_service_token"`
+	TenantDB             TenantDBConfig `mapstructure:"tenant_db"`
+}
+
+// TenantDBConfig configures pkg/pdtenantdb's connection pooling. See
+// docs/07-problems/multitenancy-2026-07-23.md MT2 - previously this was
+// never wired from config at all, so every environment silently got
+// pdtenantdb's built-in defaults (10 open / 2 idle conns) regardless of
+// load. Zero values here still fall back to those same defaults.
+type TenantDBConfig struct {
+	SharedDB                string `mapstructure:"shared_db"`
+	ConnMaxLifetimeSeconds  int    `mapstructure:"conn_max_lifetime_seconds"`
+	MaxOpenConns            int    `mapstructure:"max_open_conns"`
+	MaxIdleConns            int    `mapstructure:"max_idle_conns"`
+	MaxDedicatedPools       int    `mapstructure:"max_dedicated_pools"`
+	DedicatedIdleTTLSeconds int    `mapstructure:"dedicated_idle_ttl_seconds"`
+}
+
+func (c TenantDBConfig) ConnMaxLifetime() time.Duration {
+	return time.Duration(c.ConnMaxLifetimeSeconds) * time.Second
+}
+
+func (c TenantDBConfig) DedicatedIdleTTL() time.Duration {
+	return time.Duration(c.DedicatedIdleTTLSeconds) * time.Second
 }
 
 type RPCConfig struct {

@@ -15,6 +15,7 @@ import (
 
 	orderentity "github.com/tuannm99/podzone/internal/backoffice/domain/order"
 	routingentity "github.com/tuannm99/podzone/internal/backoffice/domain/routing"
+	"github.com/tuannm99/podzone/internal/backoffice/migrations"
 	"github.com/tuannm99/podzone/pkg/ddd"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 	pdtenantdbmocks "github.com/tuannm99/podzone/pkg/pdtenantdb/mocks"
@@ -223,7 +224,7 @@ func TestOrderRoutingRepositoryPersistsTenantScopedOrders(t *testing.T) {
 func TestOrderRoutingRepositoryBackfillsLegacyActivityLogOnLegacyMigration(t *testing.T) {
 	skipIfDockerUnavailable(t)
 	info := testkit.PostgresInfo(t)
-	manager := newRepositoryTestManager(t, info, map[string]pdtenantdb.Placement{
+	placements := map[string]pdtenantdb.Placement{
 		"tenant-orders-legacy": {
 			TenantID:    "tenant-orders-legacy",
 			ClusterName: "pg-01",
@@ -231,11 +232,19 @@ func TestOrderRoutingRepositoryBackfillsLegacyActivityLogOnLegacyMigration(t *te
 			DBName:      info.DBName,
 			SchemaName:  "t_tenant_orders_legacy",
 		},
-	})
+	}
+	// Seeding manager has no migration hook, so it can hand-write a schema
+	// stuck at an old migration version without the real migrations
+	// racing/duplicating it - see newRepositoryTestManagerWithBootstrap.
+	// The repository below gets a *separate* manager with the real hook, so
+	// its first call is what exercises the legacy-backfill path for real.
+	setupManager := newRepositoryTestManagerWithBootstrap(t, info, placements, nil)
+	t.Cleanup(func() { _ = setupManager.CloseAll() })
+	manager := newRepositoryTestManager(t, info, placements)
 	t.Cleanup(func() { _ = manager.CloseAll() })
 
 	ctx := toolkit.WithTenantID(context.Background(), "tenant-orders-legacy")
-	err := manager.WithTenantTx(ctx, "tenant-orders-legacy", &sql.TxOptions{}, func(tx *sqlx.Tx) error {
+	err := setupManager.WithTenantTx(ctx, "tenant-orders-legacy", &sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		statements := []string{
 			`CREATE TABLE IF NOT EXISTS backoffice_schema_migrations (
 				version TEXT PRIMARY KEY,
@@ -434,6 +443,20 @@ func newRepositoryTestManager(
 	info testkit.PostgresConnInfo,
 	placements map[string]pdtenantdb.Placement,
 ) pdtenantdb.Manager {
+	return newRepositoryTestManagerWithBootstrap(t, info, placements, migrations.ApplyToSchema)
+}
+
+// newRepositoryTestManagerWithBootstrap lets a test suppress the real
+// migration hook (pass nil) when it needs to hand-seed a schema into a
+// specific pre-migration state before handing a *second*, hook-enabled
+// manager to the repository under test - see the "legacy" backfill test
+// below.
+func newRepositoryTestManagerWithBootstrap(
+	t *testing.T,
+	info testkit.PostgresConnInfo,
+	placements map[string]pdtenantdb.Placement,
+	onSchemaBootstrap func(ctx context.Context, db *sqlx.DB, schemaName string) error,
+) pdtenantdb.Manager {
 	t.Helper()
 
 	registry := pdtenantdbmocks.NewMockClusterRegistry(t)
@@ -456,6 +479,7 @@ func newRepositoryTestManager(
 		}).
 		Maybe()
 	return pdtenantdb.NewManager(&pdtenantdb.Config{
-		SharedDB: info.DBName,
+		SharedDB:          info.DBName,
+		OnSchemaBootstrap: onSchemaBootstrap,
 	}, resolver, registry)
 }

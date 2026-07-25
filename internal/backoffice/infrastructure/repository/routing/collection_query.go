@@ -2,98 +2,62 @@ package routing
 
 import (
 	"fmt"
-	"strings"
 
 	sq "github.com/Masterminds/squirrel"
+
 	"github.com/tuannm99/podzone/pkg/collection"
+	"github.com/tuannm99/podzone/pkg/collection/sqlspec"
 )
 
-var routedOrderCollectionColumns = map[string]string{
-	"id":               "id",
-	"productTitle":     "product_title",
-	"partner":          "partner",
-	"customerName":     "customer_name",
-	"status":           "status",
-	"exceptionType":    "exception_type",
-	"exceptionStatus":  "exception_status",
-	"shipmentStatus":   "shipment_status",
-	"operatorAssignee": "operator_assignee",
-	"settlementStatus": "settlement_status",
-	"realizedMargin":   "realized_margin",
-	"createdAt":        "created_at",
-	"updatedAt":        "updated_at",
-	"shipmentSlaDueAt": "shipment_sla_due_at",
-	"issueSlaDueAt":    "issue_sla_due_at",
+// See docs/07-problems/repository-query-layer-2026-07-24.md RQ2, which
+// closes RQ1: previously FilterContains/FilterStartsWith had no text-column
+// guard here (unlike store's), so e.g. `createdAt contains "2026"` built
+// `LOWER(created_at) LIKE ...` against a TIMESTAMPTZ column and Postgres
+// rejected it as a 500. sqlspec.Spec applies the same guard store already
+// had - that request now fails validation (collection.ErrInvalidQuery)
+// before a query is ever built. This is a visible API behavior change
+// (500 -> 400-class validation error) - see the changelog entry and
+// frontend check called out in the RQ2 write-up.
+var routedOrderSpec = sqlspec.Spec{
+	Entity:      "routed order",
+	DefaultSort: "createdAt",
+	SearchOrder: []string{"id", "productTitle", "partner", "customerName", "status", "operatorAssignee", "settlementStatus"},
+	Fields: map[string]sqlspec.Field{
+		"id":               {Column: "id", Kind: sqlspec.KindText},
+		"productTitle":     {Column: "product_title", Kind: sqlspec.KindText},
+		"partner":          {Column: "partner", Kind: sqlspec.KindText},
+		"customerName":     {Column: "customer_name", Kind: sqlspec.KindText},
+		"status":           {Column: "status", Kind: sqlspec.KindText},
+		"exceptionType":    {Column: "exception_type", Kind: sqlspec.KindText},
+		"exceptionStatus":  {Column: "exception_status", Kind: sqlspec.KindText},
+		"shipmentStatus":   {Column: "shipment_status", Kind: sqlspec.KindText},
+		"operatorAssignee": {Column: "operator_assignee", Kind: sqlspec.KindText},
+		"settlementStatus": {Column: "settlement_status", Kind: sqlspec.KindText},
+		"realizedMargin":   {Column: "realized_margin", Kind: sqlspec.KindText},
+		"createdAt":        {Column: "created_at"},
+		"updatedAt":        {Column: "updated_at"},
+		"shipmentSlaDueAt": {Column: "shipment_sla_due_at"},
+		"issueSlaDueAt":    {Column: "issue_sla_due_at"},
+	},
+	CustomFilters: map[string]func(filter collection.Filter) (sq.Sqlizer, error){
+		"queueView": routedOrderQueueViewClause,
+	},
+	CustomSorts: map[string]string{
+		"priority": `CASE
+			WHEN exception_status = 'escalated' THEN 0
+			WHEN exception_status = 'open' THEN 1
+			WHEN settlement_status = 'disputed' THEN 2
+			WHEN shipment_status = 'delivery_issue' THEN 3
+			ELSE 4
+		END`,
+	},
 }
 
 func buildRoutedOrderCollectionQuery(
 	storeID string,
 	query collection.Query,
 ) (collection.Query, []sq.Sqlizer, string, error) {
-	normalized := query.Normalize()
-	where := []sq.Sqlizer{sq.Eq{"store_id": storeID}}
-	if search := strings.TrimSpace(normalized.Search); search != "" {
-		pattern := "%" + escapeRoutedOrderLike(search) + "%"
-		where = append(where, sq.Or{
-			likeRoutedOrderColumn("id", pattern),
-			likeRoutedOrderColumn("product_title", pattern),
-			likeRoutedOrderColumn("partner", pattern),
-			likeRoutedOrderColumn("customer_name", pattern),
-			likeRoutedOrderColumn("status", pattern),
-			likeRoutedOrderColumn("operator_assignee", pattern),
-			likeRoutedOrderColumn("settlement_status", pattern),
-		})
-	}
-	for _, filter := range normalized.Filters {
-		if filter.Field == "queueView" {
-			clause, err := routedOrderQueueViewClause(filter)
-			if err != nil {
-				return collection.Query{}, nil, "", err
-			}
-			if clause != nil {
-				where = append(where, clause)
-			}
-			continue
-		}
-		column, ok := routedOrderCollectionColumns[filter.Field]
-		if !ok {
-			return collection.Query{}, nil, "", fmt.Errorf(
-				"%w: unsupported routed order filter field %q",
-				collection.ErrInvalidQuery,
-				filter.Field,
-			)
-		}
-		clause, err := routedOrderFilterClause(column, filter)
-		if err != nil {
-			return collection.Query{}, nil, "", err
-		}
-		where = append(where, clause)
-	}
-	sortColumn := "created_at"
-	if normalized.SortBy == "priority" {
-		sortColumn = `CASE
-			WHEN exception_status = 'escalated' THEN 0
-			WHEN exception_status = 'open' THEN 1
-			WHEN settlement_status = 'disputed' THEN 2
-			WHEN shipment_status = 'delivery_issue' THEN 3
-			ELSE 4
-		END`
-	} else if normalized.SortBy != "" {
-		var ok bool
-		sortColumn, ok = routedOrderCollectionColumns[normalized.SortBy]
-		if !ok {
-			return collection.Query{}, nil, "", fmt.Errorf(
-				"%w: unsupported routed order sort field %q",
-				collection.ErrInvalidQuery,
-				normalized.SortBy,
-			)
-		}
-	}
-	direction := "DESC"
-	if normalized.SortDirection == collection.SortAscending {
-		direction = "ASC"
-	}
-	return normalized, where, sortColumn + " " + direction, nil
+	return routedOrderSpec.Compile(query, sq.Eq{"store_id": storeID})
 }
 
 func routedOrderQueueViewClause(filter collection.Filter) (sq.Sqlizer, error) {
@@ -134,48 +98,4 @@ func routedOrderQueueViewClause(filter collection.Filter) (sq.Sqlizer, error) {
 			filter.Values[0],
 		)
 	}
-}
-
-func routedOrderFilterClause(column string, filter collection.Filter) (sq.Sqlizer, error) {
-	if len(filter.Values) == 0 {
-		return nil, fmt.Errorf(
-			"%w: routed order filter %q requires a value",
-			collection.ErrInvalidQuery,
-			filter.Field,
-		)
-	}
-	switch filter.Operator {
-	case collection.FilterEqual:
-		return sq.Eq{column: filter.Values[0]}, nil
-	case collection.FilterNotEqual:
-		return sq.NotEq{column: filter.Values[0]}, nil
-	case collection.FilterContains:
-		return likeRoutedOrderColumn(column, "%"+escapeRoutedOrderLike(filter.Values[0])+"%"), nil
-	case collection.FilterStartsWith:
-		return likeRoutedOrderColumn(column, escapeRoutedOrderLike(filter.Values[0])+"%"), nil
-	case collection.FilterGreaterThan:
-		return sq.Gt{column: filter.Values[0]}, nil
-	case collection.FilterGreaterThanOrEqual:
-		return sq.GtOrEq{column: filter.Values[0]}, nil
-	case collection.FilterLessThan:
-		return sq.Lt{column: filter.Values[0]}, nil
-	case collection.FilterLessThanOrEqual:
-		return sq.LtOrEq{column: filter.Values[0]}, nil
-	case collection.FilterIn:
-		return sq.Eq{column: filter.Values}, nil
-	default:
-		return nil, fmt.Errorf(
-			"%w: unsupported routed order filter operator %q",
-			collection.ErrInvalidQuery,
-			filter.Operator,
-		)
-	}
-}
-
-func likeRoutedOrderColumn(column, pattern string) sq.Sqlizer {
-	return sq.Expr("LOWER("+column+") LIKE LOWER(?) ESCAPE '\\'", pattern)
-}
-
-func escapeRoutedOrderLike(value string) string {
-	return strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(value)
 }

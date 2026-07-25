@@ -28,7 +28,7 @@ import (
 // Module provides all backoffice dependencies (GraphQL, domain, infra)
 var Module = fx.Options(
 	fx.Provide(
-		func() *pdtenantdb.Config { return &pdtenantdb.Config{} },
+		newTenantDBConfig,
 		boconfig.NewConfigFromKoanf,
 		fx.Annotate(NewTenantAuthorizer, fx.As(new(TenantAuthorizer))),
 

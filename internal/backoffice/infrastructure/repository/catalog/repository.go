@@ -12,7 +12,7 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	catalogctx "github.com/tuannm99/podzone/internal/backoffice/domain/catalog"
-	"github.com/tuannm99/podzone/internal/backoffice/migrations"
+	"github.com/tuannm99/podzone/internal/backoffice/infrastructure/repository/sqlrow"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
@@ -61,34 +61,11 @@ type productSetupCandidateRow struct {
 }
 
 func (r *Repository) ListDrafts(ctx context.Context, storeID string) ([]catalogctx.ProductSetupDraft, error) {
-	query, args, err := psql.
-		Select(
-			"id",
-			"store_id",
-			"name",
-			"partner",
-			"base_cost",
-			"retail_price",
-			"status",
-			"notes",
-			"created_at",
-			"updated_at",
-		).
-		From("product_setup_drafts").
+	b := sqlrow.SelectFrom[productSetupDraftRow](psql, "product_setup_drafts").
 		Where(sq.Eq{"store_id": storeID}).
-		OrderBy("created_at DESC").
-		ToSql()
+		OrderBy("created_at DESC")
+	rows, err := sqlrow.QueryMany[productSetupDraftRow](ctx, r.mgr, b)
 	if err != nil {
-		return nil, err
-	}
-
-	var rows []productSetupDraftRow
-	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
-		if err := ensureProductSetupTables(ctx, tx); err != nil {
-			return err
-		}
-		return tx.SelectContext(ctx, &rows, query, args...)
-	}); err != nil {
 		return nil, err
 	}
 
@@ -100,20 +77,7 @@ func (r *Repository) ListDrafts(ctx context.Context, storeID string) ([]catalogc
 }
 
 func (r *Repository) GetDraftByID(ctx context.Context, storeID, id string) (*catalogctx.ProductSetupDraft, error) {
-	query, args, err := psql.
-		Select(
-			"id",
-			"store_id",
-			"name",
-			"partner",
-			"base_cost",
-			"retail_price",
-			"status",
-			"notes",
-			"created_at",
-			"updated_at",
-		).
-		From("product_setup_drafts").
+	query, args, err := sqlrow.SelectFrom[productSetupDraftRow](psql, "product_setup_drafts").
 		Where(sq.Eq{"id": id, "store_id": storeID}).
 		ToSql()
 	if err != nil {
@@ -122,9 +86,6 @@ func (r *Repository) GetDraftByID(ctx context.Context, storeID, id string) (*cat
 
 	var row productSetupDraftRow
 	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
-		if err := ensureProductSetupTables(ctx, tx); err != nil {
-			return err
-		}
 		if err := tx.GetContext(ctx, &row, query, args...); err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return fmt.Errorf("product setup draft not found")
@@ -154,9 +115,6 @@ func (r *Repository) CreateDraft(
 	}
 
 	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
-		if err := ensureProductSetupTables(ctx, tx); err != nil {
-			return err
-		}
 		_, err = tx.ExecContext(ctx, query, args...)
 		return err
 	}); err != nil {
@@ -166,27 +124,11 @@ func (r *Repository) CreateDraft(
 }
 
 func (r *Repository) ListCandidates(ctx context.Context, storeID string) ([]catalogctx.ProductSetupCandidate, error) {
-	query, args, err := psql.
-		Select(
-			"id", "store_id", "draft_id", "title", "sku", "partner", "base_cost", "retail_price",
-			"estimated_margin", "status", "channel", "variants_json", "artwork_checklist_json",
-			"merchandising_notes", "updated_at",
-		).
-		From("product_setup_candidates").
+	b := sqlrow.SelectFrom[productSetupCandidateRow](psql, "product_setup_candidates").
 		Where(sq.Eq{"store_id": storeID}).
-		OrderBy("updated_at DESC").
-		ToSql()
+		OrderBy("updated_at DESC")
+	rows, err := sqlrow.QueryMany[productSetupCandidateRow](ctx, r.mgr, b)
 	if err != nil {
-		return nil, err
-	}
-
-	var rows []productSetupCandidateRow
-	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
-		if err := ensureProductSetupTables(ctx, tx); err != nil {
-			return err
-		}
-		return tx.SelectContext(ctx, &rows, query, args...)
-	}); err != nil {
 		return nil, err
 	}
 
@@ -206,38 +148,16 @@ func (r *Repository) GetCandidateByID(
 	storeID string,
 	id string,
 ) (*catalogctx.ProductSetupCandidate, error) {
-	query, args, err := psql.
-		Select(
-			"id", "store_id", "draft_id", "title", "sku", "partner", "base_cost", "retail_price",
-			"estimated_margin", "status", "channel", "variants_json", "artwork_checklist_json",
-			"merchandising_notes", "updated_at",
-		).
-		From("product_setup_candidates").
-		Where(sq.Eq{"id": id, "store_id": storeID}).
-		ToSql()
+	b := sqlrow.SelectFrom[productSetupCandidateRow](psql, "product_setup_candidates").
+		Where(sq.Eq{"id": id, "store_id": storeID})
+	row, err := sqlrow.QueryOne[productSetupCandidateRow](ctx, r.mgr, b)
 	if err != nil {
 		return nil, err
 	}
-
-	var row productSetupCandidateRow
-	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
-		if err := ensureProductSetupTables(ctx, tx); err != nil {
-			return err
-		}
-		if err := tx.GetContext(ctx, &row, query, args...); err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return nil
-			}
-			return err
-		}
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-	if row.ID == "" {
+	if row == nil {
 		return nil, nil
 	}
-	mapped, err := mapCandidateRow(row)
+	mapped, err := mapCandidateRow(*row)
 	if err != nil {
 		return nil, err
 	}
@@ -249,39 +169,16 @@ func (r *Repository) GetCandidateByDraftID(
 	storeID string,
 	draftID string,
 ) (*catalogctx.ProductSetupCandidate, error) {
-	query, args, err := psql.
-		Select(
-			"id", "store_id", "draft_id", "title", "sku", "partner", "base_cost", "retail_price",
-			"estimated_margin", "status", "channel", "variants_json", "artwork_checklist_json",
-			"merchandising_notes", "updated_at",
-		).
-		From("product_setup_candidates").
-		Where(sq.Eq{"draft_id": draftID, "store_id": storeID}).
-		ToSql()
+	b := sqlrow.SelectFrom[productSetupCandidateRow](psql, "product_setup_candidates").
+		Where(sq.Eq{"draft_id": draftID, "store_id": storeID})
+	row, err := sqlrow.QueryOne[productSetupCandidateRow](ctx, r.mgr, b)
 	if err != nil {
 		return nil, err
 	}
-
-	var row productSetupCandidateRow
-	err = r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
-		if err := ensureProductSetupTables(ctx, tx); err != nil {
-			return err
-		}
-		if err := tx.GetContext(ctx, &row, query, args...); err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return nil
-			}
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	if row.ID == "" {
+	if row == nil {
 		return nil, nil
 	}
-	mapped, err := mapCandidateRow(row)
+	mapped, err := mapCandidateRow(*row)
 	if err != nil {
 		return nil, err
 	}
@@ -311,9 +208,6 @@ func (r *Repository) CreateCandidate(
 	}
 
 	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
-		if err := ensureProductSetupTables(ctx, tx); err != nil {
-			return err
-		}
 		_, err = tx.ExecContext(ctx, query, args...)
 		return err
 	}); err != nil {
@@ -338,9 +232,6 @@ func (r *Repository) UpdateCandidateStatus(
 	}
 
 	if err := r.withTenantTx(ctx, func(tx *sqlx.Tx) error {
-		if err := ensureProductSetupTables(ctx, tx); err != nil {
-			return err
-		}
 		res, err := tx.ExecContext(ctx, query, args...)
 		if err != nil {
 			return err
@@ -372,10 +263,6 @@ func (r *Repository) withTenantTx(ctx context.Context, fn func(tx *sqlx.Tx) erro
 		return err
 	}
 	return r.mgr.WithTenantTx(ctx, tenantID, nil, fn)
-}
-
-func ensureProductSetupTables(ctx context.Context, tx *sqlx.Tx) error {
-	return migrations.ApplyTx(ctx, tx)
 }
 
 func mapCandidateRow(row productSetupCandidateRow) (catalogctx.ProductSetupCandidate, error) {

@@ -33,6 +33,13 @@ pprof:
 
 backoffice:
   internal_service_token: 'dev-onboarding-token'
+  tenant_db:
+    shared_db: 'backoffice'
+    max_open_conns: 20
+    max_idle_conns: 5
+    conn_max_lifetime_seconds: 300
+    max_dedicated_pools: 200
+    dedicated_idle_ttl_seconds: 1800
   auth:
     jwt_secret: 'dev-secret'
     jwt_key: ''
