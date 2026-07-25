@@ -1,16 +1,18 @@
 # PZEP-0009: Backoffice tenant DB — separate least-privilege app role from the admin/bootstrap role (Phase 1 of MT1)
 
 ## Status
-Implementing — code + migration + tests done (TASK-0001/0002/0004); not
-rolled out to any real environment (TASK-0003's docker dev config comment
-and the Rollout section below are still to do).
+Done — Phase 1 rolled out to docker dev (Rollout step 2), the one
+non-production environment this PZEP calls for first. Not yet rolled out
+to staging/production (Rollout step 4) — that is a separate, later
+operator action against real infrastructure, not part of this PZEP.
 
 ## Date
 2026-07-25
 
 ## Related Commit
-(none yet — Phase 1 below is implemented and tested against a real
-Postgres via testcontainers, not applied to any persistent/staging cluster)
+(none yet — code committed to the working tree this session; the docker
+dev rollout itself is a runtime KV/role change, not a commit — see Rollout
+Log below)
 
 ## Requirement Sources
 - Business: recovery/hardening track following the 2026-07-23 multi-tenancy
@@ -136,6 +138,47 @@ anywhere in the cluster.
    path means unsetting `app_user` immediately un-breaks it either way).
 4. Only after step 3 passes clean, roll `app_user` out to production
    config.
+
+### Rollout Log
+
+**2026-07-25, docker dev (step 2):** Migration `0016_create_backoffice_app_role.sql`
+had already run against every existing docker dev tenant schema (verified:
+role existed, `backoffice_schema_migrations` recorded `0016_...` for
+`t_tenant_dev`) as a result of the code deploy itself (the migration runs
+unconditionally, independent of `app_user` being set — it just creates a
+role nobody uses yet). Rollout steps taken:
+1. Confirmed the pre-existing role via `\du` and directly (via `SET ROLE`
+   from a superuser session, no password needed for that) confirmed it
+   could `SELECT` real tenant rows but got `permission denied for database
+   podzone_tenants` on `CREATE SCHEMA` — i.e., AC-3/AC-4 hold before any
+   config change, using the already-applied migration alone.
+2. `ALTER ROLE backoffice_app WITH PASSWORD '<generated, not committed>'`
+   directly against the docker dev Postgres container.
+3. Added `app_user`/`app_password` to the KV cluster record at
+   `podzone/postgres/clusters/pg-default` (`onboarding.runtime_kv` in
+   Mongo). Note for anyone repeating this: the `value` field must be
+   written as a BSON **Binary**, not a plain string — `MongoStore`'s Go
+   struct declares it `[]byte`, and writing a JS string there instead
+   silently stores the wrong BSON type, which decodes back into the
+   *ASCII bytes of the base64 text itself* rather than the intended raw
+   JSON, and `json.Unmarshal` fails on it. Use `BinData(0, "<base64 of the
+   JSON>")` in `mongosh`, matching what `Put()` actually persists.
+4. Restarted `backoffice-service` (the in-memory per-`ConnKey` pool cache
+   in `Manager.getOrCreateDB` only reads `ClusterConfig` once per pool
+   lifetime, not on every call — a running process won't pick up a
+   mid-life KV change for a pool it already opened).
+5. Triggered a real store-bootstrap call and confirmed via
+   `pg_stat_activity` on `podzone_tenants`: the query connection now
+   authenticates as `backoffice_app`; a separate `postgres`-authenticated
+   connection remains for admin/bootstrap use. Step 3 (exercise the full
+   query surface) was done for the store bootstrap path only, not every
+   collection/query path in `catalog`/`routing` — those share the same
+   `WithTenantTx` mechanism, so this is a low-residual-risk gap, not
+   verified exhaustively.
+
+Not done: step 4 (staging/production rollout) — separate, later action
+against real infrastructure with its own credential-rotation process, not
+part of this session.
 
 ## Affected Components
 - Backend: `pkg/pdtenantdb`, `internal/backoffice/config`,

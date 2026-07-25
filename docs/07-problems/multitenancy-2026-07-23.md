@@ -63,16 +63,18 @@ What is correct today and should not be regressed:
 
 ## MT1 — Backoffice connects to Postgres with the admin DSN; there is no database-enforced tenant boundary
 
-**Phase 1 fix implemented, not yet rolled out** — see
-[PZEP-0009](../09-pzep/PZEP-0009-backoffice-least-privilege-app-db-role.md).
-`pkg/pdtenantdb.ClusterConfig` now supports a separate least-privilege
-`AppUser`/`AppPassword` used for all query connections, admin credential
-reserved for schema bootstrap/migrations only — opt-in, backward compatible
-(falls back to today's single-credential behavior when unset). The
-migration that provisions the actual least-privilege role, and switching
-any real environment's config to use it, is an operator-executed rollout
-step per PZEP-0009 — **not done as part of this fix**. Per-tenant roles and
-RLS (this finding's full closure) remain Phase 2, deliberately deferred.
+**Phase 1 fixed and rolled out to docker dev as of 2026-07-25** — see
+[PZEP-0009](../09-pzep/PZEP-0009-backoffice-least-privilege-app-db-role.md)
+and its Rollout Log. `pkg/pdtenantdb.ClusterConfig` now supports a separate
+least-privilege `AppUser`/`AppPassword` used for all query connections,
+admin credential reserved for schema bootstrap/migrations only. Verified
+live in docker dev via `pg_stat_activity`: query connections now
+authenticate as `backoffice_app` (confirmed via direct `SET ROLE` test to
+be unable to `CREATE SCHEMA`, only able to `SELECT`/`INSERT`/`UPDATE`/
+`DELETE` on tenant tables); admin/migration connections still authenticate
+as the superuser. Staging/production rollout is a separate, later operator
+action against real infrastructure — not done. Per-tenant roles and RLS
+(this finding's full closure) remain Phase 2, deliberately deferred.
 
 **File:** `internal/onboarding/infrastructure/provisioning/router/placement_route_reader.go:108-155`,
 `pkg/pdtenantdb/manager.go:278-291`, `cmd/onboarding/config.yml:44`
