@@ -31,6 +31,7 @@ does not replace an ADR for pure architecture-boundary decisions (see
 | [PZEP-0010](./PZEP-0010-backoffice-declarative-collection-spec.md) | Backoffice repository layer — declarative collection spec (closes RQ1) | Done | 2026-07-25 |
 | [PZEP-0011](./PZEP-0011-angular-backoffice-minimal-shell.md) | Angular Backoffice minimal shell — store-scoped home page + one protected API call | Done | 2026-07-25 |
 | [PZEP-0012](./PZEP-0012-angular-store-collection-screen.md) | Angular store collection screen — first ADR-0008 declarative-spec screen | Done | 2026-07-25 |
+| [PZEP-0013](./PZEP-0013-angular-shell-wraps-backoffice-routes.md) | Angular `Shell` wraps Backoffice routes; Stores nav link | Done | 2026-07-25 |
 
 ## Links Back To Delivery
 
