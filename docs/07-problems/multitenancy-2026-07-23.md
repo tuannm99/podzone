@@ -470,6 +470,51 @@ invisibility.
 
 ---
 
+## MT17 — `ensureSchema` marked a schema "bootstrapped" before `CREATE SCHEMA` actually committed, letting a concurrent caller cross-contaminate another tenant's schema
+
+**Resolved as of 2026-07-25.** `pkg/pdtenantdb/manager.go`'s `ensureSchema`
+used `sync.Map.LoadOrStore` as a check-and-skip guard, but stored the
+"done" flag for a `(cluster, db, schema)` key immediately upon winning the
+map race — **before** the `CREATE SCHEMA IF NOT EXISTS` statement it was
+about to run had actually executed and committed. A concurrent caller for
+the *same* schema would see the flag already set, return immediately
+believing the schema existed, and proceed to compute its
+`current_schema()`-derived advisory-lock key for `migrations.ApplyTx`. If
+the schema genuinely didn't exist yet at that moment, `current_schema()`
+(and Postgres's target-schema resolution for unqualified DDL) silently
+fell back to `public` — because Postgres skips non-existent entries in
+`search_path`. That caller then held the **`public`** advisory lock, not
+the tenant schema's lock.
+
+The actual collision: Postgres re-resolves an unqualified `CREATE TABLE`'s
+target schema **per statement**, not once at transaction start. So if the
+real schema became visible (the true winner's `CREATE SCHEMA` committed)
+partway through the mis-keyed transaction's own migration loop, its
+*later* `CREATE TABLE stores` statement would silently retarget into the
+now-visible tenant schema — colliding with whichever transaction correctly
+held *that* schema's lock and was creating the same table concurrently.
+Postgres reported this as
+`pg_type_typname_nsp_index` duplicate-key violation on
+`apply migration 0001_create_stores`. Reproduced reliably (10/10 runs) with
+`TestApplyTxConcurrentForFreshTenant` before the fix, on a Docker dev
+Postgres with the earlier test's schema already contaminating `public`
+from prior race hits (see `MT10`'s "leaks state between tests" note — same
+underlying map, a different bug in the same code).
+
+**Fix applied:** `ensureSchema` now runs the create-schema-and-bootstrap
+step inside `managerImpl`'s existing `singleflight.Group` (keyed
+`"schema:" + bsKey`, distinct from `getOrCreateDB`'s own keys), so every
+concurrent caller for the same schema **blocks** until the winner's
+`CREATE SCHEMA` + `OnSchemaBootstrap` has fully completed and only then
+stores the "done" flag — eliminating the window where a loser could
+proceed on a stale belief. Verified with 10 consecutive clean runs of
+`TestApplyTxConcurrentForFreshTenant` after the fix (previously flaky,
+failing intermittently). MT10's broader point — these caches never expire
+and leak across the whole process/test binary lifetime — is unaffected by
+this fix and remains open.
+
+---
+
 ## Suggested Order Of Work
 
 1. **MT1** — split runtime credentials from the admin DSN. This closes the

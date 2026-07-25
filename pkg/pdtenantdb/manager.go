@@ -117,33 +117,57 @@ func (m *managerImpl) DBForTenant(ctx context.Context, tenantID string) (*sqlx.D
 	return db, pl, nil
 }
 
+// ensureSchema creates schemaName (if needed) and runs OnSchemaBootstrap,
+// then marks the scope done so later calls skip both.
+//
+// Concurrent callers for the same schema MUST wait for the winner to
+// actually finish, not just observe a flag and return - a naive
+// LoadOrStore-then-return-if-already-set guard marks "done" before CREATE
+// SCHEMA commits, so a loser can proceed believing the schema exists when
+// it doesn't yet. Its own current_schema() lookup then falls back to
+// "public" (Postgres skips non-existent search_path entries), computing
+// the WRONG advisory-lock key for its later migration statements - but
+// those statements re-resolve the unqualified target schema dynamically
+// per-statement, not once at transaction start. If the real schema becomes
+// visible mid-transaction (the actual winner committed concurrently), the
+// "public"-keyed transaction's later CREATE TABLE silently retargets into
+// the real tenant schema too, colliding with whoever holds the correct
+// lock there ("pg_type_typname_nsp_index" duplicate key). singleflight
+// fixes this by blocking every concurrent caller until the winner's CREATE
+// SCHEMA + OnSchemaBootstrap has fully completed - see
+// docs/07-problems/multitenancy-2026-07-23.md MT10 (this was the same
+// bootstrapped map root-caused a step further).
 func (m *managerImpl) ensureSchema(ctx context.Context, db *sqlx.DB, key ConnKey, schemaName string) error {
 	bsKey := key.ClusterName + "|" + key.DBName + "|" + schemaName
-	if _, loaded := m.bootstrapped.LoadOrStore(bsKey, struct{}{}); loaded {
+	if _, loaded := m.bootstrapped.Load(bsKey); loaded {
 		return nil
 	}
-	// CREATE SCHEMA and migrations always need the admin credential, even
-	// when db (the caller's query pool) is running as the least-privilege
-	// app role. adminDB falls back to db itself when no app role is
-	// configured - see PZEP-0009.
-	adminDB, err := m.adminDBFor(ctx, key, db)
-	if err != nil {
-		m.bootstrapped.Delete(bsKey)
-		return err
-	}
-	createSchemaSQL := fmt.Sprintf(`CREATE SCHEMA IF NOT EXISTS %s`, QuoteIdent(schemaName))
-	if _, err := adminDB.ExecContext(ctx, createSchemaSQL); err != nil {
-		// Remove so the next call can retry.
-		m.bootstrapped.Delete(bsKey)
-		return err
-	}
-	if m.cfg.OnSchemaBootstrap != nil {
-		if err := m.cfg.OnSchemaBootstrap(ctx, adminDB, schemaName); err != nil {
-			m.bootstrapped.Delete(bsKey)
-			return err
+
+	_, err, _ := m.sf.Do("schema:"+bsKey, func() (any, error) {
+		if _, loaded := m.bootstrapped.Load(bsKey); loaded {
+			return nil, nil
 		}
-	}
-	return nil
+		// CREATE SCHEMA and migrations always need the admin credential,
+		// even when db (the caller's query pool) is running as the
+		// least-privilege app role. adminDB falls back to db itself when
+		// no app role is configured - see PZEP-0009.
+		adminDB, err := m.adminDBFor(ctx, key, db)
+		if err != nil {
+			return nil, err
+		}
+		createSchemaSQL := fmt.Sprintf(`CREATE SCHEMA IF NOT EXISTS %s`, QuoteIdent(schemaName))
+		if _, err := adminDB.ExecContext(ctx, createSchemaSQL); err != nil {
+			return nil, err
+		}
+		if m.cfg.OnSchemaBootstrap != nil {
+			if err := m.cfg.OnSchemaBootstrap(ctx, adminDB, schemaName); err != nil {
+				return nil, err
+			}
+		}
+		m.bootstrapped.Store(bsKey, struct{}{})
+		return nil, nil
+	})
+	return err
 }
 
 // adminDBFor returns the elevated-credential pool for key, opening it on
