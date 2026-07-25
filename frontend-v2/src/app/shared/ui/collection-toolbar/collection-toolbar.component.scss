@@ -1,0 +1,10 @@
+.collection-toolbar {
+  display: grid;
+  grid-template-columns: minmax(14rem, 1fr) minmax(10rem, 0.6fr) minmax(9rem, 0.5fr);
+  gap: 0.75rem;
+  align-items: start;
+
+  @media (max-width: 720px) {
+    grid-template-columns: 1fr;
+  }
+}

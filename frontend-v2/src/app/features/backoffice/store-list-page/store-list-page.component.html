@@ -1,0 +1,39 @@
+<app-card class="store-list-page__card">
+  <div class="store-list-page__header">
+    <h1 class="store-list-page__title">Stores</h1>
+  </div>
+
+  <app-collection-toolbar
+    [search]="stores.query().search || ''"
+    searchPlaceholder="Search store name, description, or status"
+    [sortBy]="stores.query().sortBy || 'createdAt'"
+    [sortDirection]="stores.query().sortDirection || 'SORT_DIRECTION_DESC'"
+    [sortOptions]="sortOptions"
+    (searchChange)="onSearch($event)"
+    (sortByChange)="onSortByChange($event)"
+    (sortDirectionChange)="onSortDirectionChange($event)"
+  />
+
+  <app-collection-filters
+    [fields]="fieldSpec"
+    [filters]="stores.query().filters || []"
+    (filtersChange)="onFiltersChange($event)"
+  />
+
+  <ng-template #statusCell let-row>
+    <app-badge [tone]="row.isActive ? 'success' : 'neutral'">{{ row.status }}</app-badge>
+  </ng-template>
+
+  <app-data-table
+    [columns]="columns()"
+    [rows]="stores.page.value()?.items ?? []"
+    [loading]="stores.page.isLoading()"
+    [error]="stores.page.error()?.message ?? ''"
+    emptyTitle="No stores"
+    emptyCopy="No stores match the current search and filters."
+    [totalCount]="stores.page.value()?.pageInfo?.total ?? 0"
+    [pageSize]="stores.query().pageSize"
+    [pageIndex]="stores.query().page - 1"
+    (pageChange)="onPageChange($event)"
+  />
+</app-card>

@@ -1,0 +1,50 @@
+<form class="collection-filters" (submit)="onSubmit($event)">
+  <mat-form-field appearance="outline" class="collection-filters__field">
+    <mat-label>Filter field</mat-label>
+    <mat-select [value]="selectedField()" (selectionChange)="onFieldChange($event.value)">
+      @for (field of filterableFields(); track field.field) {
+        <mat-option [value]="field.field">{{ field.label }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="collection-filters__operator">
+    <mat-label>Operator</mat-label>
+    <mat-select
+      [value]="effectiveOperator()"
+      (selectionChange)="selectedOperator.set($event.value)"
+    >
+      @for (operator of operatorOptions(); track operator) {
+        <mat-option [value]="operator">{{ operatorLabels[operator] }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="collection-filters__value">
+    <mat-label>Value</mat-label>
+    <input
+      matInput
+      [placeholder]="
+        effectiveOperator() === 'FILTER_OPERATOR_IN' ? 'Comma-separated values' : 'Filter value'
+      "
+      [value]="value()"
+      (input)="value.set($any($event.target).value)"
+    />
+  </mat-form-field>
+
+  <button mat-stroked-button type="submit">Add filter</button>
+
+  @if (filters().length > 0) {
+    <mat-chip-set class="collection-filters__chips" aria-label="Active filters">
+      @for (filter of filters(); track filter.field + filter.operator; let index = $index) {
+        <mat-chip (removed)="removeFilter(index)">
+          {{ labelFor(filter.field) }} {{ operatorLabels[filter.operator] }}
+          {{ filter.values.join(', ') }}
+          <button matChipRemove aria-label="Remove filter">
+            <mat-icon>cancel</mat-icon>
+          </button>
+        </mat-chip>
+      }
+    </mat-chip-set>
+  }
+</form>

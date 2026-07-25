@@ -46,23 +46,30 @@ function graphQLErrorMessage(error?: GraphQLErrorItem): string {
 export class BackofficeGraphqlService {
   private readonly http = inject(HttpClient);
 
+  // storeId is optional: some backoffice queries (e.g. `stores`, the
+  // tenant-level store list) are tenant-scoped only and must omit
+  // X-Store-ID entirely - matches frontend/'s `includeStoreHeader: false`
+  // option on the equivalent SolidJS call.
   async query<T>(
     query: string,
     variables: Record<string, unknown> | undefined,
-    scope: { tenantId: string; storeId: string },
+    scope: { tenantId: string; storeId?: string },
   ): Promise<GraphQLResult<T>> {
     const tenantId = scope.tenantId.trim();
-    const storeId = scope.storeId.trim();
-    if (!tenantId || !storeId) {
-      return { success: false, message: 'No active tenant/store to query' };
+    const storeId = scope.storeId?.trim() ?? '';
+    if (!tenantId) {
+      return { success: false, message: 'No active tenant to query' };
     }
+
+    const headers: Record<string, string> = { 'X-Tenant-ID': tenantId };
+    if (storeId) headers['X-Store-ID'] = storeId;
 
     try {
       const payload = await firstValueFrom(
         this.http.post<GraphQLPayload<T>>(
           environment.graphqlApiUrl,
           { query, variables },
-          { headers: { 'X-Tenant-ID': tenantId, 'X-Store-ID': storeId } },
+          { headers },
         ),
       );
 

@@ -1,0 +1,32 @@
+<form class="collection-toolbar" (submit)="onSubmit($event)">
+  <mat-form-field appearance="outline" class="collection-toolbar__search">
+    <mat-label>Search</mat-label>
+    <input
+      matInput
+      type="search"
+      [placeholder]="searchPlaceholder()"
+      [value]="searchDraft()"
+      (input)="searchDraft.set($any($event.target).value)"
+    />
+    <button matSuffix mat-icon-button type="submit" aria-label="Search">
+      <mat-icon>search</mat-icon>
+    </button>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="collection-toolbar__sort">
+    <mat-label>Sort</mat-label>
+    <mat-select [value]="sortBy()" (selectionChange)="onSortByChange($event.value)">
+      @for (option of sortOptions(); track option.value) {
+        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="collection-toolbar__direction">
+    <mat-label>Direction</mat-label>
+    <mat-select [value]="sortDirection()" (selectionChange)="onSortDirectionChange($event.value)">
+      <mat-option value="SORT_DIRECTION_DESC">Descending</mat-option>
+      <mat-option value="SORT_DIRECTION_ASC">Ascending</mat-option>
+    </mat-select>
+  </mat-form-field>
+</form>
