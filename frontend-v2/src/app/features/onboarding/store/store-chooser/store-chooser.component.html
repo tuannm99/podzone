@@ -13,9 +13,9 @@
             <p class="store-chooser__row-name">{{ store.name }}</p>
             <p class="store-chooser__row-sub">{{ store.subdomain }}</p>
           </div>
-          <app-badge [tone]="tone(store.status)">{{ label(store.status) }}</app-badge>
-          @if (store.status === 'ready') {
-            <app-button [href]="backofficeUrl(store)">Open</app-button>
+          <app-badge [tone]="tone(store)">{{ label(store.status) }}</app-badge>
+          @if (openable(store)) {
+            <app-button (buttonClick)="openStore.emit(store)">Open</app-button>
           } @else if (retryable(store.status)) {
             <app-button
               variant="stroked"

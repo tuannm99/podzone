@@ -1,6 +1,5 @@
 import { Component, input, output } from '@angular/core';
 
-import { environment } from '../../../../../environments/environment';
 import { Badge } from '../../../../shared/ui/badge/badge.component';
 import { Button } from '../../../../shared/ui/button/button.component';
 import { EmptyBlock } from '../../../../shared/ui/empty-block/empty-block.component';
@@ -8,9 +7,11 @@ import { ErrorAlert } from '../../../../shared/ui/error-alert/error-alert.compon
 import { InputField } from '../../../../shared/ui/input-field/input-field.component';
 import { LoadingBlock } from '../../../../shared/ui/loading-block/loading-block.component';
 import {
+  isReadyToOpen,
   isRetryableStatus,
+  readinessTone,
   storeStatusLabel,
-  storeStatusTone,
+  type StoreReadiness,
   type StoreRequest,
 } from '../store.types';
 
@@ -23,6 +24,7 @@ import {
 export class StoreChooser {
   tenantId = input.required<string>();
   stores = input.required<StoreRequest[]>();
+  readiness = input<Record<string, StoreReadiness | undefined>>({});
   loading = input(false);
   error = input('');
   retryingId = input('');
@@ -32,14 +34,17 @@ export class StoreChooser {
   newStoreNameChange = output<string>();
   createStore = output<void>();
   retryStore = output<string>();
+  openStore = output<StoreRequest>();
 
-  protected readonly tone = storeStatusTone;
   protected readonly label = storeStatusLabel;
   protected readonly retryable = isRetryableStatus;
 
-  protected backofficeUrl(store: StoreRequest): string {
-    const params = new URLSearchParams({ storeId: store.store_id ?? '' });
-    return `${environment.backofficeBaseUrl}/t/${encodeURIComponent(this.tenantId())}?${params.toString()}`;
+  protected tone(store: StoreRequest) {
+    return readinessTone(store.status, this.readiness()[store.id]?.ui_state);
+  }
+
+  protected openable(store: StoreRequest): boolean {
+    return isReadyToOpen(store, this.readiness()[store.id]?.ui_state);
   }
 
   protected onCreateSubmit(event: SubmitEvent) {

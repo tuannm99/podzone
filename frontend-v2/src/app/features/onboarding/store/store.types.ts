@@ -32,11 +32,11 @@ export type StoreRequest = {
   updated_at: string;
 };
 
-// Simplified from Solid's provisioningStatusLabel/readinessBadgeColor
-// (presentation.ts) — driven by the request's own `status`, not a separate
-// per-request readiness/ui_state lookup. Good enough to unblock "list
-// stores, open the ready ones" now; swap for the full ui_state polling flow
-// (PZEP-0008 M2) if a store needs a more granular in-progress breakdown.
+// `storeStatusTone`/`storeStatusLabel` render the request's raw `status`
+// (used as a fallback before readiness has loaded, and for terminal
+// non-provisioning statuses the readiness endpoint doesn't model). Whether a
+// store is actually safe to open is decided by `isReadyToOpen` below, driven
+// by the readiness endpoint's `ui_state`, not this status alone.
 export type StoreStatusTone = 'success' | 'danger' | 'warning' | 'neutral';
 
 const failedStatuses: StoreRequestStatus[] = ['failed', 'failed_retryable', 'failed_non_retryable'];
@@ -58,4 +58,55 @@ export function storeStatusLabel(status: StoreRequestStatus): string {
 
 export function isRetryableStatus(status: StoreRequestStatus): boolean {
   return failedStatuses.includes(status);
+}
+
+// Statuses where the backend may still transition the request without user
+// action - matches Solid's createAdminHomeViewModel.ts poll-trigger list.
+export const activeProvisioningStatuses: StoreRequestStatus[] = [
+  'requested',
+  'planning',
+  'planned',
+  'pending_approval',
+  'queued',
+  'provisioning',
+  'pending_platform_setup',
+];
+
+// Ported from frontend/packages/shared/services/onboarding.ts - keep both in
+// sync if the backend contract changes (docs/03-architecture-detail-design/
+// services/onboarding/api-design.md).
+export type StoreReadinessUiState = 'pending' | 'provisioning' | 'blocked' | 'failed' | 'ready';
+
+export type StoreReadiness = {
+  request_id: string;
+  request_status: StoreRequestStatus;
+  readiness: {
+    store_ready: boolean;
+    placement_allocation_ready: boolean;
+    route_ready: boolean;
+  };
+  failure_reason?: string;
+  ui_state: StoreReadinessUiState;
+};
+
+// A request's raw `status` can say "ready" while readiness (placement/route)
+// isn't - the readiness endpoint's `ui_state` is authoritative for whether a
+// store can actually be opened. See docs/03-architecture-detail-design/
+// 05-transport-contracts.md "Slice 0.3: Store Readiness Contract".
+export function readinessTone(
+  status: StoreRequestStatus,
+  uiState: StoreReadinessUiState | undefined,
+): StoreStatusTone {
+  if (uiState === 'ready') return 'success';
+  if (uiState === 'failed') return 'danger';
+  if (uiState === 'pending' || uiState === 'provisioning' || uiState === 'blocked')
+    return 'warning';
+  return storeStatusTone(status);
+}
+
+export function isReadyToOpen(
+  store: { store_id?: string },
+  uiState: StoreReadinessUiState | undefined,
+): boolean {
+  return uiState === 'ready' && !!store.store_id;
 }

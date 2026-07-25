@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../../core/auth/auth.service';
 import { Button } from '../../../shared/ui/button/button.component';
@@ -9,6 +9,7 @@ import { Card } from '../../../shared/ui/card/card.component';
 import { ToasterService } from '../../../shared/services/toaster.service';
 import { OnboardingStoreService } from '../store/onboarding-store.service';
 import { StoreChooser } from '../store/store-chooser/store-chooser.component';
+import type { StoreRequest } from '../store/store.types';
 
 @Component({
   selector: 'app-store-chooser-page',
@@ -19,6 +20,7 @@ import { StoreChooser } from '../store/store-chooser/store-chooser.component';
 })
 export class StoreChooserPage {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly toaster = inject(ToasterService);
   private readonly auth = inject(AuthService);
   protected readonly store = inject(OnboardingStoreService);
@@ -54,5 +56,11 @@ export class StoreChooserPage {
       return;
     }
     this.toaster.success('Retry requested.');
+  }
+
+  onOpenStore(store: StoreRequest) {
+    void this.router.navigate(['/t', this.tenantId(), 'backoffice'], {
+      queryParams: { storeId: store.store_id },
+    });
   }
 }

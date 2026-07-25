@@ -20,6 +20,7 @@
   <app-store-chooser
     [tenantId]="tenantId()"
     [stores]="store.requests.value() ?? []"
+    [readiness]="store.readiness.value() ?? {}"
     [loading]="store.requests.isLoading()"
     [error]="store.requests.error()?.message ?? ''"
     [retryingId]="store.retryingId()"
@@ -28,5 +29,6 @@
     (newStoreNameChange)="newStoreName.set($event)"
     (createStore)="onCreateStore()"
     (retryStore)="onRetryStore($event)"
+    (openStore)="onOpenStore($event)"
   />
 </app-card>

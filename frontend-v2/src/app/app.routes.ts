@@ -3,6 +3,7 @@ import { AdminHomePage } from './features/onboarding/admin-home-page/admin-home-
 import { StoreChooserPage } from './features/onboarding/store-chooser-page/store-chooser-page.component';
 import { LoginPage } from './features/auth/login-page/login-page.component';
 import { RegisterPage } from './features/auth/register-page/register-page.component';
+import { TenantHomePage } from './features/backoffice/tenant-home-page/tenant-home-page.component';
 import { authGuard } from './core/auth/auth.guard';
 
 // Workspace/store selection are bare screens (no Shell nav/topbar) — they
@@ -14,4 +15,7 @@ export const routes: Routes = [
   { path: 'register', component: RegisterPage },
   { path: '', component: AdminHomePage, canActivate: [authGuard] },
   { path: 't/:tenantId/stores', component: StoreChooserPage, canActivate: [authGuard] },
+  // Minimal Backoffice shell — see PZEP-0011. Only this one route exists so
+  // far; more Backoffice pages are ported one PZEP at a time.
+  { path: 't/:tenantId/backoffice', component: TenantHomePage, canActivate: [authGuard] },
 ];

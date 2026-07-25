@@ -1,0 +1,68 @@
+:host {
+  display: flex;
+  min-height: 100vh;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background-color: var(--mat-sys-surface-container-lowest);
+}
+
+.tenant-home-page__card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 40rem;
+  margin-top: 2rem;
+}
+
+.tenant-home-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.tenant-home-page__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.tenant-home-page__eyebrow {
+  margin: 0;
+  font: var(--mat-sys-label-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.tenant-home-page__title {
+  margin: 0;
+  font: var(--mat-sys-title-large);
+}
+
+.tenant-home-page__metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 1rem;
+}
+
+.tenant-home-page__metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background-color: var(--mat-sys-surface-container);
+}
+
+.tenant-home-page__metric-value {
+  margin: 0;
+  font: var(--mat-sys-display-small);
+}
+
+.tenant-home-page__metric-label {
+  margin: 0;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}

@@ -1,0 +1,28 @@
+<app-card class="tenant-home-page__card">
+  <div class="tenant-home-page__header">
+    <div class="tenant-home-page__heading">
+      <p class="tenant-home-page__eyebrow">Store {{ storeId().slice(0, 8) }}</p>
+      <h1 class="tenant-home-page__title">Backoffice</h1>
+    </div>
+    <app-badge tone="neutral">Tenant {{ tenantId().slice(0, 8) }}</app-badge>
+  </div>
+
+  @if (home.snapshot.isLoading()) {
+    <app-loading-block label="Loading store snapshot..." />
+  } @else if (home.snapshot.error()) {
+    <app-error-alert>{{ home.snapshot.error()?.message }}</app-error-alert>
+  } @else if (home.snapshot.value(); as snapshot) {
+    <div class="tenant-home-page__metrics">
+      <div class="tenant-home-page__metric">
+        <p class="tenant-home-page__metric-value">{{ snapshot.drafts.length }}</p>
+        <p class="tenant-home-page__metric-label">Product setup drafts</p>
+      </div>
+      <div class="tenant-home-page__metric">
+        <p class="tenant-home-page__metric-value">{{ snapshot.candidates.length }}</p>
+        <p class="tenant-home-page__metric-label">Catalog candidates</p>
+      </div>
+    </div>
+  } @else {
+    <app-empty-block title="No store selected" copy="Choose a store to view its Backoffice." />
+  }
+</app-card>

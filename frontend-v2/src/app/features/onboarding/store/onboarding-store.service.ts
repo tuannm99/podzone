@@ -1,10 +1,12 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject, resource, signal } from '@angular/core';
+import { DestroyRef, Injectable, inject, resource, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
 import { httpErrorMessage } from '../../../core/http/http-error';
-import type { StoreRequest } from './store.types';
+import { activeProvisioningStatuses, type StoreReadiness, type StoreRequest } from './store.types';
+
+const READINESS_POLL_INTERVAL_MS = 10_000;
 
 type ActionResult = { success: boolean; message: string };
 
@@ -24,6 +26,7 @@ function slugify(value: string): string {
 @Injectable()
 export class OnboardingStoreService {
   private readonly http = inject(HttpClient);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly _tenantId = signal('');
   private readonly _creating = signal(false);
@@ -40,6 +43,41 @@ export class OnboardingStoreService {
       return result.data;
     },
   });
+
+  // Recomputed on every `requests` reload (including the 10s poll below),
+  // matching Solid's createStoreReadinessViewModel.ts. `request.status`
+  // alone is not authoritative for whether a store can be opened - see
+  // `isReadyToOpen` in store.types.ts.
+  readonly readiness = resource({
+    params: () => {
+      const tenantId = this._tenantId();
+      const requests = this.requests.value();
+      if (!tenantId || !requests || requests.length === 0) return undefined;
+      return { tenantId, ids: requests.map((request) => request.id) };
+    },
+    loader: async ({ params }) => {
+      const entries = await Promise.all(
+        params.ids.map(async (id) => {
+          const result = await this.getStoreReadiness(params.tenantId, id);
+          return [id, result.success ? result.data : undefined] as const;
+        }),
+      );
+      return Object.fromEntries(entries) as Record<string, StoreReadiness | undefined>;
+    },
+  });
+
+  constructor() {
+    const timer = setInterval(() => {
+      const requests = this.requests.value();
+      const hasActiveProvisioning = (requests ?? []).some((request) =>
+        activeProvisioningStatuses.includes(request.status),
+      );
+      if (hasActiveProvisioning && !this.requests.isLoading()) {
+        this.requests.reload();
+      }
+    }, READINESS_POLL_INTERVAL_MS);
+    this.destroyRef.onDestroy(() => clearInterval(timer));
+  }
 
   setTenantId(tenantId: string): void {
     this._tenantId.set(tenantId);
@@ -107,6 +145,23 @@ export class OnboardingStoreService {
       return { success: true, data: response.items ?? [] };
     } catch (error) {
       return { success: false, message: httpErrorMessage(error, 'Failed to load stores') };
+    }
+  }
+
+  private async getStoreReadiness(
+    tenantId: string,
+    requestId: string,
+  ): Promise<{ success: true; data: StoreReadiness } | { success: false; message: string }> {
+    try {
+      const response = await firstValueFrom(
+        this.http.get<StoreReadiness>(
+          `${environment.onboardingApiUrl}/onboarding/v1/requests/${encodeURIComponent(requestId)}/readiness`,
+          { headers: tenantHeaders(tenantId) },
+        ),
+      );
+      return { success: true, data: response };
+    } catch (error) {
+      return { success: false, message: httpErrorMessage(error, 'Failed to load store readiness') };
     }
   }
 }
