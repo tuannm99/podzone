@@ -145,6 +145,20 @@ does, add a `pdtenantdb:` block to `cmd/backoffice/config.yml` and
 
 ## MT3 — `Config.SharedDB` default disagrees with the database onboarding actually provisions
 
+**Resolved as of 2026-07-25 for docker dev.** `deployments/docker/config/
+backoffice.yml`'s `tenant_db.shared_db` (added by MT2's fix) was itself
+still wrong — set to `'backoffice'` instead of `'podzone_tenants'` (the
+`db_name` onboarding actually provisions, confirmed against `cmd/onboarding/
+config.yml`'s `store_provisioning.db_name`). Corrected and restarted;
+verified the service still bootstraps stores correctly. No behavioral
+change today (all current placements are `mode: schema`, so the
+`dedicated` branch this value feeds is never taken), but it would have
+corrupted pool accounting the moment a `mode: database` tenant appeared
+(PS4 notes that mode isn't provisionable yet either, so this was latent on
+two counts). No equivalent config exists yet for staging/production k8s —
+whoever adds a `tenant_db` ConfigMap there needs the same value, called out
+so it isn't missed.
+
 **File:** `pkg/pdtenantdb/manager.go:48-50`, `cmd/onboarding/config.yml:42`
 **Severity:** High — latent; breaks pool accounting the moment `mode: database` is used
 

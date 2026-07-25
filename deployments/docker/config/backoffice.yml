@@ -34,7 +34,9 @@ pprof:
 backoffice:
   internal_service_token: 'dev-onboarding-token'
   tenant_db:
-    shared_db: 'backoffice'
+    # Must match onboarding's store_provisioning.db_name (cmd/onboarding/config.yml)
+    # for schema-mode tenants - see docs/07-problems/multitenancy-2026-07-23.md MT3.
+    shared_db: 'podzone_tenants'
     max_open_conns: 20
     max_idle_conns: 5
     conn_max_lifetime_seconds: 300
