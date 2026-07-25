@@ -53,3 +53,57 @@ func TestBuildPartnerCollectionQueryRejectsUnknownField(t *testing.T) {
 
 	require.ErrorIs(t, err, collection.ErrInvalidQuery)
 }
+
+// RQ1 follow-up (docs/07-problems/repository-query-layer-2026-07-24.md):
+// slaDays is INTEGER; contains previously built LOWER(sla_days) LIKE ...,
+// which Postgres rejects. sqlspec.Spec's text-kind guard now rejects it as
+// a normal validation error instead.
+func TestBuildPartnerCollectionQueryRejectsContainsOnIntegerField(t *testing.T) {
+	t.Parallel()
+
+	_, _, _, err := buildPartnerCollectionQuery(partnerdomain.ListPartnersQuery{
+		TenantID: "tenant-1",
+		Collection: collection.Query{
+			Filters: []collection.Filter{{
+				Field:    "slaDays",
+				Operator: collection.FilterContains,
+				Values:   []string{"3"},
+			}},
+		},
+	})
+
+	require.ErrorIs(t, err, collection.ErrInvalidQuery)
+}
+
+// Same defect class on a TIMESTAMPTZ column.
+func TestBuildPartnerCollectionQueryRejectsStartsWithOnTimestampField(t *testing.T) {
+	t.Parallel()
+
+	_, _, _, err := buildPartnerCollectionQuery(partnerdomain.ListPartnersQuery{
+		TenantID: "tenant-1",
+		Collection: collection.Query{
+			Filters: []collection.Filter{{
+				Field:    "createdAt",
+				Operator: collection.FilterStartsWith,
+				Values:   []string{"2026"},
+			}},
+		},
+	})
+
+	require.ErrorIs(t, err, collection.ErrInvalidQuery)
+}
+
+func TestBuildPartnerCollectionQueryAppliesStatusAndPartnerTypeFixedFilters(t *testing.T) {
+	t.Parallel()
+
+	_, predicates, _, err := buildPartnerCollectionQuery(partnerdomain.ListPartnersQuery{
+		TenantID:    "tenant-1",
+		Status:      "active",
+		PartnerType: "print",
+		Collection:  collection.Query{},
+	})
+
+	require.NoError(t, err)
+	// tenant_id + status + partner_type fixed predicates, no search/filters.
+	assert.Len(t, predicates, 3)
+}

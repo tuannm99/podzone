@@ -178,8 +178,9 @@ class of mismatch at the UI layer).
 | AC-4: `sqlspec.Spec` is independently correct, not just "happens to work" for these two entities | TASK-0001 | `pkg/collection/sqlspec` unit tests |
 
 ## Open Questions
-- None blocking. Migrating `auth`/`iam`/`onboarding`/`partner`'s own
-  duplicated `collection_query.go` shape onto `sqlspec.Spec` is a real,
-  evidenced follow-up opportunity (same pattern found repo-wide) but needs
-  its own audit of each service's specific behavior before a PZEP, per the
-  usual rule - not assumed safe to do mechanically.
+- Resolved 2026-07-25: audited `auth`/`iam`/`onboarding`/`partner`. Only
+  `partner` had the same duplicated shape *and* the RQ1-class bug (`auth`,
+  `iam`, and `onboarding`'s two Mongo-backed builders had already solved
+  it independently). `partner` migrated onto `sqlspec.Spec`; the other
+  three left as-is. See `docs/07-problems/repository-query-layer-2026-07-24.md`'s
+  "RQ1-Class Audit Of Other Services" section for the full breakdown.

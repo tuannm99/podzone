@@ -1,127 +1,49 @@
 package repository
 
 import (
-	"fmt"
-	"strings"
-
 	sq "github.com/Masterminds/squirrel"
 	partnerdomain "github.com/tuannm99/podzone/internal/partner/domain"
 	"github.com/tuannm99/podzone/pkg/collection"
+	"github.com/tuannm99/podzone/pkg/collection/sqlspec"
 )
 
-var partnerColumns = map[string]string{
-	"id":                  "id",
-	"code":                "code",
-	"name":                "name",
-	"contactName":         "contact_name",
-	"contactEmail":        "contact_email",
-	"notes":               "notes",
-	"partnerType":         "partner_type",
-	"status":              "status",
-	"slaDays":             "sla_days",
-	"routingPriority":     "routing_priority",
-	"baseFulfillmentCost": "base_fulfillment_cost",
-	"createdAt":           "created_at",
-	"updatedAt":           "updated_at",
+// See docs/07-problems/repository-query-layer-2026-07-24.md RQ1 follow-up
+// (2026-07-25 audit of auth/iam/onboarding/partner): unlike auth, iam, and
+// onboarding's own collection-query builders, this one had no text-column
+// guard, so `contains`/`starts_with` on slaDays/routingPriority (INTEGER)
+// or createdAt/updatedAt (TIMESTAMPTZ) built invalid SQL
+// (`LOWER(sla_days) LIKE ...`) and surfaced as a Postgres error rather than
+// a validation error - the same defect class as RQ1.
+var partnerSpec = sqlspec.Spec{
+	Entity:      "partner",
+	DefaultSort: "routingPriority",
+	SearchOrder: []string{"code", "name", "contactName", "contactEmail", "notes", "partnerType", "status"},
+	Fields: map[string]sqlspec.Field{
+		"id":                  {Column: "id", Kind: sqlspec.KindText},
+		"code":                {Column: "code", Kind: sqlspec.KindText},
+		"name":                {Column: "name", Kind: sqlspec.KindText},
+		"contactName":         {Column: "contact_name", Kind: sqlspec.KindText},
+		"contactEmail":        {Column: "contact_email", Kind: sqlspec.KindText},
+		"notes":               {Column: "notes", Kind: sqlspec.KindText},
+		"partnerType":         {Column: "partner_type", Kind: sqlspec.KindText},
+		"status":              {Column: "status", Kind: sqlspec.KindText},
+		"slaDays":             {Column: "sla_days"},
+		"routingPriority":     {Column: "routing_priority"},
+		"baseFulfillmentCost": {Column: "base_fulfillment_cost", Kind: sqlspec.KindText},
+		"createdAt":           {Column: "created_at"},
+		"updatedAt":           {Column: "updated_at"},
+	},
 }
 
 func buildPartnerCollectionQuery(
 	query partnerdomain.ListPartnersQuery,
 ) (collection.Query, []sq.Sqlizer, string, error) {
-	normalized := query.Collection.Normalize()
-	where := []sq.Sqlizer{sq.Eq{"tenant_id": query.TenantID}}
+	base := []sq.Sqlizer{sq.Eq{"tenant_id": query.TenantID}}
 	if query.Status != "" {
-		where = append(where, sq.Eq{"status": query.Status})
+		base = append(base, sq.Eq{"status": query.Status})
 	}
 	if query.PartnerType != "" {
-		where = append(where, sq.Eq{"partner_type": query.PartnerType})
+		base = append(base, sq.Eq{"partner_type": query.PartnerType})
 	}
-	if search := strings.TrimSpace(normalized.Search); search != "" {
-		pattern := "%" + escapePartnerLike(search) + "%"
-		where = append(where, sq.Or{
-			likePartnerColumn("code", pattern),
-			likePartnerColumn("name", pattern),
-			likePartnerColumn("contact_name", pattern),
-			likePartnerColumn("contact_email", pattern),
-			likePartnerColumn("notes", pattern),
-			likePartnerColumn("partner_type", pattern),
-			likePartnerColumn("status", pattern),
-		})
-	}
-	for _, filter := range normalized.Filters {
-		column, ok := partnerColumns[filter.Field]
-		if !ok {
-			return collection.Query{}, nil, "", fmt.Errorf(
-				"%w: unsupported partner filter field %q",
-				collection.ErrInvalidQuery,
-				filter.Field,
-			)
-		}
-		clause, err := partnerFilterClause(column, filter)
-		if err != nil {
-			return collection.Query{}, nil, "", err
-		}
-		where = append(where, clause)
-	}
-	sortColumn := "routing_priority"
-	if normalized.SortBy != "" {
-		var ok bool
-		sortColumn, ok = partnerColumns[normalized.SortBy]
-		if !ok {
-			return collection.Query{}, nil, "", fmt.Errorf(
-				"%w: unsupported partner sort field %q",
-				collection.ErrInvalidQuery,
-				normalized.SortBy,
-			)
-		}
-	}
-	direction := "DESC"
-	if normalized.SortDirection == collection.SortAscending {
-		direction = "ASC"
-	}
-	return normalized, where, sortColumn + " " + direction, nil
-}
-
-func partnerFilterClause(column string, filter collection.Filter) (sq.Sqlizer, error) {
-	if len(filter.Values) == 0 {
-		return nil, fmt.Errorf(
-			"%w: partner filter %q requires a value",
-			collection.ErrInvalidQuery,
-			filter.Field,
-		)
-	}
-	switch filter.Operator {
-	case collection.FilterEqual:
-		return sq.Eq{column: filter.Values[0]}, nil
-	case collection.FilterNotEqual:
-		return sq.NotEq{column: filter.Values[0]}, nil
-	case collection.FilterContains:
-		return likePartnerColumn(column, "%"+escapePartnerLike(filter.Values[0])+"%"), nil
-	case collection.FilterStartsWith:
-		return likePartnerColumn(column, escapePartnerLike(filter.Values[0])+"%"), nil
-	case collection.FilterGreaterThan:
-		return sq.Gt{column: filter.Values[0]}, nil
-	case collection.FilterGreaterThanOrEqual:
-		return sq.GtOrEq{column: filter.Values[0]}, nil
-	case collection.FilterLessThan:
-		return sq.Lt{column: filter.Values[0]}, nil
-	case collection.FilterLessThanOrEqual:
-		return sq.LtOrEq{column: filter.Values[0]}, nil
-	case collection.FilterIn:
-		return sq.Eq{column: filter.Values}, nil
-	default:
-		return nil, fmt.Errorf(
-			"%w: unsupported partner filter operator %q",
-			collection.ErrInvalidQuery,
-			filter.Operator,
-		)
-	}
-}
-
-func likePartnerColumn(column, pattern string) sq.Sqlizer {
-	return sq.Expr("LOWER("+column+") LIKE LOWER(?) ESCAPE '\\'", pattern)
-}
-
-func escapePartnerLike(value string) string {
-	return strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(value)
+	return partnerSpec.Compile(query.Collection, base...)
 }

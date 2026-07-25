@@ -297,3 +297,47 @@ RQ2 changes an outward-facing error contract, so it needs its own sprint slice
 or PZEP before implementation. RQ3 and RQ4 are internal refactors and can be
 scoped as ordinary slices — but RQ4 is entangled with MT8 and should be
 sequenced with it.
+
+---
+
+## RQ1-Class Audit Of Other Services (2026-07-25)
+
+PZEP-0010's Open Question asked whether `auth`/`iam`/`onboarding`/`partner`
+have the same duplicated-collection-query shape and are worth migrating onto
+`sqlspec.Spec`. Audited all five `collection_query.go` files that exist
+outside `backoffice`. Result: **only `partner` had the actual bug; the other
+four had already solved it independently, before this audit.**
+
+| Service | Storage | Text/kind guard on `contains`/`starts_with`? | Duplication already collapsed? |
+|---|---|---|---|
+| `auth` | Postgres/Squirrel | Yes — explicit per-field **per-operator allowlist** (`map[FilterOperator]struct{}`), stricter than `sqlspec.Spec`'s binary text/non-text `Kind` | Yes — one generic `buildCollectionQuery(query, spec)` already |
+| `iam` | Postgres/Squirrel | Yes — same `{sql string; text bool}` shape `sqlspec.Field` uses | Yes — one generic `buildIAMCollectionQuery` feeds 13 different column maps |
+| `onboarding/store` | MongoDB | Yes — `requestFieldKind` (string/objectID/time), guards `contains`/`starts_with` to string only | Yes — one generic path per collection |
+| `onboarding/infrasmanager` | MongoDB | Yes — `collectionFieldKind` (string/int/bool/time), same guard | Yes — one generic `buildInfrastructureCollection` feeds 5 column maps |
+| `partner` | Postgres/Squirrel | **No** — `partnerFilterClause` applied `LIKE` to any column, no kind check | No — single hand-written switch, not generic |
+
+**`partner` had a real RQ1-class bug**, confirmed against its own migrations
+(`internal/partner/migrations/sql/0004_add_partner_capabilities.sql`):
+`slaDays`/`routingPriority` are `INTEGER`, `createdAt`/`updatedAt` are
+`TIMESTAMPTZ`. A `contains` or `starts_with` filter on any of these built
+`LOWER(sla_days) LIKE ...` etc., which Postgres rejects — the exact RQ1
+shape, just in a different service.
+
+**Resolved as of 2026-07-25**: `internal/partner/infrastructure/repository/collection_query.go`
+migrated onto `sqlspec.Spec` (same pattern as `store`/`routing`), closing the
+bug and collapsing the single-service duplication. The pre-existing
+`buildPartnerCollectionQuery` tests pass unmodified against the new
+implementation; two new tests confirm `contains`/`starts_with` on
+`slaDays`/`createdAt` are now rejected as `collection.ErrInvalidQuery`, and
+one confirms the `ListPartnersQuery.Status`/`PartnerType` fixed-filter
+behavior (`sqlspec.Spec.Compile`'s `base` predicates) is unchanged.
+
+**`auth` and `iam` are explicitly not migrated onto `sqlspec.Spec`** — they
+already have equivalent (or, for `auth`, strictly better) protection, and
+migrating them would be pure churn with no bug fixed and no duplication
+reduced net of the churn itself. `onboarding`'s two files are MongoDB-based;
+`sqlspec.Spec` is Squirrel/Postgres-specific and does not apply there at all
+— a Mongo-flavored equivalent would be a separate, new piece of work, not
+something to retrofit speculatively without a concrete duplication problem
+to point at (`onboarding`'s two generic builders already avoid the
+duplication `sqlspec.Spec` targets).
