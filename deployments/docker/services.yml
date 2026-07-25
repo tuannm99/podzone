@@ -301,131 +301,131 @@ services:
     ports:
       - '8080:8080'
 
-  backoffice-remote:
-    build:
-      context: ../..
-      dockerfile: deployments/docker/Dockerfile.backoffice-dev
-    container_name: podzone-backoffice-remote-dev
-    profiles: [backoffice, full]
-    working_dir: /app
-    command: ['npm', 'run', 'dev:backoffice']
-    environment:
-      VITE_PODZONE_GW_API_URL: http://localhost:8080
-      VITE_PODZONE_GRAPHQL_API_URL: http://localhost:9080/backoffice/graphql
-      VITE_PODZONE_ONBOARDING_API_URL: http://localhost:8800
-      # Docker Desktop/WSL2 bind mounts don't reliably forward inotify events
-      # into the container, so `vite build --watch` silently stops rebuilding
-      # on host file edits. Polling works regardless of inotify propagation.
-      # See docs/10-knowledge-base/local-dev/2026-07-12-mfe-remote-watch-not-picking-up-changes.md.
-      CHOKIDAR_USEPOLLING: 'true'
-      CHOKIDAR_INTERVAL: '300'
-    volumes:
-      - ../../frontend:/app
-      - podzone_ui_node_modules:/app/node_modules
-    mem_limit: 1024m
-    cpus: 1.5
-    ports:
-      - '3001:3001'
+  # backoffice-remote:
+  #   build:
+  #     context: ../..
+  #     dockerfile: deployments/docker/Dockerfile.backoffice-dev
+  #   container_name: podzone-backoffice-remote-dev
+  #   profiles: [backoffice, full]
+  #   working_dir: /app
+  #   command: ['npm', 'run', 'dev:backoffice']
+  #   environment:
+  #     VITE_PODZONE_GW_API_URL: http://localhost:8080
+  #     VITE_PODZONE_GRAPHQL_API_URL: http://localhost:9080/backoffice/graphql
+  #     VITE_PODZONE_ONBOARDING_API_URL: http://localhost:8800
+  #     # Docker Desktop/WSL2 bind mounts don't reliably forward inotify events
+  #     # into the container, so `vite build --watch` silently stops rebuilding
+  #     # on host file edits. Polling works regardless of inotify propagation.
+  #     # See docs/10-knowledge-base/local-dev/2026-07-12-mfe-remote-watch-not-picking-up-changes.md.
+  #     CHOKIDAR_USEPOLLING: 'true'
+  #     CHOKIDAR_INTERVAL: '300'
+  #   volumes:
+  #     - ../../frontend:/app
+  #     - podzone_ui_node_modules:/app/node_modules
+  #   mem_limit: 1024m
+  #   cpus: 1.5
+  #   ports:
+  #     - '3001:3001'
 
-  iam-remote:
-    build:
-      context: ../..
-      dockerfile: deployments/docker/Dockerfile.backoffice-dev
-    container_name: podzone-iam-remote-dev
-    profiles: [iam, full]
-    working_dir: /app
-    command: ['npm', 'run', 'dev:iam']
-    environment:
-      # See the same var in backoffice-remote above for why this is needed.
-      CHOKIDAR_USEPOLLING: 'true'
-      CHOKIDAR_INTERVAL: '300'
-    volumes:
-      - ../../frontend:/app
-      - podzone_ui_node_modules:/app/node_modules
-    mem_limit: 1024m
-    cpus: 1.5
-    ports:
-      - '3002:3002'
+  # iam-remote:
+  #   build:
+  #     context: ../..
+  #     dockerfile: deployments/docker/Dockerfile.backoffice-dev
+  #   container_name: podzone-iam-remote-dev
+  #   profiles: [iam, full]
+  #   working_dir: /app
+  #   command: ['npm', 'run', 'dev:iam']
+  #   environment:
+  #     # See the same var in backoffice-remote above for why this is needed.
+  #     CHOKIDAR_USEPOLLING: 'true'
+  #     CHOKIDAR_INTERVAL: '300'
+  #   volumes:
+  #     - ../../frontend:/app
+  #     - podzone_ui_node_modules:/app/node_modules
+  #   mem_limit: 1024m
+  #   cpus: 1.5
+  #   ports:
+  #     - '3002:3002'
 
-  onboarding-remote:
-    build:
-      context: ../..
-      dockerfile: deployments/docker/Dockerfile.backoffice-dev
-    container_name: podzone-onboarding-remote-dev
-    profiles: [onboarding, full]
-    working_dir: /app
-    command: ['npm', 'run', 'dev:onboarding']
-    environment:
-      VITE_PODZONE_GW_API_URL: http://localhost:8080
-      VITE_PODZONE_GRAPHQL_API_URL: http://localhost:9080/backoffice/graphql
-      VITE_PODZONE_ONBOARDING_API_URL: http://localhost:8800
-      # See the same var in backoffice-remote above for why this is needed.
-      CHOKIDAR_USEPOLLING: 'true'
-      CHOKIDAR_INTERVAL: '300'
-    volumes:
-      - ../../frontend:/app
-      - podzone_ui_node_modules:/app/node_modules
-    mem_limit: 1024m
-    cpus: 1.5
-    ports:
-      - '3003:3003'
+  # onboarding-remote:
+  #   build:
+  #     context: ../..
+  #     dockerfile: deployments/docker/Dockerfile.backoffice-dev
+  #   container_name: podzone-onboarding-remote-dev
+  #   profiles: [onboarding, full]
+  #   working_dir: /app
+  #   command: ['npm', 'run', 'dev:onboarding']
+  #   environment:
+  #     VITE_PODZONE_GW_API_URL: http://localhost:8080
+  #     VITE_PODZONE_GRAPHQL_API_URL: http://localhost:9080/backoffice/graphql
+  #     VITE_PODZONE_ONBOARDING_API_URL: http://localhost:8800
+  #     # See the same var in backoffice-remote above for why this is needed.
+  #     CHOKIDAR_USEPOLLING: 'true'
+  #     CHOKIDAR_INTERVAL: '300'
+  #   volumes:
+  #     - ../../frontend:/app
+  #     - podzone_ui_node_modules:/app/node_modules
+  #   mem_limit: 1024m
+  #   cpus: 1.5
+  #   ports:
+  #     - '3003:3003'
 
-  frontend:
-    build:
-      context: ../..
-      dockerfile: deployments/docker/Dockerfile.ui-dev
-    container_name: podzone-ui-dev
-    profiles: [backoffice, iam, onboarding, full]
-    working_dir: /app
-    command: ['npm', 'run', 'dev', '--', '--host', '0.0.0.0', '--port', '3000']
-    environment:
-      VITE_PODZONE_GW_API_URL: http://localhost:8080
-      VITE_PODZONE_GRAPHQL_API_URL: http://localhost:9080/backoffice/graphql
-      VITE_API_PROXY_TARGET: http://grpc-gateway:8080
-      # @module-federation/vite emits remoteEntry.js at the build output
-      # root, not inside assets/ (that was @originjs/vite-plugin-federation's
-      # layout) — see docs/09-pzep/PZEP-0005-host-federation-migration-to-mf2.md.
-      VITE_BACKOFFICE_REMOTE_URL: ${VITE_BACKOFFICE_REMOTE_URL:-http://localhost:9080/mfe/backoffice/remoteEntry.js}
-      VITE_IAM_REMOTE_URL: ${VITE_IAM_REMOTE_URL:-http://localhost:9080/mfe/iam/remoteEntry.js}
-      VITE_ONBOARDING_REMOTE_URL: ${VITE_ONBOARDING_REMOTE_URL:-http://localhost:9080/mfe/onboarding/remoteEntry.js}
-      # Which remotes are actually starting under this `make docker-dev
-      # PROFILE=...` invocation — used by vite.config.ts to decide whether a
-      # route should attempt the federation import or fall back to the page
-      # bundled locally into the HOST. Falls back to "full" when not set
-      # (e.g. a raw `docker compose up` bypassing the Makefile), matching
-      # prior behavior. See docs/10-knowledge-base/local-dev/ for the
-      # incident this fixes.
-      VITE_ACTIVE_PROFILES: ${PROFILE:-full}
-      # See the same var on the *-remote services above — the dev server's
-      # HMR watcher is subject to the same WSL2 bind-mount inotify gap, just
-      # less visible here since a full page navigation re-fetches fresh
-      # source regardless of whether HMR's watcher noticed the change.
-      CHOKIDAR_USEPOLLING: 'true'
-      CHOKIDAR_INTERVAL: '300'
-    volumes:
-      - ../../frontend:/app
-      - podzone_ui_node_modules:/app/node_modules
-    mem_limit: 768m
-    cpus: 1.5
-    depends_on:
-      grpc-gateway:
-        condition: service_started
-      dev-bootstrap:
-        condition: service_started
-      backoffice-service:
-        condition: service_started
-        required: false
-      backoffice-remote:
-        condition: service_started
-        required: false
-      iam-remote:
-        condition: service_started
-        required: false
-      onboarding-remote:
-        condition: service_started
-        required: false
-    ports:
-      - '3000:3000'
+  # frontend:
+  #   build:
+  #     context: ../..
+  #     dockerfile: deployments/docker/Dockerfile.ui-dev
+  #   container_name: podzone-ui-dev
+  #   profiles: [backoffice, iam, onboarding, full]
+  #   working_dir: /app
+  #   command: ['npm', 'run', 'dev', '--', '--host', '0.0.0.0', '--port', '3000']
+  #   environment:
+  #     VITE_PODZONE_GW_API_URL: http://localhost:8080
+  #     VITE_PODZONE_GRAPHQL_API_URL: http://localhost:9080/backoffice/graphql
+  #     VITE_API_PROXY_TARGET: http://grpc-gateway:8080
+  #     # @module-federation/vite emits remoteEntry.js at the build output
+  #     # root, not inside assets/ (that was @originjs/vite-plugin-federation's
+  #     # layout) — see docs/09-pzep/PZEP-0005-host-federation-migration-to-mf2.md.
+  #     VITE_BACKOFFICE_REMOTE_URL: ${VITE_BACKOFFICE_REMOTE_URL:-http://localhost:9080/mfe/backoffice/remoteEntry.js}
+  #     VITE_IAM_REMOTE_URL: ${VITE_IAM_REMOTE_URL:-http://localhost:9080/mfe/iam/remoteEntry.js}
+  #     VITE_ONBOARDING_REMOTE_URL: ${VITE_ONBOARDING_REMOTE_URL:-http://localhost:9080/mfe/onboarding/remoteEntry.js}
+  #     # Which remotes are actually starting under this `make docker-dev
+  #     # PROFILE=...` invocation — used by vite.config.ts to decide whether a
+  #     # route should attempt the federation import or fall back to the page
+  #     # bundled locally into the HOST. Falls back to "full" when not set
+  #     # (e.g. a raw `docker compose up` bypassing the Makefile), matching
+  #     # prior behavior. See docs/10-knowledge-base/local-dev/ for the
+  #     # incident this fixes.
+  #     VITE_ACTIVE_PROFILES: ${PROFILE:-full}
+  #     # See the same var on the *-remote services above — the dev server's
+  #     # HMR watcher is subject to the same WSL2 bind-mount inotify gap, just
+  #     # less visible here since a full page navigation re-fetches fresh
+  #     # source regardless of whether HMR's watcher noticed the change.
+  #     CHOKIDAR_USEPOLLING: 'true'
+  #     CHOKIDAR_INTERVAL: '300'
+  #   volumes:
+  #     - ../../frontend:/app
+  #     - podzone_ui_node_modules:/app/node_modules
+  #   mem_limit: 768m
+  #   cpus: 1.5
+  #   depends_on:
+  #     grpc-gateway:
+  #       condition: service_started
+  #     dev-bootstrap:
+  #       condition: service_started
+  #     backoffice-service:
+  #       condition: service_started
+  #       required: false
+  #     backoffice-remote:
+  #       condition: service_started
+  #       required: false
+  #     iam-remote:
+  #       condition: service_started
+  #       required: false
+  #     onboarding-remote:
+  #       condition: service_started
+  #       required: false
+  #   ports:
+  #     - '3000:3000'
 
   frontend-v2:
     build:
@@ -498,17 +498,17 @@ services:
       backoffice-service:
         condition: service_started
         required: false
-      backoffice-remote:
-        condition: service_started
-        required: false
-      iam-remote:
-        condition: service_started
-        required: false
-      onboarding-remote:
-        condition: service_started
-        required: false
-      frontend:
-        condition: service_started
+      # backoffice-remote:
+      #   condition: service_started
+      #   required: false
+      # iam-remote:
+      #   condition: service_started
+      #   required: false
+      # onboarding-remote:
+      #   condition: service_started
+      #   required: false
+      # frontend:
+      #   condition: service_started
 
 volumes:
   podzone_go_mod_cache:
