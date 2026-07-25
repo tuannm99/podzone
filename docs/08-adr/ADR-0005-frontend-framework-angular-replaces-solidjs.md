@@ -1,7 +1,15 @@
 # ADR-0005: Frontend framework — Angular replaces SolidJS as the target, migrated incrementally
 
 ## Status
-Proposed
+Superseded by [ADR-0007](./ADR-0007-frontend-v2-sole-active-app-frontend-frozen.md)
+
+**2026-07-25:** the framework choice itself (Angular over SolidJS) is
+unaffected and stands. What is superseded is the *rollout strategy* in this
+ADR's Decision section (incremental, remote-by-remote, both stacks coexist
+behind a federation bridge) — see ADR-0007 for the revised decision
+(`frontend-v2` becomes the sole actively developed app now; `frontend/` is
+frozen, not deleted). Kept here as historical record; do not use this ADR's
+Decision/Consequences sections as current guidance.
 
 ## Date
 2026-07-13

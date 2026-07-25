@@ -1,6 +1,7 @@
 # CLAUDE.md
 
-Guidance for Claude Code when working in this repository.
+## Repository Guidelines
+When working in this repository, Do not use any plugins, including superpower.
 
 ## Source Of Truth
 
@@ -23,11 +24,12 @@ Read in this order:
 
 Area-specific docs:
 
-- Frontend (`frontend/`, SolidJS, the active app): `agent/SOLID_STYLE_GUIDE.md`
-- Frontend (`frontend-v2/`, Angular, migration target — not yet wired to
-  the real host, see `docs/09-pzep/PZEP-0004-solidjs-to-angular-frontend-migration.md`):
-  `agent/ANGULAR_STYLE_GUIDE.md`
-- Frontend framework decision: `docs/08-adr/ADR-0005-frontend-framework-angular-replaces-solidjs.md`
+- Frontend (`frontend-v2/`, Angular, the sole active app): `agent/ANGULAR_STYLE_GUIDE.md`
+- Frontend (`frontend/`, SolidJS, frozen — reference only, no new work):
+  `agent/SOLID_STYLE_GUIDE.md`
+- Frontend framework decision: `docs/08-adr/ADR-0007-frontend-v2-sole-active-app-frontend-frozen.md`
+  (supersedes `docs/08-adr/ADR-0005-frontend-framework-angular-replaces-solidjs.md`)
+- Frontend-v2 collection pattern: `docs/08-adr/ADR-0008-frontend-v2-declarative-collection-field-spec.md`
 - Backend service rules: `docs/00-governance/twelve-factor.md`
 - Onboarding placement: `internal/onboarding/README.md`
 - IAM: `docs/03-architecture-detail-design/11-iam-platform.md`
@@ -112,26 +114,30 @@ Use tools pinned in `go.mod` through `go tool`.
 
 ## Frontend Commands
 
-For `frontend/` (SolidJS, the active app), read `agent/SOLID_STYLE_GUIDE.md`
-first.
+For `frontend-v2/` (Angular, the sole active app), read
+`agent/ANGULAR_STYLE_GUIDE.md` first. New feature work needs its own
+accepted PZEP per the usual rule (no PZEP, no cross-component
+implementation) — see `docs/08-adr/ADR-0007-frontend-v2-sole-active-app-frontend-frozen.md`
+for why this is now the only frontend under active development.
 
-Run all four before finishing frontend work:
+Run before finishing frontend work:
 
 ```bash
-cd frontend
+cd frontend-v2
 npm run format
-npm run lint
-npm run build
 npm run format:check
+npm run build
+npm run test
 ```
 
-Do not start another dev server unless explicitly asked. The user normally runs
-Docker hot reload.
+Do not start another dev server (`ng serve`/`npm start`) unless explicitly
+asked. The user normally runs Docker hot reload.
 
-For `frontend-v2/` (Angular, migration target), read
-`agent/ANGULAR_STYLE_GUIDE.md` first. No phase beyond the Phase 0 scaffold
-is authorized without its own accepted PZEP — see
-`docs/09-pzep/PZEP-0004-solidjs-to-angular-frontend-migration.md`.
+`frontend/` (SolidJS) is frozen: no new features, no routine maintenance.
+It stays in the repo only as a reference for porting existing behavior and
+visual language into `frontend-v2` — do not run its dev server or extend
+it. If you need to read it, `agent/SOLID_STYLE_GUIDE.md` still describes
+its conventions.
 
 ## Architecture Summary
 
@@ -146,16 +152,7 @@ is authorized without its own accepted PZEP — see
 - Messaging runtime lives in `pkg/pdkafka` and `pkg/messaging`; service-specific
   event handlers live under `internal/<service>/controller/eventhandler`.
 
-## Frontend Summary — `frontend/` (SolidJS)
-
-- Route pages are thin composition roots.
-- `createXViewModel` owns remote reads, mutations, loading, error, and actions.
-- Panels render state and invoke actions; they do not call services directly.
-- Remote reads use `createResource` or the shared pagination resource.
-- Collections require search/filter/sort/loading/error/empty/pagination states.
-- Internal navigation uses router/Link primitives, not `window.location.href`.
-
-## Frontend Summary — `frontend-v2/` (Angular, migration target)
+## Frontend Summary — `frontend-v2/` (Angular, the sole active app)
 
 - Route components are thin composition roots.
 - One feature `@Injectable()` service owns remote reads (`resource`/
@@ -163,9 +160,23 @@ is authorized without its own accepted PZEP — see
 - Components render `input()`s/`output()`s and invoke actions; they do not
   inject `HttpClient` directly.
 - Collections require search/filter/sort/loading/error/empty/pagination
-  states, same as `frontend/`.
+  states, and declare their queryable fields as a typed
+  `CollectionFieldSpec<T>` rather than inline filter/sort arrays — see
+  `docs/08-adr/ADR-0008-frontend-v2-declarative-collection-field-spec.md`.
 - Internal navigation uses `routerLink`/`Router.navigate()`, not
   `window.location.href`.
+
+## Frontend Summary — `frontend/` (SolidJS, frozen — reference only)
+
+Kept for reading existing behavior/visual language while porting into
+`frontend-v2`. Do not build new features here.
+
+- Route pages are thin composition roots.
+- `createXViewModel` owns remote reads, mutations, loading, error, and actions.
+- Panels render state and invoke actions; they do not call services directly.
+- Remote reads use `createResource` or the shared pagination resource.
+- Collections require search/filter/sort/loading/error/empty/pagination states.
+- Internal navigation uses router/Link primitives, not `window.location.href`.
 
 ## Docs Updates
 

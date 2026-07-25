@@ -1,7 +1,20 @@
 # PZEP-0004: SolidJS → Angular frontend migration plan
 
 ## Status
-Draft
+Superseded by [ADR-0007](../08-adr/ADR-0007-frontend-v2-sole-active-app-frontend-frozen.md)
+
+**2026-07-25:** Phase 0 (foundations) and Phase 1 (host MF2 migration, see
+PZEP-0005) already executed and remain valid — they are not undone. Phases
+2 through 6 as sequenced below (remote-by-remote migration, cut over one at
+a time behind a federation-bridged host, decommission last) are superseded:
+actual delivery had already drifted from this plan before this date
+(PZEP-0008 built the onboarding backbone directly in `frontend-v2` as a
+standalone app against real backend contracts, not through a federation
+cutover), and ADR-0007 now makes that the explicit direction — `frontend-v2`
+is the sole actively developed app; `frontend/` is frozen (reference only,
+no new work). Future `frontend-v2` feature work is scoped by its own PZEP
+per feature area (as PZEP-0008 already does), not gated by the phase list
+below. Kept here as historical record of the original sequencing reasoning.
 
 ## Date
 2026-07-13
