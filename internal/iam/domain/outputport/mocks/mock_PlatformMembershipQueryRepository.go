@@ -39,6 +39,72 @@ func (_m *MockPlatformMembershipQueryRepository) EXPECT() *MockPlatformMembershi
 	return &MockPlatformMembershipQueryRepository_Expecter{mock: &_m.Mock}
 }
 
+// CountByRole provides a mock function for the type MockPlatformMembershipQueryRepository
+func (_mock *MockPlatformMembershipQueryRepository) CountByRole(ctx context.Context, roleID uint64) (int, error) {
+	ret := _mock.Called(ctx, roleID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountByRole")
+	}
+
+	var r0 int
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) (int, error)); ok {
+		return returnFunc(ctx, roleID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64) int); ok {
+		r0 = returnFunc(ctx, roleID)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64) error); ok {
+		r1 = returnFunc(ctx, roleID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockPlatformMembershipQueryRepository_CountByRole_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CountByRole'
+type MockPlatformMembershipQueryRepository_CountByRole_Call struct {
+	*mock.Call
+}
+
+// CountByRole is a helper method to define mock.On call
+//   - ctx context.Context
+//   - roleID uint64
+func (_e *MockPlatformMembershipQueryRepository_Expecter) CountByRole(ctx interface{}, roleID interface{}) *MockPlatformMembershipQueryRepository_CountByRole_Call {
+	return &MockPlatformMembershipQueryRepository_CountByRole_Call{Call: _e.mock.On("CountByRole", ctx, roleID)}
+}
+
+func (_c *MockPlatformMembershipQueryRepository_CountByRole_Call) Run(run func(ctx context.Context, roleID uint64)) *MockPlatformMembershipQueryRepository_CountByRole_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 uint64
+		if args[1] != nil {
+			arg1 = args[1].(uint64)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockPlatformMembershipQueryRepository_CountByRole_Call) Return(n int, err error) *MockPlatformMembershipQueryRepository_CountByRole_Call {
+	_c.Call.Return(n, err)
+	return _c
+}
+
+func (_c *MockPlatformMembershipQueryRepository_CountByRole_Call) RunAndReturn(run func(ctx context.Context, roleID uint64) (int, error)) *MockPlatformMembershipQueryRepository_CountByRole_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListByUser provides a mock function for the type MockPlatformMembershipQueryRepository
 func (_mock *MockPlatformMembershipQueryRepository) ListByUser(ctx context.Context, userID uint) ([]entity.PlatformMembership, error) {
 	ret := _mock.Called(ctx, userID)

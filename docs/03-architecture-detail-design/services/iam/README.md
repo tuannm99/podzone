@@ -128,12 +128,21 @@ code.
   backend services on the internal network, not end users directly.
 - Authorization: IAM **is** the authorization system; there is no meta-
   authorization layer in front of it beyond network boundary.
-- Bootstrap: there is currently **no** code path that grants the first
-  `platform_owner` — `AddPlatformRole` requires the caller to already hold
-  `platform:manage_roles`, and no migration seeds a platform role to a real
-  user. See [SRS-IAM-004](../../../01-srs/iam/SRS-IAM-004-platform-admin-bootstrap-and-recovery.md)
+- Bootstrap: `cmd/iam-bootstrap` grants the first `platform_owner`/
+  `platform_admin` directly against the IAM database — a standalone,
+  network-unreachable CLI, not an API endpoint (`AddPlatformRole` itself
+  still requires the caller to already hold `platform:manage_roles`, so
+  this CLI is the only way to grant the *first* one, and also the
+  break-glass path when every existing platform admin is unreachable).
+  Every grant is recorded in `iam_audit_logs`
+  (`action = 'platform.bootstrap.role_granted'`, `actor_user_id = 0`
+  sentinel). See [SRS-IAM-004](../../../01-srs/iam/SRS-IAM-004-platform-admin-bootstrap-and-recovery.md)
   and [PZEP-0002](../../../09-pzep/PZEP-0002-platform-admin-bootstrap-and-recovery.md)
-  (Draft) for the proposed `cmd/iam-bootstrap` fix, not yet implemented.
+  (Done) for detail:
+  ```
+  CONFIG_PATH=deployments/docker/config/iam.yml go run ./cmd/iam-bootstrap \
+    --user-id 4 --role platform_owner --reason "initial platform admin"
+  ```
 - Tenant/workspace/store isolation: enforced per-table, see "Tenant
   Scoping Summary" in db-design.md. Platform-scope roles/policies
   (`platform_owner`, `platform_admin`) currently grant **no** implicit

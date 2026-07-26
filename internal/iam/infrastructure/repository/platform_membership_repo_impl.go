@@ -61,6 +61,19 @@ func (r *PlatformMembershipRepositoryImpl) ListRoleIDsByUser(ctx context.Context
 	return out, nil
 }
 
+func (r *PlatformMembershipRepositoryImpl) CountByRole(ctx context.Context, roleID uint64) (int, error) {
+	var count int
+	if err := r.db.GetContext(
+		ctx,
+		&count,
+		`SELECT COUNT(*) FROM user_platform_roles WHERE role_id = $1 AND status = 'active'`,
+		roleID,
+	); err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
 func (r *PlatformMembershipRepositoryImpl) ListByUser(
 	ctx context.Context,
 	userID uint,

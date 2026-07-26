@@ -401,9 +401,9 @@ revision rather than attempting unbounded key deletion.
 - Support policy shadow evaluation before enforcement.
 - Treat organization root and system admin as separate durable bindings.
 - Require explicit bootstrap/recovery procedures for the first system admin —
-  see [SRS-IAM-004](../01-srs/iam/SRS-IAM-004-platform-admin-bootstrap-and-recovery.md)
+  **fulfilled**: see [SRS-IAM-004](../01-srs/iam/SRS-IAM-004-platform-admin-bootstrap-and-recovery.md)
   and [PZEP-0002](../09-pzep/PZEP-0002-platform-admin-bootstrap-and-recovery.md)
-  (Draft, `cmd/iam-bootstrap`) for the confirmed gap and proposed fix.
+  (Done, `cmd/iam-bootstrap`).
 - Version every public proto, policy schema, event envelope, and SDK behavior.
 
 ## Target Repository Shape

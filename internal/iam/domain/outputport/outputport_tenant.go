@@ -36,6 +36,10 @@ type PlatformMembershipQueryRepository interface {
 		query collection.Query,
 	) (collection.Page[entity.PlatformMembership], error)
 	ListRoleIDsByUser(ctx context.Context, userID uint) ([]uint64, error)
+	// CountByRole counts active memberships for roleID, regardless of user.
+	// Used by cmd/iam-bootstrap (PZEP-0002) to decide whether a grant is a
+	// fresh bootstrap (count == 0) or requires --force (count > 0).
+	CountByRole(ctx context.Context, roleID uint64) (int, error)
 }
 
 type PlatformMembershipRepository interface {

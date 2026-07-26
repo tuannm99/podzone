@@ -1,13 +1,17 @@
 # PZEP-0002: Platform Admin Bootstrap And Recovery
 
 ## Status
-Draft
+Done — implemented, unit tested, and smoke-tested end to end against real
+docker dev (`podzone-iam-dev`, real Postgres, real `auth` gRPC service).
+See Rollout Log for one deviation from the Draft (a new
+`CountByRole` repository method, not in the original Proposed Solution) and
+what real state changed in docker dev during verification.
 
 ## Date
-2026-07-12
+2026-07-12 (implemented 2026-07-26)
 
 ## Related Commit
-(none yet — nothing implemented)
+(none yet — implemented in the working tree this session, not committed)
 
 ## Requirement Sources
 - Business: `docs/00-project-vision/02-actors-and-business-flows.md` ("1A. System Admin / Platform Operator" — "system admin access is a separate platform-level grant and must be modeled independently")
@@ -87,6 +91,41 @@ Behavior:
 3. `INSERT INTO user_platform_roles (user_id, role_id, status) VALUES ($user_id, (SELECT id FROM iam_roles WHERE name = $role), 'active') ON CONFLICT (user_id, role_id) DO NOTHING` — idempotent, matches the existing migration idiom.
 4. Insert one `iam_audit_logs` row: `actor_user_id = 0` (sentinel — no real user is the actor; 0 is safe because the column is a plain `BIGINT` with no FK, same as every other "no real user" case in this schema), `action = 'platform.bootstrap.role_granted'`, `resource_type = 'platform_role_membership'`, `resource_id = '{role}:{user_id}'`, `payload_json` containing `{"reason": ..., "force": bool, "existing_admin_count": N}`.
 5. Print the audit log row ID and exit 0.
+
+**Implemented as:** reused existing `internal/iam` repository code almost
+exactly as described, rather than raw SQL in the CLI, per TASK-0004's own
+instruction:
+- Step 2's count: no existing repository method covered "count members of
+  a role" (only the reverse — "roles of a member" — existed). Added
+  `PlatformMembershipQueryRepository.CountByRole(ctx, roleID uint64) (int,
+  error)` (implemented as `SELECT COUNT(*) FROM user_platform_roles WHERE
+  role_id = $1 AND status = 'active'`) rather than writing raw SQL inside
+  the CLI, since this codebase consistently keeps DB access behind
+  repository interfaces — a small, reusable addition, not scope creep tied
+  to this one tool.
+- Step 3's insert: reused `PlatformMembershipCommandRepository.Upsert`
+  as-is (already `ON CONFLICT (user_id, role_id) DO UPDATE`, slightly
+  stronger than the Draft's `DO NOTHING` — an idempotent re-run also
+  refreshes `status`/`updated_at`, which is more correct for the
+  break-glass-recovery case where a previously-inactive grant might need
+  reactivating).
+- Step 4's audit insert: reused `AuditLogRepository.Create` as-is, matching
+  the same shape `iamHandlerBase.recordAudit` already uses elsewhere in
+  the codebase (`internal/iam/controller/grpchandler/helpers.go`).
+- Added one more check the Draft's Behavior list didn't explicitly walk
+  through but Error Codes already required: look up the target user via
+  `UserDirectory.GetByID` (reusing the existing `authclient.UserDirectory`
+  gRPC client to `auth`, the same one `internal/iam`'s own handlers use)
+  and fail with a clear message if `entity.ErrUserNotFound`.
+- fx wiring: `pdconfig.Module + pdlog.Module + pdsql.ModuleFor("iam") +
+  iam.CommandRepositoryModule + server.SharedModule`, then `fx.Populate`
+  into a small `bootstrapDeps` struct, `app.Start`/`app.Stop` around the
+  one-shot logic (not `app.Run()`, which blocks/listens for OS signals like
+  a long-running service — this needed the narrower start/do-work/stop
+  shape instead). Deliberately narrower than the full `iam.CommandModule`
+  (skips constructing the whole `IAMCommandUsecase` interactor, which pulls
+  in tenant/policy/group/org/membership/invite repos this tool never uses)
+  — `iam.CommandRepositoryModule` alone provides every repository needed.
 
 ## Affected Components
 - Frontend: none
@@ -202,30 +241,91 @@ Cons:
 - E2E: not applicable — no user-facing flow.
 - Manual QA: run once against local Docker dev's `iam` database with no existing platform admin, confirm `AddPlatformRole` from the Settings UI subsequently works using the bootstrapped account.
 
+**Implemented as:** unit tests (mocked repositories, `cmd/iam-bootstrap/
+bootstrap_test.go`) cover every case above except real-DB idempotency,
+which was instead verified directly against docker dev (see Rollout Log) —
+no testcontainers convention exists anywhere in `internal/iam` to extend,
+so a full integration-test harness wasn't introduced just for this one
+tool. Manual QA was done this session (see Rollout Log), not deferred.
+
 ## Agent Implementation Plan
-- TASK-0001: Scaffold `cmd/iam-bootstrap/main.go` following `cmd/iam-worker`'s fx wiring pattern (no HTTP/gRPC server).
-- TASK-0002: Implement flag parsing and validation (`--user-id`, `--role`, `--reason`, `--force`).
-- TASK-0003: Implement the existing-admin-count check and refusal path.
-- TASK-0004: Implement the `user_platform_roles` insert and `iam_audit_logs` insert, reusing `internal/iam`'s existing repository interfaces (do not hand-write new SQL if an existing repository method covers it).
-- TASK-0005: Unit + integration tests per Test Plan.
-- TASK-0006: Document the tool's usage in `docs/03-architecture-detail-design/services/iam/README.md` (Agent Rules or a new "Operations" section) and cross-link from `11-iam-platform.md`'s "Security And Operations" list, marking that requirement fulfilled.
+- TASK-0001: Scaffold `cmd/iam-bootstrap/main.go` following `cmd/iam-worker`'s fx wiring pattern (no HTTP/gRPC server). **Done.**
+- TASK-0002: Implement flag parsing and validation (`--user-id`, `--role`, `--reason`, `--force`). **Done.**
+- TASK-0003: Implement the existing-admin-count check and refusal path. **Done** — see Proposed Solution's "Implemented as" note (new `CountByRole` repository method, no existing one covered this read).
+- TASK-0004: Implement the `user_platform_roles` insert and `iam_audit_logs` insert, reusing `internal/iam`'s existing repository interfaces (do not hand-write new SQL if an existing repository method covers it). **Done** — reused `PlatformMembershipCommandRepository.Upsert` and `AuditLogRepository.Create` as-is, no new SQL for the writes.
+- TASK-0005: Unit + integration tests per Test Plan. **Done** (unit); see Test Plan note on integration.
+- TASK-0006: Document the tool's usage in `docs/03-architecture-detail-design/services/iam/README.md` (Agent Rules or a new "Operations" section) and cross-link from `11-iam-platform.md`'s "Security And Operations" list, marking that requirement fulfilled. **Done.**
 
 ## Acceptance Criteria Mapping
 
 | AC | Task | Test |
 |---|---|---|
-| AC-1: Running the tool with no existing platform admin for the target role grants it without `--force` | TASK-0002, TASK-0004 | Integration: empty `user_platform_roles` for role, run, assert row exists |
-| AC-2: Running the tool when an admin already exists refuses without `--force` and exits non-zero | TASK-0003 | Unit: mock count > 0, assert refusal and exit code |
-| AC-3: Running the tool with `--force` when an admin already exists succeeds and logs `force: true` | TASK-0003, TASK-0004 | Integration: seed one admin, run with `--force`, assert audit payload |
-| AC-4: Every successful grant produces exactly one `iam_audit_logs` row with the documented shape | TASK-0004 | Integration: assert row count and payload fields after run |
-| AC-5: Running the tool twice with identical flags does not error or duplicate the role grant | TASK-0004 | Unit/Integration: run twice, assert single `user_platform_roles` row |
-| AC-6: The tool has no HTTP/gRPC listener and is not present in any Docker Compose service definition with an exposed port | TASK-0001 | Manual: `grep` `deployments/docker/services.yml` for the binary name, confirm absent |
+| AC-1: Running the tool with no existing platform admin for the target role grants it without `--force` | TASK-0002, TASK-0004 | `TestRunBootstrap_GrantsWhenNoExistingAdmin` + docker dev smoke test (Rollout Log) |
+| AC-2: Running the tool when an admin already exists refuses without `--force` and exits non-zero | TASK-0003 | `TestRunBootstrap_RefusesWhenAdminExistsWithoutForce` + docker dev smoke test |
+| AC-3: Running the tool with `--force` when an admin already exists succeeds and logs `force: true` | TASK-0003, TASK-0004 | `TestRunBootstrap_GrantsWithForceWhenAdminExists` + docker dev smoke test |
+| AC-4: Every successful grant produces exactly one `iam_audit_logs` row with the documented shape | TASK-0004 | Same tests, assert `PayloadJSON`/`Action`/`ResourceType`/`ResourceID`/`Status` fields; confirmed shape via real `psql` query in docker dev |
+| AC-5: Running the tool twice with identical flags does not error or duplicate the role grant | TASK-0004 | `TestRunBootstrap_RunTwiceDoesNotDuplicate` + docker dev smoke test (real `ON CONFLICT DO UPDATE`, no duplicate row) |
+| AC-6: The tool has no HTTP/gRPC listener and is not present in any Docker Compose service definition with an exposed port | TASK-0001 | `grep -rn iam-bootstrap deployments/` — no hits |
+
+## Rollout Log
+
+**2026-07-26, implementation and smoke test:**
+1. Implemented `cmd/iam-bootstrap/{main.go,bootstrap.go}` and
+   `internal/iam`'s `CountByRole` addition per Proposed Solution's
+   "Implemented as" note. Regenerated the two affected mocks
+   (`mock_PlatformMembershipRepository.go`,
+   `mock_PlatformMembershipQueryRepository.go` — `go tool mockery`,
+   confirmed via `git status` only expected mocks changed).
+2. Added `cmd/iam-bootstrap/bootstrap_test.go` (9 unit tests, all mocked —
+   validation, fresh grant, refusal without `--force`, grant with
+   `--force`, repeat-invocation shape, user-not-found, role-not-found,
+   upsert-failure propagation).
+3. **Smoke-tested end to end against real docker dev** — built and ran the
+   actual binary inside `podzone-iam-dev` (repo bind-mounted at
+   `/workspace`, same container already configured with `CONFIG_PATH`,
+   `AUTH_GRPC_HOST`/`PORT` pointing at the real running `auth` service and
+   `postgres` container on the `docker_default` network):
+   - Found user `id=4` (`admin@podzone.com`, presumably) already had an
+     active `platform_owner` grant from prior work in this environment.
+     Ran `--role platform_owner --user-id 1` **without** `--force` →
+     correctly refused: `"existing platform admin(s) present... (1
+     existing platform_owner grant(s))"`.
+   - Ran `--role platform_admin --user-id 1` (zero existing `platform_admin`
+     grants) → succeeded, printed a real audit log UUID. Verified via
+     direct `psql` against the docker dev `iam` database: `user_platform_roles`
+     row `(user_id=1, role_id=6, status='active')` and one
+     `iam_audit_logs` row with `actor_user_id=0`,
+     `action='platform.bootstrap.role_granted'`,
+     `resource_id='platform_admin:1'`, `payload_json` containing the exact
+     `reason`/`force`/`existing_admin_count` fields specified.
+   - Re-ran the same command without `--force` → correctly refused (count
+     now 1). Re-ran **with** `--force` → succeeded again, second distinct
+     audit log row, `user_platform_roles` row unchanged in identity
+     (upsert, not a duplicate).
+   - Ran with a nonexistent `--user-id 999999` → correctly refused:
+     `"user 999999 not found in auth"` — proves the `UserDirectory.GetByID`
+     gRPC call to the real `auth` service works, not just the DB half.
+   - **Net effect on docker dev's real state**: user `id=1`
+     (`admin@podzone.com`) now has an active `platform_admin` grant, plus
+     the corresponding audit log rows from this verification run — this
+     was left in place rather than reverted, since granting `platform_admin`
+     to the account literally named "admin" in a disposable dev environment
+     is a reasonable, arguably intended outcome, not a leftover test
+     artifact to clean up; flagged here explicitly so it isn't a surprise.
+4. `go build ./...`, `go vet ./...`, `golangci-lint run` on
+   `cmd/iam-bootstrap` and `internal/iam` (0 new issues — pre-existing
+   findings elsewhere in `internal/iam` untouched), and the **entire
+   repo's** `go test ./...` all pass.
+
+Not done: no commit yet.
 
 ## Open Questions
-- Should `--user-id` also accept `--email` and resolve it via `auth`'s
-  `users` table, or stay ID-only to avoid `iam-bootstrap` needing a second
-  database connection? Leaning ID-only (simpler, one DB connection) —
-  confirm before TASK-0002.
+- ~~Should `--user-id` also accept `--email`...~~ — resolved: stayed
+  ID-only. In practice `iam-bootstrap` already needs a gRPC connection to
+  `auth` anyway (for the `UserDirectory.GetByID` existence check added
+  during implementation — see Proposed Solution), so "avoid a second
+  connection" no longer applies either way; ID-only was kept simply because
+  nothing in the actual use case needs email lookup.
 - Should this PZEP also cover a `platform:manage_roles`-holder losing
   access to their own MFA/session (a "locked out of my own account" case
   distinct from "no admin exists")? Out of scope as written — that's an
