@@ -1,50 +1,89 @@
-<form class="collection-filters" (submit)="onSubmit($event)">
-  <mat-form-field appearance="outline" class="collection-filters__field">
-    <mat-label>Filter field</mat-label>
-    <mat-select [value]="selectedField()" (selectionChange)="onFieldChange($event.value)">
-      @for (field of filterableFields(); track field.field) {
-        <mat-option [value]="field.field">{{ field.label }}</mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
-
-  <mat-form-field appearance="outline" class="collection-filters__operator">
-    <mat-label>Operator</mat-label>
-    <mat-select
-      [value]="effectiveOperator()"
-      (selectionChange)="selectedOperator.set($event.value)"
+<div class="collection-filters">
+  <div class="collection-filters__bar">
+    <button
+      mat-stroked-button
+      type="button"
+      color="primary"
+      [matMenuTriggerFor]="filtersMenu"
+      [matBadge]="filters().length"
+      [matBadgeHidden]="filters().length === 0"
+      matBadgeSize="small"
+      matBadgeColor="primary"
     >
-      @for (operator of operatorOptions(); track operator) {
-        <mat-option [value]="operator">{{ operatorLabels[operator] }}</mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
+      <mat-icon>filter_list</mat-icon>
+      Filters
+    </button>
 
-  <mat-form-field appearance="outline" class="collection-filters__value">
-    <mat-label>Value</mat-label>
-    <input
-      matInput
-      [placeholder]="
-        effectiveOperator() === 'FILTER_OPERATOR_IN' ? 'Comma-separated values' : 'Filter value'
-      "
-      [value]="value()"
-      (input)="value.set($any($event.target).value)"
-    />
-  </mat-form-field>
+    <mat-menu #filtersMenu="matMenu" class="collection-filters__menu">
+      <form
+        class="collection-filters__form"
+        (submit)="onSubmit($event)"
+        (click)="$event.stopPropagation()"
+      >
+        <label class="collection-filters__field-group">
+          <span class="collection-filters__field-label">Filter field</span>
+          <select
+            class="collection-filters__select"
+            [value]="selectedField()"
+            (change)="onFieldChange($any($event.target).value)"
+          >
+            @for (field of filterableFields(); track field.field) {
+              <option [value]="field.field">{{ field.label }}</option>
+            }
+          </select>
+        </label>
 
-  <button mat-stroked-button type="submit">Add filter</button>
+        <label class="collection-filters__field-group">
+          <span class="collection-filters__field-label">Operator</span>
+          <select
+            class="collection-filters__select"
+            [value]="effectiveOperator()"
+            (change)="selectedOperator.set($any($event.target).value)"
+          >
+            @for (operator of operatorOptions(); track operator) {
+              <option [value]="operator">{{ operatorLabels[operator] }}</option>
+            }
+          </select>
+        </label>
 
-  @if (filters().length > 0) {
-    <mat-chip-set class="collection-filters__chips" aria-label="Active filters">
-      @for (filter of filters(); track filter.field + filter.operator; let index = $index) {
-        <mat-chip (removed)="removeFilter(index)">
-          {{ labelFor(filter.field) }} {{ operatorLabels[filter.operator] }}
-          {{ filter.values.join(', ') }}
-          <button matChipRemove aria-label="Remove filter">
-            <mat-icon>cancel</mat-icon>
-          </button>
-        </mat-chip>
-      }
-    </mat-chip-set>
-  }
-</form>
+        <label class="collection-filters__field-group">
+          <span class="collection-filters__field-label">Value</span>
+          <input
+            class="collection-filters__input"
+            [placeholder]="
+              effectiveOperator() === 'FILTER_OPERATOR_IN'
+                ? 'Comma-separated values'
+                : 'Filter value'
+            "
+            [value]="value()"
+            (input)="value.set($any($event.target).value)"
+          />
+        </label>
+
+        @if (effectiveOperator() === 'FILTER_OPERATOR_IN') {
+          <p class="collection-filters__hint">
+            Matches any of these values, e.g. "active, pending"
+          </p>
+        }
+
+        <button mat-flat-button type="submit" color="primary" class="collection-filters__submit">
+          Add filter
+        </button>
+      </form>
+    </mat-menu>
+
+    @if (filters().length > 0) {
+      <mat-chip-set class="collection-filters__chips" aria-label="Active filters">
+        @for (filter of filters(); track filter.field + filter.operator; let index = $index) {
+          <mat-chip (removed)="removeFilter(index)">
+            {{ labelFor(filter.field) }} {{ operatorLabels[filter.operator] }}
+            {{ filter.values.join(', ') }}
+            <button matChipRemove aria-label="Remove filter">
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </mat-chip>
+        }
+      </mat-chip-set>
+    }
+  </div>
+</div>

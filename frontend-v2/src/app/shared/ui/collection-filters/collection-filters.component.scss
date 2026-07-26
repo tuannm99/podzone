@@ -1,24 +1,92 @@
 .collection-filters {
   display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.collection-filters__bar {
+  display: flex;
   flex-wrap: wrap;
-  align-items: start;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  border-radius: 0.75rem;
-  background-color: var(--mat-sys-surface-container);
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.collection-filters__field,
-.collection-filters__operator {
-  flex: 1 1 10rem;
-  min-width: 10rem;
+// Icon sizing only - no forced button height (see app-data-table's Columns
+// button comment: a fixed height fights Material's own pill-button sizing
+// and makes it render squared-off/off-color).
+.collection-filters__bar button mat-icon {
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
 }
 
-.collection-filters__value {
-  flex: 2 1 12rem;
-  min-width: 12rem;
+// Material's default menu panel caps max-width (~280px), too narrow for
+// this form - widen just this panel via its panelClass.
+::ng-deep .collection-filters__menu.mat-mdc-menu-panel {
+  max-width: none;
 }
 
 .collection-filters__chips {
-  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+
+  ::ng-deep .mdc-evolution-chip {
+    height: 1.75rem;
+  }
+}
+
+// The form lives inside a mat-menu overlay panel now (see the component's
+// class comment) - floats below the Filters button instead of pushing page
+// content down when opened.
+.collection-filters__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  width: 20rem;
+}
+
+.collection-filters__field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.75rem;
+}
+
+.collection-filters__field-label {
+  color: var(--mat-sys-on-surface-variant);
+  font-weight: 500;
+}
+
+.collection-filters__select,
+.collection-filters__input {
+  height: 2.25rem;
+  padding: 0 0.6rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 0.5rem;
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font-size: 0.875rem;
+  font-family: inherit;
+  width: 100%;
+
+  &:focus {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: -1px;
+    border-color: var(--mat-sys-primary);
+  }
+}
+
+.collection-filters__input::placeholder {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.collection-filters__hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.collection-filters__submit {
+  align-self: flex-end;
 }

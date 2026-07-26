@@ -5,10 +5,23 @@
 } @else if (rows().length === 0) {
   <app-empty-block [title]="emptyTitle()" [copy]="emptyCopy()" />
 } @else {
-  <table mat-table [dataSource]="rows()" class="data-table">
-    @for (column of columns(); track column.key) {
+  <table
+    mat-table
+    [dataSource]="rows()"
+    matSort
+    [matSortActive]="sortActive()"
+    [matSortDirection]="sortDirection()"
+    [matSortDisableClear]="true"
+    (matSortChange)="onSortChange($event)"
+    class="data-table"
+  >
+    @for (column of visibleColumns(); track column.key) {
       <ng-container [matColumnDef]="column.key">
-        <th mat-header-cell *matHeaderCellDef>{{ column.header }}</th>
+        @if (column.sortable) {
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ column.header }}</th>
+        } @else {
+          <th mat-header-cell *matHeaderCellDef>{{ column.header }}</th>
+        }
         <td mat-cell *matCellDef="let row">
           @if (column.cellTemplate) {
             <ng-container *ngTemplateOutlet="column.cellTemplate; context: { $implicit: row }" />

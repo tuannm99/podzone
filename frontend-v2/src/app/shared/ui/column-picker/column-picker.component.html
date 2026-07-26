@@ -1,0 +1,14 @@
+<button mat-stroked-button type="button" color="primary" [matMenuTriggerFor]="columnsMenu">
+  <mat-icon>view_column</mat-icon>
+  Columns
+</button>
+
+<mat-menu #columnsMenu="matMenu">
+  <div class="column-picker__menu" (click)="$event.stopPropagation()">
+    @for (column of columns(); track column.key) {
+      <mat-checkbox [checked]="isVisible(column.key)" (change)="toggle.emit(column.key)">
+        {{ column.header }}
+      </mat-checkbox>
+    }
+  </div>
+</mat-menu>

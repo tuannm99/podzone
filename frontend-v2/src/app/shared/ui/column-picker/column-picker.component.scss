@@ -1,0 +1,16 @@
+:host {
+  display: inline-block;
+}
+
+:host ::ng-deep button mat-icon {
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.column-picker__menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 1rem;
+}

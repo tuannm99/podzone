@@ -1,10 +1,9 @@
+// Nested inside Shell's <router-outlet> (PZEP-0013) - Shell already owns
+// the page background/min-height/content-width. This is a dashboard
+// summary card, not a full-width table, so it keeps its own narrower
+// max-width rather than filling Shell's whole content area.
 :host {
-  display: flex;
-  min-height: 100vh;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 2rem 1rem;
-  background-color: var(--mat-sys-surface-container-lowest);
+  display: block;
 }
 
 .tenant-home-page__card {
@@ -13,7 +12,6 @@
   gap: 1.5rem;
   width: 100%;
   max-width: 40rem;
-  margin-top: 2rem;
 }
 
 .tenant-home-page__header {

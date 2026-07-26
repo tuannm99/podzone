@@ -1,10 +1,9 @@
 import { Component, computed, input, output, signal } from '@angular/core';
+import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
+import { MatMenuModule } from '@angular/material/menu';
 
 import {
   operatorLabels,
@@ -20,16 +19,19 @@ import type { CollectionFilter, CollectionFilterOperator } from '../../services/
 // `contains` on a timestamp field) - the same guard the backend's
 // pkg/collection/sqlspec.Spec enforces, applied here before the request
 // ever leaves the browser.
+//
+// The builder form lives in a mat-menu floating panel (same proven pattern
+// as app-data-table's Columns picker), not an inline block that pushes the
+// page content down when opened.
+//
+// The form fields themselves use plain <select>/<input>, not
+// mat-form-field/mat-select — see collection-toolbar.component.ts's
+// comment for why (a forced-height override on mat-form-field broke its
+// notched-label layout). Buttons/chips/menu stay on Material components,
+// which don't have that problem.
 @Component({
   selector: 'app-collection-filters',
-  imports: [
-    MatFormFieldModule,
-    MatSelectModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatChipsModule,
-  ],
+  imports: [MatButtonModule, MatIconModule, MatChipsModule, MatBadgeModule, MatMenuModule],
   templateUrl: './collection-filters.component.html',
   styleUrl: './collection-filters.component.scss',
 })

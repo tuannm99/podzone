@@ -1,0 +1,34 @@
+// Nested inside Shell's <router-outlet> (PZEP-0013) - see store-list-page's
+// SCSS comment for why this host stays bare.
+:host {
+  display: block;
+}
+
+.routed-order-list-page__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.routed-order-list-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.routed-order-list-page__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.routed-order-list-page__column-picker {
+  margin-left: auto;
+}
+
+.routed-order-list-page__title {
+  margin: 0;
+  font: var(--mat-sys-title-large);
+}

@@ -1,22 +1,34 @@
+// Nested inside Shell's <router-outlet> (PZEP-0013) - Shell's own
+// .shell/.shell__main-inner already own the page background, min-height,
+// and content-width constraint/centering. This host must not redeclare
+// any of that (doing so previously produced a narrow, floating card with
+// large unused space around it).
 :host {
   display: block;
-  min-height: 100vh;
-  padding: 2rem 1rem;
-  background-color: var(--mat-sys-surface-container-lowest);
 }
 
 .store-list-page__card {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  max-width: 72rem;
-  margin: 0 auto;
+  gap: 0.75rem;
+  width: 100%;
 }
 
 .store-list-page__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.store-list-page__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.store-list-page__column-picker {
+  margin-left: auto;
 }
 
 .store-list-page__title {

@@ -1,0 +1,43 @@
+<app-card class="routed-order-list-page__card">
+  <div class="routed-order-list-page__header">
+    <h1 class="routed-order-list-page__title">Orders</h1>
+  </div>
+
+  <div class="routed-order-list-page__controls">
+    <app-collection-toolbar
+      [search]="orders.query().search || ''"
+      searchPlaceholder="Search product, partner, customer, or status"
+      (searchChange)="onSearch($event)"
+    />
+
+    <app-collection-filters
+      [fields]="fieldSpec"
+      [filters]="orders.query().filters || []"
+      (filtersChange)="onFiltersChange($event)"
+    />
+
+    <app-column-picker
+      class="routed-order-list-page__column-picker"
+      [columns]="columns"
+      [hidden]="hiddenColumns()"
+      (toggle)="onToggleColumn($event)"
+    />
+  </div>
+
+  <app-data-table
+    [columns]="columns"
+    [rows]="orders.page.value()?.items ?? []"
+    [loading]="orders.page.isLoading()"
+    [error]="orders.page.error()?.message ?? ''"
+    emptyTitle="No routed orders"
+    emptyCopy="No orders match the current search and filters."
+    [totalCount]="orders.page.value()?.pageInfo?.total ?? 0"
+    [pageSize]="orders.query().pageSize"
+    [pageIndex]="orders.query().page - 1"
+    [sortActive]="orders.query().sortBy || 'createdAt'"
+    [sortDirection]="sortDirection()"
+    [hiddenColumns]="hiddenColumns()"
+    (pageChange)="onPageChange($event)"
+    (sortChange)="onSortChange($event)"
+  />
+</app-card>

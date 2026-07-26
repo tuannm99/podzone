@@ -5,6 +5,7 @@ import { LoginPage } from './features/auth/login-page/login-page.component';
 import { RegisterPage } from './features/auth/register-page/register-page.component';
 import { TenantHomePage } from './features/backoffice/tenant-home-page/tenant-home-page.component';
 import { StoreListPage } from './features/backoffice/store-list-page/store-list-page.component';
+import { RoutedOrderListPage } from './features/backoffice/routed-order-list-page/routed-order-list-page.component';
 import { Shell } from './shell/shell.component';
 import { authGuard } from './core/auth/auth.guard';
 
@@ -26,6 +27,8 @@ export const routes: Routes = [
       { path: 'backoffice', component: TenantHomePage },
       // First declarative-collection screen — see ADR-0008/PZEP-0012.
       { path: 'backoffice/stores', component: StoreListPage },
+      // Second declarative-collection screen — see PZEP-0014.
+      { path: 'backoffice/orders', component: RoutedOrderListPage },
     ],
   },
 ];
