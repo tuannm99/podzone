@@ -5,12 +5,17 @@ Scope: `pkg/pdtenantdb/`, `internal/backoffice/` (tenant middleware, tenancy
 runtime, repositories, migrations), plus the `internal/onboarding` code path
 that publishes tenant placement and cluster routes into the KV store.
 
-Status as of 2026-07-25: **MT2 and MT8 resolved.** MT1 has a **Phase 1 fix
-implemented but not yet rolled out to any real environment** — see
-[PZEP-0009](../09-pzep/PZEP-0009-backoffice-least-privilege-app-db-role.md).
-All other items below remain **open and unverified against a running
-environment** — they were read out of the code, not reproduced. Re-check the
-referenced file/line before treating any item as current.
+Status as of 2026-07-26: **MT2, MT3, MT6, MT8, MT15, MT17 resolved. MT1 has
+a Phase 1 fix live (docker dev) and a Phase 2 implemented but not yet rolled
+out.** As of 2026-07-26, **MT4, MT5, MT7, MT9, MT10, MT11, MT16 are also
+resolved** — implemented via
+[PZEP-0017](../09-pzep/PZEP-0017-multitenancy-correctness-observability.md)
+(MT4/MT9/MT10/MT11/MT16) and
+[PZEP-0018](../09-pzep/PZEP-0018-store-authorization-iam-single-authority.md)
+(MT5/MT7). **Every item in this note is now resolved.** See each PZEP's own
+Rollout Log for what was actually implemented — MT10 in particular deviated
+from its original fix note below (matched on `SQLSTATE 3F000`) since the
+real SQLSTATE, confirmed empirically against Postgres 15, is `42P01`.
 
 Validation run at review time: `go test ./pkg/pdtenantdb/...
 ./internal/backoffice/...` — all packages pass. None of the problems below are
@@ -73,8 +78,13 @@ authenticate as `backoffice_app` (confirmed via direct `SET ROLE` test to
 be unable to `CREATE SCHEMA`, only able to `SELECT`/`INSERT`/`UPDATE`/
 `DELETE` on tenant tables); admin/migration connections still authenticate
 as the superuser. Staging/production rollout is a separate, later operator
-action against real infrastructure — not done. Per-tenant roles and RLS
-(this finding's full closure) remain Phase 2, deliberately deferred.
+action against real infrastructure — not done. Per-tenant roles (this
+finding's full closure) are Phase 2 — implemented and tested in
+[PZEP-0015](../09-pzep/PZEP-0015-backoffice-per-tenant-db-role-phase-2.md)
+(Done for the code, gated behind `tenant_role_enabled: false` by default;
+not yet rolled out to any real environment, same "code done, rollout
+separate" split as Phase 1); that PZEP also explains why RLS specifically
+is a non-goal given this codebase's schema-per-tenant model.
 
 **File:** `internal/onboarding/infrastructure/provisioning/router/placement_route_reader.go:108-155`,
 `pkg/pdtenantdb/manager.go:278-291`, `cmd/onboarding/config.yml:44`
@@ -186,6 +196,10 @@ idle janitor.
 
 ## MT4 — `Manager.DBForTenant` hands out a pool with no `search_path` applied
 
+**Resolved 2026-07-26** ([PZEP-0017](../09-pzep/PZEP-0017-multitenancy-correctness-observability.md)).
+`DBForTenant` removed from the public `Manager` interface; the concrete
+method (renamed `dbForTenant`, unexported) is only called by `WithTenantTx`.
+
 **File:** `pkg/pdtenantdb/manager.go:19-26,77-112,145-153`
 **Severity:** High — silent wrong-tenant reads if ever used
 
@@ -210,6 +224,11 @@ schema on every checkout.
 ---
 
 ## MT5 — `RequiredStoreScope` lets a caller-supplied store ID override the authorized scope
+
+**Resolved 2026-07-26** ([PZEP-0018](../09-pzep/PZEP-0018-store-authorization-iam-single-authority.md)).
+`RequiredStoreScope` now returns `ErrStoreScopeMismatch` when an explicit
+store ID disagrees with `scope.CurrentStoreID(ctx)`, instead of letting the
+explicit value win silently.
 
 **File:** `internal/backoffice/domain/routing/support.go:12-21`,
 `internal/backoffice/tenant_middleware.go:232-238`
@@ -267,6 +286,16 @@ pg_catalog` if a catalog fallback is needed.
 ---
 
 ## MT7 — Store visibility is gated on `owner_id` instead of IAM, so non-owner tenant members cannot use a store
+
+**Resolved (partially) 2026-07-26** ([PZEP-0018](../09-pzep/PZEP-0018-store-authorization-iam-single-authority.md)).
+`FindByID` and `UpdateStatus` no longer filter by `owner_id` — IAM's
+`RequirePermission` (already checked before either method is reached) is
+now the sole authority. `FindPage` (the store list query) is **unchanged
+and still `owner_id`-filtered** — fixing it correctly requires an IAM
+"list resources I have permission on" capability that does not exist yet
+(confirmed: no such method anywhere in `internal/iam`); see PZEP-0018's
+Non-Goals for why this is a real, deliberate, currently-open limitation,
+not an oversight.
 
 **File:** `internal/backoffice/infrastructure/repository/store/repository.go:47-55,100-106,175-186`,
 `internal/backoffice/runtime/storeaccess/access.go:25-38`
@@ -334,6 +363,17 @@ do the two together rather than editing the same 20 call sites twice.
 
 ## MT9 — Placement cache cannot be invalidated
 
+**Resolved (partially) 2026-07-26** ([PZEP-0017](../09-pzep/PZEP-0017-multitenancy-correctness-observability.md)).
+The 2-minute TTL is now configurable (`Config.PlacementCacheTTL`, wired
+through `internal/backoffice/config` → `fxmodule.go`'s
+`newKVPlacementResolverFromConfig`, confirmed the previous zero-arg
+constructor really was hardcoded and unconfigurable in the real fx wiring).
+Negative caching added for `ErrPlacementNotFound` (capped at 15s), closing
+the "hits KV on every request for a never-placed tenant" sub-finding.
+**Push-based invalidation (a KV-watch channel) is still not implemented**
+— explicitly deferred in PZEP-0017's Non-Goals; the bounded, configurable
+TTL is the interim mitigation.
+
 **File:** `pkg/pdtenantdb/resolver_kv.go:40-51,53-119`
 **Severity:** Medium — stale routing window after a tenant move
 
@@ -352,6 +392,18 @@ invalidation on `podzone/tenants/<t>/placement`, and short-negative-cache
 
 ## MT10 — `bootstrapped` and `appliedScopes` are process-global maps that are never invalidated
 
+**Resolved 2026-07-26** ([PZEP-0017](../09-pzep/PZEP-0017-multitenancy-correctness-observability.md)).
+`WithTenantTx`'s error path now detects a genuinely-missing schema (checked
+empirically against real Postgres 15: the actual SQLSTATE is **`42P01`
+undefined_table, not `3F000`** as this note's own Fix suggestion assumed —
+`SET LOCAL search_path` to a dropped schema succeeds silently; the failure
+only surfaces on the next unqualified table reference — confirmed with a
+`to_regnamespace` check before evicting, so an unrelated missing-table bug
+doesn't trigger a false eviction) and evicts both `bootstrapped` and, via
+the new `Config.OnScopeInvalidated` callback wired to
+`migrations.InvalidateScope`, `appliedScopes` too. No process restart
+needed to recover from an out-of-band schema drop/restore.
+
 **File:** `pkg/pdtenantdb/manager.go:42-44,114-125`,
 `internal/backoffice/migrations/migrations.go:23,105-107`
 **Severity:** Medium — recovery requires a process restart
@@ -369,6 +421,13 @@ caching a permanent "done" bit.
 ---
 
 ## MT11 — Idle-pool janitor closes pools with no reference counting
+
+**Resolved 2026-07-26** ([PZEP-0017](../09-pzep/PZEP-0017-multitenancy-correctness-observability.md)).
+Added `checkouts map[ConnKey]int` refcounting: `dbForTenant` checks out a
+pool the moment it resolves one, `WithTenantTx` releases it once the whole
+transaction completes; `CloseIdleDedicated` skips any key with a nonzero
+checkout. Verified with a concurrency test that races the janitor against
+an in-flight transaction.
 
 **File:** `pkg/pdtenantdb/manager.go:241-264`
 **Severity:** Medium — rare `sql: database is closed` on in-flight requests
@@ -447,8 +506,26 @@ request context for the lifetime of the operation.
 
 ## MT15 — Duplicate migration number `0015`
 
+**Resolved 2026-07-26 (PZEP-0016 Wave 1).** Renumbered
+`0015_create_customer_order_aggregate_store.sql` to `0017_...` (0016 was
+already taken by PZEP-0009's `0016_create_backoffice_app_role.sql`, added
+after this finding was written). Docker dev had already applied the old
+`0015_create_customer_order_aggregate_store` version string to all five
+tenant schemas present at the time
+(`t_tenant_dev`, `t_tenant_23d2bab8_…`, `t_tenant_2e0df8f6_…`,
+`t_tenant_456a11db_…`, `t_e1a252ad_…`) — updated
+`backoffice_schema_migrations.version` directly for each (a plain
+`UPDATE ... SET version = '0017_...' WHERE version = '0015_...'`) so the
+renamed file is treated as already-applied rather than re-run. The
+migration's own SQL is idempotent (`CREATE TABLE IF NOT EXISTS`,
+`INSERT ... ON CONFLICT DO NOTHING`) so re-running it would have been
+harmless, just messier history. Note for
+[PZEP-0015](../09-pzep/PZEP-0015-backoffice-per-tenant-db-role-phase-2.md):
+its proposed `0017_create_backoffice_tenant_role.sql` now needs to become
+`0018_...` when actually implemented, since `0017` is consumed here.
+
 **File:** `internal/backoffice/migrations/sql/0015_add_store_scope_to_product_setup.sql`,
-`internal/backoffice/migrations/sql/0015_create_customer_order_aggregate_store.sql`
+`internal/backoffice/migrations/sql/0017_create_customer_order_aggregate_store.sql`
 **Severity:** Low — currently deterministic, but fragile
 
 `migrations.go:71-73` sorts by the full filename and the recorded `version` is
@@ -466,6 +543,20 @@ migration plan.
 ---
 
 ## MT16 — No tenancy observability, and no test covers the isolation boundary
+
+**Resolved (partially) 2026-07-26.** The isolation-boundary test this note
+asks for now exists —
+[PZEP-0015](../09-pzep/PZEP-0015-backoffice-per-tenant-db-role-phase-2.md)'s
+`TestApplyTxCreatesPerTenantRoleWithMutualIsolation` provisions two tenants
+and asserts one's role cannot read the other's schema. Structured log lines
+added for pool opened/closed, placement resolution failure, and
+dedicated-pool capacity rejection
+([PZEP-0017](../09-pzep/PZEP-0017-multitenancy-correctness-observability.md)).
+**Real metrics (counters/histograms) are still not implemented** — this
+codebase has no metrics/tracing library wired anywhere at all (confirmed by
+grep), so adding one is an observability-stack decision affecting every
+service, not just `pdtenantdb`; explicitly out of scope for PZEP-0017,
+belongs in its own ADR.
 
 **File:** `pkg/pdtenantdb/` (whole package), `internal/backoffice/runtime/`
 **Severity:** Medium — failures are undiagnosable in production

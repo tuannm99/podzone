@@ -14,7 +14,10 @@ and the k8s topology. The two overlap in two places, cross-referenced inline
 Status: all items **open**. Derived from reading code and manifests — **no load
 test was run and no cluster was inspected**. Numbers about throughput below are
 reasoned from configuration, not measured. Re-check the referenced file/line
-before treating any item as current.
+before treating any item as current. Sequenced in
+[PZEP-0016](../09-pzep/PZEP-0016-recovery-backlog-triage-2026-07.md): Track A
+(PS8-PS11) is Wave 6, Track B (PS1-PS3/PS6/PS7/PS12, plus PS4/PS5 split out)
+is Wave 7 — both need their own follow-up PZEP(s).
 
 ---
 

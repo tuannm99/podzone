@@ -3,9 +3,31 @@
 Identified from code review of commits b3deb73..43530c2 (2026-07-07).
 Scope: `internal/onboarding/`, `scripts/dev/reconcile_legacy_tenant.go`.
 
-Status as of 2026-07-11: P1 confirmed resolved (see note inline). P2–P8 have
-not been re-verified against current code — do not assume resolved or open
-without checking the referenced file/line first.
+Status as of 2026-07-11: P1 confirmed resolved (see note inline).
+Status as of 2026-07-26: **P2, P3, P4, P5, P6, P7 all confirmed resolved
+against current code** (see notes inline). P2/P3/P4/P6/P7 were fixed by
+commits `73be9f5` ("fix(onboarding): P1/P2/P3/P5 from known problems doc")
+and `27b26f3` ("fix(onboarding): P4/P6/P7 — audit phantom, TOCTOU
+double-fetch, double-provision race"), both 2026-07-09 — this file's status
+line simply hadn't been updated since, the same class of staleness found in
+`pkg-2026-07-07.md`. **P8 resolved** (Wave 1 fix, PZEP-0016 — `findRequest`
+now filters server-side by subdomain instead of paginating a fixed 100-row
+page). Every item in this note is now resolved.
+
+**One new, real finding surfaced while re-verifying P7**: the fix applied
+for P7 (removing `Planning` from `ClaimNextQueued`'s filter) closed the
+double-provisioning race but left no path back to `Queued` for a request
+whose worker crashed mid-`Planning` — `isValidStatusTransition` does not
+allow `Planning → Queued`, so neither the automatic claim path nor the
+manual `RetryStoreRequest` action could ever recover it; it would stay
+`Planning` forever once its lease expired. **Fixed 2026-07-26** (PZEP-0016
+Wave 3): added `StoreRepository.ReclaimStalePlanning` (atomic
+`FindOneAndUpdate`, same safety property as `ClaimNextQueued`) and
+`Usecase.ReclaimNextStalePlanningRequest`, wired into
+`StoreProvisioningWorker.tick()` as a sweep that runs ahead of claiming new
+work — this is the "separate explicit re-queue path" the original P7 fix
+note anticipated but never added, implemented as an automatic sweep rather
+than an operator action since the worker already ticks on an interval.
 
 ---
 
@@ -35,6 +57,12 @@ Or use `starts_with(schema_name, $1)` (PostgreSQL 11+) which has no wildcard sem
 
 ## P2 — `authorizer==nil` + `ownerID!=requestedBy` → ErrAccessDenied blocks dev seeding
 
+**Resolved (commit `73be9f5`), confirmed against current code 2026-07-26.**
+`CreateStoreRequest`'s owner-override check is now gated by
+`s.authorizer != nil` (`interactor.go:83`) — when the authorizer is not
+wired (dev mode), the override is permitted with no check at all, exactly
+the suggested fix's "permissive dev mode" option.
+
 **File:** `internal/onboarding/domain/store/interactor.go:84`
 **Severity:** High — breaks `make dev-pod-up`, `make dev-pod-sample`, `make dev-onboarding-reconcile-tenant`
 
@@ -49,6 +77,10 @@ mode). Or gate the check on a config flag (`provisioner.RequireApprovalForOwnerO
 ---
 
 ## P3 — Finalization batch loop breaks on route-not-ready, starving other Provisioning items
+
+**Resolved (commit `73be9f5`), confirmed against current code 2026-07-26.**
+`tick()` now checks `errors.Is(err, storedomain.ErrRouteNotReady)` and
+`continue`s instead of breaking, exactly the suggested fix.
 
 **File:** `internal/onboarding/infrastructure/messaging/worker/store_provisioning_worker.go:94`
 **Severity:** High — provisioning starvation in steady state
@@ -69,6 +101,17 @@ so `tick()` can `continue` instead of `break` when route is not ready.
 
 ## P4 — Phantom Queued→Planning audit entry when re-claiming expired Planning record
 
+**Resolved (commit `27b26f3`), confirmed against current code 2026-07-26.**
+`claimNext` now uses `SetReturnDocument(options.Before)`, and
+`ProcessNextStoreRequest` passes the real pre-update `request.Status` (not a
+hardcoded `RequestStatusQueued`) as `recordTransition`'s `from` argument —
+exactly the suggested fix. (In current code this is now moot in the way the
+original finding described it, since P7's fix means `ClaimNextQueued` only
+ever matches `Queued` records — but the general "use the real pre-update
+status" fix is still what's in place, and it's what makes the *new*
+`ReclaimNextStalePlanningRequest` sweep's own audit trail correct too — see
+this file's top-level note.)
+
 **File:** `internal/onboarding/domain/store/interactor.go:384`
 **Severity:** Medium — corrupts provisioning audit trail
 
@@ -83,6 +126,10 @@ or add a separate field) and pass the actual `from` status to `recordTransition`
 ---
 
 ## P5 — `pg_stat_activity` self-count inflates `CurrentConnections` by 1
+
+**Resolved, confirmed against current code 2026-07-26.**
+`countDatabaseConnections` already excludes the health check's own backend
+(`AND pid <> pg_backend_pid()`) — the exact fix suggested below.
 
 **File:** `internal/onboarding/infrastructure/provisioning/provider/health.go:53`
 **Severity:** Medium — systematically wrong connection count persisted to inventory
@@ -104,6 +151,11 @@ SELECT count(*) FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_p
 
 ## P6 — TOCTOU in `ReconcileTenantPlacement` — returned Status mismatches published route
 
+**Resolved (commit `27b26f3`), confirmed against current code 2026-07-26.**
+`ReconcileTenantPlacement` now calls a single `fetchPlacementState` helper
+once and threads the result through both the status computation and the
+route publish — no second fetch, no TOCTOU window.
+
 **File:** `internal/onboarding/domain/infrasmanager/placement_reconcile.go:63`
 **Severity:** Medium — repair response reports stale state
 
@@ -122,6 +174,16 @@ and thread it through to avoid the second fetch entirely.
 
 ## P7 — `ClaimNextQueued` includes `Planning` in filter — double-provisioning window
 
+**Resolved (commit `27b26f3`), confirmed against current code 2026-07-26.**
+`ClaimNextQueued` now filters on `Queued` only — the double-provisioning
+race is closed. **Residual gap found and fixed 2026-07-26** (PZEP-0016
+Wave 3, see this file's top-level note): removing `Planning` from the
+filter left no recovery path for a crashed-worker's stuck `Planning`
+record, since `Planning → Queued` was never a valid manual transition
+either. Added `ReclaimStalePlanning`/`ReclaimNextStalePlanningRequest`,
+exactly the "separate explicit re-queue path" this fix's own original note
+(below) anticipated but didn't implement at the time.
+
 **File:** `internal/onboarding/infrastructure/repository/store/repository.go:193`
 **Severity:** Medium — concurrent double-provisioning on lease expiry
 
@@ -138,6 +200,16 @@ the lease TTL to be safely longer than the worst-case provisioning duration.
 ---
 
 ## P8 — `findRequest` hardcodes `pageSize=100`, misses target if >100 store requests exist
+
+**Resolved 2026-07-26 (PZEP-0016 Wave 1).** `findRequest` now sends
+`collection.filters[0].field=subdomain&operator=eq&values=<subdomain>` with
+`collection.pageSize=1`, filtering server-side via the same `collection.Query`
+mechanism `ListStoreRequests` already parses
+(`internal/onboarding/controller/httphandler/store/controller.go:106`,
+`internal/onboarding/infrastructure/repository/store/collection_query.go:32`
+confirms `subdomain` is a filterable field) instead of paginating a fixed
+100-row client-side scan. The in-memory `WorkspaceID`/`Subdomain` match in
+the loop below is kept as a defense-in-depth check, not the primary filter.
 
 **File:** `scripts/dev/reconcile_legacy_tenant.go:178`
 **Severity:** Low — dev/seed script only, but causes confusing timeout failures
