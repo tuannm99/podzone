@@ -174,8 +174,11 @@ func createOrFindRequest(ctx context.Context, cfg config) (storeRequest, error) 
 
 func findRequest(ctx context.Context, cfg config) (storeRequest, error) {
 	query := url.Values{
-		"collection.page":     {"1"},
-		"collection.pageSize": {"100"},
+		"collection.page":                {"1"},
+		"collection.pageSize":            {"1"},
+		"collection.filters[0].field":    {"subdomain"},
+		"collection.filters[0].operator": {"eq"},
+		"collection.filters[0].values":   {cfg.Subdomain},
 	}
 	request, err := http.NewRequestWithContext(
 		ctx,
