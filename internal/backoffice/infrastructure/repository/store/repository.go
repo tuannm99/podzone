@@ -89,14 +89,15 @@ func (r *Repository) FindPage(
 	return collection.NewPage(res, total, normalized), nil
 }
 
+// FindByID is authorization-neutral - access is decided by
+// TenantMiddleware.InterceptField's IAM RequirePermission check before a
+// resolver ever reaches this method, not by owner_id. See MT7,
+// docs/07-problems/multitenancy-2026-07-23.md: a second, owner_id-based
+// check here previously overrode IAM's decision and broke access for any
+// tenant member who wasn't the store's creator.
 func (r *Repository) FindByID(ctx context.Context, id string) (*storectx.Store, error) {
-	ownerID, err := toolkit.GetUserID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	query, args, err := sqlrow.SelectFrom[storeRow](psql, storesTable).
-		Where(sq.Eq{"id": id, "owner_id": ownerID}).
+		Where(sq.Eq{"id": id}).
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -157,17 +158,14 @@ ON CONFLICT (id) DO UPDATE SET
 	})
 }
 
+// UpdateStatus is authorization-neutral - see FindByID's comment; the same
+// MT7 fix applies here.
 func (r *Repository) UpdateStatus(ctx context.Context, id string, status string) error {
-	ownerID, err := toolkit.GetUserID(ctx)
-	if err != nil {
-		return err
-	}
-
 	query, args, err := psql.
 		Update(storesTable).
 		Set("status", status).
 		Set("updated_at", time.Now().UTC()).
-		Where(sq.Eq{"id": id, "owner_id": ownerID}).
+		Where(sq.Eq{"id": id}).
 		ToSql()
 	if err != nil {
 		return err

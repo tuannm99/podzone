@@ -9,15 +9,25 @@ import (
 	"github.com/tuannm99/podzone/pkg/toolkit"
 )
 
+// RequiredStoreScope resolves the store ID a caller may act on. explicitStoreID
+// must agree with the request scope IAM already checked permission against
+// (scope.CurrentStoreID) - it is not a second source of truth. See MT5,
+// docs/07-problems/multitenancy-2026-07-23.md: an explicit value that wins
+// unconditionally would let a future DTO check permission on store A and
+// act on store B.
 func RequiredStoreScope(ctx context.Context, explicitStoreID string) (string, error) {
-	storeID := strings.TrimSpace(explicitStoreID)
-	if storeID == "" {
-		storeID = strings.TrimSpace(scope.CurrentStoreID(ctx))
+	explicit := strings.TrimSpace(explicitStoreID)
+	scoped := strings.TrimSpace(scope.CurrentStoreID(ctx))
+	switch {
+	case explicit == "":
+		explicit = scoped
+	case scoped != "" && explicit != scoped:
+		return "", ErrStoreScopeMismatch
 	}
-	if storeID == "" {
+	if explicit == "" {
 		return "", ErrStoreScopeRequired
 	}
-	return storeID, nil
+	return explicit, nil
 }
 
 func EnsureOrderStore(order *RoutedOrder, storeID string) error {
