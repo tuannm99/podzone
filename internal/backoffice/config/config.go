@@ -30,6 +30,20 @@ type TenantDBConfig struct {
 	MaxIdleConns            int    `mapstructure:"max_idle_conns"`
 	MaxDedicatedPools       int    `mapstructure:"max_dedicated_pools"`
 	DedicatedIdleTTLSeconds int    `mapstructure:"dedicated_idle_ttl_seconds"`
+
+	// TenantRoleEnabled gates pdtenantdb.Config.TenantRoleEnabled (Phase 2 of
+	// MT1 - see docs/09-pzep/PZEP-0015-backoffice-per-tenant-db-role-phase-2.md).
+	// Off by default, same opt-in rollout shape as PZEP-0009's AppUser.
+	TenantRoleEnabled bool `mapstructure:"tenant_role_enabled"`
+
+	// PlacementCacheTTLSeconds gates pdtenantdb.Config.PlacementCacheTTL
+	// (MT9, docs/07-problems/multitenancy-2026-07-23.md). Zero falls back
+	// to the resolver's own 2-minute default.
+	PlacementCacheTTLSeconds int `mapstructure:"placement_cache_ttl_seconds"`
+}
+
+func (c TenantDBConfig) PlacementCacheTTL() time.Duration {
+	return time.Duration(c.PlacementCacheTTLSeconds) * time.Second
 }
 
 func (c TenantDBConfig) ConnMaxLifetime() time.Duration {

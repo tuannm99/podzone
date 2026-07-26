@@ -5,14 +5,23 @@ import (
 	"time"
 
 	"go.uber.org/fx"
+
+	"github.com/tuannm99/podzone/pkg/toolkit/kvstores"
 )
+
+// newKVPlacementResolverFromConfig wires Config.PlacementCacheTTL into the
+// KV-backed resolver instead of always using the hardcoded 2-minute
+// default - see MT9, docs/07-problems/multitenancy-2026-07-23.md.
+func newKVPlacementResolverFromConfig(kv kvstores.KVStore, cfg *Config) PlacementResolver {
+	return NewKVPlacementResolverWithTTL(kv, "podzone/tenants", cfg.PlacementCacheTTL)
+}
 
 var Module = fx.Module(
 	"pdtenantdb",
 	fx.Provide(
 		NewDefaultKVClusterRegistry,
 		NewManager,
-		NewKVPlacementResolver,
+		newKVPlacementResolverFromConfig,
 	),
 	fx.Invoke(func(lc fx.Lifecycle, m Manager, cfg *Config) {
 		ctx, cancel := context.WithCancel(context.Background())

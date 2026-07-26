@@ -31,10 +31,17 @@ type KVPlacementResolver struct {
 	kv     kvstores.KVStore
 	prefix string
 	ttl    time.Duration
+	// negTTL bounds how long a "no placement yet" result is cached, so a
+	// tenant mid-onboarding doesn't hit the KV store on every request - see
+	// MT9, docs/07-problems/multitenancy-2026-07-23.md. Deliberately
+	// shorter than ttl (capped low) since a real placement showing up
+	// should become visible fast.
+	negTTL time.Duration
 
-	mu    sync.RWMutex
-	cache map[string]cachedPlacement
-	sf    singleflight.Group
+	mu       sync.RWMutex
+	cache    map[string]cachedPlacement
+	notFound map[string]time.Time
+	sf       singleflight.Group
 }
 
 func NewKVPlacementResolver(kv kvstores.KVStore) PlacementResolver {
@@ -42,11 +49,20 @@ func NewKVPlacementResolver(kv kvstores.KVStore) PlacementResolver {
 }
 
 func NewKVPlacementResolverWithTTL(kv kvstores.KVStore, prefix string, ttl time.Duration) PlacementResolver {
+	if ttl <= 0 {
+		ttl = 2 * time.Minute
+	}
+	negTTL := ttl
+	if negTTL <= 0 || negTTL > 15*time.Second {
+		negTTL = 15 * time.Second
+	}
 	return &KVPlacementResolver{
-		kv:     kv,
-		prefix: prefix,
-		ttl:    ttl,
-		cache:  make(map[string]cachedPlacement),
+		kv:       kv,
+		prefix:   prefix,
+		ttl:      ttl,
+		negTTL:   negTTL,
+		cache:    make(map[string]cachedPlacement),
+		notFound: make(map[string]time.Time),
 	}
 }
 
@@ -55,6 +71,10 @@ func (r *KVPlacementResolver) Resolve(ctx context.Context, tenantID string) (Pla
 	if it, ok := r.cache[tenantID]; ok && time.Since(it.loaded) < r.ttl {
 		r.mu.RUnlock()
 		return it.pl, nil
+	}
+	if at, ok := r.notFound[tenantID]; ok && time.Since(at) < r.negTTL {
+		r.mu.RUnlock()
+		return Placement{}, fmt.Errorf("%w: tenant %s (cached)", ErrPlacementNotFound, tenantID)
 	}
 	r.mu.RUnlock()
 
@@ -71,10 +91,16 @@ func (r *KVPlacementResolver) Resolve(ctx context.Context, tenantID string) (Pla
 		raw, err := r.kv.Get(ctx, key)
 		if err != nil {
 			if errors.Is(err, kvstores.ErrKeyNotFound) {
+				r.mu.Lock()
+				r.notFound[tenantID] = time.Now()
+				r.mu.Unlock()
 				return Placement{}, fmt.Errorf("%w: kv store get %s: %v", ErrPlacementNotFound, key, err)
 			}
 			return Placement{}, fmt.Errorf("%w: kv store get %s: %v", ErrPlacementBackend, key, err)
 		}
+		r.mu.Lock()
+		delete(r.notFound, tenantID)
+		r.mu.Unlock()
 
 		var p placementJSON
 		if err := json.Unmarshal(raw, &p); err != nil {

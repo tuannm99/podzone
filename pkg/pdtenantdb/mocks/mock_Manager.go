@@ -11,7 +11,6 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	mock "github.com/stretchr/testify/mock"
-	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 )
 
 // NewMockManager creates a new instance of MockManager. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
@@ -122,80 +121,6 @@ func (_c *MockManager_CloseIdleDedicated_Call) Return() *MockManager_CloseIdleDe
 
 func (_c *MockManager_CloseIdleDedicated_Call) RunAndReturn(run func(now time.Time)) *MockManager_CloseIdleDedicated_Call {
 	_c.Run(run)
-	return _c
-}
-
-// DBForTenant provides a mock function for the type MockManager
-func (_mock *MockManager) DBForTenant(ctx context.Context, tenantID string) (*sqlx.DB, pdtenantdb.Placement, error) {
-	ret := _mock.Called(ctx, tenantID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DBForTenant")
-	}
-
-	var r0 *sqlx.DB
-	var r1 pdtenantdb.Placement
-	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*sqlx.DB, pdtenantdb.Placement, error)); ok {
-		return returnFunc(ctx, tenantID)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *sqlx.DB); ok {
-		r0 = returnFunc(ctx, tenantID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*sqlx.DB)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string) pdtenantdb.Placement); ok {
-		r1 = returnFunc(ctx, tenantID)
-	} else {
-		r1 = ret.Get(1).(pdtenantdb.Placement)
-	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, string) error); ok {
-		r2 = returnFunc(ctx, tenantID)
-	} else {
-		r2 = ret.Error(2)
-	}
-	return r0, r1, r2
-}
-
-// MockManager_DBForTenant_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DBForTenant'
-type MockManager_DBForTenant_Call struct {
-	*mock.Call
-}
-
-// DBForTenant is a helper method to define mock.On call
-//   - ctx context.Context
-//   - tenantID string
-func (_e *MockManager_Expecter) DBForTenant(ctx interface{}, tenantID interface{}) *MockManager_DBForTenant_Call {
-	return &MockManager_DBForTenant_Call{Call: _e.mock.On("DBForTenant", ctx, tenantID)}
-}
-
-func (_c *MockManager_DBForTenant_Call) Run(run func(ctx context.Context, tenantID string)) *MockManager_DBForTenant_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		run(
-			arg0,
-			arg1,
-		)
-	})
-	return _c
-}
-
-func (_c *MockManager_DBForTenant_Call) Return(dB *sqlx.DB, placement pdtenantdb.Placement, err error) *MockManager_DBForTenant_Call {
-	_c.Call.Return(dB, placement, err)
-	return _c
-}
-
-func (_c *MockManager_DBForTenant_Call) RunAndReturn(run func(ctx context.Context, tenantID string) (*sqlx.DB, pdtenantdb.Placement, error)) *MockManager_DBForTenant_Call {
-	_c.Call.Return(run)
 	return _c
 }
 

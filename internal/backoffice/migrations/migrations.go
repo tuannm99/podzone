@@ -24,6 +24,17 @@ type migration struct {
 
 var appliedScopes sync.Map
 
+// InvalidateScope evicts the "migrations already applied" cache entry for
+// (database, schemaName), so the next ApplyTx/ApplyToSchema call for that
+// scope re-verifies and re-applies migrations instead of trusting a
+// permanently-cached bit. Wire this as pdtenantdb.Config.OnScopeInvalidated
+// - pdtenantdb detects a schema is missing (MT10, docs/07-problems/
+// multitenancy-2026-07-23.md) but cannot evict this package's cache
+// directly (this package imports pdtenantdb, not the reverse).
+func InvalidateScope(database, schemaName string) {
+	appliedScopes.Delete(database + "|" + schemaName)
+}
+
 func ApplyTx(ctx context.Context, tx *sqlx.Tx) error {
 	scopeKey, err := migrationScopeKey(ctx, tx)
 	if err != nil {
@@ -126,9 +137,11 @@ func ApplyToSchema(ctx context.Context, db *sqlx.DB, schemaName string) error {
 
 	if schemaName != "" {
 		// SET LOCAL, not SET, to stay safe under PgBouncer transaction
-		// pooling - matches pdtenantdb.Manager.WithTenantTx's own guard.
+		// pooling - matches pdtenantdb.Manager.WithTenantTx's own guard. No
+		// "public" fallback - see docs/07-problems/multitenancy-2026-07-23.md
+		// MT6.
 		if _, err := tx.ExecContext(ctx, fmt.Sprintf(
-			`SET LOCAL search_path TO %s, public`,
+			`SET LOCAL search_path TO %s`,
 			pdtenantdb.QuoteIdent(schemaName),
 		)); err != nil {
 			return fmt.Errorf("set search_path for migrations: %w", err)

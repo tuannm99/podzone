@@ -65,6 +65,26 @@ func TestKVPlacementResolver_NotFound(t *testing.T) {
 	require.ErrorIs(t, err, pdtenantdb.ErrPlacementNotFound)
 }
 
+// PZEP-0017 / MT9: a tenant with no placement yet must not hit the KV store
+// on every request - the negative result is cached too.
+func TestKVPlacementResolver_NotFoundIsNegativelyCached(t *testing.T) {
+	kv := kvsmocks.NewMockKVStore(t)
+	r := pdtenantdb.NewKVPlacementResolver(kv)
+
+	key := "podzone/tenants/unknown/placement"
+	kv.EXPECT().Get(mock.Anything, key).Return(nil, kvstores.ErrKeyNotFound).Once()
+
+	ctx := context.Background()
+
+	_, err := r.Resolve(ctx, "unknown")
+	require.ErrorIs(t, err, pdtenantdb.ErrPlacementNotFound)
+
+	// Second call within the negative-cache window must not call kv.Get
+	// again - the mock's .Once() above would fail the test if it did.
+	_, err = r.Resolve(ctx, "unknown")
+	require.ErrorIs(t, err, pdtenantdb.ErrPlacementNotFound)
+}
+
 func TestKVPlacementResolver_BackendError(t *testing.T) {
 	kv := kvsmocks.NewMockKVStore(t)
 	r := pdtenantdb.NewKVPlacementResolver(kv)

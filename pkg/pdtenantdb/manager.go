@@ -3,6 +3,7 @@ package pdtenantdb
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -10,14 +11,20 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 	"golang.org/x/sync/singleflight"
+
+	"github.com/tuannm99/podzone/pkg/pdlog"
 )
 
 var SQLXOpen = sqlx.Open
 
 type Manager interface {
-	DBForTenant(ctx context.Context, tenantID string) (*sqlx.DB, Placement, error)
+	// Note: no method here hands out a raw *sqlx.DB. dbForTenant (unexported)
+	// used to be public as DBForTenant, but returned a pool with no
+	// search_path/role applied - see MT4, docs/07-problems/
+	// multitenancy-2026-07-23.md. WithTenantTx is the only supported way to
+	// get a tenant-scoped connection.
 	WithTenantTx(ctx context.Context, tenantID string, opts *sql.TxOptions, fn func(tx *sqlx.Tx) error) error
 	// CloseIdleDedicated closes dedicated pools that have been idle for longer than DedicatedIdleTTL.
 	// Call this periodically (e.g. every DedicatedIdleTTL/2) to prevent unbounded pool growth.
@@ -44,6 +51,12 @@ type managerImpl struct {
 	lastUsed map[ConnKey]time.Time
 	creating map[ConnKey]struct{}
 
+	// checkouts counts in-flight callers between getOrCreateDB returning a
+	// pool and WithTenantTx's BeginTxx call on it actually completing - the
+	// narrow window CloseIdleDedicated could otherwise close a pool out
+	// from under (MT11, docs/07-problems/multitenancy-2026-07-23.md).
+	checkouts map[ConnKey]int
+
 	// bootstrapped tracks schemas that have already had CREATE SCHEMA IF NOT EXISTS run,
 	// keyed by "clusterName|dbName|schemaName".
 	bootstrapped sync.Map
@@ -68,6 +81,9 @@ func NewManager(cfg *Config, resolver PlacementResolver, registry ClusterRegistr
 	if cfg.DedicatedIdleTTL == 0 {
 		cfg.DedicatedIdleTTL = 30 * time.Minute
 	}
+	if cfg.Logger == nil {
+		cfg.Logger = pdlog.NopLogger{}
+	}
 
 	return &managerImpl{
 		cfg:        cfg,
@@ -77,12 +93,19 @@ func NewManager(cfg *Config, resolver PlacementResolver, registry ClusterRegistr
 		adminPools: make(map[ConnKey]*sqlx.DB),
 		lastUsed:   make(map[ConnKey]time.Time),
 		creating:   make(map[ConnKey]struct{}),
+		checkouts:  make(map[ConnKey]int),
 	}
 }
 
-func (m *managerImpl) DBForTenant(ctx context.Context, tenantID string) (*sqlx.DB, Placement, error) {
+// dbForTenant resolves a tenant's connection pool. Unexported on purpose -
+// see the Manager interface's comment (MT4). Only WithTenantTx may call
+// this; every other caller must go through WithTenantTx, which applies
+// search_path (and, when enabled, the per-tenant role - PZEP-0015) before
+// any query runs.
+func (m *managerImpl) dbForTenant(ctx context.Context, tenantID string) (*sqlx.DB, Placement, error) {
 	pl, err := m.resolver.Resolve(ctx, tenantID)
 	if err != nil {
+		m.cfg.Logger.Warn("pdtenantdb: placement resolution failed", "tenant_id", tenantID, "error", err)
 		return nil, Placement{}, err
 	}
 	if pl.ClusterName == "" {
@@ -98,6 +121,18 @@ func (m *managerImpl) DBForTenant(ctx context.Context, tenantID string) (*sqlx.D
 	if err != nil {
 		return nil, Placement{}, err
 	}
+	// Refcount the checkout from the moment the pool reference exists until
+	// the caller is done with it (WithTenantTx releases it once the whole
+	// transaction completes) - see MT11. release=true is the "something
+	// failed before we could hand off" path; the two success paths below
+	// both flip it to false.
+	m.checkout(key)
+	release := true
+	defer func() {
+		if release {
+			m.release(key)
+		}
+	}()
 
 	if pl.Mode == ModeSchema {
 		if pl.SchemaName == "" {
@@ -114,6 +149,7 @@ func (m *managerImpl) DBForTenant(ctx context.Context, tenantID string) (*sqlx.D
 	if dedicated {
 		m.markUsed(key)
 	}
+	release = false // handing off to the caller, which now owns releasing it
 	return db, pl, nil
 }
 
@@ -220,10 +256,11 @@ func (m *managerImpl) WithTenantTx(
 	opts *sql.TxOptions,
 	fn func(tx *sqlx.Tx) error,
 ) error {
-	db, pl, err := m.DBForTenant(ctx, tenantID)
+	db, pl, err := m.dbForTenant(ctx, tenantID)
 	if err != nil {
 		return err
 	}
+	defer m.release(ConnKey{ClusterName: pl.ClusterName, DBName: pl.DBName})
 
 	tx, err := db.BeginTxx(ctx, opts)
 	if err != nil {
@@ -231,21 +268,80 @@ func (m *managerImpl) WithTenantTx(
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	// IMPORTANT: use SET LOCAL for PgBouncer transaction pooling.
+	// IMPORTANT: use SET LOCAL for PgBouncer transaction pooling. No
+	// "public" fallback on the search_path - see
+	// docs/07-problems/multitenancy-2026-07-23.md MT6. A table missing from
+	// the tenant schema must raise "relation does not exist", not silently
+	// resolve to a same-named table in public.
 	if pl.Mode == ModeSchema && pl.SchemaName != "" {
 		_, err = tx.ExecContext(ctx, fmt.Sprintf(
-			`SET LOCAL search_path TO %s, public`,
+			`SET LOCAL search_path TO %s`,
 			QuoteIdent(pl.SchemaName),
 		))
 		if err != nil {
 			return err
 		}
+
+		// Phase 2 of MT1 (docs/09-pzep/
+		// PZEP-0015-backoffice-per-tenant-db-role-phase-2.md): scope this
+		// transaction's Postgres privileges to exactly this tenant's schema,
+		// independent of search_path. Off by default (TenantRoleEnabled) -
+		// requires migration 0018_create_backoffice_tenant_role.sql to have
+		// already provisioned the role for this schema.
+		if m.cfg.TenantRoleEnabled {
+			_, err = tx.ExecContext(ctx, fmt.Sprintf(
+				`SET LOCAL ROLE %s`,
+				QuoteIdent(tenantRoleName(pl.SchemaName)),
+			))
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	if err := fn(tx); err != nil {
+		// MT10, docs/07-problems/multitenancy-2026-07-23.md: bootstrapped
+		// (and, via OnScopeInvalidated, migrations.appliedScopes) cache a
+		// permanent "this schema exists" bit with no expiry. If an operator
+		// drops and later restores a schema out of band, every call
+		// believes it's still there and fails until a process restart.
+		// Confirm the error is genuinely "undefined_table" and the schema
+		// itself is actually gone (not just an unrelated app bug hitting a
+		// missing table) before evicting - a plain "42P01 seen" is too
+		// broad a trigger on its own.
+		if pl.Mode == ModeSchema && pl.SchemaName != "" && m.schemaLikelyMissing(ctx, db, pl.SchemaName, err) {
+			key := ConnKey{ClusterName: pl.ClusterName, DBName: pl.DBName}
+			m.bootstrapped.Delete(key.ClusterName + "|" + key.DBName + "|" + pl.SchemaName)
+			if m.cfg.OnScopeInvalidated != nil {
+				m.cfg.OnScopeInvalidated(pl.DBName, pl.SchemaName)
+			}
+			m.cfg.Logger.Warn("pdtenantdb: schema missing, evicted bootstrap cache for re-provisioning",
+				"cluster", pl.ClusterName, "db", pl.DBName, "schema", pl.SchemaName)
+		}
 		return err
 	}
 	return tx.Commit()
+}
+
+// schemaLikelyMissing confirms err is a genuine "the schema itself is gone"
+// signal, not an unrelated missing-table bug: SQLSTATE 42P01
+// (undefined_table, what an unqualified query resolves to when search_path
+// points at a nonexistent schema - confirmed empirically against real
+// Postgres 15, since SET LOCAL search_path itself does not validate the
+// schema exists), followed by an explicit to_regnamespace check so a
+// same-schema, different-missing-table app bug does not trigger a
+// schema-wide re-bootstrap. Runs on a fresh query against db (the pool),
+// not tx - tx is already aborted by the error being classified.
+func (m *managerImpl) schemaLikelyMissing(ctx context.Context, db *sqlx.DB, schemaName string, err error) bool {
+	var pqErr *pq.Error
+	if !errors.As(err, &pqErr) || pqErr.Code != "42P01" {
+		return false
+	}
+	var exists bool
+	if checkErr := db.GetContext(ctx, &exists, `SELECT to_regnamespace($1) IS NOT NULL`, schemaName); checkErr != nil {
+		return false
+	}
+	return !exists
 }
 
 func (m *managerImpl) getOrCreateDB(ctx context.Context, key ConnKey, dedicated bool) (*sqlx.DB, error) {
@@ -296,6 +392,8 @@ func (m *managerImpl) getOrCreateDB(ctx context.Context, key ConnKey, dedicated 
 			_ = db.Close()
 			return nil, err
 		}
+		m.cfg.Logger.Info("pdtenantdb: pool opened",
+			"cluster", key.ClusterName, "db", key.DBName, "dedicated", dedicated)
 
 		// Dedicated (database-per-tenant) pools have no per-schema bootstrap
 		// hook - this is the once-per-pool equivalent for database mode,
@@ -336,6 +434,8 @@ func (m *managerImpl) reserveDedicatedLocked(key ConnKey) error {
 	}
 	count += len(m.creating)
 	if count >= m.cfg.MaxDedicatedPools {
+		m.cfg.Logger.Warn("pdtenantdb: dedicated pool capacity reached",
+			"cluster", key.ClusterName, "db", key.DBName, "count", count, "limit", m.cfg.MaxDedicatedPools)
 		return fmt.Errorf("%w (%d)", ErrDedicatedPoolCapacity, m.cfg.MaxDedicatedPools)
 	}
 	m.creating[key] = struct{}{}
@@ -354,6 +454,28 @@ func (m *managerImpl) markUsed(key ConnKey) {
 	m.mu.Unlock()
 }
 
+// checkout/release track in-flight users of a pool so CloseIdleDedicated
+// (MT11) cannot close one out from under an active caller. Safe to call for
+// any key, dedicated or shared - CloseIdleDedicated only ever consults this
+// for dedicated (non-SharedDB) keys, but tracking is unconditional to keep
+// the bookkeeping simple.
+func (m *managerImpl) checkout(key ConnKey) {
+	m.mu.Lock()
+	m.checkouts[key]++
+	m.mu.Unlock()
+}
+
+func (m *managerImpl) release(key ConnKey) {
+	m.mu.Lock()
+	if m.checkouts[key] > 0 {
+		m.checkouts[key]--
+		if m.checkouts[key] == 0 {
+			delete(m.checkouts, key)
+		}
+	}
+	m.mu.Unlock()
+}
+
 // Optional janitor: call this with a ticker to close idle dedicated pools.
 func (m *managerImpl) CloseIdleDedicated(now time.Time) {
 	m.mu.Lock()
@@ -363,9 +485,13 @@ func (m *managerImpl) CloseIdleDedicated(now time.Time) {
 		if k.DBName == m.cfg.SharedDB {
 			continue
 		}
+		if m.checkouts[k] > 0 {
+			continue // MT11: an active caller has this pool checked out
+		}
 		if now.Sub(t) >= m.cfg.DedicatedIdleTTL {
 			if db := m.pools[k]; db != nil {
 				_ = db.Close()
+				m.cfg.Logger.Info("pdtenantdb: idle dedicated pool closed", "cluster", k.ClusterName, "db", k.DBName)
 			}
 			delete(m.pools, k)
 			delete(m.lastUsed, k)
@@ -415,4 +541,15 @@ func buildDSN(c ClusterConfig, dbName string, preferAppRole bool) string {
 func QuoteIdent(s string) string {
 	// Quote identifier to avoid injection in SET search_path.
 	return `"` + strings.ReplaceAll(s, `"`, `""`) + `"`
+}
+
+// tenantRoleName returns the per-tenant Postgres role name for schemaName.
+// It is intentionally the schema name itself, not a further-prefixed
+// variant - schema names already carry a tenant prefix (e.g. t_tenant_dev),
+// and a role and a schema occupy different Postgres namespaces, so an
+// identical name is not a collision. Kept as a named function (not inlined)
+// so migrations/sql/0018_create_backoffice_tenant_role.sql and this call
+// site cannot drift on the naming convention.
+func tenantRoleName(schemaName string) string {
+	return schemaName
 }
