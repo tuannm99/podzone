@@ -580,6 +580,68 @@ func (_c *MockUsecase_ProcessNextStoreRequest_Call) RunAndReturn(run func(ctx co
 	return _c
 }
 
+// ReclaimNextStalePlanningRequest provides a mock function for the type MockUsecase
+func (_mock *MockUsecase) ReclaimNextStalePlanningRequest(ctx context.Context) (*inputport.Request, error) {
+	ret := _mock.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReclaimNextStalePlanningRequest")
+	}
+
+	var r0 *inputport.Request
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) (*inputport.Request, error)); ok {
+		return returnFunc(ctx)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context) *inputport.Request); ok {
+		r0 = returnFunc(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*inputport.Request)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = returnFunc(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockUsecase_ReclaimNextStalePlanningRequest_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ReclaimNextStalePlanningRequest'
+type MockUsecase_ReclaimNextStalePlanningRequest_Call struct {
+	*mock.Call
+}
+
+// ReclaimNextStalePlanningRequest is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *MockUsecase_Expecter) ReclaimNextStalePlanningRequest(ctx interface{}) *MockUsecase_ReclaimNextStalePlanningRequest_Call {
+	return &MockUsecase_ReclaimNextStalePlanningRequest_Call{Call: _e.mock.On("ReclaimNextStalePlanningRequest", ctx)}
+}
+
+func (_c *MockUsecase_ReclaimNextStalePlanningRequest_Call) Run(run func(ctx context.Context)) *MockUsecase_ReclaimNextStalePlanningRequest_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUsecase_ReclaimNextStalePlanningRequest_Call) Return(request *inputport.Request, err error) *MockUsecase_ReclaimNextStalePlanningRequest_Call {
+	_c.Call.Return(request, err)
+	return _c
+}
+
+func (_c *MockUsecase_ReclaimNextStalePlanningRequest_Call) RunAndReturn(run func(ctx context.Context) (*inputport.Request, error)) *MockUsecase_ReclaimNextStalePlanningRequest_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RejectStoreRequest provides a mock function for the type MockUsecase
 func (_mock *MockUsecase) RejectStoreRequest(ctx context.Context, id string) error {
 	ret := _mock.Called(ctx, id)

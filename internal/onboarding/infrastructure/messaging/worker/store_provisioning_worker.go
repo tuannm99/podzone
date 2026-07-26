@@ -64,6 +64,28 @@ func (w *StoreProvisioningWorker) Run(ctx context.Context) {
 }
 
 func (w *StoreProvisioningWorker) tick(ctx context.Context) {
+	// Recover any Planning requests whose worker crashed before reaching a
+	// further transition, ahead of claiming new work - see P7's residual
+	// gap, docs/07-problems/onboarding-provisioning-2026-07-07.md.
+	for i := 0; i < w.batch; i++ {
+		request, err := w.store.ReclaimNextStalePlanningRequest(ctx)
+		if err != nil {
+			if errors.Is(err, context.Canceled) {
+				return
+			}
+			w.log.Error("onboarding stale-planning reclaim tick failed", "error", err)
+			return
+		}
+		if request == nil {
+			break
+		}
+		w.log.Info(
+			"onboarding stale planning request requeued",
+			"request_id", request.ID,
+			"workspace_id", request.WorkspaceID,
+		)
+	}
+
 	for i := 0; i < w.batch; i++ {
 		request, err := w.store.ProcessNextStoreRequest(ctx, w.workerID)
 		if err != nil {

@@ -39,6 +39,14 @@ type StoreRepository interface {
 		leaseOwner string,
 		leaseTTL time.Duration,
 	) (*storeentity.StoreRequest, error)
+	// ReclaimStalePlanning atomically moves one Planning request whose lease
+	// has expired (now >= lease_until) back to Queued, and returns the
+	// pre-update record. Recovers requests whose worker crashed mid-Planning
+	// (before MarkBlocked/UpdateStatus ran) - ClaimNextQueued alone cannot
+	// reach these, since it filters on Queued only (see P7, docs/07-problems/
+	// onboarding-provisioning-2026-07-07.md). Returns (nil, nil) when there
+	// is nothing to reclaim.
+	ReclaimStalePlanning(ctx context.Context, now time.Time) (*storeentity.StoreRequest, error)
 	ReleaseLease(ctx context.Context, id string, leaseOwner string) error
 	UpdateStatus(ctx context.Context, id string, status storeentity.RequestStatus) error
 	MarkReady(ctx context.Context, id string, storeID string) error

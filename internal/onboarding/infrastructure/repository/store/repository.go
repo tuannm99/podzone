@@ -256,6 +256,42 @@ func (r *MongoRepository) claimNext(
 	return &request, nil
 }
 
+// ReclaimStalePlanning atomically moves one lease-expired Planning request
+// back to Queued (clearing the lease, not renewing it - unlike claimNext,
+// which always sets a fresh lease). See the interface doc comment
+// (outputport/repository.go) and P7's residual gap in docs/07-problems/
+// onboarding-provisioning-2026-07-07.md.
+func (r *MongoRepository) ReclaimStalePlanning(
+	ctx context.Context,
+	now time.Time,
+) (*storeentity.StoreRequest, error) {
+	var request storeentity.StoreRequest
+	err := r.collection.FindOneAndUpdate(
+		ctx,
+		bson.M{
+			"status":      storeentity.RequestStatusPlanning,
+			"lease_until": bson.M{"$lte": now},
+		},
+		bson.M{
+			"$set": bson.M{
+				"status":     storeentity.RequestStatusQueued,
+				"updated_at": now,
+			},
+			"$unset": bson.M{"lease_owner": "", "lease_until": ""},
+		},
+		options.FindOneAndUpdate().
+			SetSort(bson.D{{Key: "updated_at", Value: 1}}).
+			SetReturnDocument(options.Before),
+	).Decode(&request)
+	if err == mongo.ErrNoDocuments {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &request, nil
+}
+
 func (r *MongoRepository) ReleaseLease(ctx context.Context, id string, leaseOwner string) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {

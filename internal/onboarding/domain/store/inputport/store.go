@@ -80,6 +80,13 @@ type Usecase interface {
 	UpdateStoreRequestStatus(ctx context.Context, id string, status RequestStatus) error
 	ProcessNextStoreRequest(ctx context.Context, workerID string) (*Request, error)
 	FinalizeNextStoreRequest(ctx context.Context, workerID string) (*Request, error)
+	// ReclaimNextStalePlanningRequest recovers one Planning request whose
+	// lease has expired (worker crashed mid-Planning, before it reached
+	// MarkBlocked/UpdateStatus) back to Queued, so ProcessNextStoreRequest
+	// can pick it up again. Returns (nil, nil) when there is nothing to
+	// reclaim. See P7's residual gap, docs/07-problems/
+	// onboarding-provisioning-2026-07-07.md.
+	ReclaimNextStalePlanningRequest(ctx context.Context) (*Request, error)
 	GetStoreReadiness(ctx context.Context, id string) (*ReadinessResponse, error)
 }
 

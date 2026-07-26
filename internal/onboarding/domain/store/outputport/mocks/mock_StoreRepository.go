@@ -782,6 +782,74 @@ func (_c *MockStoreRepository_MarkReady_Call) RunAndReturn(run func(ctx context.
 	return _c
 }
 
+// ReclaimStalePlanning provides a mock function for the type MockStoreRepository
+func (_mock *MockStoreRepository) ReclaimStalePlanning(ctx context.Context, now time.Time) (*entity.StoreRequest, error) {
+	ret := _mock.Called(ctx, now)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReclaimStalePlanning")
+	}
+
+	var r0 *entity.StoreRequest
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, time.Time) (*entity.StoreRequest, error)); ok {
+		return returnFunc(ctx, now)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, time.Time) *entity.StoreRequest); ok {
+		r0 = returnFunc(ctx, now)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entity.StoreRequest)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, time.Time) error); ok {
+		r1 = returnFunc(ctx, now)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStoreRepository_ReclaimStalePlanning_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ReclaimStalePlanning'
+type MockStoreRepository_ReclaimStalePlanning_Call struct {
+	*mock.Call
+}
+
+// ReclaimStalePlanning is a helper method to define mock.On call
+//   - ctx context.Context
+//   - now time.Time
+func (_e *MockStoreRepository_Expecter) ReclaimStalePlanning(ctx interface{}, now interface{}) *MockStoreRepository_ReclaimStalePlanning_Call {
+	return &MockStoreRepository_ReclaimStalePlanning_Call{Call: _e.mock.On("ReclaimStalePlanning", ctx, now)}
+}
+
+func (_c *MockStoreRepository_ReclaimStalePlanning_Call) Run(run func(ctx context.Context, now time.Time)) *MockStoreRepository_ReclaimStalePlanning_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 time.Time
+		if args[1] != nil {
+			arg1 = args[1].(time.Time)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStoreRepository_ReclaimStalePlanning_Call) Return(storeRequest *entity.StoreRequest, err error) *MockStoreRepository_ReclaimStalePlanning_Call {
+	_c.Call.Return(storeRequest, err)
+	return _c
+}
+
+func (_c *MockStoreRepository_ReclaimStalePlanning_Call) RunAndReturn(run func(ctx context.Context, now time.Time) (*entity.StoreRequest, error)) *MockStoreRepository_ReclaimStalePlanning_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RecordTransition provides a mock function for the type MockStoreRepository
 func (_mock *MockStoreRepository) RecordTransition(ctx context.Context, transition entity.StoreRequestTransition) error {
 	ret := _mock.Called(ctx, transition)

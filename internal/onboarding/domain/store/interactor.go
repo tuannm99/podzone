@@ -447,6 +447,46 @@ func (s *StoreInteractor) ProcessNextStoreRequest(
 	return toInputPortRequest(request), nil
 }
 
+// ReclaimNextStalePlanningRequest recovers one Planning request whose lease
+// expired without ever reaching a further transition - i.e. its worker
+// crashed between ClaimNextQueued (which sets Planning + a lease) and the
+// next UpdateStatus/MarkBlocked call in ProcessNextStoreRequest above.
+// ClaimNextQueued alone cannot reach these: since P7's fix, it filters on
+// Queued only (removing Planning closed a double-provisioning race, but
+// left crashed-Planning requests with no automatic recovery path - see
+// docs/07-problems/onboarding-provisioning-2026-07-07.md P7's residual
+// gap). This is the dedicated recovery path the original P7 fix note
+// anticipated ("a separate explicit re-queue path... for operator-triggered
+// recovery") but never added, wired here as an automatic sweep instead of
+// an operator action, since the worker already ticks on an interval.
+func (s *StoreInteractor) ReclaimNextStalePlanningRequest(
+	ctx context.Context,
+) (*storeinputport.Request, error) {
+	if !s.provisioner.Enabled {
+		return nil, ErrProvisionerDisabled
+	}
+
+	request, err := s.repo.ReclaimStalePlanning(ctx, time.Now().UTC())
+	if err != nil {
+		return nil, err
+	}
+	if request == nil {
+		return nil, nil
+	}
+	s.recordTransition(
+		ctx,
+		request.ID.Hex(),
+		storeentity.RequestStatusPlanning,
+		storeentity.RequestStatusQueued,
+		map[string]string{"service": "onboarding", "worker": "store-provisioner"},
+		"planning.lease_expired",
+		"worker lease expired before provisioning completed - requeued for retry",
+		"",
+	)
+	request.Status = storeentity.RequestStatusQueued
+	return toInputPortRequest(request), nil
+}
+
 func (s *StoreInteractor) FinalizeNextStoreRequest(
 	ctx context.Context,
 	workerID string,

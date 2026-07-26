@@ -388,6 +388,51 @@ func TestProcessNextStoreRequest_MarksPlatformSetupWhenProviderUnavailable(t *te
 	require.Nil(t, processed)
 }
 
+// P7's residual gap (docs/07-problems/onboarding-provisioning-2026-07-07.md):
+// a Planning request whose worker crashed before it could reach a further
+// transition must be recoverable back to Queued.
+func TestReclaimNextStalePlanningRequest_RequeuesExpiredPlanningRequest(t *testing.T) {
+	repo := storemocks.NewMockStoreRepository(t)
+	allowTransitionLog(repo)
+	svc := &StoreInteractor{
+		repo:        repo,
+		provisioner: storeentity.ProvisioningConfig{Enabled: true},
+	}
+
+	id := primitive.NewObjectID()
+	request := &storeentity.StoreRequest{
+		ID:          id,
+		Name:        "Stale Store",
+		Subdomain:   "stale-store",
+		WorkspaceID: "workspace-1",
+		RequestedBy: "user-1",
+		Status:      storeentity.RequestStatusPlanning,
+	}
+	repo.EXPECT().
+		ReclaimStalePlanning(mock.Anything, mock.AnythingOfType("time.Time")).
+		Return(request, nil)
+
+	reclaimed, err := svc.ReclaimNextStalePlanningRequest(context.Background())
+	require.NoError(t, err)
+	require.NotNil(t, reclaimed)
+	require.Equal(t, storeinputport.RequestStatusQueued, reclaimed.Status)
+}
+
+func TestReclaimNextStalePlanningRequest_NoOpWhenNothingStale(t *testing.T) {
+	repo := storemocks.NewMockStoreRepository(t)
+	svc := &StoreInteractor{
+		repo:        repo,
+		provisioner: storeentity.ProvisioningConfig{Enabled: true},
+	}
+	repo.EXPECT().
+		ReclaimStalePlanning(mock.Anything, mock.AnythingOfType("time.Time")).
+		Return(nil, nil)
+
+	reclaimed, err := svc.ReclaimNextStalePlanningRequest(context.Background())
+	require.NoError(t, err)
+	require.Nil(t, reclaimed)
+}
+
 func TestFinalizeNextStoreRequest_BootstrapsOperationalStoreBeforeReady(t *testing.T) {
 	repo := storemocks.NewMockStoreRepository(t)
 	transitions := make([]storeentity.StoreRequestTransition, 0, 3)
