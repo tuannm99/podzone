@@ -1,0 +1,54 @@
+:host {
+  display: block;
+}
+
+.readiness-detail-page__card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 40rem;
+}
+
+.readiness-detail-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.readiness-detail-page__title {
+  margin: 0;
+  font: var(--mat-sys-title-large);
+}
+
+.readiness-detail-page__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.readiness-detail-page__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.readiness-detail-page__label {
+  font: var(--mat-sys-label-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.readiness-detail-page__value {
+  font: var(--mat-sys-body-medium);
+}
+
+.readiness-detail-page__checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.readiness-detail-page__failure {
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-error);
+}

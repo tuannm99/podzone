@@ -275,6 +275,30 @@ func (s *StoreInteractor) ListStoreRequests(
 	return collection.NewPage(out, page.Total, query), nil
 }
 
+// ListAllStoreRequests is ListStoreRequests's cross-tenant counterpart
+// (PZEP-0020) - lists store requests across every tenant instead of one,
+// authorized via the platform-scoped store:read_all permission instead of
+// a specific workspaceID.
+func (s *StoreInteractor) ListAllStoreRequests(
+	ctx context.Context,
+	query collection.Query,
+) (collection.Page[*storeinputport.Request], error) {
+	if err := s.authorizeReadAll(ctx); err != nil {
+		return collection.Page[*storeinputport.Request]{}, err
+	}
+	page, err := s.repo.ListAllPage(ctx, query.Normalize())
+	if err != nil {
+		return collection.Page[*storeinputport.Request]{}, err
+	}
+
+	out := make([]*storeinputport.Request, 0, len(page.Items))
+	for _, req := range page.Items {
+		copyReq := req
+		out = append(out, toInputPortRequest(&copyReq))
+	}
+	return collection.NewPage(out, page.Total, query), nil
+}
+
 func (s *StoreInteractor) UpdateStoreRequestStatus(
 	ctx context.Context,
 	id string,
@@ -564,6 +588,18 @@ func (s *StoreInteractor) authorizeApproval(ctx context.Context) error {
 	return s.authorizer.AuthorizeStoreApproval(ctx, requestedBy)
 }
 
+// authorizeReadAll gates the cross-tenant admin review screens (PZEP-0020).
+func (s *StoreInteractor) authorizeReadAll(ctx context.Context) error {
+	requestedBy, err := toolkit.GetUserID(ctx)
+	if err != nil {
+		return ErrRequestedByRequired
+	}
+	if s.authorizer == nil {
+		return nil
+	}
+	return s.authorizer.AuthorizeStoreReadAll(ctx, requestedBy)
+}
+
 func (s *StoreInteractor) authorizeRead(ctx context.Context) error {
 	workspaceID, err := toolkit.GetTenantID(ctx)
 	if err != nil {
@@ -676,12 +712,49 @@ func (s *StoreInteractor) GetStoreReadiness(
 		return nil, ErrStoreNotFound
 	}
 
+	return s.computeReadiness(ctx, id, req)
+}
+
+// GetStoreReadinessAsAdmin is GetStoreReadiness's cross-tenant counterpart
+// (PZEP-0020) - authorizes via the platform-scoped store:read_all
+// permission instead of matching the caller's own workspaceID, so an
+// admin can look up readiness for a request in a tenant they have no
+// membership in.
+func (s *StoreInteractor) GetStoreReadinessAsAdmin(
+	ctx context.Context,
+	id string,
+) (*storeinputport.ReadinessResponse, error) {
+	if err := s.authorizeReadAll(ctx); err != nil {
+		return nil, err
+	}
+
+	req, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if req == nil {
+		return nil, ErrStoreNotFound
+	}
+
+	return s.computeReadiness(ctx, id, req)
+}
+
+// computeReadiness is the shared readiness-computation logic both
+// GetStoreReadiness and GetStoreReadinessAsAdmin call after their own,
+// different authorization checks - uses req.WorkspaceID (the request's
+// own tenant), not the caller's context tenant, since those two are only
+// guaranteed equal on the non-admin path.
+func (s *StoreInteractor) computeReadiness(
+	ctx context.Context,
+	id string,
+	req *storeentity.StoreRequest,
+) (*storeinputport.ReadinessResponse, error) {
 	status := storeinputport.RequestStatus(req.Status)
 
 	var placementAllocationReady, routeReady bool
 	if s.infra != nil && (status == storeinputport.RequestStatusReady ||
 		status == storeinputport.RequestStatusFailedRetryable) {
-		if ps, psErr := s.infra.GetTenantPlacementStatus(ctx, workspaceID); psErr == nil && ps != nil {
+		if ps, psErr := s.infra.GetTenantPlacementStatus(ctx, req.WorkspaceID); psErr == nil && ps != nil {
 			placementAllocationReady = ps.AllocationReady
 			routeReady = ps.RouteReady
 		}

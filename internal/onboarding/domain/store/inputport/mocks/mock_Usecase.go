@@ -300,6 +300,74 @@ func (_c *MockUsecase_GetStoreReadiness_Call) RunAndReturn(run func(ctx context.
 	return _c
 }
 
+// GetStoreReadinessAsAdmin provides a mock function for the type MockUsecase
+func (_mock *MockUsecase) GetStoreReadinessAsAdmin(ctx context.Context, id string) (*inputport.ReadinessResponse, error) {
+	ret := _mock.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetStoreReadinessAsAdmin")
+	}
+
+	var r0 *inputport.ReadinessResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*inputport.ReadinessResponse, error)); ok {
+		return returnFunc(ctx, id)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *inputport.ReadinessResponse); ok {
+		r0 = returnFunc(ctx, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*inputport.ReadinessResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockUsecase_GetStoreReadinessAsAdmin_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetStoreReadinessAsAdmin'
+type MockUsecase_GetStoreReadinessAsAdmin_Call struct {
+	*mock.Call
+}
+
+// GetStoreReadinessAsAdmin is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *MockUsecase_Expecter) GetStoreReadinessAsAdmin(ctx interface{}, id interface{}) *MockUsecase_GetStoreReadinessAsAdmin_Call {
+	return &MockUsecase_GetStoreReadinessAsAdmin_Call{Call: _e.mock.On("GetStoreReadinessAsAdmin", ctx, id)}
+}
+
+func (_c *MockUsecase_GetStoreReadinessAsAdmin_Call) Run(run func(ctx context.Context, id string)) *MockUsecase_GetStoreReadinessAsAdmin_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUsecase_GetStoreReadinessAsAdmin_Call) Return(readinessResponse *inputport.ReadinessResponse, err error) *MockUsecase_GetStoreReadinessAsAdmin_Call {
+	_c.Call.Return(readinessResponse, err)
+	return _c
+}
+
+func (_c *MockUsecase_GetStoreReadinessAsAdmin_Call) RunAndReturn(run func(ctx context.Context, id string) (*inputport.ReadinessResponse, error)) *MockUsecase_GetStoreReadinessAsAdmin_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetStoreRequest provides a mock function for the type MockUsecase
 func (_mock *MockUsecase) GetStoreRequest(ctx context.Context, id string) (*inputport.Request, error) {
 	ret := _mock.Called(ctx, id)
@@ -364,6 +432,72 @@ func (_c *MockUsecase_GetStoreRequest_Call) Return(request *inputport.Request, e
 }
 
 func (_c *MockUsecase_GetStoreRequest_Call) RunAndReturn(run func(ctx context.Context, id string) (*inputport.Request, error)) *MockUsecase_GetStoreRequest_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListAllStoreRequests provides a mock function for the type MockUsecase
+func (_mock *MockUsecase) ListAllStoreRequests(ctx context.Context, query collection.Query) (collection.Page[*inputport.Request], error) {
+	ret := _mock.Called(ctx, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListAllStoreRequests")
+	}
+
+	var r0 collection.Page[*inputport.Request]
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) (collection.Page[*inputport.Request], error)); ok {
+		return returnFunc(ctx, query)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) collection.Page[*inputport.Request]); ok {
+		r0 = returnFunc(ctx, query)
+	} else {
+		r0 = ret.Get(0).(collection.Page[*inputport.Request])
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, collection.Query) error); ok {
+		r1 = returnFunc(ctx, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockUsecase_ListAllStoreRequests_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAllStoreRequests'
+type MockUsecase_ListAllStoreRequests_Call struct {
+	*mock.Call
+}
+
+// ListAllStoreRequests is a helper method to define mock.On call
+//   - ctx context.Context
+//   - query collection.Query
+func (_e *MockUsecase_Expecter) ListAllStoreRequests(ctx interface{}, query interface{}) *MockUsecase_ListAllStoreRequests_Call {
+	return &MockUsecase_ListAllStoreRequests_Call{Call: _e.mock.On("ListAllStoreRequests", ctx, query)}
+}
+
+func (_c *MockUsecase_ListAllStoreRequests_Call) Run(run func(ctx context.Context, query collection.Query)) *MockUsecase_ListAllStoreRequests_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 collection.Query
+		if args[1] != nil {
+			arg1 = args[1].(collection.Query)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockUsecase_ListAllStoreRequests_Call) Return(page collection.Page[*inputport.Request], err error) *MockUsecase_ListAllStoreRequests_Call {
+	_c.Call.Return(page, err)
+	return _c
+}
+
+func (_c *MockUsecase_ListAllStoreRequests_Call) RunAndReturn(run func(ctx context.Context, query collection.Query) (collection.Page[*inputport.Request], error)) *MockUsecase_ListAllStoreRequests_Call {
 	_c.Call.Return(run)
 	return _c
 }

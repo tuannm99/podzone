@@ -1,0 +1,49 @@
+:host {
+  display: block;
+}
+
+.platform-roles-page__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 40rem;
+}
+
+.platform-roles-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.platform-roles-page__title {
+  margin: 0;
+  font: var(--mat-sys-title-large);
+}
+
+.platform-roles-page__lookup-form,
+.platform-roles-page__add-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.platform-roles-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.platform-roles-page__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+}

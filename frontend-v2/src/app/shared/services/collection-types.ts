@@ -1,7 +1,5 @@
 // Ported from frontend/packages/shared/services/collection.ts — keep in
-// sync if that file changes. `toCollectionParams` (REST query-string form)
-// is still not ported; add it when a REST (non-GraphQL) collection screen
-// needs it.
+// sync if that file changes.
 
 export type CollectionSortDirection = 'SORT_DIRECTION_ASC' | 'SORT_DIRECTION_DESC';
 
@@ -65,6 +63,34 @@ export function normalizePageInfo(
   if (!value) return emptyPageInfo(query);
   const total = typeof value.total === 'string' ? Number.parseInt(value.total, 10) : value.total;
   return { ...value, total: Number.isFinite(total) ? total : 0 };
+}
+
+// REST query-string form — used by collection screens that call a plain
+// REST endpoint (pkg/collection.ParseURLValues) instead of the backoffice
+// GraphQL layer. Ported from frontend/packages/shared/services/collection.ts's
+// toCollectionParams.
+export function toCollectionParams(
+  query: CollectionQuery,
+): Record<string, string | number | string[]> {
+  const params: Record<string, string | number | string[]> = {
+    'collection.page': query.page,
+    'collection.pageSize': query.pageSize,
+  };
+  if (query.search?.trim()) {
+    params['collection.search'] = query.search.trim();
+  }
+  if (query.sortBy) {
+    params['collection.sortBy'] = query.sortBy;
+  }
+  if (query.sortDirection) {
+    params['collection.sortDirection'] = query.sortDirection;
+  }
+  query.filters?.forEach((filter, index) => {
+    params[`collection.filters[${index}].field`] = filter.field;
+    params[`collection.filters[${index}].operator`] = filter.operator;
+    params[`collection.filters[${index}].values`] = filter.values;
+  });
+  return params;
 }
 
 export function toGraphQLCollectionInput(query: CollectionQuery) {

@@ -1,0 +1,48 @@
+<app-card class="platform-roles-page__card">
+  <div class="platform-roles-page__header">
+    <h1 class="platform-roles-page__title">Platform Roles</h1>
+  </div>
+
+  <form class="platform-roles-page__lookup-form" (submit)="onLookup($event)">
+    <app-input-field
+      label="User ID"
+      [value]="userIdInput()"
+      (valueChange)="userIdInput.set($event)"
+    />
+    <app-button type="submit">Look up</app-button>
+  </form>
+
+  @if (service.targetUserId() != null) {
+    @if (service.roles.isLoading()) {
+      <app-loading-block label="Loading platform roles…" />
+    } @else if (service.roles.error()) {
+      <app-error-alert>{{ service.roles.error()?.message }}</app-error-alert>
+    } @else if ((service.roles.value() ?? []).length === 0) {
+      <app-empty-block title="No platform roles" copy="This user has no platform role grants." />
+    } @else {
+      <ul class="platform-roles-page__list">
+        @for (membership of service.roles.value() ?? []; track membership.roleName) {
+          <li class="platform-roles-page__row">
+            <span>{{ membership.roleName }} · {{ membership.status }}</span>
+            <app-button variant="stroked" color="warn" (buttonClick)="onRemoveRole(membership)">
+              Remove
+            </app-button>
+          </li>
+        }
+      </ul>
+    }
+
+    <form class="platform-roles-page__add-form" (submit)="onAddRole($event)">
+      <app-input-field
+        label="Role name"
+        placeholder="platform_admin"
+        [value]="newRoleName()"
+        (valueChange)="newRoleName.set($event)"
+      />
+      <app-button type="submit">Grant role</app-button>
+    </form>
+    @if (actionError()) {
+      <app-error-alert>{{ actionError() }}</app-error-alert>
+    }
+  }
+</app-card>

@@ -190,3 +190,104 @@ func TestController_GetStoreReadiness_Returns404WhenNotFound(t *testing.T) {
 
 	require.Equal(t, http.StatusNotFound, resp.Code)
 }
+
+func TestController_ListAllStoreRequests_Returns200(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	usecase := storemocks.NewMockUsecase(t)
+	controller := &Controller{service: usecase}
+	router := gin.New()
+	controller.RegisterRoutes(router.Group("/onboarding/v1"))
+
+	usecase.EXPECT().
+		ListAllStoreRequests(
+			mock.Anything,
+			collection.Query{
+				Page:          1,
+				PageSize:      collection.DefaultPageSize,
+				Filters:       []collection.Filter{},
+				SortDirection: collection.SortDescending,
+			},
+		).
+		Return(collection.NewPage([]*storeinputport.Request{
+			{ID: "request-1", WorkspaceID: "tenant-1", Name: "Urban Finds"},
+		}, 1, collection.Query{Page: 1, PageSize: collection.DefaultPageSize}), nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/onboarding/v1/admin/requests", nil)
+	req = req.WithContext(toolkit.WithTenantID(toolkit.WithUserID(req.Context(), "platform-admin"), "tenant-1"))
+	resp := httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+
+	require.Equal(t, http.StatusOK, resp.Code)
+	require.Contains(t, resp.Body.String(), `"id":"request-1"`)
+}
+
+func TestController_ListAllStoreRequests_ReturnsForbiddenForAccessDenied(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	usecase := storemocks.NewMockUsecase(t)
+	controller := &Controller{service: usecase}
+	router := gin.New()
+	controller.RegisterRoutes(router.Group("/onboarding/v1"))
+
+	usecase.EXPECT().
+		ListAllStoreRequests(mock.Anything, mock.Anything).
+		Return(
+			collection.Page[*storeinputport.Request]{},
+			errors.Join(storedomain.ErrAccessDenied, errors.New("store:read_all")),
+		)
+
+	req := httptest.NewRequest(http.MethodGet, "/onboarding/v1/admin/requests", nil)
+	req = req.WithContext(toolkit.WithUserID(req.Context(), "user-1"))
+	resp := httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+
+	require.Equal(t, http.StatusForbidden, resp.Code)
+	require.Contains(t, resp.Body.String(), storedomain.ErrAccessDenied.Error())
+}
+
+func TestController_GetStoreReadinessAsAdmin_Returns200(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	usecase := storemocks.NewMockUsecase(t)
+	controller := &Controller{service: usecase}
+	router := gin.New()
+	controller.RegisterRoutes(router.Group("/onboarding/v1"))
+
+	usecase.EXPECT().
+		GetStoreReadinessAsAdmin(mock.Anything, "request-1").
+		Return(&storeinputport.ReadinessResponse{
+			RequestID:     "request-1",
+			RequestStatus: storeinputport.RequestStatusReady,
+			Readiness: storeinputport.ReadinessDetail{
+				StoreReady:               true,
+				PlacementAllocationReady: true,
+				RouteReady:               true,
+			},
+			UIState: storeinputport.UIStateReady,
+		}, nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/onboarding/v1/admin/requests/request-1/readiness", nil)
+	req = req.WithContext(toolkit.WithUserID(req.Context(), "platform-admin"))
+	resp := httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+
+	require.Equal(t, http.StatusOK, resp.Code)
+	require.Contains(t, resp.Body.String(), `"ui_state":"ready"`)
+}
+
+func TestController_GetStoreReadinessAsAdmin_Returns404WhenNotFound(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	usecase := storemocks.NewMockUsecase(t)
+	controller := &Controller{service: usecase}
+	router := gin.New()
+	controller.RegisterRoutes(router.Group("/onboarding/v1"))
+
+	usecase.EXPECT().
+		GetStoreReadinessAsAdmin(mock.Anything, "missing").
+		Return(nil, storedomain.ErrStoreNotFound)
+
+	req := httptest.NewRequest(http.MethodGet, "/onboarding/v1/admin/requests/missing/readiness", nil)
+	req = req.WithContext(toolkit.WithUserID(req.Context(), "platform-admin"))
+	resp := httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+
+	require.Equal(t, http.StatusNotFound, resp.Code)
+}

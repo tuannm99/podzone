@@ -1,0 +1,43 @@
+:host {
+  display: block;
+}
+
+.policies-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.policies-page__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.policies-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.policies-page__title {
+  margin: 0;
+  font: var(--mat-sys-title-large);
+}
+
+.policies-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.policies-page__row {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+}

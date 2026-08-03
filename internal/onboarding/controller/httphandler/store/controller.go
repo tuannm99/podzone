@@ -56,6 +56,15 @@ func (c *Controller) RegisterRoutes(r *gin.RouterGroup) {
 		legacy.POST("/:id/approve", c.ApproveStoreRequest)
 		legacy.POST("/:id/reject", c.RejectStoreRequest)
 	}
+
+	// Admin (cross-tenant) review routes - PZEP-0020. Authorization is
+	// enforced inside the interactor (store:read_all platform permission),
+	// not by this route group's path alone.
+	admin := r.Group("/admin/requests")
+	{
+		admin.GET("", c.ListAllStoreRequests)
+		admin.GET("/:id/readiness", c.GetStoreReadinessAsAdmin)
+	}
 }
 
 type CreateStoreRequest struct {
@@ -145,6 +154,37 @@ func (c *Controller) GetStoreRequest(ctx *gin.Context) {
 func (c *Controller) GetStoreReadiness(ctx *gin.Context) {
 	id := ctx.Param("id")
 	result, err := c.service.GetStoreReadiness(ctx.Request.Context(), id)
+	if err != nil {
+		writeStoreError(ctx, err, "Failed to get store readiness")
+		return
+	}
+	ctx.JSON(http.StatusOK, result)
+}
+
+// ListAllStoreRequests is ListStoreRequests's cross-tenant counterpart
+// (PZEP-0020) - no workspaceID extraction, since authorization is via the
+// platform-scoped store:read_all permission, not a specific tenant.
+func (c *Controller) ListAllStoreRequests(ctx *gin.Context) {
+	query, err := collection.ParseURLValues(ctx.Request.URL.Query(), "collection.")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	page, err := c.service.ListAllStoreRequests(ctx.Request.Context(), query)
+	if err != nil {
+		writeStoreError(ctx, err, "Failed to list store requests")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, listStoreRequestsResponse{
+		Items:    page.Items,
+		PageInfo: page.Info(),
+	})
+}
+
+func (c *Controller) GetStoreReadinessAsAdmin(ctx *gin.Context) {
+	id := ctx.Param("id")
+	result, err := c.service.GetStoreReadinessAsAdmin(ctx.Request.Context(), id)
 	if err != nil {
 		writeStoreError(ctx, err, "Failed to get store readiness")
 		return

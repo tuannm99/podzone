@@ -152,6 +152,39 @@ func (r *MongoRepository) ListPage(
 	return collection.NewPage(requests, total, normalized), nil
 }
 
+func (r *MongoRepository) ListAllPage(
+	ctx context.Context,
+	query collection.Query,
+) (collection.Page[storeentity.StoreRequest], error) {
+	normalized, filter, sort, err := buildAllStoreRequestCollection(query)
+	if err != nil {
+		return collection.Page[storeentity.StoreRequest]{}, err
+	}
+	total, err := r.collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return collection.Page[storeentity.StoreRequest]{}, err
+	}
+
+	cursor, err := r.collection.Find(
+		ctx,
+		filter,
+		options.Find().
+			SetSort(sort).
+			SetSkip(int64(normalized.Offset())).
+			SetLimit(int64(normalized.PageSize)),
+	)
+	if err != nil {
+		return collection.Page[storeentity.StoreRequest]{}, err
+	}
+	defer cursor.Close(ctx)
+
+	var requests []storeentity.StoreRequest
+	if err = cursor.All(ctx, &requests); err != nil {
+		return collection.Page[storeentity.StoreRequest]{}, err
+	}
+	return collection.NewPage(requests, total, normalized), nil
+}
+
 func (r *MongoRepository) ListTransitions(
 	ctx context.Context,
 	requestID string,

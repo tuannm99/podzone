@@ -157,6 +157,63 @@ func (_c *MockAccessAuthorizer_AuthorizeStoreRead_Call) RunAndReturn(run func(ct
 	return _c
 }
 
+// AuthorizeStoreReadAll provides a mock function for the type MockAccessAuthorizer
+func (_mock *MockAccessAuthorizer) AuthorizeStoreReadAll(ctx context.Context, requestedBy string) error {
+	ret := _mock.Called(ctx, requestedBy)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AuthorizeStoreReadAll")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, requestedBy)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockAccessAuthorizer_AuthorizeStoreReadAll_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AuthorizeStoreReadAll'
+type MockAccessAuthorizer_AuthorizeStoreReadAll_Call struct {
+	*mock.Call
+}
+
+// AuthorizeStoreReadAll is a helper method to define mock.On call
+//   - ctx context.Context
+//   - requestedBy string
+func (_e *MockAccessAuthorizer_Expecter) AuthorizeStoreReadAll(ctx interface{}, requestedBy interface{}) *MockAccessAuthorizer_AuthorizeStoreReadAll_Call {
+	return &MockAccessAuthorizer_AuthorizeStoreReadAll_Call{Call: _e.mock.On("AuthorizeStoreReadAll", ctx, requestedBy)}
+}
+
+func (_c *MockAccessAuthorizer_AuthorizeStoreReadAll_Call) Run(run func(ctx context.Context, requestedBy string)) *MockAccessAuthorizer_AuthorizeStoreReadAll_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockAccessAuthorizer_AuthorizeStoreReadAll_Call) Return(err error) *MockAccessAuthorizer_AuthorizeStoreReadAll_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockAccessAuthorizer_AuthorizeStoreReadAll_Call) RunAndReturn(run func(ctx context.Context, requestedBy string) error) *MockAccessAuthorizer_AuthorizeStoreReadAll_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // AuthorizeStoreRequest provides a mock function for the type MockAccessAuthorizer
 func (_mock *MockAccessAuthorizer) AuthorizeStoreRequest(ctx context.Context, workspaceID string, requestedBy string) error {
 	ret := _mock.Called(ctx, workspaceID, requestedBy)

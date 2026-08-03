@@ -19,7 +19,10 @@ import (
 	"github.com/tuannm99/podzone/pkg/pdlog"
 )
 
-const storeApprovalPermission = "store:approve"
+const (
+	storeApprovalPermission = "store:approve"
+	storeReadAllPermission  = "store:read_all"
+)
 
 type AccessAuthorizer struct {
 	client pbiamv1.IAMQueryServiceClient
@@ -124,6 +127,32 @@ func (a *AccessAuthorizer) AuthorizeStoreApproval(ctx context.Context, requested
 	}
 	if !response.GetAllowed() {
 		return fmt.Errorf("%w: %s", storedomain.ErrAccessDenied, storeApprovalPermission)
+	}
+	return nil
+}
+
+// AuthorizeStoreReadAll gates the admin, cross-tenant store-request review
+// screens (PZEP-0020) - a platform permission check with no tenant
+// boundary crossing at all, same shape as AuthorizeStoreApproval. This is
+// deliberately narrower than accepting ADR-0003's general platform-scope
+// override branch - see PZEP-0020's Summary for why.
+func (a *AccessAuthorizer) AuthorizeStoreReadAll(ctx context.Context, requestedBy string) error {
+	if identity.IsTrustedService(ctx) {
+		return nil
+	}
+	userID, err := parseUserID(requestedBy)
+	if err != nil {
+		return err
+	}
+	response, err := a.client.CheckPlatformPermission(ctx, &pbiamv1.CheckPlatformPermissionRequest{
+		UserId:     userID,
+		Permission: storeReadAllPermission,
+	})
+	if err != nil {
+		return fmt.Errorf("check store read-all permission: %w", err)
+	}
+	if !response.GetAllowed() {
+		return fmt.Errorf("%w: %s", storedomain.ErrAccessDenied, storeReadAllPermission)
 	}
 	return nil
 }

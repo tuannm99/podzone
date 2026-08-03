@@ -1,0 +1,55 @@
+<app-card class="readiness-detail-page__card">
+  <div class="readiness-detail-page__header">
+    <h1 class="readiness-detail-page__title">Store Readiness</h1>
+    <app-button variant="stroked" href="/admin/onboarding">Back to review</app-button>
+  </div>
+
+  @if (service.readiness.isLoading()) {
+    <app-loading-block label="Loading readiness…" />
+  } @else if (service.readiness.error()) {
+    <app-error-alert>{{ service.readiness.error()?.message }}</app-error-alert>
+  } @else if (service.readiness.value(); as readiness) {
+    <div class="readiness-detail-page__summary">
+      <div class="readiness-detail-page__field">
+        <div class="readiness-detail-page__label">Request ID</div>
+        <div class="readiness-detail-page__value">{{ readiness.request_id }}</div>
+      </div>
+      <div class="readiness-detail-page__field">
+        <div class="readiness-detail-page__label">Status</div>
+        <div class="readiness-detail-page__value">
+          <app-badge [tone]="tone()">{{ label(readiness.request_status) }}</app-badge>
+        </div>
+      </div>
+      <div class="readiness-detail-page__field">
+        <div class="readiness-detail-page__label">UI State</div>
+        <div class="readiness-detail-page__value">
+          <app-badge [tone]="tone()">{{ readiness.ui_state }}</app-badge>
+        </div>
+      </div>
+    </div>
+
+    <div class="readiness-detail-page__checks">
+      <div class="readiness-detail-page__check">
+        <app-badge [tone]="readiness.readiness.store_ready ? 'success' : 'neutral'">
+          Store {{ readiness.readiness.store_ready ? 'Ready' : 'Not Ready' }}
+        </app-badge>
+      </div>
+      <div class="readiness-detail-page__check">
+        <app-badge [tone]="readiness.readiness.placement_allocation_ready ? 'success' : 'neutral'">
+          Placement {{ readiness.readiness.placement_allocation_ready ? 'Ready' : 'Not Ready' }}
+        </app-badge>
+      </div>
+      <div class="readiness-detail-page__check">
+        <app-badge [tone]="readiness.readiness.route_ready ? 'success' : 'neutral'">
+          Route {{ readiness.readiness.route_ready ? 'Ready' : 'Not Ready' }}
+        </app-badge>
+      </div>
+    </div>
+
+    @if (readiness.failure_reason) {
+      <div class="readiness-detail-page__failure">
+        <strong>Failure reason:</strong> {{ readiness.failure_reason }}
+      </div>
+    }
+  }
+</app-card>

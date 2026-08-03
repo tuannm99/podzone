@@ -69,6 +69,10 @@ type Usecase interface {
 		workspaceID string,
 		query collection.Query,
 	) (collection.Page[*Request], error)
+	// ListAllStoreRequests is ListStoreRequests's cross-tenant counterpart
+	// (PZEP-0020, admin review screen) - gated by the platform-scoped
+	// store:read_all permission instead of a specific workspaceID.
+	ListAllStoreRequests(ctx context.Context, query collection.Query) (collection.Page[*Request], error)
 	ListStoreRequestTransitions(
 		ctx context.Context,
 		id string,
@@ -88,6 +92,10 @@ type Usecase interface {
 	// onboarding-provisioning-2026-07-07.md.
 	ReclaimNextStalePlanningRequest(ctx context.Context) (*Request, error)
 	GetStoreReadiness(ctx context.Context, id string) (*ReadinessResponse, error)
+	// GetStoreReadinessAsAdmin is GetStoreReadiness's cross-tenant
+	// counterpart (PZEP-0020) - gated by store:read_all instead of
+	// matching the caller's own workspaceID.
+	GetStoreReadinessAsAdmin(ctx context.Context, id string) (*ReadinessResponse, error)
 }
 
 type (

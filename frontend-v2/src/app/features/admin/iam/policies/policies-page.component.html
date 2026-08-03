@@ -1,0 +1,90 @@
+<div class="policies-page">
+  <app-card class="policies-page__card">
+    <div class="policies-page__header">
+      <h1 class="policies-page__title">Policies</h1>
+    </div>
+
+    <app-collection-toolbar
+      [search]="service.query().search || ''"
+      searchPlaceholder="Search policies"
+      (searchChange)="onSearch($event)"
+    />
+
+    <ng-template #selectCell let-row>
+      <app-button variant="stroked" (buttonClick)="selectPolicy(row)">
+        {{ service.selectedPolicyName() === row.name ? 'Selected' : 'View' }}
+      </app-button>
+    </ng-template>
+
+    <app-data-table
+      [columns]="columns()"
+      [rows]="service.policies.value()?.items ?? []"
+      [loading]="service.policies.isLoading()"
+      [error]="service.policies.error()?.message ?? ''"
+      emptyTitle="No policies"
+      emptyCopy="No policies match the current search."
+      [totalCount]="service.policies.value()?.pageInfo?.total ?? 0"
+      [pageSize]="service.query().pageSize"
+      [pageIndex]="service.query().page - 1"
+      (pageChange)="onPageChange($event)"
+    />
+  </app-card>
+
+  @if (service.selectedPolicyName()) {
+    <app-card class="policies-page__card">
+      <div class="policies-page__header">
+        <h2 class="policies-page__title">Versions — {{ service.selectedPolicyName() }}</h2>
+      </div>
+      @if (service.versions.isLoading()) {
+        <app-loading-block label="Loading versions…" />
+      } @else if (service.versions.error()) {
+        <app-error-alert>{{ service.versions.error()?.message }}</app-error-alert>
+      } @else if ((service.versions.value() ?? []).length === 0) {
+        <app-empty-block title="No versions" copy="This policy has no versions." />
+      } @else {
+        <ul class="policies-page__list">
+          @for (version of service.versions.value() ?? []; track version.version) {
+            <li class="policies-page__row">
+              <span>
+                v{{ version.version }}
+                @if (version.isDefault) {
+                  · default
+                }
+              </span>
+            </li>
+          }
+        </ul>
+      }
+
+      <div class="policies-page__header">
+        <h2 class="policies-page__title">Attachments</h2>
+      </div>
+      @if (service.attachments.isLoading()) {
+        <app-loading-block label="Loading attachments…" />
+      } @else if (service.attachments.error()) {
+        <app-error-alert>{{ service.attachments.error()?.message }}</app-error-alert>
+      } @else if ((service.attachments.value() ?? []).length === 0) {
+        <app-empty-block title="No attachments" copy="This policy isn't attached anywhere." />
+      } @else {
+        <ul class="policies-page__list">
+          @for (attachment of service.attachments.value() ?? []; track $index) {
+            <li class="policies-page__row">
+              <span>
+                {{ attachment.attachmentType }}
+                @if (attachment.roleName) {
+                  · role {{ attachment.roleName }}
+                }
+                @if (attachment.userId) {
+                  · user {{ attachment.userId }}
+                }
+                @if (attachment.groupName) {
+                  · group {{ attachment.groupName }}
+                }
+              </span>
+            </li>
+          }
+        </ul>
+      }
+    </app-card>
+  }
+</div>

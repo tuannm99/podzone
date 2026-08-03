@@ -1,0 +1,74 @@
+<app-card class="onboarding-review-page__card">
+  <div class="onboarding-review-page__header">
+    <h1 class="onboarding-review-page__title">Onboarding Review</h1>
+  </div>
+
+  <div class="onboarding-review-page__controls">
+    <app-collection-toolbar
+      [search]="requests.query().search || ''"
+      searchPlaceholder="Search name, subdomain, requester, or status"
+      (searchChange)="onSearch($event)"
+    />
+
+    <app-collection-filters
+      [fields]="fieldSpec"
+      [filters]="requests.query().filters || []"
+      (filtersChange)="onFiltersChange($event)"
+    />
+
+    <app-column-picker
+      class="onboarding-review-page__column-picker"
+      [columns]="columns()"
+      [hidden]="hiddenColumns()"
+      (toggle)="onToggleColumn($event)"
+    />
+  </div>
+
+  <ng-template #statusCell let-row>
+    <app-badge [tone]="tone(row)">{{ label(row.status) }}</app-badge>
+  </ng-template>
+
+  <ng-template #actionsCell let-row>
+    <div class="onboarding-review-page__actions">
+      @if (canApprove(row.status)) {
+        <app-button
+          variant="stroked"
+          [loading]="requests.actioningId() === row.id"
+          [disabled]="!!requests.actioningId() && requests.actioningId() !== row.id"
+          (buttonClick)="onApprove(row)"
+        >
+          Approve
+        </app-button>
+      }
+      @if (canReject(row.status)) {
+        <app-button
+          variant="stroked"
+          color="warn"
+          [loading]="requests.actioningId() === row.id"
+          [disabled]="!!requests.actioningId() && requests.actioningId() !== row.id"
+          (buttonClick)="onReject(row)"
+        >
+          Reject
+        </app-button>
+      }
+      <app-button variant="stroked" [href]="'/admin/onboarding/' + row.id">Readiness</app-button>
+    </div>
+  </ng-template>
+
+  <app-data-table
+    [columns]="columns()"
+    [rows]="requests.page.value()?.items ?? []"
+    [loading]="requests.page.isLoading()"
+    [error]="requests.page.error()?.message ?? ''"
+    emptyTitle="No store requests"
+    emptyCopy="No store requests match the current search and filters."
+    [totalCount]="requests.page.value()?.pageInfo?.total ?? 0"
+    [pageSize]="requests.query().pageSize"
+    [pageIndex]="requests.query().page - 1"
+    [sortActive]="requests.query().sortBy || 'updatedAt'"
+    [sortDirection]="sortDirection()"
+    [hiddenColumns]="hiddenColumns()"
+    (pageChange)="onPageChange($event)"
+    (sortChange)="onSortChange($event)"
+  />
+</app-card>

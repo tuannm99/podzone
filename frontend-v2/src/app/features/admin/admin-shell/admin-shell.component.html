@@ -1,0 +1,53 @@
+<div class="admin-shell" [class.admin-shell--nav-collapsed]="navCollapsed()">
+  <aside class="admin-shell__sidebar">
+    <div class="admin-shell__brand">
+      <a routerLink="/admin/onboarding" class="admin-shell__logo">PZ</a>
+      <div class="admin-shell__brand-text">
+        <div class="admin-shell__brand-name">Podzone</div>
+        <div class="admin-shell__brand-sub">Platform Admin</div>
+      </div>
+    </div>
+
+    <nav class="admin-shell__nav">
+      <app-nav-list label="Admin" [items]="navItems()" />
+    </nav>
+
+    <div class="admin-shell__footer">
+      <div class="admin-shell__avatar">{{ userInitial() }}</div>
+      <div class="admin-shell__footer-text">
+        <div class="admin-shell__footer-name">
+          {{ currentUser()?.username || currentUser()?.email || 'Not signed in' }}
+        </div>
+        <div class="admin-shell__footer-sub">{{ currentUser()?.email || '' }}</div>
+      </div>
+      <div class="admin-shell__logout">
+        <app-button variant="stroked" ariaLabel="Log out" (buttonClick)="logout()">
+          <mat-icon aria-hidden="true">logout</mat-icon>
+        </app-button>
+      </div>
+    </div>
+  </aside>
+
+  <header class="admin-shell__header">
+    <div class="admin-shell__header-inner">
+      <button
+        type="button"
+        class="admin-shell__nav-toggle"
+        [attr.aria-label]="navCollapsed() ? 'Show navigation' : 'Hide navigation'"
+        (click)="toggleNav()"
+      >
+        <mat-icon aria-hidden="true">{{ navCollapsed() ? 'menu' : 'menu_open' }}</mat-icon>
+      </button>
+      <div class="admin-shell__header-text">
+        <div class="admin-shell__header-title">Platform Admin</div>
+        <div class="admin-shell__header-sub">Cross-tenant administration</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-shell__main">
+    <div class="admin-shell__main-inner">
+      <router-outlet />
+    </div>
+  </main>
+</div>

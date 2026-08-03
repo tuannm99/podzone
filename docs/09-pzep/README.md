@@ -37,6 +37,8 @@ does not replace an ADR for pure architecture-boundary decisions (see
 | [PZEP-0016](./PZEP-0016-recovery-backlog-triage-2026-07.md) | Recovery backlog triage — remaining `docs/07-problems` findings | Draft (Waves 1/3/4/5 done, Waves 6/7 not started) | 2026-07-25 |
 | [PZEP-0017](./PZEP-0017-multitenancy-correctness-observability.md) | `pkg/pdtenantdb` correctness & observability batch (MT4, MT9, MT10, MT11, MT16) | Done | 2026-07-26 |
 | [PZEP-0018](./PZEP-0018-store-authorization-iam-single-authority.md) | Backoffice store authorization — IAM as the single authority (MT5, MT7) | Done | 2026-07-26 |
+| [PZEP-0019](./PZEP-0019-staging-k8s-survivability-track-a.md) | Staging Kubernetes survivability, Track A (PS8, PS9, PS10, PS11) | Done | 2026-07-27 |
+| [PZEP-0020](./PZEP-0020-frontend-v2-admin-console.md) | frontend-v2 admin console — cross-tenant onboarding review, readiness debug, IAM section | Done (tenant directory dropped — no backend RPC) | 2026-07-27 |
 
 ## Links Back To Delivery
 

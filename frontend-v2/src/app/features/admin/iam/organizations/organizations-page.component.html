@@ -1,0 +1,103 @@
+<div class="organizations-page">
+  <app-card class="organizations-page__card">
+    <div class="organizations-page__header">
+      <h1 class="organizations-page__title">Organizations</h1>
+    </div>
+
+    <form class="organizations-page__create-form" (submit)="onCreateOrg($event)">
+      <app-input-field label="Name" [value]="newOrgName()" (valueChange)="newOrgName.set($event)" />
+      <app-input-field label="Slug" [value]="newOrgSlug()" (valueChange)="newOrgSlug.set($event)" />
+      <app-button type="submit">Create organization</app-button>
+    </form>
+    @if (createError()) {
+      <app-error-alert>{{ createError() }}</app-error-alert>
+    }
+
+    <app-collection-toolbar
+      [search]="service.query().search || ''"
+      searchPlaceholder="Search organizations"
+      (searchChange)="onSearch($event)"
+    />
+
+    <ng-template #selectCell let-row>
+      <app-button variant="stroked" (buttonClick)="selectOrg(row)">
+        {{ service.selectedOrgId() === row.id ? 'Selected' : 'Select' }}
+      </app-button>
+    </ng-template>
+
+    <app-data-table
+      [columns]="columns()"
+      [rows]="service.organizations.value()?.items ?? []"
+      [loading]="service.organizations.isLoading()"
+      [error]="service.organizations.error()?.message ?? ''"
+      emptyTitle="No organizations"
+      emptyCopy="No organizations match the current search."
+      [totalCount]="service.organizations.value()?.pageInfo?.total ?? 0"
+      [pageSize]="service.query().pageSize"
+      [pageIndex]="service.query().page - 1"
+      (pageChange)="onPageChange($event)"
+    />
+  </app-card>
+
+  @if (service.selectedOrgId()) {
+    <app-card class="organizations-page__card">
+      <div class="organizations-page__header">
+        <h2 class="organizations-page__title">Members</h2>
+      </div>
+
+      @if (service.members.isLoading()) {
+        <app-loading-block label="Loading members…" />
+      } @else if (service.members.error()) {
+        <app-error-alert>{{ service.members.error()?.message }}</app-error-alert>
+      } @else if ((service.members.value() ?? []).length === 0) {
+        <app-empty-block title="No members" copy="This organization has no members yet." />
+      } @else {
+        <ul class="organizations-page__member-list">
+          @for (member of service.members.value() ?? []; track member.userId) {
+            <li class="organizations-page__member">
+              <span>User {{ member.userId }} · {{ member.roleName }} · {{ member.status }}</span>
+              <app-button variant="stroked" color="warn" (buttonClick)="onRemoveMember(member)">
+                Remove
+              </app-button>
+            </li>
+          }
+        </ul>
+      }
+
+      <form class="organizations-page__member-form" (submit)="onAddMember($event)">
+        <app-input-field
+          label="User ID"
+          [value]="newMemberUserId()"
+          (valueChange)="newMemberUserId.set($event)"
+        />
+        <app-input-field
+          label="Role name"
+          [value]="newMemberRoleName()"
+          (valueChange)="newMemberRoleName.set($event)"
+        />
+        <app-button type="submit">Add member</app-button>
+      </form>
+      @if (memberError()) {
+        <app-error-alert>{{ memberError() }}</app-error-alert>
+      }
+
+      <div class="organizations-page__header">
+        <h2 class="organizations-page__title">Tenants</h2>
+      </div>
+      <form class="organizations-page__tenant-form" (submit)="onAttachTenant($event)">
+        <app-input-field
+          label="Tenant ID"
+          [value]="tenantIdInput()"
+          (valueChange)="tenantIdInput.set($event)"
+        />
+        <app-button type="submit">Attach</app-button>
+        <app-button type="button" variant="stroked" color="warn" (buttonClick)="onDetachTenant()">
+          Detach
+        </app-button>
+      </form>
+      @if (tenantError()) {
+        <app-error-alert>{{ tenantError() }}</app-error-alert>
+      }
+    </app-card>
+  }
+</div>

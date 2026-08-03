@@ -619,3 +619,119 @@ func TestGetStoreReadiness_NoAuth(t *testing.T) {
 	_, err := svc.GetStoreReadiness(context.Background(), "some-id")
 	require.ErrorIs(t, err, ErrWorkspaceIDRequired)
 }
+
+func TestListAllStoreRequests_ReturnsRepositoryPageAcrossTenants(t *testing.T) {
+	repo := storemocks.NewMockStoreRepository(t)
+	authorizer := storemocks.NewMockAccessAuthorizer(t)
+	svc := &StoreInteractor{repo: repo, authorizer: authorizer}
+
+	query := collection.Query{
+		Page:          1,
+		PageSize:      20,
+		SortDirection: collection.SortDescending,
+	}
+	requestA := storeentity.StoreRequest{
+		ID:          primitive.NewObjectID(),
+		WorkspaceID: "workspace-1",
+		Name:        "Urban Finds",
+		Status:      storeentity.RequestStatusQueued,
+	}
+	requestB := storeentity.StoreRequest{
+		ID:          primitive.NewObjectID(),
+		WorkspaceID: "workspace-2",
+		Name:        "Other Tenant Store",
+		Status:      storeentity.RequestStatusReady,
+	}
+
+	authorizer.EXPECT().AuthorizeStoreReadAll(mock.Anything, "platform-admin").Return(nil)
+	repo.EXPECT().
+		ListAllPage(mock.Anything, query).
+		Return(collection.NewPage([]storeentity.StoreRequest{requestA, requestB}, 2, query), nil)
+
+	page, err := svc.ListAllStoreRequests(
+		toolkit.WithUserID(context.Background(), "platform-admin"),
+		query,
+	)
+
+	require.NoError(t, err)
+	require.Len(t, page.Items, 2)
+	require.Equal(t, "workspace-1", page.Items[0].WorkspaceID)
+	require.Equal(t, "workspace-2", page.Items[1].WorkspaceID)
+}
+
+func TestListAllStoreRequests_ReturnsErrorWhenAuthorizerDenies(t *testing.T) {
+	repo := storemocks.NewMockStoreRepository(t)
+	authorizer := storemocks.NewMockAccessAuthorizer(t)
+	svc := &StoreInteractor{repo: repo, authorizer: authorizer}
+
+	authorizer.EXPECT().
+		AuthorizeStoreReadAll(mock.Anything, "user-1").
+		Return(errors.Join(ErrAccessDenied, errors.New("store:read_all")))
+
+	_, err := svc.ListAllStoreRequests(
+		toolkit.WithUserID(context.Background(), "user-1"),
+		collection.Query{},
+	)
+	require.ErrorIs(t, err, ErrAccessDenied)
+}
+
+func TestListAllStoreRequests_NoAuth(t *testing.T) {
+	svc := &StoreInteractor{}
+
+	_, err := svc.ListAllStoreRequests(context.Background(), collection.Query{})
+	require.ErrorIs(t, err, ErrRequestedByRequired)
+}
+
+func TestGetStoreReadinessAsAdmin_ReadsRequestOutsideCallerWorkspace(t *testing.T) {
+	repo := storemocks.NewMockStoreRepository(t)
+	authorizer := storemocks.NewMockAccessAuthorizer(t)
+	infra := infrasmocks.NewMockUsecase(t)
+	svc := &StoreInteractor{repo: repo, authorizer: authorizer, infra: infra}
+
+	req := makeReadinessRequest("workspace-other")
+	req.Status = storeentity.RequestStatusReady
+
+	authorizer.EXPECT().AuthorizeStoreReadAll(mock.Anything, "platform-admin").Return(nil)
+	repo.EXPECT().FindByID(mock.Anything, req.ID.Hex()).Return(req, nil)
+	infra.EXPECT().GetTenantPlacementStatus(mock.Anything, "workspace-other").
+		Return(&infrasinputport.PlacementStatus{AllocationReady: true, RouteReady: true}, nil)
+
+	ctx := toolkit.WithUserID(context.Background(), "platform-admin")
+	resp, err := svc.GetStoreReadinessAsAdmin(ctx, req.ID.Hex())
+	require.NoError(t, err)
+	require.Equal(t, storeinputport.UIStateReady, resp.UIState)
+}
+
+func TestGetStoreReadinessAsAdmin_NotFound(t *testing.T) {
+	repo := storemocks.NewMockStoreRepository(t)
+	authorizer := storemocks.NewMockAccessAuthorizer(t)
+	svc := &StoreInteractor{repo: repo, authorizer: authorizer}
+
+	authorizer.EXPECT().AuthorizeStoreReadAll(mock.Anything, "platform-admin").Return(nil)
+	repo.EXPECT().FindByID(mock.Anything, "missing-id").Return(nil, nil)
+
+	ctx := toolkit.WithUserID(context.Background(), "platform-admin")
+	_, err := svc.GetStoreReadinessAsAdmin(ctx, "missing-id")
+	require.ErrorIs(t, err, ErrStoreNotFound)
+}
+
+func TestGetStoreReadinessAsAdmin_ReturnsErrorWhenAuthorizerDenies(t *testing.T) {
+	repo := storemocks.NewMockStoreRepository(t)
+	authorizer := storemocks.NewMockAccessAuthorizer(t)
+	svc := &StoreInteractor{repo: repo, authorizer: authorizer}
+
+	authorizer.EXPECT().
+		AuthorizeStoreReadAll(mock.Anything, "user-1").
+		Return(errors.Join(ErrAccessDenied, errors.New("store:read_all")))
+
+	ctx := toolkit.WithUserID(context.Background(), "user-1")
+	_, err := svc.GetStoreReadinessAsAdmin(ctx, "some-id")
+	require.ErrorIs(t, err, ErrAccessDenied)
+}
+
+func TestGetStoreReadinessAsAdmin_NoAuth(t *testing.T) {
+	svc := &StoreInteractor{}
+
+	_, err := svc.GetStoreReadinessAsAdmin(context.Background(), "some-id")
+	require.ErrorIs(t, err, ErrRequestedByRequired)
+}

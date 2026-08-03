@@ -52,8 +52,24 @@ func buildStoreRequestCollection(
 	workspaceID string,
 	query collection.Query,
 ) (collection.Query, bson.M, bson.D, error) {
+	return buildStoreRequestCollectionWithBase(bson.A{bson.M{"workspace_id": workspaceID}}, query)
+}
+
+// buildAllStoreRequestCollection is buildStoreRequestCollection's
+// cross-tenant counterpart (PZEP-0020) - no workspace_id clause at all.
+// admin.tenantId remains a normal filterable field
+// (requestCollectionFields["workspaceId"]) for an admin who wants to
+// narrow to one tenant.
+func buildAllStoreRequestCollection(query collection.Query) (collection.Query, bson.M, bson.D, error) {
+	return buildStoreRequestCollectionWithBase(bson.A{}, query)
+}
+
+func buildStoreRequestCollectionWithBase(
+	baseClauses bson.A,
+	query collection.Query,
+) (collection.Query, bson.M, bson.D, error) {
 	normalized := query.Normalize()
-	clauses := bson.A{bson.M{"workspace_id": workspaceID}}
+	clauses := append(bson.A{}, baseClauses...)
 	if search := strings.TrimSpace(normalized.Search); search != "" {
 		pattern := primitive.Regex{Pattern: regexp.QuoteMeta(search), Options: "i"}
 		searchClauses := bson.A{
@@ -91,7 +107,14 @@ func buildStoreRequestCollection(
 	if normalized.SortDirection == collection.SortAscending {
 		direction = 1
 	}
-	return normalized, bson.M{"$and": clauses}, bson.D{
+	// $and with an empty array is invalid in MongoDB - only reachable via
+	// buildAllStoreRequestCollection with no search/filters (the
+	// tenant-scoped path always has at least the workspace_id base clause).
+	filter := bson.M{}
+	if len(clauses) > 0 {
+		filter = bson.M{"$and": clauses}
+	}
+	return normalized, filter, bson.D{
 		{Key: sortField.path, Value: direction},
 		{Key: "_id", Value: 1},
 	}, nil

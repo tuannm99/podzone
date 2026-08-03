@@ -443,6 +443,72 @@ func (_c *MockStoreRepository_FindBySubdomain_Call) RunAndReturn(run func(ctx co
 	return _c
 }
 
+// ListAllPage provides a mock function for the type MockStoreRepository
+func (_mock *MockStoreRepository) ListAllPage(ctx context.Context, query collection.Query) (collection.Page[entity.StoreRequest], error) {
+	ret := _mock.Called(ctx, query)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListAllPage")
+	}
+
+	var r0 collection.Page[entity.StoreRequest]
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) (collection.Page[entity.StoreRequest], error)); ok {
+		return returnFunc(ctx, query)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, collection.Query) collection.Page[entity.StoreRequest]); ok {
+		r0 = returnFunc(ctx, query)
+	} else {
+		r0 = ret.Get(0).(collection.Page[entity.StoreRequest])
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, collection.Query) error); ok {
+		r1 = returnFunc(ctx, query)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStoreRepository_ListAllPage_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAllPage'
+type MockStoreRepository_ListAllPage_Call struct {
+	*mock.Call
+}
+
+// ListAllPage is a helper method to define mock.On call
+//   - ctx context.Context
+//   - query collection.Query
+func (_e *MockStoreRepository_Expecter) ListAllPage(ctx interface{}, query interface{}) *MockStoreRepository_ListAllPage_Call {
+	return &MockStoreRepository_ListAllPage_Call{Call: _e.mock.On("ListAllPage", ctx, query)}
+}
+
+func (_c *MockStoreRepository_ListAllPage_Call) Run(run func(ctx context.Context, query collection.Query)) *MockStoreRepository_ListAllPage_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 collection.Query
+		if args[1] != nil {
+			arg1 = args[1].(collection.Query)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStoreRepository_ListAllPage_Call) Return(page collection.Page[entity.StoreRequest], err error) *MockStoreRepository_ListAllPage_Call {
+	_c.Call.Return(page, err)
+	return _c
+}
+
+func (_c *MockStoreRepository_ListAllPage_Call) RunAndReturn(run func(ctx context.Context, query collection.Query) (collection.Page[entity.StoreRequest], error)) *MockStoreRepository_ListAllPage_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ListPage provides a mock function for the type MockStoreRepository
 func (_mock *MockStoreRepository) ListPage(ctx context.Context, workspaceID string, query collection.Query) (collection.Page[entity.StoreRequest], error) {
 	ret := _mock.Called(ctx, workspaceID, query)

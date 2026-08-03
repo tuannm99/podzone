@@ -12,6 +12,9 @@ type AccessAuthorizer interface {
 	AuthorizeStoreRequest(ctx context.Context, workspaceID string, requestedBy string) error
 	AuthorizeStoreRead(ctx context.Context, workspaceID string, requestedBy string) error
 	AuthorizeStoreApproval(ctx context.Context, requestedBy string) error
+	// AuthorizeStoreReadAll gates cross-tenant admin review screens
+	// (PZEP-0020) - platform-scoped, no tenant boundary crossing.
+	AuthorizeStoreReadAll(ctx context.Context, requestedBy string) error
 }
 
 type OperationalStoreFinalizer interface {
@@ -26,6 +29,14 @@ type StoreRepository interface {
 	ListPage(
 		ctx context.Context,
 		workspaceID string,
+		query collection.Query,
+	) (collection.Page[storeentity.StoreRequest], error)
+	// ListAllPage lists store requests across every tenant, with no
+	// workspaceID filter - used by the admin review screen (PZEP-0020),
+	// gated by AccessAuthorizer.AuthorizeStoreReadAll at the interactor
+	// layer, not by this method itself.
+	ListAllPage(
+		ctx context.Context,
 		query collection.Query,
 	) (collection.Page[storeentity.StoreRequest], error)
 	ListTransitions(
