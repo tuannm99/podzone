@@ -1,12 +1,13 @@
 # PZEP-0016: Recovery backlog triage — remaining `docs/07-problems` findings
 
 ## Status
-Draft — Waves 1, 3, 4, and 5 all done (see Rollout Log). Wave 2 removed
-(already resolved). Wave 4 and Wave 5 were implemented via their own
+Draft — Waves 1, 3, 4, 5, and 6 all done (see Rollout Log). Wave 2 removed
+(already resolved). Waves 4, 5, and 6 were implemented via their own
 follow-up PZEPs
 ([PZEP-0017](./PZEP-0017-multitenancy-correctness-observability.md),
-[PZEP-0018](./PZEP-0018-store-authorization-iam-single-authority.md), both
-Done). Only Wave 6 and Wave 7 remain — neither scoped into a PZEP yet.
+[PZEP-0018](./PZEP-0018-store-authorization-iam-single-authority.md),
+[PZEP-0019](./PZEP-0019-staging-k8s-survivability-track-a.md), all Done).
+Only Wave 7 remains — not yet scoped into a PZEP.
 
 ## Date
 2026-07-25 (Wave 1 executed 2026-07-26; Wave 4's MT6 piece, PZEP-0015, and
@@ -184,17 +185,18 @@ resolve here).
 
 ### Wave 6 — Platform survivability, infra-only (`deployments/kubernetes/staging/`)
 
-PS8, PS9, PS10, PS11 — matches `platform-scaling-2026-07-23.md`'s own
-"Track A". Pure Kubernetes manifest + `cmd/backoffice/main.go` wiring
-changes (PS10 needs `pdglobalmiddleware` wired into backoffice, matching what
-`auth`/`catalog`/`grpcgateway`/`iam`/`onboarding`/`partner` already do). No
-tenancy logic change. Order matters: PS10 (real `/readyz`) before PS8
-(replicas:2 + PDB) — scaling out without a real readiness probe makes
-rollouts worse, per that doc's own note. **Could be a single infra-focused
-PZEP** covering all four, since none touch application contracts — flagged
-here as its own PZEP mainly because it changes production resource
-allocation (PS9's CPU limits, PS11's storage class) which warrants explicit
-sign-off, not because it's cross-component in the usual sense.
+**Done** — [PZEP-0019](./PZEP-0019-staging-k8s-survivability-track-a.md),
+implemented. Re-verifying PS9/PS10 against the actual current
+manifests while writing that PZEP found the picture had partially moved
+since this note was written: `backoffice`'s CPU limit was already bumped
+(not still `50m`), `auth`/`catalog` already have correct `tcpSocket`
+probes, and `onboarding` already has a correctly-ported `httpGet` probe
+(just pointed at the still-fake `/healthz` handler). It also found a
+**new, more severe bug PS10 didn't originally describe**: `grpcgateway`'s
+`Service`/`containerPort` declare `8080` but the app actually listens on
+`8088` (`GW_HTTP_PORT`) — a connectivity bug, not just a missing health
+check. See PZEP-0019's Problem section for the full corrected per-service
+table.
 
 ### Wave 7 — Platform tenancy scaling (`internal/onboarding` provisioning + `pdtenantdb`)
 
@@ -220,9 +222,8 @@ placement/scheduling behavior end to end.
    via [PZEP-0017](./PZEP-0017-multitenancy-correctness-observability.md).
 6. ~~Wave 5 (MT5, MT7)~~ — done, implemented via
    [PZEP-0018](./PZEP-0018-store-authorization-iam-single-authority.md).
-7. Wave 6 — independent of all tenancy waves, can run any time capacity
-   allows; recommended early since it's pure infra risk reduction with no
-   application-code coupling. Not yet scoped into its own PZEP.
+7. ~~Wave 6~~ — done, implemented via
+   [PZEP-0019](./PZEP-0019-staging-k8s-survivability-track-a.md).
 8. Wave 7 — last, since it depends on MT1 Phase 1 (done) and benefits from
    Phase 2 being live first, plus PS4/PS5 need their own splits. Not yet
    scoped into its own PZEP.
@@ -305,7 +306,14 @@ real SQLSTATE is `42P01`, not the `3F000` originally guessed) after
 verifying empirically against real Postgres rather than assuming — see
 PZEP-0017's own Rollout Log. Full-repo `go test ./...` passes after both.
 
-With this, every wave in this PZEP except Wave 6 and Wave 7 is closed.
+**2026-07-27, Wave 6:** Written up and implemented via
+[PZEP-0019](./PZEP-0019-staging-k8s-survivability-track-a.md) (PS8-PS11).
+Verifying the manifests before writing that PZEP found a new, more severe
+`grpcgateway` port-mismatch bug (manifest declared `8080`, app actually
+listened on `8088`) beyond what PS10 originally described — see
+PZEP-0019's own Rollout Log for full detail.
+
+With this, every wave in this PZEP except Wave 7 is closed.
 
 ## Affected Components
 Spans every backend component and the Kubernetes staging manifests — see
@@ -357,7 +365,9 @@ Plan.
 - TASK-0005: write Wave 5's authorization-model PZEP (after Wave 4).
   **Done, and implemented** — written up as and implemented via
   [PZEP-0018](./PZEP-0018-store-authorization-iam-single-authority.md) (Done).
-- TASK-0006: write Wave 6's infra-survivability PZEP. Not started.
+- TASK-0006: write Wave 6's infra-survivability PZEP. **Done, and
+  implemented** —
+  [PZEP-0019](./PZEP-0019-staging-k8s-survivability-track-a.md) (Done).
 - TASK-0007: write Wave 7's tenancy-scaling PZEP(s), split PS4/PS5 out per
   Proposed Solution. Not started.
 

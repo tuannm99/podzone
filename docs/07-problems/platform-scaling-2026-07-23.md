@@ -11,13 +11,17 @@ the platform **scales and survives** — cluster management, capacity admission,
 and the k8s topology. The two overlap in two places, cross-referenced inline
 (MT2 pool sizing, MT12 PgBouncer bypass).
 
-Status: all items **open**. Derived from reading code and manifests — **no load
-test was run and no cluster was inspected**. Numbers about throughput below are
-reasoned from configuration, not measured. Re-check the referenced file/line
-before treating any item as current. Sequenced in
-[PZEP-0016](../09-pzep/PZEP-0016-recovery-backlog-triage-2026-07.md): Track A
-(PS8-PS11) is Wave 6, Track B (PS1-PS3/PS6/PS7/PS12, plus PS4/PS5 split out)
-is Wave 7 — both need their own follow-up PZEP(s).
+Status as of 2026-07-27: **Track A (PS8-PS11) fully resolved** via
+[PZEP-0019](../09-pzep/PZEP-0019-staging-k8s-survivability-track-a.md).
+Re-verifying the manifests while writing that PZEP found this note's
+PS9/PS10 "all six services"/"still 50m" claims were already partially
+stale before the fix, and turned up a new, more severe `grpcgateway`
+port-mismatch bug this note never described (see PS10's corrected note).
+Manual QA against a real k8s cluster (kind/staging) has not been done —
+this repo's usual `go test ./...` verification doesn't exercise manifest
+behavior. PS1-PS7/PS12 (Track B, Wave 7) remain open and not yet scoped
+into a PZEP. Numbers about throughput are still reasoned from
+configuration, not measured — no load test has been run.
 
 ---
 
@@ -214,6 +218,11 @@ docker value), or add `binary_parameters=yes` to the DSN built in
 
 ## PS8 — Every service runs `replicas: 1` with no HPA and no PodDisruptionBudget
 
+**Resolved 2026-07-27** ([PZEP-0019](../09-pzep/PZEP-0019-staging-k8s-survivability-track-a.md)).
+Every service manifest now sets `replicas: 2` and has a matching
+`PodDisruptionBudget` (`minAvailable: 1`). HPA remains a deliberate
+Non-Goal until PS9's limits are proven real under load.
+
 **File:** `deployments/kubernetes/staging/services/backoffice.yml:8` and the
 same line in `auth.yml`, `catalog.yml`, `onboarding.yml`, `storefront.yml`,
 `grpcgateway.yml`, `frontend.yml`
@@ -232,6 +241,14 @@ rollouts *worse*, not better.
 ---
 
 ## PS9 — CPU limit of `50m` for every Go service
+
+**Resolved 2026-07-27** ([PZEP-0019](../09-pzep/PZEP-0019-staging-k8s-survivability-track-a.md)).
+`backoffice.yml` was already bumped (`requests: {cpu: 100m}, limits: {cpu:
+500m}`) outside any tracked PZEP before this pass. `auth`, `catalog`,
+`onboarding`, `storefront`, `grpcgateway` bumped to the same values as part
+of PZEP-0019. Exact numbers are a starting order-of-magnitude match to
+what `backoffice` already had, not a measured/load-tested figure - see
+that PZEP's Open Questions.
 
 **File:** `deployments/kubernetes/staging/services/backoffice.yml:38-43`
 (identical block in `auth.yml`, `catalog.yml`, `onboarding.yml`,
@@ -262,6 +279,28 @@ pod scales on a meaningless signal.
 
 ## PS10 — Readiness and liveness probes are commented out on all six services, for two different reasons
 
+**Resolved 2026-07-27** ([PZEP-0019](../09-pzep/PZEP-0019-staging-k8s-survivability-track-a.md)).
+This note's "all six services" claim was already stale before this pass -
+`auth`/`catalog` already had correct `tcpSocket` probes; `onboarding`
+already had a correctly-ported `httpGet /healthz` probe. `grpcgateway`'s
+manifest declared `containerPort`/`Service.port`/`targetPort: 8080` while
+the app actually listened on `8088` (`GW_HTTP_PORT`) - a connectivity bug
+this note never described, more severe than the probe issue riding along
+with it (also, no `/healthz` route existed in that service at all - would
+have 404'd). Fixed: `GW_HTTP_PORT` corrected to `8080` to match the
+already-correct `containerPort`/`Service` (docker dev already used `8080`
+consistently - staging was the one environment with the mismatch); added
+a `/healthz` route to `pkg/pdgrpcgateway`. `backoffice`/`storefront`'s
+probes uncommented with corrected ports (`8000`/`3000`); `storefront`
+(`cmd/storefront/main.go`) had no `/healthz` handler at all - added one.
+`backoffice` also wired `pdglobalmiddleware.CommonGinMiddlewareModule`
+(previously entirely absent) and gets a real `/readyz` (pings the Mongo
+connection it shares with onboarding) instead of just the shared
+always-200 `/healthz` - the first service in this codebase with a
+genuinely dependency-aware readiness check. Rolling `/readyz` out to the
+remaining services is explicitly deferred (PZEP-0019 Non-Goals) - they
+keep pointing at `/healthz` for now, unchanged.
+
 **File:** `deployments/kubernetes/staging/services/backoffice.yml:45-55` and the
 equivalent blocks in `auth.yml`, `catalog.yml`, `onboarding.yml`,
 `storefront.yml`, `grpcgateway.yml`
@@ -289,6 +328,19 @@ probe port to `8000`; split `/healthz` (liveness, static) from `/readyz`
 ---
 
 ## PS11 — Postgres runs as a single-replica `Deployment` on an RWO volume
+
+**Resolved 2026-07-27** ([PZEP-0019](../09-pzep/PZEP-0019-staging-k8s-survivability-track-a.md)).
+Converted to a `StatefulSet` (headless `Service`, `volumeClaimTemplates`
+instead of a standalone PVC), realistic resources
+(`requests: {cpu: 250m, memory: 256Mi}`, `limits: {cpu: 1, memory:
+512Mi}`), a real `pg_isready` exec probe, and credentials moved to a
+`postgres-credentials` Secret. **Residual gap, explicitly flagged, not
+closed**: the Secret's value is still the literal `postgres`/`postgres`
+checked into this same file - moving to a Secret object doesn't remove a
+value from git history by itself; real rotation is a separate operator
+action (same pattern as PZEP-0009's `backoffice_app` password). Backup/PITR
+strategy remains an explicit Non-Goal of PZEP-0019, tracked as its own
+future concern, not folded into this StatefulSet conversion.
 
 **File:** `deployments/kubernetes/staging/persistent/postgres/single.yml:1-53`
 **Severity:** High — the database backing every tenant has no HA and a deadlocking rollout

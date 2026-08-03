@@ -57,7 +57,21 @@ func startHTTPGateway(p Params) {
 		AllowCredentials: true,
 		MaxAge:           86400,
 	})
-	handler := c.Handler(p.Handler)
+	// /healthz: liveness only, static - grpc-gateway is a stateless proxy
+	// with no dependency of its own to check, unlike Gin services'
+	// /readyz (PS10, docs/09-pzep/PZEP-0019-staging-k8s-survivability-track-a.md).
+	// This service doesn't go through pdglobalmiddleware.CommonGinMiddlewareModule
+	// (it's not a Gin app - p.Handler is grpc-gateway's own runtime mux),
+	// so it needs its own healthz route rather than reusing that module.
+	mux := http.NewServeMux()
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"status":"ok"}`))
+	})
+	mux.Handle("/", p.Handler)
+
+	handler := c.Handler(mux)
 
 	pdserver.RegisterHTTPServer(
 		p.Lifecycle,

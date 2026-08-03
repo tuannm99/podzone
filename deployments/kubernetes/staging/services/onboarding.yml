@@ -5,7 +5,7 @@ metadata:
   labels:
     app: onboarding-service
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: onboarding-service
@@ -71,10 +71,10 @@ spec:
 
           resources:
             requests:
-              cpu: '20m'
+              cpu: '100m'
               memory: '50Mi'
             limits:
-              cpu: '50m'
+              cpu: '500m'
               memory: '128Mi'
           readinessProbe:
             httpGet:
@@ -101,3 +101,14 @@ spec:
     - port: 8080
       name: http
       targetPort: 8080
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: onboarding-service-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: onboarding-service

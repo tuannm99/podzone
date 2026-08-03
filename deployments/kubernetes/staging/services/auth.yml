@@ -5,7 +5,7 @@ metadata:
   labels:
     app: auth-service
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: auth-service
@@ -65,10 +65,10 @@ spec:
 
           resources:
             requests:
-              cpu: '20m'
+              cpu: '100m'
               memory: '50Mi'
             limits:
-              cpu: '50m'
+              cpu: '500m'
               memory: '128Mi'
           readinessProbe:
             tcpSocket:
@@ -93,3 +93,14 @@ spec:
     - port: 50051
       name: grpc
       targetPort: 50051
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: auth-service-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: auth-service

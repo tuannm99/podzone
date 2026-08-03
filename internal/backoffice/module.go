@@ -21,9 +21,22 @@ import (
 	"github.com/tuannm99/podzone/internal/backoffice/runtime/tenancy"
 	"github.com/tuannm99/podzone/pkg/ddd"
 	dddinprocess "github.com/tuannm99/podzone/pkg/ddd/inprocess"
+	"github.com/tuannm99/podzone/pkg/pdglobalmiddleware"
 	"github.com/tuannm99/podzone/pkg/pdhttp"
+	"github.com/tuannm99/podzone/pkg/pdlog"
+	"github.com/tuannm99/podzone/pkg/pdmongo"
 	"github.com/tuannm99/podzone/pkg/pdtenantdb"
 )
+
+// newReadyRoute wires a real /readyz for backoffice (PS10,
+// docs/07-problems/platform-scaling-2026-07-23.md /
+// docs/09-pzep/PZEP-0019-staging-k8s-survivability-track-a.md) - pings the
+// Mongo connection backoffice shares with onboarding (the KV placement
+// store this service depends on for tenant routing), instead of the
+// shared CommonGinMiddlewareModule's always-200 /healthz.
+func newReadyRoute(logger pdlog.Logger, mongoClient pdmongo.MongoClient) pdhttp.RouteRegistrar {
+	return pdglobalmiddleware.NewReadyRoute(logger, mongoClient.Ping)
+}
 
 // Module provides all backoffice dependencies (GraphQL, domain, infra)
 var Module = fx.Options(
@@ -64,6 +77,11 @@ var Module = fx.Options(
 			func(handler *backofficehttp.StoreBootstrapHandler) pdhttp.RouteRegistrar {
 				return handler.RegisterRoutes()
 			},
+			fx.ResultTags(`group:"gin-routes"`),
+		),
+		fx.Annotate(
+			newReadyRoute,
+			fx.ParamTags(``, `name:"mongo-onboarding"`),
 			fx.ResultTags(`group:"gin-routes"`),
 		),
 	),

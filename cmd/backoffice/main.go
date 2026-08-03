@@ -6,6 +6,7 @@ import (
 
 	"github.com/tuannm99/podzone/internal/backoffice"
 	"github.com/tuannm99/podzone/pkg/pdconfig"
+	"github.com/tuannm99/podzone/pkg/pdglobalmiddleware"
 	"github.com/tuannm99/podzone/pkg/pdgraphql"
 	"github.com/tuannm99/podzone/pkg/pdhttp"
 	kvstores "github.com/tuannm99/podzone/pkg/pdkvstores"
@@ -28,6 +29,7 @@ func newAppContainer(extra ...fx.Option) *fx.App {
 	return fx.New(
 		pdconfig.Module,
 		pdlog.Module,
+		pdglobalmiddleware.CommonGinMiddlewareModule,
 
 		// <-- use shared gin/http server
 		pdhttp.Module,

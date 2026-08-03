@@ -1,21 +1,33 @@
+# PS11, docs/09-pzep/PZEP-0019-staging-k8s-survivability-track-a.md:
+# StatefulSet (not Deployment) for stable network identity/ordered startup
+# and to avoid the RollingUpdate-on-RWO-volume deadlock a Deployment would
+# hit; credentials from a Secret instead of plaintext in this file;
+# realistic resources for the database backing every tenant's schema.
+#
+# NOTE: the Secret below still has the same literal 'postgres'/'postgres'
+# value checked into this file - moving to a Secret object alone does not
+# remove it from git history. Real security benefit requires an operator
+# to rotate this out-of-band (matching PZEP-0009's precedent for
+# backoffice_app's password) before this manifest is applied to any real
+# environment; this PZEP only establishes the plumbing (services already
+# reference this Secret's keys, not a raw value) so that rotation is
+# possible without a manifest change, not a rotated credential itself.
 apiVersion: v1
-kind: PersistentVolumeClaim
+kind: Secret
 metadata:
-  name: postgres-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: local-path
-  resources:
-    requests:
-      storage: 2Gi
+  name: postgres-credentials
+type: Opaque
+stringData:
+  POSTGRES_USER: 'postgres'
+  POSTGRES_PASSWORD: 'postgres'
 
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: postgres
 spec:
+  serviceName: postgres
   replicas: 1
   selector:
     matchLabels:
@@ -32,9 +44,15 @@ spec:
             - containerPort: 5432
           env:
             - name: POSTGRES_USER
-              value: 'postgres'
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: POSTGRES_USER
             - name: POSTGRES_PASSWORD
-              value: 'postgres'
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: POSTGRES_PASSWORD
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
           volumeMounts:
@@ -42,15 +60,31 @@ spec:
               mountPath: /var/lib/postgresql/data
           resources:
             requests:
-              cpu: '50m'
-              memory: '128Mi'
-            limits:
-              cpu: '100m'
+              cpu: '250m'
               memory: '256Mi'
-      volumes:
-        - name: postgres-storage
-          persistentVolumeClaim:
-            claimName: postgres-pvc
+            limits:
+              cpu: '1'
+              memory: '512Mi'
+          readinessProbe:
+            exec:
+              command: ['pg_isready', '-U', 'postgres']
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ['pg_isready', '-U', 'postgres']
+            initialDelaySeconds: 15
+            periodSeconds: 30
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-storage
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: local-path
+        resources:
+          requests:
+            storage: 2Gi
 
 ---
 apiVersion: v1
@@ -58,7 +92,10 @@ kind: Service
 metadata:
   name: postgres
 spec:
-  type: ClusterIP
+  # Headless - required for a StatefulSet's stable per-pod network identity
+  # (spec.serviceName above). Existing consumers connecting via
+  # postgres.default.svc.cluster.local:5432 are unaffected (single replica).
+  clusterIP: None
   selector:
     app: postgres
   ports:
